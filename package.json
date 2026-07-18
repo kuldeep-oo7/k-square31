@@ -1,0 +1,15 @@
+{
+  "name": "k-square-range-desk",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "dev": "node dev-server.js",
+    "check": "node --check app.js && node --check api/market.js"
+  },
+  "engines": {
+    "node": "24.x"
+  },
+  "dependencies": {
+    "@vercel/blob": "^2.6.1"
+  }
+}

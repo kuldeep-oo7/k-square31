@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#f7f4ec" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+    <meta name="apple-mobile-web-app-title" content="K² Desk" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="description" content="K² is Kamlesh and Kuldeep's private rolling 31-day market range desk, synchronized securely across devices." />
+    <title>K² — Rolling Range Desk</title>
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <link rel="icon" href="/k2-icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="/k2-icon.svg" />
+    <link rel="stylesheet" href="/styles.css?v=k2-living-1" />
+  </head>
+  <body>
+    <div class="ambient ambient-one"></div>
+    <div class="ambient ambient-two"></div>
+    <canvas class="k2-ambient-canvas" id="k2Ambient" aria-hidden="true"></canvas>
+    <div class="gesture-sparks" id="gestureSparks" aria-hidden="true"></div>
+    <div class="scroll-vfx" id="scrollVfx" aria-hidden="true"><span>K²</span><i></i><b>✦</b></div>
+
+    <header class="topbar">
+      <a class="brand" href="#" aria-label="K squared home">
+        <span class="brand-mark">K<sup>2</sup></span>
+        <span class="brand-copy">K SQUARE<br />RANGE DESK</span>
+      </a>
+      <div class="top-actions">
+        <div class="feed-pill" id="feedPill"><i></i><span>Connecting feed</span></div>
+        <div class="user-pill hidden" id="userPill"><span id="userName">User</span><button id="replayStoryButton" type="button" title="Replay the K² story">K² story</button><button id="logoutButton" type="button">Log out</button></div>
+        <button class="fx-button" id="fxToggleButton" type="button" aria-pressed="true" title="Toggle the living K² visual field"><i></i><span>FX LIVE</span></button>
+        <button class="icon-button" id="refreshButton" aria-label="Refresh market data" title="Refresh market data">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66M20 4v7h-7" /></svg>
+        </button>
+      </div>
+    </header>
+
+    <main>
+      <section class="hero">
+        <div class="hero-copy">
+          <p class="eyebrow"><span></span> K² living edition · 31 calendar days</p>
+          <h1>A moving map for<br /><em>your next move.</em></h1>
+          <p class="hero-note">Your workbook, turned into a living range desk. Every price level is calculated—not guessed—and re-centres as the rolling window moves.</p>
+          <p class="friendship-line"><span>♡</span> Markets move. Friendship compounds. <b>Kamlesh × Kuldeep</b></p>
+        </div>
+        <div class="k2-bond-stage" id="k2BondStage" aria-label="Kamlesh and Kuldeep friendship visual">
+          <span class="bond-live"><i></i> FRIENDSHIP FIELD</span>
+          <div class="bond-rings" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="bond-node kamlesh"><b>K</b><small>KAMLESH</small></div>
+          <div class="bond-beam" aria-hidden="true"><i></i><i></i><i></i></div>
+          <div class="bond-node kuldeep"><b>K</b><small>KULDEEP</small></div>
+          <div class="bond-core"><strong>K<sup>2</sup></strong><span>ONE SQUARE</span></div>
+          <p>Two minds. One moving field.</p>
+        </div>
+      </section>
+
+      <section class="snapshot-grid" aria-label="Portfolio snapshot">
+        <article class="snapshot-card card-violet">
+          <span>Tracked universe</span>
+          <strong id="trackedCount">130</strong>
+          <small>symbols from journal (1).xlsx</small>
+        </article>
+        <article class="snapshot-card card-mint">
+          <span>Portfolio value</span>
+          <strong id="portfolioValue">₹0</strong>
+          <small id="holdingCount">No positions yet</small>
+        </article>
+        <article class="snapshot-card card-coral">
+          <span>Open P&amp;L</span>
+          <strong id="openPnl">₹0</strong>
+          <small id="openPnlPct">Add a position to begin</small>
+        </article>
+        <article class="snapshot-card card-sun">
+          <span>Live map</span>
+          <strong id="loadedCount">0 / 130</strong>
+          <small id="lastUpdated">Loading rolling ranges…</small>
+        </article>
+      </section>
+
+      <nav class="section-tabs" aria-label="Workspace sections">
+        <button class="tab-button active" data-tab="watchlist"><span>01</span> Watchlist <b id="watchlistBadge">130</b></button>
+        <button class="tab-button" data-tab="portfolio"><span>02</span> Portfolio <b id="portfolioBadge">0</b></button>
+        <div class="tab-line"></div>
+      </nav>
+
+      <section class="workspace-panel active" id="watchlistPanel">
+        <div class="toolbar">
+          <label class="search-box">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7" /><path d="m20 20-4-4" /></svg>
+            <input id="searchInput" type="search" placeholder="Find a symbol…" autocomplete="off" />
+          </label>
+          <label class="select-wrap"><span>Band</span><select id="bandFilter" autocomplete="off"><option value="all">All ranges</option><option value="lower-band">Lower band</option><option value="mid-band">Mid band</option><option value="upper-band">Upper band</option><option value="outside">Outside range</option></select></label>
+          <label class="select-wrap"><span>Sector</span><select id="sectorFilter" autocomplete="off"><option value="all">All sectors</option></select></label>
+          <label class="select-wrap"><span>Market cap</span><select id="capFilter" autocomplete="off"><option value="all">All caps</option><option value="Large Cap">Large cap</option><option value="Mid Cap">Mid cap</option><option value="Small Cap">Small cap</option></select></label>
+          <label class="select-wrap"><span>Quant mode</span><select id="modelFilter" autocomplete="off"><option value="all">All modes</option><option value="trend">Trend</option><option value="range">Range</option><option value="transition">Transition</option><option value="volatile">High volatility</option></select></label>
+          <label class="select-wrap"><span>Sort</span><select id="sortSelect" autocomplete="off"><option value="journal">Journal order</option><option value="buy-pulse">Buy pulse first</option><option value="sell-pulse">Sell pulse first</option><option value="relative">Nifty strength</option><option value="symbol">Symbol A–Z</option><option value="position">Low → high</option><option value="change">Daily move</option><option value="cap-rank">Market-cap rank</option><option value="sector">Sector A–Z</option></select></label>
+        </div>
+
+        <div class="method-strip">
+          <span class="method-icon">∿</span>
+          <p><b>How it works:</b> five buy chunks step down below the 31-day midpoint; five sell chunks step up above it. Levels 4–5 deliberately extend beyond the monthly low or high.</p>
+          <button id="methodButton">See the maths</button>
+        </div>
+
+        <section class="focus-map" id="focusMap" aria-live="polite"></section>
+
+        <div class="stock-table-head" aria-hidden="true">
+          <span>Instrument</span><span>Market price</span><span>31-day range map</span><span>Range state</span><span></span>
+        </div>
+        <div class="stock-list" id="stockList" aria-live="polite"></div>
+        <button class="load-more" id="loadMoreButton">Show more symbols <span>↓</span></button>
+      </section>
+
+      <section class="workspace-panel" id="portfolioPanel">
+        <div class="portfolio-intro">
+          <div><p class="eyebrow"><span></span> Private cloud portfolio</p><h2>Your positions,<br /><em>measured live.</em></h2></div>
+          <p>Entry lots are stored securely under your signed-in account and follow you across devices. Current value and open P&amp;L move with the same market feed as your watchlist.</p>
+        </div>
+        <div id="portfolioContent"></div>
+      </section>
+
+    </main>
+
+    <aside class="detail-drawer" id="detailDrawer" aria-hidden="true">
+      <button class="drawer-backdrop" id="drawerBackdrop" aria-label="Close stock detail"></button>
+      <div class="drawer-sheet" role="dialog" aria-modal="true" aria-labelledby="drawerTitle">
+        <button class="drawer-close" id="drawerClose" aria-label="Close">×</button>
+        <div id="drawerContent"></div>
+      </div>
+    </aside>
+
+    <div class="modal-shell" id="tradeModal" aria-hidden="true">
+      <button class="modal-backdrop" data-close-modal aria-label="Close"></button>
+      <form class="trade-modal" id="tradeForm">
+        <button type="button" class="drawer-close" data-close-modal aria-label="Close">×</button>
+        <p class="eyebrow"><span></span> Portfolio entry</p>
+        <h2 id="tradeTitle">Add a position</h2>
+        <p class="modal-symbol" id="tradeSymbol">ICICIBANK · NSE</p>
+        <input type="hidden" id="tradeAction" value="buy" />
+        <div class="form-grid">
+          <label><span id="priceLabel">Entry price</span><div class="money-input"><b>₹</b><input id="tradePrice" type="number" min="0.01" step="0.01" inputmode="decimal" required /></div><small id="livePriceHint">Live market price: —</small></label>
+          <label><span>Quantity</span><input id="tradeQuantity" type="number" min="0.0001" step="0.0001" inputmode="decimal" required /><small id="quantityHint">Shares or units</small></label>
+        </div>
+        <div class="order-preview"><span>Position amount</span><strong id="orderAmount">₹0</strong></div>
+        <button class="primary-button" id="tradeSubmit" type="submit">Add to portfolio <span>→</span></button>
+      </form>
+    </div>
+
+    <div class="modal-shell" id="methodModal" aria-hidden="true">
+      <button class="modal-backdrop" data-close-method aria-label="Close"></button>
+      <div class="trade-modal method-modal">
+        <button type="button" class="drawer-close" data-close-method aria-label="Close">×</button>
+        <p class="eyebrow"><span></span> Transparent by design</p>
+        <h2>The K² ladder</h2>
+        <div class="formula-card"><span>Rolling range</span><code>R = 31-day high − 31-day low</code></div>
+        <div class="formula-card"><span>Midpoint</span><code>M = (high + low) ÷ 2</code></div>
+        <p>Buy 1–3 descend from the midpoint toward the low. Sell 1–3 rise toward the high. Levels 4–5 extend beyond the observed range by <code>max(10% × R, 0.75 × ATR₁₄)</code>, capped at 20% of R.</p>
+        <p>ATR measures recent daily movement. This makes wider-moving stocks use wider steps while keeping the result bounded and comparable.</p>
+        <div class="example-ladder"><b>Example: low ₹100 · high ₹125</b><span>Midpoint ₹112.50 · range ₹25</span><span>Buy 1–3: ₹108.75 · ₹105 · ₹101.25</span><span>Buy 4–5 and Sell 4–5 extend outside ₹100–₹125 using ATR.</span></div>
+        <div class="method-evidence"><b>The K² regime engine</b><span>First classify the path: trend, range, transition, or high-volatility.</span><span>In trend mode, velocity + EMA direction + Nifty-relative strength vote.</span><span>In range mode, range location + RSI pressure + Z-score stretch vote.</span><span>ATR, volatility, beta, trend fit and staged exits measure risk independently.</span><span>When the regime or signals conflict, K² says wait instead of forcing a verdict.</span></div>
+        <p class="method-sources">Research basis: <a href="https://www.aqr.com/Insights/Research/Journal-Article/A-Century-of-Evidence-on-Trend-Following-Investing" target="_blank" rel="noopener">AQR trend evidence</a> · <a href="https://www.man.com/insights/need-for-speed-trend-following" target="_blank" rel="noopener">Man AHL moving-average systems</a> · <a href="https://www.nber.org/papers/w22208" target="_blank" rel="noopener">volatility-managed exposure</a> · <a href="https://doi.org/10.1016/j.jfineco.2012.06.001" target="_blank" rel="noopener">false discoveries and costs</a>.</p>
+      </div>
+    </div>
+
+    <div class="toast" id="toast" role="status"></div>
+
+    <section class="auth-gate" id="authGate" aria-label="Sign in">
+      <div class="auth-art" aria-hidden="true"><div class="auth-orbit"><b>K<sup>2</sup></b><span>PRIVATE<br />RANGE DESK</span></div></div>
+      <form class="auth-card" id="loginForm">
+        <p class="eyebrow"><span></span> Private workspace</p>
+        <h1>Welcome to<br /><em>K².</em></h1>
+        <p class="auth-copy">Sign in to open your watchlist and your own private portfolio, securely synchronized across devices.</p>
+        <label><span>Username</span><input id="loginUsername" type="text" autocomplete="username" required /></label>
+        <label><span>Password</span><input id="loginPassword" type="password" autocomplete="current-password" required /></label>
+        <p class="auth-error" id="loginError" role="alert"></p>
+        <button class="primary-button" id="loginButton" type="submit">Enter range desk <span>→</span></button>
+        <small>Two private accounts are configured. Portfolio data is isolated by username and stored server-side.</small>
+      </form>
+    </section>
+
+    <section class="dedication-intro" id="dedicationIntro" aria-hidden="true">
+      <canvas id="dedicationCanvas" aria-hidden="true"></canvas>
+      <button class="story-skip" id="storySkip" type="button">Skip intro</button>
+      <div class="story-stage">
+        <div class="story-emblem" aria-hidden="true"><span class="story-k">K</span><span class="story-two">2</span><i class="story-ring ring-a"></i><i class="story-ring ring-b"></i><i class="story-ring ring-c"></i></div>
+        <p class="story-overline">Two names · one square</p>
+        <h2>Kamlesh <span>×</span> Kuldeep</h2>
+        <p class="story-message">A private place built from trust, numbers and a friendship worth remembering.</p>
+        <button class="story-enter" id="storyEnter" type="button">Enter K² Range Desk <span>→</span></button>
+      </div>
+      <p class="story-foot">Made to move with you—from pocket to tablet to the biggest screen.</p>
+    </section>
+
+    <script src="/watchlist-data.js?v=k2-living-1"></script>
+    <script src="/app.js?v=k2-living-1"></script>
+  </body>
+</html>
