@@ -2,7 +2,7 @@ const crypto = require("node:crypto");
 const { get, put, BlobPreconditionFailedError } = require("@vercel/blob");
 
 function emptyPortfolio() {
-  return { version: 1, lots: [], realizedPnl: 0, transactions: [], updatedAt: null };
+  return { version: 2, lots: [], realizedPnl: 0, transactions: [], updatedAt: null };
 }
 
 function userPath(username) {
@@ -52,7 +52,7 @@ async function mutatePortfolio(username, mutator) {
   for (let attempt = 0; attempt < 5; attempt += 1) {
     const current = await readDocument(pathname, emptyPortfolio());
     const next = await mutator(structuredClone(current.data));
-    next.version = 1;
+    next.version = 2;
     next.updatedAt = new Date().toISOString();
     try {
       await writeDocument(pathname, next, current.etag);

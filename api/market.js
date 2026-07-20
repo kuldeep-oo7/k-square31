@@ -254,8 +254,10 @@ async function benchmark() {
 }
 
 async function fetchSymbol(rawSymbol, benchmarkResult) {
-  const symbol = rawSymbol.endsWith(".NS") ? rawSymbol : `${rawSymbol}.NS`;
-  return calculate(symbol, await fetchChart(symbol), benchmarkResult);
+  const symbol = rawSymbol === "NIFTY" ? "^NSEI" : rawSymbol.endsWith(".NS") ? rawSymbol : `${rawSymbol}.NS`;
+  const result = calculate(symbol, await fetchChart(symbol), benchmarkResult);
+  result.symbol = rawSymbol.replace(/\.NS$/, "");
+  return result;
 }
 
 module.exports = async function handler(request, response) {

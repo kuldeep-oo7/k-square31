@@ -33,7 +33,7 @@
   const refreshButton = el("refreshButton");
 
   function emptyPortfolio() {
-    return { lots: [], realizedPnl: 0, transactions: [] };
+    return { version: 2, lots: [], realizedPnl: 0, transactions: [] };
   }
 
   function emptyAiLedger() {
@@ -245,17 +245,19 @@
   }
 
   function exitPlan(item, data, live) {
-    const atr = Math.max(Number(data?.window?.atr14) || 0, item.average * .01);
+    const underlyingPrice = Number(data?.price) || item.average;
+    const underlyingAtrPct = underlyingPrice ? (Number(data?.window?.atr14) || underlyingPrice * .01) / underlyingPrice : .01;
+    const atr = Math.max(item.average * underlyingAtrPct, item.average * .005);
     const factors = [.5, 1, 1.5, 2, 3];
+    const direction = item.position === "short" ? -1 : 1;
     const targets = factors.map((factor, index) => {
-      const entryTarget = item.average + atr * factor;
-      const monthlyTarget = Number(data?.ladder?.sell?.[index]) || 0;
-      const price = Math.max(entryTarget, monthlyTarget);
-      const distance = (price - live) / live * 100;
-      const status = live >= price ? "reached" : price - live <= Math.max(atr * .25, live * .003) ? "close" : "waiting";
-      return { price, distance, status, gainPct: (price - item.average) / item.average * 100, rMultiple: (price - item.average) / atr };
+      const price = item.average + direction * atr * factor;
+      const distance = Math.abs(price - live) / live * 100;
+      const reached = direction > 0 ? live >= price : live <= price;
+      const status = reached ? "reached" : Math.abs(price - live) <= Math.max(atr * .25, live * .003) ? "close" : "waiting";
+      return { price, distance, status, gainPct: direction * (price - item.average) / item.average * 100, rMultiple: factor };
     });
-    return { atr, targets, slice: item.quantity / 5, riskLine: item.average - atr };
+    return { atr, targets, slice: item.quantity / 5, riskLine: item.average - direction * atr, direction };
   }
 
   function positionFor(data) {
@@ -269,24 +271,32 @@
   function holdings() {
     const grouped = new Map();
     for (const lot of state.portfolio.lots) {
-      if (!grouped.has(lot.symbol)) grouped.set(lot.symbol, { symbol: lot.symbol, quantity: 0, cost: 0, lots: 0 });
-      const item = grouped.get(lot.symbol);
+      const assetType = lot.assetType === "future" ? "future" : "equity";
+      const position = lot.position === "short" ? "short" : "long";
+      const key = lot.contractKey || (assetType === "future" ? `${lot.symbol}|FUT|${lot.expiry}|${position}` : `${lot.symbol}|EQ|long`);
+      if (!grouped.has(key)) grouped.set(key, { key, symbol: lot.symbol, assetType, position, expiry: lot.expiry || null, market: lot.market || (assetType === "future" ? "NSEFUT" : "NSE"), quantity: 0, cost: 0, lots: 0, markCost: 0, exactMark: true, source: lot.source || null });
+      const item = grouped.get(key);
       item.quantity += Number(lot.quantity);
       item.cost += Number(lot.quantity) * Number(lot.price);
+      item.markCost += Number(lot.quantity) * Number(lot.markPrice || lot.price);
+      if (assetType === "future" && lot.markSource !== "exchange-live") item.exactMark = false;
       item.lots += 1;
     }
-    return [...grouped.values()].map((item) => ({ ...item, average: item.quantity ? item.cost / item.quantity : 0 }));
+    return [...grouped.values()].map((item) => ({ ...item, average: item.quantity ? item.cost / item.quantity : 0, markPrice: item.quantity ? item.markCost / item.quantity : 0 }));
   }
 
   function portfolioMetrics() {
     const items = holdings();
     let value = 0;
     let cost = 0;
+    let pnl = 0;
     for (const item of items) {
-      value += (currentPrice(item.symbol) ?? item.average) * item.quantity;
+      const mark = item.assetType === "future" ? item.markPrice : (currentPrice(item.symbol) ?? item.average);
+      value += mark * item.quantity;
       cost += item.cost;
+      pnl += (mark - item.average) * item.quantity * (item.position === "short" ? -1 : 1);
     }
-    return { items, value, cost, pnl: value - cost, pnlPct: cost ? ((value - cost) / cost) * 100 : 0 };
+    return { items, value, cost, pnl, pnlPct: cost ? (pnl / cost) * 100 : 0, hasFutures: items.some((item) => item.assetType === "future") };
   }
 
   function filteredWatchlist() {
@@ -444,6 +454,8 @@
       const equity = Number(summary.cash) + Number(summary.marketValue);
       const totalPnl = equity - Number(summary.allocated);
       el("trackedCount").textContent = watchlist.length;
+      el("portfolioValueLabel").textContent = "Virtual portfolio";
+      el("openPnlLabel").textContent = "Total P&L";
       el("portfolioValue").textContent = money(equity, true);
       el("holdingCount").textContent = `${summary.activeStocks || 0} active stocks · ${summary.openLots || 0} lots`;
       el("openPnl").textContent = money(totalPnl, Math.abs(totalPnl) >= 100000);
@@ -455,11 +467,13 @@
     }
     const metrics = portfolioMetrics();
     el("trackedCount").textContent = watchlist.length;
+    el("portfolioValueLabel").textContent = metrics.hasFutures ? "Reference notional" : "Portfolio value";
+    el("openPnlLabel").textContent = metrics.hasFutures ? "Marked P&L" : "Open P&L";
     el("portfolioValue").textContent = money(metrics.value, metrics.value >= 100000);
     el("holdingCount").textContent = metrics.items.length ? `${metrics.items.length} holding${metrics.items.length === 1 ? "" : "s"}` : "No positions yet";
     el("openPnl").textContent = money(metrics.pnl, Math.abs(metrics.pnl) >= 100000);
     el("openPnl").className = metrics.pnl > 0 ? "positive" : metrics.pnl < 0 ? "negative" : "";
-    el("openPnlPct").textContent = metrics.items.length ? `${pct(metrics.pnlPct)} on tracked cost` : "Add a position to begin";
+    el("openPnlPct").textContent = metrics.items.length ? `${pct(metrics.pnlPct)} on ${metrics.hasFutures ? "entry notional" : "tracked cost"}` : "Add a position to begin";
     el("portfolioBadge").textContent = metrics.items.length;
     el("loadedCount").textContent = `${market.size} / ${watchlist.length}`;
   }
@@ -546,46 +560,53 @@
     }
 
     const cards = metrics.items.map((item) => {
-      const live = currentPrice(item.symbol) ?? item.average;
+      const isFuture = item.assetType === "future";
+      const live = isFuture ? item.markPrice : (currentPrice(item.symbol) ?? item.average);
+      const spot = currentPrice(item.symbol);
       const data = market.get(item.symbol);
       const value = live * item.quantity;
-      const pnlValue = value - item.cost;
+      const direction = item.position === "short" ? -1 : 1;
+      const pnlValue = (live - item.average) * item.quantity * direction;
       const pnlPercent = item.cost ? (pnlValue / item.cost) * 100 : 0;
       const plan = exitPlan(item, data, live);
       const lastTarget = plan.targets.at(-1).price;
-      const progress = Math.max(0, Math.min(100, (live - item.average) / (lastTarget - item.average) * 100));
+      const progress = Math.max(0, Math.min(100, direction * (live - item.average) / Math.abs(lastTarget - item.average) * 100));
       const flagProgress = Math.max(4, Math.min(96, progress));
-      const targets = plan.targets.map((target, index) => `<button class="exit-band ${target.status}" data-exit-band data-exit-symbol="${item.symbol}" data-exit-price="${target.price}" data-exit-qty="${plan.slice}">
-        <span><b>S${index + 1}</b><i>${target.status === "reached" ? "Reached ✓" : target.status === "close" ? "Very close" : `${number(Math.max(0, target.distance))}% away`}</i></span>
-        <strong>${money(target.price)}</strong><small>${pct(target.gainPct)} · ${number(target.rMultiple)}R · ${number(plan.slice)} units</small>
-      </button>`).join("");
+      const targets = plan.targets.map((target, index) => {
+        const content = `<span><b>${item.position === "short" ? "C" : "S"}${index + 1}</b><i>${isFuture && !item.exactMark ? "planned level" : target.status === "reached" ? "Reached ✓" : target.status === "close" ? "Very close" : `${number(Math.max(0, target.distance))}% away`}</i></span><strong>${money(target.price)}</strong><small>${pct(target.gainPct)} · ${number(target.rMultiple)} ATR · ${number(plan.slice)} units</small>`;
+        return isFuture ? `<div class="exit-band future-band">${content}</div>` : `<button class="exit-band ${target.status}" data-exit-band data-exit-symbol="${item.symbol}" data-exit-price="${target.price}" data-exit-qty="${plan.slice}">${content}</button>`;
+      }).join("");
+      const expiry = item.expiry ? new Date(`${item.expiry}T00:00:00Z`).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }) : "";
+      const instrumentCopy = isFuture ? `${item.market} · ${expiry} · ${item.position.toUpperCase()} ${number(item.quantity)}` : `${bySymbol.get(item.symbol)?.marketCapCategory || "Equity"} · ${number(item.quantity)} units · ${item.lots} lot${item.lots === 1 ? "" : "s"}`;
+      const markCopy = isFuture && !item.exactMark ? "Broker snapshot" : "Live price";
+      const actionMarkup = isFuture ? `<span class="contract-chip ${item.position}">${item.position === "short" ? "SHORT FUTURE" : "LONG FUTURE"}</span>` : `<button class="small-button" data-open-buy="${item.symbol}">Add</button><button class="small-button sell" data-open-sell="${item.symbol}">Reduce</button>`;
       return `<article class="holding-shell"><div class="holding-card">
-        <div class="symbol-cell"><span class="symbol-avatar">${initials(item.symbol)}</span><div><b>${item.symbol}</b><small>${bySymbol.get(item.symbol)?.marketCapCategory} · ${number(item.quantity)} units · ${item.lots} lot${item.lots === 1 ? "" : "s"}</small></div></div>
+        <div class="symbol-cell"><span class="symbol-avatar">${initials(item.symbol)}</span><div><b>${item.symbol}${isFuture ? " FUT" : ""}</b><small>${instrumentCopy}</small></div></div>
         <div class="holding-metric"><span>Average entry</span><strong>${money(item.average)}</strong></div>
-        <div class="holding-metric"><span>Live price · value</span><strong>${money(live)} · ${money(value)}</strong></div>
-        <div class="holding-metric"><span>Open P&amp;L</span><strong class="${pnlValue >= 0 ? "positive" : "negative"}">${money(pnlValue)} · ${pct(pnlPercent)}</strong></div>
-        <div class="holding-actions"><button class="small-button" data-open-buy="${item.symbol}">Add</button><button class="small-button sell" data-open-sell="${item.symbol}">Reduce</button></div>
+        <div class="holding-metric"><span>${markCopy} · notional</span><strong>${money(live)} · ${money(value)}</strong>${isFuture && Number.isFinite(spot) ? `<small class="spot-reference">Spot reference ${money(spot)}</small>` : ""}</div>
+        <div class="holding-metric"><span>Open P&amp;L</span><strong class="${pnlValue >= 0 ? "positive" : "negative"}">${isFuture && !item.exactMark ? "Awaiting futures LTP" : `${money(pnlValue)} · ${pct(pnlPercent)}`}</strong></div>
+        <div class="holding-actions">${actionMarkup}</div>
       </div><section class="exit-plan">
-        <div class="exit-plan-head"><div><span>YOUR FIVE EXIT BANDS · ABOVE ${money(item.average)} AVERAGE</span><h3>Price reaches a band → reduce one slice</h3></div><p>Even split: ${number(plan.slice)} of ${number(item.quantity)} units per band. Tap any band to prefill the reduction.</p></div>
-        <div class="exit-progress"><span style="width:${progress}%"></span><i style="left:${flagProgress}%">NOW ${money(live)}</i><b>ENTRY ${money(item.average)}</b><b>FINAL ${money(lastTarget)}</b></div>
+        <div class="exit-plan-head"><div><span>${item.position === "short" ? "FIVE COVER BANDS · BELOW" : "YOUR FIVE EXIT BANDS · ABOVE"} ${money(item.average)} ENTRY</span><h3>${item.position === "short" ? "Price falls → cover one slice" : "Price rises → reduce one slice"}</h3></div><p>Even split: ${number(plan.slice)} of ${number(item.quantity)} units per band. ${isFuture ? "Levels scale the underlying ATR to the contract entry; exact futures LTP is required before a level can be marked reached." : "Tap any band to prefill the reduction."}</p></div>
+        <div class="exit-progress ${item.position === "short" ? "short-progress" : ""}"><span style="width:${progress}%"></span><i style="left:${flagProgress}%">${isFuture && !item.exactMark ? "ENTRY MARK" : "NOW"} ${money(live)}</i><b>ENTRY ${money(item.average)}</b><b>FINAL ${money(lastTarget)}</b></div>
         <div class="exit-bands">${targets}</div>
-        <p class="exit-risk"><b>Movement-risk reference:</b> one ATR below your average is ${money(plan.riskLine)}. This is a volatility reference, not an automatic stop order.${data ? ` Sell bands 4–5 remain beyond the rolling 31-day high (${money(data.window.high)}).` : " Live range data is loading."}</p>
+        <p class="exit-risk"><b>${isFuture ? "Contract valuation status:" : "Movement-risk reference:"}</b> ${isFuture ? `The imported broker table supplied MTM 0.00 but no current futures LTP, so K² preserves the entry mark and shows ${Number.isFinite(spot) ? `the ${money(spot)} underlying spot` : "underlying spot"} separately—never as the futures price. ` : ""}One ATR adverse reference is ${money(plan.riskLine)}.${data ? ` The calculation uses the underlying ${number(data.signals?.atrPct)}% ATR.` : " Live range data is loading."}</p>
       </section></article>`;
     }).join("");
 
     const transactions = state.portfolio.transactions.slice(0, 6).map((transaction) => `
       <div class="holding-card">
-        <div class="symbol-cell"><span class="symbol-avatar">${transaction.action === "buy" ? "+" : "−"}</span><div><b>${transaction.symbol}</b><small>${new Date(transaction.time).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</small></div></div>
-        <div class="holding-metric"><span>Action</span><strong>${transaction.action === "buy" ? "Added" : "Reduced"}</strong></div>
-        <div class="holding-metric"><span>Quantity</span><strong>${number(transaction.quantity)}</strong></div>
-        <div class="holding-metric"><span>Price</span><strong>${money(transaction.price)}</strong></div><div></div>
+        <div class="symbol-cell"><span class="symbol-avatar">${transaction.action === "buy" ? "+" : transaction.action === "import" ? "↻" : "−"}</span><div><b>${transaction.action === "import" ? "Broker snapshot" : transaction.symbol}</b><small>${new Date(transaction.time).toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" })}</small></div></div>
+        <div class="holding-metric"><span>Action</span><strong>${transaction.action === "buy" ? "Added" : transaction.action === "import" ? "Imported" : "Reduced"}</strong></div>
+        <div class="holding-metric"><span>Quantity</span><strong>${transaction.action === "import" ? `${number(transaction.count)} contracts` : number(transaction.quantity)}</strong></div>
+        <div class="holding-metric"><span>Price</span><strong>${transaction.action === "import" ? "Exact snapshot" : money(transaction.price)}</strong></div><div></div>
       </div>`).join("");
 
     container.innerHTML = `
       <div class="portfolio-summary">
-        <article class="portfolio-mini"><span>Market value</span><strong>${money(metrics.value)}</strong></article>
-        <article class="portfolio-mini"><span>Invested cost</span><strong>${money(metrics.cost)}</strong></article>
-        <article class="portfolio-mini"><span>Realized P&amp;L</span><strong class="${state.portfolio.realizedPnl >= 0 ? "positive" : "negative"}">${money(state.portfolio.realizedPnl)}</strong></article>
+        <article class="portfolio-mini"><span>${metrics.hasFutures ? "Reference notional" : "Market value"}</span><strong>${money(metrics.value)}</strong></article>
+        <article class="portfolio-mini"><span>${metrics.hasFutures ? "Entry notional" : "Invested cost"}</span><strong>${money(metrics.cost)}</strong></article>
+        <article class="portfolio-mini"><span>${metrics.hasFutures ? "Realized P&L" : "Realized P&amp;L"}</span><strong class="${state.portfolio.realizedPnl >= 0 ? "positive" : "negative"}">${money(state.portfolio.realizedPnl)}</strong></article>
         <article class="portfolio-mini"><span>Private database</span><strong class="${state.databaseOnline ? "positive" : "negative"}">${state.databaseOnline ? "Synchronized" : "Offline copy"}</strong></article>
       </div>
       <div class="holdings-list">${cards}</div>

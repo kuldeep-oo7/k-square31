@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node dev-server.js",
-    "check": "node --check app.js && node --check api/market.js && node --check api/ai.js && node --check api/ai-run.js && node scripts/test-ai-engine.js && node scripts/test-store.js",
+    "check": "node --check app.js && node --check api/market.js && node --check api/portfolio.js && node --check api/ai.js && node --check api/ai-run.js && node scripts/test-ai-engine.js && node scripts/test-store.js && node scripts/test-portfolio-model.js",
     "ai:init": "node scripts/run-ai-init.js"
   },
   "engines": {

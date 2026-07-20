@@ -1,16 +1,7 @@
 const crypto = require("node:crypto");
 const { noStore, readSession, validCsrf, validOrigin } = require("./_lib/security");
 const { mutatePortfolio, readPortfolio } = require("./_lib/store");
-
-function cleanPortfolio(portfolio) {
-  return {
-    version: 1,
-    lots: Array.isArray(portfolio.lots) ? portfolio.lots : [],
-    realizedPnl: Number(portfolio.realizedPnl) || 0,
-    transactions: Array.isArray(portfolio.transactions) ? portfolio.transactions.slice(0, 100) : [],
-    updatedAt: portfolio.updatedAt || null
-  };
-}
+const { cleanPortfolio, replaceBrokerSnapshot } = require("./_lib/portfolio-model");
 
 function validNumber(value, maximum) {
   return Number.isFinite(value) && value > 0 && value <= maximum;
@@ -31,6 +22,20 @@ module.exports = async function handler(request, response) {
 
   let body = request.body || {};
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
+  if (body.action === "replace-broker-futures") {
+    const snapshotId = String(body.snapshotId || "");
+    if (session.username !== "shah@kamlesh" || !/^[a-zA-Z0-9-]{8,100}$/.test(snapshotId) || !Array.isArray(body.positions)) {
+      return response.status(400).json({ error: "Invalid broker snapshot" });
+    }
+    try {
+      const updated = await mutatePortfolio(session.username, (portfolio) => replaceBrokerSnapshot(portfolio, body.positions, snapshotId));
+      return response.status(200).json({ portfolio: cleanPortfolio(updated) });
+    } catch (error) {
+      if (error.code === "SNAPSHOT") return response.status(400).json({ error: error.message });
+      console.error("Broker snapshot import failed", error);
+      return response.status(503).json({ error: "The portfolio database is temporarily unavailable" });
+    }
+  }
   const action = body.action === "sell" ? "sell" : body.action === "buy" ? "buy" : null;
   const symbol = String(body.symbol || "").trim().toUpperCase();
   const price = Number(body.price);
@@ -45,9 +50,9 @@ module.exports = async function handler(request, response) {
       portfolio = cleanPortfolio(portfolio);
       if (portfolio.transactions.some((transaction) => transaction.requestId === requestId)) return portfolio;
       if (action === "buy") {
-        portfolio.lots.push({ id: crypto.randomUUID(), symbol, price, quantity, time: Date.now() });
+        portfolio.lots.push({ id: crypto.randomUUID(), symbol, price, quantity, time: Date.now(), assetType: "equity", position: "long", market: "NSE" });
       } else {
-        const available = portfolio.lots.filter((lot) => lot.symbol === symbol).reduce((sum, lot) => sum + Number(lot.quantity), 0);
+        const available = portfolio.lots.filter((lot) => lot.symbol === symbol && lot.assetType !== "future").reduce((sum, lot) => sum + Number(lot.quantity), 0);
         if (quantity > available + 0.0000001) {
           const error = new Error("Quantity is larger than the stored holding");
           error.code = "QUANTITY";
@@ -57,7 +62,7 @@ module.exports = async function handler(request, response) {
         let realized = 0;
         const nextLots = [];
         for (const lot of portfolio.lots) {
-          if (lot.symbol !== symbol || remaining <= 0) { nextLots.push(lot); continue; }
+          if (lot.symbol !== symbol || lot.assetType === "future" || remaining <= 0) { nextLots.push(lot); continue; }
           const used = Math.min(remaining, Number(lot.quantity));
           realized += (price - Number(lot.price)) * used;
           remaining -= used;
