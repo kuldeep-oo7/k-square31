@@ -277,20 +277,25 @@
     const lots = state.portfolio.lots.filter((lot) => lot.symbol === symbol && lot.assetType !== "future");
     const exit = !isFuture ? window.K2_GRID?.lotExit(lots, price, 2, holding?.position) : null;
     let action = grid.action;
-    let label = action === "buy" ? `BUY B${grid.reachedBuyLevel}` : action === "sell" ? "SELL +2%" : action === "loading" ? "LOADING" : "WAIT";
-    let detail = action === "buy" ? `Up to ${money(40_000)} · about ${number(Math.floor(40_000 / price))} units` : action === "sell" ? `Weekly price is ${pct(grid.weeklyMovePct)} from Monday open` : `Next buy ${money(grid.buyLevels?.[0])} · weekly sell ${money(grid.sellAt)}`;
+    let label = action === "buy" ? "🟢 BUY SOME" : action === "sell" ? "🔴 SELL SOME" : action === "loading" ? "LOADING PRICES" : "🟡 HOLD — NO ACTION";
+    let detail = action === "buy" ? `Buy level ${grid.reachedBuyLevel} at ${money(grid.buyLevels?.[grid.reachedBuyLevel - 1])} has been reached. Use no more than ${money(40_000)} for this chunk.` : action === "sell" ? `Price crossed the ${money(grid.sellAt)} sell line, 2% above Monday's opening reference.` : `Hold until price reaches the ${money(grid.buyLevels?.[0])} buy line or ${money(grid.sellAt)} sell line.`;
     if (exit?.quantity > 0) {
       action = holding?.position === "short" ? "buy" : "sell";
-      label = holding?.position === "short" ? "COVER +2%" : "SELL +2%";
-      detail = `${number(exit.quantity)} stored units have reached their individual 2% target`;
+      label = holding?.position === "short" ? "🟢 COVER SOME" : "🔴 SELL SOME";
+      detail = `${number(exit.quantity)} stored units have reached their individual 2% profit target.`;
     } else if (holding && exit?.nextTarget) {
-      detail = `${holding.position === "short" ? "Next cover" : "Next lot exit"} ${money(exit.nextTarget)} · weekly buy ${money(grid.buyLevels?.[0])}`;
+      detail = `${holding.position === "short" ? "Cover" : "Sell"} the next stored lot at ${money(exit.nextTarget)}. Until then, hold.`;
     }
     if (isFuture) {
-      label = action === "buy" ? "BUY-SIDE PROXY" : action === "sell" ? "SELL-SIDE PROXY" : "FUTURES WAIT";
-      detail = `Underlying spot is ${pct(grid.weeklyMovePct)} from ${money(anchor)} weekly open; confirm the contract LTP`;
+      if (holding.position === "short") {
+        label = action === "buy" ? "🟢 COVER SOME" : action === "sell" ? "🔴 SHORT RISK — REVIEW" : "🟡 HOLD — NO ACTION";
+        detail = action === "buy" ? `The underlying reached the ${money(grid.buyLevels?.[0])} cover line; the short-position rule says take some profit.` : action === "sell" ? `The underlying crossed the ${money(grid.sellAt)} risk line against the short position; review the contract before acting.` : `Hold until the underlying reaches ${money(grid.buyLevels?.[0])} to cover or ${money(grid.sellAt)} for a risk review.`;
+      } else {
+        label = action === "buy" ? "🟢 BUY SOME" : action === "sell" ? "🔴 SELL SOME" : "🟡 HOLD — NO ACTION";
+        detail = action === "buy" ? `The underlying crossed the ${money(grid.buyLevels?.[0])} buy line. Buy no more than ${money(40_000)} after confirming the futures price.` : action === "sell" ? `The underlying crossed the ${money(grid.sellAt)} sell line. Sell one chunk after confirming the futures price.` : `Do nothing until the underlying reaches ${money(grid.buyLevels?.[0])} to buy or ${money(grid.sellAt)} to sell.`;
+      }
     }
-    return { ...grid, action, label, detail, holding, isFuture, exit };
+    return { ...grid, action, label, detail, holding, isFuture, exit, current: price, buyAt: grid.buyLevels?.[0], sellAt: grid.sellAt };
   }
 
   function holdings() {
@@ -367,7 +372,7 @@
       const aiStock = state.user === "ai" ? state.aiLedger.stocks?.find((stock) => stock.symbol === item.symbol) : null;
       const aiReady = Boolean(aiStock?.anchor);
       const personal = state.user !== "ai" && data ? personalSignal(item.symbol, data) : null;
-      const mapMarkup = aiReady ? `<div class="range-values"><span>FRIDAY ${money(aiStock.anchor.price)}</span><span>NEXT BUY ${money(aiStock.nextBuy?.price)}</span><span>NEXT SELL ${money(aiStock.nextSell)}</span></div><div class="range-track ai-track"><i class="price-pin" style="left:${focusPosition(Number(aiStock.lastPrice), Number(aiStock.levels?.at(-1)), Number(aiStock.anchor.price))}%"></i></div>` : data ? `<div class="range-values"><span>MON OPEN ${money(data.weekly?.openingPrice)}</span><span>BUY −2% ${money(personal.buyLevels?.[0])}</span><span>SELL +2% ${money(personal.sellAt)}</span></div><div class="range-track personal-track"><i class="price-pin" style="left:${focusPosition(data.price, personal.buyLevels?.at(-1), personal.sellAt)}%"></i></div>` : `<div class="range-values"><span>${state.user === "ai" ? "Waiting for Friday grid" : "Fetching weekly history"}</span><span>—</span></div><div class="range-loading"></div>`;
+      const mapMarkup = aiReady ? `<div class="range-values"><span>FRIDAY ${money(aiStock.anchor.price)}</span><span>NEXT BUY ${money(aiStock.nextBuy?.price)}</span><span>NEXT SELL ${money(aiStock.nextSell)}</span></div><div class="range-track ai-track"><i class="price-pin" style="left:${focusPosition(Number(aiStock.lastPrice), Number(aiStock.levels?.at(-1)), Number(aiStock.anchor.price))}%"></i></div>` : data ? `<div class="range-values"><span>TODAY LOW ${money(data.daily?.low)}</span><span>NOW ${money(data.price)}</span><span>TODAY HIGH ${money(data.daily?.high)}</span></div><div class="range-track personal-track"><i class="price-pin" style="left:${focusPosition(data.price, data.daily?.low, data.daily?.high)}%"></i></div>` : `<div class="range-values"><span>${state.user === "ai" ? "Waiting for Friday grid" : "Fetching today's range"}</span><span>—</span></div><div class="range-loading"></div>`;
       const stateMarkup = aiReady ? `<span class="state-chip ${aiStock.lots?.length ? "lower-band" : "mid-band"}">${aiStock.lots?.length ? `${aiStock.lots.length} open lot${aiStock.lots.length === 1 ? "" : "s"}` : "Grid watching"}</span><small class="quant-link ${aiStock.openPnl >= 0 ? "positive" : "negative"}">${aiStock.nextBuy ? `B${aiStock.nextBuy.level} next · ${money(aiStock.nextBuy.price)}` : "Weekly levels evaluated"}</small>` : data ? `<span class="trade-suggestion ${personal.action}">${personal.label}</span><small class="quant-link ${pulseDescription(data).tone}">${personal.detail}</small>` : `<span class="state-chip">Loading</span><small class="map-link">Building 2% grid →</small>`;
       return `
         <article class="stock-row" data-symbol="${item.symbol}" tabindex="0" aria-label="Open ${item.symbol} range detail">
@@ -459,7 +464,7 @@
         <div class="focus-name"><span class="symbol-avatar">${initials(symbol)}</span><div><p class="eyebrow" style="margin-bottom:5px"><span></span> Selected 10-chunk map</p><h2>${symbol}</h2><p>${snapshot.sector} · ${snapshot.marketCapCategory} · rank #${snapshot.marketCapRank} · ${data.window.sessions} sessions in 31 days</p></div></div>
         <div class="focus-current"><span>Current market price</span><strong>${money(data.price)}</strong><small class="${data.changePct >= 0 ? "positive" : "negative"}">${pct(data.changePct)} today</small></div>
       </div>
-      <section class="weekly-call ${personal.action}"><div><span>K² WEEKLY 2% CALL · MONDAY OPEN ${money(data.weekly?.openingPrice)}</span><h3>${personal.label}</h3><p>${personal.detail}</p></div><strong>${personal.action === "buy" ? money(personal.buyLevels?.[personal.reachedBuyLevel - 1]) : personal.action === "sell" ? money(personal.exit?.nextTarget || personal.sellAt) : money(data.price)}</strong></section>
+      <section class="weekly-call ${personal.action}"><div><span>K² WEEKLY 2% CALL · MONDAY OPEN ${money(data.weekly?.openingPrice)}</span><h3>${personal.label}</h3><p>${personal.detail}</p><div class="call-thresholds daily-lines"><b>TODAY LOW ${money(data.daily?.low)}</b><b>NOW ${money(data.price)}</b><b>TODAY HIGH ${money(data.daily?.high)}</b></div></div><strong>${personal.action === "buy" ? money(personal.buyLevels?.[personal.reachedBuyLevel - 1]) : personal.action === "sell" ? money(personal.exit?.nextTarget || personal.sellAt) : money(data.price)}</strong></section>
       <div class="plain-rule"><b>Read this from the centre:</b> the midpoint is ${money(data.window.midpoint)}. Moving left gives five progressively lower buy chunks; moving right gives five progressively higher sell chunks. ${actionCopy}</div>
       <div class="decision-river">
         <div class="river-line"></div>${nodes}
@@ -616,7 +621,7 @@
         <div class="holding-metric"><span>${markCopy} · notional</span><strong>${money(live)} · ${money(value)}</strong>${isFuture && Number.isFinite(spot) ? `<small class="spot-reference">Spot reference ${money(spot)}</small>` : ""}</div>
         <div class="holding-metric"><span>Open P&amp;L</span><strong class="${pnlValue >= 0 ? "positive" : "negative"}">${isFuture && !item.exactMark ? "Awaiting futures LTP" : `${money(pnlValue)} · ${pct(pnlPercent)}`}</strong></div>
         <div class="holding-actions">${actionMarkup}</div>
-      </div><section class="portfolio-call ${suggestion.action}"><div><span>${isFuture ? "UNDERLYING WEEKLY PROXY" : "K² 2% POSITION CALL"}</span><strong>${suggestion.label}</strong><p>${suggestion.detail}</p></div>${suggestionAction}</section><section class="exit-plan">
+      </div><section class="portfolio-call ${suggestion.action}"><div><span>${isFuture ? "K² SIMPLE ACTION · USING UNDERLYING PRICE" : "K² SIMPLE ACTION · 2% RULE"}</span><strong>${suggestion.label}</strong><p>${suggestion.detail}</p><div class="call-thresholds rule-lines"><b>${item.position === "short" ? "COVER" : "BUY"} ≤ ${money(suggestion.buyAt)}</b><b>MON OPEN ${money(data?.weekly?.openingPrice)}</b><b>${item.position === "short" ? "RISK" : "SELL"} ≥ ${money(suggestion.sellAt)}</b></div><div class="call-thresholds daily-lines"><b>TODAY LOW ${money(data?.daily?.low)}</b><b>NOW ${money(suggestion.current)}</b><b>TODAY HIGH ${money(data?.daily?.high)}</b></div></div>${suggestionAction}</section><section class="exit-plan">
         <div class="exit-plan-head"><div><span>${item.position === "short" ? "FIVE COVER BANDS · BELOW" : "YOUR FIVE EXIT BANDS · ABOVE"} ${money(item.average)} ENTRY</span><h3>${item.position === "short" ? "Price falls → cover one slice" : "Price rises → reduce one slice"}</h3></div><p>Even split: ${number(plan.slice)} of ${number(item.quantity)} units per band. ${isFuture ? "Levels scale the underlying ATR to the contract entry; exact futures LTP is required before a level can be marked reached." : "Tap any band to prefill the reduction."}</p></div>
         <div class="exit-progress ${item.position === "short" ? "short-progress" : ""} ${isFuture && !item.exactMark ? "snapshot-progress" : ""}"><span style="width:${progress}%"></span><i style="left:${flagProgress}%">${isFuture && !item.exactMark ? "ENTRY MARK" : "NOW"} ${money(live)}</i><b>ENTRY ${money(item.average)}</b><b>FINAL ${money(lastTarget)}</b></div>
         <div class="exit-bands">${targets}</div>

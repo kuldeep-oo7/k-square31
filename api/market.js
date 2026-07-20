@@ -213,6 +213,11 @@ function calculate(symbol, result, benchmarkResult = null) {
     marketState: meta.marketState || "UNKNOWN",
     exchangeTime: meta.regularMarketTime || bars.at(-1).timestamp,
     fetchedAt: Math.floor(Date.now() / 1000),
+    daily: {
+      open: round(Number.isFinite(meta.regularMarketOpen) ? meta.regularMarketOpen : (bars.at(-1).open ?? bars.at(-1).close)),
+      low: round(liveLow),
+      high: round(liveHigh)
+    },
     weekly: weekSnapshot(bars, price),
     window: {
       calendarDays: 31,
