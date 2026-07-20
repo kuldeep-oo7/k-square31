@@ -4,7 +4,8 @@
   "private": true,
   "scripts": {
     "dev": "node dev-server.js",
-    "check": "node --check app.js && node --check api/market.js && node --check api/ai.js && node --check api/ai-run.js && node scripts/test-ai-engine.js"
+    "check": "node --check app.js && node --check api/market.js && node --check api/ai.js && node --check api/ai-run.js && node scripts/test-ai-engine.js",
+    "ai:init": "node scripts/run-ai-init.js"
   },
   "engines": {
     "node": "24.x"

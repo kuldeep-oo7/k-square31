@@ -65,6 +65,7 @@ main { max-width: 1440px; margin: 0 auto; padding: 0 54px 70px; }
 .hero::after { content: "K²"; position: absolute; right: 25%; top: -70px; z-index: -1; color: rgba(111,89,217,.035); font: 330px Georgia,serif; transform: translateY(calc(var(--k2-scroll,0) * -18px)); }
 .eyebrow { display: flex; align-items: center; gap: 10px; margin: 0 0 18px; color: var(--muted); font-size: 11px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase; }
 .eyebrow span { width: 30px; height: 2px; background: var(--coral); }
+.eyebrow b { font: inherit; letter-spacing: inherit; }
 .hero h1, .portfolio-intro h2, .trade-modal h2 { margin: 0; font-family: Georgia, "Times New Roman", serif; font-size: clamp(48px, 6vw, 82px); line-height: .97; letter-spacing: -.045em; font-weight: 500; }
 .hero h1 em, .portfolio-intro h2 em { color: var(--violet); font-weight: 500; }
 .hero-note { max-width: 610px; color: var(--muted); line-height: 1.65; font-size: 15px; margin: 24px 0 0; }

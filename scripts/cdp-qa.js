@@ -9,6 +9,7 @@ async function run() {
   if (!qaUsername || !qaPassword) {
     throw new Error("Set K2_QA_USERNAME and K2_QA_PASSWORD before running browser QA");
   }
+  const aiMode = qaUsername === "ai";
   const target = await fetch("http://127.0.0.1:9223/json/new?about%3Ablank", { method: "PUT" }).then((response) => response.json());
   const socket = new WebSocket(target.webSocketDebuggerUrl);
   const waiting = new Map();
@@ -48,7 +49,7 @@ async function run() {
   let ready = false;
   for (let attempt = 0; attempt < 40; attempt += 1) {
     await sleep(1000);
-    const result = await evaluate(`document.getElementById('authGate').classList.contains('signed-in') && document.querySelectorAll('#focusMap .chunk-row').length === 10`);
+    const result = await evaluate(`document.getElementById('authGate').classList.contains('signed-in') && ${aiMode ? "document.getElementById('portfolioTabLabel').textContent.includes('AI')" : "document.querySelectorAll('#focusMap .chunk-row').length === 10"}`);
     if (result.result?.result?.value) { ready = true; break; }
   }
   if (!ready) throw new Error("Signed-in 10-chunk map did not become ready");
@@ -62,6 +63,20 @@ async function run() {
   await sleep(700);
   const heroShot = await send("Page.captureScreenshot", { format: "png", fromSurface: true });
   fs.writeFileSync(mobile ? "k2-living-hero-mobile.png" : "k2-living-hero.png", Buffer.from(heroShot.result.data, "base64"));
+  if (aiMode) {
+    await evaluate(`document.querySelector('[data-tab="portfolio"]').click()`);
+    for (let attempt = 0; attempt < 30; attempt += 1) {
+      await sleep(500);
+      const result = await evaluate(`Boolean(document.querySelector('.ai-command'))`);
+      if (result.result?.result?.value) break;
+    }
+    await evaluate(`document.getElementById('portfolioPanel').scrollIntoView({block:'start'}); window.scrollBy(0,-20)`);
+    await sleep(1000);
+    const aiShot = await send("Page.captureScreenshot", { format: "png", fromSurface: true });
+    fs.writeFileSync(mobile ? "k2-ai-mobile.png" : "k2-ai-desktop.png", Buffer.from(aiShot.result.data, "base64"));
+    socket.close();
+    return;
+  }
   await evaluate(`document.getElementById('focusMap').scrollIntoView({block:'start'}); window.scrollBy(0,-20)`);
   await sleep(1500);
   const shot = await send("Page.captureScreenshot", { format: "png", fromSurface: true });
