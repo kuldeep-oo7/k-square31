@@ -36,4 +36,14 @@ assert.equal(second.events.filter((event) => event.action === "sell").length, 2)
 assert.ok(second.state.realizedPnl > 0);
 assert.ok(second.state.cash > 200000, "realized paper profit should return to the stock cash ledger");
 
+const capped = emptySymbolState("CAPTEST");
+capped.anchor = { weekKey: "2026-07-17", barDate: "2026-07-17", price: 500 };
+capped.levels = buyLevels(500);
+capped.cash = 100000;
+capped.lots = [{ id: "old-lot", symbol: "CAPTEST", price: 500, quantity: 380, amount: 190000, target: 510, boughtSession: "2026-07-16", anchorWeek: "2026-07-10", level: 1 }];
+const cappedRun = processSymbol(capped, result([friday, { ...monday, low: 420 }], 472), new Date("2026-07-20T10:01:00Z").getTime());
+const deployed = cappedRun.state.lots.reduce((sum, lot) => sum + Number(lot.amount), 0);
+assert.ok(deployed <= 200000, `deployed capital must stay at or below ₹2 lakh, received ${deployed}`);
+assert.equal(cappedRun.events.filter((event) => event.action === "buy").length, 1, "remaining cap, not paper profits, limits new buys");
+
 console.log("AI engine tests passed");

@@ -1,5 +1,5 @@
 const crypto = require("node:crypto");
-const { get, put, BlobPreconditionFailedError } = require("@vercel/blob");
+const { get, head, put, BlobPreconditionFailedError } = require("@vercel/blob");
 
 function emptyPortfolio() {
   return { version: 2, lots: [], realizedPnl: 0, transactions: [], updatedAt: null };
@@ -26,10 +26,15 @@ async function readDocument(pathname, fallback) {
   // Mutations require the origin ETag, not a CDN-cached private response. A
   // cached read can carry the previous ETag for up to cacheControlMaxAge and
   // make every optimistic retry fail even when there is no competing writer.
-  const result = await get(pathname, { access: "private", useCache: false });
-  if (!result || result.statusCode !== 200 || !result.stream) return { data: structuredClone(fallback), etag: null };
-  const data = JSON.parse(await streamText(result.stream));
-  return { data, etag: writableEtag(result.blob.etag) };
+  for (let attempt = 0; attempt < 3; attempt += 1) {
+    const result = await get(pathname, { access: "private", useCache: false });
+    if (!result || result.statusCode !== 200 || !result.stream) return { data: structuredClone(fallback), etag: null };
+    const data = JSON.parse(await streamText(result.stream));
+    const readEtag = writableEtag(result.blob.etag);
+    const originEtag = writableEtag((await head(pathname)).etag);
+    if (readEtag === originEtag) return { data, etag: originEtag };
+  }
+  throw new Error("Blob changed repeatedly while it was being read");
 }
 
 async function writeDocument(pathname, data, etag) {

@@ -5,16 +5,16 @@
     "api/ai-run.js": { "maxDuration": 60 }
   },
   "crons": [
-    { "path": "/api/ai-run?shard=0", "schedule": "15 10 * * 1-5" },
-    { "path": "/api/ai-run?shard=1", "schedule": "15 10 * * 1-5" },
-    { "path": "/api/ai-run?shard=2", "schedule": "15 10 * * 1-5" },
-    { "path": "/api/ai-run?shard=3", "schedule": "15 10 * * 1-5" },
-    { "path": "/api/ai-run?shard=4", "schedule": "15 10 * * 1-5" },
-    { "path": "/api/ai-run?shard=5", "schedule": "15 10 * * 1-5" },
-    { "path": "/api/ai-run?shard=6", "schedule": "15 10 * * 1-5" },
-    { "path": "/api/ai-run?shard=7", "schedule": "15 10 * * 1-5" },
-    { "path": "/api/ai-run?shard=8", "schedule": "15 10 * * 1-5" },
-    { "path": "/api/ai-run?shard=9", "schedule": "15 10 * * 1-5" }
+    { "path": "/api/ai-run?shard=0", "schedule": "20 10 * * 1-5" },
+    { "path": "/api/ai-run?shard=1", "schedule": "20 10 * * 1-5" },
+    { "path": "/api/ai-run?shard=2", "schedule": "20 10 * * 1-5" },
+    { "path": "/api/ai-run?shard=3", "schedule": "20 10 * * 1-5" },
+    { "path": "/api/ai-run?shard=4", "schedule": "20 10 * * 1-5" },
+    { "path": "/api/ai-run?shard=5", "schedule": "20 10 * * 1-5" },
+    { "path": "/api/ai-run?shard=6", "schedule": "20 10 * * 1-5" },
+    { "path": "/api/ai-run?shard=7", "schedule": "20 10 * * 1-5" },
+    { "path": "/api/ai-run?shard=8", "schedule": "20 10 * * 1-5" },
+    { "path": "/api/ai-run?shard=9", "schedule": "20 10 * * 1-5" }
   ],
   "headers": [
     {

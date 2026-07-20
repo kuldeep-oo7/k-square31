@@ -112,7 +112,9 @@ function processSymbol(previous, result, nowMs = Date.now()) {
   if (!anchorSession) {
     state.levels.forEach((levelPrice, index) => {
       if (state.triggeredLevels[index] || bar.low > levelPrice) return;
-      const available = Math.min(CONFIG.slotBudget, Number(state.cash));
+      const deployed = (state.lots || []).reduce((sum, lot) => sum + Number(lot.amount || lot.quantity * lot.price), 0);
+      const remainingCapacity = Math.max(0, CONFIG.budgetPerStock - deployed);
+      const available = Math.min(CONFIG.slotBudget, Number(state.cash), remainingCapacity);
       const quantity = Math.floor(available / levelPrice);
       if (quantity < 1) return;
       const amount = round(quantity * levelPrice);

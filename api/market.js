@@ -8,6 +8,31 @@ function round(value) {
   return Math.round(value * 100) / 100;
 }
 
+function indiaDate(timestamp) {
+  return new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(timestamp * 1000));
+}
+
+function weekSnapshot(bars, livePrice) {
+  const last = bars.at(-1);
+  if (!last) return null;
+  const latestDate = indiaDate(last.timestamp);
+  const weekday = new Date(`${latestDate}T12:00:00Z`).getUTCDay();
+  const daysFromMonday = (weekday + 6) % 7;
+  const weekStart = new Date(Date.parse(`${latestDate}T12:00:00Z`) - daysFromMonday * DAY * 1000).toISOString().slice(0, 10);
+  const sessions = bars.filter((bar) => indiaDate(bar.timestamp) >= weekStart);
+  const first = sessions[0] || last;
+  const openingPrice = Number.isFinite(first.open) ? first.open : first.close;
+  return {
+    weekStart,
+    firstSession: indiaDate(first.timestamp),
+    sessions: sessions.length,
+    openingPrice: round(openingPrice),
+    high: round(Math.max(...sessions.map((bar) => bar.high))),
+    low: round(Math.min(...sessions.map((bar) => bar.low))),
+    movePct: round((Number(livePrice) / openingPrice - 1) * 100)
+  };
+}
+
 function mean(values) {
   return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
 }
@@ -119,7 +144,7 @@ function calculate(symbol, result, benchmarkResult = null) {
   const allCloses = bars.map((bar) => bar.close);
   const returns = closes.slice(1).map((value, index) => Math.log(value / closes[index]));
   const price = livePrice;
-  const dateInIndia = (timestamp) => new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(timestamp * 1000));
+  const dateInIndia = indiaDate;
   const latestBarIsCurrentSession = meta.regularMarketTime && dateInIndia(meta.regularMarketTime) === dateInIndia(bars.at(-1).timestamp);
   const previousClose = latestBarIsCurrentSession ? (bars.at(-2)?.close ?? price) : bars.at(-1).close;
   const position = Math.max(-0.5, Math.min(1.5, (price - low31) / range));
@@ -188,6 +213,7 @@ function calculate(symbol, result, benchmarkResult = null) {
     marketState: meta.marketState || "UNKNOWN",
     exchangeTime: meta.regularMarketTime || bars.at(-1).timestamp,
     fetchedAt: Math.floor(Date.now() / 1000),
+    weekly: weekSnapshot(bars, price),
     window: {
       calendarDays: 31,
       sessions: windowBars.length,
