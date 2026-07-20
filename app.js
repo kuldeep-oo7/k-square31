@@ -245,19 +245,16 @@
   }
 
   function exitPlan(item, data, live) {
-    const underlyingPrice = Number(data?.price) || item.average;
-    const underlyingAtrPct = underlyingPrice ? (Number(data?.window?.atr14) || underlyingPrice * .01) / underlyingPrice : .01;
-    const atr = Math.max(item.average * underlyingAtrPct, item.average * .005);
-    const factors = [.5, 1, 1.5, 2, 3];
+    const base = item.assetType === "future" ? item.average : (Number(data?.weekly?.openingPrice) || item.average);
     const direction = item.position === "short" ? -1 : 1;
-    const targets = factors.map((factor, index) => {
-      const price = item.average + direction * atr * factor;
+    const weeklyLevels = window.K2_GRID?.exitLevels(base, 2, 5, item.position) || [];
+    const targets = weeklyLevels.map((price, index) => {
       const distance = Math.abs(price - live) / live * 100;
       const reached = direction > 0 ? live >= price : live <= price;
-      const status = reached ? "reached" : Math.abs(price - live) <= Math.max(atr * .25, live * .003) ? "close" : "waiting";
-      return { price, distance, status, gainPct: direction * (price - item.average) / item.average * 100, rMultiple: factor };
+      const status = reached ? "reached" : Math.abs(price - live) <= live * .003 ? "close" : "waiting";
+      return { price, distance, status, gainPct: direction * (price - base) / base * 100, step: index + 1 };
     });
-    return { atr, targets, slice: item.quantity / 5, riskLine: item.average - direction * atr, direction };
+    return { base, targets, slice: item.quantity / 5, riskLine: base * (1 - direction * .02), direction };
   }
 
   function positionFor(data) {
@@ -295,7 +292,42 @@
         detail = action === "buy" ? `The underlying crossed the ${money(grid.buyLevels?.[0])} buy line. Buy no more than ${money(40_000)} after confirming the futures price.` : action === "sell" ? `The underlying crossed the ${money(grid.sellAt)} sell line. Sell one chunk after confirming the futures price.` : `Do nothing until the underlying reaches ${money(grid.buyLevels?.[0])} to buy or ${money(grid.sellAt)} to sell.`;
       }
     }
-    return { ...grid, action, label, detail, holding, isFuture, exit, current: price, buyAt: grid.buyLevels?.[0], sellAt: grid.sellAt };
+    const dailyLow = Number(data?.daily?.low);
+    const dailyHigh = Number(data?.daily?.high);
+    const buyHitToday = Number.isFinite(dailyLow) && dailyLow <= Number(grid.buyLevels?.[0]);
+    const sellHitToday = Number.isFinite(dailyHigh) && dailyHigh >= Number(grid.sellAt);
+    if (action === "wait" && buyHitToday && sellHitToday) {
+      action = "both-hit";
+      label = "🟠 BOTH LINES HIT TODAY";
+      detail = `Today's range crossed both ${money(grid.buyLevels?.[0])} and ${money(grid.sellAt)}. Daily data cannot prove which happened first, so review the intraday chart.`;
+    } else if (action === "wait" && holding?.position === "short" && buyHitToday) {
+      action = "buy-hit";
+      label = "🟢 COVER LINE HIT TODAY";
+      detail = `Today's low ${money(dailyLow)} crossed the ${money(grid.buyLevels?.[0])} cover line. Current price has moved back, but the opportunity occurred earlier today.`;
+    } else if (action === "wait" && holding?.position === "short" && sellHitToday) {
+      action = "sell-hit";
+      label = "🔴 SHORT RISK LINE HIT TODAY";
+      detail = `Today's high ${money(dailyHigh)} crossed the ${money(grid.sellAt)} short-risk line. Current price has moved back, but the event occurred earlier today.`;
+    } else if (action === "wait" && sellHitToday) {
+      action = "sell-hit";
+      label = "🔴 SELL LINE HIT TODAY";
+      detail = `Today's high ${money(dailyHigh)} crossed the ${money(grid.sellAt)} sell line. Current price is back below it, so the opportunity occurred earlier today.`;
+    } else if (action === "wait" && buyHitToday) {
+      action = "buy-hit";
+      label = "🟢 BUY LINE HIT TODAY";
+      detail = `Today's low ${money(dailyLow)} crossed the ${money(grid.buyLevels?.[0])} buy line. Current price has moved back above it, so the opportunity occurred earlier today.`;
+    }
+    let contractTarget = null;
+    if (isFuture && !holding.exactMark) {
+      contractTarget = holding.position === "short" ? holding.average * .98 : holding.average * 1.02;
+      const spotTriggered = action !== "wait" && action !== "loading";
+      action = "verify";
+      label = spotTriggered ? "🟠 SPOT SIGNAL — CHECK FUTURE" : "🟡 WAIT — FUTURES PRICE NEEDED";
+      detail = spotTriggered
+        ? `Spot has triggered the weekly rule, but it cannot prove profit on this future. Your ${holding.position === "short" ? "2% cover" : "2% profit-sell"} price is ${money(contractTarget)}; compare it with the live futures quote first.`
+        : `K² has spot data but no current futures quote. Your ${holding.position === "short" ? "2% cover" : "2% profit-sell"} price is ${money(contractTarget)}.`;
+    }
+    return { ...grid, action, label, detail, holding, isFuture, exit, current: price, buyAt: grid.buyLevels?.[0], sellAt: grid.sellAt, contractTarget };
   }
 
   function holdings() {
@@ -604,10 +636,10 @@
       const plan = exitPlan(item, data, live);
       const suggestion = data ? personalSignal(item.symbol, data, item) : { action: "loading", label: "LOADING WEEKLY CALL", detail: "Waiting for the latest market session" };
       const lastTarget = plan.targets.at(-1).price;
-      const progress = Math.max(0, Math.min(100, direction * (live - item.average) / Math.abs(lastTarget - item.average) * 100));
+      const progress = Math.max(0, Math.min(100, direction * (live - plan.base) / Math.abs(lastTarget - plan.base) * 100));
       const flagProgress = Math.max(4, Math.min(96, progress));
       const targets = plan.targets.map((target, index) => {
-        const content = `<span><b>${item.position === "short" ? "C" : "S"}${index + 1}</b><i>${isFuture && !item.exactMark ? "planned level" : target.status === "reached" ? "Reached ✓" : target.status === "close" ? "Very close" : `${number(Math.max(0, target.distance))}% away`}</i></span><strong>${money(target.price)}</strong><small>${pct(target.gainPct)} · ${number(target.rMultiple)} ATR · ${number(plan.slice)} units</small>`;
+        const content = `<span><b>${item.position === "short" ? "C" : "S"}${index + 1}</b><i>${isFuture && !item.exactMark ? "planned level" : target.status === "reached" ? "Reached ✓" : target.status === "close" ? "Very close" : `${number(Math.max(0, target.distance))}% away`}</i></span><strong>${money(target.price)}</strong><small>${pct(target.gainPct)} · 2% step ${target.step} · ${number(plan.slice)} units</small>`;
         return isFuture ? `<div class="exit-band future-band">${content}</div>` : `<button class="exit-band ${target.status}" data-exit-band data-exit-symbol="${item.symbol}" data-exit-price="${target.price}" data-exit-qty="${plan.slice}">${content}</button>`;
       }).join("");
       const expiry = item.expiry ? new Date(`${item.expiry}T00:00:00Z`).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }) : "";
@@ -621,11 +653,11 @@
         <div class="holding-metric"><span>${markCopy} · notional</span><strong>${money(live)} · ${money(value)}</strong>${isFuture && Number.isFinite(spot) ? `<small class="spot-reference">Spot reference ${money(spot)}</small>` : ""}</div>
         <div class="holding-metric"><span>Open P&amp;L</span><strong class="${pnlValue >= 0 ? "positive" : "negative"}">${isFuture && !item.exactMark ? "Awaiting futures LTP" : `${money(pnlValue)} · ${pct(pnlPercent)}`}</strong></div>
         <div class="holding-actions">${actionMarkup}</div>
-      </div><section class="portfolio-call ${suggestion.action}"><div><span>${isFuture ? "K² SIMPLE ACTION · USING UNDERLYING PRICE" : "K² SIMPLE ACTION · 2% RULE"}</span><strong>${suggestion.label}</strong><p>${suggestion.detail}</p><div class="call-thresholds rule-lines"><b>${item.position === "short" ? "COVER" : "BUY"} ≤ ${money(suggestion.buyAt)}</b><b>MON OPEN ${money(data?.weekly?.openingPrice)}</b><b>${item.position === "short" ? "RISK" : "SELL"} ≥ ${money(suggestion.sellAt)}</b></div><div class="call-thresholds daily-lines"><b>TODAY LOW ${money(data?.daily?.low)}</b><b>NOW ${money(suggestion.current)}</b><b>TODAY HIGH ${money(data?.daily?.high)}</b></div></div>${suggestionAction}</section><section class="exit-plan">
-        <div class="exit-plan-head"><div><span>${item.position === "short" ? "FIVE COVER BANDS · BELOW" : "YOUR FIVE EXIT BANDS · ABOVE"} ${money(item.average)} ENTRY</span><h3>${item.position === "short" ? "Price falls → cover one slice" : "Price rises → reduce one slice"}</h3></div><p>Even split: ${number(plan.slice)} of ${number(item.quantity)} units per band. ${isFuture ? "Levels scale the underlying ATR to the contract entry; exact futures LTP is required before a level can be marked reached." : "Tap any band to prefill the reduction."}</p></div>
-        <div class="exit-progress ${item.position === "short" ? "short-progress" : ""} ${isFuture && !item.exactMark ? "snapshot-progress" : ""}"><span style="width:${progress}%"></span><i style="left:${flagProgress}%">${isFuture && !item.exactMark ? "ENTRY MARK" : "NOW"} ${money(live)}</i><b>ENTRY ${money(item.average)}</b><b>FINAL ${money(lastTarget)}</b></div>
+      </div><section class="portfolio-call ${suggestion.action}"><div><span>${isFuture ? "K² SPOT SIGNAL · FUTURES PRICE REQUIRED" : "K² SIMPLE ACTION · 2% RULE"}</span><strong>${suggestion.label}</strong><p>${suggestion.detail}</p>${isFuture ? `<div class="call-thresholds contract-lines"><b>YOUR ${item.position === "short" ? "COVER" : "PROFIT-SELL"} PRICE ${item.position === "short" ? "≤" : "≥"} ${money(suggestion.contractTarget)}</b></div>` : ""}<div class="call-thresholds rule-lines"><b>${isFuture ? "SPOT " : ""}${item.position === "short" ? "COVER" : "BUY"} ≤ ${money(suggestion.buyAt)}</b><b>${isFuture ? "SPOT " : ""}MON OPEN ${money(data?.weekly?.openingPrice)}</b><b>${isFuture ? "SPOT " : ""}${item.position === "short" ? "RISK" : "SELL"} ≥ ${money(suggestion.sellAt)}</b></div><div class="call-thresholds daily-lines"><b>${isFuture ? "SPOT " : ""}TODAY LOW ${money(data?.daily?.low)}</b><b>${isFuture ? "SPOT " : ""}NOW ${money(suggestion.current)}</b><b>${isFuture ? "SPOT " : ""}TODAY HIGH ${money(data?.daily?.high)}</b></div></div>${suggestionAction}</section><section class="exit-plan">
+        <div class="exit-plan-head"><div><span>${item.position === "short" ? "FIVE 2% COVER CHUNKS · BELOW" : "FIVE 2% SELL CHUNKS · ABOVE"} ${money(plan.base)} ${isFuture ? "ENTRY BASE" : "MONDAY BASE"}</span><h3>${item.position === "short" ? "Every further 2% fall → cover one slice" : "Every further 2% rise → sell one slice"}</h3></div><p>Even split: ${number(plan.slice)} of ${number(item.quantity)} units per chunk. Each level compounds exactly 2% from the previous one${isFuture ? " using the broker entry price" : " and resets from the new Monday opening"}.</p></div>
+        <div class="exit-progress ${item.position === "short" ? "short-progress" : ""} ${isFuture && !item.exactMark ? "snapshot-progress" : ""}"><span style="width:${progress}%"></span><i style="left:${flagProgress}%">${isFuture && !item.exactMark ? "ENTRY MARK" : "NOW"} ${money(live)}</i><b>BASE ${money(plan.base)}</b><b>FINAL ${money(lastTarget)}</b></div>
         <div class="exit-bands">${targets}</div>
-        <p class="exit-risk"><b>${isFuture ? "Contract valuation status:" : "Movement-risk reference:"}</b> ${isFuture ? `The imported broker table supplied MTM 0.00 but no current futures LTP, so K² preserves the entry mark and shows ${Number.isFinite(spot) ? `the ${money(spot)} underlying spot` : "underlying spot"} separately—never as the futures price. ` : ""}One ATR adverse reference is ${money(plan.riskLine)}.${data ? ` The calculation uses the underlying ${number(data.signals?.atrPct)}% ATR.` : " Live range data is loading."}</p>
+        <p class="exit-risk"><b>Weekly 2% rule:</b> the first ${item.position === "short" ? "cover" : "sell"} line is ${money(plan.targets[0]?.price)} and the adverse 2% reference is ${money(plan.riskLine)}. ${isFuture ? "These contract levels use the broker entry; the displayed live reference remains the underlying spot until an exact futures LTP feed is connected." : "These levels reset from the new Monday opening."}</p>
       </section></article>`;
     }).join("");
 

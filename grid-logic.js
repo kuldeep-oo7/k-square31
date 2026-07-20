@@ -12,6 +12,14 @@
     return Array.from({ length: slots }, (_, index) => round(base * (step ** (index + 1))));
   }
 
+  function exitLevels(anchor, stepPct = 2, slots = 5, position = "long") {
+    const base = Number(anchor);
+    const direction = position === "short" ? -1 : 1;
+    const step = 1 + direction * Number(stepPct) / 100;
+    if (!(base > 0) || !(step > 0)) return [];
+    return Array.from({ length: slots }, (_, index) => round(base * (step ** (index + 1))));
+  }
+
   function weeklySignal(anchor, current, stepPct = 2) {
     const price = Number(current);
     const buyLevels = levels(anchor, stepPct, 5);
@@ -40,5 +48,5 @@
     };
   }
 
-  return { levels, lotExit, weeklySignal };
+  return { exitLevels, levels, lotExit, weeklySignal };
 });
