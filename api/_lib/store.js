@@ -17,7 +17,10 @@ async function streamText(stream) {
 }
 
 async function readDocument(pathname, fallback) {
-  const result = await get(pathname, { access: "private" });
+  // Mutations require the origin ETag, not a CDN-cached private response. A
+  // cached read can carry the previous ETag for up to cacheControlMaxAge and
+  // make every optimistic retry fail even when there is no competing writer.
+  const result = await get(pathname, { access: "private", useCache: false });
   if (!result || result.statusCode !== 200 || !result.stream) return { data: structuredClone(fallback), etag: null };
   const data = JSON.parse(await streamText(result.stream));
   return { data, etag: result.blob.etag };
