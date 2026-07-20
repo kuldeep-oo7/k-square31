@@ -48,9 +48,11 @@ async function json(response) {
   const verified = await json(await fetch(`${base}/api/portfolio`, { headers: { Cookie: cookie } }));
   const expected = new Map(snapshot.positions.map((item) => [`${item.symbol}|${item.position}`, item]));
   assertSnapshot(verified.portfolio.lots, expected);
+  if (Number(verified.portfolio.realizedPnl) !== Number(snapshot.realizedPnl || 0)) throw new Error("Verification failed for realized P&L");
   const longs = verified.portfolio.lots.filter((lot) => lot.position === "long").length;
   const shorts = verified.portfolio.lots.filter((lot) => lot.position === "short").length;
-  console.log(JSON.stringify({ imported: imported.portfolio.lots.length, verified: verified.portfolio.lots.length, longs, shorts, snapshotId: snapshot.snapshotId }));
+  const verifiedOpenPnl = verified.portfolio.lots.reduce((sum, lot) => sum + (Number(lot.markPrice || lot.price) - Number(lot.price)) * Number(lot.quantity) * (lot.position === "short" ? -1 : 1), 0);
+  console.log(JSON.stringify({ imported: imported.portfolio.lots.length, verified: verified.portfolio.lots.length, longs, shorts, openPnl: Math.round(verifiedOpenPnl * 100) / 100, realizedPnl: verified.portfolio.realizedPnl, totalMtm: Math.round((verifiedOpenPnl + Number(verified.portfolio.realizedPnl)) * 100) / 100, snapshotId: snapshot.snapshotId }));
 })().catch((error) => { console.error(error.message); process.exit(1); });
 
 function assertSnapshot(lots, expected) {
