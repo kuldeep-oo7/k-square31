@@ -16,6 +16,12 @@ async function streamText(stream) {
   return Buffer.concat(chunks).toString("utf8");
 }
 
+function writableEtag(etag) {
+  // Private CDN reads return a weak HTTP validator (W/"hash") while Blob's
+  // conditional write API expects the corresponding strong ETag ("hash").
+  return String(etag || "").replace(/^W\//, "") || null;
+}
+
 async function readDocument(pathname, fallback) {
   // Mutations require the origin ETag, not a CDN-cached private response. A
   // cached read can carry the previous ETag for up to cacheControlMaxAge and
@@ -23,7 +29,7 @@ async function readDocument(pathname, fallback) {
   const result = await get(pathname, { access: "private", useCache: false });
   if (!result || result.statusCode !== 200 || !result.stream) return { data: structuredClone(fallback), etag: null };
   const data = JSON.parse(await streamText(result.stream));
-  return { data, etag: result.blob.etag };
+  return { data, etag: writableEtag(result.blob.etag) };
 }
 
 async function writeDocument(pathname, data, etag) {
@@ -110,4 +116,4 @@ async function loginRate(ip, failed) {
   return { allowed: record.blockedUntil <= now, retryAfter: record.blockedUntil > now ? 900 : 0 };
 }
 
-module.exports = { emptyPortfolio, loginRate, mutateAiShard, mutatePortfolio, readAiShard, readPortfolio };
+module.exports = { emptyPortfolio, loginRate, mutateAiShard, mutatePortfolio, readAiShard, readPortfolio, writableEtag };
