@@ -56,6 +56,37 @@ async function mutatePortfolio(username, mutator) {
   throw new Error("Portfolio update conflict");
 }
 
+function aiShardPath(shard) {
+  return `ai-grid/v1/shard-${shard}.json`;
+}
+
+function emptyAiShard(shard) {
+  return { version: 1, shard, symbols: {}, transactions: [], updatedAt: null, lastRun: null };
+}
+
+async function readAiShard(shard) {
+  return readDocument(aiShardPath(shard), emptyAiShard(shard));
+}
+
+async function mutateAiShard(shard, mutator) {
+  const pathname = aiShardPath(shard);
+  for (let attempt = 0; attempt < 5; attempt += 1) {
+    const current = await readDocument(pathname, emptyAiShard(shard));
+    const next = await mutator(structuredClone(current.data));
+    next.version = 1;
+    next.shard = shard;
+    next.updatedAt = new Date().toISOString();
+    try {
+      await writeDocument(pathname, next, current.etag);
+      return next;
+    } catch (error) {
+      const conflict = error instanceof BlobPreconditionFailedError || error?.status === 409 || error?.statusCode === 409;
+      if (!conflict || attempt === 4) throw error;
+    }
+  }
+  throw new Error("AI grid update conflict");
+}
+
 function ratePath(ip) {
   const id = crypto.createHmac("sha256", process.env.BLOB_READ_WRITE_TOKEN || "local").update(ip).digest("hex").slice(0, 40);
   return `security/login-rate/${id}.json`;
@@ -76,4 +107,4 @@ async function loginRate(ip, failed) {
   return { allowed: record.blockedUntil <= now, retryAfter: record.blockedUntil > now ? 900 : 0 };
 }
 
-module.exports = { emptyPortfolio, loginRate, mutatePortfolio, readPortfolio };
+module.exports = { emptyPortfolio, loginRate, mutateAiShard, mutatePortfolio, readAiShard, readPortfolio };

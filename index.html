@@ -8,12 +8,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="K² Desk" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="description" content="K² is Kamlesh and Kuldeep's private rolling 31-day market range desk, synchronized securely across devices." />
-    <title>K² — Rolling Range Desk</title>
+    <meta name="description" content="K² is Kamlesh and Kuldeep's private market range, portfolio and automatic Friday-grid paper trading desk." />
+    <title>K² — Market Grid Desk</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/k2-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/k2-icon.svg" />
-    <link rel="stylesheet" href="/styles.css?v=k2-living-1" />
+    <link rel="stylesheet" href="/styles.css?v=k2-weekly-ai-1" />
   </head>
   <body>
     <div class="ambient ambient-one"></div>
@@ -81,7 +81,7 @@
 
       <nav class="section-tabs" aria-label="Workspace sections">
         <button class="tab-button active" data-tab="watchlist"><span>01</span> Watchlist <b id="watchlistBadge">130</b></button>
-        <button class="tab-button" data-tab="portfolio"><span>02</span> Portfolio <b id="portfolioBadge">0</b></button>
+        <button class="tab-button" data-tab="portfolio"><span>02</span> <span id="portfolioTabLabel">Portfolio</span> <b id="portfolioBadge">0</b></button>
         <div class="tab-line"></div>
       </nav>
 
@@ -100,7 +100,7 @@
 
         <div class="method-strip">
           <span class="method-icon">∿</span>
-          <p><b>How it works:</b> five buy chunks step down below the 31-day midpoint; five sell chunks step up above it. Levels 4–5 deliberately extend beyond the monthly low or high.</p>
+          <p id="methodCopy"><b>How it works:</b> five buy chunks step down below the 31-day midpoint; five sell chunks step up above it. Levels 4–5 deliberately extend beyond the monthly low or high.</p>
           <button id="methodButton">See the maths</button>
         </div>
 
@@ -115,8 +115,8 @@
 
       <section class="workspace-panel" id="portfolioPanel">
         <div class="portfolio-intro">
-          <div><p class="eyebrow"><span></span> Private cloud portfolio</p><h2>Your positions,<br /><em>measured live.</em></h2></div>
-          <p>Entry lots are stored securely under your signed-in account and follow you across devices. Current value and open P&amp;L move with the same market feed as your watchlist.</p>
+          <div><p class="eyebrow"><span></span> <span id="portfolioOverline">Private cloud portfolio</span></p><h2 id="portfolioHeading">Your positions,<br /><em>measured live.</em></h2></div>
+          <p id="portfolioIntroCopy">Entry lots are stored securely under your signed-in account and follow you across devices. Current value and open P&amp;L move with the same market feed as your watchlist.</p>
         </div>
         <div id="portfolioContent"></div>
       </section>
@@ -176,7 +176,7 @@
         <label><span>Password</span><input id="loginPassword" type="password" autocomplete="current-password" required /></label>
         <p class="auth-error" id="loginError" role="alert"></p>
         <button class="primary-button" id="loginButton" type="submit">Enter range desk <span>→</span></button>
-        <small>Two private accounts are configured. Portfolio data is isolated by username and stored server-side.</small>
+        <small>Private accounts are isolated by username. The AI account contains an automatic paper ledger and cannot place broker orders.</small>
       </form>
     </section>
 
@@ -193,7 +193,7 @@
       <p class="story-foot">Made to move with you—from pocket to tablet to the biggest screen.</p>
     </section>
 
-    <script src="/watchlist-data.js?v=k2-living-1"></script>
-    <script src="/app.js?v=k2-living-1"></script>
+    <script src="/watchlist-data.js?v=k2-weekly-ai-1"></script>
+    <script src="/app.js?v=k2-weekly-ai-1"></script>
   </body>
 </html>

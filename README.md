@@ -1,6 +1,6 @@
 # K² — Range Desk
 
-K² converts `journal (1).xlsx` into a hosted NSE watchlist, private cross-device portfolios, and a transparent rolling 31-calendar-day trading range desk. It is dedicated to the friendship between Kamlesh and Kuldeep.
+K² converts `journal (1).xlsx` into a hosted NSE watchlist, private cross-device portfolios, a transparent rolling 31-calendar-day range desk, and an automatic Friday-grid paper-trading laboratory. It is dedicated to the friendship between Kamlesh and Kuldeep.
 
 ## Local preview
 
@@ -25,12 +25,24 @@ Then open `http://127.0.0.1:4173`.
 
 ## Private backend
 
-- Two server-authenticated accounts with scrypt password hashes.
+- Three server-authenticated accounts with peppered scrypt password hashes, including a read-only AI paper account.
 - Signed `HttpOnly`, `Secure`, `SameSite=Strict` sessions.
 - CSRF and origin validation on every mutation.
 - Rate-limited login attempts.
 - Per-user portfolios stored in a private Vercel Blob store with optimistic concurrency.
 - API routes and market data require authentication.
+
+## AI Friday-grid paper ledger
+
+- Each workbook stock receives an isolated ₹2,00,000 virtual cash ledger.
+- The latest completed Friday close becomes the weekly reference.
+- Five whole-share slots can deploy up to ₹40,000 each at successive compounded 3% declines.
+- Every filled lot receives its own 2% paper exit target.
+- Same-daily-candle buy-and-sell fills are forbidden because daily high/low data cannot establish event order.
+- Fill IDs are deterministic and shard writes use optimistic concurrency, making scheduler retries idempotent.
+- Ten private Blob shards cover the full workbook without mixing the two manual portfolios.
+- A secured GitHub Actions workflow evaluates the grid during NSE hours; Vercel Cron supplies a daily post-close fallback.
+- `CRON_SECRET` is stored only in Vercel and the private GitHub repository. The automation endpoint rejects requests without its bearer token.
 
 Copy `.env.local.example` to `.env.local` and provide a private `BLOB_READ_WRITE_TOKEN` plus a strong `K2_SESSION_SECRET` for local backend work. Never commit either value.
 

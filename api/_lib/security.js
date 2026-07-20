@@ -10,6 +10,11 @@ const USERS = {
     displayName: "Kuldeep",
     salt: "f14db2f0252d517ad308ced0dc940e90",
     hash: "9a930f85047c0a529997a1300d938ffda40127a78f4f4fc999ad049b18dfbdb08ea70aeacabd1a59691e18b537275ba49c6e552fa515c392216f786e0b87c750"
+  },
+  "ai": {
+    displayName: "K² AI",
+    salt: "3240bf8043bc50092ab98ee82fe808a3",
+    hash: "5208137a95d9a7ec9cf332fc4b427ca47df5be342b13a07554a35387c347aab75cc1997502e68d2c7faccf97ceff5c45c2ef41b44d8d92f42c16f7a54dbf5001"
   }
 };
 const COOKIE = "__Host-k2_session";

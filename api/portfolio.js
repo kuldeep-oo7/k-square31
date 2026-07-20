@@ -20,6 +20,7 @@ module.exports = async function handler(request, response) {
   noStore(response);
   const session = readSession(request);
   if (!session) return response.status(401).json({ error: "Authentication required" });
+  if (session.username === "ai") return response.status(403).json({ error: "The AI account is an automatic paper ledger and cannot accept manual portfolio changes" });
 
   if (request.method === "GET") {
     const stored = await readPortfolio(session.username);

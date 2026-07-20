@@ -21,7 +21,10 @@
     storyFrame: null,
     ambientFrame: null,
     revealObserver: null,
-    portfolio: emptyPortfolio()
+    portfolio: emptyPortfolio(),
+    aiLedger: emptyAiLedger(),
+    aiSearch: "",
+    aiRefreshTimer: null
   };
 
   const el = (id) => document.getElementById(id);
@@ -31,6 +34,14 @@
 
   function emptyPortfolio() {
     return { lots: [], realizedPnl: 0, transactions: [] };
+  }
+
+  function emptyAiLedger() {
+    return {
+      config: { budgetPerStock: 200000, slots: 5, slotBudget: 40000, buyStepPct: 3, takeProfitPct: 2 },
+      summary: { allocated: watchlist.length * 200000, cash: watchlist.length * 200000, marketValue: 0, invested: 0, openPnl: 0, realizedPnl: 0, openLots: 0, activeStocks: 0 },
+      stocks: [], transactions: [], updatedAt: null
+    };
   }
 
   function loadPortfolio() {
@@ -91,6 +102,24 @@
     } catch (error) {
       state.databaseOnline = false;
       toast(`${error.message}. Showing the last synchronized copy.`);
+    }
+  }
+
+  async function syncAiLedger() {
+    if (state.user !== "ai") return;
+    try {
+      const response = await fetch("/api/ai", { credentials: "same-origin" });
+      const payload = await response.json();
+      if (!response.ok) throw new Error(payload.error || "AI paper ledger unavailable");
+      state.aiLedger = payload;
+      state.databaseOnline = true;
+      renderWatchlist();
+      renderFocusMap();
+      renderAiPortfolio();
+      renderSummary();
+    } catch (error) {
+      state.databaseOnline = false;
+      toast(error.message || "AI paper ledger unavailable");
     }
   }
 
@@ -300,17 +329,17 @@
       const change = data?.changePct ?? item.snapshotChangePct;
       const changeClass = change > 0 ? "positive" : change < 0 ? "negative" : "";
       const source = `${item.sector} · ${item.marketCapCategory}`;
+      const aiStock = state.user === "ai" ? state.aiLedger.stocks?.find((stock) => stock.symbol === item.symbol) : null;
+      const aiReady = Boolean(aiStock?.anchor);
+      const mapMarkup = aiReady ? `<div class="range-values"><span>FRIDAY ${money(aiStock.anchor.price)}</span><span>NEXT BUY ${money(aiStock.nextBuy?.price)}</span><span>NEXT SELL ${money(aiStock.nextSell)}</span></div><div class="range-track ai-track"><i class="price-pin" style="left:${focusPosition(Number(aiStock.lastPrice), Number(aiStock.levels?.at(-1)), Number(aiStock.anchor.price))}%"></i></div>` : data ? `<div class="range-values"><span>LOW ${money(data.window.low)}</span><span>MID ${money(data.window.midpoint)}</span><span>HIGH ${money(data.window.high)}</span></div><div class="range-track"><i class="price-pin" style="left:${positionFor(data)}%"></i></div>` : `<div class="range-values"><span>${state.user === "ai" ? "Waiting for Friday grid" : "Fetching 31-day history"}</span><span>—</span></div><div class="range-loading"></div>`;
+      const stateMarkup = aiReady ? `<span class="state-chip ${aiStock.lots?.length ? "lower-band" : "mid-band"}">${aiStock.lots?.length ? `${aiStock.lots.length} open lot${aiStock.lots.length === 1 ? "" : "s"}` : "Grid watching"}</span><small class="quant-link ${aiStock.openPnl >= 0 ? "positive" : "negative"}">${aiStock.nextBuy ? `B${aiStock.nextBuy.level} next · ${money(aiStock.nextBuy.price)}` : "Weekly levels evaluated"}</small>` : `<span class="state-chip ${data?.regime || ""}">${regimeLabel(data?.regime)}</span>${data ? `<small class="quant-link ${pulseDescription(data).tone}">${String(data.signals?.marketRegime || "transition")} · ${pulseDescription(data).label}</small>` : `<small class="map-link">View ${state.user === "ai" ? "weekly grid" : "10 levels"} →</small>`}`;
       return `
         <article class="stock-row" data-symbol="${item.symbol}" tabindex="0" aria-label="Open ${item.symbol} range detail">
           <div class="symbol-cell"><span class="symbol-avatar">${initials(item.symbol)}</span><div><b>${item.symbol}</b><small>${source}</small></div></div>
           <div class="price-cell"><strong>${money(price)}</strong><small class="${changeClass}">${pct(change)} today</small></div>
-          <div class="range-cell">${data ? `
-            <div class="range-values"><span>LOW ${money(data.window.low)}</span><span>MID ${money(data.window.midpoint)}</span><span>HIGH ${money(data.window.high)}</span></div>
-            <div class="range-track"><i class="price-pin" style="left:${positionFor(data)}%"></i></div>` : `
-            <div class="range-values"><span>Fetching 31-day history</span><span>—</span></div><div class="range-loading"></div>`}
-          </div>
-          <div class="state-cell"><span class="state-chip ${data?.regime || ""}">${regimeLabel(data?.regime)}</span>${data ? `<small class="quant-link ${pulseDescription(data).tone}">${String(data.signals?.marketRegime || "transition")} · ${pulseDescription(data).label}</small>` : `<small class="map-link">View 10 levels →</small>`}</div>
-          <button class="add-button" data-add="${item.symbol}" aria-label="Add ${item.symbol} to portfolio">+</button>
+          <div class="range-cell">${mapMarkup}</div>
+          <div class="state-cell">${stateMarkup}</div>
+          ${state.user === "ai" ? `<span class="ai-eye" aria-label="AI paper tracking active">AI</span>` : `<button class="add-button" data-add="${item.symbol}" aria-label="Add ${item.symbol} to portfolio">+</button>`}
         </article>`;
     }).join("") || `<div class="empty-portfolio"><div><div class="empty-orbit">✓</div><h3>No stocks in this filter</h3><p>${el("bandFilter").value === "outside" ? "Nothing is trading beyond its 31-day high or low right now. That is a market result—not an error." : "No ticker matches the current search, sector, market-cap, range and quant-mode filters."}</p><button class="empty-reset" data-reset-filters>Show the full watchlist</button></div></div>`;
 
@@ -325,12 +354,34 @@
     return Math.max(2, Math.min(98, 2 + ((value - minimum) / (maximum - minimum)) * 96));
   }
 
+  function renderAiFocusMap(symbol, stock, snapshot) {
+    const container = el("focusMap");
+    if (!stock?.anchor) {
+      container.innerHTML = `<div class="focus-loading"><div><div class="empty-orbit">AI</div><b>Preparing ${symbol}'s Friday grid</b><p>The secured automation runner will store the latest completed Friday close and five compounded 3% levels.</p></div></div>`;
+      return;
+    }
+    const levels = (stock.levels || []).map((price, index) => `<div class="chunk-row ${stock.triggeredLevels?.[index] ? "ai-triggered" : ""}"><span class="chunk-number">B${index + 1}</span><span class="chunk-copy"><b>${stock.triggeredLevels?.[index] ? "Paper filled" : stock.nextBuy?.level === index + 1 ? "Next trigger" : "Waiting"}</b><small>3% compounded step ${index + 1} · up to ₹40,000</small></span><strong class="chunk-price">${money(price)}</strong></div>`).join("");
+    const exits = (stock.lots || []).slice().sort((a, b) => a.target - b.target).map((lot) => `<div class="chunk-row ai-exit"><span class="chunk-number">S${lot.level}</span><span class="chunk-copy"><b>Automatic paper exit</b><small>${number(lot.quantity)} shares · 2% above ${money(lot.price)}</small></span><strong class="chunk-price">${money(lot.target)}</strong></div>`).join("") || `<div class="ai-awaiting">Exit levels appear after a buy lot is filled. Each lot receives its own +2% target.</div>`;
+    const weeklyMove = stock.lastPrice && stock.anchor.price ? (stock.lastPrice / stock.anchor.price - 1) * 100 : null;
+    container.innerHTML = `<div class="focus-head"><div class="focus-name"><span class="symbol-avatar">${initials(symbol)}</span><div><p class="eyebrow" style="margin-bottom:5px"><span></span> AI FRIDAY GRID</p><h2>${symbol}</h2><p>${snapshot.sector} · ${snapshot.marketCapCategory} · anchor week ${stock.anchor.weekKey}</p></div></div><div class="focus-current"><span>Tracked price</span><strong>${money(stock.lastPrice)}</strong><small class="${weeklyMove >= 0 ? "positive" : "negative"}">${pct(weeklyMove)} from Friday</small></div></div>
+      <div class="plain-rule"><b>Friday close: ${money(stock.anchor.price)}.</b> The AI reserves five slots of up to ₹40,000. It buys once at every compounded 3% fall and sells each purchased lot separately after a 2% recovery.</div>
+      <div class="ai-focus-equation"><span><small>FRIDAY</small><b>${money(stock.anchor.price)}</b></span><i>→ −3% → −3% → −3% → −3% → −3%</i><span><small>CASH LEFT</small><b>${money(Number(stock.cash))}</b></span></div>
+      <div class="chunk-grid"><div class="chunk-side buy"><div class="chunk-heading"><h3>Five weekly buy slots ↓</h3><span>Whole-share paper fills</span></div>${levels}</div><div class="chunk-side sell"><div class="chunk-heading"><h3>Active +2% exits ↑</h3><span>One target per filled lot</span></div>${exits}</div></div>
+      <div class="chunk-explain"><p><b>No same-candle trick:</b> a lot bought from today's low cannot be sold using today's earlier high because daily data cannot prove which happened first.</p><p><b>Budget discipline:</b> every stock has an isolated ₹2,00,000 ledger. Manual clicks cannot alter the AI account.</p></div>
+      <div class="focus-actions"><button data-open-ai-grid>OPEN COMPLETE AI PAPER LEDGER →</button></div>`;
+  }
+
   function renderFocusMap() {
     const container = el("focusMap");
     const symbol = state.focusSymbol || watchlist[0]?.symbol;
     const data = market.get(symbol);
     const snapshot = bySymbol.get(symbol);
     if (!symbol) return;
+    if (state.user === "ai") {
+      const aiStock = state.aiLedger.stocks?.find((stock) => stock.symbol === symbol);
+      renderAiFocusMap(symbol, aiStock, snapshot);
+      return;
+    }
     if (!data) {
       container.innerHTML = `<div class="focus-loading"><div><div class="empty-orbit">10</div><b>Building the 10-chunk map for ${symbol}</b><p>Fetching its rolling 31-day high, low, midpoint and volatility…</p></div></div>`;
       return;
@@ -384,10 +435,24 @@
         <div class="chunk-side sell"><div class="chunk-heading"><h3>5 sell chunks ↑</h3><span>All above midpoint</span></div>${chunks("sell")}</div>
       </div>
       <div class="chunk-explain"><p><b>Buying, in simple words:</b> chunk 1 is the first lower price. If the stock falls further, chunks 2–5 spread the entry instead of putting everything at one price. Buy 4 and 5 are below the monthly low.</p><p><b>Selling, in simple words:</b> chunk 1 is the first higher price. Chunks 2–5 step upward so the position can be reduced gradually. Sell 4 and 5 are above the monthly high.</p></div>
-      <div class="focus-actions"><button data-focus-add="${symbol}">+ ADD ${symbol} TO PORTFOLIO</button></div>`;
+      <div class="focus-actions">${state.user === "ai" ? `<button data-open-ai-grid>VIEW ${symbol} IN AI PAPER GRID →</button>` : `<button data-focus-add="${symbol}">+ ADD ${symbol} TO PORTFOLIO</button>`}</div>`;
   }
 
   function renderSummary() {
+    if (state.user === "ai") {
+      const summary = state.aiLedger.summary || emptyAiLedger().summary;
+      const equity = Number(summary.cash) + Number(summary.marketValue);
+      const totalPnl = equity - Number(summary.allocated);
+      el("trackedCount").textContent = watchlist.length;
+      el("portfolioValue").textContent = money(equity, true);
+      el("holdingCount").textContent = `${summary.activeStocks || 0} active stocks · ${summary.openLots || 0} lots`;
+      el("openPnl").textContent = money(totalPnl, Math.abs(totalPnl) >= 100000);
+      el("openPnl").className = totalPnl > 0 ? "positive" : totalPnl < 0 ? "negative" : "";
+      el("openPnlPct").textContent = `${pct(summary.allocated ? totalPnl / summary.allocated * 100 : 0)} on virtual allocation`;
+      el("portfolioBadge").textContent = summary.activeStocks || 0;
+      el("loadedCount").textContent = `${market.size} / ${watchlist.length}`;
+      return;
+    }
     const metrics = portfolioMetrics();
     el("trackedCount").textContent = watchlist.length;
     el("portfolioValue").textContent = money(metrics.value, metrics.value >= 100000);
@@ -399,7 +464,79 @@
     el("loadedCount").textContent = `${market.size} / ${watchlist.length}`;
   }
 
+  function renderAiPortfolio() {
+    const ledger = state.aiLedger || emptyAiLedger();
+    const summary = ledger.summary || emptyAiLedger().summary;
+    const config = ledger.config || emptyAiLedger().config;
+    const container = el("portfolioContent");
+    const equity = Number(summary.cash) + Number(summary.marketValue);
+    const totalPnl = equity - Number(summary.allocated);
+    const updated = ledger.updatedAt ? new Date(ledger.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" }) : "Waiting for first automation run";
+    const query = state.aiSearch.trim().toLowerCase();
+    const stocks = (ledger.stocks || []).filter((stock) => !query || `${stock.symbol} ${stock.sector} ${stock.marketCapCategory}`.toLowerCase().includes(query));
+
+    const rows = stocks.map((stock) => {
+      const anchor = Number(stock.anchor?.price);
+      const live = Number(stock.lastPrice);
+      const weeklyMove = anchor && live ? (live / anchor - 1) * 100 : null;
+      const accountPnl = Number(stock.cash) + Number(stock.marketValue) - config.budgetPerStock;
+      const levels = (stock.levels || []).map((price, index) => {
+        const filled = Boolean(stock.triggeredLevels?.[index]);
+        const next = stock.nextBuy?.level === index + 1;
+        return `<span class="ai-level ${filled ? "filled" : ""} ${next ? "next" : ""}"><i>B${index + 1}</i><b>${money(price)}</b><small>${filled ? "FILLED" : next ? "NEXT" : `${3 * (index + 1)}% step`}</small></span>`;
+      }).join("") || `<span class="ai-awaiting">Friday reference pending</span>`;
+      const targets = (stock.lots || []).slice().sort((a, b) => a.target - b.target).map((lot) => `<span class="ai-target"><i>S${lot.level}</i><b>${money(lot.target)}</b><small>${number(lot.quantity)} shares · +2%</small></span>`).join("") || `<span class="ai-awaiting">No purchased lot needs an exit yet</span>`;
+      const status = !stock.anchor ? "Waiting for secure runner" : stock.lots?.length ? `${stock.lots.length} lot${stock.lots.length === 1 ? "" : "s"} waiting for +2%` : stock.nextBuy ? `Watching B${stock.nextBuy.level}` : "Five weekly slots evaluated";
+      return `<details class="ai-stock" data-ai-stock="${stock.symbol}">
+        <summary>
+          <span class="symbol-avatar">${initials(stock.symbol)}</span>
+          <span class="ai-stock-name"><b>${stock.symbol}</b><small>${stock.sector} · ${stock.marketCapCategory}</small></span>
+          <span><small>Friday close</small><b>${money(anchor)}</b></span>
+          <span><small>Tracked price</small><b>${money(live)} <i class="${weeklyMove >= 0 ? "positive" : "negative"}">${pct(weeklyMove)}</i></b></span>
+          <span><small>Virtual cash</small><b>${money(Number(stock.cash))}</b></span>
+          <span><small>Stock P&amp;L</small><b class="${accountPnl >= 0 ? "positive" : "negative"}">${money(accountPnl)}</b></span>
+          <em>${status}</em>
+        </summary>
+        <div class="ai-stock-body">
+          <div><h4>Five compounded buy triggers</h4><p>Each slot can use up to ${money(config.slotBudget)} and fires once per Friday week.</p><div class="ai-levels">${levels}</div></div>
+          <div><h4>Open-lot sell triggers</h4><p>Every lot has its own target, exactly ${config.takeProfitPct}% above its paper fill.</p><div class="ai-levels sells">${targets}</div></div>
+          <footer><span>Anchor week <b>${stock.anchor?.weekKey || "—"}</b></span><span>Anchor session <b>${stock.anchor?.barDate || "—"}</b></span><span>Invested <b>${money(stock.invested)}</b></span><span>Open P&amp;L <b class="${stock.openPnl >= 0 ? "positive" : "negative"}">${money(stock.openPnl)}</b></span></footer>
+        </div>
+      </details>`;
+    }).join("");
+
+    const activity = (ledger.transactions || []).slice(0, 30).map((trade) => `<div class="ai-trade ${trade.action}">
+      <span>${trade.action === "buy" ? "↓" : "↑"}</span><div><b>${trade.symbol} · ${trade.action.toUpperCase()}</b><small>${new Date(trade.time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" })}</small></div>
+      <div><small>Level</small><b>${trade.action === "buy" ? `B${trade.level}` : "+2% exit"}</b></div><div><small>Quantity</small><b>${number(trade.quantity)}</b></div><div><small>Paper price</small><b>${money(trade.price)}</b></div><div><small>Realized</small><b class="${trade.pnl >= 0 ? "positive" : "negative"}">${trade.action === "sell" ? money(trade.pnl) : "—"}</b></div>
+    </div>`).join("") || `<div class="ai-empty"><b>No paper trades yet.</b><span>The ledger is waiting for a stock to cross one of its Friday-based 3% levels.</span></div>`;
+
+    container.innerHTML = `<section class="ai-command">
+      <div><p class="eyebrow"><span></span> AUTOMATIC · PAPER ONLY</p><h3>Friday close → five 3% drops → individual 2% exits</h3><p>Each of ${watchlist.length} stocks begins with ${money(config.budgetPerStock)} virtual cash. Five whole-share slots use up to ${money(config.slotBudget)} each. No broker orders are connected.</p></div>
+      <div class="ai-heart"><strong>AI</strong><i></i><span>WATCHING<br />${watchlist.length} STOCKS</span></div>
+    </section>
+    <div class="portfolio-summary ai-summary">
+      <article class="portfolio-mini"><span>Virtual allocation</span><strong>${money(summary.allocated)}</strong></article>
+      <article class="portfolio-mini"><span>Total equity</span><strong>${money(equity)}</strong></article>
+      <article class="portfolio-mini"><span>Deployed cost</span><strong>${money(summary.invested)}</strong></article>
+      <article class="portfolio-mini"><span>Total P&amp;L</span><strong class="${totalPnl >= 0 ? "positive" : "negative"}">${money(totalPnl)}</strong></article>
+      <article class="portfolio-mini"><span>Open lots</span><strong>${summary.openLots || 0}</strong></article>
+      <article class="portfolio-mini"><span>Last secured run</span><strong class="ai-time">${updated}</strong></article>
+    </div>
+    <label class="ai-search"><span>⌕</span><input id="aiGridSearch" type="search" placeholder="Find a stock inside the AI grid…" /></label>
+    <div class="ai-ledger-head"><span>${stocks.length} of ${ledger.stocks?.length || 0} stocks</span><span>Friday reference</span><span>Live / latest</span><span>Cash</span><span>P&amp;L</span></div>
+    <div class="ai-stock-list">${rows || `<div class="ai-empty"><b>No stock matches this search.</b></div>`}</div>
+    <div class="portfolio-intro ai-activity-head"><div><p class="eyebrow"><span></span> MACHINE AUDIT TRAIL</p><h2>Every automatic move.</h2></div><p>Paper fills record the rule, level, quantity, reference week and timestamp so the model can be judged rather than trusted blindly.</p></div>
+    <div class="ai-trades">${activity}</div>`;
+    const input = el("aiGridSearch");
+    if (input) {
+      input.value = state.aiSearch;
+      input.addEventListener("input", () => { state.aiSearch = input.value; renderAiPortfolio(); requestAnimationFrame(() => { const next = el("aiGridSearch"); next?.focus(); next?.setSelectionRange(state.aiSearch.length, state.aiSearch.length); }); });
+    }
+    renderSummary();
+  }
+
   function renderPortfolio() {
+    if (state.user === "ai") { renderAiPortfolio(); return; }
     const metrics = portfolioMetrics();
     const container = el("portfolioContent");
     if (!metrics.items.length) {
@@ -596,7 +733,7 @@
       <div class="ladder-title"><h3>Five-chunk price map</h3><span>${data.window.sessions} market sessions in 31 days</span></div>
       <section class="live-ladder-location"><div><span>LIVE LOCATION · ${location.side}</span><strong>NOW ${money(data.price)}</strong></div><div><h4>${location.location}</h4><p>Nearest level: <b>${location.nearest.id} at ${money(location.nearest.price)}</b> · ${number(location.distancePct)}% away · Quant verdict: <b>${pulseDescription(data).label}</b></p></div></section>
       <div class="ladder-columns"><div class="ladder-column buy"><span>BUY-SIDE LEVELS ↓</span>${steps(data.ladder.buy, "buy")}</div><div class="ladder-column sell"><span>SELL-SIDE LEVELS ↑</span>${steps(data.ladder.sell, "sell")}</div></div>
-      <button class="drawer-action" data-drawer-add="${symbol}">ADD ${symbol} TO PORTFOLIO →</button>
+      ${state.user === "ai" ? `<button class="drawer-action" data-open-ai-grid>OPEN AI PAPER GRID →</button>` : `<button class="drawer-action" data-drawer-add="${symbol}">ADD ${symbol} TO PORTFOLIO →</button>`}
       <p class="formula-note">Range state: <b>${regimeLabel(data.regime)}</b>. Levels are mechanical reference points based only on rolling high, low, and ATR—not a forecast. Levels 4–5 deliberately sit outside the observed range and may never trade.</p>`;
   }
 
@@ -620,6 +757,7 @@
   }
 
   function openTrade(symbol, action = "buy") {
+    if (state.user === "ai") { toast("The AI account records only automatic paper fills."); return; }
     state.tradeSymbol = symbol;
     const holding = holdings().find((item) => item.symbol === symbol);
     const price = currentPrice(symbol) ?? holding?.average ?? "";
@@ -896,6 +1034,17 @@
     state.displayName = session.displayName || session.username;
     state.csrf = session.csrf;
     state.portfolio = loadPortfolio();
+    state.aiLedger = emptyAiLedger();
+    const aiMode = state.user === "ai";
+    el("portfolioTabLabel").textContent = aiMode ? "AI Paper Grid" : "Portfolio";
+    el("portfolioOverline").textContent = aiMode ? "Autonomous Friday-grid laboratory" : "Private cloud portfolio";
+    el("portfolioHeading").innerHTML = aiMode ? `The machine watches,<br /><em>the ledger remembers.</em>` : `Your positions,<br /><em>measured live.</em>`;
+    el("portfolioIntroCopy").textContent = aiMode
+      ? "K² AI paper-trades the complete workbook universe from Friday closing anchors. Every simulated fill is automatic, isolated and auditable across devices."
+      : "Entry lots are stored securely under your signed-in account and follow you across devices. Current value and open P&L move with the same market feed as your watchlist.";
+    el("methodCopy").innerHTML = aiMode
+      ? "<b>AI weekly rule:</b> completed Friday close becomes the anchor; five ₹40,000 slots compound downward by 3%; every filled lot receives its own automatic +2% paper exit."
+      : "<b>How it works:</b> five buy chunks step down below the 31-day midpoint; five sell chunks step up above it. Levels 4–5 deliberately extend beyond the monthly low or high.";
     el("userName").textContent = state.displayName;
     el("userPill").classList.remove("hidden");
     el("authGate").classList.add("signed-in");
@@ -906,9 +1055,10 @@
     renderPortfolio();
     renderSummary();
     setTimeout(() => showStory(false), 250);
-    await syncServerPortfolio();
+    if (aiMode) await syncAiLedger(); else await syncServerPortfolio();
     if (!market.size) refreshAll(); else refreshPriority();
     if (!state.refreshTimer) state.refreshTimer = setInterval(refreshPriority, 60_000);
+    if (aiMode && !state.aiRefreshTimer) state.aiRefreshTimer = setInterval(syncAiLedger, 60_000);
   }
 
   function showLogin() {
@@ -918,6 +1068,11 @@
     state.databaseOnline = false;
     closeStory();
     state.portfolio = emptyPortfolio();
+    state.aiLedger = emptyAiLedger();
+    state.aiSearch = "";
+    clearInterval(state.aiRefreshTimer);
+    state.aiRefreshTimer = null;
+    el("portfolioTabLabel").textContent = "Portfolio";
     el("userPill").classList.add("hidden");
     el("authGate").classList.remove("signed-in");
     setTimeout(() => el("loginUsername").focus(), 100);
@@ -972,10 +1127,12 @@
     if (sell) openTrade(sell.dataset.openSell, "sell");
   });
   el("drawerContent").addEventListener("click", (event) => {
+    if (event.target.closest("[data-open-ai-grid]")) { closeDrawer(); document.querySelector('[data-tab="portfolio"]').click(); return; }
     const add = event.target.closest("[data-drawer-add]");
     if (add) { closeDrawer(); openTrade(add.dataset.drawerAdd); }
   });
   el("focusMap").addEventListener("click", (event) => {
+    if (event.target.closest("[data-open-ai-grid]")) { document.querySelector('[data-tab="portfolio"]').click(); return; }
     const add = event.target.closest("[data-focus-add]");
     if (add) openTrade(add.dataset.focusAdd, "buy");
   });
@@ -1018,7 +1175,7 @@
   el("drawerBackdrop").addEventListener("click", closeDrawer);
   document.querySelectorAll("[data-close-method]").forEach((node) => node.addEventListener("click", () => el("methodModal").classList.remove("open")));
   el("methodButton").addEventListener("click", () => el("methodModal").classList.add("open"));
-  refreshButton.addEventListener("click", refreshAll);
+  refreshButton.addEventListener("click", () => { refreshAll(); if (state.user === "ai") syncAiLedger(); });
   el("loadMoreButton").addEventListener("click", () => { state.visibleLimit += 30; renderWatchlist(); refreshPriority(); });
   [el("searchInput"), el("bandFilter"), el("sectorFilter"), el("capFilter"), el("modelFilter"), el("sortSelect")].forEach((node) => node.addEventListener(node.tagName === "INPUT" ? "input" : "change", () => { state.visibleLimit = 30; renderWatchlist(); }));
 
