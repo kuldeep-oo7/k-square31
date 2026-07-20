@@ -245,7 +245,7 @@
   }
 
   function exitPlan(item, data, live) {
-    const base = item.assetType === "future" ? item.average : (Number(data?.weekly?.openingPrice) || item.average);
+    const base = Number(data?.weekly?.openingPrice) || item.average;
     const direction = item.position === "short" ? -1 : 1;
     const weeklyLevels = window.K2_GRID?.exitLevels(base, 2, 5, item.position) || [];
     const targets = weeklyLevels.map((price, index) => {
@@ -286,7 +286,7 @@
     const dailyLow = Number(data?.daily?.low);
     const dailyHigh = Number(data?.daily?.high);
     if (isFuture) {
-      const future = window.K2_GRID?.futureSignal(holding.average, price, grid.buyLevels?.[0], grid.sellAt, 2, holding.position) || { action: "loading" };
+      const future = window.K2_GRID?.futureSignal(price, grid.buyLevels?.[0], grid.sellAt) || { action: "loading" };
       action = future.action;
       const isShort = holding.position === "short";
       label = action === "buy" ? (isShort ? "🟢 COVER ONE CHUNK" : "🟢 BUY ONE CHUNK") : action === "sell" ? (isShort ? "🔴 REDUCE SHORT" : "🔴 SELL ONE CHUNK") : action === "loading" ? "LOADING PRICE" : "🟡 HOLD — DO NOTHING";
@@ -663,10 +663,10 @@
         <div class="holding-metric"><span>Open P&amp;L</span><strong class="${pnlValue >= 0 ? "positive" : "negative"}">${isFuture && !item.exactMark && !item.brokerClose ? "Awaiting futures LTP" : `${money(pnlValue)} · ${pct(pnlPercent)}`}</strong></div>
         <div class="holding-actions">${actionMarkup}</div>
       </div><section class="portfolio-call ${suggestion.action}"><div><span>TODAY'S ACTION</span><strong>${suggestion.label}</strong><p>${suggestion.detail}</p><div class="decision-levels"><div class="decision-buy"><span>${item.position === "short" ? "COVER AT OR BELOW" : "BUY AT OR BELOW"}</span><strong>${money(suggestion.buyAt)}</strong></div><div class="decision-now"><span>CURRENT PRICE</span><strong>${money(suggestion.current)}</strong></div><div class="decision-sell"><span>${item.position === "short" ? "RISK AT OR ABOVE" : "SELL AT OR ABOVE"}</span><strong>${money(suggestion.sellAt)}</strong></div></div><span class="daily-range-title">TODAY'S LIVE RANGE</span><div class="daily-range"><div><span>DAILY LOW</span><strong>${money(data?.daily?.low)}</strong></div><div><span>NOW</span><strong>${money(suggestion.current)}</strong></div><div><span>DAILY HIGH</span><strong>${money(data?.daily?.high)}</strong></div></div>${isFuture ? `<small class="price-source-note">Action uses the live underlying price. ${item.brokerClose ? `P&amp;L above uses the broker closing price ${money(live)}.` : "Live futures P&amp;L needs the contract LTP."}</small>` : ""}</div>${suggestionAction}</section><section class="exit-plan">
-        <div class="exit-plan-head"><div><span>${item.position === "short" ? "FIVE 2% COVER CHUNKS · BELOW" : "FIVE 2% SELL CHUNKS · ABOVE"} ${money(plan.base)} ${isFuture ? "ENTRY BASE" : "MONDAY BASE"}</span><h3>${item.position === "short" ? "Every further 2% fall → cover one slice" : "Every further 2% rise → sell one slice"}</h3></div><p>Even split: ${number(plan.slice)} of ${number(item.quantity)} units per chunk. Each level compounds exactly 2% from the previous one${isFuture ? " using the broker entry price" : " and resets from the new Monday opening"}.</p></div>
+        <div class="exit-plan-head"><div><span>${item.position === "short" ? "FIVE 2% COVER CHUNKS · BELOW" : "FIVE 2% SELL CHUNKS · ABOVE"} ${money(plan.base)} MONDAY BASE</span><h3>${item.position === "short" ? "Every further 2% fall → cover one slice" : "Every further 2% rise → sell one slice"}</h3></div><p>Even split: ${number(plan.slice)} of ${number(item.quantity)} units per chunk. Every level uses the same Monday opening base and resets at the next Monday opening.</p></div>
         <div class="exit-progress ${item.position === "short" ? "short-progress" : ""} ${isFuture && !item.exactMark && !item.brokerClose ? "snapshot-progress" : ""}"><span style="width:${progress}%"></span><i style="left:${flagProgress}%">${item.brokerClose ? "CLOSE" : isFuture && !item.exactMark ? "ENTRY MARK" : "NOW"} ${money(live)}</i><b>BASE ${money(plan.base)}</b><b>FINAL ${money(lastTarget)}</b></div>
         <div class="exit-bands">${targets}</div>
-        <p class="exit-risk"><b>Weekly 2% rule:</b> the first ${item.position === "short" ? "cover" : "sell"} line is ${money(plan.targets[0]?.price)} and the adverse 2% reference is ${money(plan.riskLine)}. ${isFuture ? "These contract levels use the broker entry; the displayed live reference remains the underlying spot until an exact futures LTP feed is connected." : "These levels reset from the new Monday opening."}</p>
+        <p class="exit-risk"><b>Monday-base 2% rule:</b> the first ${item.position === "short" ? "cover" : "sell"} line is ${money(plan.targets[0]?.price)} and the opposite 2% line is ${money(plan.riskLine)}. Average entry is used only for P&amp;L—not for action levels.</p>
       </section></article>`;
     }).join("");
 
