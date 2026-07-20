@@ -283,17 +283,35 @@
     } else if (holding && exit?.nextTarget) {
       detail = `${holding.position === "short" ? "Cover" : "Sell"} the next stored lot at ${money(exit.nextTarget)}. Until then, hold.`;
     }
-    if (isFuture) {
-      if (holding.position === "short") {
-        label = action === "buy" ? "🟢 COVER SOME" : action === "sell" ? "🔴 SHORT RISK — REVIEW" : "🟡 HOLD — NO ACTION";
-        detail = action === "buy" ? `The underlying reached the ${money(grid.buyLevels?.[0])} cover line; the short-position rule says take some profit.` : action === "sell" ? `The underlying crossed the ${money(grid.sellAt)} risk line against the short position; review the contract before acting.` : `Hold until the underlying reaches ${money(grid.buyLevels?.[0])} to cover or ${money(grid.sellAt)} for a risk review.`;
-      } else {
-        label = action === "buy" ? "🟢 BUY SOME" : action === "sell" ? "🔴 SELL SOME" : "🟡 HOLD — NO ACTION";
-        detail = action === "buy" ? `The underlying crossed the ${money(grid.buyLevels?.[0])} buy line. Buy no more than ${money(40_000)} after confirming the futures price.` : action === "sell" ? `The underlying crossed the ${money(grid.sellAt)} sell line. Sell one chunk after confirming the futures price.` : `Do nothing until the underlying reaches ${money(grid.buyLevels?.[0])} to buy or ${money(grid.sellAt)} to sell.`;
-      }
-    }
     const dailyLow = Number(data?.daily?.low);
     const dailyHigh = Number(data?.daily?.high);
+    if (isFuture) {
+      const future = window.K2_GRID?.futureSignal(holding.average, price, grid.buyLevels?.[0], grid.sellAt, 2, holding.position) || { action: "loading" };
+      action = future.action;
+      const isShort = holding.position === "short";
+      label = action === "buy" ? (isShort ? "🟢 COVER ONE CHUNK" : "🟢 BUY ONE CHUNK") : action === "sell" ? (isShort ? "🔴 REDUCE SHORT" : "🔴 SELL ONE CHUNK") : action === "loading" ? "LOADING PRICE" : "🟡 HOLD — DO NOTHING";
+      detail = action === "buy"
+        ? `Now ${money(price)} is at or below the ${money(future.buyAt)} ${isShort ? "cover" : "buy"} line.`
+        : action === "sell"
+          ? `Now ${money(price)} is at or above the ${money(future.sellAt)} ${isShort ? "short-risk" : "sell"} line.`
+          : `Now ${money(price)} is between the ${money(future.buyAt)} ${isShort ? "cover" : "buy"} line and ${money(future.sellAt)} ${isShort ? "risk" : "sell"} line.`;
+      const buyHit = Number.isFinite(dailyLow) && dailyLow <= future.buyAt;
+      const sellHit = Number.isFinite(dailyHigh) && dailyHigh >= future.sellAt;
+      if (action === "wait" && buyHit && sellHit) {
+        action = "both-hit";
+        label = "🟠 BOTH LINES HIT TODAY";
+        detail = `Today's low reached ${money(future.buyAt)} and today's high reached ${money(future.sellAt)}. The daily range cannot show which happened first.`;
+      } else if (action === "wait" && sellHit) {
+        action = "sell-hit";
+        label = isShort ? "🔴 RISK LINE HIT TODAY" : "🔴 SELL LINE HIT TODAY";
+        detail = `Today's high ${money(dailyHigh)} reached ${money(future.sellAt)}, but now the price is back below it.`;
+      } else if (action === "wait" && buyHit) {
+        action = "buy-hit";
+        label = isShort ? "🟢 COVER LINE HIT TODAY" : "🟢 BUY LINE HIT TODAY";
+        detail = `Today's low ${money(dailyLow)} reached ${money(future.buyAt)}, but now the price is back above it.`;
+      }
+      return { ...grid, ...future, action, label, detail, holding, isFuture, exit, current: price, dailyLow, dailyHigh };
+    }
     const buyHitToday = Number.isFinite(dailyLow) && dailyLow <= Number(grid.buyLevels?.[0]);
     const sellHitToday = Number.isFinite(dailyHigh) && dailyHigh >= Number(grid.sellAt);
     if (action === "wait" && buyHitToday && sellHitToday) {
@@ -317,17 +335,7 @@
       label = "🟢 BUY LINE HIT TODAY";
       detail = `Today's low ${money(dailyLow)} crossed the ${money(grid.buyLevels?.[0])} buy line. Current price has moved back above it, so the opportunity occurred earlier today.`;
     }
-    let contractTarget = null;
-    if (isFuture && !holding.exactMark) {
-      contractTarget = holding.position === "short" ? holding.average * .98 : holding.average * 1.02;
-      const spotTriggered = action !== "wait" && action !== "loading";
-      action = "verify";
-      label = spotTriggered ? "🟠 SPOT SIGNAL — CHECK FUTURE" : "🟡 WAIT — FUTURES PRICE NEEDED";
-      detail = spotTriggered
-        ? `Spot has triggered the weekly rule, but it cannot prove profit on this future. Your ${holding.position === "short" ? "2% cover" : "2% profit-sell"} price is ${money(contractTarget)}; compare it with the live futures quote first.`
-        : `K² has spot data but no current futures quote. Your ${holding.position === "short" ? "2% cover" : "2% profit-sell"} price is ${money(contractTarget)}.`;
-    }
-    return { ...grid, action, label, detail, holding, isFuture, exit, current: price, buyAt: grid.buyLevels?.[0], sellAt: grid.sellAt, contractTarget };
+    return { ...grid, action, label, detail, holding, isFuture, exit, current: price, buyAt: grid.buyLevels?.[0], sellAt: grid.sellAt, dailyLow, dailyHigh };
   }
 
   function holdings() {
@@ -653,7 +661,7 @@
         <div class="holding-metric"><span>${markCopy} · notional</span><strong>${money(live)} · ${money(value)}</strong>${isFuture && Number.isFinite(spot) ? `<small class="spot-reference">Spot reference ${money(spot)}</small>` : ""}</div>
         <div class="holding-metric"><span>Open P&amp;L</span><strong class="${pnlValue >= 0 ? "positive" : "negative"}">${isFuture && !item.exactMark ? "Awaiting futures LTP" : `${money(pnlValue)} · ${pct(pnlPercent)}`}</strong></div>
         <div class="holding-actions">${actionMarkup}</div>
-      </div><section class="portfolio-call ${suggestion.action}"><div><span>${isFuture ? "K² SPOT SIGNAL · FUTURES PRICE REQUIRED" : "K² SIMPLE ACTION · 2% RULE"}</span><strong>${suggestion.label}</strong><p>${suggestion.detail}</p>${isFuture ? `<div class="call-thresholds contract-lines"><b>YOUR ${item.position === "short" ? "COVER" : "PROFIT-SELL"} PRICE ${item.position === "short" ? "≤" : "≥"} ${money(suggestion.contractTarget)}</b></div>` : ""}<div class="call-thresholds rule-lines"><b>${isFuture ? "SPOT " : ""}${item.position === "short" ? "COVER" : "BUY"} ≤ ${money(suggestion.buyAt)}</b><b>${isFuture ? "SPOT " : ""}MON OPEN ${money(data?.weekly?.openingPrice)}</b><b>${isFuture ? "SPOT " : ""}${item.position === "short" ? "RISK" : "SELL"} ≥ ${money(suggestion.sellAt)}</b></div><div class="call-thresholds daily-lines"><b>${isFuture ? "SPOT " : ""}TODAY LOW ${money(data?.daily?.low)}</b><b>${isFuture ? "SPOT " : ""}NOW ${money(suggestion.current)}</b><b>${isFuture ? "SPOT " : ""}TODAY HIGH ${money(data?.daily?.high)}</b></div></div>${suggestionAction}</section><section class="exit-plan">
+      </div><section class="portfolio-call ${suggestion.action}"><div><span>TODAY'S ACTION</span><strong>${suggestion.label}</strong><p>${suggestion.detail}</p><div class="decision-levels"><div class="decision-buy"><span>${item.position === "short" ? "COVER AT OR BELOW" : "BUY AT OR BELOW"}</span><strong>${money(suggestion.buyAt)}</strong></div><div class="decision-now"><span>CURRENT PRICE</span><strong>${money(suggestion.current)}</strong></div><div class="decision-sell"><span>${item.position === "short" ? "RISK AT OR ABOVE" : "SELL AT OR ABOVE"}</span><strong>${money(suggestion.sellAt)}</strong></div></div><span class="daily-range-title">TODAY'S LIVE RANGE</span><div class="daily-range"><div><span>DAILY LOW</span><strong>${money(data?.daily?.low)}</strong></div><div><span>NOW</span><strong>${money(suggestion.current)}</strong></div><div><span>DAILY HIGH</span><strong>${money(data?.daily?.high)}</strong></div></div>${isFuture ? `<small class="price-source-note">Action uses the live underlying price. Exact futures P&amp;L still needs the contract LTP.</small>` : ""}</div>${suggestionAction}</section><section class="exit-plan">
         <div class="exit-plan-head"><div><span>${item.position === "short" ? "FIVE 2% COVER CHUNKS · BELOW" : "FIVE 2% SELL CHUNKS · ABOVE"} ${money(plan.base)} ${isFuture ? "ENTRY BASE" : "MONDAY BASE"}</span><h3>${item.position === "short" ? "Every further 2% fall → cover one slice" : "Every further 2% rise → sell one slice"}</h3></div><p>Even split: ${number(plan.slice)} of ${number(item.quantity)} units per chunk. Each level compounds exactly 2% from the previous one${isFuture ? " using the broker entry price" : " and resets from the new Monday opening"}.</p></div>
         <div class="exit-progress ${item.position === "short" ? "short-progress" : ""} ${isFuture && !item.exactMark ? "snapshot-progress" : ""}"><span style="width:${progress}%"></span><i style="left:${flagProgress}%">${isFuture && !item.exactMark ? "ENTRY MARK" : "NOW"} ${money(live)}</i><b>BASE ${money(plan.base)}</b><b>FINAL ${money(lastTarget)}</b></div>
         <div class="exit-bands">${targets}</div>

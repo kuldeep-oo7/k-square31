@@ -30,6 +30,21 @@
     return { action, buyLevels, sellAt, reachedBuyLevel, weeklyMovePct: (price / Number(anchor) - 1) * 100 };
   }
 
+  function futureSignal(entry, current, weeklyBuy, weeklySell, stepPct = 2, position = "long") {
+    const base = Number(entry);
+    const price = Number(current);
+    const buyLine = Number(weeklyBuy);
+    const sellLine = Number(weeklySell);
+    if (!(base > 0) || !(price > 0) || !(buyLine > 0) || !(sellLine > 0)) return { action: "loading", buyAt: null, sellAt: null, contractTarget: null };
+    const contractTarget = round(base * (position === "short" ? 1 - stepPct / 100 : 1 + stepPct / 100));
+    const buyAt = position === "short" ? Math.min(buyLine, contractTarget) : buyLine;
+    const sellAt = position === "short" ? sellLine : Math.max(sellLine, contractTarget);
+    const action = position === "short"
+      ? (price <= buyAt ? "buy" : price >= sellAt ? "sell" : "wait")
+      : (price <= buyAt ? "buy" : price >= sellAt ? "sell" : "wait");
+    return { action, buyAt: round(buyAt), sellAt: round(sellAt), contractTarget };
+  }
+
   function lotExit(lots, current, stepPct = 2, position = "long") {
     const price = Number(current);
     const direction = position === "short" ? -1 : 1;
@@ -48,5 +63,5 @@
     };
   }
 
-  return { exitLevels, levels, lotExit, weeklySignal };
+  return { exitLevels, futureSignal, levels, lotExit, weeklySignal };
 });

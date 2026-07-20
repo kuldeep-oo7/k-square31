@@ -1,10 +1,12 @@
 const assert = require("node:assert/strict");
-const { exitLevels, levels, lotExit, weeklySignal } = require("../grid-logic");
+const { exitLevels, futureSignal, levels, lotExit, weeklySignal } = require("../grid-logic");
 
 assert.deepEqual(levels(500), [490, 480.2, 470.6, 461.18, 451.96]);
 assert.deepEqual(exitLevels(500), [510, 520.2, 530.6, 541.22, 552.04]);
 assert.deepEqual(exitLevels(500, 2, 2, "short"), [490, 480.2]);
 assert.equal(exitLevels(1056.1)[0], 1077.22);
+assert.deepEqual(futureSignal(1858.3, 1861.5, 1862, 1938), { action: "buy", buyAt: 1862, sellAt: 1938, contractTarget: 1895.47 });
+assert.deepEqual(futureSignal(1056.1, 1064, 993.72, 1034.28), { action: "wait", buyAt: 993.72, sellAt: 1077.22, contractTarget: 1077.22 });
 assert.equal(weeklySignal(500, 489).action, "buy");
 assert.equal(weeklySignal(500, 480).reachedBuyLevel, 2);
 assert.equal(weeklySignal(500, 510).action, "sell");
