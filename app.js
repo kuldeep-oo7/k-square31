@@ -344,12 +344,13 @@
       const assetType = lot.assetType === "future" ? "future" : "equity";
       const position = lot.position === "short" ? "short" : "long";
       const key = lot.contractKey || (assetType === "future" ? `${lot.symbol}|FUT|${lot.expiry}|${position}` : `${lot.symbol}|EQ|long`);
-      if (!grouped.has(key)) grouped.set(key, { key, symbol: lot.symbol, assetType, position, expiry: lot.expiry || null, market: lot.market || (assetType === "future" ? "NSEFUT" : "NSE"), quantity: 0, cost: 0, lots: 0, markCost: 0, exactMark: true, source: lot.source || null });
+      if (!grouped.has(key)) grouped.set(key, { key, symbol: lot.symbol, assetType, position, expiry: lot.expiry || null, market: lot.market || (assetType === "future" ? "NSEFUT" : "NSE"), quantity: 0, cost: 0, lots: 0, markCost: 0, exactMark: true, brokerClose: false, source: lot.source || null });
       const item = grouped.get(key);
       item.quantity += Number(lot.quantity);
       item.cost += Number(lot.quantity) * Number(lot.price);
       item.markCost += Number(lot.quantity) * Number(lot.markPrice || lot.price);
       if (assetType === "future" && lot.markSource !== "exchange-live") item.exactMark = false;
+      if (assetType === "future" && lot.markSource === "broker-close") item.brokerClose = true;
       item.lots += 1;
     }
     return [...grouped.values()].map((item) => ({ ...item, average: item.quantity ? item.cost / item.quantity : 0, markPrice: item.quantity ? item.markCost / item.quantity : 0 }));
@@ -647,23 +648,23 @@
       const progress = Math.max(0, Math.min(100, direction * (live - plan.base) / Math.abs(lastTarget - plan.base) * 100));
       const flagProgress = Math.max(4, Math.min(96, progress));
       const targets = plan.targets.map((target, index) => {
-        const content = `<span><b>${item.position === "short" ? "C" : "S"}${index + 1}</b><i>${isFuture && !item.exactMark ? "planned level" : target.status === "reached" ? "Reached ✓" : target.status === "close" ? "Very close" : `${number(Math.max(0, target.distance))}% away`}</i></span><strong>${money(target.price)}</strong><small>${pct(target.gainPct)} · 2% step ${target.step} · ${number(plan.slice)} units</small>`;
+        const content = `<span><b>${item.position === "short" ? "C" : "S"}${index + 1}</b><i>${isFuture && !item.exactMark && !item.brokerClose ? "planned level" : target.status === "reached" ? "Reached ✓" : target.status === "close" ? "Very close" : `${number(Math.max(0, target.distance))}% away`}</i></span><strong>${money(target.price)}</strong><small>${pct(target.gainPct)} · 2% step ${target.step} · ${number(plan.slice)} units</small>`;
         return isFuture ? `<div class="exit-band future-band">${content}</div>` : `<button class="exit-band ${target.status}" data-exit-band data-exit-symbol="${item.symbol}" data-exit-price="${target.price}" data-exit-qty="${plan.slice}">${content}</button>`;
       }).join("");
       const expiry = item.expiry ? new Date(`${item.expiry}T00:00:00Z`).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }) : "";
       const instrumentCopy = isFuture ? `${item.market} · ${expiry} · ${item.position.toUpperCase()} ${number(item.quantity)}` : `${bySymbol.get(item.symbol)?.marketCapCategory || "Equity"} · ${number(item.quantity)} units · ${item.lots} lot${item.lots === 1 ? "" : "s"}`;
-      const markCopy = isFuture && !item.exactMark ? "Broker snapshot" : "Live price";
+      const markCopy = isFuture && item.brokerClose ? "Closing price" : isFuture && !item.exactMark ? "Broker snapshot" : "Live price";
       const actionMarkup = isFuture ? `<span class="contract-chip ${item.position}">${item.position === "short" ? "SHORT FUTURE" : "LONG FUTURE"}</span>` : `<button class="small-button" data-open-buy="${item.symbol}">Add</button><button class="small-button sell" data-open-sell="${item.symbol}">Reduce</button>`;
       const suggestionAction = !isFuture && suggestion.action === "buy" ? `<button class="suggestion-button" data-open-buy="${item.symbol}">Open buy ticket</button>` : !isFuture && suggestion.action === "sell" ? `<button class="suggestion-button" data-open-sell="${item.symbol}">Open sell ticket</button>` : "";
       return `<article class="holding-shell"><div class="holding-card">
         <div class="symbol-cell"><span class="symbol-avatar">${initials(item.symbol)}</span><div><b>${item.symbol}${isFuture ? " FUT" : ""}</b><small>${instrumentCopy}</small></div></div>
         <div class="holding-metric"><span>Average entry</span><strong>${money(item.average)}</strong></div>
         <div class="holding-metric"><span>${markCopy} · notional</span><strong>${money(live)} · ${money(value)}</strong>${isFuture && Number.isFinite(spot) ? `<small class="spot-reference">Spot reference ${money(spot)}</small>` : ""}</div>
-        <div class="holding-metric"><span>Open P&amp;L</span><strong class="${pnlValue >= 0 ? "positive" : "negative"}">${isFuture && !item.exactMark ? "Awaiting futures LTP" : `${money(pnlValue)} · ${pct(pnlPercent)}`}</strong></div>
+        <div class="holding-metric"><span>Open P&amp;L</span><strong class="${pnlValue >= 0 ? "positive" : "negative"}">${isFuture && !item.exactMark && !item.brokerClose ? "Awaiting futures LTP" : `${money(pnlValue)} · ${pct(pnlPercent)}`}</strong></div>
         <div class="holding-actions">${actionMarkup}</div>
       </div><section class="portfolio-call ${suggestion.action}"><div><span>TODAY'S ACTION</span><strong>${suggestion.label}</strong><p>${suggestion.detail}</p><div class="decision-levels"><div class="decision-buy"><span>${item.position === "short" ? "COVER AT OR BELOW" : "BUY AT OR BELOW"}</span><strong>${money(suggestion.buyAt)}</strong></div><div class="decision-now"><span>CURRENT PRICE</span><strong>${money(suggestion.current)}</strong></div><div class="decision-sell"><span>${item.position === "short" ? "RISK AT OR ABOVE" : "SELL AT OR ABOVE"}</span><strong>${money(suggestion.sellAt)}</strong></div></div><span class="daily-range-title">TODAY'S LIVE RANGE</span><div class="daily-range"><div><span>DAILY LOW</span><strong>${money(data?.daily?.low)}</strong></div><div><span>NOW</span><strong>${money(suggestion.current)}</strong></div><div><span>DAILY HIGH</span><strong>${money(data?.daily?.high)}</strong></div></div>${isFuture ? `<small class="price-source-note">Action uses the live underlying price. Exact futures P&amp;L still needs the contract LTP.</small>` : ""}</div>${suggestionAction}</section><section class="exit-plan">
         <div class="exit-plan-head"><div><span>${item.position === "short" ? "FIVE 2% COVER CHUNKS · BELOW" : "FIVE 2% SELL CHUNKS · ABOVE"} ${money(plan.base)} ${isFuture ? "ENTRY BASE" : "MONDAY BASE"}</span><h3>${item.position === "short" ? "Every further 2% fall → cover one slice" : "Every further 2% rise → sell one slice"}</h3></div><p>Even split: ${number(plan.slice)} of ${number(item.quantity)} units per chunk. Each level compounds exactly 2% from the previous one${isFuture ? " using the broker entry price" : " and resets from the new Monday opening"}.</p></div>
-        <div class="exit-progress ${item.position === "short" ? "short-progress" : ""} ${isFuture && !item.exactMark ? "snapshot-progress" : ""}"><span style="width:${progress}%"></span><i style="left:${flagProgress}%">${isFuture && !item.exactMark ? "ENTRY MARK" : "NOW"} ${money(live)}</i><b>BASE ${money(plan.base)}</b><b>FINAL ${money(lastTarget)}</b></div>
+        <div class="exit-progress ${item.position === "short" ? "short-progress" : ""} ${isFuture && !item.exactMark && !item.brokerClose ? "snapshot-progress" : ""}"><span style="width:${progress}%"></span><i style="left:${flagProgress}%">${item.brokerClose ? "CLOSE" : isFuture && !item.exactMark ? "ENTRY MARK" : "NOW"} ${money(live)}</i><b>BASE ${money(plan.base)}</b><b>FINAL ${money(lastTarget)}</b></div>
         <div class="exit-bands">${targets}</div>
         <p class="exit-risk"><b>Weekly 2% rule:</b> the first ${item.position === "short" ? "cover" : "sell"} line is ${money(plan.targets[0]?.price)} and the adverse 2% reference is ${money(plan.riskLine)}. ${isFuture ? "These contract levels use the broker entry; the displayed live reference remains the underlying spot until an exact futures LTP feed is connected." : "These levels reset from the new Monday opening."}</p>
       </section></article>`;

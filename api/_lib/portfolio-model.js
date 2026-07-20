@@ -30,7 +30,7 @@ function cleanLot(raw) {
   if (raw?.source === "broker-snapshot") lot.source = "broker-snapshot";
   const markPrice = positive(raw?.markPrice);
   if (markPrice) lot.markPrice = markPrice;
-  if (raw?.markSource === "broker-snapshot") lot.markSource = "broker-snapshot";
+  if (["broker-snapshot", "broker-close", "exchange-live"].includes(raw?.markSource)) lot.markSource = raw.markSource;
   return lot;
 }
 
@@ -69,11 +69,12 @@ function brokerPosition(raw) {
   return cleanLot({
     id: crypto.randomUUID(), symbol, price, quantity, position, expiry,
     assetType: "future", market: "NSEFUT", source: "broker-snapshot",
-    markPrice: price, markSource: "broker-snapshot", time: Date.now()
+    markPrice: positive(raw?.markPrice) || price,
+    markSource: positive(raw?.markPrice) ? "broker-close" : "broker-snapshot", time: Date.now()
   });
 }
 
-function replaceBrokerSnapshot(portfolio, positions, snapshotId) {
+function replaceBrokerSnapshot(portfolio, positions, snapshotId, realizedPnl = 0) {
   const cleaned = positions.map(brokerPosition);
   if (!positions.length || positions.length > 100 || cleaned.some((item) => !item)) {
     const error = new Error("Invalid broker futures snapshot");
@@ -92,7 +93,7 @@ function replaceBrokerSnapshot(portfolio, positions, snapshotId) {
   const current = cleanPortfolio(portfolio);
   if (current.transactions.some((item) => item.snapshotId === snapshotId)) return current;
   current.lots = cleaned;
-  current.realizedPnl = 0;
+  current.realizedPnl = Number.isFinite(Number(realizedPnl)) ? Number(realizedPnl) : 0;
   current.transactions.unshift({
     requestId: snapshotId, snapshotId, action: "import", symbol: "PORTFOLIO",
     price: 0, quantity: 0, count: cleaned.length, time: Date.now()

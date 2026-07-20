@@ -28,7 +28,7 @@ module.exports = async function handler(request, response) {
       return response.status(400).json({ error: "Invalid broker snapshot" });
     }
     try {
-      const updated = await mutatePortfolio(session.username, (portfolio) => replaceBrokerSnapshot(portfolio, body.positions, snapshotId));
+      const updated = await mutatePortfolio(session.username, (portfolio) => replaceBrokerSnapshot(portfolio, body.positions, snapshotId, body.realizedPnl));
       return response.status(200).json({ portfolio: cleanPortfolio(updated) });
     } catch (error) {
       if (error.code === "SNAPSHOT") return response.status(400).json({ error: error.message });
