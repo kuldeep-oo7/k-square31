@@ -24,7 +24,10 @@
     portfolio: emptyPortfolio(),
     aiLedger: emptyAiLedger(),
     aiSearch: "",
-    aiRefreshTimer: null
+    aiRefreshTimer: null,
+    aiLoading: false,
+    aiError: null,
+    aiSyncing: false
   };
 
   const el = (id) => document.getElementById(id);
@@ -42,6 +45,19 @@
       summary: { allocated: watchlist.length * 200000, cash: watchlist.length * 200000, marketValue: 0, invested: 0, openPnl: 0, realizedPnl: 0, openLots: 0, activeStocks: 0 },
       stocks: [], transactions: [], updatedAt: null
     };
+  }
+
+  function loadCachedAiLedger() {
+    try {
+      const cached = JSON.parse(localStorage.getItem("k2-ai-ledger-v1"));
+      return Array.isArray(cached?.stocks) && cached.stocks.length ? cached : null;
+    } catch {
+      return null;
+    }
+  }
+
+  function cacheAiLedger(ledger) {
+    try { localStorage.setItem("k2-ai-ledger-v1", JSON.stringify(ledger)); } catch { /* backend remains authoritative */ }
   }
 
   function loadPortfolio() {
@@ -106,20 +122,44 @@
   }
 
   async function syncAiLedger() {
-    if (state.user !== "ai") return;
+    if (state.user !== "ai" || state.aiSyncing) return;
+    state.aiSyncing = true;
+    state.aiLoading = true;
+    state.aiError = null;
+    if (!state.aiLedger.stocks?.length) renderAiPortfolio();
+    renderSummary();
     try {
-      const response = await fetch("/api/ai", { credentials: "same-origin" });
-      const payload = await response.json();
-      if (!response.ok) throw new Error(payload.error || "AI paper ledger unavailable");
+      let payload = null;
+      let lastError = null;
+      for (let attempt = 0; attempt < 3 && !payload; attempt += 1) {
+        try {
+          const controller = new AbortController();
+          const timeout = setTimeout(() => controller.abort(), 25_000);
+          const response = await fetch("/api/ai", { credentials: "same-origin", cache: "no-store", signal: controller.signal });
+          clearTimeout(timeout);
+          const candidate = await response.json();
+          if (!response.ok) throw new Error(candidate.error || "AI paper ledger unavailable");
+          payload = candidate;
+        } catch (error) {
+          lastError = error;
+          if (attempt < 2) await new Promise((resolve) => setTimeout(resolve, 1200 * (attempt + 1)));
+        }
+      }
+      if (!payload) throw lastError || new Error("AI paper ledger unavailable");
       state.aiLedger = payload;
+      cacheAiLedger(payload);
       state.databaseOnline = true;
       renderWatchlist();
       renderFocusMap();
-      renderAiPortfolio();
-      renderSummary();
     } catch (error) {
       state.databaseOnline = false;
-      toast(error.message || "AI paper ledger unavailable");
+      state.aiError = error.message || "AI paper ledger unavailable";
+      toast(`${state.aiError}. Tap retry in the AI grid.`);
+    } finally {
+      state.aiLoading = false;
+      state.aiSyncing = false;
+      renderAiPortfolio();
+      renderSummary();
     }
   }
 
@@ -531,11 +571,12 @@
       el("portfolioValueLabel").textContent = "Virtual portfolio";
       el("openPnlLabel").textContent = "Total P&L";
       el("portfolioValue").textContent = money(equity, true);
-      el("holdingCount").textContent = `${summary.activeStocks || 0} active stocks · ${summary.openLots || 0} lots`;
+      const waitingForFirstLoad = state.aiLoading && !state.aiLedger.stocks?.length;
+      el("holdingCount").textContent = waitingForFirstLoad ? "Loading AI portfolio…" : `${summary.activeStocks || 0} active stocks · ${summary.openLots || 0} lots`;
       el("openPnl").textContent = money(totalPnl, Math.abs(totalPnl) >= 100000);
       el("openPnl").className = totalPnl > 0 ? "positive" : totalPnl < 0 ? "negative" : "";
       el("openPnlPct").textContent = `${pct(summary.allocated ? totalPnl / summary.allocated * 100 : 0)} on virtual allocation`;
-      el("portfolioBadge").textContent = summary.activeStocks || 0;
+      el("portfolioBadge").textContent = waitingForFirstLoad ? "…" : summary.activeStocks || 0;
       el("loadedCount").textContent = `${market.size} / ${watchlist.length}`;
       return;
     }
@@ -557,6 +598,17 @@
     const summary = ledger.summary || emptyAiLedger().summary;
     const config = ledger.config || emptyAiLedger().config;
     const container = el("portfolioContent");
+    if (!ledger.stocks?.length && state.aiLoading) {
+      container.innerHTML = `<section class="ai-load-state"><i></i><b>Loading the shared AI portfolio…</b><span>Reading all ten secure ledger sections. On a phone this can take a few seconds.</span></section>`;
+      renderSummary();
+      return;
+    }
+    if (!ledger.stocks?.length && state.aiError) {
+      container.innerHTML = `<section class="ai-load-state error"><b>The AI portfolio did not load.</b><span>${state.aiError}</span><button type="button" data-retry-ai>Retry now</button></section>`;
+      renderSummary();
+      return;
+    }
+    const syncNotice = state.aiLoading ? `<div class="ai-sync-notice"><i></i>Refreshing the shared ledger… showing the last synchronized copy.</div>` : state.aiError ? `<div class="ai-sync-notice error">Refresh failed; showing the last synchronized copy. <button type="button" data-retry-ai>Retry</button></div>` : "";
     const equity = Number(summary.cash) + Number(summary.marketValue);
     const totalPnl = equity - Number(summary.allocated);
     const updated = ledger.updatedAt ? new Date(ledger.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" }) : "Waiting for first automation run";
@@ -598,7 +650,7 @@
       <div><small>Level</small><b>${trade.action === "buy" ? `B${trade.level}` : "+2% exit"}</b></div><div><small>Quantity</small><b>${number(trade.quantity)}</b></div><div><small>Paper price</small><b>${money(trade.price)}</b></div><div><small>Realized</small><b class="${trade.pnl >= 0 ? "positive" : "negative"}">${trade.action === "sell" ? money(trade.pnl) : "—"}</b></div>
     </div>`).join("") || `<div class="ai-empty"><b>No paper trades yet.</b><span>The ledger is waiting for a stock to cross one of its Friday-based 3% levels.</span></div>`;
 
-    container.innerHTML = `<section class="ai-command">
+    container.innerHTML = `${syncNotice}<section class="ai-command">
       <div><p class="eyebrow"><span></span> AUTOMATIC · PAPER ONLY</p><h3>Friday close → five 3% drops → individual 2% exits</h3><p>All ${watchlist.length} stocks are checked every 15 minutes through the NSE market day, Monday–Friday. Each has a hard concurrent deployment cap of ${money(config.budgetPerStock)} and five slots of up to ${money(config.slotBudget)}. Every automatic buy and sell appears below.</p></div>
       <div class="ai-heart"><strong>AI</strong><i></i><span>WATCHING<br />${watchlist.length} STOCKS</span></div>
     </section>
@@ -1130,9 +1182,11 @@
     state.user = session.username;
     state.displayName = session.displayName || session.username;
     state.csrf = session.csrf;
-    state.portfolio = loadPortfolio();
-    state.aiLedger = emptyAiLedger();
     const aiMode = state.user === "ai";
+    state.portfolio = loadPortfolio();
+    state.aiLedger = aiMode ? (loadCachedAiLedger() || emptyAiLedger()) : emptyAiLedger();
+    state.aiLoading = aiMode;
+    state.aiError = null;
     el("portfolioTabLabel").textContent = aiMode ? "AI Paper Grid" : "Portfolio";
     el("portfolioOverline").textContent = aiMode ? "Autonomous Friday-grid laboratory" : "Private cloud portfolio";
     el("portfolioHeading").innerHTML = aiMode ? `The machine watches,<br /><em>the ledger remembers.</em>` : `Your positions,<br /><em>measured live.</em>`;
@@ -1167,6 +1221,9 @@
     state.portfolio = emptyPortfolio();
     state.aiLedger = emptyAiLedger();
     state.aiSearch = "";
+    state.aiLoading = false;
+    state.aiError = null;
+    state.aiSyncing = false;
     clearInterval(state.aiRefreshTimer);
     state.aiRefreshTimer = null;
     el("portfolioTabLabel").textContent = "Portfolio";
@@ -1210,6 +1267,7 @@
   });
 
   el("portfolioContent").addEventListener("click", (event) => {
+    if (event.target.closest("[data-retry-ai]")) { syncAiLedger(); return; }
     const exitBand = event.target.closest("[data-exit-band]");
     const buy = event.target.closest("[data-open-buy]");
     const sell = event.target.closest("[data-open-sell]");
