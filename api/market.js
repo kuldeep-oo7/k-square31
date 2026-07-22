@@ -33,6 +33,67 @@ function weekSnapshot(bars, livePrice) {
   };
 }
 
+function mondayKey(timestamp) {
+  const date = indiaDate(timestamp);
+  const weekday = new Date(`${date}T12:00:00Z`).getUTCDay();
+  const daysFromMonday = (weekday + 6) % 7;
+  return new Date(Date.parse(`${date}T12:00:00Z`) - daysFromMonday * DAY * 1000).toISOString().slice(0, 10);
+}
+
+function wilsonInterval(successes, total) {
+  if (!total) return { low: null, high: null };
+  const z = 1.96;
+  const proportion = successes / total;
+  const denominator = 1 + z ** 2 / total;
+  const centre = (proportion + z ** 2 / (2 * total)) / denominator;
+  const margin = z * Math.sqrt((proportion * (1 - proportion) + z ** 2 / (4 * total)) / total) / denominator;
+  return { low: round(Math.max(0, centre - margin) * 100), high: round(Math.min(1, centre + margin) * 100) };
+}
+
+function empiricalStats(bars) {
+  const grouped = new Map();
+  for (const bar of bars) {
+    const key = mondayKey(bar.timestamp);
+    if (!grouped.has(key)) grouped.set(key, []);
+    grouped.get(key).push(bar);
+  }
+  const weeks = [...grouped.entries()].sort(([left], [right]) => left.localeCompare(right)).slice(0, -1).slice(-26).map(([key, sessions]) => {
+    const opening = Number.isFinite(sessions[0].open) ? sessions[0].open : sessions[0].close;
+    const high = Math.max(...sessions.map((bar) => bar.high));
+    const low = Math.min(...sessions.map((bar) => bar.low));
+    return { key, down2: low <= opening * .98, up2: high >= opening * 1.02, rangePct: opening ? (high - low) / opening * 100 : 0 };
+  });
+  const downHits = weeks.filter((week) => week.down2).length;
+  const upHits = weeks.filter((week) => week.up2).length;
+  const bothHits = weeks.filter((week) => week.down2 && week.up2).length;
+  const daily = [];
+  for (let index = 1; index < bars.length - 1; index += 1) {
+    const move = bars[index].close / bars[index - 1].close - 1;
+    const next = bars[index + 1].close / bars[index].close - 1;
+    daily.push({ move, next });
+  }
+  const downShocks = daily.filter((event) => event.move <= -.02);
+  const upShocks = daily.filter((event) => event.move >= .02);
+  const downBounces = downShocks.filter((event) => event.next > 0).length;
+  const upPullbacks = upShocks.filter((event) => event.next < 0).length;
+  return {
+    weeks: weeks.length,
+    down2HitPct: weeks.length ? round(downHits / weeks.length * 100) : null,
+    down2Hits: downHits,
+    down2Interval95: wilsonInterval(downHits, weeks.length),
+    up2HitPct: weeks.length ? round(upHits / weeks.length * 100) : null,
+    up2Hits: upHits,
+    up2Interval95: wilsonInterval(upHits, weeks.length),
+    both2HitPct: weeks.length ? round(bothHits / weeks.length * 100) : null,
+    both2Hits: bothHits,
+    averageWeeklyRangePct: round(mean(weeks.map((week) => week.rangePct))),
+    downShockSample: downShocks.length,
+    nextDayUpAfterDown2Pct: downShocks.length ? round(downBounces / downShocks.length * 100) : null,
+    upShockSample: upShocks.length,
+    nextDayDownAfterUp2Pct: upShocks.length ? round(upPullbacks / upShocks.length * 100) : null
+  };
+}
+
 function mean(values) {
   return values.length ? values.reduce((sum, value) => sum + value, 0) / values.length : 0;
 }
@@ -101,6 +162,84 @@ function linearTrend(values) {
   };
 }
 
+function maxDrawdownPct(values) {
+  if (!values.length) return 0;
+  let peak = values[0];
+  let drawdown = 0;
+  for (const value of values) {
+    peak = Math.max(peak, value);
+    if (peak > 0) drawdown = Math.min(drawdown, value / peak - 1);
+  }
+  return Math.abs(drawdown * 100);
+}
+
+function downsideVolatilityPct(values) {
+  if (values.length < 2) return 0;
+  const returns = values.slice(1).map((value, index) => Math.log(value / values[index]));
+  return Math.sqrt(mean(returns.map((value) => Math.min(0, value) ** 2))) * Math.sqrt(252) * 100;
+}
+
+function analogForecast(closes) {
+  function featuresAt(index) {
+    if (index < 20) return null;
+    const price = closes[index];
+    const prior5 = closes[index - 5];
+    const recent20 = closes.slice(index - 19, index + 1);
+    const changes = recent20.slice(1).map((value, offset) => Math.log(value / recent20[offset]));
+    const average = mean(recent20);
+    const deviation = standardDeviation(recent20);
+    const high = Math.max(...recent20), low = Math.min(...recent20);
+    const ma5 = mean(closes.slice(index - 4, index + 1));
+    return [
+      ((price / prior5) - 1) / .05,
+      standardDeviation(changes) / .03,
+      deviation ? ((price - average) / deviation) / 2 : 0,
+      average ? ((ma5 / average) - 1) / .05 : 0,
+      high > low ? (price - low) / (high - low) : .5
+    ];
+  }
+  function nearest(history, features, count) {
+    return history.map((sample) => ({ ...sample, distance: Math.sqrt(sample.features.reduce((sum, value, index) => sum + (value - features[index]) ** 2, 0)) }))
+      .sort((left, right) => left.distance - right.distance).slice(0, count);
+  }
+  const samples = [];
+  for (let index = 20; index < closes.length - 5; index += 1) {
+    const features = featuresAt(index);
+    if (!features) continue;
+    samples.push({ index, features, target: closes[index + 5] / closes[index] - 1 });
+  }
+  const currentFeatures = featuresAt(closes.length - 1);
+  if (!currentFeatures || samples.length < 30) return { ready: false, samples: samples.length, reason: "Need at least 30 historical analogues" };
+  const k = Math.min(15, Math.max(7, Math.round(Math.sqrt(samples.length))));
+  const neighbours = nearest(samples, currentFeatures, k);
+  const probabilityUp5Pct = mean(neighbours.map((sample) => sample.target > 0 ? 1 : 0)) * 100;
+  const expectedReturn5Pct = mean(neighbours.map((sample) => sample.target)) * 100;
+  let correct = 0, brier = 0, tests = 0;
+  for (let cursor = 20; cursor < samples.length; cursor += 1) {
+    const candidate = samples[cursor];
+    const history = samples.slice(0, cursor).filter((sample) => sample.index + 5 <= candidate.index);
+    if (history.length < 20) continue;
+    const local = nearest(history, candidate.features, Math.min(k, history.length));
+    const probability = mean(local.map((sample) => sample.target > 0 ? 1 : 0));
+    const outcome = candidate.target > 0 ? 1 : 0;
+    correct += (probability >= .5 ? 1 : 0) === outcome ? 1 : 0;
+    brier += (probability - outcome) ** 2;
+    tests += 1;
+  }
+  return {
+    ready: true,
+    method: "walk-forward nearest-neighbour analogues",
+    horizonSessions: 5,
+    samples: samples.length,
+    neighbours: k,
+    probabilityUp5Pct: round(probabilityUp5Pct),
+    expectedReturn5Pct: round(expectedReturn5Pct),
+    validationTrades: tests,
+    walkForwardAccuracyPct: tests ? round(correct / tests * 100) : null,
+    brierScore: tests ? round(brier / tests) : null
+  };
+}
+
 function calculate(symbol, result, benchmarkResult = null) {
   const meta = result.meta || {};
   const bars = resultBars(result);
@@ -110,6 +249,8 @@ function calculate(symbol, result, benchmarkResult = null) {
   const now = Math.floor(Date.now() / 1000);
   const rolling = bars.filter((bar) => bar.timestamp >= now - 31 * DAY);
   const windowBars = rolling.length ? rolling : bars.slice(-23);
+  const rollingQuarter = bars.filter((bar) => bar.timestamp >= now - 93 * DAY);
+  const quarterBars = rollingQuarter.length ? rollingQuarter : bars.slice(-66);
   const livePrice = meta.regularMarketPrice ?? bars.at(-1).close;
   const liveLow = Number.isFinite(meta.regularMarketDayLow) ? meta.regularMarketDayLow : livePrice;
   const liveHigh = Number.isFinite(meta.regularMarketDayHigh) ? meta.regularMarketDayHigh : livePrice;
@@ -117,6 +258,11 @@ function calculate(symbol, result, benchmarkResult = null) {
   const high31 = Math.max(liveHigh, ...windowBars.map((bar) => bar.high));
   const range = Math.max(high31 - low31, high31 * 0.005);
   const midpoint = (low31 + high31) / 2;
+  const low90 = Math.min(liveLow, ...quarterBars.map((bar) => bar.low));
+  const high90 = Math.max(liveHigh, ...quarterBars.map((bar) => bar.high));
+  const range90 = Math.max(high90 - low90, high90 * 0.005);
+  const midpoint90 = (low90 + high90) / 2;
+  const position90 = Math.max(-0.5, Math.min(1.5, (livePrice - low90) / range90));
 
   const trueRanges = windowBars.map((bar, index) => {
     const previousClose = windowBars[index - 1]?.close ?? bar.open ?? bar.close;
@@ -193,6 +339,30 @@ function calculate(symbol, result, benchmarkResult = null) {
   const trendScore = trendParts.reduce((sum, value) => sum + value, 0);
   const volatilityPct = standardDeviation(returns) * Math.sqrt(252) * 100;
   const atrPct = price ? atr14 / price * 100 : 0;
+  const recent63 = allCloses.slice(-63);
+  const return63Base = allCloses.at(-64) ?? allCloses[0];
+  const return63Pct = return63Base ? (price / return63Base - 1) * 100 : 0;
+  const sma20 = mean(allCloses.slice(-20));
+  const sma50 = mean(allCloses.slice(-50));
+  const sma20GapPct = sma20 ? (price / sma20 - 1) * 100 : 0;
+  const sma50GapPct = sma50 ? (price / sma50 - 1) * 100 : 0;
+  const downsideVol63Pct = downsideVolatilityPct(recent63);
+  const maxDrawdown63 = maxDrawdownPct(recent63);
+  const recentVolumes = bars.map((bar) => Number(bar.volume)).filter(Number.isFinite);
+  const averageVolume5 = mean(recentVolumes.slice(-5));
+  const averageVolume20 = mean(recentVolumes.slice(-20));
+  const volumeRatio5To20 = averageVolume20 ? averageVolume5 / averageVolume20 : 0;
+  const averageTurnover20 = mean(bars.slice(-20).map((bar) => Number(bar.volume) * Number(bar.close)).filter(Number.isFinite));
+  const volatilityAdjustedMomentum = volatilityPct ? return63Pct / volatilityPct : 0;
+  const riskBudgetMultiplier = Math.max(0.25, Math.min(1.25, 25 / Math.max(volatilityPct, 1)));
+  const evidenceParts = [
+    price > sma20 && sma20 > sma50 ? 1 : price < sma20 && sma20 < sma50 ? -1 : 0,
+    return63Pct >= 3 ? 1 : return63Pct <= -3 ? -1 : 0,
+    hasBenchmark ? (relativeStrength20Pct >= 1 ? 1 : relativeStrength20Pct <= -1 ? -1 : 0) : 0
+  ];
+  const evidenceScore = evidenceParts.reduce((sum, value) => sum + value, 0);
+  const riskState = volatilityPct >= 55 || maxDrawdown63 >= 18 ? "high"
+    : volatilityPct >= 35 || maxDrawdown63 >= 10 ? "elevated" : "normal";
   const marketRegime = volatilityPct >= 65 || atrPct >= 4 || Math.abs(accelerationPct) >= 5 || Math.abs(return5Pct) >= 12 ? "volatile"
     : trend10.rSquared >= .55 && Math.abs(emaSpreadPct) >= .2 ? "trend"
       : trend10.rSquared <= .3 ? "range" : "transition";
@@ -219,6 +389,8 @@ function calculate(symbol, result, benchmarkResult = null) {
       high: round(liveHigh)
     },
     weekly: weekSnapshot(bars, price),
+    empirical: empiricalStats(bars),
+    analogModel: analogForecast(allCloses),
     window: {
       calendarDays: 31,
       sessions: windowBars.length,
@@ -231,6 +403,17 @@ function calculate(symbol, result, benchmarkResult = null) {
       atr14: round(atr14),
       annualizedVolatilityPct: round(volatilityPct),
       rsi14: round(rsi14)
+    },
+    quarter: {
+      calendarDays: 93,
+      sessions: quarterBars.length,
+      from: quarterBars[0].timestamp,
+      to: quarterBars.at(-1).timestamp,
+      low: round(low90),
+      high: round(high90),
+      midpoint: round(midpoint90),
+      range: round(range90),
+      positionPct: round(position90 * 100)
     },
     signals: {
       atrPct: round(atrPct),
@@ -248,7 +431,20 @@ function calculate(symbol, result, benchmarkResult = null) {
       trendScore,
       reversionScore,
       pulseScore,
-      pulseAgreementPct: round(pulseAgreementPct)
+      pulseAgreementPct: round(pulseAgreementPct),
+      return63Pct: round(return63Pct),
+      sma20: round(sma20),
+      sma50: round(sma50),
+      sma20GapPct: round(sma20GapPct),
+      sma50GapPct: round(sma50GapPct),
+      downsideVolatility63Pct: round(downsideVol63Pct),
+      maxDrawdown63Pct: round(maxDrawdown63),
+      volumeRatio5To20: round(volumeRatio5To20),
+      averageTurnover20: round(averageTurnover20),
+      volatilityAdjustedMomentum: round(volatilityAdjustedMomentum),
+      riskBudgetMultiplier: round(riskBudgetMultiplier),
+      evidenceScore,
+      riskState
     },
     ladder: { buy, sell, extension: round(extension) },
     regime,
@@ -263,7 +459,7 @@ function calculate(symbol, result, benchmarkResult = null) {
 }
 
 async function fetchChart(symbol) {
-  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=2mo&interval=1d&includePrePost=false&events=div%2Csplits`;
+  const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(symbol)}?range=6mo&interval=1d&includePrePost=false&events=div%2Csplits`;
   const response = await fetch(url, {
     headers: { "User-Agent": "Mozilla/5.0 K-Square/1.0", Accept: "application/json" },
     signal: AbortSignal.timeout(9_000)
@@ -314,3 +510,5 @@ module.exports = async function handler(request, response) {
 
   return response.status(data.length ? 200 : 502).json({ data, errors, provider: "Yahoo Finance chart feed (unofficial; may be delayed)" });
 };
+
+module.exports._test = { analogForecast, calculate, empiricalStats, maxDrawdownPct };

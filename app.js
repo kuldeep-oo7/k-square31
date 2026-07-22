@@ -27,7 +27,8 @@
     aiRefreshTimer: null,
     aiLoading: false,
     aiError: null,
-    aiSyncing: false
+    aiSyncing: false,
+    plannerKey: null
   };
 
   const el = (id) => document.getElementById(id);
@@ -216,6 +217,18 @@
     const relativeStrength = Number(data.signals?.relativeStrength20Pct) || 0;
     const beta = Number(data.signals?.beta20) || 0;
     const correlation = Number(data.signals?.correlation20) || 0;
+    const return63 = Number(data.signals?.return63Pct) || 0;
+    const sma20Gap = Number(data.signals?.sma20GapPct) || 0;
+    const sma50Gap = Number(data.signals?.sma50GapPct) || 0;
+    const downsideVol = Number(data.signals?.downsideVolatility63Pct) || 0;
+    const drawdown = Number(data.signals?.maxDrawdown63Pct) || 0;
+    const volumeRatio = Number(data.signals?.volumeRatio5To20) || 0;
+    const adjustedMomentum = Number(data.signals?.volatilityAdjustedMomentum) || 0;
+    const riskMultiplier = Number(data.signals?.riskBudgetMultiplier) || 0;
+    const weeklySample = Number(data.empirical?.weeks) || 0;
+    const downHit = Number.isFinite(data.empirical?.down2HitPct) ? Number(data.empirical.down2HitPct) : null;
+    const upHit = Number.isFinite(data.empirical?.up2HitPct) ? Number(data.empirical.up2HitPct) : null;
+    const analog = data.analogModel || {};
     const atr = atrPct < 1.5
       ? { tone: "calm", label: "Calm daily movement", note: `About ${number(atrPct)}% or ${money(data.window.atr14)} per day` }
       : atrPct < 3
@@ -270,6 +283,45 @@
       : beta < .7
         ? { tone: "calm", label: "Less market-sensitive", note: `Beta ${number(beta)} · correlation ${number(correlation)}` }
         : { tone: "neutral", label: "Market-like sensitivity", note: `Beta ${number(beta)} · correlation ${number(correlation)}` };
+    const quarterMomentum = return63 > 4
+      ? { tone: "calm", label: "Three-month trend is rising", note: "Medium-speed momentum supports the upside" }
+      : return63 < -4
+        ? { tone: "danger", label: "Three-month trend is falling", note: "Medium-speed momentum remains adverse" }
+        : { tone: "neutral", label: "Three-month trend is flat", note: "No strong medium-speed direction" };
+    const averageStack = sma20Gap > 0 && sma50Gap > 0
+      ? { tone: "calm", label: "Above both trend averages", note: `20-session ${pct(sma20Gap)} · 50-session ${pct(sma50Gap)}` }
+      : sma20Gap < 0 && sma50Gap < 0
+        ? { tone: "danger", label: "Below both trend averages", note: `20-session ${pct(sma20Gap)} · 50-session ${pct(sma50Gap)}` }
+        : { tone: "active", label: "Fast and slow trends disagree", note: `20-session ${pct(sma20Gap)} · 50-session ${pct(sma50Gap)}` };
+    const downsideCard = downsideVol < 18
+      ? { tone: "calm", label: "Contained downside movement", note: "Negative-return variation has been relatively small" }
+      : downsideVol < 35
+        ? { tone: "active", label: "Meaningful downside movement", note: "Size the trade with room for adverse swings" }
+        : { tone: "danger", label: "Heavy downside movement", note: "Recent negative moves have been unusually wide" };
+    const drawdownCard = drawdown < 8
+      ? { tone: "calm", label: "Shallow three-month drawdown", note: "Smallest peak-to-trough damage in this band" }
+      : drawdown < 16
+        ? { tone: "active", label: "Visible three-month drawdown", note: "Recovery risk is material" }
+        : { tone: "danger", label: "Deep three-month drawdown", note: "Trend damage is substantial" };
+    const volumeCard = volumeRatio >= 1.25
+      ? { tone: "active", label: "Participation is expanding", note: `${number(volumeRatio)}× the 20-session average volume` }
+      : volumeRatio <= .7
+        ? { tone: "neutral", label: "Participation is thin", note: `${number(volumeRatio)}× the 20-session average volume` }
+        : { tone: "neutral", label: "Participation is normal", note: `${number(volumeRatio)}× the 20-session average volume` };
+    const adjustedCard = adjustedMomentum > .15
+      ? { tone: "calm", label: "Trend reward exceeds movement", note: "Three-month return is positive after volatility adjustment" }
+      : adjustedMomentum < -.15
+        ? { tone: "danger", label: "Adverse trend after risk adjustment", note: "Three-month direction remains negative versus movement" }
+        : { tone: "neutral", label: "Little risk-adjusted direction", note: "Movement is not producing a clear trend" };
+    const analogCard = !analog.ready
+      ? { tone: "neutral", label: "Model is still data-limited", note: analog.reason || "More stored history is required" }
+      : Number(analog.walkForwardAccuracyPct) < 52
+        ? { tone: "active", label: "Analog model has weak validation", note: `${number(analog.walkForwardAccuracyPct)}% walk-forward accuracy across ${analog.validationTrades} tests` }
+        : Number(analog.probabilityUp5Pct) >= 60
+          ? { tone: "calm", label: "Similar histories leaned upward", note: `${analog.neighbours} nearest analogues · ${number(analog.walkForwardAccuracyPct)}% walk-forward accuracy` }
+          : Number(analog.probabilityUp5Pct) <= 40
+            ? { tone: "danger", label: "Similar histories leaned downward", note: `${analog.neighbours} nearest analogues · ${number(analog.walkForwardAccuracyPct)}% walk-forward accuracy` }
+            : { tone: "neutral", label: "Similar histories are split", note: `${analog.neighbours} nearest analogues · ${number(analog.walkForwardAccuracyPct)}% walk-forward accuracy` };
     return [
       { name: "Daily movement · ATR", value: money(data.window.atr14), ...atr },
       { name: "Movement intensity · Volatility", value: `${number(volatility)}%`, ...vol },
@@ -280,8 +332,27 @@
       { name: "Price acceleration · 3 vs 3", value: pct(acceleration), ...accelerationCard },
       { name: "Trend coherence · R²", value: `${number(trendFit)}%`, ...fitCard },
       { name: "Relative strength · vs Nifty", value: pct(relativeStrength), ...relativeCard },
-      { name: "Market sensitivity · Beta", value: number(beta), ...betaCard }
+      { name: "Market sensitivity · Beta", value: number(beta), ...betaCard },
+      { name: "Medium trend · 3 months", value: pct(return63), ...quarterMomentum },
+      { name: "Trend stack · 20 / 50", value: `${pct(sma20Gap)} / ${pct(sma50Gap)}`, ...averageStack },
+      { name: "Downside volatility · 3 months", value: `${number(downsideVol)}%`, ...downsideCard },
+      { name: "Maximum drawdown · 3 months", value: `${number(drawdown)}%`, ...drawdownCard },
+      { name: "Volume participation · 5 / 20", value: `${number(volumeRatio)}×`, ...volumeCard },
+      { name: "Vol-adjusted momentum", value: number(adjustedMomentum), ...adjustedCard },
+      { name: "Volatility-sized chunk", value: money(40_000 * riskMultiplier), tone: riskMultiplier < .65 ? "danger" : riskMultiplier < 1 ? "active" : "calm", label: `${number(riskMultiplier)}× size`, note: "A risk-scaled reference capped against the ₹40,000 chunk—not an order" },
+      { name: "Historical weekly −2% touch", value: Number.isFinite(downHit) ? `${number(downHit)}%` : "—", tone: "neutral", label: `${data.empirical?.down2Hits || 0} of ${weeklySample} completed weeks`, note: weeklySample < 12 ? "Small sample—do not rely on this alone" : `95% interval ${number(data.empirical?.down2Interval95?.low)}–${number(data.empirical?.down2Interval95?.high)}%` },
+      { name: "Historical weekly +2% touch", value: Number.isFinite(upHit) ? `${number(upHit)}%` : "—", tone: "neutral", label: `${data.empirical?.up2Hits || 0} of ${weeklySample} completed weeks`, note: weeklySample < 12 ? "Small sample—do not rely on this alone" : `95% interval ${number(data.empirical?.up2Interval95?.low)}–${number(data.empirical?.up2Interval95?.high)}%` },
+      { name: "Walk-forward analog model · 5 days", value: analog.ready ? `${number(analog.probabilityUp5Pct)}% up` : "LEARNING", ...analogCard }
     ];
+  }
+
+  function evidenceReadout(data) {
+    const score = Number(data?.signals?.evidenceScore) || 0;
+    const risk = data?.signals?.riskState || "normal";
+    if (risk === "high") return { tone: "danger", label: "HIGH MOVEMENT RISK", detail: "Trend evidence may exist, but volatility or drawdown is large enough to cut size first." };
+    if (score >= 2) return { tone: risk === "elevated" ? "active" : "calm", label: "TREND EVIDENCE SUPPORTS UPSIDE", detail: "The 20/50 trend stack, three-month momentum and Nifty-relative strength are mostly aligned upward." };
+    if (score <= -2) return { tone: "danger", label: "TREND EVIDENCE IS ADVERSE", detail: "The 20/50 trend stack, three-month momentum and Nifty-relative strength are mostly aligned downward." };
+    return { tone: risk === "elevated" ? "active" : "neutral", label: "EVIDENCE IS MIXED", detail: "The independent trend checks disagree, so the Monday action should not be treated as strongly confirmed." };
   }
 
   function exitPlan(item, data, live) {
@@ -303,6 +374,62 @@
 
   function currentPrice(symbol) {
     return market.get(symbol)?.price ?? bySymbol.get(symbol)?.snapshotPrice ?? null;
+  }
+
+  function updateTradePlanner() {
+    const buy = Number(el("plannerBuy")?.value);
+    const sell = Number(el("plannerSell")?.value);
+    const amount = Number(el("plannerAmount")?.value);
+    const output = el("plannerResult");
+    if (!output) return;
+    if (!(buy > 0) || !(sell > 0) || !(amount > 0)) {
+      output.className = "planner-result";
+      output.textContent = "Enter valid buy, sell and amount values to calculate the trade.";
+      return;
+    }
+    const quantity = Math.floor(amount / buy);
+    if (quantity < 1) {
+      output.className = "planner-result negative";
+      output.textContent = `The amount is smaller than one share at ${money(buy)}.`;
+      return;
+    }
+    const deployed = quantity * buy;
+    const exitValue = quantity * sell;
+    const gross = exitValue - deployed;
+    const move = (sell / buy - 1) * 100;
+    const data = market.get(state.focusSymbol);
+    const scaledCap = 40_000 * (Number(data?.signals?.riskBudgetMultiplier) || 1);
+    output.className = `planner-result ${gross >= 0 ? "positive" : "negative"}`;
+    output.innerHTML = `<b>${number(quantity)} whole shares</b> · uses ${money(deployed)} · leaves ${money(amount - deployed)} · gross ${gross >= 0 ? "+" : ""}${money(gross)} (${pct(move)}) before fees, tax and slippage.<small>Volatility-scaled reference for this script: ${money(scaledCap)} of a ₹40,000 chunk.</small>`;
+  }
+
+  function syncTradePlanner(force = false) {
+    const symbol = state.focusSymbol || watchlist[0]?.symbol;
+    const data = market.get(symbol);
+    const symbolNode = el("plannerSymbol");
+    if (!symbolNode || state.user === "ai") return;
+    symbolNode.textContent = symbol || "—";
+    if (!data) {
+      el("plannerResult").textContent = `Waiting for ${symbol || "the selected script"} market data…`;
+      return;
+    }
+    const source = el("plannerSource").value;
+    const key = `${symbol}:${source}`;
+    if (force || state.plannerKey !== key) {
+      if (source === "weekly") {
+        const signal = personalSignal(symbol, data);
+        el("plannerBuy").value = Number(signal.buyAt || data.price).toFixed(2);
+        el("plannerSell").value = Number(signal.sellAt || data.price).toFixed(2);
+      } else if (source === "range") {
+        el("plannerBuy").value = Number(data.ladder?.buy?.[0] || data.price).toFixed(2);
+        el("plannerSell").value = Number(data.ladder?.sell?.[0] || data.price).toFixed(2);
+      } else if (state.plannerKey?.split(":")[0] !== symbol) {
+        el("plannerBuy").value = Number(data.price).toFixed(2);
+        el("plannerSell").value = Number(data.price * 1.02).toFixed(2);
+      }
+      state.plannerKey = key;
+    }
+    updateTradePlanner();
   }
 
   function personalSignal(symbol, data, suppliedHolding = null) {
@@ -506,6 +633,7 @@
     }
     if (!data) {
       container.innerHTML = `<div class="focus-loading"><div><div class="empty-orbit">10</div><b>Building the 10-chunk map for ${symbol}</b><p>Fetching its rolling 31-day high, low, midpoint and volatility…</p></div></div>`;
+      syncTradePlanner();
       return;
     }
 
@@ -540,12 +668,20 @@
     const currentSide = data.price < data.window.midpoint ? "below" : data.price > data.window.midpoint ? "above" : "at";
     const actionCopy = currentSide === "below" ? "The current price is on the buy side of the midpoint." : currentSide === "above" ? "The current price is on the sell side of the midpoint." : "The current price is at the midpoint.";
     const personal = personalSignal(symbol, data);
+    const evidence = evidenceReadout(data);
+    const evidenceCards = indicatorCards(data);
     container.innerHTML = `
       <div class="focus-head">
         <div class="focus-name"><span class="symbol-avatar">${initials(symbol)}</span><div><p class="eyebrow" style="margin-bottom:5px"><span></span> Selected 10-chunk map</p><h2>${symbol}</h2><p>${snapshot.sector} · ${snapshot.marketCapCategory} · rank #${snapshot.marketCapRank} · ${data.window.sessions} sessions in 31 days</p></div></div>
         <div class="focus-current"><span>Current market price</span><strong>${money(data.price)}</strong><small class="${data.changePct >= 0 ? "positive" : "negative"}">${pct(data.changePct)} today</small></div>
       </div>
       <section class="weekly-call ${personal.action}"><div><span>K² WEEKLY 2% CALL · MONDAY OPEN ${money(data.weekly?.openingPrice)}</span><h3>${personal.label}</h3><p>${personal.detail}</p><div class="call-thresholds daily-lines"><b>TODAY LOW ${money(data.daily?.low)}</b><b>NOW ${money(data.price)}</b><b>TODAY HIGH ${money(data.daily?.high)}</b></div></div><strong>${personal.action === "buy" ? money(personal.buyLevels?.[personal.reachedBuyLevel - 1]) : personal.action === "sell" ? money(personal.exit?.nextTarget || personal.sellAt) : money(data.price)}</strong></section>
+      <section class="horizon-compare">
+        <article><span>31-DAY RANGE · ${data.window.sessions} SESSIONS</span><div><b>${money(data.window.low)}<small>LOW</small></b><strong>${money(data.price)}<small>NOW</small></strong><b>${money(data.window.high)}<small>HIGH</small></b></div></article>
+        <article><span>3-MONTH RANGE · ${data.quarter?.sessions || 0} SESSIONS</span><div><b>${money(data.quarter?.low)}<small>LOW</small></b><strong>${money(data.price)}<small>${number(data.quarter?.positionPct)}% OF RANGE</small></strong><b>${money(data.quarter?.high)}<small>HIGH</small></b></div></article>
+      </section>
+      <section class="evidence-banner ${evidence.tone}"><div><span>MULTI-MARKET EVIDENCE STACK · SCORE ${data.signals?.evidenceScore > 0 ? "+" : ""}${data.signals?.evidenceScore ?? 0} / 3</span><strong>${evidence.label}</strong><p>${evidence.detail}</p></div><b>${money(40_000 * (Number(data.signals?.riskBudgetMultiplier) || 1))}<small>VOL-SCALED CHUNK</small></b></section>
+      <details class="quant-vault"><summary><span>Open the full maths, statistics &amp; probability evidence</span><b>${evidenceCards.length} CHECKS</b></summary><div class="signal-grid">${evidenceCards.map((card) => `<article class="signal-card ${card.tone}"><span>${card.name}</span><div><strong>${card.value}</strong><b>${card.label}</b></div><p>${card.note}</p></article>`).join("")}</div><p class="probability-note"><b>Probability sample:</b> ${data.empirical?.weeks || 0} completed weeks from the available six-month history. A weekly high/low can prove a level was touched, but not whether the buy or sell happened first when both were reached. Historical frequency is not a forecast.</p></details>
       <div class="plain-rule"><b>Read this from the centre:</b> the midpoint is ${money(data.window.midpoint)}. Moving left gives five progressively lower buy chunks; moving right gives five progressively higher sell chunks. ${actionCopy}</div>
       <div class="decision-river">
         <div class="river-line"></div>${nodes}
@@ -560,6 +696,7 @@
       </div>
       <div class="chunk-explain"><p><b>Buying, in simple words:</b> chunk 1 is the first lower price. If the stock falls further, chunks 2–5 spread the entry instead of putting everything at one price. Buy 4 and 5 are below the monthly low.</p><p><b>Selling, in simple words:</b> chunk 1 is the first higher price. Chunks 2–5 step upward so the position can be reduced gradually. Sell 4 and 5 are above the monthly high.</p></div>
       <div class="focus-actions">${state.user === "ai" ? `<button data-open-ai-grid>VIEW ${symbol} IN AI PAPER GRID →</button>` : `<button data-focus-add="${symbol}">+ ADD ${symbol} TO PORTFOLIO</button>`}</div>`;
+    syncTradePlanner();
   }
 
   function renderSummary() {
@@ -708,13 +845,17 @@
       const markCopy = isFuture && item.brokerClose ? "Closing price" : isFuture && !item.exactMark ? "Broker snapshot" : "Live price";
       const actionMarkup = isFuture ? `<span class="contract-chip ${item.position}">${item.position === "short" ? "SHORT FUTURE" : "LONG FUTURE"}</span>` : `<button class="small-button" data-open-buy="${item.symbol}">Add</button><button class="small-button sell" data-open-sell="${item.symbol}">Reduce</button>`;
       const suggestionAction = !isFuture && suggestion.action === "buy" ? `<button class="suggestion-button" data-open-buy="${item.symbol}">Open buy ticket</button>` : !isFuture && suggestion.action === "sell" ? `<button class="suggestion-button" data-open-sell="${item.symbol}">Open sell ticket</button>` : "";
+      const holdingEvidence = data ? (() => {
+        const evidence = evidenceReadout(data);
+        return `<details class="holding-evidence"><summary><span>31-DAY + 3-MONTH + QUANT CHECK</span><b class="${evidence.tone}">${evidence.label}</b></summary><div><span><small>31-day low / high</small><b>${money(data.window.low)} / ${money(data.window.high)}</b></span><span><small>3-month low / high</small><b>${money(data.quarter?.low)} / ${money(data.quarter?.high)}</b></span><span><small>3-month return</small><b class="${Number(data.signals?.return63Pct) >= 0 ? "positive" : "negative"}">${pct(Number(data.signals?.return63Pct))}</b></span><span><small>Max drawdown</small><b>${number(data.signals?.maxDrawdown63Pct)}%</b></span><span><small>Risk-sized chunk</small><b>${money(40_000 * (Number(data.signals?.riskBudgetMultiplier) || 1))}</b></span></div><p>${evidence.detail} Open ${item.symbol} from the watchlist for the full evidence stack and probability sample.</p></details>`;
+      })() : "";
       return `<article class="holding-shell"><div class="holding-card">
         <div class="symbol-cell"><span class="symbol-avatar">${initials(item.symbol)}</span><div><b>${item.symbol}${isFuture ? " FUT" : ""}</b><small>${instrumentCopy}</small></div></div>
         <div class="holding-metric"><span>Average entry</span><strong>${money(item.average)}</strong></div>
         <div class="holding-metric"><span>${markCopy} · notional</span><strong>${money(live)} · ${money(value)}</strong>${isFuture && Number.isFinite(spot) ? `<small class="spot-reference">Spot reference ${money(spot)}</small>` : ""}</div>
         <div class="holding-metric"><span>Open P&amp;L</span><strong class="${pnlValue >= 0 ? "positive" : "negative"}">${isFuture && !item.exactMark && !item.brokerClose ? "Awaiting futures LTP" : `${money(pnlValue)} · ${pct(pnlPercent)}`}</strong></div>
         <div class="holding-actions">${actionMarkup}</div>
-      </div><section class="portfolio-call ${suggestion.action}"><div><span>TODAY'S ACTION</span><strong>${suggestion.label}</strong><p>${suggestion.detail}</p><div class="decision-levels"><div class="decision-buy"><span>${item.position === "short" ? "COVER AT OR BELOW" : "BUY AT OR BELOW"}</span><strong>${money(suggestion.buyAt)}</strong></div><div class="decision-now"><span>CURRENT PRICE</span><strong>${money(suggestion.current)}</strong></div><div class="decision-sell"><span>${item.position === "short" ? "RISK AT OR ABOVE" : "SELL AT OR ABOVE"}</span><strong>${money(suggestion.sellAt)}</strong></div></div><span class="daily-range-title">TODAY'S LIVE RANGE</span><div class="daily-range"><div><span>DAILY LOW</span><strong>${money(data?.daily?.low)}</strong></div><div><span>NOW</span><strong>${money(suggestion.current)}</strong></div><div><span>DAILY HIGH</span><strong>${money(data?.daily?.high)}</strong></div></div>${isFuture ? `<small class="price-source-note">Action uses the live underlying price. ${item.brokerClose ? `P&amp;L above uses the broker closing price ${money(live)}.` : "Live futures P&amp;L needs the contract LTP."}</small>` : ""}</div>${suggestionAction}</section><section class="exit-plan">
+      </div><section class="portfolio-call ${suggestion.action}"><div><span>TODAY'S ACTION</span><strong>${suggestion.label}</strong><p>${suggestion.detail}</p><div class="decision-levels"><div class="decision-buy"><span>${item.position === "short" ? "COVER AT OR BELOW" : "BUY AT OR BELOW"}</span><strong>${money(suggestion.buyAt)}</strong></div><div class="decision-now"><span>CURRENT PRICE</span><strong>${money(suggestion.current)}</strong></div><div class="decision-sell"><span>${item.position === "short" ? "RISK AT OR ABOVE" : "SELL AT OR ABOVE"}</span><strong>${money(suggestion.sellAt)}</strong></div></div><span class="daily-range-title">TODAY'S LIVE RANGE</span><div class="daily-range"><div><span>DAILY LOW</span><strong>${money(data?.daily?.low)}</strong></div><div><span>NOW</span><strong>${money(suggestion.current)}</strong></div><div><span>DAILY HIGH</span><strong>${money(data?.daily?.high)}</strong></div></div>${isFuture ? `<small class="price-source-note">Action uses the live underlying price. ${item.brokerClose ? `P&amp;L above uses the broker closing price ${money(live)}.` : "Live futures P&amp;L needs the contract LTP."}</small>` : ""}</div>${suggestionAction}</section>${holdingEvidence}<section class="exit-plan">
         <div class="exit-plan-head"><div><span>${item.position === "short" ? "FIVE 2% COVER CHUNKS · BELOW" : "FIVE 2% SELL CHUNKS · ABOVE"} ${money(plan.base)} MONDAY BASE</span><h3>${item.position === "short" ? "Every further 2% fall → cover one slice" : "Every further 2% rise → sell one slice"}</h3></div><p>Even split: ${number(plan.slice)} of ${number(item.quantity)} units per chunk. Every level uses the same Monday opening base and resets at the next Monday opening.</p></div>
         <div class="exit-progress ${item.position === "short" ? "short-progress" : ""} ${isFuture && !item.exactMark && !item.brokerClose ? "snapshot-progress" : ""}"><span style="width:${progress}%"></span><i style="left:${flagProgress}%">${item.brokerClose ? "CLOSE" : isFuture && !item.exactMark ? "ENTRY MARK" : "NOW"} ${money(live)}</i><b>BASE ${money(plan.base)}</b><b>FINAL ${money(lastTarget)}</b></div>
         <div class="exit-bands">${targets}</div>
@@ -876,7 +1017,13 @@
         <div class="range-stat"><span>Midpoint</span><strong>${money(data.window.midpoint)}</strong></div>
         <div class="range-stat"><span>31-day high</span><strong>${money(data.window.high)}</strong></div>
       </div>
+      <div class="range-stats range-quarter">
+        <div class="range-stat"><span>3-month low</span><strong>${money(data.quarter?.low)}</strong></div>
+        <div class="range-stat"><span>3-month location</span><strong>${number(data.quarter?.positionPct)}%</strong></div>
+        <div class="range-stat"><span>3-month high</span><strong>${money(data.quarter?.high)}</strong></div>
+      </div>
       ${(() => { const pulse = pulseDescription(data); return `<section class="trade-pulse ${pulse.tone}"><div class="pulse-orb"><b>${data.signals?.pulseScore > 0 ? "+" : ""}${data.signals?.pulseScore ?? 0}</b><span>of ±3</span></div><div><span>K² REGIME ENGINE · ${String(data.signals?.marketRegime || "transition").toUpperCase()}</span><h3>${pulse.label}</h3><p>${pulse.detail}. ${pulse.method}</p></div></section>`; })()}
+      ${(() => { const evidence = evidenceReadout(data); return `<section class="evidence-banner drawer-evidence ${evidence.tone}"><div><span>CROSS-MARKET EVIDENCE · ${data.signals?.evidenceScore > 0 ? "+" : ""}${data.signals?.evidenceScore ?? 0} / 3</span><strong>${evidence.label}</strong><p>${evidence.detail}</p></div><b>${money(40_000 * (Number(data.signals?.riskBudgetMultiplier) || 1))}<small>VOL-SCALED CHUNK</small></b></section>`; })()}
       <div class="signal-grid">${indicatorCards(data).map((card) => `<article class="signal-card ${card.tone}"><span>${card.name}</span><div><strong>${card.value}</strong><b>${card.label}</b></div><p>${card.note}</p></article>`).join("")}</div>
       <p class="signal-key"><b>Colour key:</b> green = constructive or calmer · coral = adverse or high-risk · amber = stretched/active · grey = neutral. No colour is a promise.</p>
       <div class="ladder-title"><h3>Five-chunk price map</h3><span>${data.window.sessions} market sessions in 31 days</span></div>
@@ -1091,7 +1238,7 @@
   }
 
   function initializeRevealChoreography() {
-    const selector = ".hero-copy,.k2-bond-stage,.snapshot-card,.section-tabs,.toolbar,.method-strip,.focus-map,.stock-row,.portfolio-intro,.portfolio-mini,.holding-shell,.signal-card,.exit-band,.system-note";
+    const selector = ".hero-copy,.k2-bond-stage,.snapshot-card,.section-tabs,.toolbar,.trade-planner,.method-strip,.focus-map,.horizon-compare,.evidence-banner,.stock-row,.portfolio-intro,.portfolio-mini,.holding-shell,.signal-card,.exit-band,.system-note";
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
     state.revealObserver = new IntersectionObserver((entries, observer) => {
       entries.forEach((entry) => {
@@ -1187,6 +1334,8 @@
     state.aiLedger = aiMode ? (loadCachedAiLedger() || emptyAiLedger()) : emptyAiLedger();
     state.aiLoading = aiMode;
     state.aiError = null;
+    state.plannerKey = null;
+    el("tradePlanner").hidden = aiMode;
     el("portfolioTabLabel").textContent = aiMode ? "AI Paper Grid" : "Portfolio";
     el("portfolioOverline").textContent = aiMode ? "Autonomous Friday-grid laboratory" : "Private cloud portfolio";
     el("portfolioHeading").innerHTML = aiMode ? `The machine watches,<br /><em>the ledger remembers.</em>` : `Your positions,<br /><em>measured live.</em>`;
@@ -1224,6 +1373,8 @@
     state.aiLoading = false;
     state.aiError = null;
     state.aiSyncing = false;
+    state.plannerKey = null;
+    el("tradePlanner").hidden = false;
     clearInterval(state.aiRefreshTimer);
     state.aiRefreshTimer = null;
     el("portfolioTabLabel").textContent = "Portfolio";
@@ -1332,7 +1483,19 @@
   el("methodButton").addEventListener("click", () => el("methodModal").classList.add("open"));
   refreshButton.addEventListener("click", () => { refreshAll(); if (state.user === "ai") syncAiLedger(); });
   el("loadMoreButton").addEventListener("click", () => { state.visibleLimit += 30; renderWatchlist(); refreshPriority(); });
-  [el("searchInput"), el("bandFilter"), el("sectorFilter"), el("capFilter"), el("modelFilter"), el("sortSelect")].forEach((node) => node.addEventListener(node.tagName === "INPUT" ? "input" : "change", () => { state.visibleLimit = 30; renderWatchlist(); }));
+  el("searchInput").addEventListener("input", () => {
+    state.visibleLimit = 30;
+    renderWatchlist();
+    const first = filteredWatchlist()[0];
+    if (el("searchInput").value.trim() && first) {
+      state.focusSymbol = first.symbol;
+      renderFocusMap();
+    }
+  });
+  [el("bandFilter"), el("sectorFilter"), el("capFilter"), el("modelFilter"), el("sortSelect")].forEach((node) => node.addEventListener("change", () => { state.visibleLimit = 30; renderWatchlist(); }));
+  [el("plannerBuy"), el("plannerSell")].forEach((node) => node.addEventListener("input", () => { el("plannerSource").value = "custom"; state.plannerKey = `${state.focusSymbol}:custom`; updateTradePlanner(); }));
+  el("plannerAmount").addEventListener("input", updateTradePlanner);
+  el("plannerSource").addEventListener("change", () => syncTradePlanner(true));
 
   el("loginForm").addEventListener("submit", async (event) => {
     event.preventDefault();

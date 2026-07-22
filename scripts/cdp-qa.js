@@ -6,6 +6,7 @@ async function run() {
   const mobile = process.argv.includes("--mobile");
   const qaUsername = process.env.K2_QA_USERNAME;
   const qaPassword = process.env.K2_QA_PASSWORD;
+  const qaUrl = process.env.K2_QA_URL || "https://k-square31.vercel.app";
   if (!qaUsername || !qaPassword) {
     throw new Error("Set K2_QA_USERNAME and K2_QA_PASSWORD before running browser QA");
   }
@@ -35,7 +36,7 @@ async function run() {
     await send("Emulation.setDeviceMetricsOverride", { width: 393, height: 852, deviceScaleFactor: 2, mobile: true });
     await send("Emulation.setTouchEmulationEnabled", { enabled: true, maxTouchPoints: 5 });
   }
-  await send("Page.navigate", { url: "https://k-square31.vercel.app" });
+  await send("Page.navigate", { url: qaUrl });
   await sleep(3500);
   const login = await evaluate(`fetch('/api/auth', {
     method: 'POST',

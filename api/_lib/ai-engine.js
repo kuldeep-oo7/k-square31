@@ -64,6 +64,7 @@ function emptySymbolState(symbol) {
     triggeredLevels: Array(CONFIG.slots).fill(false),
     lastPrice: null,
     lastSession: null,
+    observations: [],
     transactions: [],
     updatedAt: null
   };
@@ -79,6 +80,16 @@ function processSymbol(previous, result, nowMs = Date.now()) {
   if (!bars.length) throw new Error("No usable market bars");
   const bar = bars.at(-1);
   const sessionDate = localDate(bar.timestamp * 1000);
+  const observationMap = new Map((Array.isArray(state.observations) ? state.observations : []).map((item) => [item.session, item]));
+  bars.forEach((item) => {
+    const session = localDate(item.timestamp * 1000);
+    observationMap.set(session, {
+      session,
+      open: round(item.open ?? item.close), high: round(item.high), low: round(item.low), close: round(item.close),
+      volume: Number.isFinite(item.volume) ? Math.round(item.volume) : null
+    });
+  });
+  state.observations = [...observationMap.values()].sort((left, right) => left.session.localeCompare(right.session)).slice(-260);
   const reference = completedFriday(result, nowMs);
   const anchorChanged = state.anchor?.weekKey !== reference.weekKey;
   const events = [];
@@ -144,12 +155,13 @@ function processSymbol(previous, result, nowMs = Date.now()) {
 }
 
 function summarizeSymbol(state) {
+  const { observations, ...publicState } = state;
   const marketValue = round((state.lots || []).reduce((sum, lot) => sum + lot.quantity * Number(state.lastPrice || lot.price), 0));
   const invested = round((state.lots || []).reduce((sum, lot) => sum + lot.quantity * lot.price, 0));
   const openPnl = round(marketValue - invested);
   const untriggered = (state.levels || []).map((price, index) => ({ price, level: index + 1, triggered: Boolean(state.triggeredLevels?.[index]) })).filter((level) => !level.triggered);
   const sellTargets = (state.lots || []).map((lot) => lot.target).sort((a, b) => a - b);
-  return { ...state, marketValue, invested, openPnl, nextBuy: untriggered[0] || null, nextSell: sellTargets[0] || null };
+  return { ...publicState, historySessions: Array.isArray(observations) ? observations.length : 0, marketValue, invested, openPnl, nextBuy: untriggered[0] || null, nextSell: sellTargets[0] || null };
 }
 
 module.exports = { CONFIG, buyLevels, completedFriday, emptySymbolState, processSymbol, summarizeSymbol };
