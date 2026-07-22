@@ -355,6 +355,18 @@
     return { tone: risk === "elevated" ? "active" : "neutral", label: "EVIDENCE IS MIXED", detail: "The independent trend checks disagree, so the Monday action should not be treated as strongly confirmed." };
   }
 
+  function evidenceForAction(data, action) {
+    const base = evidenceReadout(data);
+    const score = Number(data?.signals?.evidenceScore) || 0;
+    if (["buy", "buy-hit"].includes(action) && score <= -2) {
+      return { tone: "danger", label: "BUY TRIGGER HIT — DOWNTREND CAUTION", detail: "Your Monday rule says buy one chunk, while the broader trend evidence is still falling. The smaller volatility-scaled amount is the cautious version of that rule." };
+    }
+    if (["sell", "sell-hit"].includes(action) && score >= 2) {
+      return { tone: "active", label: "SELL TRIGGER HIT — UPTREND STILL STRONG", detail: "Your Monday rule says reduce one chunk, while broader trend evidence remains positive. This supports a staged reduction rather than treating the whole trend as finished." };
+    }
+    return base;
+  }
+
   function exitPlan(item, data, live) {
     const base = Number(data?.weekly?.openingPrice) || item.average;
     const direction = item.position === "short" ? -1 : 1;
@@ -668,7 +680,7 @@
     const currentSide = data.price < data.window.midpoint ? "below" : data.price > data.window.midpoint ? "above" : "at";
     const actionCopy = currentSide === "below" ? "The current price is on the buy side of the midpoint." : currentSide === "above" ? "The current price is on the sell side of the midpoint." : "The current price is at the midpoint.";
     const personal = personalSignal(symbol, data);
-    const evidence = evidenceReadout(data);
+    const evidence = evidenceForAction(data, personal.action);
     const evidenceCards = indicatorCards(data);
     container.innerHTML = `
       <div class="focus-head">
@@ -846,7 +858,7 @@
       const actionMarkup = isFuture ? `<span class="contract-chip ${item.position}">${item.position === "short" ? "SHORT FUTURE" : "LONG FUTURE"}</span>` : `<button class="small-button" data-open-buy="${item.symbol}">Add</button><button class="small-button sell" data-open-sell="${item.symbol}">Reduce</button>`;
       const suggestionAction = !isFuture && suggestion.action === "buy" ? `<button class="suggestion-button" data-open-buy="${item.symbol}">Open buy ticket</button>` : !isFuture && suggestion.action === "sell" ? `<button class="suggestion-button" data-open-sell="${item.symbol}">Open sell ticket</button>` : "";
       const holdingEvidence = data ? (() => {
-        const evidence = evidenceReadout(data);
+        const evidence = evidenceForAction(data, suggestion.action);
         return `<details class="holding-evidence"><summary><span>31-DAY + 3-MONTH + QUANT CHECK</span><b class="${evidence.tone}">${evidence.label}</b></summary><div><span><small>31-day low / high</small><b>${money(data.window.low)} / ${money(data.window.high)}</b></span><span><small>3-month low / high</small><b>${money(data.quarter?.low)} / ${money(data.quarter?.high)}</b></span><span><small>3-month return</small><b class="${Number(data.signals?.return63Pct) >= 0 ? "positive" : "negative"}">${pct(Number(data.signals?.return63Pct))}</b></span><span><small>Max drawdown</small><b>${number(data.signals?.maxDrawdown63Pct)}%</b></span><span><small>Risk-sized chunk</small><b>${money(40_000 * (Number(data.signals?.riskBudgetMultiplier) || 1))}</b></span></div><p>${evidence.detail} Open ${item.symbol} from the watchlist for the full evidence stack and probability sample.</p></details>`;
       })() : "";
       return `<article class="holding-shell"><div class="holding-card">
