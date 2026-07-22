@@ -78,6 +78,10 @@ async function run() {
     socket.close();
     return;
   }
+  await evaluate(`document.getElementById('tradePlanner').scrollIntoView({block:'center'}); window.scrollBy(0,-20)`);
+  await sleep(700);
+  const plannerShot = await send("Page.captureScreenshot", { format: "png", fromSurface: true });
+  fs.writeFileSync(mobile ? "k2-planner-mobile.png" : "k2-planner.png", Buffer.from(plannerShot.result.data, "base64"));
   await evaluate(`document.getElementById('focusMap').scrollIntoView({block:'start'}); window.scrollBy(0,-20)`);
   await sleep(1500);
   const shot = await send("Page.captureScreenshot", { format: "png", fromSurface: true });
