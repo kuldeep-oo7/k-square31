@@ -1,5 +1,7 @@
 const DAY = 86_400;
 const { readSession } = require("./_lib/security");
+const { readAiShard } = require("./_lib/store");
+const { symbolShard } = require("./_lib/universe");
 let benchmarkCache = { expires: 0, result: null };
 
 function round(value) {
@@ -123,6 +125,37 @@ function resultBars(result) {
     close: quote.close?.[index],
     volume: quote.volume?.[index]
   })).filter((bar) => [bar.high, bar.low, bar.close].every(Number.isFinite));
+}
+
+function mergeStoredHistory(result, observations) {
+  if (!Array.isArray(observations) || !observations.length) return result;
+  const merged = new Map();
+  observations.forEach((bar) => {
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(String(bar.session || ""))) return;
+    merged.set(bar.session, {
+      timestamp: Math.floor(Date.parse(`${bar.session}T06:30:00Z`) / 1000),
+      open: Number(bar.open), high: Number(bar.high), low: Number(bar.low),
+      close: Number(bar.close), volume: Number.isFinite(Number(bar.volume)) ? Number(bar.volume) : null
+    });
+  });
+  resultBars(result).forEach((bar) => merged.set(indiaDate(bar.timestamp), bar));
+  const bars = [...merged.values()]
+    .filter((bar) => [bar.high, bar.low, bar.close].every(Number.isFinite))
+    .sort((left, right) => left.timestamp - right.timestamp);
+  return {
+    ...result,
+    timestamp: bars.map((bar) => bar.timestamp),
+    indicators: {
+      ...(result.indicators || {}),
+      quote: [{
+        open: bars.map((bar) => bar.open),
+        high: bars.map((bar) => bar.high),
+        low: bars.map((bar) => bar.low),
+        close: bars.map((bar) => bar.close),
+        volume: bars.map((bar) => bar.volume)
+      }]
+    }
+  };
 }
 
 function rsi(closes, period = 14) {
@@ -480,10 +513,16 @@ async function benchmark() {
   return result;
 }
 
-async function fetchSymbol(rawSymbol, benchmarkResult) {
+async function fetchSymbol(rawSymbol, benchmarkResult, storedHistory = {}) {
   const symbol = rawSymbol === "NIFTY" ? "^NSEI" : rawSymbol.endsWith(".NS") ? rawSymbol : `${rawSymbol}.NS`;
-  const result = calculate(symbol, await fetchChart(symbol), benchmarkResult);
+  const live = await fetchChart(symbol);
+  const history = storedHistory[rawSymbol.replace(/\.NS$/, "")]?.observations;
+  const result = calculate(symbol, mergeStoredHistory(live, history), benchmarkResult);
   result.symbol = rawSymbol.replace(/\.NS$/, "");
+  result.history = {
+    storedSessions: Array.isArray(history) ? history.length : 0,
+    source: Array.isArray(history) && history.length ? "private K² historical database + current quote" : "current quote provider"
+  };
   return result;
 }
 
@@ -499,8 +538,16 @@ module.exports = async function handler(request, response) {
     return response.status(400).json({ error: "Supply 1–10 comma-separated NSE symbols." });
   }
 
+  const storedHistory = {};
+  const requiredShards = [...new Set(valid.map((symbol) => symbolShard(symbol)).filter(Number.isInteger))];
+  try {
+    const shards = await Promise.all(requiredShards.map((shard) => readAiShard(shard)));
+    shards.forEach((item) => Object.assign(storedHistory, item.data.symbols || {}));
+  } catch (error) {
+    console.error("Historical database read failed; continuing with the live provider", error);
+  }
   const benchmarkResult = await benchmark().catch(() => null);
-  const settled = await Promise.allSettled(valid.map((symbol) => fetchSymbol(symbol, benchmarkResult)));
+  const settled = await Promise.allSettled(valid.map((symbol) => fetchSymbol(symbol, benchmarkResult, storedHistory)));
   const data = [];
   const errors = [];
   settled.forEach((item, index) => {
@@ -511,4 +558,4 @@ module.exports = async function handler(request, response) {
   return response.status(data.length ? 200 : 502).json({ data, errors, provider: "Yahoo Finance chart feed (unofficial; may be delayed)" });
 };
 
-module.exports._test = { analogForecast, calculate, empiricalStats, maxDrawdownPct };
+module.exports._test = { analogForecast, calculate, empiricalStats, maxDrawdownPct, mergeStoredHistory };

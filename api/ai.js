@@ -1,4 +1,5 @@
 const { CONFIG, emptySymbolState, summarizeSymbol } = require("./_lib/ai-engine");
+const { googleArchiveConfigured } = require("./_lib/google-archive");
 const { noStore, readSession } = require("./_lib/security");
 const { readAiShard } = require("./_lib/store");
 const { universe } = require("./_lib/universe");
@@ -24,8 +25,16 @@ module.exports = async function handler(request, response) {
       if (stock.lots.length) total.activeStocks += 1;
       return total;
     }, { allocated: stocks.length * CONFIG.budgetPerStock, cash: 0, marketValue: 0, invested: 0, openPnl: 0, realizedPnl: 0, openLots: 0, activeStocks: 0 });
+    const storedSessions = stocks.map((stock) => Number(stock.historySessions) || 0);
+    const storage = {
+      operationalDatabase: "Private Vercel Blob",
+      minimumHistorySessions: storedSessions.length ? Math.min(...storedSessions) : 0,
+      maximumHistorySessions: storedSessions.length ? Math.max(...storedSessions) : 0,
+      totalHistoryRows: storedSessions.reduce((sum, value) => sum + value, 0),
+      googleSheetsArchive: googleArchiveConfigured() ? "connected" : "not-configured"
+    };
     const updatedAt = shards.map((item) => item.data.updatedAt).filter(Boolean).sort().at(-1) || null;
-    return response.status(200).json({ config: CONFIG, summary, stocks, transactions, updatedAt });
+    return response.status(200).json({ config: CONFIG, summary, storage, stocks, transactions, updatedAt });
   } catch (error) {
     console.error("AI dashboard failed", error);
     return response.status(503).json({ error: "AI paper ledger is temporarily unavailable" });

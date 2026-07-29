@@ -7,7 +7,8 @@ const CONFIG = Object.freeze({
   slots: 5,
   slotBudget: 40_000,
   buyStepPct: 3,
-  takeProfitPct: 2
+  takeProfitPct: 2,
+  historySessionLimit: 1_300
 });
 
 function round(value, digits = 2) {
@@ -89,7 +90,9 @@ function processSymbol(previous, result, nowMs = Date.now()) {
       volume: Number.isFinite(item.volume) ? Math.round(item.volume) : null
     });
   });
-  state.observations = [...observationMap.values()].sort((left, right) => left.session.localeCompare(right.session)).slice(-260);
+  state.observations = [...observationMap.values()]
+    .sort((left, right) => left.session.localeCompare(right.session))
+    .slice(-CONFIG.historySessionLimit);
   const reference = completedFriday(result, nowMs);
   const anchorChanged = state.anchor?.weekKey !== reference.weekKey;
   const events = [];

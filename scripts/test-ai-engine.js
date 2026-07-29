@@ -35,6 +35,14 @@ assert.equal(second.state.lots.length, 0, "Tuesday high should exit both older l
 assert.equal(second.events.filter((event) => event.action === "sell").length, 2);
 assert.ok(second.state.realizedPnl > 0);
 assert.ok(second.state.cash > 200000, "realized paper profit should return to the stock cash ledger");
+assert.equal(second.state.observations.length, 3, "daily observations should deduplicate by market session");
+
+const longHistory = Array.from({ length: 1400 }, (_, index) => ({
+  time: new Date(Date.UTC(2021, 0, 1 + index)).toISOString(),
+  open: 100 + index, high: 102 + index, low: 98 + index, close: 101 + index
+}));
+const historyRun = processSymbol(emptySymbolState("HISTORY"), result(longHistory, 1500, "CLOSED"), new Date("2026-07-21T10:01:00Z").getTime());
+assert.equal(historyRun.state.observations.length, 1300, "history should retain the latest five years / 1,300 sessions");
 
 const capped = emptySymbolState("CAPTEST");
 capped.anchor = { weekKey: "2026-07-17", barDate: "2026-07-17", price: 500 };

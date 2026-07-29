@@ -19,4 +19,9 @@ function shardUniverse(shard, shardCount = 10) {
   return universe().filter((_, index) => index % shardCount === shard);
 }
 
-module.exports = { shardUniverse, universe };
+function symbolShard(symbol, shardCount = 10) {
+  const index = universe().findIndex((item) => item.symbol === String(symbol || "").toUpperCase().replace(/\.NS$/, ""));
+  return index < 0 ? null : index % shardCount;
+}
+
+module.exports = { shardUniverse, symbolShard, universe };

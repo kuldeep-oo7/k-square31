@@ -1,5 +1,5 @@
 const assert = require("node:assert/strict");
-const { calculate } = require("../api/market")._test;
+const { calculate, mergeStoredHistory } = require("../api/market")._test;
 
 function fixture(multiplier = 1) {
   const timestamps = [], open = [], high = [], low = [], close = [], volume = [];
@@ -23,5 +23,12 @@ assert.ok(result.empirical.weeks >= 12);
 assert.equal(result.analogModel.ready, true);
 assert.ok(result.analogModel.samples >= 30);
 assert.ok(result.analogModel.probabilityUp5Pct >= 0 && result.analogModel.probabilityUp5Pct <= 100);
+
+const live = fixture();
+const merged = mergeStoredHistory(live, [{
+  session: "2020-01-02", open: 90, high: 92, low: 89, close: 91, volume: 500000
+}]);
+assert.equal(merged.timestamp.length, live.timestamp.length + 1);
+assert.equal(merged.indicators.quote[0].close[0], 91);
 
 console.log("Market model tests passed: 31-day, 3-month, probability, risk sizing and walk-forward analogues");

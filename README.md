@@ -41,10 +41,24 @@ Then open `http://127.0.0.1:4173`.
 - Same-daily-candle buy-and-sell fills are forbidden because daily high/low data cannot establish event order.
 - Fill IDs are deterministic and shard writes use optimistic concurrency, making scheduler retries idempotent.
 - Ten private Blob shards cover the full workbook without mixing the two manual portfolios.
+- On first run, each stock backfills up to five years / 1,300 daily OHLCV sessions; later runs merge and deduplicate new sessions.
+- The market calculation endpoint merges this stored history with the current quote, so longer-history models use the private database instead of repeatedly trusting a short live-feed window.
 - A secured GitHub Actions workflow evaluates the grid during NSE hours; Vercel Cron supplies a daily post-close fallback.
 - `CRON_SECRET` is stored only in Vercel and the private GitHub repository. The automation endpoint rejects requests without its bearer token.
 
 Copy `.env.local.example` to `.env.local` and provide a private `BLOB_READ_WRITE_TOKEN` plus a strong `K2_SESSION_SECRET` for local backend work. Never commit either value.
+
+## Google Sheets historical archive
+
+K² keeps Vercel Blob as the operational database because portfolio and paper-ledger writes require private access and optimistic concurrency. A private Google Sheet can be attached as a deduplicated OHLCV archive:
+
+1. Create or open the private destination Sheet.
+2. Open Extensions → Apps Script and paste `google-sheets/K2MarketArchive.gs`.
+3. Run `setupK2Archive()` once and copy the generated archive secret from the execution log.
+4. Deploy the script as a Web app, executing as the Sheet owner.
+5. Add the deployment URL as `K2_GOOGLE_SHEETS_WEB_APP_URL` and the generated secret as `K2_GOOGLE_SHEETS_ARCHIVE_SECRET` in Vercel.
+
+The next secured AI runner pass backfills the `OHLCV_0` … `OHLCV_9` tabs, then sends deduplicated daily observations. A failed Sheet sync never corrupts or blocks the trading ledger.
 
 The server endpoint is in `api/market.js`. The current feed uses Yahoo Finance's unofficial chart endpoint and can be delayed. For exchange-grade realtime NSE data, replace `fetchChart()` with a licensed provider while preserving the endpoint response shape.
 

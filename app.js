@@ -760,6 +760,7 @@
     const syncNotice = state.aiLoading ? `<div class="ai-sync-notice"><i></i>Refreshing the shared ledger… showing the last synchronized copy.</div>` : state.aiError ? `<div class="ai-sync-notice error">Refresh failed; showing the last synchronized copy. <button type="button" data-retry-ai>Retry</button></div>` : "";
     const equity = Number(summary.cash) + Number(summary.marketValue);
     const totalPnl = equity - Number(summary.allocated);
+    const storage = ledger.storage || {};
     const updated = ledger.updatedAt ? new Date(ledger.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" }) : "Waiting for first automation run";
     const query = state.aiSearch.trim().toLowerCase();
     const stocks = (ledger.stocks || []).filter((stock) => !query || `${stock.symbol} ${stock.sector} ${stock.marketCapCategory}`.toLowerCase().includes(query));
@@ -810,6 +811,8 @@
       <article class="portfolio-mini"><span>Total P&amp;L</span><strong class="${totalPnl >= 0 ? "positive" : "negative"}">${money(totalPnl)}</strong></article>
       <article class="portfolio-mini"><span>Open lots</span><strong>${summary.openLots || 0}</strong></article>
       <article class="portfolio-mini"><span>Last secured run</span><strong class="ai-time">${updated}</strong></article>
+      <article class="portfolio-mini"><span>Historical vault</span><strong>${number(storage.totalHistoryRows || 0)} rows</strong><small>${number(storage.minimumHistorySessions || 0)}–${number(storage.maximumHistorySessions || 0)} sessions per stock</small></article>
+      <article class="portfolio-mini"><span>Google Sheets archive</span><strong class="${storage.googleSheetsArchive === "connected" ? "positive" : ""}">${storage.googleSheetsArchive === "connected" ? "Connected" : "Awaiting endpoint"}</strong><small>Private Blob remains the transactional database</small></article>
     </div>
     <label class="ai-search"><span>⌕</span><input id="aiGridSearch" type="search" placeholder="Find a stock inside the AI grid…" /></label>
     <div class="ai-ledger-head"><span>${stocks.length} of ${ledger.stocks?.length || 0} stocks</span><span>Friday reference</span><span>Live / latest</span><span>Cash</span><span>P&amp;L</span></div>
