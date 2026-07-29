@@ -6,7 +6,7 @@ const CONFIG = Object.freeze({
   budgetPerStock: 200_000,
   slots: 5,
   slotBudget: 40_000,
-  buyStepPct: 3,
+  buyStepPct: 2,
   takeProfitPct: 2,
   historySessionLimit: 1_300
 });
@@ -34,24 +34,57 @@ function dateMinus(isoDate, days) {
   return new Date(Date.UTC(year, month - 1, day) - days * DAY).toISOString().slice(0, 10);
 }
 
-function completedFriday(result, nowMs = Date.now()) {
+function mondayOpening(result) {
   const bars = resultBars(result);
   if (!bars.length) throw new Error("No usable daily bars");
-  const now = indiaParts(nowMs);
-  const today = `${now.year}-${now.month}-${now.day}`;
-  const weekday = new Date(`${today}T12:00:00Z`).getUTCDay();
-  const beforeFridayClose = weekday === 5 && (Number(now.hour) < 16 || result.meta?.marketState === "REGULAR");
-  let daysBack = (weekday - 5 + 7) % 7;
-  if (beforeFridayClose) daysBack = 7;
-  const weekKey = dateMinus(today, daysBack);
-  const eligible = bars.filter((bar) => localDate(bar.timestamp * 1000) <= weekKey);
-  const bar = eligible.at(-1);
-  if (!bar) throw new Error("Friday reference is unavailable");
-  return { weekKey, barDate: localDate(bar.timestamp * 1000), price: round(bar.close) };
+  const latest = bars.at(-1);
+  const latestDate = localDate(latest.timestamp * 1000);
+  const weekday = new Date(`${latestDate}T12:00:00Z`).getUTCDay();
+  const weekKey = dateMinus(latestDate, (weekday + 6) % 7);
+  const sessions = bars.filter((bar) => localDate(bar.timestamp * 1000) >= weekKey);
+  const first = sessions[0] || latest;
+  return {
+    weekKey,
+    barDate: localDate(first.timestamp * 1000),
+    price: round(Number.isFinite(first.open) ? first.open : first.close)
+  };
 }
 
 function buyLevels(anchorPrice) {
-  return Array.from({ length: CONFIG.slots }, (_, index) => round(anchorPrice * (0.97 ** (index + 1))));
+  return Array.from({ length: CONFIG.slots }, (_, index) => round(anchorPrice * (0.98 ** (index + 1))));
+}
+
+function quantSizing(context = {}) {
+  const signals = context.signals || {};
+  const analog = context.analogModel || {};
+  const empirical = context.empirical || {};
+  let multiplier = Number(signals.riskBudgetMultiplier);
+  multiplier = Number.isFinite(multiplier) ? Math.max(0.25, Math.min(1, multiplier)) : 1;
+  const reasons = [`volatility sizing ${round(multiplier * 100)}%`];
+  if (signals.riskState === "high") {
+    multiplier *= 0.65;
+    reasons.push("high-risk regime");
+  } else if (signals.riskState === "elevated") {
+    multiplier *= 0.82;
+    reasons.push("elevated-risk regime");
+  }
+  if (Number(signals.evidenceScore) <= -2) {
+    multiplier *= 0.75;
+    reasons.push("weak trend evidence");
+  }
+  if (analog.ready && Number(analog.probabilityUp5Pct) < 45) {
+    multiplier *= 0.8;
+    reasons.push("historical analogues below 45%");
+  } else if (analog.ready && Number(analog.probabilityUp5Pct) >= 60) {
+    multiplier *= 1.08;
+    reasons.push("historical analogues at least 60%");
+  }
+  if (Number.isFinite(empirical.down2HitPct) && Number(empirical.down2HitPct) < 25) {
+    multiplier *= 0.9;
+    reasons.push("rare weekly 2% dip");
+  }
+  multiplier = Math.max(0.25, Math.min(1, multiplier));
+  return { multiplier: round(multiplier, 4), reasons };
 }
 
 function emptySymbolState(symbol) {
@@ -75,7 +108,7 @@ function transactionId(...parts) {
   return crypto.createHash("sha256").update(parts.join(":"), "utf8").digest("hex").slice(0, 32);
 }
 
-function processSymbol(previous, result, nowMs = Date.now()) {
+function processSymbol(previous, result, nowMs = Date.now(), context = {}) {
   const state = { ...emptySymbolState(previous?.symbol), ...structuredClone(previous || {}) };
   const bars = resultBars(result);
   if (!bars.length) throw new Error("No usable market bars");
@@ -93,9 +126,10 @@ function processSymbol(previous, result, nowMs = Date.now()) {
   state.observations = [...observationMap.values()]
     .sort((left, right) => left.session.localeCompare(right.session))
     .slice(-CONFIG.historySessionLimit);
-  const reference = completedFriday(result, nowMs);
+  const reference = mondayOpening(result);
   const anchorChanged = state.anchor?.weekKey !== reference.weekKey;
   const events = [];
+  const sizing = quantSizing(context);
 
   // Existing lots may exit on a later session. Newly filled lots are never sold
   // against the same daily candle because the high/low ordering is unknown.
@@ -122,37 +156,47 @@ function processSymbol(previous, result, nowMs = Date.now()) {
     state.triggeredLevels = Array(CONFIG.slots).fill(false);
   }
 
-  const anchorSession = sessionDate === reference.barDate;
-  if (!anchorSession) {
-    state.levels.forEach((levelPrice, index) => {
-      if (state.triggeredLevels[index] || bar.low > levelPrice) return;
-      const deployed = (state.lots || []).reduce((sum, lot) => sum + Number(lot.amount || lot.quantity * lot.price), 0);
-      const remainingCapacity = Math.max(0, CONFIG.budgetPerStock - deployed);
-      const available = Math.min(CONFIG.slotBudget, Number(state.cash), remainingCapacity);
-      const quantity = Math.floor(available / levelPrice);
-      if (quantity < 1) return;
-      const amount = round(quantity * levelPrice);
-      const id = transactionId(state.symbol, reference.weekKey, `B${index + 1}`);
-      state.cash = round(Number(state.cash) - amount);
-      state.triggeredLevels[index] = true;
-      const lot = {
-        id, symbol: state.symbol, price: levelPrice, quantity, amount,
-        target: round(levelPrice * 1.02), boughtSession: sessionDate,
-        anchorWeek: reference.weekKey, level: index + 1, time: nowMs
-      };
-      state.lots.push(lot);
-      events.push({
-        id, action: "buy", symbol: state.symbol, price: levelPrice, quantity,
-        amount, pnl: 0, reason: `Friday close minus ${CONFIG.buyStepPct * (index + 1)}% compounded`,
-        time: nowMs, session: sessionDate, anchorWeek: reference.weekKey, level: index + 1
-      });
+  state.levels.forEach((levelPrice, index) => {
+    if (state.triggeredLevels[index] || bar.low > levelPrice) return;
+    const deployed = (state.lots || []).reduce((sum, lot) => sum + Number(lot.amount || lot.quantity * lot.price), 0);
+    const remainingCapacity = Math.max(0, CONFIG.budgetPerStock - deployed);
+    const modelBudget = round(CONFIG.slotBudget * sizing.multiplier);
+    const available = Math.min(modelBudget, Number(state.cash), remainingCapacity);
+    const quantity = Math.floor(available / levelPrice);
+    if (quantity < 1) return;
+    const amount = round(quantity * levelPrice);
+    const id = transactionId(state.symbol, reference.weekKey, `B${index + 1}`);
+    state.cash = round(Number(state.cash) - amount);
+    state.triggeredLevels[index] = true;
+    const lot = {
+      id, symbol: state.symbol, price: levelPrice, quantity, amount,
+      target: round(levelPrice * 1.02), boughtSession: sessionDate,
+      anchorWeek: reference.weekKey, level: index + 1, time: nowMs,
+      quantMultiplier: sizing.multiplier
+    };
+    state.lots.push(lot);
+    events.push({
+      id, action: "buy", symbol: state.symbol, price: levelPrice, quantity,
+      amount, pnl: 0,
+      reason: `Monday open minus compounded 2% step ${index + 1}; ${sizing.reasons.join(", ")}`,
+      time: nowMs, session: sessionDate, anchorWeek: reference.weekKey, level: index + 1,
+      quantMultiplier: sizing.multiplier
     });
-  }
+  });
 
   const livePrice = Number(result.meta?.regularMarketPrice);
   state.lastPrice = round(Number.isFinite(livePrice) ? livePrice : bar.close);
   state.lastSession = sessionDate;
   state.updatedAt = new Date(nowMs).toISOString();
+  state.quant = {
+    updatedAt: state.updatedAt,
+    sizing,
+    signals: context.signals || null,
+    empirical: context.empirical || null,
+    analogModel: context.analogModel || null,
+    window: context.window || null,
+    quarter: context.quarter || null
+  };
   state.transactions = [...events.reverse(), ...(state.transactions || [])].slice(0, 60);
   return { state, events: events.reverse(), anchorChanged };
 }
@@ -167,4 +211,4 @@ function summarizeSymbol(state) {
   return { ...publicState, historySessions: Array.isArray(observations) ? observations.length : 0, marketValue, invested, openPnl, nextBuy: untriggered[0] || null, nextSell: sellTargets[0] || null };
 }
 
-module.exports = { CONFIG, buyLevels, completedFriday, emptySymbolState, processSymbol, summarizeSymbol };
+module.exports = { CONFIG, buyLevels, mondayOpening, emptySymbolState, processSymbol, quantSizing, summarizeSymbol };

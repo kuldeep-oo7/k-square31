@@ -8,12 +8,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="K² Desk" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="description" content="K² is Kamlesh and Kuldeep's private market range, portfolio and automatic Friday-grid paper trading desk." />
+    <meta name="description" content="K² is Kamlesh and Kuldeep's private market range, portfolio and automatic Monday-grid paper trading desk." />
     <title>K² — Market Grid Desk</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/k2-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/k2-icon.svg" />
-    <link rel="stylesheet" href="/styles.css?v=k2-quant-quarter-11" />
+    <link rel="stylesheet" href="/styles.css?v=k2-mobile-action-15" />
   </head>
   <body>
     <div class="ambient ambient-one"></div>
@@ -97,6 +97,13 @@
           <label class="select-wrap"><span>Quant mode</span><select id="modelFilter" autocomplete="off"><option value="all">All modes</option><option value="trend">Trend</option><option value="range">Range</option><option value="transition">Transition</option><option value="volatile">High volatility</option></select></label>
           <label class="select-wrap"><span>Sort</span><select id="sortSelect" autocomplete="off"><option value="journal">Journal order</option><option value="buy-pulse">Buy pulse first</option><option value="sell-pulse">Sell pulse first</option><option value="relative">Nifty strength</option><option value="symbol">Symbol A–Z</option><option value="position">Low → high</option><option value="change">Daily move</option><option value="cap-rank">Market-cap rank</option><option value="sector">Sector A–Z</option></select></label>
         </div>
+        <nav class="action-filters" id="actionFilters" aria-label="Filter stocks by today's action">
+          <button type="button" class="active" data-action-filter="all">All <b id="actionAllCount">130</b></button>
+          <button type="button" data-action-filter="buy"><span>↓</span> Buy <b id="actionBuyCount">0</b></button>
+          <button type="button" data-action-filter="hold"><span>•</span> Hold <b id="actionHoldCount">0</b></button>
+          <button type="button" data-action-filter="sell"><span>↑</span> Sell <b id="actionSellCount">0</b></button>
+          <button type="button" data-action-filter="alert"><span>!</span> Review <b id="actionAlertCount">0</b></button>
+        </nav>
 
         <section class="trade-planner" id="tradePlanner" aria-label="Quick trade calculator">
           <div class="planner-intro">
@@ -104,7 +111,7 @@
             <strong id="plannerSymbol">—</strong>
             <small>Choose a stock below, then compare a buy price, sell price and capital amount.</small>
           </div>
-          <label class="planner-source"><span>Price base</span><select id="plannerSource"><option value="weekly">Monday ±2%</option><option value="range">31-day B1 / S1</option><option value="custom">My own prices</option></select></label>
+          <label class="planner-source"><span>Price base</span><select id="plannerSource"><option value="weekly">Monday ±2%</option><option value="custom">My own prices</option></select></label>
           <label class="planner-field buy"><span>Buy price</span><div><b>₹</b><input id="plannerBuy" type="number" min="0.01" step="0.01" inputmode="decimal" /></div></label>
           <label class="planner-field sell"><span>Sell price</span><div><b>₹</b><input id="plannerSell" type="number" min="0.01" step="0.01" inputmode="decimal" /></div></label>
           <label class="planner-field amount"><span>Amount</span><div><b>₹</b><input id="plannerAmount" type="number" min="1" step="100" inputmode="numeric" value="40000" /></div></label>
@@ -113,7 +120,7 @@
 
         <div class="method-strip">
           <span class="method-icon">∿</span>
-          <p id="methodCopy"><b>How it works:</b> five buy chunks step down below the 31-day midpoint; five sell chunks step up above it. Levels 4–5 deliberately extend beyond the monthly low or high.</p>
+          <p id="methodCopy"><b>Action rule:</b> every stock resets to Monday’s opening price. Five buy levels compound downward by 2%; five sell levels compound upward by 2%. The 31-day and three-month ranges remain context, not the action base.</p>
           <button id="methodButton">See the maths</button>
         </div>
 
@@ -210,6 +217,6 @@
 
     <script src="/watchlist-data.js?v=k2-weekly-ai-1"></script>
     <script src="/grid-logic.js?v=k2-monday-only-8"></script>
-    <script src="/app.js?v=k2-history-vault-13"></script>
+    <script src="/app.js?v=k2-monday-ai-15"></script>
   </body>
 </html>

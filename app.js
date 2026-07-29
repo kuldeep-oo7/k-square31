@@ -9,6 +9,7 @@
 
   const state = {
     visibleLimit: 30,
+    actionFilter: "all",
     currentSymbol: null,
     focusSymbol: watchlist[0]?.symbol || null,
     tradeSymbol: null,
@@ -28,7 +29,11 @@
     aiLoading: false,
     aiError: null,
     aiSyncing: false,
-    plannerKey: null
+    plannerKey: null,
+    mobileFocusExpanded: false,
+    mobileExpandedHoldings: new Set(),
+    lastScrollAt: 0,
+    marketRenderTimer: null
   };
 
   const el = (id) => document.getElementById(id);
@@ -42,7 +47,7 @@
 
   function emptyAiLedger() {
     return {
-      config: { budgetPerStock: 200000, slots: 5, slotBudget: 40000, buyStepPct: 3, takeProfitPct: 2 },
+      config: { budgetPerStock: 200000, slots: 5, slotBudget: 40000, buyStepPct: 2, takeProfitPct: 2 },
       summary: { allocated: watchlist.length * 200000, cash: watchlist.length * 200000, marketValue: 0, invested: 0, openPnl: 0, realizedPnl: 0, openLots: 0, activeStocks: 0 },
       stocks: [], transactions: [], updatedAt: null
     };
@@ -225,6 +230,13 @@
     const volumeRatio = Number(data.signals?.volumeRatio5To20) || 0;
     const adjustedMomentum = Number(data.signals?.volatilityAdjustedMomentum) || 0;
     const riskMultiplier = Number(data.signals?.riskBudgetMultiplier) || 0;
+    const closeLocation = Number(data.signals?.closeLocationPct) || 0;
+    const efficiency = Number(data.signals?.efficiencyRatio20) || 0;
+    const autocorrelation = Number(data.signals?.returnAutocorrelation20) || 0;
+    const parkinsonVol = Number(data.signals?.parkinsonVolatility20Pct) || 0;
+    const entropy = Number(data.signals?.directionEntropy20Pct) || 0;
+    const candlePattern = data.signals?.candlePattern || "balanced candle";
+    const donchian = data.signals?.donchianState || "inside 20-session channel";
     const weeklySample = Number(data.empirical?.weeks) || 0;
     const downHit = Number.isFinite(data.empirical?.down2HitPct) ? Number(data.empirical.down2HitPct) : null;
     const upHit = Number.isFinite(data.empirical?.up2HitPct) ? Number(data.empirical.up2HitPct) : null;
@@ -322,6 +334,29 @@
           : Number(analog.probabilityUp5Pct) <= 40
             ? { tone: "danger", label: "Similar histories leaned downward", note: `${analog.neighbours} nearest analogues · ${number(analog.walkForwardAccuracyPct)}% walk-forward accuracy` }
             : { tone: "neutral", label: "Similar histories are split", note: `${analog.neighbours} nearest analogues · ${number(analog.walkForwardAccuracyPct)}% walk-forward accuracy` };
+    const candleCard = closeLocation >= 70
+      ? { tone: "calm", label: "Session closed with buyers", note: `${candlePattern}; close finished in the top ${number(100 - closeLocation)}% of the candle` }
+      : closeLocation <= 30
+        ? { tone: "danger", label: "Session closed with sellers", note: `${candlePattern}; close finished in the bottom ${number(closeLocation)}% of the candle` }
+        : { tone: "neutral", label: "Session closed near the middle", note: `${candlePattern}; no strong closing-location edge` };
+    const efficiencyCard = efficiency >= .45
+      ? { tone: "active", label: "Price path is directional", note: "A larger share of travelled distance became net movement" }
+      : efficiency <= .2
+        ? { tone: "neutral", label: "Price path is noisy", note: "Most movement reversed instead of travelling one way" }
+        : { tone: "neutral", label: "Price path is mixed", note: "Neither a clean trend nor a fully choppy path" };
+    const memoryCard = autocorrelation >= .2
+      ? { tone: "active", label: "Recent returns show persistence", note: "Positive moves more often followed positive moves; sample is short" }
+      : autocorrelation <= -.2
+        ? { tone: "active", label: "Recent returns show reversal", note: "Moves more often reversed on the next session; sample is short" }
+        : { tone: "neutral", label: "Little short-term memory", note: "Lag-one returns do not show a stable direction" };
+    const entropyCard = entropy <= 75
+      ? { tone: "active", label: "Direction has some structure", note: "Up/down signs are less evenly mixed than maximum randomness" }
+      : { tone: "neutral", label: "Direction is highly mixed", note: "Up/down signs are close to maximum uncertainty" };
+    const channelCard = donchian.includes("upside")
+      ? { tone: "calm", label: "Price cleared its prior channel", note: `Prior 20-session ceiling ${money(data.signals?.donchianHigh20)}` }
+      : donchian.includes("downside")
+        ? { tone: "danger", label: "Price broke its prior channel", note: `Prior 20-session floor ${money(data.signals?.donchianLow20)}` }
+        : { tone: "neutral", label: "Price remains inside its channel", note: `${money(data.signals?.donchianLow20)} to ${money(data.signals?.donchianHigh20)}` };
     return [
       { name: "Daily movement · ATR", value: money(data.window.atr14), ...atr },
       { name: "Movement intensity · Volatility", value: `${number(volatility)}%`, ...vol },
@@ -342,7 +377,13 @@
       { name: "Volatility-sized chunk", value: money(40_000 * riskMultiplier), tone: riskMultiplier < .65 ? "danger" : riskMultiplier < 1 ? "active" : "calm", label: `${number(riskMultiplier)}× size`, note: "A risk-scaled reference capped against the ₹40,000 chunk—not an order" },
       { name: "Historical weekly −2% touch", value: Number.isFinite(downHit) ? `${number(downHit)}%` : "—", tone: "neutral", label: `${data.empirical?.down2Hits || 0} of ${weeklySample} completed weeks`, note: weeklySample < 12 ? "Small sample—do not rely on this alone" : `95% interval ${number(data.empirical?.down2Interval95?.low)}–${number(data.empirical?.down2Interval95?.high)}%` },
       { name: "Historical weekly +2% touch", value: Number.isFinite(upHit) ? `${number(upHit)}%` : "—", tone: "neutral", label: `${data.empirical?.up2Hits || 0} of ${weeklySample} completed weeks`, note: weeklySample < 12 ? "Small sample—do not rely on this alone" : `95% interval ${number(data.empirical?.up2Interval95?.low)}–${number(data.empirical?.up2Interval95?.high)}%` },
-      { name: "Walk-forward analog model · 5 days", value: analog.ready ? `${number(analog.probabilityUp5Pct)}% up` : "LEARNING", ...analogCard }
+      { name: "Walk-forward analog model · 5 days", value: analog.ready ? `${number(analog.probabilityUp5Pct)}% up` : "LEARNING", ...analogCard },
+      { name: "Latest candle · OHLC", value: candlePattern.toUpperCase(), ...candleCard },
+      { name: "Trend efficiency · 20 sessions", value: number(efficiency), ...efficiencyCard },
+      { name: "Return memory · lag 1", value: number(autocorrelation), ...memoryCard },
+      { name: "High–low volatility · Parkinson", value: `${number(parkinsonVol)}%`, tone: parkinsonVol > 45 ? "danger" : parkinsonVol > 28 ? "active" : "calm", label: parkinsonVol > 45 ? "Wide intraday movement" : parkinsonVol > 28 ? "Active intraday movement" : "Contained intraday movement", note: "Uses high–low ranges rather than only closing returns" },
+      { name: "Directional uncertainty · Entropy", value: `${number(entropy)}%`, ...entropyCard },
+      { name: "Breakout channel · 20 sessions", value: donchian.toUpperCase(), ...channelCard }
     ];
   }
 
@@ -560,6 +601,17 @@
     if (sector !== "all") items = items.filter((item) => item.sector === sector);
     if (cap !== "all") items = items.filter((item) => item.marketCapCategory === cap);
     if (model !== "all") items = items.filter((item) => market.get(item.symbol)?.signals?.marketRegime === model);
+    if (state.user !== "ai" && state.actionFilter !== "all") {
+      items = items.filter((item) => {
+        const data = market.get(item.symbol);
+        if (!data) return false;
+        const action = personalSignal(item.symbol, data).action;
+        if (state.actionFilter === "buy") return action === "buy" || action === "buy-hit";
+        if (state.actionFilter === "sell") return action === "sell" || action === "sell-hit";
+        if (state.actionFilter === "alert") return action === "both-hit" || action === "loading";
+        return action === "wait";
+      });
+    }
     if (band !== "all") {
       items = items.filter((item) => {
         const regime = market.get(item.symbol)?.regime;
@@ -581,6 +633,24 @@
   }
 
   function renderWatchlist() {
+    if (state.user !== "ai") {
+      const counts = { all: watchlist.length, buy: 0, hold: 0, sell: 0, alert: 0 };
+      watchlist.forEach((item) => {
+        const data = market.get(item.symbol);
+        if (!data) return;
+        const action = personalSignal(item.symbol, data).action;
+        if (action === "buy" || action === "buy-hit") counts.buy += 1;
+        else if (action === "sell" || action === "sell-hit") counts.sell += 1;
+        else if (action === "both-hit" || action === "loading") counts.alert += 1;
+        else counts.hold += 1;
+      });
+      el("actionAllCount").textContent = counts.all;
+      el("actionBuyCount").textContent = counts.buy;
+      el("actionHoldCount").textContent = counts.hold;
+      el("actionSellCount").textContent = counts.sell;
+      el("actionAlertCount").textContent = counts.alert;
+      el("actionFilters").querySelectorAll("[data-action-filter]").forEach((button) => button.classList.toggle("active", button.dataset.actionFilter === state.actionFilter));
+    }
     const filtered = filteredWatchlist();
     const visible = filtered.slice(0, state.visibleLimit);
     stockList.innerHTML = visible.map((item) => {
@@ -592,7 +662,11 @@
       const aiStock = state.user === "ai" ? state.aiLedger.stocks?.find((stock) => stock.symbol === item.symbol) : null;
       const aiReady = Boolean(aiStock?.anchor);
       const personal = state.user !== "ai" && data ? personalSignal(item.symbol, data) : null;
-      const mapMarkup = aiReady ? `<div class="range-values"><span>FRIDAY ${money(aiStock.anchor.price)}</span><span>NEXT BUY ${money(aiStock.nextBuy?.price)}</span><span>NEXT SELL ${money(aiStock.nextSell)}</span></div><div class="range-track ai-track"><i class="price-pin" style="left:${focusPosition(Number(aiStock.lastPrice), Number(aiStock.levels?.at(-1)), Number(aiStock.anchor.price))}%"></i></div>` : data ? `<div class="range-values"><span>TODAY LOW ${money(data.daily?.low)}</span><span>NOW ${money(data.price)}</span><span>TODAY HIGH ${money(data.daily?.high)}</span></div><div class="range-track personal-track"><i class="price-pin" style="left:${focusPosition(data.price, data.daily?.low, data.daily?.high)}%"></i></div>` : `<div class="range-values"><span>${state.user === "ai" ? "Waiting for Friday grid" : "Fetching today's range"}</span><span>—</span></div><div class="range-loading"></div>`;
+      const mapMarkup = aiReady
+        ? `<div class="range-values"><span>MONDAY ${money(aiStock.anchor.price)}</span><span>NEXT BUY ${money(aiStock.nextBuy?.price)}</span><span>NEXT SELL ${money(aiStock.nextSell)}</span></div><div class="range-track ai-track"><i class="price-pin" style="left:${focusPosition(Number(aiStock.lastPrice), Number(aiStock.levels?.at(-1)), Number(aiStock.anchor.price))}%"></i></div>`
+        : data
+          ? `<div class="range-values action-values"><span>BUY ≤ ${money(personal.buyAt)}</span><span>NOW ${money(data.price)}</span><span>SELL ≥ ${money(personal.sellAt)}</span></div><div class="range-track personal-track"><i class="price-pin" style="left:${focusPosition(data.price, personal.buyAt, personal.sellAt)}%"></i></div><small class="day-span">DAY ${money(data.daily?.low)} — ${money(data.daily?.high)}</small>`
+          : `<div class="range-values"><span>${state.user === "ai" ? "Waiting for Monday grid" : "Fetching action prices"}</span><span>—</span></div><div class="range-loading"></div>`;
       const stateMarkup = aiReady ? `<span class="state-chip ${aiStock.lots?.length ? "lower-band" : "mid-band"}">${aiStock.lots?.length ? `${aiStock.lots.length} open lot${aiStock.lots.length === 1 ? "" : "s"}` : "Grid watching"}</span><small class="quant-link ${aiStock.openPnl >= 0 ? "positive" : "negative"}">${aiStock.nextBuy ? `B${aiStock.nextBuy.level} next · ${money(aiStock.nextBuy.price)}` : "Weekly levels evaluated"}</small>` : data ? `<span class="trade-suggestion ${personal.action}">${personal.label}</span><small class="quant-link ${pulseDescription(data).tone}">${personal.detail}</small>` : `<span class="state-chip">Loading</span><small class="map-link">Building 2% grid →</small>`;
       return `
         <article class="stock-row" data-symbol="${item.symbol}" tabindex="0" aria-label="Open ${item.symbol} range detail">
@@ -618,15 +692,15 @@
   function renderAiFocusMap(symbol, stock, snapshot) {
     const container = el("focusMap");
     if (!stock?.anchor) {
-      container.innerHTML = `<div class="focus-loading"><div><div class="empty-orbit">AI</div><b>Preparing ${symbol}'s Friday grid</b><p>The secured automation runner will store the latest completed Friday close and five compounded 3% levels.</p></div></div>`;
+      container.innerHTML = `<div class="focus-loading"><div><div class="empty-orbit">AI</div><b>Preparing ${symbol}'s Monday grid</b><p>The secured automation runner will store this week's Monday opening and five cumulative 2% levels.</p></div></div>`;
       return;
     }
-    const levels = (stock.levels || []).map((price, index) => `<div class="chunk-row ${stock.triggeredLevels?.[index] ? "ai-triggered" : ""}"><span class="chunk-number">B${index + 1}</span><span class="chunk-copy"><b>${stock.triggeredLevels?.[index] ? "Paper filled" : stock.nextBuy?.level === index + 1 ? "Next trigger" : "Waiting"}</b><small>3% compounded step ${index + 1} · up to ₹40,000</small></span><strong class="chunk-price">${money(price)}</strong></div>`).join("");
+    const levels = (stock.levels || []).map((price, index) => `<div class="chunk-row ${stock.triggeredLevels?.[index] ? "ai-triggered" : ""}"><span class="chunk-number">B${index + 1}</span><span class="chunk-copy"><b>${stock.triggeredLevels?.[index] ? "Paper filled" : stock.nextBuy?.level === index + 1 ? "Next trigger" : "Waiting"}</b><small>Compounded 2% step ${index + 1} · volatility-sized up to ₹40,000</small></span><strong class="chunk-price">${money(price)}</strong></div>`).join("");
     const exits = (stock.lots || []).slice().sort((a, b) => a.target - b.target).map((lot) => `<div class="chunk-row ai-exit"><span class="chunk-number">S${lot.level}</span><span class="chunk-copy"><b>Automatic paper exit</b><small>${number(lot.quantity)} shares · 2% above ${money(lot.price)}</small></span><strong class="chunk-price">${money(lot.target)}</strong></div>`).join("") || `<div class="ai-awaiting">Exit levels appear after a buy lot is filled. Each lot receives its own +2% target.</div>`;
     const weeklyMove = stock.lastPrice && stock.anchor.price ? (stock.lastPrice / stock.anchor.price - 1) * 100 : null;
-    container.innerHTML = `<div class="focus-head"><div class="focus-name"><span class="symbol-avatar">${initials(symbol)}</span><div><p class="eyebrow" style="margin-bottom:5px"><span></span> AI FRIDAY GRID</p><h2>${symbol}</h2><p>${snapshot.sector} · ${snapshot.marketCapCategory} · anchor week ${stock.anchor.weekKey}</p></div></div><div class="focus-current"><span>Tracked price</span><strong>${money(stock.lastPrice)}</strong><small class="${weeklyMove >= 0 ? "positive" : "negative"}">${pct(weeklyMove)} from Friday</small></div></div>
-      <div class="plain-rule"><b>Friday close: ${money(stock.anchor.price)}.</b> The AI reserves five slots of up to ₹40,000. It buys once at every compounded 3% fall and sells each purchased lot separately after a 2% recovery.</div>
-      <div class="ai-focus-equation"><span><small>FRIDAY</small><b>${money(stock.anchor.price)}</b></span><i>→ −3% → −3% → −3% → −3% → −3%</i><span><small>CASH LEFT</small><b>${money(Number(stock.cash))}</b></span></div>
+    container.innerHTML = `<div class="focus-head"><div class="focus-name"><span class="symbol-avatar">${initials(symbol)}</span><div><p class="eyebrow" style="margin-bottom:5px"><span></span> AI MONDAY GRID</p><h2>${symbol}</h2><p>${snapshot.sector} · ${snapshot.marketCapCategory} · week ${stock.anchor.weekKey}</p></div></div><div class="focus-current"><span>Tracked price</span><strong>${money(stock.lastPrice)}</strong><small class="${weeklyMove >= 0 ? "positive" : "negative"}">${pct(weeklyMove)} from Monday</small></div></div>
+      <div class="plain-rule"><b>Monday opening: ${money(stock.anchor.price)}.</b> The AI watches the cumulative weekly move, so five −0.5% days still trigger once the total crosses −2%. Each filled lot receives its own +2% exit.</div>
+      <div class="ai-focus-equation"><span><small>MONDAY OPEN</small><b>${money(stock.anchor.price)}</b></span><i>→ −2% → −3.96% → −5.88% → −7.76% → −9.61%</i><span><small>CASH LEFT</small><b>${money(Number(stock.cash))}</b></span></div>
       <div class="chunk-grid"><div class="chunk-side buy"><div class="chunk-heading"><h3>Five weekly buy slots ↓</h3><span>Whole-share paper fills</span></div>${levels}</div><div class="chunk-side sell"><div class="chunk-heading"><h3>Active +2% exits ↑</h3><span>One target per filled lot</span></div>${exits}</div></div>
       <div class="chunk-explain"><p><b>No same-candle trick:</b> a lot bought from today's low cannot be sold using today's earlier high because daily data cannot prove which happened first.</p><p><b>Budget discipline:</b> every stock has an isolated ₹2,00,000 ledger. Manual clicks cannot alter the AI account.</p></div>
       <div class="focus-actions"><button data-open-ai-grid>OPEN COMPLETE AI PAPER LEDGER →</button></div>`;
@@ -649,40 +723,57 @@
       return;
     }
 
-    const minimum = data.ladder.buy[4];
-    const maximum = data.ladder.sell[4];
+    const mondayBase = Number(data.weekly?.openingPrice) || Number(data.price);
+    const actionLadder = {
+      buy: window.K2_GRID?.levels(mondayBase, 2, 5) || [],
+      sell: window.K2_GRID?.exitLevels(mondayBase, 2, 5, "long") || []
+    };
+    const minimum = actionLadder.buy[4];
+    const maximum = actionLadder.sell[4];
     const labels = {
       buy: [
-        ["First buy level", "Below the midpoint"],
-        ["Second buy level", "Deeper inside the range"],
-        ["Near monthly low", "Last level inside the range"],
-        ["Below monthly low", "Outside the 31-day range"],
-        ["Deep buy extension", "Farthest buy chunk"]
+        ["Buy chunk 1", "2% below Monday open"],
+        ["Buy chunk 2", "Second compounded 2% fall"],
+        ["Buy chunk 3", "Third compounded 2% fall"],
+        ["Buy chunk 4", "Fourth compounded 2% fall"],
+        ["Buy chunk 5", "Fifth compounded 2% fall"]
       ],
       sell: [
-        ["First sell level", "Above the midpoint"],
-        ["Second sell level", "Higher inside the range"],
-        ["Near monthly high", "Last level inside the range"],
-        ["Above monthly high", "Outside the 31-day range"],
-        ["Extended sell level", "Farthest sell chunk"]
+        ["Sell chunk 1", "2% above Monday open"],
+        ["Sell chunk 2", "Second compounded 2% rise"],
+        ["Sell chunk 3", "Third compounded 2% rise"],
+        ["Sell chunk 4", "Fourth compounded 2% rise"],
+        ["Sell chunk 5", "Fifth compounded 2% rise"]
       ]
     };
-    const chunks = (side) => data.ladder[side].map((price, index) => `
-      <div class="chunk-row ${index >= 3 ? "outside-chunk" : ""}">
+    const chunks = (side) => actionLadder[side].map((price, index) => `
+      <div class="chunk-row">
         <span class="chunk-number">${index + 1}</span>
         <span class="chunk-copy"><b>${labels[side][index][0]}</b><small>${labels[side][index][1]}</small></span>
         <strong class="chunk-price">${money(price)}</strong>
       </div>`).join("");
     const nodes = [
-      ...data.ladder.buy.map((price, index) => `<span class="river-node buy ${index >= 3 ? "outside" : ""}" style="left:${focusPosition(price, minimum, maximum)}%"><i>B${index + 1}</i></span>`),
-      ...data.ladder.sell.map((price, index) => `<span class="river-node sell ${index >= 3 ? "outside" : ""}" style="left:${focusPosition(price, minimum, maximum)}%"><i>S${index + 1}</i></span>`)
+      ...actionLadder.buy.map((price, index) => `<span class="river-node buy" style="left:${focusPosition(price, minimum, maximum)}%"><i>B${index + 1}</i></span>`),
+      ...actionLadder.sell.map((price, index) => `<span class="river-node sell" style="left:${focusPosition(price, minimum, maximum)}%"><i>S${index + 1}</i></span>`)
     ].join("");
     const currentSide = data.price < data.window.midpoint ? "below" : data.price > data.window.midpoint ? "above" : "at";
     const actionCopy = currentSide === "below" ? "The current price is on the buy side of the midpoint." : currentSide === "above" ? "The current price is on the sell side of the midpoint." : "The current price is at the midpoint.";
     const personal = personalSignal(symbol, data);
     const evidence = evidenceForAction(data, personal.action);
     const evidenceCards = indicatorCards(data);
+    const actionPrice = personal.action === "buy"
+      ? personal.buyLevels?.[Math.max(0, Number(personal.reachedBuyLevel || 1) - 1)]
+      : personal.action === "sell" ? (personal.exit?.nextTarget || personal.sellAt) : data.price;
+    container.classList.toggle("mobile-expanded", state.mobileFocusExpanded);
     container.innerHTML = `
+      <section class="mobile-stock-brief ${personal.action}">
+        <header><div><span class="symbol-avatar">${initials(symbol)}</span><span><small>${snapshot.sector} · ${snapshot.marketCapCategory}</small><b>${symbol}</b></span></div><div><strong>${money(data.price)}</strong><small class="${data.changePct >= 0 ? "positive" : "negative"}">${pct(data.changePct)} today</small></div></header>
+        <div class="mobile-action-line"><span>TODAY'S ACTION</span><strong>${personal.label}</strong><p>${personal.detail}</p></div>
+        <div class="mobile-decision-grid"><span><small>BUY AT OR BELOW</small><b>${money(personal.buyAt)}</b></span><span><small>NOW</small><b>${money(data.price)}</b></span><span><small>SELL AT OR ABOVE</small><b>${money(personal.sellAt)}</b></span></div>
+        <div class="mobile-range-strip"><span><small>DAY LOW / HIGH</small><b>${money(data.daily?.low)} / ${money(data.daily?.high)}</b></span><span><small>31-DAY LOW / HIGH</small><b>${money(data.window.low)} / ${money(data.window.high)}</b></span><span><small>3-MONTH LOW / HIGH</small><b>${money(data.quarter?.low)} / ${money(data.quarter?.high)}</b></span></div>
+        <div class="mobile-evidence"><span><small>MONDAY BASE</small><b>${money(mondayBase)}</b></span><span><small>EVIDENCE</small><b class="${evidence.tone}">${evidence.label}</b></span><span><small>ACTION PRICE</small><b>${money(actionPrice)}</b></span><span><small>RISK-SIZED CHUNK</small><b>${money(40_000 * (Number(data.signals?.riskBudgetMultiplier) || 1))}</b></span></div>
+        <footer><button type="button" data-focus-add="${symbol}">+ Add position</button><button type="button" class="secondary" data-toggle-mobile-focus aria-expanded="${state.mobileFocusExpanded}">${state.mobileFocusExpanded ? "Hide full analysis ↑" : "Full analysis & 10 levels ↓"}</button></footer>
+      </section>
       <div class="focus-head">
         <div class="focus-name"><span class="symbol-avatar">${initials(symbol)}</span><div><p class="eyebrow" style="margin-bottom:5px"><span></span> Selected 10-chunk map</p><h2>${symbol}</h2><p>${snapshot.sector} · ${snapshot.marketCapCategory} · rank #${snapshot.marketCapRank} · ${data.window.sessions} sessions in 31 days</p></div></div>
         <div class="focus-current"><span>Current market price</span><strong>${money(data.price)}</strong><small class="${data.changePct >= 0 ? "positive" : "negative"}">${pct(data.changePct)} today</small></div>
@@ -694,19 +785,19 @@
       </section>
       <section class="evidence-banner ${evidence.tone}"><div><span>MULTI-MARKET EVIDENCE STACK · SCORE ${data.signals?.evidenceScore > 0 ? "+" : ""}${data.signals?.evidenceScore ?? 0} / 3</span><strong>${evidence.label}</strong><p>${evidence.detail}</p></div><b>${money(40_000 * (Number(data.signals?.riskBudgetMultiplier) || 1))}<small>VOL-SCALED CHUNK</small></b></section>
       <details class="quant-vault"><summary><span>Open the full maths, statistics &amp; probability evidence</span><b>${evidenceCards.length} CHECKS</b></summary><div class="signal-grid">${evidenceCards.map((card) => `<article class="signal-card ${card.tone}"><span>${card.name}</span><div><strong>${card.value}</strong><b>${card.label}</b></div><p>${card.note}</p></article>`).join("")}</div><p class="probability-note"><b>Probability sample:</b> ${data.empirical?.weeks || 0} completed weeks from the available six-month history. A weekly high/low can prove a level was touched, but not whether the buy or sell happened first when both were reached. Historical frequency is not a forecast.</p></details>
-      <div class="plain-rule"><b>Read this from the centre:</b> the midpoint is ${money(data.window.midpoint)}. Moving left gives five progressively lower buy chunks; moving right gives five progressively higher sell chunks. ${actionCopy}</div>
+      <div class="plain-rule"><b>Monday reset:</b> this week's action base is ${money(mondayBase)}. Five buy prices compound downward by 2%; five sell prices compound upward by 2%. The 31-day midpoint ${money(data.window.midpoint)} is comparison context only. ${actionCopy}</div>
       <div class="decision-river">
         <div class="river-line"></div>${nodes}
         <span class="river-bound low" style="left:${focusPosition(data.window.low, minimum, maximum)}%">31-DAY LOW<br>${money(data.window.low)}</span>
-        <span class="river-bound mid" style="left:${focusPosition(data.window.midpoint, minimum, maximum)}%">MIDPOINT ${money(data.window.midpoint)}</span>
+        <span class="river-bound mid" style="left:${focusPosition(mondayBase, minimum, maximum)}%">MONDAY BASE ${money(mondayBase)}</span>
         <span class="river-bound high" style="left:${focusPosition(data.window.high, minimum, maximum)}%">31-DAY HIGH<br>${money(data.window.high)}</span>
         <span class="current-flag" style="left:${focusPosition(data.price, minimum, maximum)}%"><span>NOW ${money(data.price)}</span></span>
       </div>
       <div class="chunk-grid">
-        <div class="chunk-side buy"><div class="chunk-heading"><h3>5 buy chunks ↓</h3><span>All below midpoint</span></div>${chunks("buy")}</div>
-        <div class="chunk-side sell"><div class="chunk-heading"><h3>5 sell chunks ↑</h3><span>All above midpoint</span></div>${chunks("sell")}</div>
+        <div class="chunk-side buy"><div class="chunk-heading"><h3>5 Monday buy chunks ↓</h3><span>Compounded 2% steps</span></div>${chunks("buy")}</div>
+        <div class="chunk-side sell"><div class="chunk-heading"><h3>5 Monday sell chunks ↑</h3><span>Compounded 2% steps</span></div>${chunks("sell")}</div>
       </div>
-      <div class="chunk-explain"><p><b>Buying, in simple words:</b> chunk 1 is the first lower price. If the stock falls further, chunks 2–5 spread the entry instead of putting everything at one price. Buy 4 and 5 are below the monthly low.</p><p><b>Selling, in simple words:</b> chunk 1 is the first higher price. Chunks 2–5 step upward so the position can be reduced gradually. Sell 4 and 5 are above the monthly high.</p></div>
+      <div class="chunk-explain"><p><b>Buying, in simple words:</b> Monday open is zero. A cumulative fall to −2%, −3.96%, −5.88%, −7.76% or −9.61% reaches the five buy chunks—even if the fall happens slowly across several days.</p><p><b>Selling, in simple words:</b> the five Monday reference levels are +2%, +4.04%, +6.12%, +8.24% and +10.41%. A new Monday creates a new weekly base.</p></div>
       <div class="focus-actions">${state.user === "ai" ? `<button data-open-ai-grid>VIEW ${symbol} IN AI PAPER GRID →</button>` : `<button data-focus-add="${symbol}">+ ADD ${symbol} TO PORTFOLIO</button>`}</div>`;
     syncTradePlanner();
   }
@@ -773,35 +864,58 @@
       const levels = (stock.levels || []).map((price, index) => {
         const filled = Boolean(stock.triggeredLevels?.[index]);
         const next = stock.nextBuy?.level === index + 1;
-        return `<span class="ai-level ${filled ? "filled" : ""} ${next ? "next" : ""}"><i>B${index + 1}</i><b>${money(price)}</b><small>${filled ? "FILLED" : next ? "NEXT" : `${3 * (index + 1)}% step`}</small></span>`;
-      }).join("") || `<span class="ai-awaiting">Friday reference pending</span>`;
+        const cumulative = (1 - .98 ** (index + 1)) * 100;
+        return `<span class="ai-level ${filled ? "filled" : ""} ${next ? "next" : ""}"><i>B${index + 1}</i><b>${money(price)}</b><small>${filled ? "FILLED" : next ? "NEXT" : `−${number(cumulative)}% cumulative`}</small></span>`;
+      }).join("") || `<span class="ai-awaiting">Monday reference pending</span>`;
       const targets = (stock.lots || []).slice().sort((a, b) => a.target - b.target).map((lot) => `<span class="ai-target"><i>S${lot.level}</i><b>${money(lot.target)}</b><small>${number(lot.quantity)} shares · +2%</small></span>`).join("") || `<span class="ai-awaiting">No purchased lot needs an exit yet</span>`;
       const status = !stock.anchor ? "Waiting for secure runner" : stock.lots?.length ? `${stock.lots.length} lot${stock.lots.length === 1 ? "" : "s"} waiting for +2%` : stock.nextBuy ? `Watching B${stock.nextBuy.level}` : "Five weekly slots evaluated";
+      const quant = stock.quant || {};
+      const signals = quant.signals || {};
+      const analog = quant.analogModel || {};
+      const sizing = quant.sizing || {};
+      const quantMarkup = quant.updatedAt ? `<section class="ai-quant-evidence">
+        <header><div><span>RECORDED DECISION EVIDENCE</span><b>${String(signals.marketRegime || "learning").toUpperCase()} · ${String(signals.riskState || "unknown").toUpperCase()} RISK</b></div><strong>${number((Number(sizing.multiplier) || 1) * 100)}%<small>OF ₹40K SLOT</small></strong></header>
+        <div class="ai-quant-facts">
+          <span><small>TREND EVIDENCE</small><b>${Number(signals.evidenceScore) > 0 ? "+" : ""}${signals.evidenceScore ?? "—"} / 3</b></span>
+          <span><small>RSI PRESSURE</small><b>${number(quant.window?.rsi14)}</b></span>
+          <span><small>63-DAY MOMENTUM</small><b>${pct(signals.return63Pct)}</b></span>
+          <span><small>MAX DRAWDOWN</small><b>${number(signals.maxDrawdown63Pct)}%</b></span>
+          <span><small>VOLUME 5 / 20</small><b>${number(signals.volumeRatio5To20)}×</b></span>
+          <span><small>ANALOGUE UP PROB.</small><b>${analog.ready ? `${number(analog.probabilityUp5Pct)}%` : "LEARNING"}</b></span>
+          <span><small>CANDLE</small><b>${signals.candlePattern || "—"}</b></span>
+          <span><small>PATH EFFICIENCY</small><b>${number(signals.efficiencyRatio20)}</b></span>
+        </div>
+        <p><b>Fundamentals:</b> no verified earnings, balance-sheet or valuation feed is connected, so K² does not invent PE, EPS or debt data. The live decision uses price, volume, market-cap class, sector, risk scaling and walk-forward history.</p>
+      </section>` : `<section class="ai-quant-evidence pending"><b>Quant evidence will appear after the next secured AI run.</b></section>`;
       return `<details class="ai-stock" data-ai-stock="${stock.symbol}">
         <summary>
           <span class="symbol-avatar">${initials(stock.symbol)}</span>
           <span class="ai-stock-name"><b>${stock.symbol}</b><small>${stock.sector} · ${stock.marketCapCategory}</small></span>
-          <span><small>Friday close</small><b>${money(anchor)}</b></span>
+          <span><small>Monday open</small><b>${money(anchor)}</b></span>
           <span><small>Tracked price</small><b>${money(live)} <i class="${weeklyMove >= 0 ? "positive" : "negative"}">${pct(weeklyMove)}</i></b></span>
           <span><small>Virtual cash</small><b>${money(Number(stock.cash))}</b></span>
           <span><small>Stock P&amp;L</small><b class="${accountPnl >= 0 ? "positive" : "negative"}">${money(accountPnl)}</b></span>
           <em>${status}</em>
         </summary>
         <div class="ai-stock-body">
-          <div><h4>Five compounded buy triggers</h4><p>Each slot can use up to ${money(config.slotBudget)} and fires once per Friday week.</p><div class="ai-levels">${levels}</div></div>
+          <div><h4>Five cumulative weekly buy triggers</h4><p>Each slot is capped at ${money(config.slotBudget)}, risk-sized from the recorded quant snapshot, and resets to Monday open.</p><div class="ai-levels">${levels}</div></div>
           <div><h4>Open-lot sell triggers</h4><p>Every lot has its own target, exactly ${config.takeProfitPct}% above its paper fill.</p><div class="ai-levels sells">${targets}</div></div>
+          ${quantMarkup}
           <footer><span>Anchor week <b>${stock.anchor?.weekKey || "—"}</b></span><span>Anchor session <b>${stock.anchor?.barDate || "—"}</b></span><span>Invested / hard cap <b>${money(stock.invested)} / ${money(config.budgetPerStock)}</b></span><span>Open P&amp;L <b class="${stock.openPnl >= 0 ? "positive" : "negative"}">${money(stock.openPnl)}</b></span></footer>
         </div>
       </details>`;
     }).join("");
 
-    const activity = (ledger.transactions || []).slice(0, 30).map((trade) => `<div class="ai-trade ${trade.action}">
+    const recentTrades = (ledger.transactions || []).slice(0, 40);
+    const buyCount = recentTrades.filter((trade) => trade.action === "buy").length;
+    const sellCount = recentTrades.filter((trade) => trade.action === "sell").length;
+    const activity = recentTrades.map((trade) => `<div class="ai-trade ${trade.action}">
       <span>${trade.action === "buy" ? "↓" : "↑"}</span><div><b>${trade.symbol} · ${trade.action.toUpperCase()}</b><small>${new Date(trade.time).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" })}</small></div>
       <div><small>Level</small><b>${trade.action === "buy" ? `B${trade.level}` : "+2% exit"}</b></div><div><small>Quantity</small><b>${number(trade.quantity)}</b></div><div><small>Paper price</small><b>${money(trade.price)}</b></div><div><small>Realized</small><b class="${trade.pnl >= 0 ? "positive" : "negative"}">${trade.action === "sell" ? money(trade.pnl) : "—"}</b></div>
-    </div>`).join("") || `<div class="ai-empty"><b>No paper trades yet.</b><span>The ledger is waiting for a stock to cross one of its Friday-based 3% levels.</span></div>`;
+    </div>`).join("") || `<div class="ai-empty"><b>No paper trades yet.</b><span>The ledger is watching each stock's cumulative move from Monday open and will record the first crossed −2% level here.</span></div>`;
 
     container.innerHTML = `${syncNotice}<section class="ai-command">
-      <div><p class="eyebrow"><span></span> AUTOMATIC · PAPER ONLY</p><h3>Friday close → five 3% drops → individual 2% exits</h3><p>All ${watchlist.length} stocks are checked every 15 minutes through the NSE market day, Monday–Friday. Each has a hard concurrent deployment cap of ${money(config.budgetPerStock)} and five slots of up to ${money(config.slotBudget)}. Every automatic buy and sell appears below.</p></div>
+      <div><p class="eyebrow"><span></span> AUTOMATIC · PAPER ONLY</p><h3>Monday open → five cumulative 2% drops → individual 2% exits</h3><p>All ${watchlist.length} stocks are checked every 15 minutes through the NSE market day. A slow multi-day fall counts because every level is measured from Monday open. Quant evidence changes paper size, never hides the exact rule or trade record.</p></div>
       <div class="ai-heart"><strong>AI</strong><i></i><span>WATCHING<br />${watchlist.length} STOCKS</span></div>
     </section>
     <div class="portfolio-summary ai-summary">
@@ -814,11 +928,12 @@
       <article class="portfolio-mini"><span>Historical vault</span><strong>${number(storage.totalHistoryRows || 0)} rows</strong><small>${number(storage.minimumHistorySessions || 0)}–${number(storage.maximumHistorySessions || 0)} sessions per stock</small></article>
       <article class="portfolio-mini"><span>Google Sheets archive</span><strong class="${storage.googleSheetsArchive === "connected" ? "positive" : ""}">${storage.googleSheetsArchive === "connected" ? "Connected" : "Awaiting endpoint"}</strong><small>Private Blob remains the transactional database</small></article>
     </div>
+    <div class="portfolio-intro ai-activity-head"><div><p class="eyebrow"><span></span> MACHINE AUDIT TRAIL</p><h2>What AI bought and sold.</h2></div><p><b>${buyCount} buys · ${sellCount} sells</b> in the latest ${recentTrades.length} records. Every paper fill preserves its rule, quantity, price, quant size and timestamp.</p></div>
+    <div class="ai-trades">${activity}</div>
     <label class="ai-search"><span>⌕</span><input id="aiGridSearch" type="search" placeholder="Find a stock inside the AI grid…" /></label>
-    <div class="ai-ledger-head"><span>${stocks.length} of ${ledger.stocks?.length || 0} stocks</span><span>Friday reference</span><span>Live / latest</span><span>Cash</span><span>P&amp;L</span></div>
+    <div class="ai-ledger-head"><span>${stocks.length} of ${ledger.stocks?.length || 0} stocks</span><span>Monday reference</span><span>Live / latest</span><span>Cash</span><span>P&amp;L</span></div>
     <div class="ai-stock-list">${rows || `<div class="ai-empty"><b>No stock matches this search.</b></div>`}</div>
-    <div class="portfolio-intro ai-activity-head"><div><p class="eyebrow"><span></span> MACHINE AUDIT TRAIL</p><h2>Every automatic move.</h2></div><p>Paper fills record the rule, level, quantity, reference week and timestamp so the model can be judged rather than trusted blindly.</p></div>
-    <div class="ai-trades">${activity}</div>`;
+    `;
     const input = el("aiGridSearch");
     if (input) {
       input.value = state.aiSearch;
@@ -837,6 +952,14 @@
       return;
     }
 
+    const weeklyPortfolioPnl = metrics.items.reduce((sum, item) => {
+      const data = market.get(item.symbol);
+      const base = Number(data?.weekly?.openingPrice);
+      const current = Number(data?.price);
+      if (!Number.isFinite(base) || !Number.isFinite(current)) return sum;
+      const direction = item.position === "short" ? -1 : 1;
+      return sum + (current - base) * item.quantity * direction;
+    }, 0);
     const cards = metrics.items.map((item) => {
       const isFuture = item.assetType === "future";
       const live = isFuture ? item.markPrice : (currentPrice(item.symbol) ?? item.average);
@@ -846,6 +969,10 @@
       const direction = item.position === "short" ? -1 : 1;
       const pnlValue = (live - item.average) * item.quantity * direction;
       const pnlPercent = item.cost ? (pnlValue / item.cost) * 100 : 0;
+      const weeklyBase = Number(data?.weekly?.openingPrice) || item.average;
+      const weeklyReference = Number(data?.price) || live;
+      const weeklyPnl = (weeklyReference - weeklyBase) * item.quantity * direction;
+      const weeklyPnlPct = weeklyBase ? direction * (weeklyReference / weeklyBase - 1) * 100 : 0;
       const plan = exitPlan(item, data, live);
       const suggestion = data ? personalSignal(item.symbol, data, item) : { action: "loading", label: "LOADING WEEKLY CALL", detail: "Waiting for the latest market session" };
       const lastTarget = plan.targets.at(-1).price;
@@ -860,17 +987,23 @@
       const markCopy = isFuture && item.brokerClose ? "Closing price" : isFuture && !item.exactMark ? "Broker snapshot" : "Live price";
       const actionMarkup = isFuture ? `<span class="contract-chip ${item.position}">${item.position === "short" ? "SHORT FUTURE" : "LONG FUTURE"}</span>` : `<button class="small-button" data-open-buy="${item.symbol}">Add</button><button class="small-button sell" data-open-sell="${item.symbol}">Reduce</button>`;
       const suggestionAction = !isFuture && suggestion.action === "buy" ? `<button class="suggestion-button" data-open-buy="${item.symbol}">Open buy ticket</button>` : !isFuture && suggestion.action === "sell" ? `<button class="suggestion-button" data-open-sell="${item.symbol}">Open sell ticket</button>` : "";
+      const mobileExpanded = state.mobileExpandedHoldings.has(item.symbol);
+      const mobileHoldingBrief = `<section class="mobile-holding-brief ${suggestion.action}">
+        <div><span><small>TODAY'S ACTION</small><strong>${suggestion.label}</strong></span><span><small>MONDAY BASE</small><b>${money(weeklyBase)}</b></span><span><small>THIS WEEK P&amp;L</small><b class="${weeklyPnl >= 0 ? "positive" : "negative"}">${money(weeklyPnl)} · ${pct(weeklyPnlPct)}</b></span></div>
+        <div class="mobile-decision-grid"><span><small>BUY ≤</small><b>${money(suggestion.buyAt)}</b></span><span><small>NOW</small><b>${money(suggestion.current ?? live)}</b></span><span><small>SELL ≥</small><b>${money(suggestion.sellAt)}</b></span></div>
+        <button type="button" data-toggle-mobile-holding="${item.symbol}" aria-expanded="${mobileExpanded}">${mobileExpanded ? "Hide levels and maths ↑" : "Show levels and maths ↓"}</button>
+      </section>`;
       const holdingEvidence = data ? (() => {
         const evidence = evidenceForAction(data, suggestion.action);
         return `<details class="holding-evidence"><summary><span>31-DAY + 3-MONTH + QUANT CHECK</span><b class="${evidence.tone}">${evidence.label}</b></summary><div><span><small>31-day low / high</small><b>${money(data.window.low)} / ${money(data.window.high)}</b></span><span><small>3-month low / high</small><b>${money(data.quarter?.low)} / ${money(data.quarter?.high)}</b></span><span><small>3-month return</small><b class="${Number(data.signals?.return63Pct) >= 0 ? "positive" : "negative"}">${pct(Number(data.signals?.return63Pct))}</b></span><span><small>Max drawdown</small><b>${number(data.signals?.maxDrawdown63Pct)}%</b></span><span><small>Risk-sized chunk</small><b>${money(40_000 * (Number(data.signals?.riskBudgetMultiplier) || 1))}</b></span></div><p>${evidence.detail} Open ${item.symbol} from the watchlist for the full evidence stack and probability sample.</p></details>`;
       })() : "";
-      return `<article class="holding-shell"><div class="holding-card">
+      return `<article class="holding-shell ${mobileExpanded ? "mobile-expanded" : ""}" data-holding-symbol="${item.symbol}"><div class="holding-card">
         <div class="symbol-cell"><span class="symbol-avatar">${initials(item.symbol)}</span><div><b>${item.symbol}${isFuture ? " FUT" : ""}</b><small>${instrumentCopy}</small></div></div>
         <div class="holding-metric"><span>Average entry</span><strong>${money(item.average)}</strong></div>
         <div class="holding-metric"><span>${markCopy} · notional</span><strong>${money(live)} · ${money(value)}</strong>${isFuture && Number.isFinite(spot) ? `<small class="spot-reference">Spot reference ${money(spot)}</small>` : ""}</div>
         <div class="holding-metric"><span>Open P&amp;L</span><strong class="${pnlValue >= 0 ? "positive" : "negative"}">${isFuture && !item.exactMark && !item.brokerClose ? "Awaiting futures LTP" : `${money(pnlValue)} · ${pct(pnlPercent)}`}</strong></div>
         <div class="holding-actions">${actionMarkup}</div>
-      </div><section class="portfolio-call ${suggestion.action}"><div><span>TODAY'S ACTION</span><strong>${suggestion.label}</strong><p>${suggestion.detail}</p><div class="decision-levels"><div class="decision-buy"><span>${item.position === "short" ? "COVER AT OR BELOW" : "BUY AT OR BELOW"}</span><strong>${money(suggestion.buyAt)}</strong></div><div class="decision-now"><span>CURRENT PRICE</span><strong>${money(suggestion.current)}</strong></div><div class="decision-sell"><span>${item.position === "short" ? "RISK AT OR ABOVE" : "SELL AT OR ABOVE"}</span><strong>${money(suggestion.sellAt)}</strong></div></div><span class="daily-range-title">TODAY'S LIVE RANGE</span><div class="daily-range"><div><span>DAILY LOW</span><strong>${money(data?.daily?.low)}</strong></div><div><span>NOW</span><strong>${money(suggestion.current)}</strong></div><div><span>DAILY HIGH</span><strong>${money(data?.daily?.high)}</strong></div></div>${isFuture ? `<small class="price-source-note">Action uses the live underlying price. ${item.brokerClose ? `P&amp;L above uses the broker closing price ${money(live)}.` : "Live futures P&amp;L needs the contract LTP."}</small>` : ""}</div>${suggestionAction}</section>${holdingEvidence}<section class="exit-plan">
+      </div>${mobileHoldingBrief}<section class="portfolio-call ${suggestion.action}"><div><span>TODAY'S ACTION</span><strong>${suggestion.label}</strong><p>${suggestion.detail}</p><div class="weekly-book-strip"><span>WEEK RESET · MONDAY ${money(weeklyBase)}</span><b class="${weeklyPnl >= 0 ? "positive" : "negative"}">${money(weeklyPnl)} · ${pct(weeklyPnlPct)} this week</b><small>Friday closes the weekly reference book; the next Monday opening becomes the new base.</small></div><div class="decision-levels"><div class="decision-buy"><span>${item.position === "short" ? "COVER AT OR BELOW" : "BUY AT OR BELOW"}</span><strong>${money(suggestion.buyAt)}</strong></div><div class="decision-now"><span>CURRENT PRICE</span><strong>${money(suggestion.current)}</strong></div><div class="decision-sell"><span>${item.position === "short" ? "RISK AT OR ABOVE" : "SELL AT OR ABOVE"}</span><strong>${money(suggestion.sellAt)}</strong></div></div><span class="daily-range-title">TODAY'S LIVE RANGE</span><div class="daily-range"><div><span>DAILY LOW</span><strong>${money(data?.daily?.low)}</strong></div><div><span>NOW</span><strong>${money(suggestion.current)}</strong></div><div><span>DAILY HIGH</span><strong>${money(data?.daily?.high)}</strong></div></div>${isFuture ? `<small class="price-source-note">Action uses the live underlying price. ${item.brokerClose ? `P&amp;L above uses the broker closing price ${money(live)}.` : "Live futures P&amp;L needs the contract LTP."}</small>` : ""}</div>${suggestionAction}</section>${holdingEvidence}<section class="exit-plan">
         <div class="exit-plan-head"><div><span>${item.position === "short" ? "FIVE 2% COVER CHUNKS · BELOW" : "FIVE 2% SELL CHUNKS · ABOVE"} ${money(plan.base)} MONDAY BASE</span><h3>${item.position === "short" ? "Every further 2% fall → cover one slice" : "Every further 2% rise → sell one slice"}</h3></div><p>Even split: ${number(plan.slice)} of ${number(item.quantity)} units per chunk. Every level uses the same Monday opening base and resets at the next Monday opening.</p></div>
         <div class="exit-progress ${item.position === "short" ? "short-progress" : ""} ${isFuture && !item.exactMark && !item.brokerClose ? "snapshot-progress" : ""}"><span style="width:${progress}%"></span><i style="left:${flagProgress}%">${item.brokerClose ? "CLOSE" : isFuture && !item.exactMark ? "ENTRY MARK" : "NOW"} ${money(live)}</i><b>BASE ${money(plan.base)}</b><b>FINAL ${money(lastTarget)}</b></div>
         <div class="exit-bands">${targets}</div>
@@ -891,6 +1024,7 @@
         <article class="portfolio-mini"><span>${metrics.hasFutures ? "Reference notional" : "Market value"}</span><strong>${money(metrics.value)}</strong></article>
         <article class="portfolio-mini"><span>${metrics.hasFutures ? "Entry notional" : "Invested cost"}</span><strong>${money(metrics.cost)}</strong></article>
         <article class="portfolio-mini"><span>${metrics.hasFutures ? "Realized P&L" : "Realized P&amp;L"}</span><strong class="${state.portfolio.realizedPnl >= 0 ? "positive" : "negative"}">${money(state.portfolio.realizedPnl)}</strong></article>
+        <article class="portfolio-mini"><span>This week · Monday reset</span><strong class="${weeklyPortfolioPnl >= 0 ? "positive" : "negative"}">${money(weeklyPortfolioPnl)}</strong><small>Friday reference close; underlying proxy for imported futures</small></article>
         <article class="portfolio-mini"><span>Private database</span><strong class="${state.databaseOnline ? "positive" : "negative"}">${state.databaseOnline ? "Synchronized" : "Offline copy"}</strong></article>
       </div>
       <div class="holdings-list">${cards}</div>
@@ -903,24 +1037,56 @@
     feedPill.querySelector("span").textContent = text;
   }
 
-  async function fetchSymbols(symbols) {
-    const unique = [...new Set(symbols)].filter(Boolean);
-    for (let start = 0; start < unique.length; start += 8) {
-      const batch = unique.slice(start, start + 8);
-      try {
-        const response = await fetch(`/api/market?symbols=${encodeURIComponent(batch.join(","))}`);
-        const payload = await response.json();
-        for (const item of payload.data || []) market.set(item.symbol, item);
-        if (!response.ok && !payload.data?.length) throw new Error(payload.error || payload.errors?.[0]?.message || "Market feed unavailable");
-      } catch (error) {
-        console.warn("K² market batch failed", batch, error);
-      }
+  function renderMarketViewsStable() {
+    clearTimeout(state.marketRenderTimer);
+    const run = () => {
+      const row = document.elementFromPoint(Math.min(window.innerWidth / 2, 220), Math.min(170, window.innerHeight / 3))?.closest?.("[data-symbol]");
+      const anchorSymbol = row?.dataset?.symbol;
+      const anchorTop = row?.getBoundingClientRect().top;
+      const previousY = window.scrollY;
       renderWatchlist();
       renderFocusMap();
       renderPortfolio();
       if (state.currentSymbol) renderDrawer(state.currentSymbol);
-      el("loadedCount").textContent = `${market.size} / ${watchlist.length}`;
-    }
+      requestAnimationFrame(() => {
+        if (Date.now() - state.lastScrollAt < 140) return;
+        const replacement = anchorSymbol ? stockList.querySelector(`[data-symbol="${CSS.escape(anchorSymbol)}"]`) : null;
+        if (replacement && Number.isFinite(anchorTop)) {
+          const shift = replacement.getBoundingClientRect().top - anchorTop;
+          if (Math.abs(shift) > 1) window.scrollBy({ top: shift, left: 0, behavior: "instant" });
+        } else if (Math.abs(window.scrollY - previousY) > 2) {
+          window.scrollTo({ top: previousY, left: 0, behavior: "instant" });
+        }
+      });
+    };
+    const delay = Math.max(0, 180 - (Date.now() - state.lastScrollAt));
+    state.marketRenderTimer = setTimeout(run, delay);
+  }
+
+  async function fetchSymbols(symbols) {
+    const unique = [...new Set(symbols)].filter(Boolean);
+    const batches = Array.from({ length: Math.ceil(unique.length / 8) }, (_, index) => unique.slice(index * 8, index * 8 + 8));
+    let cursor = 0;
+    let completed = 0;
+    const worker = async () => {
+      while (cursor < batches.length) {
+        const batch = batches[cursor];
+        cursor += 1;
+        try {
+          const response = await fetch(`/api/market?symbols=${encodeURIComponent(batch.join(","))}`);
+          const payload = await response.json();
+          for (const item of payload.data || []) market.set(item.symbol, item);
+          if (!response.ok && !payload.data?.length) throw new Error(payload.error || payload.errors?.[0]?.message || "Market feed unavailable");
+        } catch (error) {
+          console.warn("K² market batch failed", batch, error);
+        }
+        completed += 1;
+        el("loadedCount").textContent = `${market.size} / ${watchlist.length}`;
+        if (completed % 4 === 0) renderMarketViewsStable();
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(2, batches.length) }, () => worker()));
+    renderMarketViewsStable();
   }
 
   async function refreshAll() {
@@ -1140,13 +1306,14 @@
     const context = canvas?.getContext("2d");
     if (!context) return;
     const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    const phone = window.matchMedia("(max-width: 700px)").matches;
     let width = 0, height = 0, points = [], pointer = { x: -999, y: -999 }, scrollPhase = 0, lastFrame = 0, lastSpark = 0;
     const resize = () => {
       const ratio = Math.min(2, window.devicePixelRatio || 1);
       width = window.innerWidth; height = window.innerHeight;
       canvas.width = Math.round(width * ratio); canvas.height = Math.round(height * ratio);
       context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      const count = Math.min(54, Math.max(22, Math.round(width * height / 26000)));
+      const count = phone ? Math.min(16, Math.max(10, Math.round(width * height / 36000))) : Math.min(54, Math.max(22, Math.round(width * height / 26000)));
       points = Array.from({ length: count }, (_, index) => ({
         x: Math.random() * width, y: Math.random() * height,
         vx: (Math.random() - .5) * .16, vy: (Math.random() - .5) * .16,
@@ -1160,7 +1327,12 @@
         if (!reduced) state.ambientFrame = requestAnimationFrame(draw);
         return;
       }
-      if (time - lastFrame < 32 && !reduced) { state.ambientFrame = requestAnimationFrame(draw); return; }
+      if (phone && Date.now() - state.lastScrollAt < 180) {
+        if (!reduced) state.ambientFrame = requestAnimationFrame(draw);
+        return;
+      }
+      const frameInterval = phone ? 82 : 32;
+      if (time - lastFrame < frameInterval && !reduced) { state.ambientFrame = requestAnimationFrame(draw); return; }
       lastFrame = time;
       context.clearRect(0, 0, width, height);
       const idleBoost = document.body.classList.contains("k2-idle") ? 1.65 : 1;
@@ -1187,7 +1359,7 @@
     const spawnSpark = (x, y, burst = false) => {
       if (!state.user || reduced) return;
       const marks = ["✦", "♡", "K²", "✨", "⚡", "📈"];
-      const count = burst ? 5 : 1;
+      const count = burst ? (phone ? 2 : 5) : 1;
       for (let index = 0; index < count; index += 1) {
         const spark = document.createElement("span");
         spark.className = "gesture-spark"; spark.textContent = marks[Math.floor(Math.random() * marks.length)];
@@ -1351,15 +1523,16 @@
     state.aiError = null;
     state.plannerKey = null;
     el("tradePlanner").hidden = aiMode;
+    el("actionFilters").hidden = aiMode;
     el("portfolioTabLabel").textContent = aiMode ? "AI Paper Grid" : "Portfolio";
-    el("portfolioOverline").textContent = aiMode ? "Autonomous Friday-grid laboratory" : "Private cloud portfolio";
+    el("portfolioOverline").textContent = aiMode ? "Autonomous Monday-grid laboratory" : "Private cloud portfolio";
     el("portfolioHeading").innerHTML = aiMode ? `The machine watches,<br /><em>the ledger remembers.</em>` : `Your positions,<br /><em>measured live.</em>`;
     el("portfolioIntroCopy").textContent = aiMode
-      ? "K² AI paper-trades the complete workbook universe from Friday closing anchors. Every simulated fill is automatic, isolated and auditable across devices."
+      ? "K² AI paper-trades the complete workbook universe from Monday opening anchors. Every simulated fill is automatic, isolated and auditable across devices."
       : "Entry lots are stored securely under your signed-in account and follow you across devices. Current value and open P&L move with the same market feed as your watchlist.";
     el("methodCopy").innerHTML = aiMode
-      ? "<b>AI weekly rule:</b> completed Friday close becomes the anchor; five ₹40,000 slots compound downward by 3%; every filled lot receives its own automatic +2% paper exit."
-      : "<b>How it works:</b> five buy chunks step down below the 31-day midpoint; five sell chunks step up above it. Levels 4–5 deliberately extend beyond the monthly low or high.";
+      ? "<b>AI weekly rule:</b> Monday opening becomes the anchor; five risk-sized slots compound downward by 2%; every filled lot receives its own automatic +2% paper exit and a stored quant decision snapshot."
+      : "<b>Action rule:</b> Monday opening is the base for all five buy and five sell prices. The 31-day and three-month ranges remain context—not the weekly action base.";
     el("userName").textContent = state.displayName;
     el("userPill").classList.remove("hidden");
     el("authGate").classList.add("signed-in");
@@ -1390,6 +1563,7 @@
     state.aiSyncing = false;
     state.plannerKey = null;
     el("tradePlanner").hidden = false;
+    el("actionFilters").hidden = false;
     clearInterval(state.aiRefreshTimer);
     state.aiRefreshTimer = null;
     el("portfolioTabLabel").textContent = "Portfolio";
@@ -1426,7 +1600,7 @@
     const add = event.target.closest("[data-add]");
     if (add) { event.stopPropagation(); openTrade(add.dataset.add); return; }
     const row = event.target.closest("[data-symbol]");
-    if (row) { state.focusSymbol = row.dataset.symbol; renderFocusMap(); openDrawer(row.dataset.symbol); }
+    if (row) { state.focusSymbol = row.dataset.symbol; state.mobileFocusExpanded = false; renderFocusMap(); openDrawer(row.dataset.symbol); }
   });
   stockList.addEventListener("keydown", (event) => {
     if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-symbol]")) openDrawer(event.target.dataset.symbol);
@@ -1434,6 +1608,17 @@
 
   el("portfolioContent").addEventListener("click", (event) => {
     if (event.target.closest("[data-retry-ai]")) { syncAiLedger(); return; }
+    const mobileHolding = event.target.closest("[data-toggle-mobile-holding]");
+    if (mobileHolding) {
+      const symbol = mobileHolding.dataset.toggleMobileHolding;
+      const shell = mobileHolding.closest(".holding-shell");
+      const expanded = !state.mobileExpandedHoldings.has(symbol);
+      if (expanded) state.mobileExpandedHoldings.add(symbol); else state.mobileExpandedHoldings.delete(symbol);
+      shell?.classList.toggle("mobile-expanded", expanded);
+      mobileHolding.setAttribute("aria-expanded", String(expanded));
+      mobileHolding.textContent = expanded ? "Hide levels and maths ↑" : "Show levels and maths ↓";
+      return;
+    }
     const exitBand = event.target.closest("[data-exit-band]");
     const buy = event.target.closest("[data-open-buy]");
     const sell = event.target.closest("[data-open-sell]");
@@ -1454,6 +1639,14 @@
   });
   el("focusMap").addEventListener("click", (event) => {
     if (event.target.closest("[data-open-ai-grid]")) { document.querySelector('[data-tab="portfolio"]').click(); return; }
+    const mobileToggle = event.target.closest("[data-toggle-mobile-focus]");
+    if (mobileToggle) {
+      state.mobileFocusExpanded = !state.mobileFocusExpanded;
+      el("focusMap").classList.toggle("mobile-expanded", state.mobileFocusExpanded);
+      mobileToggle.setAttribute("aria-expanded", String(state.mobileFocusExpanded));
+      mobileToggle.textContent = state.mobileFocusExpanded ? "Hide full analysis ↑" : "Full analysis & 10 levels ↓";
+      return;
+    }
     const add = event.target.closest("[data-focus-add]");
     if (add) openTrade(add.dataset.focusAdd, "buy");
   });
@@ -1498,6 +1691,13 @@
   el("methodButton").addEventListener("click", () => el("methodModal").classList.add("open"));
   refreshButton.addEventListener("click", () => { refreshAll(); if (state.user === "ai") syncAiLedger(); });
   el("loadMoreButton").addEventListener("click", () => { state.visibleLimit += 30; renderWatchlist(); refreshPriority(); });
+  el("actionFilters").addEventListener("click", (event) => {
+    const button = event.target.closest("[data-action-filter]");
+    if (!button) return;
+    state.actionFilter = button.dataset.actionFilter;
+    state.visibleLimit = 30;
+    renderWatchlist();
+  });
   el("searchInput").addEventListener("input", () => {
     state.visibleLimit = 30;
     renderWatchlist();
@@ -1511,6 +1711,14 @@
   [el("plannerBuy"), el("plannerSell")].forEach((node) => node.addEventListener("input", () => { el("plannerSource").value = "custom"; state.plannerKey = `${state.focusSymbol}:custom`; updateTradePlanner(); }));
   el("plannerAmount").addEventListener("input", updateTradePlanner);
   el("plannerSource").addEventListener("change", () => syncTradePlanner(true));
+
+  let scrollIdleTimer;
+  window.addEventListener("scroll", () => {
+    state.lastScrollAt = Date.now();
+    document.body.classList.add("is-scrolling");
+    clearTimeout(scrollIdleTimer);
+    scrollIdleTimer = setTimeout(() => document.body.classList.remove("is-scrolling"), 180);
+  }, { passive: true });
 
   el("loginForm").addEventListener("submit", async (event) => {
     event.preventDefault();

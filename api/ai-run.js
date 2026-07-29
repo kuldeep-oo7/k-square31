@@ -1,6 +1,7 @@
 const { processSymbol } = require("./_lib/ai-engine");
 const { syncGoogleArchive } = require("./_lib/google-archive");
 const { fetchChart } = require("./_lib/market-feed");
+const { calculate, mergeStoredHistory } = require("./market")._test;
 const { safeEqual } = require("./_lib/security");
 const { mutateAiShard, readAiShard } = require("./_lib/store");
 const { shardUniverse } = require("./_lib/universe");
@@ -32,6 +33,7 @@ module.exports = async function handler(request, response) {
     const range = savedSessions >= 1_000 ? "3mo" : "5y";
     return { item, result: await fetchChart(item.symbol, { range }), range };
   }));
+  const benchmark = await fetchChart("^NSEI", { range: "5y" }).catch(() => null);
   const now = Date.now();
   const failures = [];
   const completed = [];
@@ -49,7 +51,21 @@ module.exports = async function handler(request, response) {
         }
         try {
           const previous = document.symbols[item.symbol] || { symbol: item.symbol };
-          const processed = processSymbol(previous, outcome.value.result, now);
+          const enrichedResult = mergeStoredHistory(outcome.value.result, previous.observations);
+          let quantContext = {};
+          try {
+            const analytics = calculate(item.symbol, enrichedResult, benchmark);
+            quantContext = {
+              signals: analytics.signals,
+              empirical: analytics.empirical,
+              analogModel: analytics.analogModel,
+              window: analytics.window,
+              quarter: analytics.quarter
+            };
+          } catch (error) {
+            console.error(`Quant snapshot failed for ${item.symbol}`, error);
+          }
+          const processed = processSymbol(previous, enrichedResult, now, quantContext);
           document.symbols[item.symbol] = { ...processed.state, sector: item.sector, marketCapCategory: item.marketCapCategory };
           if (processed.events.length) document.transactions.unshift(...processed.events);
           archiveItems.push(outcome.value);

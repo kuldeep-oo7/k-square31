@@ -23,6 +23,11 @@ assert.ok(result.empirical.weeks >= 12);
 assert.equal(result.analogModel.ready, true);
 assert.ok(result.analogModel.samples >= 30);
 assert.ok(result.analogModel.probabilityUp5Pct >= 0 && result.analogModel.probabilityUp5Pct <= 100);
+assert.ok(result.signals.closeLocationPct >= 0 && result.signals.closeLocationPct <= 100);
+assert.ok(result.signals.efficiencyRatio20 >= 0 && result.signals.efficiencyRatio20 <= 1);
+assert.ok(result.signals.directionEntropy20Pct >= 0 && result.signals.directionEntropy20Pct <= 100);
+assert.ok(["20-session upside breakout", "20-session downside breakdown", "inside 20-session channel"].includes(result.signals.donchianState));
+assert.equal(typeof result.signals.candlePattern, "string");
 
 const live = fixture();
 const merged = mergeStoredHistory(live, [{
@@ -31,4 +36,4 @@ const merged = mergeStoredHistory(live, [{
 assert.equal(merged.timestamp.length, live.timestamp.length + 1);
 assert.equal(merged.indicators.quote[0].close[0], 91);
 
-console.log("Market model tests passed: 31-day, 3-month, probability, risk sizing and walk-forward analogues");
+console.log("Market model tests passed: ranges, candles, entropy, path efficiency, probability, risk sizing and walk-forward analogues");

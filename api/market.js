@@ -388,6 +388,46 @@ function calculate(symbol, result, benchmarkResult = null) {
   const averageTurnover20 = mean(bars.slice(-20).map((bar) => Number(bar.volume) * Number(bar.close)).filter(Number.isFinite));
   const volatilityAdjustedMomentum = volatilityPct ? return63Pct / volatilityPct : 0;
   const riskBudgetMultiplier = Math.max(0.25, Math.min(1.25, 25 / Math.max(volatilityPct, 1)));
+  const lastBar = bars.at(-1);
+  const priorBar = bars.at(-2) || lastBar;
+  const candleOpen = Number.isFinite(lastBar.open) ? lastBar.open : priorBar.close;
+  const candleRange = Math.max(lastBar.high - lastBar.low, price * .0001);
+  const candleBody = Math.abs(lastBar.close - candleOpen);
+  const upperWick = lastBar.high - Math.max(candleOpen, lastBar.close);
+  const lowerWick = Math.min(candleOpen, lastBar.close) - lastBar.low;
+  const closeLocationPct = (lastBar.close - lastBar.low) / candleRange * 100;
+  const priorOpen = Number.isFinite(priorBar.open) ? priorBar.open : priorBar.close;
+  let candlePattern = "balanced candle";
+  if (lastBar.high < priorBar.high && lastBar.low > priorBar.low) candlePattern = "inside day";
+  else if (lastBar.high > priorBar.high && lastBar.low < priorBar.low) candlePattern = "outside day";
+  else if (lastBar.close > candleOpen && priorBar.close < priorOpen && candleOpen <= priorBar.close && lastBar.close >= priorOpen) candlePattern = "bullish engulfing";
+  else if (lastBar.close < candleOpen && priorBar.close > priorOpen && candleOpen >= priorBar.close && lastBar.close <= priorOpen) candlePattern = "bearish engulfing";
+  else if (lowerWick >= Math.max(candleBody * 2, candleRange * .45) && upperWick <= candleRange * .2) candlePattern = "hammer-like rejection";
+  else if (upperWick >= Math.max(candleBody * 2, candleRange * .45) && lowerWick <= candleRange * .2) candlePattern = "shooting-star rejection";
+  else if (candleBody <= candleRange * .12) candlePattern = "indecision / doji-like";
+  else if (closeLocationPct >= 75) candlePattern = "strong close near high";
+  else if (closeLocationPct <= 25) candlePattern = "weak close near low";
+  const pathCloses = allCloses.slice(-21);
+  const travelled20 = pathCloses.slice(1).reduce((sum, value, index) => sum + Math.abs(value - pathCloses[index]), 0);
+  const efficiencyRatio20 = travelled20 ? Math.abs(pathCloses.at(-1) - pathCloses[0]) / travelled20 : 0;
+  const pathReturns = pathCloses.slice(1).map((value, index) => Math.log(value / pathCloses[index]));
+  const returnAutocorrelation20 = pathReturns.length > 2
+    ? covariance(pathReturns.slice(1), pathReturns.slice(0, -1))
+      / Math.max(standardDeviation(pathReturns.slice(1)) * standardDeviation(pathReturns.slice(0, -1)), 1e-12)
+    : 0;
+  const parkinsonVolatility20Pct = Math.sqrt(
+    mean(bars.slice(-20).map((item) => Math.log(item.high / item.low) ** 2)) / (4 * Math.log(2))
+  ) * Math.sqrt(252) * 100;
+  const upReturns = pathReturns.filter((value) => value > 0).length;
+  const upProbability = pathReturns.length ? upReturns / pathReturns.length : .5;
+  const directionEntropy20Pct = upProbability > 0 && upProbability < 1
+    ? -(upProbability * Math.log2(upProbability) + (1 - upProbability) * Math.log2(1 - upProbability)) * 100
+    : 0;
+  const prior20Bars = bars.slice(-21, -1);
+  const donchianHigh20 = prior20Bars.length ? Math.max(...prior20Bars.map((item) => item.high)) : lastBar.high;
+  const donchianLow20 = prior20Bars.length ? Math.min(...prior20Bars.map((item) => item.low)) : lastBar.low;
+  const donchianState = price > donchianHigh20 ? "20-session upside breakout"
+    : price < donchianLow20 ? "20-session downside breakdown" : "inside 20-session channel";
   const evidenceParts = [
     price > sma20 && sma20 > sma50 ? 1 : price < sma20 && sma20 < sma50 ? -1 : 0,
     return63Pct >= 3 ? 1 : return63Pct <= -3 ? -1 : 0,
@@ -476,6 +516,15 @@ function calculate(symbol, result, benchmarkResult = null) {
       averageTurnover20: round(averageTurnover20),
       volatilityAdjustedMomentum: round(volatilityAdjustedMomentum),
       riskBudgetMultiplier: round(riskBudgetMultiplier),
+      candlePattern,
+      closeLocationPct: round(closeLocationPct),
+      efficiencyRatio20: round(efficiencyRatio20),
+      returnAutocorrelation20: round(returnAutocorrelation20),
+      parkinsonVolatility20Pct: round(parkinsonVolatility20Pct),
+      directionEntropy20Pct: round(directionEntropy20Pct),
+      donchianState,
+      donchianHigh20: round(donchianHigh20),
+      donchianLow20: round(donchianLow20),
       evidenceScore,
       riskState
     },

@@ -1,6 +1,6 @@
 # K² — Range Desk
 
-K² converts `journal (1).xlsx` into a hosted NSE watchlist, private cross-device portfolios, a transparent rolling 31-calendar-day range desk, and an automatic Friday-grid paper-trading laboratory. It is dedicated to the friendship between Kamlesh and Kuldeep.
+K² converts `journal (1).xlsx` into a hosted NSE watchlist, private cross-device portfolios, a transparent rolling 31-calendar-day range desk, and an automatic Monday-grid paper-trading laboratory. It is dedicated to the friendship between Kamlesh and Kuldeep.
 
 ## Local preview
 
@@ -32,12 +32,14 @@ Then open `http://127.0.0.1:4173`.
 - Per-user portfolios stored in a private Vercel Blob store with optimistic concurrency.
 - API routes and market data require authentication.
 
-## AI Friday-grid paper ledger
+## AI Monday-grid paper ledger
 
 - Each workbook stock receives an isolated ₹2,00,000 virtual cash ledger.
-- The latest completed Friday close becomes the weekly reference.
-- Five whole-share slots can deploy up to ₹40,000 each at successive compounded 3% declines.
+- Each stock resets to the opening price of its first market session of the current Monday week.
+- Five whole-share slots can deploy up to ₹40,000 each at successive compounded 2% declines from that Monday base.
+- Cumulative weekly movement is used, so several smaller daily declines can cross a level.
 - Every filled lot receives its own 2% paper exit target.
+- The ₹40,000 maximum slot is scaled down by recorded volatility, drawdown, trend evidence, empirical weekly frequency, and walk-forward analogue diagnostics.
 - Same-daily-candle buy-and-sell fills are forbidden because daily high/low data cannot establish event order.
 - Fill IDs are deterministic and shard writes use optimistic concurrency, making scheduler retries idempotent.
 - Ten private Blob shards cover the full workbook without mixing the two manual portfolios.
