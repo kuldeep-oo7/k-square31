@@ -59,6 +59,9 @@ module.exports = async function handler(request, response) {
               signals: analytics.signals,
               empirical: analytics.empirical,
               analogModel: analytics.analogModel,
+              candleStudy: analytics.candleStudy,
+              strategyLab: analytics.strategyLab,
+              decisionModel: analytics.decisionModel,
               window: analytics.window,
               quarter: analytics.quarter
             };

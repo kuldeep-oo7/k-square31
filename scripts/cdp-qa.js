@@ -54,12 +54,8 @@ async function run() {
     if (result.result?.result?.value) { ready = true; break; }
   }
   if (!ready) throw new Error("Signed-in 10-chunk map did not become ready");
-  await evaluate(`if (!document.getElementById('dedicationIntro').classList.contains('open')) document.getElementById('replayStoryButton').click()`);
-  await sleep(900);
-  const storyShot = await send("Page.captureScreenshot", { format: "png", fromSurface: true });
-  fs.writeFileSync(mobile ? "k2-story-mobile.png" : "k2-story-preview.png", Buffer.from(storyShot.result.data, "base64"));
-  await evaluate(`document.getElementById('storySkip').click()`);
-  await sleep(700);
+  const noIntro = await evaluate(`!document.getElementById('dedicationIntro') && !document.getElementById('replayStoryButton')`);
+  if (!noIntro.result?.result?.value) throw new Error("Removed dedication intro is still present");
   await evaluate(`window.scrollTo(0,0)`);
   await sleep(700);
   const heroShot = await send("Page.captureScreenshot", { format: "png", fromSurface: true });
@@ -84,6 +80,8 @@ async function run() {
   fs.writeFileSync(mobile ? "k2-planner-mobile.png" : "k2-planner.png", Buffer.from(plannerShot.result.data, "base64"));
   await evaluate(`document.getElementById('focusMap').scrollIntoView({block:'start'}); window.scrollBy(0,-20)`);
   await sleep(1500);
+  const weightedReady = await evaluate(`Boolean(document.querySelector('.weighted-model') && document.querySelector('.candle-desk') && document.querySelector('.strategy-lab') && document.querySelector('.focus-daily-range'))`);
+  if (!weightedReady.result?.result?.value) throw new Error("Weighted model, candle desk, strategy lab or daily range is missing");
   const shot = await send("Page.captureScreenshot", { format: "png", fromSurface: true });
   fs.writeFileSync(mobile ? "k2-focus-mobile.png" : "k2-focus-preview.png", Buffer.from(shot.result.data, "base64"));
   await evaluate(`document.querySelector('[data-tab="portfolio"]').click()`);

@@ -19,7 +19,6 @@
     csrf: null,
     databaseOnline: false,
     refreshTimer: null,
-    storyFrame: null,
     ambientFrame: null,
     revealObserver: null,
     portfolio: emptyPortfolio(),
@@ -387,6 +386,103 @@
     ];
   }
 
+  function weightedRecommendation(data, personal) {
+    const model = data?.decisionModel || { score: 0, confidencePct: 0, components: [] };
+    const score = Number(model.score) || 0;
+    const riskBase = Math.min(1, Math.max(.25, Number(data?.signals?.riskBudgetMultiplier) || 1));
+    const modelFactor = score <= -35 ? .5 : score < 0 ? .78 : score >= 35 ? 1.08 : 1;
+    const amount = Math.min(40_000, 40_000 * riskBase * modelFactor);
+    const buying = ["buy", "buy-hit"].includes(personal.action);
+    const selling = ["sell", "sell-hit"].includes(personal.action);
+    if (personal.action === "both-hit") {
+      return { tone: "wait", label: "WAIT — BOTH LINES TRADED", detail: "Daily candles cannot prove whether the buy or sell line happened first. Use an intraday chart before recording an action.", amount: 0, score, model };
+    }
+    if (buying && score >= 20) {
+      return { tone: "buy", label: "BUY CONFIRMED — ONE WEIGHTED CHUNK", detail: `The Monday trigger fired and the full evidence model is bullish. The volatility- and evidence-scaled amount is ${money(amount)}.`, amount, score, model };
+    }
+    if (buying && score >= 0) {
+      return { tone: "caution", label: "BUY SMALLER — EVIDENCE IS MIXED", detail: `The −2% rule fired, but confirmation is not strong. If following the rule, the weighted size is ${money(amount)} rather than a full ₹40,000 chunk.`, amount, score, model };
+    }
+    if (buying) {
+      return { tone: "wait", label: "WAIT — BUY LINE HIT, MODEL DISAGREES", detail: "The mechanical −2% event occurred, but the weighted trend, risk and probability evidence remains adverse. The trigger is recorded without calling it a confirmed buy.", amount: 0, score, model };
+    }
+    if (selling && score <= -20) {
+      return { tone: "sell", label: "SELL CONFIRMED — REDUCE ONE CHUNK", detail: "The Monday sell line fired while the weighted model is bearish. The mechanical exit and broader evidence agree.", amount: 0, score, model };
+    }
+    if (selling && score <= 0) {
+      return { tone: "sell", label: "SELL SOME — MIXED CONFIRMATION", detail: "The +2% line fired and the evidence is not strongly bullish. A staged reduction matches the rule.", amount: 0, score, model };
+    }
+    if (selling) {
+      return { tone: "caution", label: "SELL LINE HIT — UPTREND STILL STRONG", detail: "The profit line fired, but the weighted model remains bullish. Reduce only the planned slice rather than treating the entire trend as finished.", amount: 0, score, model };
+    }
+    if (score >= 28) return { tone: "watch", label: "HOLD — BULLISH WATCH", detail: "The evidence leans upward, but the Monday buy price has not been reached.", amount: 0, score, model };
+    if (score <= -28) return { tone: "watch", label: "HOLD — BEARISH RISK WATCH", detail: "The evidence leans downward, but no mechanical sell event is active.", amount: 0, score, model };
+    return { tone: "wait", label: "HOLD — NO WEIGHTED EDGE", detail: "Neither the Monday levels nor the weighted evidence justify a new action.", amount: 0, score, model };
+  }
+
+  function weightedCategory(recommendation, personal) {
+    if (personal?.action === "both-hit" || personal?.action === "loading") return "alert";
+    if (recommendation?.label?.startsWith("BUY")) return "buy";
+    if (recommendation?.label?.startsWith("SELL")) return "sell";
+    return "hold";
+  }
+
+  function weightedModelMarkup(recommendation) {
+    const components = recommendation.model?.components || [];
+    return `<section class="weighted-model ${recommendation.tone}">
+      <header><div><span>FINAL WEIGHTED DECISION</span><strong>${recommendation.label}</strong><p>${recommendation.detail}</p></div><div class="weighted-score"><b>${recommendation.score >= 0 ? "+" : ""}${number(recommendation.score)}</b><small>OF ±100</small></div></header>
+      <div class="weight-grid">${components.map((item) => {
+        const contribution = Number(item.contribution) || 0;
+        const direction = contribution > .1 ? "positive" : contribution < -.1 ? "negative" : "neutral";
+        return `<div class="weight-row ${direction}"><span><b>${item.name}</b><small>${item.note}</small></span><i><em style="width:${Math.min(100, Math.abs(contribution) / Math.max(1, Number(item.weight)) * 100)}%"></em></i><strong>${contribution >= 0 ? "+" : ""}${number(contribution)}<small>${number(item.weight)}% weight</small></strong></div>`;
+      }).join("")}</div>
+      <footer>Risk penalty: ${number(recommendation.model?.riskPenalty || 0)} points · Confidence strength: ${number(recommendation.model?.confidencePct || 0)}% · Every contribution is shown above.</footer>
+    </section>`;
+  }
+
+  function candlestickSvg(data) {
+    const series = (data?.series || []).slice(-20).filter((bar) => [bar.o, bar.h, bar.l, bar.c].every(Number.isFinite));
+    if (series.length < 2) return `<div class="candle-empty">OHLC history is still loading.</div>`;
+    const width = 720, height = 190, top = 12, bottom = 22;
+    const low = Math.min(...series.map((bar) => bar.l));
+    const high = Math.max(...series.map((bar) => bar.h));
+    const range = Math.max(high - low, high * .001);
+    const y = (value) => top + (high - value) / range * (height - top - bottom);
+    const step = width / series.length;
+    const bodyWidth = Math.max(4, Math.min(16, step * .55));
+    const candles = series.map((bar, index) => {
+      const x = step * index + step / 2;
+      const bullish = bar.c >= bar.o;
+      const bodyTop = Math.min(y(bar.o), y(bar.c));
+      const bodyHeight = Math.max(2, Math.abs(y(bar.c) - y(bar.o)));
+      return `<g class="${bullish ? "bull" : "bear"}"><line x1="${x}" y1="${y(bar.h)}" x2="${x}" y2="${y(bar.l)}"></line><rect x="${x - bodyWidth / 2}" y="${bodyTop}" width="${bodyWidth}" height="${bodyHeight}"></rect></g>`;
+    }).join("");
+    return `<svg viewBox="0 0 ${width} ${height}" role="img" aria-label="Last ${series.length} daily candlesticks"><line class="candle-grid" x1="0" y1="${y(high)}" x2="${width}" y2="${y(high)}"></line><line class="candle-grid" x1="0" y1="${y(low)}" x2="${width}" y2="${y(low)}"></line>${candles}<text x="0" y="${height - 4}">${new Date(series[0].t * 1000).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</text><text x="${width}" y="${height - 4}" text-anchor="end">${new Date(series.at(-1).t * 1000).toLocaleDateString("en-IN", { day: "numeric", month: "short" })}</text></svg>`;
+  }
+
+  function candleMarkup(data) {
+    const candle = data?.candleStudy || {};
+    const direction = Number(candle.directionScore) > .15 ? "bullish" : Number(candle.directionScore) < -.15 ? "bearish" : "neutral";
+    const reading = direction === "bullish" ? "BULLISH CANDLE EVIDENCE" : direction === "bearish" ? "BEARISH CANDLE EVIDENCE" : "NEUTRAL CANDLE EVIDENCE";
+    return `<section class="candle-desk ${direction}">
+      <header><div><span>DAILY OHLC · ORIGINAL CANDLE STRUCTURE</span><strong>${String(candle.pattern || data?.signals?.candlePattern || "balanced candle").toUpperCase()}</strong><p>${reading}. This input receives 10% of the final model, and its weight is shrunk when the stock has too few comparable historical cases.</p></div><div><b>${candle.ready ? `${number(candle.winRatePct)}%` : "LEARNING"}</b><small>${candle.sample || 0} SAME-PATTERN CASES<br />${candle.ready ? `${pct(candle.averageNetReturnPct)} AVG AFTER COST` : "NEED 5 CASES"}</small></div></header>
+      <div class="candle-chart">${candlestickSvg(data)}</div>
+      <footer><span><i class="bull"></i> Close above open</span><span><i class="bear"></i> Close below open</span><b>Wicks show the complete daily high–low range.</b></footer>
+    </section>`;
+  }
+
+  function strategyLabMarkup(data) {
+    const lab = data?.strategyLab || {};
+    if (!lab.ready) return `<section class="strategy-lab pending"><div><span>WALK-FORWARD STRATEGY LAB</span><strong>BUILDING HISTORY</strong><p>${lab.reason || "More stored sessions are required."}</p></div></section>`;
+    const leaders = (lab.leaderboard || []).slice(0, 6);
+    return `<section class="strategy-lab">
+      <header><div><span>PER-STOCK WALK-FORWARD STRATEGY LAB</span><strong>${lab.passedFamilies || 0} OF ${lab.testedFamilies || 0} FAMILIES PASSED</strong><p>${lab.testedCandidates || 0} parameter variants tested chronologically across ${lab.sessions || 0} sessions. Assumed round-trip cost: ${number(lab.costAssumptionPct)}%.</p></div><b>${lab.selected?.family || "NO PASS"}<small>TOP VALIDATED FAMILY</small></b></header>
+      <div class="strategy-table">${leaders.map((item) => `<div class="${item.passed ? "passed" : "rejected"}"><span><b>${item.family}</b><small>${item.selectedVariant}</small></span><strong>${item.passed ? "PASS" : "REJECT"}<small>${item.trades} OOS TRADES</small></strong><i>${number(item.winRatePct)}% win<small>${pct(item.averageNetReturnPct)} avg · hurdle ${pct(item.multipleTestHurdlePct)} · PF ${number(item.profitFactor)} · DD ${number(item.maxDrawdownPct)}%</small></i></div>`).join("")}</div>
+      <div class="research-basis"><b>Published quantitative foundations</b><a href="https://www.aqr.com/Insights/Datasets/Time-Series-Momentum-Original-Paper-Data" target="_blank" rel="noopener">Cross-market trend</a><a href="https://www.nber.org/papers/w7613" target="_blank" rel="noopener">Algorithmic chart patterns</a><a href="https://www.nber.org/papers/w22208" target="_blank" rel="noopener">Volatility sizing</a><a href="https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2460551" target="_blank" rel="noopener">Overfit correction</a></div>
+      <footer>Expanding-window selection → unseen next block. Signals are formed at the close and tested from the next open, with costs deducted. Rejected families do not increase AI size.</footer>
+    </section>`;
+  }
+
   function evidenceReadout(data) {
     const score = Number(data?.signals?.evidenceScore) || 0;
     const risk = data?.signals?.riskState || "normal";
@@ -605,11 +701,8 @@
       items = items.filter((item) => {
         const data = market.get(item.symbol);
         if (!data) return false;
-        const action = personalSignal(item.symbol, data).action;
-        if (state.actionFilter === "buy") return action === "buy" || action === "buy-hit";
-        if (state.actionFilter === "sell") return action === "sell" || action === "sell-hit";
-        if (state.actionFilter === "alert") return action === "both-hit" || action === "loading";
-        return action === "wait";
+        const personal = personalSignal(item.symbol, data);
+        return weightedCategory(weightedRecommendation(data, personal), personal) === state.actionFilter;
       });
     }
     if (band !== "all") {
@@ -638,11 +731,8 @@
       watchlist.forEach((item) => {
         const data = market.get(item.symbol);
         if (!data) return;
-        const action = personalSignal(item.symbol, data).action;
-        if (action === "buy" || action === "buy-hit") counts.buy += 1;
-        else if (action === "sell" || action === "sell-hit") counts.sell += 1;
-        else if (action === "both-hit" || action === "loading") counts.alert += 1;
-        else counts.hold += 1;
+        const personal = personalSignal(item.symbol, data);
+        counts[weightedCategory(weightedRecommendation(data, personal), personal)] += 1;
       });
       el("actionAllCount").textContent = counts.all;
       el("actionBuyCount").textContent = counts.buy;
@@ -662,12 +752,13 @@
       const aiStock = state.user === "ai" ? state.aiLedger.stocks?.find((stock) => stock.symbol === item.symbol) : null;
       const aiReady = Boolean(aiStock?.anchor);
       const personal = state.user !== "ai" && data ? personalSignal(item.symbol, data) : null;
+      const recommendation = personal ? weightedRecommendation(data, personal) : null;
       const mapMarkup = aiReady
         ? `<div class="range-values"><span>MONDAY ${money(aiStock.anchor.price)}</span><span>NEXT BUY ${money(aiStock.nextBuy?.price)}</span><span>NEXT SELL ${money(aiStock.nextSell)}</span></div><div class="range-track ai-track"><i class="price-pin" style="left:${focusPosition(Number(aiStock.lastPrice), Number(aiStock.levels?.at(-1)), Number(aiStock.anchor.price))}%"></i></div>`
         : data
           ? `<div class="range-values action-values"><span>BUY ≤ ${money(personal.buyAt)}</span><span>NOW ${money(data.price)}</span><span>SELL ≥ ${money(personal.sellAt)}</span></div><div class="range-track personal-track"><i class="price-pin" style="left:${focusPosition(data.price, personal.buyAt, personal.sellAt)}%"></i></div><small class="day-span">DAY ${money(data.daily?.low)} — ${money(data.daily?.high)}</small>`
           : `<div class="range-values"><span>${state.user === "ai" ? "Waiting for Monday grid" : "Fetching action prices"}</span><span>—</span></div><div class="range-loading"></div>`;
-      const stateMarkup = aiReady ? `<span class="state-chip ${aiStock.lots?.length ? "lower-band" : "mid-band"}">${aiStock.lots?.length ? `${aiStock.lots.length} open lot${aiStock.lots.length === 1 ? "" : "s"}` : "Grid watching"}</span><small class="quant-link ${aiStock.openPnl >= 0 ? "positive" : "negative"}">${aiStock.nextBuy ? `B${aiStock.nextBuy.level} next · ${money(aiStock.nextBuy.price)}` : "Weekly levels evaluated"}</small>` : data ? `<span class="trade-suggestion ${personal.action}">${personal.label}</span><small class="quant-link ${pulseDescription(data).tone}">${personal.detail}</small>` : `<span class="state-chip">Loading</span><small class="map-link">Building 2% grid →</small>`;
+      const stateMarkup = aiReady ? `<span class="state-chip ${aiStock.lots?.length ? "lower-band" : "mid-band"}">${aiStock.lots?.length ? `${aiStock.lots.length} open lot${aiStock.lots.length === 1 ? "" : "s"}` : "Grid watching"}</span><small class="quant-link ${aiStock.openPnl >= 0 ? "positive" : "negative"}">${aiStock.nextBuy ? `B${aiStock.nextBuy.level} next · ${money(aiStock.nextBuy.price)}` : "Weekly levels evaluated"}</small>` : data ? `<span class="trade-suggestion ${recommendation.tone}">${recommendation.label}</span><small class="quant-link ${recommendation.score >= 0 ? "positive" : "negative"}">Weighted score ${recommendation.score >= 0 ? "+" : ""}${number(recommendation.score)} / 100 · ${recommendation.detail}</small>` : `<span class="state-chip">Loading</span><small class="map-link">Building weighted model →</small>`;
       return `
         <article class="stock-row" data-symbol="${item.symbol}" tabindex="0" aria-label="Open ${item.symbol} range detail">
           <div class="symbol-cell"><span class="symbol-avatar">${initials(item.symbol)}</span><div><b>${item.symbol}</b><small>${source}</small></div></div>
@@ -759,6 +850,7 @@
     const currentSide = data.price < data.window.midpoint ? "below" : data.price > data.window.midpoint ? "above" : "at";
     const actionCopy = currentSide === "below" ? "The current price is on the buy side of the midpoint." : currentSide === "above" ? "The current price is on the sell side of the midpoint." : "The current price is at the midpoint.";
     const personal = personalSignal(symbol, data);
+    const recommendation = weightedRecommendation(data, personal);
     const evidence = evidenceForAction(data, personal.action);
     const evidenceCards = indicatorCards(data);
     const actionPrice = personal.action === "buy"
@@ -766,25 +858,34 @@
       : personal.action === "sell" ? (personal.exit?.nextTarget || personal.sellAt) : data.price;
     container.classList.toggle("mobile-expanded", state.mobileFocusExpanded);
     container.innerHTML = `
-      <section class="mobile-stock-brief ${personal.action}">
+      <section class="mobile-stock-brief ${recommendation.tone}">
         <header><div><span class="symbol-avatar">${initials(symbol)}</span><span><small>${snapshot.sector} · ${snapshot.marketCapCategory}</small><b>${symbol}</b></span></div><div><strong>${money(data.price)}</strong><small class="${data.changePct >= 0 ? "positive" : "negative"}">${pct(data.changePct)} today</small></div></header>
-        <div class="mobile-action-line"><span>TODAY'S ACTION</span><strong>${personal.label}</strong><p>${personal.detail}</p></div>
+        <div class="mobile-action-line"><span>FINAL WEIGHTED ACTION · MECHANICAL EVENT: ${personal.label}</span><strong>${recommendation.label}</strong><p>${recommendation.detail}</p></div>
         <div class="mobile-decision-grid"><span><small>BUY AT OR BELOW</small><b>${money(personal.buyAt)}</b></span><span><small>NOW</small><b>${money(data.price)}</b></span><span><small>SELL AT OR ABOVE</small><b>${money(personal.sellAt)}</b></span></div>
         <div class="mobile-range-strip"><span><small>DAY LOW / HIGH</small><b>${money(data.daily?.low)} / ${money(data.daily?.high)}</b></span><span><small>31-DAY LOW / HIGH</small><b>${money(data.window.low)} / ${money(data.window.high)}</b></span><span><small>3-MONTH LOW / HIGH</small><b>${money(data.quarter?.low)} / ${money(data.quarter?.high)}</b></span></div>
-        <div class="mobile-evidence"><span><small>MONDAY BASE</small><b>${money(mondayBase)}</b></span><span><small>EVIDENCE</small><b class="${evidence.tone}">${evidence.label}</b></span><span><small>ACTION PRICE</small><b>${money(actionPrice)}</b></span><span><small>RISK-SIZED CHUNK</small><b>${money(40_000 * (Number(data.signals?.riskBudgetMultiplier) || 1))}</b></span></div>
+        <div class="mobile-evidence"><span><small>MONDAY BASE</small><b>${money(mondayBase)}</b></span><span><small>WEIGHTED SCORE</small><b>${recommendation.score >= 0 ? "+" : ""}${number(recommendation.score)} / 100</b></span><span><small>ACTION PRICE</small><b>${money(actionPrice)}</b></span><span><small>WEIGHTED CHUNK</small><b>${recommendation.amount ? money(recommendation.amount) : "₹0 · WAIT"}</b></span></div>
         <footer><button type="button" data-focus-add="${symbol}">+ Add position</button><button type="button" class="secondary" data-toggle-mobile-focus aria-expanded="${state.mobileFocusExpanded}">${state.mobileFocusExpanded ? "Hide full analysis ↑" : "Full analysis & 10 levels ↓"}</button></footer>
       </section>
       <div class="focus-head">
         <div class="focus-name"><span class="symbol-avatar">${initials(symbol)}</span><div><p class="eyebrow" style="margin-bottom:5px"><span></span> Selected 10-chunk map</p><h2>${symbol}</h2><p>${snapshot.sector} · ${snapshot.marketCapCategory} · rank #${snapshot.marketCapRank} · ${data.window.sessions} sessions in 31 days</p></div></div>
         <div class="focus-current"><span>Current market price</span><strong>${money(data.price)}</strong><small class="${data.changePct >= 0 ? "positive" : "negative"}">${pct(data.changePct)} today</small></div>
       </div>
-      <section class="weekly-call ${personal.action}"><div><span>K² WEEKLY 2% CALL · MONDAY OPEN ${money(data.weekly?.openingPrice)}</span><h3>${personal.label}</h3><p>${personal.detail}</p><div class="call-thresholds daily-lines"><b>TODAY LOW ${money(data.daily?.low)}</b><b>NOW ${money(data.price)}</b><b>TODAY HIGH ${money(data.daily?.high)}</b></div></div><strong>${personal.action === "buy" ? money(personal.buyLevels?.[personal.reachedBuyLevel - 1]) : personal.action === "sell" ? money(personal.exit?.nextTarget || personal.sellAt) : money(data.price)}</strong></section>
+      <section class="weekly-call ${recommendation.tone}"><div><span>MECHANICAL MONDAY EVENT · ${personal.label} · BASE ${money(data.weekly?.openingPrice)}</span><h3>${recommendation.label}</h3><p>${recommendation.detail}</p><div class="call-thresholds daily-lines"><b>TODAY LOW ${money(data.daily?.low)}</b><b>NOW ${money(data.price)}</b><b>TODAY HIGH ${money(data.daily?.high)}</b></div></div><strong>${recommendation.score >= 0 ? "+" : ""}${number(recommendation.score)} / 100</strong></section>
+      ${weightedModelMarkup(recommendation)}
       <section class="horizon-compare">
         <article><span>31-DAY RANGE · ${data.window.sessions} SESSIONS</span><div><b>${money(data.window.low)}<small>LOW</small></b><strong>${money(data.price)}<small>NOW</small></strong><b>${money(data.window.high)}<small>HIGH</small></b></div></article>
         <article><span>3-MONTH RANGE · ${data.quarter?.sessions || 0} SESSIONS</span><div><b>${money(data.quarter?.low)}<small>LOW</small></b><strong>${money(data.price)}<small>${number(data.quarter?.positionPct)}% OF RANGE</small></strong><b>${money(data.quarter?.high)}<small>HIGH</small></b></div></article>
       </section>
       <section class="evidence-banner ${evidence.tone}"><div><span>MULTI-MARKET EVIDENCE STACK · SCORE ${data.signals?.evidenceScore > 0 ? "+" : ""}${data.signals?.evidenceScore ?? 0} / 3</span><strong>${evidence.label}</strong><p>${evidence.detail}</p></div><b>${money(40_000 * (Number(data.signals?.riskBudgetMultiplier) || 1))}<small>VOL-SCALED CHUNK</small></b></section>
+      ${candleMarkup(data)}
+      ${strategyLabMarkup(data)}
       <details class="quant-vault"><summary><span>Open the full maths, statistics &amp; probability evidence</span><b>${evidenceCards.length} CHECKS</b></summary><div class="signal-grid">${evidenceCards.map((card) => `<article class="signal-card ${card.tone}"><span>${card.name}</span><div><strong>${card.value}</strong><b>${card.label}</b></div><p>${card.note}</p></article>`).join("")}</div><p class="probability-note"><b>Probability sample:</b> ${data.empirical?.weeks || 0} completed weeks from the available six-month history. A weekly high/low can prove a level was touched, but not whether the buy or sell happened first when both were reached. Historical frequency is not a forecast.</p></details>
+      <p class="daily-range-title"><b>Today's live market range</b> · resets every trading day</p>
+      <div class="daily-range focus-daily-range">
+        <div><span>DAILY LOW</span><strong>${money(data.daily?.low)}</strong></div>
+        <div class="decision-now"><span>CURRENT PRICE</span><strong>${money(data.price)}</strong></div>
+        <div><span>DAILY HIGH</span><strong>${money(data.daily?.high)}</strong></div>
+      </div>
       <div class="plain-rule"><b>Monday reset:</b> this week's action base is ${money(mondayBase)}. Five buy prices compound downward by 2%; five sell prices compound upward by 2%. The 31-day midpoint ${money(data.window.midpoint)} is comparison context only. ${actionCopy}</div>
       <div class="decision-river">
         <div class="river-line"></div>${nodes}
@@ -873,18 +974,25 @@
       const signals = quant.signals || {};
       const analog = quant.analogModel || {};
       const sizing = quant.sizing || {};
+      const decision = quant.decisionModel || {};
+      const candle = quant.candleStudy || {};
+      const strategy = quant.strategyLab || {};
       const quantMarkup = quant.updatedAt ? `<section class="ai-quant-evidence">
         <header><div><span>RECORDED DECISION EVIDENCE</span><b>${String(signals.marketRegime || "learning").toUpperCase()} · ${String(signals.riskState || "unknown").toUpperCase()} RISK</b></div><strong>${number((Number(sizing.multiplier) || 1) * 100)}%<small>OF ₹40K SLOT</small></strong></header>
         <div class="ai-quant-facts">
+          <span><small>FINAL WEIGHTED SCORE</small><b>${Number(decision.score) >= 0 ? "+" : ""}${number(decision.score)} / 100</b></span>
           <span><small>TREND EVIDENCE</small><b>${Number(signals.evidenceScore) > 0 ? "+" : ""}${signals.evidenceScore ?? "—"} / 3</b></span>
           <span><small>RSI PRESSURE</small><b>${number(quant.window?.rsi14)}</b></span>
           <span><small>63-DAY MOMENTUM</small><b>${pct(signals.return63Pct)}</b></span>
           <span><small>MAX DRAWDOWN</small><b>${number(signals.maxDrawdown63Pct)}%</b></span>
           <span><small>VOLUME 5 / 20</small><b>${number(signals.volumeRatio5To20)}×</b></span>
           <span><small>ANALOGUE UP PROB.</small><b>${analog.ready ? `${number(analog.probabilityUp5Pct)}%` : "LEARNING"}</b></span>
-          <span><small>CANDLE</small><b>${signals.candlePattern || "—"}</b></span>
+          <span><small>CANDLE · 10% WEIGHT</small><b>${candle.pattern || signals.candlePattern || "—"} · ${candle.sample || 0} cases</b></span>
           <span><small>PATH EFFICIENCY</small><b>${number(signals.efficiencyRatio20)}</b></span>
+          <span><small>STRATEGY LAB</small><b>${strategy.selected?.family || "No family passed"}</b></span>
+          <span><small>LAB COVERAGE</small><b>${strategy.testedCandidates || 0} variants · ${strategy.passedFamilies || 0} passed</b></span>
         </div>
+        ${strategy.ready ? `<div class="ai-strategy-mini">${(strategy.leaderboard || []).slice(0, 4).map((item) => `<span class="${item.passed ? "passed" : "rejected"}"><b>${item.family}</b><small>${item.passed ? "PASS" : "REJECT"} · ${item.trades} OOS trades · ${number(item.winRatePct)}% win · ${pct(item.averageNetReturnPct)} avg</small></span>`).join("")}</div>` : ""}
         <p><b>Fundamentals:</b> no verified earnings, balance-sheet or valuation feed is connected, so K² does not invent PE, EPS or debt data. The live decision uses price, volume, market-cap class, sector, risk scaling and walk-forward history.</p>
       </section>` : `<section class="ai-quant-evidence pending"><b>Quant evidence will appear after the next secured AI run.</b></section>`;
       return `<details class="ai-stock" data-ai-stock="${stock.symbol}">
@@ -906,6 +1014,7 @@
       </details>`;
     }).join("");
 
+    const labSnapshot = (ledger.stocks || []).find((stock) => stock.quant?.strategyLab?.ready)?.quant?.strategyLab || {};
     const recentTrades = (ledger.transactions || []).slice(0, 40);
     const buyCount = recentTrades.filter((trade) => trade.action === "buy").length;
     const sellCount = recentTrades.filter((trade) => trade.action === "sell").length;
@@ -915,7 +1024,7 @@
     </div>`).join("") || `<div class="ai-empty"><b>No paper trades yet.</b><span>The ledger is watching each stock's cumulative move from Monday open and will record the first crossed −2% level here.</span></div>`;
 
     container.innerHTML = `${syncNotice}<section class="ai-command">
-      <div><p class="eyebrow"><span></span> AUTOMATIC · PAPER ONLY</p><h3>Monday open → five cumulative 2% drops → individual 2% exits</h3><p>All ${watchlist.length} stocks are checked every 15 minutes through the NSE market day. A slow multi-day fall counts because every level is measured from Monday open. Quant evidence changes paper size, never hides the exact rule or trade record.</p></div>
+      <div><p class="eyebrow"><span></span> AUTOMATIC · PAPER ONLY</p><h3>Monday control grid + per-stock walk-forward strategy laboratory</h3><p>All ${watchlist.length} stocks are checked every 15 minutes. The original cumulative 2% rule remains the control; ${labSnapshot.testedCandidates || "multiple"} strategy variants, weighted evidence and validated candle history determine paper size. Every fill preserves the exact rule and evidence snapshot.</p></div>
       <div class="ai-heart"><strong>AI</strong><i></i><span>WATCHING<br />${watchlist.length} STOCKS</span></div>
     </section>
     <div class="portfolio-summary ai-summary">
@@ -1192,6 +1301,12 @@
         <div class="drawer-symbol"><span class="symbol-avatar">${initials(symbol)}</span><div><h2 id="drawerTitle">${symbol}</h2><p>${item?.sector} · ${item?.marketCapCategory} · quote ${time}</p></div></div>
         <div class="drawer-price"><strong>${money(data.price)}</strong><span class="${changeClass}">${pct(data.changePct)} today</span></div>
       </div>
+      <p class="daily-range-title"><b>Today's live market range</b> · resets every trading day</p>
+      <div class="daily-range drawer-daily-range">
+        <div><span>DAILY LOW</span><strong>${money(data.daily?.low)}</strong></div>
+        <div class="decision-now"><span>CURRENT PRICE</span><strong>${money(data.price)}</strong></div>
+        <div><span>DAILY HIGH</span><strong>${money(data.daily?.high)}</strong></div>
+      </div>
       <div class="drawer-chart">${chartSvg(data)}</div>
       <div class="range-stats range-core">
         <div class="range-stat"><span>31-day low</span><strong>${money(data.window.low)}</strong></div>
@@ -1450,67 +1565,6 @@
     }))).observe(document.body, { childList: true, subtree: true });
   }
 
-  function startStoryCanvas() {
-    const canvas = el("dedicationCanvas");
-    const context = canvas.getContext("2d");
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    let width = 0, height = 0, particles = [];
-    const resize = () => {
-      const ratio = Math.min(2, window.devicePixelRatio || 1);
-      width = canvas.clientWidth;
-      height = canvas.clientHeight;
-      canvas.width = Math.round(width * ratio);
-      canvas.height = Math.round(height * ratio);
-      context.setTransform(ratio, 0, 0, ratio, 0, 0);
-      const count = Math.min(90, Math.max(34, Math.round((width * height) / 19000)));
-      particles = Array.from({ length: count }, (_, index) => ({
-        x: Math.random() * width, y: Math.random() * height,
-        vx: (Math.random() - .5) * .22, vy: (Math.random() - .5) * .22,
-        radius: index % 11 === 0 ? 2.2 : Math.random() * 1.3 + .4,
-        hue: index % 3
-      }));
-    };
-    const draw = () => {
-      context.clearRect(0, 0, width, height);
-      for (let i = 0; i < particles.length; i += 1) {
-        const particle = particles[i];
-        if (!reduced) { particle.x += particle.vx; particle.y += particle.vy; }
-        if (particle.x < -10) particle.x = width + 10; if (particle.x > width + 10) particle.x = -10;
-        if (particle.y < -10) particle.y = height + 10; if (particle.y > height + 10) particle.y = -10;
-        context.beginPath(); context.arc(particle.x, particle.y, particle.radius, 0, Math.PI * 2);
-        context.fillStyle = particle.hue === 0 ? "rgba(168,223,197,.9)" : particle.hue === 1 ? "rgba(240,204,85,.75)" : "rgba(255,255,255,.62)"; context.fill();
-        for (let j = i + 1; j < particles.length; j += 1) {
-          const other = particles[j], distance = Math.hypot(particle.x - other.x, particle.y - other.y);
-          if (distance < 110) { context.beginPath(); context.moveTo(particle.x, particle.y); context.lineTo(other.x, other.y); context.strokeStyle = `rgba(168,223,197,${(1 - distance / 110) * .14})`; context.stroke(); }
-        }
-      }
-      if (!reduced) state.storyFrame = requestAnimationFrame(draw);
-    };
-    resize(); draw();
-    window.addEventListener("resize", resize, { once: true });
-  }
-
-  function showStory(force = false) {
-    if (!state.user) return;
-    const lastSeen = Number(localStorage.getItem(`k2-story-seen:${state.user}`)) || 0;
-    if (!force && Date.now() - lastSeen < 24 * 60 * 60 * 1000) return;
-    const intro = el("dedicationIntro");
-    intro.classList.add("open");
-    intro.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
-    cancelAnimationFrame(state.storyFrame);
-  }
-
-  function closeStory() {
-    const intro = el("dedicationIntro");
-    intro.classList.remove("open");
-    intro.setAttribute("aria-hidden", "true");
-    cancelAnimationFrame(state.storyFrame);
-    state.storyFrame = null;
-    if (state.user) localStorage.setItem(`k2-story-seen:${state.user}`, String(Date.now()));
-    document.body.style.overflow = "";
-  }
-
   async function activateSession(session) {
     state.user = session.username;
     state.displayName = session.displayName || session.username;
@@ -1541,7 +1595,6 @@
     renderFocusMap();
     renderPortfolio();
     renderSummary();
-    setTimeout(() => showStory(false), 250);
     if (aiMode) await syncAiLedger(); else await syncServerPortfolio();
     if (!market.size) refreshAll(); else refreshPriority();
     if (!state.refreshTimer) state.refreshTimer = setInterval(refreshPriority, 60_000);
@@ -1553,7 +1606,6 @@
     state.displayName = null;
     state.csrf = null;
     state.databaseOnline = false;
-    closeStory();
     state.portfolio = emptyPortfolio();
     state.aiLedger = emptyAiLedger();
     state.aiSearch = "";
@@ -1747,9 +1799,6 @@
     try { await fetch("/api/auth", { method: "DELETE", credentials: "same-origin", headers: { "X-K2-CSRF": state.csrf } }); } catch { /* local logout still proceeds */ }
     showLogin();
   });
-  el("replayStoryButton").addEventListener("click", () => showStory(true));
-  el("storySkip").addEventListener("click", closeStory);
-  el("storyEnter").addEventListener("click", closeStory);
   document.querySelectorAll(".tab-button").forEach((button) => button.addEventListener("click", () => {
     document.querySelectorAll(".tab-button").forEach((node) => node.classList.toggle("active", node === button));
     document.querySelectorAll(".workspace-panel").forEach((panel) => panel.classList.remove("active"));
@@ -1761,7 +1810,6 @@
     if (event.key !== "Escape") return;
     closeDrawer();
     closeTrade();
-    closeStory();
     el("methodModal").classList.remove("open");
   });
 

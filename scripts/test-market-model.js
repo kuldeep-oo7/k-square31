@@ -1,11 +1,11 @@
 const assert = require("node:assert/strict");
 const { calculate, mergeStoredHistory } = require("../api/market")._test;
 
-function fixture(multiplier = 1) {
+function fixture(multiplier = 1, sessions = 420) {
   const timestamps = [], open = [], high = [], low = [], close = [], volume = [];
   const today = Math.floor(Date.now() / 1000);
-  for (let index = 139; index >= 0; index -= 1) {
-    const step = 139 - index;
+  for (let index = sessions - 1; index >= 0; index -= 1) {
+    const step = sessions - 1 - index;
     const value = multiplier * (100 + step * .18 + Math.sin(step / 4) * 2.4);
     timestamps.push(today - index * 86_400);
     open.push(value * .997); high.push(value * 1.012); low.push(value * .988); close.push(value); volume.push(1_000_000 + step * 2_000);
@@ -28,6 +28,13 @@ assert.ok(result.signals.efficiencyRatio20 >= 0 && result.signals.efficiencyRati
 assert.ok(result.signals.directionEntropy20Pct >= 0 && result.signals.directionEntropy20Pct <= 100);
 assert.ok(["20-session upside breakout", "20-session downside breakdown", "inside 20-session channel"].includes(result.signals.donchianState));
 assert.equal(typeof result.signals.candlePattern, "string");
+assert.equal(result.strategyLab.ready, true);
+assert.ok(result.strategyLab.testedCandidates >= 20);
+assert.ok(result.strategyLab.testedFamilies >= 5);
+assert.ok(Array.isArray(result.strategyLab.leaderboard));
+assert.equal(result.decisionModel.components.reduce((sum, component) => sum + component.weight, 0), 100);
+assert.ok(result.decisionModel.score >= -100 && result.decisionModel.score <= 100);
+assert.equal(typeof result.candleStudy.pattern, "string");
 
 const live = fixture();
 const merged = mergeStoredHistory(live, [{

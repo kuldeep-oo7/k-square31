@@ -2,6 +2,7 @@ const DAY = 86_400;
 const { readSession } = require("./_lib/security");
 const { readAiShard } = require("./_lib/store");
 const { symbolShard } = require("./_lib/universe");
+const { candleStudy, strategyLab, weightedModel } = require("./_lib/strategy-lab");
 let benchmarkCache = { expires: 0, result: null };
 
 function round(value) {
@@ -285,8 +286,8 @@ function calculate(symbol, result, benchmarkResult = null) {
   const rollingQuarter = bars.filter((bar) => bar.timestamp >= now - 93 * DAY);
   const quarterBars = rollingQuarter.length ? rollingQuarter : bars.slice(-66);
   const livePrice = meta.regularMarketPrice ?? bars.at(-1).close;
-  const liveLow = Number.isFinite(meta.regularMarketDayLow) ? meta.regularMarketDayLow : livePrice;
-  const liveHigh = Number.isFinite(meta.regularMarketDayHigh) ? meta.regularMarketDayHigh : livePrice;
+  const liveLow = Number.isFinite(meta.regularMarketDayLow) ? meta.regularMarketDayLow : (bars.at(-1).low ?? livePrice);
+  const liveHigh = Number.isFinite(meta.regularMarketDayHigh) ? meta.regularMarketDayHigh : (bars.at(-1).high ?? livePrice);
   const low31 = Math.min(liveLow, ...windowBars.map((bar) => bar.low));
   const high31 = Math.max(liveHigh, ...windowBars.map((bar) => bar.high));
   const range = Math.max(high31 - low31, high31 * 0.005);
@@ -443,6 +444,58 @@ function calculate(symbol, result, benchmarkResult = null) {
   const activeParts = marketRegime === "trend" ? trendParts : marketRegime === "range" ? reversionParts : [];
   const directionalParts = activeParts.filter(Boolean);
   const pulseAgreementPct = directionalParts.length ? Math.abs(pulseScore) / directionalParts.length * 100 : 0;
+  const signalSnapshot = {
+    atrPct: round(atrPct),
+    return5Pct: round(return5Pct),
+    emaSpreadPct: round(emaSpreadPct),
+    zScore20: round(zScore20),
+    slope10PctPerDay: round(trend10.slopePctPerDay),
+    trendFitPct: round(trend10.rSquared * 100),
+    accelerationPct: round(accelerationPct),
+    relativeStrength20Pct: round(relativeStrength20Pct),
+    benchmark20Pct: round(benchmark20Pct),
+    beta20: round(beta20),
+    correlation20: round(correlation20),
+    marketRegime,
+    trendScore,
+    reversionScore,
+    pulseScore,
+    pulseAgreementPct: round(pulseAgreementPct),
+    return63Pct: round(return63Pct),
+    sma20: round(sma20),
+    sma50: round(sma50),
+    sma20GapPct: round(sma20GapPct),
+    sma50GapPct: round(sma50GapPct),
+    downsideVolatility63Pct: round(downsideVol63Pct),
+    maxDrawdown63Pct: round(maxDrawdown63),
+    volumeRatio5To20: round(volumeRatio5To20),
+    averageTurnover20: round(averageTurnover20),
+    volatilityAdjustedMomentum: round(volatilityAdjustedMomentum),
+    riskBudgetMultiplier: round(riskBudgetMultiplier),
+    candlePattern,
+    closeLocationPct: round(closeLocationPct),
+    efficiencyRatio20: round(efficiencyRatio20),
+    returnAutocorrelation20: round(returnAutocorrelation20),
+    parkinsonVolatility20Pct: round(parkinsonVolatility20Pct),
+    directionEntropy20Pct: round(directionEntropy20Pct),
+    donchianState,
+    donchianHigh20: round(donchianHigh20),
+    donchianLow20: round(donchianLow20),
+    evidenceScore,
+    riskState
+  };
+  const empirical = empiricalStats(bars);
+  const analogModel = analogForecast(allCloses);
+  const candleEvidence = candleStudy(bars);
+  const strategies = strategyLab(bars);
+  const decisionModel = weightedModel({
+    signals: signalSnapshot,
+    empirical,
+    analogModel,
+    candleStudy: candleEvidence,
+    strategyLab: strategies,
+    rsi14
+  });
 
   return {
     symbol: symbol.replace(/\.NS$/, ""),
@@ -462,8 +515,11 @@ function calculate(symbol, result, benchmarkResult = null) {
       high: round(liveHigh)
     },
     weekly: weekSnapshot(bars, price),
-    empirical: empiricalStats(bars),
-    analogModel: analogForecast(allCloses),
+    empirical,
+    analogModel,
+    candleStudy: candleEvidence,
+    strategyLab: strategies,
+    decisionModel,
     window: {
       calendarDays: 31,
       sessions: windowBars.length,
@@ -488,54 +544,17 @@ function calculate(symbol, result, benchmarkResult = null) {
       range: round(range90),
       positionPct: round(position90 * 100)
     },
-    signals: {
-      atrPct: round(atrPct),
-      return5Pct: round(return5Pct),
-      emaSpreadPct: round(emaSpreadPct),
-      zScore20: round(zScore20),
-      slope10PctPerDay: round(trend10.slopePctPerDay),
-      trendFitPct: round(trend10.rSquared * 100),
-      accelerationPct: round(accelerationPct),
-      relativeStrength20Pct: round(relativeStrength20Pct),
-      benchmark20Pct: round(benchmark20Pct),
-      beta20: round(beta20),
-      correlation20: round(correlation20),
-      marketRegime,
-      trendScore,
-      reversionScore,
-      pulseScore,
-      pulseAgreementPct: round(pulseAgreementPct),
-      return63Pct: round(return63Pct),
-      sma20: round(sma20),
-      sma50: round(sma50),
-      sma20GapPct: round(sma20GapPct),
-      sma50GapPct: round(sma50GapPct),
-      downsideVolatility63Pct: round(downsideVol63Pct),
-      maxDrawdown63Pct: round(maxDrawdown63),
-      volumeRatio5To20: round(volumeRatio5To20),
-      averageTurnover20: round(averageTurnover20),
-      volatilityAdjustedMomentum: round(volatilityAdjustedMomentum),
-      riskBudgetMultiplier: round(riskBudgetMultiplier),
-      candlePattern,
-      closeLocationPct: round(closeLocationPct),
-      efficiencyRatio20: round(efficiencyRatio20),
-      returnAutocorrelation20: round(returnAutocorrelation20),
-      parkinsonVolatility20Pct: round(parkinsonVolatility20Pct),
-      directionEntropy20Pct: round(directionEntropy20Pct),
-      donchianState,
-      donchianHigh20: round(donchianHigh20),
-      donchianLow20: round(donchianLow20),
-      evidenceScore,
-      riskState
-    },
+    signals: signalSnapshot,
     ladder: { buy, sell, extension: round(extension) },
     regime,
     position: round(position),
     series: windowBars.map((bar) => ({
       t: bar.timestamp,
+      o: round(Number.isFinite(bar.open) ? bar.open : bar.close),
       c: round(bar.close),
       h: round(bar.high),
-      l: round(bar.low)
+      l: round(bar.low),
+      v: Number.isFinite(bar.volume) ? Math.round(bar.volume) : null
     }))
   };
 }

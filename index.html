@@ -8,12 +8,12 @@
     <meta name="apple-mobile-web-app-status-bar-style" content="default" />
     <meta name="apple-mobile-web-app-title" content="K² Desk" />
     <meta name="mobile-web-app-capable" content="yes" />
-    <meta name="description" content="K² is Kamlesh and Kuldeep's private market range, portfolio and automatic Monday-grid paper trading desk." />
+    <meta name="description" content="K² is a private market range, portfolio and automatic Monday-grid paper trading desk." />
     <title>K² — Market Grid Desk</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/k2-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/k2-icon.svg" />
-    <link rel="stylesheet" href="/styles.css?v=k2-static-16" />
+    <link rel="stylesheet" href="/styles.css?v=k2-neutral-19" />
   </head>
   <body>
     <div class="ambient ambient-one"></div>
@@ -26,7 +26,7 @@
       </a>
       <div class="top-actions">
         <div class="feed-pill" id="feedPill"><i></i><span>Connecting feed</span></div>
-        <div class="user-pill hidden" id="userPill"><span id="userName">User</span><button id="replayStoryButton" type="button" title="Replay the K² story">K² story</button><button id="logoutButton" type="button">Log out</button></div>
+        <div class="user-pill hidden" id="userPill"><span id="userName">User</span><button id="logoutButton" type="button">Log out</button></div>
         <button class="icon-button" id="refreshButton" aria-label="Refresh market data" title="Refresh market data">
           <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 11a8 8 0 1 0-2.34 5.66M20 4v7h-7" /></svg>
         </button>
@@ -39,16 +39,15 @@
           <p class="eyebrow"><span></span> K² living edition · 31 calendar days</p>
           <h1>A moving map for<br /><em>your next move.</em></h1>
           <p class="hero-note">Your workbook, turned into a living range desk. Every price level is calculated—not guessed—and re-centres as the rolling window moves.</p>
-          <p class="friendship-line"><span>♡</span> Markets move. Friendship compounds. <b>Kamlesh × Kuldeep</b></p>
         </div>
-        <div class="k2-bond-stage" id="k2BondStage" aria-label="Kamlesh and Kuldeep friendship visual">
-          <span class="bond-live"><i></i> FRIENDSHIP FIELD</span>
+        <div class="k2-bond-stage" id="k2BondStage" aria-label="K squared market grid visual">
+          <span class="bond-live"><i></i> MARKET GRID</span>
           <div class="bond-rings" aria-hidden="true"><i></i><i></i><i></i></div>
-          <div class="bond-node kamlesh"><b>K</b><small>KAMLESH</small></div>
+          <div class="bond-node range"><b>31</b><small>RANGE</small></div>
           <div class="bond-beam" aria-hidden="true"><i></i><i></i><i></i></div>
-          <div class="bond-node kuldeep"><b>K</b><small>KULDEEP</small></div>
-          <div class="bond-core"><strong>K<sup>2</sup></strong><span>ONE SQUARE</span></div>
-          <p>Two minds. One moving field.</p>
+          <div class="bond-node market"><b>₹</b><small>MARKET</small></div>
+          <div class="bond-core"><strong>K<sup>2</sup></strong><span>LIVE DESK</span></div>
+          <p>Price. Range. Probability.</p>
         </div>
       </section>
 
@@ -198,21 +197,8 @@
       </form>
     </section>
 
-    <section class="dedication-intro" id="dedicationIntro" aria-hidden="true">
-      <canvas id="dedicationCanvas" aria-hidden="true"></canvas>
-      <button class="story-skip" id="storySkip" type="button">Skip intro</button>
-      <div class="story-stage">
-        <div class="story-emblem" aria-hidden="true"><span class="story-k">K</span><span class="story-two">2</span><i class="story-ring ring-a"></i><i class="story-ring ring-b"></i><i class="story-ring ring-c"></i></div>
-        <p class="story-overline">Two names · one square</p>
-        <h2>Kamlesh <span>×</span> Kuldeep</h2>
-        <p class="story-message">A private place built from trust, numbers and a friendship worth remembering.</p>
-        <button class="story-enter" id="storyEnter" type="button">Enter K² Range Desk <span>→</span></button>
-      </div>
-      <p class="story-foot">Made to move with you—from pocket to tablet to the biggest screen.</p>
-    </section>
-
     <script src="/watchlist-data.js?v=k2-weekly-ai-1"></script>
     <script src="/grid-logic.js?v=k2-monday-only-8"></script>
-    <script src="/app.js?v=k2-static-16"></script>
+    <script src="/app.js?v=k2-neutral-19"></script>
   </body>
 </html>

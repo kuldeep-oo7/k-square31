@@ -22,6 +22,14 @@ assert.deepEqual(buyLevels(500), [490, 480.2, 470.6, 461.18, 451.96]);
 assert.deepEqual(mondayOpening(result([friday], 500, "CLOSED")), { weekKey: "2026-07-13", barDate: "2026-07-17", price: 498 });
 assert.deepEqual(mondayOpening(result([friday, monday], 472)), { weekKey: "2026-07-20", barDate: "2026-07-20", price: 497 });
 assert.equal(quantSizing({ signals: { riskBudgetMultiplier: .5, riskState: "high", evidenceScore: -2 }, analogModel: { ready: true, probabilityUp5Pct: 40 } }).multiplier, .25);
+const weightedSize = quantSizing({
+  signals: { riskBudgetMultiplier: 1, riskState: "normal", evidenceScore: 0 },
+  decisionModel: { score: -45 },
+  strategyLab: { ready: true, selected: { passed: true, currentSignal: -1, family: "Test bearish family" } },
+  candleStudy: { directionScore: -0.5, pattern: "bearish test" }
+});
+assert.ok(weightedSize.multiplier < .5, "adverse weighted, strategy and candle evidence must reduce AI size");
+assert.ok(weightedSize.reasons.some((reason) => reason.includes("weighted evidence")));
 
 const first = processSymbol(emptySymbolState("TEST"), result([friday, monday], 472), new Date("2026-07-20T10:01:00Z").getTime());
 assert.equal(first.state.lots.length, 2, "Monday cumulative fall should fill every crossed 2% level");

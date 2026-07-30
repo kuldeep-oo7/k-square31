@@ -58,6 +58,9 @@ function quantSizing(context = {}) {
   const signals = context.signals || {};
   const analog = context.analogModel || {};
   const empirical = context.empirical || {};
+  const decision = context.decisionModel || {};
+  const strategy = context.strategyLab?.selected || null;
+  const candle = context.candleStudy || {};
   let multiplier = Number(signals.riskBudgetMultiplier);
   multiplier = Number.isFinite(multiplier) ? Math.max(0.25, Math.min(1, multiplier)) : 1;
   const reasons = [`volatility sizing ${round(multiplier * 100)}%`];
@@ -82,6 +85,33 @@ function quantSizing(context = {}) {
   if (Number.isFinite(empirical.down2HitPct) && Number(empirical.down2HitPct) < 25) {
     multiplier *= 0.9;
     reasons.push("rare weekly 2% dip");
+  }
+  if (Number(decision.score) <= -35) {
+    multiplier *= 0.5;
+    reasons.push(`weighted evidence ${round(decision.score)} / 100`);
+  } else if (Number(decision.score) < 0) {
+    multiplier *= 0.78;
+    reasons.push(`mixed-adverse evidence ${round(decision.score)} / 100`);
+  } else if (Number(decision.score) >= 35) {
+    multiplier *= 1.08;
+    reasons.push(`weighted evidence ${round(decision.score)} / 100`);
+  }
+  if (strategy?.passed && Number(strategy.currentSignal) > 0) {
+    multiplier *= 1.08;
+    reasons.push(`${strategy.family} walk-forward pass`);
+  } else if (strategy?.passed && Number(strategy.currentSignal) < 0) {
+    multiplier *= 0.7;
+    reasons.push(`${strategy.family} currently bearish`);
+  } else if (context.strategyLab?.ready && !strategy) {
+    multiplier *= 0.85;
+    reasons.push("no strategy family passed validation");
+  }
+  if (Number(candle.directionScore) < -0.35) {
+    multiplier *= 0.85;
+    reasons.push(`${candle.pattern || "bearish candle"} caution`);
+  } else if (Number(candle.directionScore) > 0.35 && Number(candle.sample) >= 5) {
+    multiplier *= 1.04;
+    reasons.push(`${candle.pattern} confirmation`);
   }
   multiplier = Math.max(0.25, Math.min(1, multiplier));
   return { multiplier: round(multiplier, 4), reasons };
@@ -194,6 +224,9 @@ function processSymbol(previous, result, nowMs = Date.now(), context = {}) {
     signals: context.signals || null,
     empirical: context.empirical || null,
     analogModel: context.analogModel || null,
+    candleStudy: context.candleStudy || null,
+    strategyLab: context.strategyLab || null,
+    decisionModel: context.decisionModel || null,
     window: context.window || null,
     quarter: context.quarter || null
   };
