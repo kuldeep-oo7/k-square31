@@ -1499,7 +1499,6 @@
     intro.setAttribute("aria-hidden", "false");
     document.body.style.overflow = "hidden";
     cancelAnimationFrame(state.storyFrame);
-    startStoryCanvas();
   }
 
   function closeStory() {
@@ -1751,13 +1750,6 @@
   el("replayStoryButton").addEventListener("click", () => showStory(true));
   el("storySkip").addEventListener("click", closeStory);
   el("storyEnter").addEventListener("click", closeStory);
-  el("dedicationIntro").addEventListener("pointermove", (event) => {
-    const x = (event.clientX / window.innerWidth - .5) * 2;
-    const y = (event.clientY / window.innerHeight - .5) * 2;
-    el("dedicationIntro").style.setProperty("--story-x", `${(x * 10).toFixed(2)}px`);
-    el("dedicationIntro").style.setProperty("--story-y", `${(y * 10).toFixed(2)}px`);
-  });
-
   document.querySelectorAll(".tab-button").forEach((button) => button.addEventListener("click", () => {
     document.querySelectorAll(".tab-button").forEach((node) => node.classList.toggle("active", node === button));
     document.querySelectorAll(".workspace-panel").forEach((panel) => panel.classList.remove("active"));
@@ -1774,8 +1766,5 @@
   });
 
   if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("/service-worker.js").catch(() => {}));
-  initializeLivingField();
-  startAmbientExperience();
-  initializeRevealChoreography();
   bootstrapAuth();
 })();

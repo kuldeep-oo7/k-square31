@@ -550,3 +550,14 @@ body.fx-quiet .k2-ambient-canvas,body.fx-quiet .gesture-sparks { display:none; }
   .ai-stock-list{gap:7px}.ai-stock{border-radius:15px}.ai-stock summary{padding:13px}.ai-stock-name b{font-size:15px!important}
   .ai-stock-body>div,.ai-quant-evidence{padding:14px!important}.ai-quant-facts{grid-template-columns:1fr 1fr}.ai-quant-evidence header>strong{font-size:22px}.ai-quant-evidence>p{font-size:8px!important}
 }
+
+/* Motion-free edition: retain the visual language without animated movement. */
+html{scroll-behavior:auto!important}
+*,*::before,*::after{animation:none!important;transition:none!important}
+.k2-ambient-canvas,.gesture-sparks,.scroll-vfx,.fx-button{display:none!important}
+.reveal-item,.reveal-item.in-view{opacity:1!important;filter:none!important;transform:none!important;transition-delay:0s!important}
+.snapshot-card:hover,.holding-shell:hover,.stock-row:hover,.signal-card:hover,.exit-band:hover,.ai-stock:hover,.add-button:hover{transform:none!important}
+.dedication-intro{--story-x:0px!important;--story-y:0px!important}
+.story-stage{transform:none!important}
+.story-overline,.story-stage h2,.story-message,.story-enter{opacity:1!important;transform:none!important}
+.ai-load-state>i,.ai-sync-notice>i{border-color:var(--violet)!important}
