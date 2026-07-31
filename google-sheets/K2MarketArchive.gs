@@ -7,16 +7,11 @@
  * shared secret matches the Script Property created by setupK2Archive().
  */
 
-const K2_HEADERS = [
-  'Symbol', 'Session', 'Open', 'High', 'Low', 'Close', 'Volume',
-  'Sector', 'Market Cap Category', 'Recorded At'
-];
 const K2_STATE_HEADERS = [
   'Path', 'Version', 'Chunk', 'Chunk Count', 'Gzip Base64', 'Updated At'
 ];
 const K2_STATE_CHUNK_SIZE = 40000;
 const K2_MAX_STATE_DOCUMENT = 5000000;
-const K2_SHARD_COUNT = 50;
 
 function setupK2Archive() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
@@ -49,43 +44,14 @@ function doPost(event) {
       return json_(readDocuments_(spreadsheet, payload));
     }
     if (payload.action === 'writeDocument') {
-      return json_(withWriteLock_(function () { return writeDocument_(spreadsheet, payload); }));
+      return json_(withWriteLock_(function () {
+        ensureStateOnlyStorage_(spreadsheet);
+        return writeDocument_(spreadsheet, payload);
+      }));
     }
-    return json_(withWriteLock_(function () { return archiveRows_(spreadsheet, payload); }));
+    return json_({ ok: false, error: 'Invalid action' });
   } catch (error) {
     return json_({ ok: false, error: String(error && error.message || error).slice(0, 200) });
-  }
-}
-
-function archiveRows_(spreadsheet, payload) {
-  try {
-    const shard = Number(payload.shard);
-    if (!Number.isInteger(shard) || shard < 0 || shard >= K2_SHARD_COUNT) return { ok: false, error: 'Invalid shard' };
-    const rows = Array.isArray(payload.rows) ? payload.rows : [];
-    if (rows.length > 25000) return { ok: false, error: 'Payload too large' };
-    const sheet = getShardSheet_(spreadsheet, shard);
-    const existing = existingKeys_(sheet);
-    const recordedAt = new Date();
-    const additions = [];
-    rows.forEach(function (row) {
-      const symbol = String(row.symbol || '').trim().toUpperCase();
-      const session = String(row.session || '').trim();
-      if (!/^[A-Z0-9&-]{1,30}$/.test(symbol) || !/^\d{4}-\d{2}-\d{2}$/.test(session)) return;
-      const key = symbol + '|' + session;
-      if (existing.has(key)) return;
-      additions.push([
-        symbol, session, numeric_(row.open), numeric_(row.high), numeric_(row.low),
-        numeric_(row.close), numeric_(row.volume), String(row.sector || ''),
-        String(row.marketCapCategory || ''), recordedAt
-      ]);
-      existing.add(key);
-    });
-    if (additions.length) {
-      sheet.getRange(sheet.getLastRow() + 1, 1, additions.length, K2_HEADERS.length).setValues(additions);
-    }
-    return { ok: true, rows: additions.length, received: rows.length, shard: shard };
-  } catch (error) {
-    return { ok: false, error: String(error && error.message || error).slice(0, 200) };
   }
 }
 
@@ -93,11 +59,12 @@ function readDocuments_(spreadsheet, payload) {
   const paths = Array.isArray(payload.paths) ? payload.paths : [];
   if (!paths.length || paths.length > 60) return { ok: false, error: 'Invalid document paths' };
   const sheet = getStateSheet_(spreadsheet);
+  const rowsByPath = stateRowsByPath_(sheet, new Set(paths.map(validPath_)));
   return {
     ok: true,
     documents: paths.map(function (path) {
       path = validPath_(path);
-      const document = latestDocument_(findStateRows_(sheet, path));
+      const document = latestDocument_(rowsByPath.get(path) || []);
       if (!document) return { path: path, found: false, version: 0 };
       return {
         path: path,
@@ -155,21 +122,26 @@ function getStateSheet_(spreadsheet) {
 }
 
 function findStateRows_(sheet, path) {
-  if (sheet.getLastRow() < 2) return [];
-  return sheet.getRange(2, 1, sheet.getLastRow() - 1, 1).createTextFinder(path)
-    .matchEntireCell(true)
-    .findAll()
-    .map(function (cell) {
-      const row = cell.getRow();
-      const values = sheet.getRange(row, 1, 1, K2_STATE_HEADERS.length).getValues()[0];
-      return {
-        row: row,
-        version: Number(values[1]),
-        chunk: Number(values[2]),
-        chunkCount: Number(values[3]),
-        data: String(values[4] || '')
-      };
+  return stateRowsByPath_(sheet, new Set([path])).get(path) || [];
+}
+
+function stateRowsByPath_(sheet, wantedPaths) {
+  const grouped = new Map();
+  wantedPaths.forEach(function (path) { grouped.set(path, []); });
+  if (sheet.getLastRow() < 2) return grouped;
+  const values = sheet.getRange(2, 1, sheet.getLastRow() - 1, K2_STATE_HEADERS.length).getValues();
+  values.forEach(function (row, index) {
+    const path = String(row[0] || '');
+    if (!wantedPaths.has(path)) return;
+    grouped.get(path).push({
+      row: index + 2,
+      version: Number(row[1]),
+      chunk: Number(row[2]),
+      chunkCount: Number(row[3]),
+      data: String(row[4] || '')
     });
+  });
+  return grouped;
 }
 
 function deleteRows_(sheet, rowNumbers) {
@@ -217,26 +189,13 @@ function withWriteLock_(callback) {
   }
 }
 
-function getShardSheet_(spreadsheet, shard) {
-  const name = 'OHLCV_' + shard;
-  const sheet = spreadsheet.getSheetByName(name) || spreadsheet.insertSheet(name);
-  if (sheet.getLastRow() === 0) {
-    sheet.getRange(1, 1, 1, K2_HEADERS.length).setValues([K2_HEADERS]);
-    sheet.setFrozenRows(1);
-    sheet.getRange(1, 1, 1, K2_HEADERS.length).setFontWeight('bold').setBackground('#201d31').setFontColor('#ffffff');
-  }
-  return sheet;
-}
-
-function existingKeys_(sheet) {
-  const count = Math.max(0, sheet.getLastRow() - 1);
-  if (!count) return new Set();
-  return new Set(sheet.getRange(2, 1, count, 2).getDisplayValues().map(function (row) { return row[0] + '|' + row[1]; }));
-}
-
-function numeric_(value) {
-  const number = Number(value);
-  return Number.isFinite(number) ? number : '';
+function ensureStateOnlyStorage_(spreadsheet) {
+  const properties = PropertiesService.getScriptProperties();
+  if (properties.getProperty('K2_STATE_ONLY_V2') === 'ready') return;
+  spreadsheet.getSheets().forEach(function (sheet) {
+    if (/^OHLCV_\d+$/.test(sheet.getName())) spreadsheet.deleteSheet(sheet);
+  });
+  properties.setProperty('K2_STATE_ONLY_V2', 'ready');
 }
 
 function constantTimeEqual_(left, right) {

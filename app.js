@@ -1076,7 +1076,7 @@
       <article class="portfolio-mini"><span>Open lots</span><strong>${summary.openLots || 0}</strong></article>
       <article class="portfolio-mini"><span>Last secured run</span><strong class="ai-time">${updated}</strong></article>
       <article class="portfolio-mini"><span>Historical vault</span><strong>${number(storage.totalHistoryRows || 0)} rows</strong><small>${number(storage.minimumHistorySessions || 0)}–${number(storage.maximumHistorySessions || 0)} sessions per stock</small></article>
-      <article class="portfolio-mini"><span>Operational database</span><strong class="${storage.googleSheetsArchive === "connected" ? "positive" : ""}">${storage.operationalDatabase || "Not available"}</strong><small>${storage.googleSheetsArchive === "connected" ? "Private Sheet ledger + OHLCV archive active" : "Google Sheet endpoint and secret are not connected"}</small></article>
+      <article class="portfolio-mini"><span>Operational database</span><strong class="${storage.googleSheetsArchive === "connected" ? "positive" : ""}">${storage.operationalDatabase || "Not available"}</strong><small>${storage.googleSheetsArchive === "connected" ? "Private ledger + compressed five-year price history" : "Google Sheet endpoint and secret are not connected"}</small></article>
     </div>
     <div class="portfolio-intro ai-activity-head"><div><p class="eyebrow"><span></span> MACHINE AUDIT TRAIL</p><h2>What AI bought and sold.</h2></div><p><b>${buyCount} buys · ${sellCount} sells</b> in the latest ${recentTrades.length} records. Every paper fill preserves its rule, quantity, price, quant size and timestamp.</p></div>
     <div class="ai-trades">${activity}</div>

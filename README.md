@@ -60,7 +60,7 @@ K² can use a private Google Sheet as both the operational portfolio/paper-ledge
 4. Deploy the script as a Web app, executing as the Sheet owner.
 5. Add the deployment URL as `K2_GOOGLE_SHEETS_WEB_APP_URL` and the generated secret as `K2_GOOGLE_SHEETS_ARCHIVE_SECRET` in Vercel.
 
-When both variables are present, K² automatically switches the operational database from Vercel Blob to the private Sheet. The next secured AI runner pass builds `K2_STATE`, backfills `OHLCV_0` … `OHLCV_49`, and then sends deduplicated daily observations. The Vercel functions never expose the Sheet URL or shared secret to the browser.
+When both variables are present, K² automatically switches the operational database from Vercel Blob to the private Sheet. The next secured AI runner pass builds `K2_STATE`; each versioned shard document contains its complete deduplicated five-year OHLCV history together with paper lots and the decision audit trail. Keeping one compressed copy avoids Google Sheets' 10-million-cell ceiling. The Vercel functions never expose the Sheet URL or shared secret to the browser.
 
 The server endpoint is in `api/market.js`. The current feed uses Yahoo Finance's unofficial chart endpoint and can be delayed. For exchange-grade realtime NSE data, replace `fetchChart()` with a licensed provider while preserving the endpoint response shape.
 
