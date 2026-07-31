@@ -50,7 +50,7 @@ async function run() {
   let ready = false;
   for (let attempt = 0; attempt < 40; attempt += 1) {
     await sleep(1000);
-    const result = await evaluate(`document.getElementById('authGate').classList.contains('signed-in') && ${aiMode ? "Number(document.getElementById('portfolioBadge').textContent) > 0 && document.querySelectorAll('.ai-stock').length === 130" : "document.querySelectorAll('#focusMap .chunk-row').length === 10"}`);
+    const result = await evaluate(`document.getElementById('authGate').classList.contains('signed-in') && ${aiMode ? "Number(document.getElementById('portfolioBadge').textContent) >= 500 && document.querySelectorAll('.ai-stock').length === 50 && Boolean(document.querySelector('.ai-universe-board'))" : "document.querySelectorAll('#focusMap .chunk-row').length === 10"}`);
     if (result.result?.result?.value) { ready = true; break; }
   }
   if (!ready) throw new Error("Signed-in 10-chunk map did not become ready");

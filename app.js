@@ -24,6 +24,8 @@
     portfolio: emptyPortfolio(),
     aiLedger: emptyAiLedger(),
     aiSearch: "",
+    aiCapFilter: "all",
+    aiVisibleLimit: 50,
     aiRefreshTimer: null,
     aiLoading: false,
     aiError: null,
@@ -48,6 +50,7 @@
     return {
       config: { budgetPerStock: 200000, slots: 5, slotBudget: 40000, buyStepPct: 2, takeProfitPct: 2 },
       summary: { allocated: watchlist.length * 200000, cash: watchlist.length * 200000, marketValue: 0, invested: 0, openPnl: 0, realizedPnl: 0, openLots: 0, activeStocks: 0 },
+      universe: { name: "Broad NSE universe", officialStocks: 0, continuityStocks: 0, totalStocks: 0, categories: { large: 0, mid: 0, small: 0, other: 0 } },
       stocks: [], transactions: [], updatedAt: null
     };
   }
@@ -153,6 +156,9 @@
       if (!payload) throw lastError || new Error("AI paper ledger unavailable");
       state.aiLedger = payload;
       cacheAiLedger(payload);
+      el("lastUpdated").textContent = payload.updatedAt
+        ? `AI scan ${new Date(payload.updatedAt).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit" })}`
+        : "Waiting for first broad-market scan";
       state.databaseOnline = true;
       renderWatchlist();
       renderFocusMap();
@@ -906,9 +912,12 @@
   function renderSummary() {
     if (state.user === "ai") {
       const summary = state.aiLedger.summary || emptyAiLedger().summary;
+      const universe = state.aiLedger.universe || emptyAiLedger().universe;
+      const universeCount = Number(universe.totalStocks) || state.aiLedger.stocks?.length || 0;
+      const coveredCount = (state.aiLedger.stocks || []).filter((stock) => stock.anchor).length;
       const equity = Number(summary.cash) + Number(summary.marketValue);
       const totalPnl = equity - Number(summary.allocated);
-      el("trackedCount").textContent = watchlist.length;
+      el("trackedCount").textContent = universeCount || "…";
       el("portfolioValueLabel").textContent = "Virtual portfolio";
       el("openPnlLabel").textContent = "Total P&L";
       el("portfolioValue").textContent = money(equity, true);
@@ -917,8 +926,8 @@
       el("openPnl").textContent = money(totalPnl, Math.abs(totalPnl) >= 100000);
       el("openPnl").className = totalPnl > 0 ? "positive" : totalPnl < 0 ? "negative" : "";
       el("openPnlPct").textContent = `${pct(summary.allocated ? totalPnl / summary.allocated * 100 : 0)} on virtual allocation`;
-      el("portfolioBadge").textContent = waitingForFirstLoad ? "…" : summary.activeStocks || 0;
-      el("loadedCount").textContent = `${market.size} / ${watchlist.length}`;
+      el("portfolioBadge").textContent = waitingForFirstLoad ? "…" : universeCount;
+      el("loadedCount").textContent = `${coveredCount} / ${universeCount || "…"}`;
       return;
     }
     const metrics = portfolioMetrics();
@@ -940,7 +949,7 @@
     const config = ledger.config || emptyAiLedger().config;
     const container = el("portfolioContent");
     if (!ledger.stocks?.length && state.aiLoading) {
-      container.innerHTML = `<section class="ai-load-state"><i></i><b>Loading the shared AI portfolio…</b><span>Reading all ten secure ledger sections. On a phone this can take a few seconds.</span></section>`;
+      container.innerHTML = `<section class="ai-load-state"><i></i><b>Loading the shared AI portfolio…</b><span>Reading the broad-market ledger. On a phone this can take a few seconds.</span></section>`;
       renderSummary();
       return;
     }
@@ -953,11 +962,32 @@
     const equity = Number(summary.cash) + Number(summary.marketValue);
     const totalPnl = equity - Number(summary.allocated);
     const storage = ledger.storage || {};
+    const universe = ledger.universe || emptyAiLedger().universe;
     const updated = ledger.updatedAt ? new Date(ledger.updatedAt).toLocaleString("en-IN", { timeZone: "Asia/Kolkata", dateStyle: "medium", timeStyle: "short" }) : "Waiting for first automation run";
     const query = state.aiSearch.trim().toLowerCase();
-    const stocks = (ledger.stocks || []).filter((stock) => !query || `${stock.symbol} ${stock.sector} ${stock.marketCapCategory}`.toLowerCase().includes(query));
+    const allStocks = ledger.stocks || [];
+    const coveredCount = allStocks.filter((stock) => stock.anchor).length;
+    const capKey = (stock) => stock.marketCapCategory === "Large Cap" ? "large" : stock.marketCapCategory === "Mid Cap" ? "mid" : stock.marketCapCategory === "Small Cap" ? "small" : "other";
+    const capCounts = allStocks.reduce((counts, stock) => {
+      counts[capKey(stock)] += 1;
+      return counts;
+    }, { large: 0, mid: 0, small: 0, other: 0 });
+    const modelBreadth = allStocks.reduce((counts, stock) => {
+      const score = Number(stock.quant?.decisionModel?.score);
+      if (!Number.isFinite(score)) counts.learning += 1;
+      else if (score >= 20) counts.constructive += 1;
+      else if (score <= -20) counts.cautious += 1;
+      else counts.mixed += 1;
+      return counts;
+    }, { constructive: 0, mixed: 0, cautious: 0, learning: 0 });
+    const stocks = allStocks.filter((stock) => {
+      const matchesCap = state.aiCapFilter === "all" || capKey(stock) === state.aiCapFilter;
+      const matchesQuery = !query || `${stock.symbol} ${stock.sector} ${stock.marketCapCategory}`.toLowerCase().includes(query);
+      return matchesCap && matchesQuery;
+    });
+    const visibleStocks = stocks.slice(0, state.aiVisibleLimit);
 
-    const rows = stocks.map((stock) => {
+    const rows = visibleStocks.map((stock) => {
       const anchor = Number(stock.anchor?.price);
       const live = Number(stock.lastPrice);
       const weeklyMove = anchor && live ? (live / anchor - 1) * 100 : null;
@@ -1024,8 +1054,19 @@
     </div>`).join("") || `<div class="ai-empty"><b>No paper trades yet.</b><span>The ledger is watching each stock's cumulative move from Monday open and will record the first crossed −2% level here.</span></div>`;
 
     container.innerHTML = `${syncNotice}<section class="ai-command">
-      <div><p class="eyebrow"><span></span> AUTOMATIC · PAPER ONLY</p><h3>Monday control grid + per-stock walk-forward strategy laboratory</h3><p>All ${watchlist.length} stocks are checked every 15 minutes. The original cumulative 2% rule remains the control; ${labSnapshot.testedCandidates || "multiple"} strategy variants, weighted evidence and validated candle history determine paper size. Every fill preserves the exact rule and evidence snapshot.</p></div>
-      <div class="ai-heart"><strong>AI</strong><i></i><span>WATCHING<br />${watchlist.length} STOCKS</span></div>
+      <div><p class="eyebrow"><span></span> AUTOMATIC · PAPER ONLY</p><h3>Broad Indian market grid + per-stock walk-forward laboratory</h3><p>The scanner covers the official Nifty 500—large, mid and small caps—plus ${universe.continuityStocks || 0} prior-watchlist symbol${universe.continuityStocks === 1 ? "" : "s"} retained so an old paper position is never erased. The Monday 2% grid is the control; ${labSnapshot.testedCandidates || "multiple"} strategy variants and weighted evidence adjust paper size.</p></div>
+      <div class="ai-heart"><strong>AI</strong><i></i><span>SCANNING<br />${universe.totalStocks || allStocks.length} STOCKS</span></div>
+    </section>
+    <section class="ai-universe-board">
+      <header><div><span>OFFICIAL BROAD-MARKET COVERAGE</span><h3>${universe.name || "Nifty 500 broad market"}</h3><p>${coveredCount} of ${universe.totalStocks || allStocks.length} symbols currently have a stored Monday anchor and market history.</p></div><a href="${universe.sourceUrl || "https://www.niftyindices.com/indices/equity/broad-based-indices/nifty-500"}" target="_blank" rel="noopener">NSE Indices source ↗</a></header>
+      <div class="ai-cap-coverage">
+        <button type="button" class="${state.aiCapFilter === "all" ? "active" : ""}" data-ai-cap="all"><small>ALL</small><b>${allStocks.length}</b><span>Broad universe</span></button>
+        <button type="button" class="${state.aiCapFilter === "large" ? "active" : ""}" data-ai-cap="large"><small>LARGE CAP</small><b>${capCounts.large}</b><span>Nifty 100</span></button>
+        <button type="button" class="${state.aiCapFilter === "mid" ? "active" : ""}" data-ai-cap="mid"><small>MID CAP</small><b>${capCounts.mid}</b><span>Ranks 101–250</span></button>
+        <button type="button" class="${state.aiCapFilter === "small" ? "active" : ""}" data-ai-cap="small"><small>SMALL CAP</small><b>${capCounts.small}</b><span>Ranks 251–500 + continuity</span></button>
+      </div>
+      <div class="ai-market-breadth"><span class="positive"><small>CONSTRUCTIVE ≥ +20</small><b>${modelBreadth.constructive}</b></span><span><small>MIXED −19 TO +19</small><b>${modelBreadth.mixed}</b></span><span class="negative"><small>CAUTIOUS ≤ −20</small><b>${modelBreadth.cautious}</b></span><span><small>BUILDING HISTORY</small><b>${modelBreadth.learning}</b></span></div>
+      <p class="ai-model-truth"><b>Model type:</b> deterministic quantitative ensemble + chronological walk-forward tests. No trained neural network is currently deployed. “Learning” means history is still being collected, not that a deep-learning model is training.</p>
     </section>
     <div class="portfolio-summary ai-summary">
       <article class="portfolio-mini"><span>Virtual allocation</span><strong>${money(summary.allocated)}</strong></article>
@@ -1035,18 +1076,19 @@
       <article class="portfolio-mini"><span>Open lots</span><strong>${summary.openLots || 0}</strong></article>
       <article class="portfolio-mini"><span>Last secured run</span><strong class="ai-time">${updated}</strong></article>
       <article class="portfolio-mini"><span>Historical vault</span><strong>${number(storage.totalHistoryRows || 0)} rows</strong><small>${number(storage.minimumHistorySessions || 0)}–${number(storage.maximumHistorySessions || 0)} sessions per stock</small></article>
-      <article class="portfolio-mini"><span>Google Sheets archive</span><strong class="${storage.googleSheetsArchive === "connected" ? "positive" : ""}">${storage.googleSheetsArchive === "connected" ? "Connected" : "Awaiting endpoint"}</strong><small>Private Blob remains the transactional database</small></article>
+      <article class="portfolio-mini"><span>Google Sheets archive</span><strong class="${storage.googleSheetsArchive === "connected" ? "positive" : "negative"}">${storage.googleSheetsArchive === "connected" ? "Connected" : "Not connected"}</strong><small>${storage.googleSheetsArchive === "connected" ? "Daily OHLCV archive active" : "Production endpoint and secret are missing"}</small></article>
     </div>
     <div class="portfolio-intro ai-activity-head"><div><p class="eyebrow"><span></span> MACHINE AUDIT TRAIL</p><h2>What AI bought and sold.</h2></div><p><b>${buyCount} buys · ${sellCount} sells</b> in the latest ${recentTrades.length} records. Every paper fill preserves its rule, quantity, price, quant size and timestamp.</p></div>
     <div class="ai-trades">${activity}</div>
     <label class="ai-search"><span>⌕</span><input id="aiGridSearch" type="search" placeholder="Find a stock inside the AI grid…" /></label>
-    <div class="ai-ledger-head"><span>${stocks.length} of ${ledger.stocks?.length || 0} stocks</span><span>Monday reference</span><span>Live / latest</span><span>Cash</span><span>P&amp;L</span></div>
+    <div class="ai-ledger-head"><span>Showing ${visibleStocks.length} of ${stocks.length} matching stocks</span><span>Monday reference</span><span>Live / latest</span><span>Cash</span><span>P&amp;L</span></div>
     <div class="ai-stock-list">${rows || `<div class="ai-empty"><b>No stock matches this search.</b></div>`}</div>
+    ${visibleStocks.length < stocks.length ? `<button type="button" class="ai-load-more" data-ai-more>Show ${Math.min(50, stocks.length - visibleStocks.length)} more stocks ↓</button>` : ""}
     `;
     const input = el("aiGridSearch");
     if (input) {
       input.value = state.aiSearch;
-      input.addEventListener("input", () => { state.aiSearch = input.value; renderAiPortfolio(); requestAnimationFrame(() => { const next = el("aiGridSearch"); next?.focus(); next?.setSelectionRange(state.aiSearch.length, state.aiSearch.length); }); });
+      input.addEventListener("input", () => { state.aiSearch = input.value; state.aiVisibleLimit = 50; renderAiPortfolio(); requestAnimationFrame(() => { const next = el("aiGridSearch"); next?.focus(); next?.setSelectionRange(state.aiSearch.length, state.aiSearch.length); }); });
     }
     renderSummary();
   }
@@ -1190,7 +1232,7 @@
           console.warn("K² market batch failed", batch, error);
         }
         completed += 1;
-        el("loadedCount").textContent = `${market.size} / ${watchlist.length}`;
+        if (state.user !== "ai") el("loadedCount").textContent = `${market.size} / ${watchlist.length}`;
         if (completed % 4 === 0) renderMarketViewsStable();
       }
     };
@@ -1210,7 +1252,9 @@
     refreshButton.classList.remove("spinning");
     if (market.size) {
       setFeedStatus("live", "Market feed connected");
-      el("lastUpdated").textContent = `Updated ${new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`;
+      el("lastUpdated").textContent = state.user === "ai" && state.aiLedger.updatedAt
+        ? `AI scan ${new Date(state.aiLedger.updatedAt).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit" })}`
+        : `Updated ${new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`;
     } else {
       setFeedStatus("error", "Using workbook snapshot");
       el("lastUpdated").textContent = "Live feed unavailable";
@@ -1225,7 +1269,9 @@
     await fetchSymbols([...new Set([...owned, ...visible])]);
     if (market.size) {
       setFeedStatus("live", "Market feed connected");
-      el("lastUpdated").textContent = `Updated ${new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`;
+      el("lastUpdated").textContent = state.user === "ai" && state.aiLedger.updatedAt
+        ? `AI scan ${new Date(state.aiLedger.updatedAt).toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata", hour: "2-digit", minute: "2-digit" })}`
+        : `Updated ${new Date().toLocaleTimeString("en-IN", { hour: "2-digit", minute: "2-digit" })}`;
     }
   }
 
@@ -1572,16 +1618,22 @@
     const aiMode = state.user === "ai";
     state.portfolio = loadPortfolio();
     state.aiLedger = aiMode ? (loadCachedAiLedger() || emptyAiLedger()) : emptyAiLedger();
+    state.aiCapFilter = "all";
+    state.aiVisibleLimit = 50;
     state.aiLoading = aiMode;
     state.aiError = null;
     state.plannerKey = null;
     el("tradePlanner").hidden = aiMode;
     el("actionFilters").hidden = aiMode;
-    el("portfolioTabLabel").textContent = aiMode ? "AI Paper Grid" : "Portfolio";
+    el("trackedLabel").textContent = aiMode ? "AI broad universe" : "Tracked universe";
+    el("trackedDescription").textContent = aiMode ? "Nifty 500 large + mid + small cap coverage" : "symbols from journal (1).xlsx";
+    el("loadedLabel").textContent = aiMode ? "Scan coverage" : "Live map";
+    el("watchlistTabLabel").textContent = aiMode ? "Original 130" : "Watchlist";
+    el("portfolioTabLabel").textContent = aiMode ? "AI Broad Grid" : "Portfolio";
     el("portfolioOverline").textContent = aiMode ? "Autonomous Monday-grid laboratory" : "Private cloud portfolio";
     el("portfolioHeading").innerHTML = aiMode ? `The machine watches,<br /><em>the ledger remembers.</em>` : `Your positions,<br /><em>measured live.</em>`;
     el("portfolioIntroCopy").textContent = aiMode
-      ? "K² AI paper-trades the complete workbook universe from Monday opening anchors. Every simulated fill is automatic, isolated and auditable across devices."
+      ? "K² scans a broad Indian large-, mid- and small-cap universe from Monday opening anchors. Every simulated fill is automatic, isolated and auditable across devices."
       : "Entry lots are stored securely under your signed-in account and follow you across devices. Current value and open P&L move with the same market feed as your watchlist.";
     el("methodCopy").innerHTML = aiMode
       ? "<b>AI weekly rule:</b> Monday opening becomes the anchor; five risk-sized slots compound downward by 2%; every filled lot receives its own automatic +2% paper exit and a stored quant decision snapshot."
@@ -1595,6 +1647,10 @@
     renderFocusMap();
     renderPortfolio();
     renderSummary();
+    if (aiMode) {
+      document.querySelectorAll(".tab-button").forEach((node) => node.classList.toggle("active", node.dataset.tab === "portfolio"));
+      document.querySelectorAll(".workspace-panel").forEach((panel) => panel.classList.toggle("active", panel.id === "portfolioPanel"));
+    }
     if (aiMode) await syncAiLedger(); else await syncServerPortfolio();
     if (!market.size) refreshAll(); else refreshPriority();
     if (!state.refreshTimer) state.refreshTimer = setInterval(refreshPriority, 60_000);
@@ -1617,6 +1673,10 @@
     el("actionFilters").hidden = false;
     clearInterval(state.aiRefreshTimer);
     state.aiRefreshTimer = null;
+    el("trackedLabel").textContent = "Tracked universe";
+    el("trackedDescription").textContent = "symbols from journal (1).xlsx";
+    el("loadedLabel").textContent = "Live map";
+    el("watchlistTabLabel").textContent = "Watchlist";
     el("portfolioTabLabel").textContent = "Portfolio";
     el("userPill").classList.add("hidden");
     el("authGate").classList.remove("signed-in");
@@ -1659,6 +1719,18 @@
 
   el("portfolioContent").addEventListener("click", (event) => {
     if (event.target.closest("[data-retry-ai]")) { syncAiLedger(); return; }
+    const aiCap = event.target.closest("[data-ai-cap]");
+    if (aiCap) {
+      state.aiCapFilter = aiCap.dataset.aiCap;
+      state.aiVisibleLimit = 50;
+      renderAiPortfolio();
+      return;
+    }
+    if (event.target.closest("[data-ai-more]")) {
+      state.aiVisibleLimit += 50;
+      renderAiPortfolio();
+      return;
+    }
     const mobileHolding = event.target.closest("[data-toggle-mobile-holding]");
     if (mobileHolding) {
       const symbol = mobileHolding.dataset.toggleMobileHolding;

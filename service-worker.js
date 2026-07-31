@@ -1,5 +1,5 @@
-const CACHE = "k2-shell-v19-neutral";
-const ASSETS = ["/styles.css?v=k2-neutral-19", "/app.js?v=k2-neutral-19", "/grid-logic.js?v=k2-monday-only-8", "/watchlist-data.js?v=k2-weekly-ai-1", "/k2-icon.svg", "/manifest.webmanifest"];
+const CACHE = "k2-shell-v20-broad";
+const ASSETS = ["/styles.css?v=k2-broad-20", "/app.js?v=k2-broad-20", "/grid-logic.js?v=k2-monday-only-8", "/watchlist-data.js?v=k2-weekly-ai-1", "/k2-icon.svg", "/manifest.webmanifest"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((cache) => cache.addAll(ASSETS)).then(() => self.skipWaiting()));

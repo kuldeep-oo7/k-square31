@@ -13,7 +13,7 @@
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/k2-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/k2-icon.svg" />
-    <link rel="stylesheet" href="/styles.css?v=k2-neutral-19" />
+    <link rel="stylesheet" href="/styles.css?v=k2-broad-20" />
   </head>
   <body>
     <div class="ambient ambient-one"></div>
@@ -53,9 +53,9 @@
 
       <section class="snapshot-grid" aria-label="Portfolio snapshot">
         <article class="snapshot-card card-violet">
-          <span>Tracked universe</span>
+          <span id="trackedLabel">Tracked universe</span>
           <strong id="trackedCount">130</strong>
-          <small>symbols from journal (1).xlsx</small>
+          <small id="trackedDescription">symbols from journal (1).xlsx</small>
         </article>
         <article class="snapshot-card card-mint">
           <span id="portfolioValueLabel">Portfolio value</span>
@@ -68,14 +68,14 @@
           <small id="openPnlPct">Add a position to begin</small>
         </article>
         <article class="snapshot-card card-sun">
-          <span>Live map</span>
+          <span id="loadedLabel">Live map</span>
           <strong id="loadedCount">0 / 130</strong>
           <small id="lastUpdated">Loading rolling ranges…</small>
         </article>
       </section>
 
       <nav class="section-tabs" aria-label="Workspace sections">
-        <button class="tab-button active" data-tab="watchlist"><span>01</span> Watchlist <b id="watchlistBadge">130</b></button>
+        <button class="tab-button active" data-tab="watchlist"><span>01</span> <span id="watchlistTabLabel">Watchlist</span> <b id="watchlistBadge">130</b></button>
         <button class="tab-button" data-tab="portfolio"><span>02</span> <span id="portfolioTabLabel">Portfolio</span> <b id="portfolioBadge">0</b></button>
         <div class="tab-line"></div>
       </nav>
@@ -199,6 +199,6 @@
 
     <script src="/watchlist-data.js?v=k2-weekly-ai-1"></script>
     <script src="/grid-logic.js?v=k2-monday-only-8"></script>
-    <script src="/app.js?v=k2-neutral-19"></script>
+    <script src="/app.js?v=k2-broad-20"></script>
   </body>
 </html>

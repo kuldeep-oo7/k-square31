@@ -236,6 +236,36 @@ function processSymbol(previous, result, nowMs = Date.now(), context = {}) {
 
 function summarizeSymbol(state) {
   const { observations, ...publicState } = state;
+  if (publicState.quant) {
+    const quant = publicState.quant;
+    const strategy = quant.strategyLab || {};
+    publicState.quant = {
+      updatedAt: quant.updatedAt,
+      sizing: quant.sizing,
+      signals: quant.signals,
+      analogModel: quant.analogModel ? {
+        ready: quant.analogModel.ready,
+        sample: quant.analogModel.sample,
+        probabilityUp5Pct: quant.analogModel.probabilityUp5Pct,
+        averageForward5Pct: quant.analogModel.averageForward5Pct
+      } : null,
+      candleStudy: quant.candleStudy,
+      strategyLab: {
+        ready: strategy.ready,
+        testedCandidates: strategy.testedCandidates,
+        testedFamilies: strategy.testedFamilies,
+        passedFamilies: strategy.passedFamilies,
+        selected: strategy.selected,
+        leaderboard: Array.isArray(strategy.leaderboard) ? strategy.leaderboard.slice(0, 6) : []
+      },
+      decisionModel: quant.decisionModel ? {
+        score: quant.decisionModel.score,
+        confidencePct: quant.decisionModel.confidencePct,
+        components: quant.decisionModel.components
+      } : null,
+      window: quant.window ? { rsi14: quant.window.rsi14 } : null
+    };
+  }
   const marketValue = round((state.lots || []).reduce((sum, lot) => sum + lot.quantity * Number(state.lastPrice || lot.price), 0));
   const invested = round((state.lots || []).reduce((sum, lot) => sum + lot.quantity * lot.price, 0));
   const openPnl = round(marketValue - invested);

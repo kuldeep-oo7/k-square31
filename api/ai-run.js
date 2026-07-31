@@ -4,7 +4,7 @@ const { fetchChart } = require("./_lib/market-feed");
 const { calculate, mergeStoredHistory } = require("./market")._test;
 const { safeEqual } = require("./_lib/security");
 const { mutateAiShard, readAiShard } = require("./_lib/store");
-const { shardUniverse } = require("./_lib/universe");
+const { SHARD_COUNT, shardUniverse } = require("./_lib/universe");
 
 function authorized(request) {
   const supplied = String(request.headers?.authorization || "");
@@ -17,7 +17,7 @@ module.exports = async function handler(request, response) {
   if (request.method !== "GET") return response.status(405).json({ error: "Method not allowed" });
   if (!authorized(request)) return response.status(401).json({ error: "Unauthorized" });
   const shard = Number(request.query?.shard);
-  if (!Number.isInteger(shard) || shard < 0 || shard > 9) return response.status(400).json({ error: "Invalid shard" });
+  if (!Number.isInteger(shard) || shard < 0 || shard >= SHARD_COUNT) return response.status(400).json({ error: "Invalid shard" });
 
   const items = shardUniverse(shard);
   let snapshot;

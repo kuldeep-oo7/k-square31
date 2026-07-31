@@ -14,18 +14,22 @@ concurrency:
 jobs:
   update:
     runs-on: ubuntu-latest
-    timeout-minutes: 10
+    timeout-minutes: 15
     steps:
       - name: Evaluate all paper grid shards
         env:
           K2_SECRET: ${{ secrets.K2_CRON_SECRET }}
         run: |
           test -n "$K2_SECRET"
-          for shard in $(seq 0 9); do
+          run_shard() {
+            shard="$1"
             echo "Processing shard $shard"
             curl --fail-with-body --silent --show-error \
               --retry 2 --retry-all-errors --max-time 90 \
               -H "Authorization: Bearer $K2_SECRET" \
               "https://k-square31.vercel.app/api/ai-run?shard=$shard"
             echo
-          done
+          }
+          export K2_SECRET
+          export -f run_shard
+          seq 0 49 | xargs -n 1 -P 5 bash -c 'run_shard "$0"'
