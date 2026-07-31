@@ -29,14 +29,17 @@ module.exports = async function handler(request, response) {
   const username = String(body.username || "").trim().toLowerCase().slice(0, 80);
   const password = String(body.password || "");
   const valid = verifyPassword(username, password);
-  const rate = await loginRate(ip, !valid);
-  if (!rate.allowed) {
-    response.setHeader("Retry-After", String(rate.retryAfter));
-    await delay(500);
-    return response.status(429).json({ error: "Too many attempts. Try again later." });
+  if (!valid) {
+    const rate = await loginRate(ip, true);
+    if (!rate.allowed) {
+      response.setHeader("Retry-After", String(rate.retryAfter));
+      await delay(500);
+      return response.status(429).json({ error: "Too many attempts. Try again later." });
+    }
+    await delay(400);
+    return response.status(401).json({ error: "Username or password is incorrect." });
   }
   await delay(400);
-  if (!valid) return response.status(401).json({ error: "Username or password is incorrect." });
 
   const { token, session } = createSession(username);
   setSessionCookie(response, token);

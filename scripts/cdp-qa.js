@@ -97,13 +97,13 @@ async function run() {
   await evaluate(`document.querySelector('[data-tab="watchlist"]').click(); document.querySelector('[data-symbol="ICICIGI"]').click()`);
   for (let attempt = 0; attempt < 20; attempt += 1) {
     await sleep(300);
-    const result = await evaluate(`document.querySelectorAll('#drawerContent .signal-card').length >= 8`);
+    const result = await evaluate(`document.querySelector('#focusMap .focus-name h2')?.textContent === 'ICICIGI' && document.querySelectorAll('#focusMap .chunk-row').length === 10 && document.querySelectorAll('#focusMap .signal-card').length >= 8 && !document.getElementById('detailDrawer').classList.contains('open')`);
     if (result.result?.result?.value) break;
   }
   await sleep(500);
   const drawerShot = await send("Page.captureScreenshot", { format: "png", fromSurface: true });
-  fs.writeFileSync(mobile ? "k2-drawer-mobile.png" : "k2-drawer-quant.png", Buffer.from(drawerShot.result.data, "base64"));
-  await evaluate(`document.querySelector('.live-ladder-location').scrollIntoView({block:'center'})`);
+  fs.writeFileSync(mobile ? "k2-selected-analysis-mobile.png" : "k2-selected-analysis.png", Buffer.from(drawerShot.result.data, "base64"));
+  await evaluate(`document.querySelector('#focusMap .decision-river').scrollIntoView({block:'center'})`);
   await sleep(500);
   const ladderShot = await send("Page.captureScreenshot", { format: "png", fromSurface: true });
   fs.writeFileSync(mobile ? "k2-ladder-location-mobile.png" : "k2-ladder-location.png", Buffer.from(ladderShot.result.data, "base64"));
