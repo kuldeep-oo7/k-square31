@@ -24,10 +24,13 @@ jobs:
           run_shard() {
             shard="$1"
             echo "Processing shard $shard"
-            curl --fail-with-body --silent --show-error \
+            if ! curl --fail-with-body --silent --show-error \
               --retry 2 --retry-all-errors --max-time 90 \
               -H "Authorization: Bearer $K2_SECRET" \
-              "https://k-square31.vercel.app/api/ai-run?shard=$shard"
+              "https://k-square31.vercel.app/api/ai-run?shard=$shard"; then
+              echo "Shard $shard failed" >&2
+              return 1
+            fi
             echo
           }
           export K2_SECRET

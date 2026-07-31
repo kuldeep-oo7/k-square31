@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "node dev-server.js",
-    "check": "node --check app.js && node --check api/market.js && node --check api/portfolio.js && node --check api/ai.js && node --check api/ai-run.js && node --check api/_lib/google-archive.js && node --check api/_lib/strategy-lab.js && node --check scripts/refresh-ai-universe.js && node scripts/test-universe.js && node scripts/test-ai-engine.js && node scripts/test-store.js && node scripts/test-portfolio-model.js && node scripts/test-grid-logic.js && node scripts/test-market-model.js && node scripts/test-google-archive.js",
+    "check": "node --check app.js && node --check api/market.js && node --check api/portfolio.js && node --check api/ai.js && node --check api/ai-run.js && node --check api/_lib/google-archive.js && node --check api/_lib/google-store.js && node --check api/_lib/strategy-lab.js && node --check scripts/refresh-ai-universe.js && node scripts/test-universe.js && node scripts/test-ai-engine.js && node scripts/test-store.js && node scripts/test-portfolio-model.js && node scripts/test-grid-logic.js && node scripts/test-market-model.js && node scripts/test-google-archive.js && node scripts/test-google-store.js",
     "ai:init": "node scripts/run-ai-init.js"
   },
   "engines": {

@@ -1,5 +1,12 @@
 const crypto = require("node:crypto");
 const { get, head, put, BlobPreconditionFailedError } = require("@vercel/blob");
+const {
+  GoogleStoreConflictError,
+  googleStoreConfigured,
+  readGoogleDocument,
+  readGoogleDocuments,
+  writeGoogleDocument
+} = require("./google-store");
 
 function emptyPortfolio() {
   return { version: 2, lots: [], realizedPnl: 0, transactions: [], updatedAt: null };
@@ -22,7 +29,7 @@ function writableEtag(etag) {
   return String(etag || "").replace(/^W\//, "") || null;
 }
 
-async function readDocument(pathname, fallback) {
+async function readBlobDocument(pathname, fallback) {
   // Mutations require the origin ETag, not a CDN-cached private response. A
   // cached read can carry the previous ETag for up to cacheControlMaxAge and
   // make every optimistic retry fail even when there is no competing writer.
@@ -37,7 +44,7 @@ async function readDocument(pathname, fallback) {
   throw new Error("Blob changed repeatedly while it was being read");
 }
 
-async function writeDocument(pathname, data, etag) {
+async function writeBlobDocument(pathname, data, etag) {
   return put(pathname, JSON.stringify(data), {
     access: "private",
     addRandomSuffix: false,
@@ -46,6 +53,24 @@ async function writeDocument(pathname, data, etag) {
     contentType: "application/json",
     cacheControlMaxAge: 60
   });
+}
+
+async function readDocument(pathname, fallback) {
+  return googleStoreConfigured()
+    ? readGoogleDocument(pathname, fallback)
+    : readBlobDocument(pathname, fallback);
+}
+
+async function readDocuments(entries) {
+  return googleStoreConfigured()
+    ? readGoogleDocuments(entries)
+    : Promise.all(entries.map(({ pathname, fallback }) => readBlobDocument(pathname, fallback)));
+}
+
+async function writeDocument(pathname, data, etag) {
+  return googleStoreConfigured()
+    ? writeGoogleDocument(pathname, data, etag)
+    : writeBlobDocument(pathname, data, etag);
 }
 
 async function readPortfolio(username) {
@@ -63,7 +88,7 @@ async function mutatePortfolio(username, mutator) {
       await writeDocument(pathname, next, current.etag);
       return next;
     } catch (error) {
-      const conflict = error instanceof BlobPreconditionFailedError || error?.status === 409 || error?.statusCode === 409;
+      const conflict = error instanceof BlobPreconditionFailedError || error instanceof GoogleStoreConflictError || error?.status === 409 || error?.statusCode === 409;
       if (!conflict || attempt === 4) throw error;
     }
   }
@@ -82,6 +107,13 @@ async function readAiShard(shard) {
   return readDocument(aiShardPath(shard), emptyAiShard(shard));
 }
 
+async function readAiShards(shards) {
+  return readDocuments(shards.map((shard) => ({
+    pathname: aiShardPath(shard),
+    fallback: emptyAiShard(shard)
+  })));
+}
+
 async function mutateAiShard(shard, mutator) {
   const pathname = aiShardPath(shard);
   for (let attempt = 0; attempt < 5; attempt += 1) {
@@ -94,7 +126,7 @@ async function mutateAiShard(shard, mutator) {
       await writeDocument(pathname, next, current.etag);
       return next;
     } catch (error) {
-      const conflict = error instanceof BlobPreconditionFailedError || error?.status === 409 || error?.statusCode === 409;
+      const conflict = error instanceof BlobPreconditionFailedError || error instanceof GoogleStoreConflictError || error?.status === 409 || error?.statusCode === 409;
       if (!conflict || attempt === 4) throw error;
     }
   }
@@ -121,4 +153,18 @@ async function loginRate(ip, failed) {
   return { allowed: record.blockedUntil <= now, retryAfter: record.blockedUntil > now ? 900 : 0 };
 }
 
-module.exports = { emptyPortfolio, loginRate, mutateAiShard, mutatePortfolio, readAiShard, readPortfolio, writableEtag };
+function operationalDatabase() {
+  return googleStoreConfigured() ? "Private Google Sheets" : "Private Vercel Blob";
+}
+
+module.exports = {
+  emptyPortfolio,
+  loginRate,
+  mutateAiShard,
+  mutatePortfolio,
+  operationalDatabase,
+  readAiShard,
+  readAiShards,
+  readPortfolio,
+  writableEtag
+};

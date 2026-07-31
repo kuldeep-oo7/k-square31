@@ -1,7 +1,7 @@
 const { CONFIG, emptySymbolState, summarizeSymbol } = require("./_lib/ai-engine");
 const { googleArchiveConfigured } = require("./_lib/google-archive");
 const { noStore, readSession } = require("./_lib/security");
-const { readAiShard } = require("./_lib/store");
+const { operationalDatabase, readAiShards } = require("./_lib/store");
 const { SHARD_COUNT, universe, universeMetadata } = require("./_lib/universe");
 
 module.exports = async function handler(request, response) {
@@ -11,7 +11,7 @@ module.exports = async function handler(request, response) {
   if (!session || session.username !== "ai") return response.status(403).json({ error: "AI account required" });
 
   try {
-    const shards = await Promise.all(Array.from({ length: SHARD_COUNT }, (_, shard) => readAiShard(shard)));
+    const shards = await readAiShards(Array.from({ length: SHARD_COUNT }, (_, shard) => shard));
     const stored = Object.assign({}, ...shards.map((item) => item.data.symbols || {}));
     const stocks = universe().map((item) => summarizeSymbol({ ...emptySymbolState(item.symbol), ...stored[item.symbol], ...item }));
     const transactions = shards.flatMap((item) => item.data.transactions || []).sort((a, b) => b.time - a.time).slice(0, 150);
@@ -27,7 +27,7 @@ module.exports = async function handler(request, response) {
     }, { allocated: stocks.length * CONFIG.budgetPerStock, cash: 0, marketValue: 0, invested: 0, openPnl: 0, realizedPnl: 0, openLots: 0, activeStocks: 0 });
     const storedSessions = stocks.map((stock) => Number(stock.historySessions) || 0);
     const storage = {
-      operationalDatabase: "Private Vercel Blob",
+      operationalDatabase: operationalDatabase(),
       minimumHistorySessions: storedSessions.length ? Math.min(...storedSessions) : 0,
       maximumHistorySessions: storedSessions.length ? Math.max(...storedSessions) : 0,
       totalHistoryRows: storedSessions.reduce((sum, value) => sum + value, 0),

@@ -50,9 +50,9 @@ Then open `http://127.0.0.1:4173`.
 
 Copy `.env.local.example` to `.env.local` and provide a private `BLOB_READ_WRITE_TOKEN` plus a strong `K2_SESSION_SECRET` for local backend work. Never commit either value.
 
-## Google Sheets historical archive
+## Google Sheets database and historical archive
 
-K² keeps Vercel Blob as the operational database because portfolio and paper-ledger writes require private access and optimistic concurrency. A private Google Sheet can be attached as a deduplicated OHLCV archive:
+K² can use a private Google Sheet as both the operational portfolio/paper-ledger database and the deduplicated OHLCV archive. Operational JSON documents are gzip-compressed, split below the Google Sheets cell limit, versioned, and protected by Script Lock plus optimistic concurrency:
 
 1. Create or open the private destination Sheet.
 2. Open Extensions → Apps Script and paste `google-sheets/K2MarketArchive.gs`.
@@ -60,7 +60,7 @@ K² keeps Vercel Blob as the operational database because portfolio and paper-le
 4. Deploy the script as a Web app, executing as the Sheet owner.
 5. Add the deployment URL as `K2_GOOGLE_SHEETS_WEB_APP_URL` and the generated secret as `K2_GOOGLE_SHEETS_ARCHIVE_SECRET` in Vercel.
 
-The next secured AI runner pass backfills the `OHLCV_0` … `OHLCV_9` tabs, then sends deduplicated daily observations. A failed Sheet sync never corrupts or blocks the trading ledger.
+When both variables are present, K² automatically switches the operational database from Vercel Blob to the private Sheet. The next secured AI runner pass builds `K2_STATE`, backfills `OHLCV_0` … `OHLCV_49`, and then sends deduplicated daily observations. The Vercel functions never expose the Sheet URL or shared secret to the browser.
 
 The server endpoint is in `api/market.js`. The current feed uses Yahoo Finance's unofficial chart endpoint and can be delayed. For exchange-grade realtime NSE data, replace `fetchChart()` with a licensed provider while preserving the endpoint response shape.
 
