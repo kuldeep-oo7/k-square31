@@ -24,19 +24,17 @@ module.exports = async function handler(request, response) {
   if (!validOrigin(request)) return response.status(403).json({ error: "Forbidden" });
 
   const ip = clientIp(request);
-  const existingRate = await loginRate(ip, null);
-  if (!existingRate.allowed) {
-    response.setHeader("Retry-After", String(existingRate.retryAfter));
-    await delay(500);
-    return response.status(429).json({ error: "Too many attempts. Try again later." });
-  }
-
   let body = request.body || {};
   if (typeof body === "string") { try { body = JSON.parse(body); } catch { body = {}; } }
   const username = String(body.username || "").trim().toLowerCase().slice(0, 80);
   const password = String(body.password || "");
   const valid = verifyPassword(username, password);
-  await loginRate(ip, !valid);
+  const rate = await loginRate(ip, !valid);
+  if (!rate.allowed) {
+    response.setHeader("Retry-After", String(rate.retryAfter));
+    await delay(500);
+    return response.status(429).json({ error: "Too many attempts. Try again later." });
+  }
   await delay(400);
   if (!valid) return response.status(401).json({ error: "Username or password is incorrect." });
 

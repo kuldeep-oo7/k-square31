@@ -1,9 +1,13 @@
 const DAY = 86_400;
 const { readSession } = require("./_lib/security");
-const { readAiShard } = require("./_lib/store");
+const { readAiShards } = require("./_lib/store");
 const { symbolShard } = require("./_lib/universe");
 const { candleStudy, strategyLab, weightedModel } = require("./_lib/strategy-lab");
 let benchmarkCache = { expires: 0, result: null };
+const historyShardCache = new Map();
+const marketResultCache = new Map();
+const HISTORY_CACHE_MS = 5 * 60_000;
+const RESULT_CACHE_MS = 45_000;
 
 function round(value) {
   if (!Number.isFinite(value)) return null;
@@ -582,6 +586,9 @@ async function benchmark() {
 }
 
 async function fetchSymbol(rawSymbol, benchmarkResult, storedHistory = {}) {
+  const cacheKey = rawSymbol.replace(/\.NS$/, "");
+  const cached = marketResultCache.get(cacheKey);
+  if (cached?.expires > Date.now()) return cached.result;
   const symbol = rawSymbol === "NIFTY" ? "^NSEI" : rawSymbol.endsWith(".NS") ? rawSymbol : `${rawSymbol}.NS`;
   const live = await fetchChart(symbol);
   const history = storedHistory[rawSymbol.replace(/\.NS$/, "")]?.observations;
@@ -591,7 +598,23 @@ async function fetchSymbol(rawSymbol, benchmarkResult, storedHistory = {}) {
     storedSessions: Array.isArray(history) ? history.length : 0,
     source: Array.isArray(history) && history.length ? "private K² historical database + current quote" : "current quote provider"
   };
+  marketResultCache.set(cacheKey, { expires: Date.now() + RESULT_CACHE_MS, result });
   return result;
+}
+
+async function storedHistoryForShards(requiredShards) {
+  const now = Date.now();
+  const missing = requiredShards.filter((shard) => historyShardCache.get(shard)?.expires <= now || !historyShardCache.has(shard));
+  if (missing.length) {
+    const documents = await readAiShards(missing);
+    documents.forEach((document, index) => historyShardCache.set(missing[index], {
+      expires: now + HISTORY_CACHE_MS,
+      symbols: document.data.symbols || {}
+    }));
+  }
+  const storedHistory = {};
+  requiredShards.forEach((shard) => Object.assign(storedHistory, historyShardCache.get(shard)?.symbols || {}));
+  return storedHistory;
 }
 
 module.exports = async function handler(request, response) {
@@ -606,11 +629,10 @@ module.exports = async function handler(request, response) {
     return response.status(400).json({ error: "Supply 1–10 comma-separated NSE symbols." });
   }
 
-  const storedHistory = {};
   const requiredShards = [...new Set(valid.map((symbol) => symbolShard(symbol)).filter(Number.isInteger))];
+  let storedHistory = {};
   try {
-    const shards = await Promise.all(requiredShards.map((shard) => readAiShard(shard)));
-    shards.forEach((item) => Object.assign(storedHistory, item.data.symbols || {}));
+    storedHistory = await storedHistoryForShards(requiredShards);
   } catch (error) {
     console.error("Historical database read failed; continuing with the live provider", error);
   }

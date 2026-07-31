@@ -766,7 +766,7 @@
           : `<div class="range-values"><span>${state.user === "ai" ? "Waiting for Monday grid" : "Fetching action prices"}</span><span>—</span></div><div class="range-loading"></div>`;
       const stateMarkup = aiReady ? `<span class="state-chip ${aiStock.lots?.length ? "lower-band" : "mid-band"}">${aiStock.lots?.length ? `${aiStock.lots.length} open lot${aiStock.lots.length === 1 ? "" : "s"}` : "Grid watching"}</span><small class="quant-link ${aiStock.openPnl >= 0 ? "positive" : "negative"}">${aiStock.nextBuy ? `B${aiStock.nextBuy.level} next · ${money(aiStock.nextBuy.price)}` : "Weekly levels evaluated"}</small>` : data ? `<span class="trade-suggestion ${recommendation.tone}">${recommendation.label}</span><small class="quant-link ${recommendation.score >= 0 ? "positive" : "negative"}">Weighted score ${recommendation.score >= 0 ? "+" : ""}${number(recommendation.score)} / 100 · ${recommendation.detail}</small>` : `<span class="state-chip">Loading</span><small class="map-link">Building weighted model →</small>`;
       return `
-        <article class="stock-row" data-symbol="${item.symbol}" tabindex="0" aria-label="Open ${item.symbol} range detail">
+        <article class="stock-row ${item.symbol === state.focusSymbol ? "selected" : ""}" data-symbol="${item.symbol}" tabindex="0" ${item.symbol === state.focusSymbol ? 'aria-current="true"' : ""} aria-label="Show the complete analysis for ${item.symbol}">
           <div class="symbol-cell"><span class="symbol-avatar">${initials(item.symbol)}</span><div><b>${item.symbol}</b><small>${source}</small></div></div>
           <div class="price-cell"><strong>${money(price)}</strong><small class="${changeClass}">${pct(change)} today</small></div>
           <div class="range-cell">${mapMarkup}</div>
@@ -1191,16 +1191,20 @@
   function renderMarketViewsStable() {
     clearTimeout(state.marketRenderTimer);
     const run = () => {
+      const scrollingFor = Date.now() - state.lastScrollAt;
+      if (scrollingFor < 260) {
+        state.marketRenderTimer = setTimeout(run, 280 - scrollingFor);
+        return;
+      }
       const row = document.elementFromPoint(Math.min(window.innerWidth / 2, 220), Math.min(170, window.innerHeight / 3))?.closest?.("[data-symbol]");
       const anchorSymbol = row?.dataset?.symbol;
       const anchorTop = row?.getBoundingClientRect().top;
       const previousY = window.scrollY;
       renderWatchlist();
       renderFocusMap();
-      renderPortfolio();
+      if (el("portfolioPanel").classList.contains("active")) renderPortfolio();
       if (state.currentSymbol) renderDrawer(state.currentSymbol);
       requestAnimationFrame(() => {
-        if (Date.now() - state.lastScrollAt < 140) return;
         const replacement = anchorSymbol ? stockList.querySelector(`[data-symbol="${CSS.escape(anchorSymbol)}"]`) : null;
         if (replacement && Number.isFinite(anchorTop)) {
           const shift = replacement.getBoundingClientRect().top - anchorTop;
@@ -1210,13 +1214,13 @@
         }
       });
     };
-    const delay = Math.max(0, 180 - (Date.now() - state.lastScrollAt));
+    const delay = Math.max(0, 280 - (Date.now() - state.lastScrollAt));
     state.marketRenderTimer = setTimeout(run, delay);
   }
 
   async function fetchSymbols(symbols) {
     const unique = [...new Set(symbols)].filter(Boolean);
-    const batches = Array.from({ length: Math.ceil(unique.length / 8) }, (_, index) => unique.slice(index * 8, index * 8 + 8));
+    const batches = Array.from({ length: Math.ceil(unique.length / 10) }, (_, index) => unique.slice(index * 10, index * 10 + 10));
     let cursor = 0;
     let completed = 0;
     const worker = async () => {
@@ -1233,10 +1237,9 @@
         }
         completed += 1;
         if (state.user !== "ai") el("loadedCount").textContent = `${market.size} / ${watchlist.length}`;
-        if (completed % 4 === 0) renderMarketViewsStable();
       }
     };
-    await Promise.all(Array.from({ length: Math.min(2, batches.length) }, () => worker()));
+    await Promise.all(Array.from({ length: Math.min(3, batches.length) }, () => worker()));
     renderMarketViewsStable();
   }
 
@@ -1246,8 +1249,15 @@
     refreshButton.classList.add("spinning");
     setFeedStatus("", "Updating 31-day maps");
     const owned = holdings().map((item) => item.symbol);
-    const symbols = [...new Set([...owned, ...watchlist.map((item) => item.symbol)])];
-    await fetchSymbols(symbols);
+    const allSymbols = [...new Set([...owned, ...watchlist.map((item) => item.symbol)])];
+    const firstScreen = [...new Set([state.focusSymbol, ...filteredWatchlist().slice(0, 30).map((item) => item.symbol), ...owned.slice(0, 10)])].filter(Boolean);
+    await fetchSymbols(firstScreen);
+    const prioritySet = new Set(firstScreen);
+    const remaining = allSymbols.filter((symbol) => !prioritySet.has(symbol));
+    if (remaining.length) {
+      setFeedStatus("", `Updating ${remaining.length} background symbols`);
+      await fetchSymbols(remaining);
+    }
     state.refreshing = false;
     refreshButton.classList.remove("spinning");
     if (market.size) {
@@ -1384,6 +1394,25 @@
     if (!market.has(symbol)) {
       await fetchSymbols([symbol]);
       renderDrawer(symbol);
+    }
+  }
+
+  async function selectFullAnalysis(symbol) {
+    if (!symbol) return;
+    closeDrawer();
+    state.focusSymbol = symbol;
+    state.mobileFocusExpanded = true;
+    renderWatchlist();
+    renderFocusMap();
+    el("focusMap").scrollIntoView({ block: "start", behavior: "auto" });
+    el("focusMap").focus?.({ preventScroll: true });
+    if (!market.has(symbol)) {
+      setFeedStatus("", `Loading ${symbol} analysis`);
+      await fetchSymbols([symbol]);
+      if (state.focusSymbol === symbol) {
+        renderFocusMap();
+        el("focusMap").scrollIntoView({ block: "start", behavior: "auto" });
+      }
     }
   }
 
@@ -1623,6 +1652,8 @@
     state.aiLoading = aiMode;
     state.aiError = null;
     state.plannerKey = null;
+    state.actionFilter = "all";
+    el("actionFilterStatus").hidden = true;
     el("tradePlanner").hidden = aiMode;
     el("actionFilters").hidden = aiMode;
     el("trackedLabel").textContent = aiMode ? "AI broad universe" : "Tracked universe";
@@ -1651,8 +1682,8 @@
       document.querySelectorAll(".tab-button").forEach((node) => node.classList.toggle("active", node.dataset.tab === "portfolio"));
       document.querySelectorAll(".workspace-panel").forEach((panel) => panel.classList.toggle("active", panel.id === "portfolioPanel"));
     }
-    if (aiMode) await syncAiLedger(); else await syncServerPortfolio();
-    if (!market.size) refreshAll(); else refreshPriority();
+    if (aiMode) void syncAiLedger(); else void syncServerPortfolio();
+    if (!market.size) void refreshAll(); else void refreshPriority();
     if (!state.refreshTimer) state.refreshTimer = setInterval(refreshPriority, 60_000);
     if (aiMode && !state.aiRefreshTimer) state.aiRefreshTimer = setInterval(syncAiLedger, 60_000);
   }
@@ -1669,6 +1700,8 @@
     state.aiError = null;
     state.aiSyncing = false;
     state.plannerKey = null;
+    state.actionFilter = "all";
+    el("actionFilterStatus").hidden = true;
     el("tradePlanner").hidden = false;
     el("actionFilters").hidden = false;
     clearInterval(state.aiRefreshTimer);
@@ -1711,10 +1744,13 @@
     const add = event.target.closest("[data-add]");
     if (add) { event.stopPropagation(); openTrade(add.dataset.add); return; }
     const row = event.target.closest("[data-symbol]");
-    if (row) { state.focusSymbol = row.dataset.symbol; state.mobileFocusExpanded = false; renderFocusMap(); openDrawer(row.dataset.symbol); }
+    if (row) void selectFullAnalysis(row.dataset.symbol);
   });
   stockList.addEventListener("keydown", (event) => {
-    if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-symbol]")) openDrawer(event.target.dataset.symbol);
+    if ((event.key === "Enter" || event.key === " ") && event.target.matches("[data-symbol]")) {
+      event.preventDefault();
+      void selectFullAnalysis(event.target.dataset.symbol);
+    }
   });
 
   el("portfolioContent").addEventListener("click", (event) => {
@@ -1820,6 +1856,28 @@
     state.actionFilter = button.dataset.actionFilter;
     state.visibleLimit = 30;
     renderWatchlist();
+    const filtered = filteredWatchlist();
+    const status = el("actionFilterStatus");
+    if (state.actionFilter === "all") {
+      status.hidden = true;
+    } else {
+      const label = state.actionFilter === "alert" ? "REVIEW" : state.actionFilter.toUpperCase();
+      status.hidden = false;
+      status.textContent = filtered.length
+        ? `Showing ${filtered.length} ${label} stock${filtered.length === 1 ? "" : "s"}. First match: ${filtered[0].symbol}.`
+        : `No ${label} stocks match the other filters right now.`;
+    }
+    if (filtered[0]) {
+      state.focusSymbol = filtered[0].symbol;
+      state.mobileFocusExpanded = false;
+      renderFocusMap();
+      requestAnimationFrame(() => {
+        const firstRow = stockList.querySelector(`[data-symbol="${CSS.escape(filtered[0].symbol)}"]`);
+        firstRow?.scrollIntoView({ block: "start", behavior: "instant" });
+        firstRow?.focus({ preventScroll: true });
+      });
+      toast(`${filtered.length} ${state.actionFilter === "alert" ? "review" : state.actionFilter} stock${filtered.length === 1 ? "" : "s"} shown.`);
+    }
   });
   el("searchInput").addEventListener("input", () => {
     state.visibleLimit = 30;
@@ -1885,6 +1943,17 @@
     el("methodModal").classList.remove("open");
   });
 
-  if ("serviceWorker" in navigator) window.addEventListener("load", () => navigator.serviceWorker.register("/service-worker.js").catch(() => {}));
+  if ("serviceWorker" in navigator) window.addEventListener("load", async () => {
+    const registrations = await navigator.serviceWorker.getRegistrations().catch(() => []);
+    await Promise.all(registrations.map((registration) => registration.unregister())).catch(() => {});
+    const keys = await caches.keys().catch(() => []);
+    await Promise.all(keys.filter((key) => key.startsWith("k2-")).map((key) => caches.delete(key))).catch(() => {});
+    if (navigator.serviceWorker.controller && !sessionStorage.getItem("k2-cache-retired-22")) {
+      sessionStorage.setItem("k2-cache-retired-22", "1");
+      const url = new URL(location.href);
+      url.searchParams.set("k2v", "22");
+      location.replace(url.href);
+    }
+  });
   bootstrapAuth();
 })();
