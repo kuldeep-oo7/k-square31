@@ -10,6 +10,8 @@ assert.equal(form.get("all_outstanding"), "1");
 assert.equal(form.get("group_by"), "t.script_name");
 assert.equal(form.get("market_type_id"), "");
 assert.equal(form.get("mDataProp_11"), "11");
+assert.equal(form.get("mDataProp_12"), "12");
+assert.equal(form.get("iColumns"), "13");
 
 const jar = new CookieJar();
 jar.add({ headers: { getSetCookie: () => ["PHPSESSID=abc123; Path=/; Secure; HttpOnly", "device=cloud; Path=/"] } });

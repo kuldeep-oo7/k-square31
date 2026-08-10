@@ -40,7 +40,7 @@ function gmHeaders(jar, extra = {}) {
 function positionForm() {
   const form = new URLSearchParams({
     sEcho: "1",
-    iColumns: "12",
+    iColumns: "13",
     sColumns: "",
     iDisplayStart: "0",
     iDisplayLength: "-1",
@@ -58,7 +58,7 @@ function positionForm() {
     group_by: "t.script_name",
     expiry_date: ""
   });
-  for (let index = 0; index < 12; index += 1) {
+  for (let index = 0; index < 13; index += 1) {
     form.set(`mDataProp_${index}`, String(index));
     form.set(`sSearch_${index}`, "");
     form.set(`bRegex_${index}`, "false");
