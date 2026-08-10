@@ -10,6 +10,7 @@
   const state = {
     visibleLimit: 30,
     actionFilter: "all",
+    portfolioFilters: { query: "", band: "all", sector: "all", cap: "all", model: "all", sort: "journal", action: "all" },
     currentSymbol: null,
     focusSymbol: watchlist[0]?.symbol || null,
     tradeSymbol: null,
@@ -692,6 +693,76 @@
     return { items, value, cost, pnl, pnlPct: cost ? (pnl / cost) * 100 : 0, hasFutures: items.some((item) => item.assetType === "future") };
   }
 
+  function portfolioActionCategory(item) {
+    const data = market.get(item.symbol);
+    if (!data) return "alert";
+    const personal = personalSignal(item.symbol, data, item);
+    return weightedCategory(weightedRecommendation(data, personal), personal);
+  }
+
+  function filteredPortfolioItems(items) {
+    const filters = state.portfolioFilters;
+    const query = filters.query.trim().toUpperCase();
+    let filtered = items.filter((item) => {
+      const metadata = bySymbol.get(item.symbol);
+      return !query || item.symbol.includes(query) || metadata?.sector?.toUpperCase().includes(query);
+    });
+    if (filters.sector !== "all") filtered = filtered.filter((item) => bySymbol.get(item.symbol)?.sector === filters.sector);
+    if (filters.cap !== "all") filtered = filtered.filter((item) => bySymbol.get(item.symbol)?.marketCapCategory === filters.cap);
+    if (filters.model !== "all") filtered = filtered.filter((item) => market.get(item.symbol)?.signals?.marketRegime === filters.model);
+    if (filters.action !== "all") filtered = filtered.filter((item) => portfolioActionCategory(item) === filters.action);
+    if (filters.band !== "all") {
+      filtered = filtered.filter((item) => {
+        const regime = market.get(item.symbol)?.regime;
+        return filters.band === "outside" ? regime === "below-range" || regime === "above-range" : regime === filters.band;
+      });
+    }
+    filtered.sort((a, b) => {
+      const aData = market.get(a.symbol);
+      const bData = market.get(b.symbol);
+      if (filters.sort === "symbol") return a.symbol.localeCompare(b.symbol);
+      if (filters.sort === "pnl") {
+        const aMark = a.assetType === "future" ? a.markPrice : (currentPrice(a.symbol) ?? a.average);
+        const bMark = b.assetType === "future" ? b.markPrice : (currentPrice(b.symbol) ?? b.average);
+        const aPnl = (aMark - a.average) * a.quantity * (a.position === "short" ? -1 : 1);
+        const bPnl = (bMark - b.average) * b.quantity * (b.position === "short" ? -1 : 1);
+        return bPnl - aPnl;
+      }
+      if (filters.sort === "change") return Math.abs(bData?.changePct ?? -Infinity) - Math.abs(aData?.changePct ?? -Infinity);
+      if (filters.sort === "buy-pulse") return (bData?.signals?.pulseScore ?? -99) - (aData?.signals?.pulseScore ?? -99);
+      if (filters.sort === "sell-pulse") return (aData?.signals?.pulseScore ?? 99) - (bData?.signals?.pulseScore ?? 99);
+      if (filters.sort === "sector") return (bySymbol.get(a.symbol)?.sector || "").localeCompare(bySymbol.get(b.symbol)?.sector || "") || a.symbol.localeCompare(b.symbol);
+      return 0;
+    });
+    return filtered;
+  }
+
+  function portfolioFiltersMarkup(items) {
+    const filters = state.portfolioFilters;
+    const sectors = [...new Set(items.map((item) => bySymbol.get(item.symbol)?.sector).filter(Boolean))].sort();
+    const counts = { all: items.length, buy: 0, hold: 0, sell: 0, alert: 0 };
+    items.forEach((item) => { counts[portfolioActionCategory(item)] += 1; });
+    const selected = (value, current) => value === current ? " selected" : "";
+    const sectorOptions = sectors.map((sector) => `<option value="${sector}"${selected(sector, filters.sector)}>${sector}</option>`).join("");
+    return `<section class="portfolio-controls" aria-label="Filter synchronized portfolio positions">
+      <div class="toolbar">
+        <label class="search-box"><svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="m20 20-4-4"></path></svg><input data-portfolio-filter="query" type="search" placeholder="Find a portfolio symbol…" autocomplete="off"></label>
+        <label class="select-wrap"><span>Band</span><select data-portfolio-filter="band"><option value="all"${selected("all", filters.band)}>All ranges</option><option value="lower-band"${selected("lower-band", filters.band)}>Lower band</option><option value="mid-band"${selected("mid-band", filters.band)}>Mid band</option><option value="upper-band"${selected("upper-band", filters.band)}>Upper band</option><option value="outside"${selected("outside", filters.band)}>Outside range</option></select></label>
+        <label class="select-wrap"><span>Sector</span><select data-portfolio-filter="sector"><option value="all"${selected("all", filters.sector)}>All sectors</option>${sectorOptions}</select></label>
+        <label class="select-wrap"><span>Market cap</span><select data-portfolio-filter="cap"><option value="all"${selected("all", filters.cap)}>All caps</option><option value="Large Cap"${selected("Large Cap", filters.cap)}>Large cap</option><option value="Mid Cap"${selected("Mid Cap", filters.cap)}>Mid cap</option><option value="Small Cap"${selected("Small Cap", filters.cap)}>Small cap</option></select></label>
+        <label class="select-wrap"><span>Quant mode</span><select data-portfolio-filter="model"><option value="all"${selected("all", filters.model)}>All modes</option><option value="trend"${selected("trend", filters.model)}>Trend</option><option value="range"${selected("range", filters.model)}>Range</option><option value="transition"${selected("transition", filters.model)}>Transition</option><option value="volatile"${selected("volatile", filters.model)}>High volatility</option></select></label>
+        <label class="select-wrap"><span>Sort</span><select data-portfolio-filter="sort"><option value="journal"${selected("journal", filters.sort)}>GM order</option><option value="buy-pulse"${selected("buy-pulse", filters.sort)}>Buy pulse first</option><option value="sell-pulse"${selected("sell-pulse", filters.sort)}>Sell pulse first</option><option value="pnl"${selected("pnl", filters.sort)}>P&amp;L high → low</option><option value="change"${selected("change", filters.sort)}>Daily move</option><option value="symbol"${selected("symbol", filters.sort)}>Symbol A–Z</option><option value="sector"${selected("sector", filters.sort)}>Sector A–Z</option></select></label>
+      </div>
+      <nav class="action-filters" aria-label="Filter portfolio by today's action">
+        <button type="button" class="${filters.action === "all" ? "active" : ""}" data-portfolio-action="all">All <b>${counts.all}</b></button>
+        <button type="button" class="${filters.action === "buy" ? "active" : ""}" data-portfolio-action="buy"><span>↓</span> Buy list <b>${counts.buy}</b></button>
+        <button type="button" class="${filters.action === "hold" ? "active" : ""}" data-portfolio-action="hold"><span>•</span> Hold list <b>${counts.hold}</b></button>
+        <button type="button" class="${filters.action === "sell" ? "active" : ""}" data-portfolio-action="sell"><span>↑</span> Sell list <b>${counts.sell}</b></button>
+        <button type="button" class="${filters.action === "alert" ? "active" : ""}" data-portfolio-action="alert"><span>!</span> Review list <b>${counts.alert}</b></button>
+      </nav>
+    </section>`;
+  }
+
   function filteredWatchlist() {
     const query = el("searchInput").value.trim().toUpperCase();
     const band = el("bandFilter").value;
@@ -1103,6 +1174,8 @@
       return;
     }
 
+    const filteredItems = filteredPortfolioItems(metrics.items);
+
     const weeklyPortfolioPnl = metrics.items.reduce((sum, item) => {
       const data = market.get(item.symbol);
       const base = Number(data?.weekly?.openingPrice);
@@ -1111,7 +1184,7 @@
       const direction = item.position === "short" ? -1 : 1;
       return sum + (current - base) * item.quantity * direction;
     }, 0);
-    const cards = metrics.items.map((item) => {
+    const cards = filteredItems.map((item) => {
       const isFuture = item.assetType === "future";
       const live = isFuture ? item.markPrice : (currentPrice(item.symbol) ?? item.average);
       const spot = currentPrice(item.symbol);
@@ -1171,6 +1244,8 @@
       </div>`).join("");
 
     container.innerHTML = `
+      ${portfolioFiltersMarkup(metrics.items)}
+      <p class="action-filter-status portfolio-filter-status">Showing ${filteredItems.length} of ${metrics.items.length} portfolio position${metrics.items.length === 1 ? "" : "s"}.${state.user === "shah@kamlesh" ? " Source: latest synchronized GM Global snapshot." : ""}</p>
       <div class="portfolio-summary">
         <article class="portfolio-mini"><span>${metrics.hasFutures ? "Reference notional" : "Market value"}</span><strong>${money(metrics.value)}</strong></article>
         <article class="portfolio-mini"><span>${metrics.hasFutures ? "Entry notional" : "Invested cost"}</span><strong>${money(metrics.cost)}</strong></article>
@@ -1178,8 +1253,10 @@
         <article class="portfolio-mini"><span>This week · Monday reset</span><strong class="${weeklyPortfolioPnl >= 0 ? "positive" : "negative"}">${money(weeklyPortfolioPnl)}</strong><small>Friday reference close; underlying proxy for imported futures</small></article>
         <article class="portfolio-mini"><span>Private database</span><strong class="${state.databaseOnline ? "positive" : "negative"}">${state.databaseOnline ? "Synchronized" : "Offline copy"}</strong></article>
       </div>
-      <div class="holdings-list">${cards}</div>
+      <div class="holdings-list">${cards || `<div class="empty-portfolio"><div><div class="empty-orbit">⌕</div><h3>No portfolio position matches</h3><p>Change the action, symbol, sector, market-cap, range or quant filter.</p><button class="empty-reset" type="button" data-reset-portfolio-filters>Show every portfolio position</button></div></div>`}</div>
       ${transactions ? `<div class="portfolio-intro" style="padding-top:55px;padding-bottom:20px"><div><p class="eyebrow"><span></span> Recent activity</p><h2 style="font-size:38px">Lot journal</h2></div></div><div class="holdings-list">${transactions}</div>` : ""}`;
+    const portfolioSearch = container.querySelector('[data-portfolio-filter="query"]');
+    if (portfolioSearch) portfolioSearch.value = state.portfolioFilters.query;
     renderSummary();
   }
 
@@ -1653,6 +1730,7 @@
     state.aiError = null;
     state.plannerKey = null;
     state.actionFilter = "all";
+    state.portfolioFilters = { query: "", band: "all", sector: "all", cap: "all", model: "all", sort: "journal", action: "all" };
     el("actionFilterStatus").hidden = true;
     el("tradePlanner").hidden = aiMode;
     el("actionFilters").hidden = aiMode;
@@ -1665,7 +1743,9 @@
     el("portfolioHeading").innerHTML = aiMode ? `The machine watches,<br /><em>the ledger remembers.</em>` : `Your positions,<br /><em>measured live.</em>`;
     el("portfolioIntroCopy").textContent = aiMode
       ? "K² scans a broad Indian large-, mid- and small-cap universe from Monday opening anchors. Every simulated fill is automatic, isolated and auditable across devices."
-      : "Entry lots are stored securely under your signed-in account and follow you across devices. Current value and open P&L move with the same market feed as your watchlist.";
+      : state.user === "shah@kamlesh"
+        ? "This account follows the latest synchronized GM Global portfolio snapshot. Search and action filters use K² market and quant evidence for only those open GM positions."
+        : "Entry lots are stored securely under your signed-in account and follow you across devices. Current value and open P&L move with the same market feed as your watchlist.";
     el("methodCopy").innerHTML = aiMode
       ? "<b>AI weekly rule:</b> Monday opening becomes the anchor; five risk-sized slots compound downward by 2%; every filled lot receives its own automatic +2% paper exit and a stored quant decision snapshot."
       : "<b>Action rule:</b> Monday opening is the base for all five buy and five sell prices. The 31-day and three-month ranges remain context—not the weekly action base.";
@@ -1701,6 +1781,7 @@
     state.aiSyncing = false;
     state.plannerKey = null;
     state.actionFilter = "all";
+    state.portfolioFilters = { query: "", band: "all", sector: "all", cap: "all", model: "all", sort: "journal", action: "all" };
     el("actionFilterStatus").hidden = true;
     el("tradePlanner").hidden = false;
     el("actionFilters").hidden = false;
@@ -1755,6 +1836,17 @@
 
   el("portfolioContent").addEventListener("click", (event) => {
     if (event.target.closest("[data-retry-ai]")) { syncAiLedger(); return; }
+    const portfolioAction = event.target.closest("[data-portfolio-action]");
+    if (portfolioAction) {
+      state.portfolioFilters.action = portfolioAction.dataset.portfolioAction;
+      renderPortfolio();
+      return;
+    }
+    if (event.target.closest("[data-reset-portfolio-filters]")) {
+      state.portfolioFilters = { query: "", band: "all", sector: "all", cap: "all", model: "all", sort: "journal", action: "all" };
+      renderPortfolio();
+      return;
+    }
     const aiCap = event.target.closest("[data-ai-cap]");
     if (aiCap) {
       state.aiCapFilter = aiCap.dataset.aiCap;
@@ -1790,6 +1882,23 @@
     }
     if (buy) openTrade(buy.dataset.openBuy, "buy");
     if (sell) openTrade(sell.dataset.openSell, "sell");
+  });
+  el("portfolioContent").addEventListener("input", (event) => {
+    const input = event.target.closest('[data-portfolio-filter="query"]');
+    if (!input) return;
+    state.portfolioFilters.query = input.value;
+    renderPortfolio();
+    requestAnimationFrame(() => {
+      const next = el("portfolioContent").querySelector('[data-portfolio-filter="query"]');
+      next?.focus({ preventScroll: true });
+      next?.setSelectionRange(state.portfolioFilters.query.length, state.portfolioFilters.query.length);
+    });
+  });
+  el("portfolioContent").addEventListener("change", (event) => {
+    const control = event.target.closest("[data-portfolio-filter]");
+    if (!control || control.dataset.portfolioFilter === "query") return;
+    state.portfolioFilters[control.dataset.portfolioFilter] = control.value;
+    renderPortfolio();
   });
   el("drawerContent").addEventListener("click", (event) => {
     if (event.target.closest("[data-open-ai-grid]")) { closeDrawer(); document.querySelector('[data-tab="portfolio"]').click(); return; }

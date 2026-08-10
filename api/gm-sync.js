@@ -1,4 +1,4 @@
-const { issueBridgeToken, bearerToken, readBridgeToken } = require("./_lib/gm-bridge");
+const { issueBridgeToken, bearerToken, readBridgeToken, readCloudBridgeToken } = require("./_lib/gm-bridge");
 const { noStore, readSession, validCsrf, validOrigin } = require("./_lib/security");
 const { mutatePortfolio } = require("./_lib/store");
 const { cleanPortfolio, replaceBrokerSnapshot } = require("./_lib/portfolio-model");
@@ -34,7 +34,8 @@ module.exports = async function handler(request, response) {
     });
   }
 
-  const claims = readBridgeToken(bearerToken(request));
+  const suppliedToken = bearerToken(request);
+  const claims = readBridgeToken(suppliedToken) || readCloudBridgeToken(suppliedToken);
   if (!claims) return response.status(401).json({ error: "The GM bridge is not paired or its device token has expired" });
   if (body.action !== "sync-broker-portfolio") return response.status(400).json({ error: "Invalid bridge action" });
 
@@ -55,7 +56,7 @@ module.exports = async function handler(request, response) {
       }
       return replaceBrokerSnapshot(portfolio, positions, snapshotId, undefined, {
         capturedAt: new Date(capturedAt).toISOString(),
-        source: "gm-extension",
+        source: claims.deviceId === "gm-cloud-worker" ? "gm-cloud" : "gm-extension",
         deviceId: claims.deviceId
       });
     });

@@ -43,4 +43,16 @@ function bearerToken(request) {
   return match ? match[1] : "";
 }
 
-module.exports = { bearerToken, issueBridgeToken, readBridgeToken };
+function readCloudBridgeToken(token) {
+  const secret = String(process.env.K2_GM_CLOUD_SYNC_SECRET || "");
+  if (secret.length < 32 || !safeEqual(String(token || ""), secret)) return null;
+  return {
+    username: "shah@kamlesh",
+    scope: SCOPE,
+    issuedAt: Date.now(),
+    expires: Date.now() + 5 * 60 * 1000,
+    deviceId: "gm-cloud-worker"
+  };
+}
+
+module.exports = { bearerToken, issueBridgeToken, readBridgeToken, readCloudBridgeToken };

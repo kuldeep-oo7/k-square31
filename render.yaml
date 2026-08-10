@@ -1,0 +1,15 @@
+services:
+  - type: worker
+    name: k2-gm-portfolio-sync
+    runtime: docker
+    dockerfilePath: ./Dockerfile.gm-worker
+    autoDeployTrigger: commit
+    envVars:
+      - key: GM_USERNAME
+        sync: false
+      - key: GM_PASSWORD
+        sync: false
+      - key: K2_GM_CLOUD_SYNC_SECRET
+        sync: false
+      - key: GM_SYNC_INTERVAL_MINUTES
+        value: "30"

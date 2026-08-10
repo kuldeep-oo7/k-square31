@@ -216,6 +216,8 @@ body.fx-quiet .k2-ambient-canvas,body.fx-quiet .gesture-sparks { display:none; }
 .empty-portfolio p { color: var(--muted); margin: 0; font-size: 13px; }
 .empty-reset { height: 42px; margin: 18px auto 0; border: 0; background: var(--violet); color: white; border-radius: 99px; padding: 0 20px; font-size: 10px; font-weight: 900; }
 .portfolio-summary { display: grid; grid-template-columns: repeat(4,1fr); gap: 12px; margin-bottom: 22px; }
+.portfolio-controls { margin: 0 0 18px; }
+.portfolio-filter-status { margin: 0 0 14px; }
 .weekly-call { display:flex;align-items:center;justify-content:space-between;gap:24px;margin:18px 0;padding:18px 20px;border:1px solid var(--line);border-radius:7px 22px 7px 7px;background:#fff8d9; }
 .weekly-call.buy,.weekly-call.buy-hit { background:linear-gradient(120deg,#e4f7ef,#fff);border-color:#b9e3d2; }.weekly-call.sell,.weekly-call.sell-hit { background:linear-gradient(120deg,#ffe4df,#fff);border-color:#efc4bd; }.weekly-call.both-hit { background:linear-gradient(120deg,#fff2b8,#fff);border-color:#ead277; }
 .weekly-call span,.portfolio-call span { display:block;font-size:8px;font-weight:900;letter-spacing:.12em;color:var(--muted); }.weekly-call h3 { margin:5px 0 2px;font:28px Georgia,serif; }.weekly-call p,.portfolio-call p { margin:0;color:var(--muted);font-size:10px;line-height:1.5; }.weekly-call > strong { font:32px Georgia,serif;white-space:nowrap; }

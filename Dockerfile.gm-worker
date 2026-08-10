@@ -1,0 +1,11 @@
+FROM node:24-alpine
+
+WORKDIR /app
+COPY extensions/gm-k2-bridge/core.js extensions/gm-k2-bridge/core.js
+COPY scripts/gm-cloud-sync.js scripts/gm-cloud-sync.js
+COPY scripts/gm-cloud-worker.js scripts/gm-cloud-worker.js
+
+ENV NODE_ENV=production
+ENV GM_SYNC_INTERVAL_MINUTES=30
+
+CMD ["node", "scripts/gm-cloud-worker.js"]
