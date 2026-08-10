@@ -53,7 +53,7 @@ function positionForm() {
     script_id: "",
     market_type_id: "",
     all_outstanding: "1",
-    group_by: "u.user_full_name",
+    group_by: "t.script_name",
     expiry_date: ""
   });
   for (let index = 0; index < 12; index += 1) {

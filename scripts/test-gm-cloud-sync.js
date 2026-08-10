@@ -7,7 +7,7 @@ const { readCloudBridgeToken } = require("../api/_lib/gm-bridge");
 const form = positionForm();
 assert.equal(form.get("iDisplayLength"), "-1");
 assert.equal(form.get("all_outstanding"), "1");
-assert.equal(form.get("group_by"), "u.user_full_name");
+assert.equal(form.get("group_by"), "t.script_name");
 assert.equal(form.get("market_type_id"), "");
 assert.equal(form.get("mDataProp_11"), "11");
 
