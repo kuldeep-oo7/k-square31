@@ -70,7 +70,7 @@ async function waitForTab(tabId) {
 async function k2Tab() {
   const tabs = await chrome.tabs.query({ url: "https://k-square31.vercel.app/*" });
   if (tabs[0]) return tabs[0];
-  return chrome.tabs.create({ url: "https://k-square31.vercel.app", active: true });
+  return chrome.tabs.create({ url: "https://k-square31.vercel.app", active: false });
 }
 
 async function issueDeviceToken(tabId) {

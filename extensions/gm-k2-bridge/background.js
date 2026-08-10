@@ -33,7 +33,7 @@ async function configureAlarm() {
   await chrome.alarms.clear("k2-gm-portfolio-sync");
   if (config.autoSync) {
     chrome.alarms.create("k2-gm-portfolio-sync", {
-      delayInMinutes: config.deviceToken ? 0.1 : config.intervalMinutes,
+      delayInMinutes: config.deviceToken ? 0.5 : config.intervalMinutes,
       periodInMinutes: config.intervalMinutes
     });
   }
