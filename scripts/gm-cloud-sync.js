@@ -162,16 +162,22 @@ async function selectLinkedAccount(jar, userId) {
 async function fetchGmPortfolio(username, password) {
   const primaryJar = await loginSession(username, password);
   const primaryPositions = await requestPortfolio(primaryJar);
+  if (process.env.GM_CLOUD_DRY_RUN === "1") console.log(`GM context diagnostic: primary=${primaryPositions.length}`);
   if (primaryPositions.length) return primaryPositions;
 
   const accounts = await linkedAccounts(primaryJar);
+  if (process.env.GM_CLOUD_DRY_RUN === "1") console.log(`GM context diagnostic: linked=${accounts.length}`);
   let best = primaryPositions;
-  for (const account of accounts) {
+  for (const [index, account] of accounts.entries()) {
     const userId = account?.userId ?? account?.user_id ?? account?.id;
     if (userId === undefined || userId === null || String(userId).length > 40) continue;
     const jar = await loginSession(username, password);
-    if (!await selectLinkedAccount(jar, userId)) continue;
+    if (!await selectLinkedAccount(jar, userId)) {
+      if (process.env.GM_CLOUD_DRY_RUN === "1") console.log(`GM context diagnostic: linked-${index + 1}=selection-rejected`);
+      continue;
+    }
     const positions = await requestPortfolio(jar);
+    if (process.env.GM_CLOUD_DRY_RUN === "1") console.log(`GM context diagnostic: linked-${index + 1}=${positions.length}`);
     if (positions.length > best.length) best = positions;
   }
   return best;
