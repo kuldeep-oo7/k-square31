@@ -1,0 +1,27 @@
+{
+  "manifest_version": 3,
+  "name": "K² GM Portfolio Extractor",
+  "version": "1.0.0",
+  "description": "Capture the signed-in GM Global portfolio data source, live table, and a normalized JSON snapshot.",
+  "permissions": ["activeTab", "scripting", "storage", "tabs"],
+  "host_permissions": [
+    "https://gmglobal.org/*"
+  ],
+  "content_scripts": [
+    {
+      "matches": ["https://gmglobal.org/*"],
+      "js": ["gm-hook-main.js"],
+      "run_at": "document_start",
+      "world": "MAIN"
+    },
+    {
+      "matches": ["https://gmglobal.org/*"],
+      "js": ["gm-collector.js"],
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_title": "K² GM Portfolio Extractor",
+    "default_popup": "popup.html"
+  }
+}
