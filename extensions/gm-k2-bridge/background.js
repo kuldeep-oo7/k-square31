@@ -135,18 +135,66 @@ async function readRenderedTable(tabId) {
   return result?.found ? result : { found: false, rows: [] };
 }
 
+async function waitForTabComplete(tabId, timeoutMs = 30000) {
+  const current = await chrome.tabs.get(tabId);
+  if (current.status === "complete") return;
+  await new Promise((resolve, reject) => {
+    const timer = setTimeout(() => {
+      chrome.tabs.onUpdated.removeListener(listener);
+      reject(new Error("GM Portfolio did not finish loading."));
+    }, timeoutMs);
+    const listener = (updatedId, info) => {
+      if (updatedId !== tabId || info.status !== "complete") return;
+      clearTimeout(timer);
+      chrome.tabs.onUpdated.removeListener(listener);
+      resolve();
+    };
+    chrome.tabs.onUpdated.addListener(listener);
+  });
+}
+
+async function requestPositionReport(tabId) {
+  const [{ result }] = await chrome.scripting.executeScript({
+    target: { tabId },
+    world: "MAIN",
+    func: () => {
+      const button = [...document.querySelectorAll("button,input[type=button],input[type=submit]")].find((node) => {
+        const label = String(node.innerText || node.value || "").replace(/\s+/g, " ").trim().toUpperCase();
+        return label === "GET POSITION";
+      });
+      if (!button || button.disabled) return false;
+      button.click();
+      return true;
+    }
+  });
+  return Boolean(result);
+}
+
 async function captureFreshPortfolio() {
-  const tab = await chrome.tabs.create({ url: "about:blank", active: false });
-  const capturePromise = waitForCapture(tab.id);
+  const gmTabs = await chrome.tabs.query({ url: "https://gmglobal.org/*" });
+  let tab = gmTabs.find((candidate) => /#\/Portfolio(?:$|[/?])/i.test(candidate.url || ""));
+  let temporary = false;
+  if (!tab) {
+    tab = await chrome.tabs.create({ url: GM_PORTFOLIO_URL, active: false });
+    temporary = true;
+  }
   try {
-    await chrome.tabs.update(tab.id, { url: GM_PORTFOLIO_URL, active: false });
-    const capture = await capturePromise;
-    await new Promise((resolve) => setTimeout(resolve, 1200));
+    await waitForTabComplete(tab.id);
+    await requestPositionReport(tab.id);
+    await new Promise((resolve) => setTimeout(resolve, 2200));
     const table = await readRenderedTable(tab.id);
-    return { ...capture, tableRows: table.rows, tableFound: table.found };
+    return {
+      url: "https://gmglobal.org/datatables/position_book_list.php",
+      method: "RENDERED TABLE",
+      capturedAt: new Date().toISOString(),
+      tableRows: table.rows,
+      tableFound: table.found
+    };
   } finally {
-    captureWaiters.delete(tab.id);
-    try { await chrome.tabs.remove(tab.id); } catch { /* tab may have been closed by the user */ }
+    if (temporary) {
+      captureWaiters.delete(tab.id);
+      try { await chrome.tabs.remove(tab.id); } catch { /* tab may have been closed by the user */ }
+    }
   }
 }
 
