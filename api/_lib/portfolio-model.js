@@ -31,6 +31,18 @@ function cleanLot(raw) {
   const markPrice = positive(raw?.markPrice);
   if (markPrice) lot.markPrice = markPrice;
   if (["broker-snapshot", "broker-close", "exchange-live"].includes(raw?.markSource)) lot.markSource = raw.markSource;
+  if (assetType === "future" && raw?.source === "broker-snapshot") {
+    const buyQuantity = Number(raw.buyQuantity);
+    const buyAverage = Number(raw.buyAverage);
+    const sellQuantity = Number(raw.sellQuantity);
+    const sellAverage = Number(raw.sellAverage);
+    const mtm = Number(raw.mtm);
+    if (Number.isFinite(buyQuantity) && buyQuantity >= 0) lot.buyQuantity = buyQuantity;
+    if (Number.isFinite(buyAverage) && buyAverage >= 0) lot.buyAverage = buyAverage;
+    if (Number.isFinite(sellQuantity) && sellQuantity >= 0) lot.sellQuantity = sellQuantity;
+    if (Number.isFinite(sellAverage) && sellAverage >= 0) lot.sellAverage = sellAverage;
+    if (Number.isFinite(mtm)) lot.mtm = mtm;
+  }
   return lot;
 }
 
@@ -50,13 +62,22 @@ function cleanTransaction(raw) {
 }
 
 function cleanPortfolio(portfolio) {
-  return {
+  const cleaned = {
     version: 2,
     lots: (Array.isArray(portfolio?.lots) ? portfolio.lots : []).map(cleanLot).filter(Boolean),
     realizedPnl: Number(portfolio?.realizedPnl) || 0,
     transactions: (Array.isArray(portfolio?.transactions) ? portfolio.transactions : []).map(cleanTransaction).filter(Boolean).slice(0, 100),
     updatedAt: portfolio?.updatedAt || null
   };
+  if (portfolio?.brokerSync && typeof portfolio.brokerSync === "object") {
+    cleaned.brokerSync = {
+      capturedAt: String(portfolio.brokerSync.capturedAt || "").slice(0, 40),
+      source: portfolio.brokerSync.source === "gm-extension" ? "gm-extension" : "broker-import",
+      snapshotId: String(portfolio.brokerSync.snapshotId || "").slice(0, 100),
+      positionCount: Number(portfolio.brokerSync.positionCount) || cleaned.lots.filter((lot) => lot.assetType === "future").length
+    };
+  }
+  return cleaned;
 }
 
 function brokerPosition(raw) {
@@ -70,13 +91,18 @@ function brokerPosition(raw) {
     id: crypto.randomUUID(), symbol, price, quantity, position, expiry,
     assetType: "future", market: "NSEFUT", source: "broker-snapshot",
     markPrice: positive(raw?.markPrice) || price,
-    markSource: positive(raw?.markPrice) ? "broker-close" : "broker-snapshot", time: Date.now()
+    markSource: positive(raw?.markPrice) ? "broker-close" : "broker-snapshot", time: Date.now(),
+    buyQuantity: Number(raw?.buyQuantity) || 0,
+    buyAverage: Number(raw?.buyAverage) || 0,
+    sellQuantity: Number(raw?.sellQuantity) || 0,
+    sellAverage: Number(raw?.sellAverage) || 0,
+    mtm: Number(raw?.mtm) || 0
   });
 }
 
-function replaceBrokerSnapshot(portfolio, positions, snapshotId, realizedPnl = 0) {
+function replaceBrokerSnapshot(portfolio, positions, snapshotId, realizedPnl, sync = null) {
   const cleaned = positions.map(brokerPosition);
-  if (!positions.length || positions.length > 100 || cleaned.some((item) => !item)) {
+  if (positions.length > 250 || cleaned.some((item) => !item)) {
     const error = new Error("Invalid broker futures snapshot");
     error.code = "SNAPSHOT";
     throw error;
@@ -91,13 +117,25 @@ function replaceBrokerSnapshot(portfolio, positions, snapshotId, realizedPnl = 0
     duplicate.add(lot.contractKey);
   }
   const current = cleanPortfolio(portfolio);
-  if (current.transactions.some((item) => item.snapshotId === snapshotId)) return current;
-  current.lots = cleaned;
-  current.realizedPnl = Number.isFinite(Number(realizedPnl)) ? Number(realizedPnl) : 0;
-  current.transactions.unshift({
-    requestId: snapshotId, snapshotId, action: "import", symbol: "PORTFOLIO",
-    price: 0, quantity: 0, count: cleaned.length, time: Date.now()
+  const alreadyRecorded = current.transactions.some((item) => item.snapshotId === snapshotId);
+  const previousByContract = new Map(current.lots.map((lot) => [lot.contractKey, lot]));
+  current.lots = cleaned.map((lot) => {
+    const previous = previousByContract.get(lot.contractKey);
+    return previous ? { ...lot, id: previous.id, time: previous.time } : lot;
   });
+  if (realizedPnl !== undefined && Number.isFinite(Number(realizedPnl))) current.realizedPnl = Number(realizedPnl);
+  if (!alreadyRecorded) {
+    current.transactions.unshift({
+      requestId: snapshotId, snapshotId, action: "import", symbol: "PORTFOLIO",
+      price: 0, quantity: 0, count: cleaned.length, time: Date.now()
+    });
+  }
+  if (sync) current.brokerSync = {
+    capturedAt: sync.capturedAt,
+    source: sync.source,
+    snapshotId,
+    positionCount: cleaned.length
+  };
   return cleanPortfolio(current);
 }
 

@@ -9,4 +9,5 @@ window.addEventListener("message", async (event) => {
   const { networkCaptures = [] } = await chrome.storage.local.get("networkCaptures");
   const next = [capture, ...networkCaptures.filter((item) => !(item.url === capture.url && item.responseText === capture.responseText))].slice(0, 8);
   await chrome.storage.local.set({ networkCaptures: next, lastNetworkCaptureAt: capture.capturedAt });
+  try { await chrome.runtime.sendMessage({ type: "portfolio-capture", capture }); } catch { /* background may be restarting */ }
 });

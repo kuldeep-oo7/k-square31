@@ -6,6 +6,12 @@ const exportButton = document.getElementById("exportButton");
 const clearButton = document.getElementById("clearButton");
 const preview = document.getElementById("preview");
 const status = document.getElementById("status");
+const pairButton = document.getElementById("pairButton");
+const syncNowButton = document.getElementById("syncNowButton");
+const autoSync = document.getElementById("autoSync");
+const intervalMinutes = document.getElementById("intervalMinutes");
+const pairState = document.getElementById("pairState");
+const lastSync = document.getElementById("lastSync");
 let evidence = null;
 
 function setStatus(message, tone = "") {
@@ -19,6 +25,78 @@ function money(value) {
 
 function parseResponse(capture) {
   try { return JSON.parse(capture?.responseText || ""); } catch { return null; }
+}
+
+function syncTime(value) {
+  const date = new Date(value || "");
+  return Number.isFinite(date.getTime()) ? date.toLocaleString("en-IN", { dateStyle: "medium", timeStyle: "short" }) : "Not synchronized yet";
+}
+
+function renderLastSync(value) {
+  lastSync.className = value?.ok === true ? "good" : value?.ok === false ? "error" : "";
+  if (value?.syncing) lastSync.textContent = "Synchronizing GM → K² now…";
+  else if (value?.ok) lastSync.textContent = `Last success: ${syncTime(value.at)} · ${value.count} open positions`;
+  else if (value?.error) lastSync.textContent = `Last attempt: ${syncTime(value.at)} · ${value.error}`;
+  else lastSync.textContent = "Not synchronized yet.";
+}
+
+async function refreshSyncControls() {
+  const stored = await chrome.storage.local.get(["deviceToken", "autoSync", "intervalMinutes", "lastSync"]);
+  const paired = Boolean(stored.deviceToken);
+  pairState.textContent = paired
+    ? "Connected securely to the Kamlesh K² account. Portfolio snapshots now upload automatically."
+    : "Connect the Kamlesh K² account once. No repeated JSON exports are needed.";
+  pairButton.textContent = paired ? "Reconnect K²" : "Connect K² once";
+  syncNowButton.disabled = !paired;
+  autoSync.checked = stored.autoSync !== false;
+  intervalMinutes.value = String([30, 60].includes(Number(stored.intervalMinutes)) ? Number(stored.intervalMinutes) : 30);
+  renderLastSync(stored.lastSync);
+}
+
+async function waitForTab(tabId) {
+  const current = await chrome.tabs.get(tabId);
+  if (current.status === "complete") return current;
+  return new Promise((resolve) => {
+    const listener = (updatedId, info, tab) => {
+      if (updatedId === tabId && info.status === "complete") {
+        chrome.tabs.onUpdated.removeListener(listener);
+        resolve(tab);
+      }
+    };
+    chrome.tabs.onUpdated.addListener(listener);
+  });
+}
+
+async function k2Tab() {
+  const tabs = await chrome.tabs.query({ url: "https://k-square31.vercel.app/*" });
+  if (tabs[0]) return tabs[0];
+  return chrome.tabs.create({ url: "https://k-square31.vercel.app", active: true });
+}
+
+async function issueDeviceToken(tabId) {
+  const [{ result }] = await chrome.scripting.executeScript({
+    target: { tabId },
+    world: "MAIN",
+    func: async () => {
+      try {
+        const authResponse = await fetch("/api/auth", { credentials: "same-origin", cache: "no-store" });
+        const session = await authResponse.json().catch(() => ({}));
+        if (!authResponse.ok || !session.authenticated) return { ok: false, error: "Sign in to the Kamlesh K² account in this tab, then press Connect again." };
+        const response = await fetch("/api/gm-sync", {
+          method: "POST",
+          credentials: "same-origin",
+          cache: "no-store",
+          headers: { "Content-Type": "application/json", "X-K2-CSRF": session.csrf },
+          body: JSON.stringify({ action: "issue-device-token" })
+        });
+        const data = await response.json().catch(() => ({}));
+        return response.ok ? { ok: true, token: data.token, username: data.username } : { ok: false, error: data.error || `K² returned HTTP ${response.status}` };
+      } catch (error) {
+        return { ok: false, error: String(error?.message || error) };
+      }
+    }
+  });
+  return result;
 }
 
 function buildEvidence({ networkCaptures = [], tableCapture = null }) {
@@ -141,13 +219,67 @@ exportButton.addEventListener("click", () => {
 });
 
 clearButton.addEventListener("click", async () => {
-  await chrome.storage.local.clear();
+  await chrome.storage.local.remove(["networkCaptures", "tableCapture", "lastNetworkCaptureAt"]);
   evidence = null;
   preview.hidden = true;
   exportButton.disabled = true;
   setStatus("Stored GM capture cleared.");
 });
 
-refreshEvidence().then(() => {
+pairButton.addEventListener("click", async () => {
+  pairButton.disabled = true;
+  setStatus("Connecting through your signed-in K² tab…");
+  try {
+    const tab = await k2Tab();
+    await waitForTab(tab.id);
+    const result = await issueDeviceToken(tab.id);
+    if (!result?.ok || !result.token) {
+      await chrome.tabs.update(tab.id, { active: true });
+      throw new Error(result?.error || "K² pairing failed.");
+    }
+    await chrome.storage.local.set({ deviceToken: result.token, autoSync: true, intervalMinutes: Number(intervalMinutes.value) || 30 });
+    await chrome.runtime.sendMessage({ type: "configure-sync" });
+    await refreshSyncControls();
+    setStatus("Connected. The first automatic portfolio sync is starting now.", "good");
+    chrome.runtime.sendMessage({ type: "sync-now" }).catch(() => {});
+  } catch (error) {
+    setStatus(error.message || "Could not connect K².", "error");
+  } finally {
+    pairButton.disabled = false;
+  }
+});
+
+syncNowButton.addEventListener("click", async () => {
+  syncNowButton.disabled = true;
+  renderLastSync({ syncing: true });
+  setStatus("GM is opening in an inactive tab. This can take up to 45 seconds.");
+  try {
+    const result = await chrome.runtime.sendMessage({ type: "sync-now" });
+    if (!result?.ok) throw new Error(result?.error || "Automatic sync failed.");
+    await refreshSyncControls();
+    setStatus("GM portfolio synchronized with K².", "good");
+  } catch (error) {
+    setStatus(error.message || "Automatic sync failed.", "error");
+    await refreshSyncControls();
+  } finally {
+    const stored = await chrome.storage.local.get("deviceToken");
+    syncNowButton.disabled = !stored.deviceToken;
+  }
+});
+
+async function saveSchedule() {
+  await chrome.storage.local.set({ autoSync: autoSync.checked, intervalMinutes: Number(intervalMinutes.value) || 30 });
+  await chrome.runtime.sendMessage({ type: "configure-sync" });
+  setStatus(autoSync.checked ? `Automatic sync set to every ${intervalMinutes.value} minutes.` : "Automatic sync paused.", "good");
+}
+
+autoSync.addEventListener("change", saveSchedule);
+intervalMinutes.addEventListener("change", saveSchedule);
+
+chrome.storage.onChanged.addListener((changes, area) => {
+  if (area === "local" && changes.lastSync) renderLastSync(changes.lastSync.newValue);
+});
+
+Promise.all([refreshEvidence(), refreshSyncControls()]).then(() => {
   if (evidence.networkCaptures.length) setStatus("A GM portfolio response is captured. Read the current table, then export JSON.", "good");
 }).catch(() => {});

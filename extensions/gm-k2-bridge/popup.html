@@ -8,14 +8,27 @@
   </head>
   <body>
     <main>
-      <header><span>K<sup>2</sup></span><div><b>GM Portfolio Extractor</b><small>Data-source verification build</small></div></header>
-      <p class="privacy">Captures only GM portfolio-report responses and the rendered portfolio table. Passwords, cookies, authorization headers, request bodies and order actions are never collected.</p>
-      <div class="steps"><span><b>1</b> Open GM Portfolio</span><span><b>2</b> Arm capture + reload</span><span><b>3</b> Export evidence JSON</span></div>
+      <header><span>K<sup>2</sup></span><div><b>GM → K² Auto Sync</b><small>Private 30-minute portfolio bridge</small></div></header>
+      <p class="privacy">The bridge uses your signed-in GM browser session, but only normalized portfolio positions leave this device. Passwords, cookies, authorization headers, request bodies and order actions are never collected.</p>
+      <section class="sync-card">
+        <div class="sync-title"><b>Automatic synchronization</b><label><input id="autoSync" type="checkbox" checked /> Enabled</label></div>
+        <p id="pairState">Connect the Kamlesh K² account once. No repeated JSON exports are needed.</p>
+        <div class="sync-actions">
+          <button id="pairButton" type="button">Connect K² once</button>
+          <button id="syncNowButton" class="secondary" type="button" disabled>Sync now</button>
+        </div>
+        <label class="interval">Refresh interval <select id="intervalMinutes"><option value="30">Every 30 minutes</option><option value="60">Every hour</option></select></label>
+        <p id="lastSync">Not synchronized yet.</p>
+      </section>
+      <details>
+        <summary>Manual verification tools</summary>
+        <div class="steps"><span><b>1</b> Open GM Portfolio</span><span><b>2</b> Arm capture + reload</span><span><b>3</b> Export evidence JSON</span></div>
       <button id="captureButton" type="button">Arm capture and reload GM</button>
       <button id="readButton" class="secondary" type="button">Read current table now</button>
       <section id="preview" hidden></section>
       <button id="exportButton" class="export" type="button" disabled>Export captured JSON</button>
       <button id="clearButton" class="quiet" type="button">Clear stored capture</button>
+      </details>
       <p id="status" role="status">Open https://gmglobal.org/#/Portfolio and sign in first.</p>
     </main>
     <script src="core.js"></script>
