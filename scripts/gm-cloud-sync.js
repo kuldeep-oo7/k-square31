@@ -6,6 +6,8 @@ const bridge = require("../extensions/gm-k2-bridge/core.js");
 const GM_ORIGIN = "https://gmglobal.org";
 const GM_LOGIN_URL = `${GM_ORIGIN}/ajaxfiles/logincheck.php`;
 const GM_CHECK_URL = `${GM_ORIGIN}/ajaxfiles/check_login.php`;
+const GM_LINKED_ACCOUNTS_URL = `${GM_ORIGIN}/ajaxfiles/view_login_map_account.php`;
+const GM_LOGIN_LINKED_URL = `${GM_ORIGIN}/ajaxfiles/login_into_mapped_account.php`;
 const GM_PORTFOLIO_URL = `${GM_ORIGIN}/datatables/position_book_list.php`;
 const K2_SYNC_URL = process.env.K2_GM_SYNC_URL || "https://k-square31.vercel.app/api/gm-sync";
 
@@ -89,7 +91,7 @@ async function responseJson(response, label) {
   return payload;
 }
 
-async function fetchGmPortfolio(username, password) {
+async function loginSession(username, password) {
   const jar = new CookieJar();
   const landing = await fetch(`${GM_ORIGIN}/#/Login`, {
     headers: { "Accept": "text/html", "User-Agent": "K2-GM-ReadOnly-Cloud-Sync/1.0" },
@@ -115,7 +117,10 @@ async function fetchGmPortfolio(username, password) {
   });
   jar.add(checkResponse);
   if (!checkResponse.ok) throw new Error(`GM session verification returned HTTP ${checkResponse.status}`);
+  return jar;
+}
 
+async function requestPortfolio(jar) {
   const portfolioResponse = await fetch(GM_PORTFOLIO_URL, {
     method: "POST",
     headers: gmHeaders(jar, { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "X-Requested-With": "XMLHttpRequest" }),
@@ -128,6 +133,48 @@ async function fetchGmPortfolio(username, password) {
   const hasPortfolioArray = [payload?.aaData, payload?.data, payload?.rows].some(Array.isArray);
   if (!rows.length && !hasPortfolioArray) throw new Error("GM Portfolio response did not contain a position table");
   return bridge.normalizeRows(rows);
+}
+
+async function linkedAccounts(jar) {
+  const response = await fetch(GM_LINKED_ACCOUNTS_URL, {
+    method: "POST",
+    headers: gmHeaders(jar, { "Content-Type": "application/json;charset=UTF-8", "X-Requested-With": "XMLHttpRequest" }),
+    body: "{}",
+    signal: AbortSignal.timeout(45_000)
+  });
+  jar.add(response);
+  const payload = await responseJson(response, "GM linked accounts");
+  return String(payload?.status || "").toLowerCase() === "ok" && Array.isArray(payload?.data) ? payload.data.slice(0, 12) : [];
+}
+
+async function selectLinkedAccount(jar, userId) {
+  const response = await fetch(GM_LOGIN_LINKED_URL, {
+    method: "POST",
+    headers: gmHeaders(jar, { "Content-Type": "application/json;charset=UTF-8", "X-Requested-With": "XMLHttpRequest" }),
+    body: JSON.stringify({ user_id: userId }),
+    signal: AbortSignal.timeout(45_000)
+  });
+  jar.add(response);
+  const payload = await responseJson(response, "GM linked-account selection");
+  return String(payload?.status || "").toLowerCase() === "ok";
+}
+
+async function fetchGmPortfolio(username, password) {
+  const primaryJar = await loginSession(username, password);
+  const primaryPositions = await requestPortfolio(primaryJar);
+  if (primaryPositions.length) return primaryPositions;
+
+  const accounts = await linkedAccounts(primaryJar);
+  let best = primaryPositions;
+  for (const account of accounts) {
+    const userId = account?.userId ?? account?.user_id ?? account?.id;
+    if (userId === undefined || userId === null || String(userId).length > 40) continue;
+    const jar = await loginSession(username, password);
+    if (!await selectLinkedAccount(jar, userId)) continue;
+    const positions = await requestPortfolio(jar);
+    if (positions.length > best.length) best = positions;
+  }
+  return best;
 }
 
 async function uploadToK2(positions, secret) {
@@ -170,4 +217,4 @@ if (require.main === module) runOnce().catch((error) => {
   process.exitCode = 1;
 });
 
-module.exports = { CookieJar, fetchGmPortfolio, fingerprint, positionForm, runOnce, uploadToK2 };
+module.exports = { CookieJar, fetchGmPortfolio, fingerprint, linkedAccounts, positionForm, requestPortfolio, runOnce, selectLinkedAccount, uploadToK2 };
