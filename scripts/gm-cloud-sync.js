@@ -116,8 +116,9 @@ async function loginSession(username, password) {
     signal: AbortSignal.timeout(45_000)
   });
   jar.add(checkResponse);
-  if (!checkResponse.ok) throw new Error(`GM session verification returned HTTP ${checkResponse.status}`);
-  return jar;
+  const identity = await responseJson(checkResponse, "GM session verification");
+  if (String(identity?.status || "").toLowerCase() !== "ok") throw new Error("GM session verification was rejected");
+  return { jar, identity, login };
 }
 
 async function requestPortfolio(jar) {
@@ -160,9 +161,10 @@ async function selectLinkedAccount(jar, userId) {
 }
 
 async function fetchGmPortfolio(username, password) {
-  const primaryJar = await loginSession(username, password);
+  const primary = await loginSession(username, password);
+  const primaryJar = primary.jar;
   const primaryPositions = await requestPortfolio(primaryJar);
-  if (process.env.GM_CLOUD_DRY_RUN === "1") console.log(`GM context diagnostic: primary=${primaryPositions.length}`);
+  if (process.env.GM_CLOUD_DRY_RUN === "1") console.log(`GM context diagnostic: primary=${primaryPositions.length}; user=${primary.identity?.user_id || primary.login?.user_id || "unknown"}; type=${primary.identity?.user_type || primary.login?.user_type || "unknown"}; investor=${primary.identity?.investor_status ?? primary.login?.investor_status ?? "unknown"}`);
   if (primaryPositions.length) return primaryPositions;
 
   const accounts = await linkedAccounts(primaryJar);
@@ -171,13 +173,17 @@ async function fetchGmPortfolio(username, password) {
   for (const [index, account] of accounts.entries()) {
     const userId = account?.userId ?? account?.user_id ?? account?.id;
     if (userId === undefined || userId === null || String(userId).length > 40) continue;
-    const jar = await loginSession(username, password);
+    const linked = await loginSession(username, password);
+    const jar = linked.jar;
     if (!await selectLinkedAccount(jar, userId)) {
       if (process.env.GM_CLOUD_DRY_RUN === "1") console.log(`GM context diagnostic: linked-${index + 1}=selection-rejected`);
       continue;
     }
+    const checkResponse = await fetch(GM_CHECK_URL, { headers: gmHeaders(jar, { "X-Requested-With": "XMLHttpRequest" }), signal: AbortSignal.timeout(45_000) });
+    jar.add(checkResponse);
+    const identity = await responseJson(checkResponse, "GM linked session verification");
     const positions = await requestPortfolio(jar);
-    if (process.env.GM_CLOUD_DRY_RUN === "1") console.log(`GM context diagnostic: linked-${index + 1}=${positions.length}`);
+    if (process.env.GM_CLOUD_DRY_RUN === "1") console.log(`GM context diagnostic: linked-${index + 1}=${positions.length}; requested=${userId}; active=${identity?.user_id || "unknown"}; type=${identity?.user_type || "unknown"}`);
     if (positions.length > best.length) best = positions;
   }
   return best;
