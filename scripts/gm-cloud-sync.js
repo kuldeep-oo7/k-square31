@@ -37,7 +37,7 @@ function gmHeaders(jar, extra = {}) {
   };
 }
 
-function positionForm() {
+function positionForm(overrides = {}) {
   const form = new URLSearchParams({
     sEcho: "1",
     iColumns: "13",
@@ -63,8 +63,9 @@ function positionForm() {
     form.set(`sSearch_${index}`, "");
     form.set(`bRegex_${index}`, "false");
     form.set(`bSearchable_${index}`, "true");
-    form.set(`bSortable_${index}`, index < 3 ? "true" : "false");
+    form.set(`bSortable_${index}`, index < 4 ? "true" : "false");
   }
+  Object.entries(overrides).forEach(([name, value]) => form.set(name, String(value)));
   return form;
 }
 
@@ -121,11 +122,11 @@ async function loginSession(username, password) {
   return { jar, identity, login };
 }
 
-async function requestPortfolio(jar) {
+async function requestPortfolio(jar, overrides = {}) {
   const portfolioResponse = await fetch(GM_PORTFOLIO_URL, {
     method: "POST",
     headers: gmHeaders(jar, { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "X-Requested-With": "XMLHttpRequest" }),
-    body: positionForm(),
+    body: positionForm(overrides),
     signal: AbortSignal.timeout(45_000)
   });
   jar.add(portfolioResponse);
@@ -164,8 +165,27 @@ async function fetchGmPortfolio(username, password) {
   const primary = await loginSession(username, password);
   const primaryJar = primary.jar;
   const primaryPositions = await requestPortfolio(primaryJar);
-  if (process.env.GM_CLOUD_DRY_RUN === "1") console.log(`GM context diagnostic: primary=${primaryPositions.length}; user=${primary.identity?.user_id || primary.login?.user_id || "unknown"}; type=${primary.identity?.user_type || primary.login?.user_type || "unknown"}; investor=${primary.identity?.investor_status ?? primary.login?.investor_status ?? "unknown"}`);
+  const activeUserId = primary.identity?.user_id || primary.login?.user_id || "";
+  if (process.env.GM_CLOUD_DRY_RUN === "1") console.log(`GM context diagnostic: primary=${primaryPositions.length}; user=${activeUserId || "unknown"}; type=${primary.identity?.user_type || primary.login?.user_type || "unknown"}; investor=${primary.identity?.investor_status ?? primary.login?.investor_status ?? "unknown"}`);
   if (primaryPositions.length) return primaryPositions;
+
+  const variants = [
+    ["explicit-user", { user_id: activeUserId }],
+    ["explicit-master", { master_user_id: activeUserId }],
+    ["explicit-broker", { broker_id: activeUserId }],
+    ["user-outstanding", { user_id: activeUserId, all_outstanding: "0" }],
+    ["length-1000", { iDisplayLength: "1000" }],
+    ["columns-12", { iColumns: "12" }],
+    ["columns-14", { iColumns: "14" }],
+    ["named-columns", { sColumns: Array(13).fill("").join(",") }],
+    ["no-group", { group_by: "" }],
+    ["client-group", { group_by: "u.user_full_name" }]
+  ];
+  for (const [name, overrides] of variants) {
+    const positions = await requestPortfolio(primaryJar, overrides);
+    if (process.env.GM_CLOUD_DRY_RUN === "1") console.log(`GM request diagnostic: ${name}=${positions.length}`);
+    if (positions.length) return positions;
+  }
 
   const accounts = await linkedAccounts(primaryJar);
   if (process.env.GM_CLOUD_DRY_RUN === "1") console.log(`GM context diagnostic: linked=${accounts.length}`);
