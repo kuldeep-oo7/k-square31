@@ -1,5 +1,4 @@
 const crypto = require("node:crypto");
-const { get, head, put, BlobPreconditionFailedError } = require("@vercel/blob");
 const {
   GoogleStoreConflictError,
   googleStoreConfigured,
@@ -7,6 +6,17 @@ const {
   readGoogleDocuments,
   writeGoogleDocument
 } = require("./google-store");
+
+let blobModule;
+
+async function blobSdk() {
+  blobModule ||= import("@vercel/blob");
+  return blobModule;
+}
+
+function blobConflict(error) {
+  return error?.name === "BlobPreconditionFailedError";
+}
 
 function emptyPortfolio() {
   return { version: 2, lots: [], realizedPnl: 0, transactions: [], updatedAt: null };
@@ -30,6 +40,7 @@ function writableEtag(etag) {
 }
 
 async function readBlobDocument(pathname, fallback) {
+  const { get, head } = await blobSdk();
   // Mutations require the origin ETag, not a CDN-cached private response. A
   // cached read can carry the previous ETag for up to cacheControlMaxAge and
   // make every optimistic retry fail even when there is no competing writer.
@@ -45,6 +56,7 @@ async function readBlobDocument(pathname, fallback) {
 }
 
 async function writeBlobDocument(pathname, data, etag) {
+  const { put } = await blobSdk();
   return put(pathname, JSON.stringify(data), {
     access: "private",
     addRandomSuffix: false,
@@ -88,7 +100,7 @@ async function mutatePortfolio(username, mutator) {
       await writeDocument(pathname, next, current.etag);
       return next;
     } catch (error) {
-      const conflict = error instanceof BlobPreconditionFailedError || error instanceof GoogleStoreConflictError || error?.status === 409 || error?.statusCode === 409;
+      const conflict = blobConflict(error) || error instanceof GoogleStoreConflictError || error?.status === 409 || error?.statusCode === 409;
       if (!conflict || attempt === 4) throw error;
     }
   }
@@ -126,7 +138,7 @@ async function mutateAiShard(shard, mutator) {
       await writeDocument(pathname, next, current.etag);
       return next;
     } catch (error) {
-      const conflict = error instanceof BlobPreconditionFailedError || error instanceof GoogleStoreConflictError || error?.status === 409 || error?.statusCode === 409;
+      const conflict = blobConflict(error) || error instanceof GoogleStoreConflictError || error?.status === 409 || error?.statusCode === 409;
       if (!conflict || attempt === 4) throw error;
     }
   }
