@@ -37,17 +37,25 @@ async function fetchPortfolioWithBrowser(username, password) {
 
     await page.goto(PORTFOLIO_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
     await page.waitForSelector("#load_data", { timeout: 60_000 });
-    const responsePromise = page.waitForResponse((response) => POSITION_ENDPOINT.test(new URL(response.url()).pathname) && response.request().method() === "POST", { timeout: 60_000 });
+    let payload = null;
+    const responsePromise = page.waitForResponse(async (response) => {
+      if (!POSITION_ENDPOINT.test(new URL(response.url()).pathname) || response.request().method() !== "POST") return false;
+      const candidate = await responsePayload(response);
+      const candidateCount = Number(candidate?.iTotalDisplayRecords ?? candidate?.iTotalRecords);
+      const candidateQuantity = Number(candidate?.total_qty);
+      if (!Array.isArray(candidate?.aaData) || !Number.isInteger(candidateCount) || !Number.isFinite(candidateQuantity)) return false;
+      payload = candidate;
+      return true;
+    }, { timeout: 60_000 });
     await page.evaluate(() => {
       const button = [...document.querySelectorAll("button,input[type=button],input[type=submit]")].find((node) => String(node.innerText || node.value || "").replace(/\s+/g, " ").trim().toUpperCase() === "GET POSITION");
       if (!button) throw new Error("GM Get Position button is not available");
       button.click();
     });
     const networkResponse = await responsePromise;
-    const payload = await responsePayload(networkResponse);
     const recordCount = Number(payload?.iTotalDisplayRecords ?? payload?.iTotalRecords);
     const totalQuantity = Number(payload?.total_qty);
-    if (!Array.isArray(payload?.aaData) || !Number.isInteger(recordCount)) throw new Error("GM did not return a complete portfolio response");
+    if (!Array.isArray(payload?.aaData) || !Number.isInteger(recordCount) || !Number.isFinite(totalQuantity)) throw new Error("GM did not return a complete portfolio response");
 
     await page.evaluate(async () => {
       const jq = window.jQuery;
