@@ -18,6 +18,46 @@ async function responsePayload(response) {
   try { return await response.json(); } catch { return null; }
 }
 
+function headerKey(value) {
+  return String(value || "").toUpperCase().replace(/[^A-Z0-9]+/g, "");
+}
+
+function mergeLiveTable(apiPositions, tableRows, headers) {
+  const indexes = new Map(headers.map((header, index) => [headerKey(header), index]));
+  const scriptIndex = indexes.get("SCRIPT");
+  const netIndex = indexes.get("NETQ");
+  const markIndex = indexes.get("ABP");
+  const mtmIndex = indexes.get("MTM");
+  if (![scriptIndex, netIndex, markIndex, mtmIndex].every(Number.isInteger)) throw new Error("GM live table headers are incomplete");
+  const liveByContract = new Map();
+  tableRows.forEach((row) => {
+    const instrument = String(row[scriptIndex] || "").toUpperCase().match(/^(.+?)\s*(\d{2}[A-Z]{3}\d{4})$/);
+    if (!instrument) return;
+    const key = `${instrument[1].replace(/\s+/g, "").trim()}|${bridge.expiry(instrument[2])}`;
+    liveByContract.set(key, {
+      netCell: numberFromText(row[netIndex]),
+      markCell: numberFromText(row[markIndex]),
+      mtm: numberFromText(row[mtmIndex])
+    });
+  });
+  return apiPositions.map((position) => {
+    const live = liveByContract.get(`${position.symbol}|${position.expiry}`);
+    if (!live || !Number.isFinite(live.mtm)) return position;
+    const signedQuantity = position.position === "short" ? -position.quantity : position.quantity;
+    // In GM's Client layout the live-price updater writes into the visual Net Q
+    // cell. In Script-wise layout it writes into A/B P. Quantities always come
+    // from the verified API payload, never from this dynamic visual cell.
+    const markPrice = live.markCell > 0
+      ? live.markCell
+      : (live.netCell > 0 && Math.abs(live.netCell - signedQuantity) > .001 ? live.netCell : null);
+    return {
+      ...position,
+      ...(markPrice > 0 ? { markPrice: Math.round(markPrice * 100) / 100 } : {}),
+      mtm: Math.round(live.mtm * 100) / 100
+    };
+  });
+}
+
 async function fetchPortfolioWithBrowser(username, password) {
   const browser = await chromium.launch({ headless: true, args: ["--disable-dev-shm-usage", "--no-sandbox"] });
   const context = await browser.newContext({ locale: "en-IN", timezoneId: "Asia/Kolkata", viewport: { width: 1600, height: 1000 } });
@@ -78,26 +118,24 @@ async function fetchPortfolioWithBrowser(username, password) {
       }
     });
     await page.waitForFunction((expected) => document.querySelectorAll("#load_data tbody tr").length >= expected, recordCount, { timeout: 60_000 });
-    let positions = [];
-    let tableRows = [];
+    const apiPositions = bridge.normalizeRows(payload.aaData);
+    const apiSignedQuantity = apiPositions.reduce((sum, item) => sum + (item.position === "short" ? -1 : 1) * item.quantity, 0);
+    if (payload.aaData.length !== recordCount || Math.abs(apiSignedQuantity - totalQuantity) > .01) {
+      throw new Error(`GM API integrity mismatch: report rows=${payload.aaData.length}/${recordCount}, open rows=${apiPositions.length}, quantity=${apiSignedQuantity}/${totalQuantity}`);
+    }
+    let positions = apiPositions;
     for (let attempt = 0; attempt < 20; attempt += 1) {
-      tableRows = await page.locator("#load_data tbody tr").evaluateAll((rows) => rows.map((row) => [...row.querySelectorAll("td")].map((cell) => cell.innerText.replace(/\s+/g, " ").trim())));
-      positions = bridge.normalizeRows(tableRows);
-      if (positions.length === recordCount && positions.every((item) => Number(item.markPrice) > 0 && Number.isFinite(Number(item.mtm)))) break;
+      const headers = await page.locator("#load_data thead th").evaluateAll((nodes) => nodes.map((node) => node.innerText.replace(/\s+/g, " ").trim() || "_"));
+      const tableRows = await page.locator("#load_data tbody tr").evaluateAll((rows) => rows.map((row) => [...row.querySelectorAll("td")].map((cell) => cell.innerText.replace(/\s+/g, " ").trim())));
+      positions = mergeLiveTable(apiPositions, tableRows, headers);
+      if (positions.every((item) => Number(item.markPrice) > 0 && Number.isFinite(Number(item.mtm)))) break;
       await page.waitForTimeout(500);
     }
-    const signedQuantity = positions.reduce((sum, item) => sum + (item.position === "short" ? -1 : 1) * item.quantity, 0);
-    const totalMtm = positions.reduce((sum, item) => sum + Number(item.mtm || 0), 0);
-    if (positions.length !== recordCount || Math.abs(signedQuantity - totalQuantity) > .01) {
-      const apiPositions = bridge.normalizeRows(payload.aaData);
-      const apiSignedQuantity = apiPositions.reduce((sum, item) => sum + (item.position === "short" ? -1 : 1) * item.quantity, 0);
-      const shapeCounts = tableRows.reduce((counts, row) => { const key = String(row.length); counts[key] = (counts[key] || 0) + 1; return counts; }, {});
-      const unusual = positions.filter((item) => !Number.isInteger(item.quantity) || item.quantity > 10_000).map((item) => `${item.symbol}:${item.quantity}`).slice(0, 5);
-      const headers = await page.locator("#load_data thead th").evaluateAll((nodes) => nodes.map((node) => node.innerText.replace(/\s+/g, " ").trim() || "_")).catch(() => []);
-      const sample = (tableRows[0] || []).map((value, index) => `${index}:${String(value).replace(/KGK[^|]*/gi, "[account]").slice(0, 40)}`).join("|");
-      throw new Error(`GM completeness mismatch: DOM rows=${positions.length}/${recordCount}, DOM quantity=${signedQuantity}/${totalQuantity}, API open rows=${apiPositions.length}, API quantity=${apiSignedQuantity}, cell shapes=${JSON.stringify(shapeCounts)}, unusual=${unusual.join(",") || "none"}, headers=${headers.join("|")}, sample=${sample}`);
+    if (positions.length !== apiPositions.length || positions.some((item) => !(Number(item.markPrice) > 0) || !Number.isFinite(Number(item.mtm)))) {
+      throw new Error(`GM live-price integrity mismatch: open rows=${positions.length}/${apiPositions.length}`);
     }
-    return { positions, recordCount, totalQuantity, totalMtm, endpoint: networkResponseUrl };
+    const totalMtm = positions.reduce((sum, item) => sum + Number(item.mtm), 0);
+    return { positions, recordCount: positions.length, sourceRecordCount: recordCount, totalQuantity, totalMtm, endpoint: networkResponseUrl };
   } finally {
     await browser.close();
   }
