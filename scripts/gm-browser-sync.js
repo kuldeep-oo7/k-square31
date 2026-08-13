@@ -3,7 +3,7 @@
 const crypto = require("node:crypto");
 const { chromium } = require("playwright");
 const bridge = require("../extensions/gm-k2-bridge/core.js");
-const { fingerprint, uploadToK2 } = require("./gm-cloud-sync");
+const { positionForm, uploadToK2 } = require("./gm-cloud-sync");
 
 const GM_ORIGIN = "https://gmglobal.org";
 const PORTFOLIO_URL = `${GM_ORIGIN}/#/Portfolio`;
@@ -75,40 +75,28 @@ async function fetchPortfolioWithBrowser(username, password) {
     }, { username, password });
     if (!login.ok || String(login.data?.status || "").toLowerCase() !== "ok") throw new Error("GM rejected the configured cloud credentials");
 
-    let payload = null;
-    let networkResponseUrl = "";
-    let resolvePayload;
-    const payloadPromise = new Promise((resolve) => { resolvePayload = resolve; });
-    const capturePortfolioResponse = async (response) => {
-      if (!POSITION_ENDPOINT.test(new URL(response.url()).pathname) || response.request().method() !== "POST") return false;
-      const candidate = await responsePayload(response);
-      const candidateCount = Number(candidate?.iTotalDisplayRecords ?? candidate?.iTotalRecords);
-      const candidateQuantity = Number(candidate?.total_qty);
-      if (!Array.isArray(candidate?.aaData) || !Number.isInteger(candidateCount) || !Number.isFinite(candidateQuantity)) return false;
-      if (payload) return true;
-      payload = candidate;
-      networkResponseUrl = response.url();
-      resolvePayload(candidate);
-      return true;
-    };
-    page.on("response", capturePortfolioResponse);
     await page.goto(PORTFOLIO_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
     await page.waitForSelector("#load_data", { timeout: 60_000 });
-    await page.evaluate(() => {
-      const button = [...document.querySelectorAll("button,input[type=button],input[type=submit]")].find((node) => String(node.innerText || node.value || "").replace(/\s+/g, " ").trim().toUpperCase() === "GET POSITION");
-      if (!button) throw new Error("GM Get Position button is not available");
-      button.click();
-    });
-    await Promise.race([payloadPromise, page.waitForTimeout(60_000).then(() => { throw new Error("GM complete portfolio response timed out"); })]);
-    page.off("response", capturePortfolioResponse);
+    const requestBody = positionForm().toString();
+    const payload = await page.evaluate(async (body) => {
+      const response = await fetch("/datatables/position_book_list.php", {
+        method: "POST",
+        credentials: "include",
+        headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "X-Requested-With": "XMLHttpRequest" },
+        body
+      });
+      if (!response.ok) throw new Error(`GM portfolio HTTP ${response.status}`);
+      return response.json();
+    }, requestBody);
     const recordCount = Number(payload?.iTotalDisplayRecords ?? payload?.iTotalRecords);
     const totalQuantity = Number(payload?.total_qty);
     if (!Array.isArray(payload?.aaData) || !Number.isInteger(recordCount) || !Number.isFinite(totalQuantity)) throw new Error("GM did not return a complete portfolio response");
 
-    await page.evaluate(async () => {
+    await page.evaluate(async (rows) => {
       const jq = window.jQuery;
-      if (!jq?.fn?.DataTable?.isDataTable?.("#load_data")) return;
+      if (!jq?.fn?.DataTable?.isDataTable?.("#load_data")) throw new Error("GM portfolio table is not initialized");
       const table = jq("#load_data").DataTable();
+      table.clear().rows.add(rows.map((row) => row.slice(0, 13))).draw();
       if (table.page.info().recordsDisplay > table.page.info().end) {
         await new Promise((resolve) => {
           const timer = setTimeout(resolve, 10_000);
@@ -116,7 +104,7 @@ async function fetchPortfolioWithBrowser(username, password) {
           table.page.len(-1).draw();
         });
       }
-    });
+    }, payload.aaData);
     await page.waitForFunction((expected) => document.querySelectorAll("#load_data tbody tr").length >= expected, recordCount, { timeout: 60_000 });
     const apiPositions = bridge.normalizeRows(payload.aaData);
     const apiSignedQuantity = apiPositions.reduce((sum, item) => sum + (item.position === "short" ? -1 : 1) * item.quantity, 0);
@@ -135,7 +123,7 @@ async function fetchPortfolioWithBrowser(username, password) {
       throw new Error(`GM live-price integrity mismatch: open rows=${positions.length}/${apiPositions.length}`);
     }
     const totalMtm = positions.reduce((sum, item) => sum + Number(item.mtm), 0);
-    return { positions, recordCount: positions.length, sourceRecordCount: recordCount, totalQuantity, totalMtm, endpoint: networkResponseUrl };
+    return { positions, recordCount: positions.length, sourceRecordCount: recordCount, totalQuantity, totalMtm, endpoint: `${GM_ORIGIN}/datatables/position_book_list.php` };
   } finally {
     await browser.close();
   }
