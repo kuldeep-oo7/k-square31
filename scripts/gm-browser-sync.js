@@ -111,11 +111,16 @@ async function runBrowserOnce() {
   if (secret.length < 32) throw new Error("K2_GM_CLOUD_SYNC_SECRET must contain at least 32 characters");
   let snapshot = null;
   let lastError = null;
+  let integrityError = null;
   for (let attempt = 1; attempt <= 3 && !snapshot; attempt += 1) {
     try { snapshot = await fetchPortfolioWithBrowser(username, password); }
-    catch (error) { lastError = error; if (attempt < 3) console.warn(`GM read attempt ${attempt} failed; retrying a fresh session.`); }
+    catch (error) {
+      lastError = error;
+      if (String(error?.message || error).includes("GM completeness mismatch")) integrityError = error;
+      if (attempt < 3) console.warn(`GM read attempt ${attempt} failed; retrying a fresh session.`);
+    }
   }
-  if (!snapshot) throw lastError || new Error("GM portfolio could not be read");
+  if (!snapshot) throw integrityError || lastError || new Error("GM portfolio could not be read");
   if (process.env.GM_CLOUD_DRY_RUN === "1") {
     console.log(`GM cloud-browser validation succeeded: ${snapshot.recordCount} positions, signed quantity ${snapshot.totalQuantity}, MTM ${snapshot.totalMtm.toFixed(2)}`);
     return snapshot;
