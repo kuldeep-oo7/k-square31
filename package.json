@@ -4,13 +4,13 @@
   "private": true,
   "scripts": {
     "dev": "node dev-server.js",
-    "build": "node scripts/prepare-public.cjs && vinext build",
+    "build": "node scripts/prepare-public.cjs && vinext build && node scripts/finalize-dist.cjs",
     "build:next": "next build",
     "start": "next start",
     "check": "node --check app.js && node --check api/market.js && node --check api/portfolio.js && node --check api/gm-sync.js && node --check api/ai.js && node --check api/ai-run.js && node --check api/_lib/gm-bridge.js && node --check api/_lib/google-archive.js && node --check api/_lib/google-store.js && node --check api/_lib/strategy-lab.js && node --check scripts/refresh-ai-universe.js && node --check scripts/gm-cloud-sync.js && node --check scripts/gm-cloud-worker.js && node --check scripts/gm-browser-sync.js && node --check extensions/gm-k2-bridge/background.js && node --check extensions/gm-k2-bridge/gm-hook-main.js && node --check extensions/gm-k2-bridge/gm-collector.js && node --check extensions/gm-k2-bridge/popup.js && node scripts/test-gm-extension.js && node scripts/test-gm-cloud-sync.js && node scripts/test-universe.js && node scripts/test-ai-engine.js && node scripts/test-store.js && node scripts/test-portfolio-model.js && node scripts/test-grid-logic.js && node scripts/test-market-model.js && node scripts/test-google-archive.js && node scripts/test-google-store.js",
     "ai:init": "node scripts/run-ai-init.js",
     "dev:vinext": "vinext dev --port 3001",
-    "build:vinext": "node scripts/prepare-public.cjs && vinext build",
+    "build:vinext": "node scripts/prepare-public.cjs && vinext build && node scripts/finalize-dist.cjs",
     "start:vinext": "wrangler dev --config dist/server/wrangler.json",
     "deploy:vinext": "vinext-cloudflare deploy --config dist/server/wrangler.json"
   },
