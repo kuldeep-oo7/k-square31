@@ -26,6 +26,10 @@ assert.equal(bridge.normalizeRows(payloadRows).length, 2);
 assert.equal(bridge.rowsFromPayload({ user: { username: "must-not-be-read" } }).length, 0);
 
 const gmApiVariant = ["AMBUJACEM-I", "NSEFUT", "ACCOUNT REPORT COLUMNS", "AMBUJACEM</br>25AUG2026", "220", 433.727, "0", 0, "220", "0.00", "-95419.92", "25-08-2026"];
-assert.equal(bridge.normalizeRows([gmApiVariant, longRow]).length, 1, "untrusted report-layout rows must be ignored while rendered portfolio rows remain usable");
+const apiPosition = bridge.normalizeRows([gmApiVariant])[0];
+assert.equal(apiPosition.symbol, "AMBUJACEM", "hidden GM account columns must not hide a valid contract");
+assert.equal(apiPosition.quantity, 220);
+assert.equal(apiPosition.price, 433.727);
+assert.equal(bridge.normalizeRows([gmApiVariant, longRow]).length, 2, "both API and rendered GM layouts must remain usable");
 
 console.log("GM extension tests passed: allowlisted DataTables rows, longs, shorts, MTM marks and closed-position filtering");

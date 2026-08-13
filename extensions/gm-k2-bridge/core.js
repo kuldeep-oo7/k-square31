@@ -30,7 +30,10 @@
     const cells = Array.from(raw || [], text);
     const marketIndex = cells.findIndex((cell) => cell.toUpperCase() === "NSEFUT");
     if (marketIndex < 0 || cells.length < marketIndex + 9) return null;
-    const instrumentIndex = marketIndex + 1;
+    // The API response can insert a hidden client/account column after NSEFUT.
+    // Locate the contract by its expiry suffix so both DOM and API rows parse.
+    const instrumentIndex = cells.findIndex((cell, index) => index > marketIndex && index <= marketIndex + 4 && /^(.+?)\s*(\d{2}[A-Z]{3}\d{4})$/i.test(cell));
+    if (instrumentIndex < 0 || cells.length < instrumentIndex + 9) return null;
     const instrument = cells[instrumentIndex]?.toUpperCase().match(/^(.+?)\s*(\d{2}[A-Z]{3}\d{4})$/);
     if (!instrument) return null;
     const symbol = instrument[1].replace(/\s+/g, "").trim();
