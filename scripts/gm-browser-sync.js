@@ -35,24 +35,32 @@ async function fetchPortfolioWithBrowser(username, password) {
     }, { username, password });
     if (!login.ok || String(login.data?.status || "").toLowerCase() !== "ok") throw new Error("GM rejected the configured cloud credentials");
 
-    await page.goto(PORTFOLIO_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
-    await page.waitForSelector("#load_data", { timeout: 60_000 });
     let payload = null;
-    const responsePromise = page.waitForResponse(async (response) => {
+    let networkResponseUrl = "";
+    let resolvePayload;
+    const payloadPromise = new Promise((resolve) => { resolvePayload = resolve; });
+    const capturePortfolioResponse = async (response) => {
       if (!POSITION_ENDPOINT.test(new URL(response.url()).pathname) || response.request().method() !== "POST") return false;
       const candidate = await responsePayload(response);
       const candidateCount = Number(candidate?.iTotalDisplayRecords ?? candidate?.iTotalRecords);
       const candidateQuantity = Number(candidate?.total_qty);
       if (!Array.isArray(candidate?.aaData) || !Number.isInteger(candidateCount) || !Number.isFinite(candidateQuantity)) return false;
+      if (payload) return true;
       payload = candidate;
+      networkResponseUrl = response.url();
+      resolvePayload(candidate);
       return true;
-    }, { timeout: 60_000 });
+    };
+    page.on("response", capturePortfolioResponse);
+    await page.goto(PORTFOLIO_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    await page.waitForSelector("#load_data", { timeout: 60_000 });
     await page.evaluate(() => {
       const button = [...document.querySelectorAll("button,input[type=button],input[type=submit]")].find((node) => String(node.innerText || node.value || "").replace(/\s+/g, " ").trim().toUpperCase() === "GET POSITION");
       if (!button) throw new Error("GM Get Position button is not available");
       button.click();
     });
-    const networkResponse = await responsePromise;
+    await Promise.race([payloadPromise, page.waitForTimeout(60_000).then(() => { throw new Error("GM complete portfolio response timed out"); })]);
+    page.off("response", capturePortfolioResponse);
     const recordCount = Number(payload?.iTotalDisplayRecords ?? payload?.iTotalRecords);
     const totalQuantity = Number(payload?.total_qty);
     if (!Array.isArray(payload?.aaData) || !Number.isInteger(recordCount) || !Number.isFinite(totalQuantity)) throw new Error("GM did not return a complete portfolio response");
@@ -87,7 +95,7 @@ async function fetchPortfolioWithBrowser(username, password) {
       const unusual = positions.filter((item) => !Number.isInteger(item.quantity) || item.quantity > 10_000).map((item) => `${item.symbol}:${item.quantity}`).slice(0, 5);
       throw new Error(`GM completeness mismatch: DOM rows=${positions.length}/${recordCount}, DOM quantity=${signedQuantity}/${totalQuantity}, API open rows=${apiPositions.length}, API quantity=${apiSignedQuantity}, cell shapes=${JSON.stringify(shapeCounts)}, unusual=${unusual.join(",") || "none"}`);
     }
-    return { positions, recordCount, totalQuantity, totalMtm, endpoint: networkResponse.url() };
+    return { positions, recordCount, totalQuantity, totalMtm, endpoint: networkResponseUrl };
   } finally {
     await browser.close();
   }
