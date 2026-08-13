@@ -71,15 +71,22 @@ async function fetchPortfolioWithBrowser(username, password) {
     });
     await page.waitForFunction((expected) => document.querySelectorAll("#load_data tbody tr").length >= expected, recordCount, { timeout: 60_000 });
     let positions = [];
+    let tableRows = [];
     for (let attempt = 0; attempt < 20; attempt += 1) {
-      const tableRows = await page.locator("#load_data tbody tr").evaluateAll((rows) => rows.map((row) => [...row.querySelectorAll("td")].map((cell) => cell.innerText.replace(/\s+/g, " ").trim())));
+      tableRows = await page.locator("#load_data tbody tr").evaluateAll((rows) => rows.map((row) => [...row.querySelectorAll("td")].map((cell) => cell.innerText.replace(/\s+/g, " ").trim())));
       positions = bridge.normalizeRows(tableRows);
       if (positions.length === recordCount && positions.every((item) => Number(item.markPrice) > 0 && Number.isFinite(Number(item.mtm)))) break;
       await page.waitForTimeout(500);
     }
     const signedQuantity = positions.reduce((sum, item) => sum + (item.position === "short" ? -1 : 1) * item.quantity, 0);
     const totalMtm = positions.reduce((sum, item) => sum + Number(item.mtm || 0), 0);
-    if (positions.length !== recordCount || Math.abs(signedQuantity - totalQuantity) > .01) throw new Error(`GM completeness mismatch: rows=${positions.length}/${recordCount}, quantity=${signedQuantity}/${totalQuantity}`);
+    if (positions.length !== recordCount || Math.abs(signedQuantity - totalQuantity) > .01) {
+      const apiPositions = bridge.normalizeRows(payload.aaData);
+      const apiSignedQuantity = apiPositions.reduce((sum, item) => sum + (item.position === "short" ? -1 : 1) * item.quantity, 0);
+      const shapeCounts = tableRows.reduce((counts, row) => { const key = String(row.length); counts[key] = (counts[key] || 0) + 1; return counts; }, {});
+      const unusual = positions.filter((item) => !Number.isInteger(item.quantity) || item.quantity > 10_000).map((item) => `${item.symbol}:${item.quantity}`).slice(0, 5);
+      throw new Error(`GM completeness mismatch: DOM rows=${positions.length}/${recordCount}, DOM quantity=${signedQuantity}/${totalQuantity}, API open rows=${apiPositions.length}, API quantity=${apiSignedQuantity}, cell shapes=${JSON.stringify(shapeCounts)}, unusual=${unusual.join(",") || "none"}`);
+    }
     return { positions, recordCount, totalQuantity, totalMtm, endpoint: networkResponse.url() };
   } finally {
     await browser.close();
