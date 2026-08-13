@@ -93,7 +93,9 @@ async function fetchPortfolioWithBrowser(username, password) {
       const apiSignedQuantity = apiPositions.reduce((sum, item) => sum + (item.position === "short" ? -1 : 1) * item.quantity, 0);
       const shapeCounts = tableRows.reduce((counts, row) => { const key = String(row.length); counts[key] = (counts[key] || 0) + 1; return counts; }, {});
       const unusual = positions.filter((item) => !Number.isInteger(item.quantity) || item.quantity > 10_000).map((item) => `${item.symbol}:${item.quantity}`).slice(0, 5);
-      throw new Error(`GM completeness mismatch: DOM rows=${positions.length}/${recordCount}, DOM quantity=${signedQuantity}/${totalQuantity}, API open rows=${apiPositions.length}, API quantity=${apiSignedQuantity}, cell shapes=${JSON.stringify(shapeCounts)}, unusual=${unusual.join(",") || "none"}`);
+      const headers = await page.locator("#load_data thead th").evaluateAll((nodes) => nodes.map((node) => node.innerText.replace(/\s+/g, " ").trim() || "_")).catch(() => []);
+      const sample = (tableRows[0] || []).map((value, index) => `${index}:${String(value).replace(/KGK[^|]*/gi, "[account]").slice(0, 40)}`).join("|");
+      throw new Error(`GM completeness mismatch: DOM rows=${positions.length}/${recordCount}, DOM quantity=${signedQuantity}/${totalQuantity}, API open rows=${apiPositions.length}, API quantity=${apiSignedQuantity}, cell shapes=${JSON.stringify(shapeCounts)}, unusual=${unusual.join(",") || "none"}, headers=${headers.join("|")}, sample=${sample}`);
     }
     return { positions, recordCount, totalQuantity, totalMtm, endpoint: networkResponseUrl };
   } finally {
