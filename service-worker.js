@@ -10,7 +10,7 @@ self.addEventListener("activate", (event) => {
     const clients = await self.clients.matchAll({ type: "window", includeUncontrolled: true });
     await Promise.all(clients.map((client) => {
       const url = new URL(client.url);
-      url.searchParams.set("k2v", "22");
+      url.searchParams.set("k2v", "23");
       return client.navigate(url.href);
     }));
   })());

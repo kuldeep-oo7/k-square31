@@ -1,9 +1,15 @@
 {
   "manifest_version": 3,
   "name": "K² GM Portfolio Extractor",
-  "version": "2.0.1",
-  "description": "Automatically synchronize the signed-in GM Global portfolio to the private K² account every 30 minutes.",
-  "permissions": ["activeTab", "alarms", "scripting", "storage", "tabs"],
+  "version": "2.1.0",
+  "description": "Synchronize a complete, verified signed-in GM Global portfolio snapshot to the private K² account.",
+  "permissions": [
+    "activeTab",
+    "alarms",
+    "scripting",
+    "storage",
+    "tabs"
+  ],
   "host_permissions": [
     "https://gmglobal.org/*",
     "https://k-square31.vercel.app/*"
@@ -13,14 +19,22 @@
   },
   "content_scripts": [
     {
-      "matches": ["https://gmglobal.org/*"],
-      "js": ["gm-hook-main.js"],
+      "matches": [
+        "https://gmglobal.org/*"
+      ],
+      "js": [
+        "gm-hook-main.js"
+      ],
       "run_at": "document_start",
       "world": "MAIN"
     },
     {
-      "matches": ["https://gmglobal.org/*"],
-      "js": ["gm-collector.js"],
+      "matches": [
+        "https://gmglobal.org/*"
+      ],
+      "js": [
+        "gm-collector.js"
+      ],
       "run_at": "document_start"
     }
   ],

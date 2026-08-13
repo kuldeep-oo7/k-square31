@@ -1,11 +1,13 @@
-FROM node:24-alpine
+FROM mcr.microsoft.com/playwright:v1.55.0-noble
 
 WORKDIR /app
+COPY package.json package-lock.json ./
+RUN npm ci --omit=optional
 COPY extensions/gm-k2-bridge/core.js extensions/gm-k2-bridge/core.js
 COPY scripts/gm-cloud-sync.js scripts/gm-cloud-sync.js
+COPY scripts/gm-browser-sync.js scripts/gm-browser-sync.js
 COPY scripts/gm-cloud-worker.js scripts/gm-cloud-worker.js
 
 ENV NODE_ENV=production
-ENV GM_SYNC_INTERVAL_MINUTES=30
-
+ENV GM_SYNC_INTERVAL_MINUTES=5
 CMD ["node", "scripts/gm-cloud-worker.js"]

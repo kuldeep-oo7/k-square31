@@ -1,8 +1,8 @@
 "use strict";
 
-const { runOnce } = require("./gm-cloud-sync");
+const { runBrowserOnce: runOnce } = require("./gm-browser-sync");
 
-const intervalMinutes = Math.max(5, Number(process.env.GM_SYNC_INTERVAL_MINUTES) || 30);
+const intervalMinutes = Math.max(5, Number(process.env.GM_SYNC_INTERVAL_MINUTES) || 5);
 const intervalMs = intervalMinutes * 60 * 1000;
 let stopping = false;
 

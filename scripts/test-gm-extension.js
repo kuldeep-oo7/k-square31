@@ -11,11 +11,14 @@ assert.deepEqual(positions.map((item) => item.symbol), ["AUBANK", "NIFTY"]);
 assert.equal(positions[0].position, "long");
 assert.equal(positions[0].quantity, 120);
 assert.equal(positions[0].buyQuantity, 120);
-assert.equal(positions[0].markPrice, 995.2, "MTM should infer the current futures mark without pretending A/B P is LTP");
+assert.equal(positions[0].price, 1015.84, "Buy A.P. is the long entry price");
+assert.equal(positions[0].markPrice, 1015.84, "A/B P is the current GM contract mark");
+assert.equal(positions[0].mtm, -2476.92, "GM row MTM is preserved independently of the current mark");
 assert.equal(positions[1].position, "short");
 assert.equal(positions[1].quantity, 35);
 assert.equal(positions[1].sellAverage, 24321.7);
-assert.equal(positions[1].markPrice, 24221.7);
+assert.equal(positions[1].price, 24321.7, "Sell A.P. is the short entry price");
+assert.equal(positions[1].markPrice, 24321.7, "A/B P is the current GM mark for a short contract");
 
 const payloadRows = bridge.rowsFromPayload({ aaData: [longRow, shortRow], iTotalRecords: 2 });
 assert.equal(payloadRows.length, 2, "DataTables aaData response should be discovered");

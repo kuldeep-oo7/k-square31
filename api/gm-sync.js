@@ -42,8 +42,15 @@ module.exports = async function handler(request, response) {
   const snapshotId = String(body.snapshotId || "");
   const positions = Array.isArray(body.positions) ? body.positions : [];
   const capturedAt = Date.parse(body.capturedAt || "");
-  if (!/^[a-f0-9]{64}$/.test(snapshotId) || positions.length > 250 || !Number.isFinite(capturedAt) || capturedAt > Date.now() + 5 * 60 * 1000 || capturedAt < Date.now() - 7 * 24 * 60 * 60 * 1000) {
-    return response.status(400).json({ error: "Invalid GM portfolio snapshot" });
+  const recordCount = Number(body.recordCount);
+  const totalQuantity = Number(body.totalQuantity);
+  const totalMtm = Number(body.totalMtm);
+  const signedQuantity = positions.reduce((sum, item) => sum + (item.position === "short" ? -1 : 1) * Number(item.quantity || 0), 0);
+  const totalAbsoluteQuantity = positions.reduce((sum, item) => sum + Math.abs(Number(item.quantity || 0)), 0);
+  const summedMtm = positions.reduce((sum, item) => sum + Number(item.mtm || 0), 0);
+  const verifiedComplete = Number.isInteger(recordCount) && recordCount === positions.length && Number.isFinite(totalQuantity) && Math.abs(signedQuantity - totalQuantity) < .01 && Number.isFinite(totalMtm) && Math.abs(summedMtm - totalMtm) < Math.max(1, positions.length * .05);
+  if (!/^[a-f0-9]{64}$/.test(snapshotId) || positions.length > 250 || !Number.isFinite(capturedAt) || capturedAt > Date.now() + 5 * 60 * 1000 || capturedAt < Date.now() - 24 * 60 * 60 * 1000 || !verifiedComplete) {
+    return response.status(400).json({ error: "GM snapshot failed completeness, quantity or MTM validation" });
   }
 
   try {
@@ -57,7 +64,11 @@ module.exports = async function handler(request, response) {
       return replaceBrokerSnapshot(portfolio, positions, snapshotId, undefined, {
         capturedAt: new Date(capturedAt).toISOString(),
         source: claims.deviceId === "gm-cloud-worker" ? "gm-cloud" : "gm-extension",
-        deviceId: claims.deviceId
+        deviceId: claims.deviceId,
+        totalQuantity,
+        totalAbsoluteQuantity,
+        totalMtm,
+        verifiedComplete
       });
     });
     const clean = cleanPortfolio(updated);

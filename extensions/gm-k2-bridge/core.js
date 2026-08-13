@@ -30,30 +30,31 @@
     const cells = Array.from(raw || [], text);
     const marketIndex = cells.findIndex((cell) => cell.toUpperCase() === "NSEFUT");
     if (marketIndex < 0 || cells.length < marketIndex + 9) return null;
-    const instrument = cells[marketIndex + 1].toUpperCase().match(/^(.+?)\s*(\d{2}[A-Z]{3}\d{4})$/);
+    const instrumentIndex = marketIndex + 1;
+    const instrument = cells[instrumentIndex]?.toUpperCase().match(/^(.+?)\s*(\d{2}[A-Z]{3}\d{4})$/);
     if (!instrument) return null;
     const symbol = instrument[1].replace(/\s+/g, "").trim();
     const contractExpiry = expiry(instrument[2]);
-    const buyQuantity = number(cells[marketIndex + 2]) || 0;
-    const buyAverage = number(cells[marketIndex + 3]) || 0;
-    const sellQuantity = number(cells[marketIndex + 4]) || 0;
-    const sellAverage = number(cells[marketIndex + 5]) || 0;
-    const netQuantity = number(cells[marketIndex + 6]) || 0;
-    const balancePrice = number(cells[marketIndex + 7]) || 0;
-    const mtm = number(cells[marketIndex + 8]) || 0;
+    const buyQuantity = number(cells[instrumentIndex + 1]) || 0;
+    const buyAverage = number(cells[instrumentIndex + 2]) || 0;
+    const sellQuantity = number(cells[instrumentIndex + 3]) || 0;
+    const sellAverage = number(cells[instrumentIndex + 4]) || 0;
+    const netQuantity = number(cells[instrumentIndex + 5]) || 0;
+    const balancePrice = number(cells[instrumentIndex + 6]) || 0;
+    const mtm = number(cells[instrumentIndex + 7]) || 0;
     if (!/^[A-Z0-9&-]{1,30}$/.test(symbol) || !contractExpiry || !netQuantity) return null;
     const position = netQuantity < 0 ? "short" : "long";
     const sideAverage = position === "short" ? sellAverage : buyAverage;
-    const price = balancePrice > 0 ? balancePrice : sideAverage;
+    const price = sideAverage > 0 ? sideAverage : balancePrice;
+    const markPrice = balancePrice > 0 ? balancePrice : null;
     if (!(price > 0)) return null;
-    const inferredMark = mtm ? price + mtm / netQuantity : null;
     return {
       symbol,
       price,
       quantity: Math.abs(netQuantity),
       position,
       expiry: contractExpiry,
-      ...(Number.isFinite(inferredMark) && inferredMark > 0 ? { markPrice: Math.round(inferredMark * 100) / 100 } : {}),
+      ...(Number.isFinite(markPrice) && markPrice > 0 ? { markPrice: Math.round(markPrice * 100) / 100 } : {}),
       buyQuantity,
       buyAverage,
       sellQuantity,

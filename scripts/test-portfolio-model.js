@@ -12,7 +12,7 @@ assert.equal(imported.version, 2);
 assert.equal(imported.lots.length, 2, "snapshot replaces old test lots rather than duplicating them");
 assert.equal(imported.lots.find((lot) => lot.symbol === "AUBANK").price, 1029.8);
 assert.equal(imported.lots.find((lot) => lot.symbol === "AUBANK").markPrice, 995.2);
-assert.equal(imported.lots.find((lot) => lot.symbol === "AUBANK").markSource, "broker-close");
+assert.equal(imported.lots.find((lot) => lot.symbol === "AUBANK").markSource, "gm-mark");
 assert.equal(imported.lots.find((lot) => lot.symbol === "AUBANK").buyQuantity, 90);
 assert.equal(imported.lots.find((lot) => lot.symbol === "AUBANK").sellQuantity, 20);
 assert.equal(imported.lots.find((lot) => lot.symbol === "NIFTY").position, "short");

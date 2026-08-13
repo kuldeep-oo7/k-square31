@@ -9,12 +9,12 @@
     <meta name="apple-mobile-web-app-title" content="K² Desk" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="description" content="K² is a private market range, portfolio and automatic Monday-grid paper trading desk." />
-    <meta name="k2-build" content="k2-speed-22" />
+    <meta name="k2-build" content="k2-speed-23" />
     <title>K² — Market Grid Desk</title>
     <link rel="manifest" href="/manifest.webmanifest" />
     <link rel="icon" href="/k2-icon.svg" type="image/svg+xml" />
     <link rel="apple-touch-icon" href="/k2-icon.svg" />
-    <link rel="stylesheet" href="/styles.css?v=k2-speed-22" />
+    <link rel="stylesheet" href="/styles.css?v=k2-speed-23" />
   </head>
   <body>
     <div class="ambient ambient-one"></div>
@@ -95,7 +95,8 @@
         </div>
         <nav class="action-filters" id="actionFilters" aria-label="Filter stocks by today's action">
           <button type="button" class="active" data-action-filter="all">All <b id="actionAllCount">130</b></button>
-          <button type="button" data-action-filter="buy"><span>↓</span> Buy list <b id="actionBuyCount">0</b></button>
+          <button type="button" data-action-filter="owned"><span>◆</span> Open trades <b id="actionOwnedCount">0</b></button>
+          <button type="button" data-action-filter="buy"><span>↓</span> New buys <b id="actionBuyCount">0</b></button>
           <button type="button" data-action-filter="hold"><span>•</span> Hold list <b id="actionHoldCount">0</b></button>
           <button type="button" data-action-filter="sell"><span>↑</span> Sell list <b id="actionSellCount">0</b></button>
           <button type="button" data-action-filter="alert"><span>!</span> Review list <b id="actionAlertCount">0</b></button>
@@ -201,6 +202,6 @@
 
     <script src="/watchlist-data.js?v=k2-weekly-ai-1"></script>
     <script src="/grid-logic.js?v=k2-monday-only-8"></script>
-    <script src="/app.js?v=k2-speed-22"></script>
+    <script src="/app.js?v=k2-speed-23"></script>
   </body>
 </html>

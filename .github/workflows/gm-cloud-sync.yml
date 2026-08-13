@@ -2,11 +2,11 @@ name: K2 GM cloud portfolio sync
 
 on:
   schedule:
-    - cron: "0,30 * * * 1-5"
+    - cron: "*/5 3-11 * * 1-5"
   workflow_dispatch:
     inputs:
       dry_run:
-        description: "Read GM without changing K2"
+        description: "Read and validate GM without changing K2"
         required: false
         type: boolean
         default: false
@@ -21,16 +21,19 @@ permissions:
 jobs:
   synchronize:
     runs-on: ubuntu-latest
-    timeout-minutes: 5
+    timeout-minutes: 8
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 24
-      - name: Read GM and update only the Kamlesh K2 portfolio
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Validate GM and update only the Kamlesh K2 portfolio
         env:
           GM_USERNAME: ${{ secrets.GM_USERNAME }}
           GM_PASSWORD: ${{ secrets.GM_PASSWORD }}
           K2_GM_CLOUD_SYNC_SECRET: ${{ secrets.K2_GM_CLOUD_SYNC_SECRET }}
           GM_CLOUD_DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
-        run: node scripts/gm-cloud-sync.js
+        run: node scripts/gm-browser-sync.js

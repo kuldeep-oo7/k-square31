@@ -209,7 +209,7 @@ async function fetchGmPortfolio(username, password) {
   return best;
 }
 
-async function uploadToK2(positions, secret) {
+async function uploadToK2(positions, secret, metadata = {}) {
   const capturedAt = new Date().toISOString();
   const snapshotId = fingerprint(positions);
   const response = await fetch(K2_SYNC_URL, {
@@ -221,6 +221,9 @@ async function uploadToK2(positions, secret) {
       capturedAt,
       sourceEndpoint: GM_PORTFOLIO_URL,
       reason: "cloud-schedule",
+      recordCount: Number(metadata.recordCount) || positions.length,
+      totalQuantity: Number.isFinite(Number(metadata.totalQuantity)) ? Number(metadata.totalQuantity) : positions.reduce((sum, item) => sum + (item.position === "short" ? -1 : 1) * Number(item.quantity || 0), 0),
+      totalMtm: Number.isFinite(Number(metadata.totalMtm)) ? Number(metadata.totalMtm) : positions.reduce((sum, item) => sum + Number(item.mtm || 0), 0),
       positions
     }),
     signal: AbortSignal.timeout(45_000)

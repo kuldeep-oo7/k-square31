@@ -28,6 +28,7 @@
     aiCapFilter: "all",
     aiVisibleLimit: 50,
     aiRefreshTimer: null,
+    portfolioRefreshTimer: null,
     aiLoading: false,
     aiError: null,
     aiSyncing: false,
@@ -70,29 +71,13 @@
   }
 
   function loadPortfolio() {
-    if (!state.user) return emptyPortfolio();
-    try {
-      const userKey = `k2-portfolio-v2:${state.user}`;
-      let raw = localStorage.getItem(userKey);
-      const legacy = localStorage.getItem("pivot31-portfolio-v1");
-      if (!raw && legacy && !localStorage.getItem("k2-legacy-portfolio-owner")) {
-        raw = legacy;
-        localStorage.setItem(userKey, legacy);
-        localStorage.setItem("k2-legacy-portfolio-owner", state.user);
-      }
-      const stored = JSON.parse(raw);
-      return {
-        lots: Array.isArray(stored?.lots) ? stored.lots : [],
-        realizedPnl: Number(stored?.realizedPnl) || 0,
-        transactions: Array.isArray(stored?.transactions) ? stored.transactions : []
-      };
-    } catch {
-      return emptyPortfolio();
-    }
+    // A signed-in portfolio has exactly one authority: the private server store.
+    // Never revive the retired workbook/localStorage portfolio on another device.
+    return emptyPortfolio();
   }
 
   function savePortfolio() {
-    if (state.user) localStorage.setItem(`k2-portfolio-v2:${state.user}`, JSON.stringify(state.portfolio));
+    // Deliberately do not persist broker or portfolio data in this browser.
   }
 
   async function portfolioMutation(action, symbol, price, quantity, requestId = crypto.randomUUID()) {
@@ -108,25 +93,20 @@
   }
 
   async function syncServerPortfolio() {
-    const cached = state.portfolio;
     try {
-      const response = await fetch("/api/portfolio", { credentials: "same-origin" });
+      const response = await fetch(`/api/portfolio?fresh=${Date.now()}`, { credentials: "same-origin", cache: "no-store" });
       const payload = await response.json();
       if (!response.ok) throw new Error(payload.error || "Portfolio database unavailable");
-      let server = payload.portfolio;
-      if (!server.lots.length && cached.lots.length) {
-        for (const lot of cached.lots) {
-          server = await portfolioMutation("buy", lot.symbol, Number(lot.price), Number(lot.quantity), `migration-${String(lot.id || crypto.randomUUID()).replace(/[^a-zA-Z0-9-]/g, "-").slice(0, 60)}`);
-        }
-      }
-      state.portfolio = server;
+      state.portfolio = payload.portfolio;
       state.databaseOnline = true;
-      savePortfolio();
       renderPortfolio();
       renderSummary();
     } catch (error) {
       state.databaseOnline = false;
-      toast(`${error.message}. Showing the last synchronized copy.`);
+      state.portfolio = emptyPortfolio();
+      renderPortfolio();
+      renderSummary();
+      toast(`${error.message}. No browser-stored portfolio is being substituted.`);
     }
   }
 
@@ -396,40 +376,34 @@
   function weightedRecommendation(data, personal) {
     const model = data?.decisionModel || { score: 0, confidencePct: 0, components: [] };
     const score = Number(model.score) || 0;
+    const components = Array.isArray(model.components) ? model.components : [];
+    const confirmationNames = /trend|momentum|relative strength|candlestick|walk-forward|volume|strategy laboratory/i;
+    const confirmations = components.filter((item) => confirmationNames.test(item.name || "") && Number(item.contribution) > .5).length;
+    const contradictions = components.filter((item) => confirmationNames.test(item.name || "") && Number(item.contribution) < -.5).length;
+    const confidence = Number(model.confidencePct) || 0;
     const riskBase = Math.min(1, Math.max(.25, Number(data?.signals?.riskBudgetMultiplier) || 1));
     const modelFactor = score <= -35 ? .5 : score < 0 ? .78 : score >= 35 ? 1.08 : 1;
     const amount = Math.min(40_000, 40_000 * riskBase * modelFactor);
     const buying = ["buy", "buy-hit"].includes(personal.action);
     const selling = ["sell", "sell-hit"].includes(personal.action);
-    if (personal.action === "both-hit") {
-      return { tone: "wait", label: "WAIT — BOTH LINES TRADED", detail: "Daily candles cannot prove whether the buy or sell line happened first. Use an intraday chart before recording an action.", amount: 0, score, model };
-    }
-    if (buying && score >= 20) {
-      return { tone: "buy", label: "BUY CONFIRMED — ONE WEIGHTED CHUNK", detail: `The Monday trigger fired and the full evidence model is bullish. The volatility- and evidence-scaled amount is ${money(amount)}.`, amount, score, model };
-    }
-    if (buying && score >= 0) {
-      return { tone: "caution", label: "BUY SMALLER — EVIDENCE IS MIXED", detail: `The −2% rule fired, but confirmation is not strong. If following the rule, the weighted size is ${money(amount)} rather than a full ₹40,000 chunk.`, amount, score, model };
-    }
+    const entryConfirmed = buying && score >= 20 && confirmations >= 3 && contradictions <= 2 && confidence >= 15;
+    if (personal.action === "both-hit") return { tone: "wait", label: "REVIEW — BOTH LINES TRADED", detail: "Daily data cannot prove which line traded first. This is not a new-entry signal until intraday order is known.", amount: 0, score, model, confirmations, contradictions, entryConfirmed: false };
+    if (entryConfirmed) return { tone: "buy", label: "NEW BUY CONFIRMED", detail: "The GM-price trigger and " + confirmations + " independent technical/statistical checks agree. Risk-scaled maximum for this chunk: " + money(amount) + ".", amount, score, model, confirmations, contradictions, entryConfirmed: true };
     if (buying) {
-      return { tone: "wait", label: "WAIT — BUY LINE HIT, MODEL DISAGREES", detail: "The mechanical −2% event occurred, but the weighted trend, risk and probability evidence remains adverse. The trigger is recorded without calling it a confirmed buy.", amount: 0, score, model };
+      const failed = [score < 20 ? "model score " + number(score) + " is below +20" : null, confirmations < 3 ? "only " + confirmations + " independent confirmations" : null, contradictions > 2 ? contradictions + " important contradictions" : null, confidence < 15 ? "confidence strength " + number(confidence) + "% is below 15%" : null].filter(Boolean);
+      return { tone: "wait", label: "REVIEW — PRICE TRIGGER, NO NEW BUY", detail: "The GM-price −2% event is recorded, but K² will not place it in New buys because " + failed.join(", ") + ". An existing position remains visible under Open trades.", amount: 0, score, model, confirmations, contradictions, entryConfirmed: false };
     }
-    if (selling && score <= -20) {
-      return { tone: "sell", label: "SELL CONFIRMED — REDUCE ONE CHUNK", detail: "The Monday sell line fired while the weighted model is bearish. The mechanical exit and broader evidence agree.", amount: 0, score, model };
-    }
-    if (selling && score <= 0) {
-      return { tone: "sell", label: "SELL SOME — MIXED CONFIRMATION", detail: "The +2% line fired and the evidence is not strongly bullish. A staged reduction matches the rule.", amount: 0, score, model };
-    }
-    if (selling) {
-      return { tone: "caution", label: "SELL LINE HIT — UPTREND STILL STRONG", detail: "The profit line fired, but the weighted model remains bullish. Reduce only the planned slice rather than treating the entire trend as finished.", amount: 0, score, model };
-    }
-    if (score >= 28) return { tone: "watch", label: "HOLD — BULLISH WATCH", detail: "The evidence leans upward, but the Monday buy price has not been reached.", amount: 0, score, model };
-    if (score <= -28) return { tone: "watch", label: "HOLD — BEARISH RISK WATCH", detail: "The evidence leans downward, but no mechanical sell event is active.", amount: 0, score, model };
-    return { tone: "wait", label: "HOLD — NO WEIGHTED EDGE", detail: "Neither the Monday levels nor the weighted evidence justify a new action.", amount: 0, score, model };
+    if (selling && score <= -20) return { tone: "sell", label: "SELL CONFIRMED — REDUCE ONE CHUNK", detail: "The sell line fired while the weighted model is bearish. The exit and broader evidence agree.", amount: 0, score, model, confirmations, contradictions };
+    if (selling && score <= 0) return { tone: "sell", label: "SELL SOME — MIXED CONFIRMATION", detail: "The +2% line fired and the evidence is not strongly bullish. A staged reduction matches the rule.", amount: 0, score, model, confirmations, contradictions };
+    if (selling) return { tone: "caution", label: "SELL LINE HIT — UPTREND STILL STRONG", detail: "The profit line fired, but the weighted model remains bullish. Reduce only the planned slice rather than treating the entire trend as finished.", amount: 0, score, model, confirmations, contradictions };
+    if (score >= 28) return { tone: "watch", label: "HOLD — BULLISH WATCH", detail: "The evidence leans upward, but the weekly buy price has not been reached.", amount: 0, score, model, confirmations, contradictions };
+    if (score <= -28) return { tone: "watch", label: "HOLD — BEARISH RISK WATCH", detail: "The evidence leans downward, but no mechanical sell event is active.", amount: 0, score, model, confirmations, contradictions };
+    return { tone: "wait", label: "HOLD — NO WEIGHTED EDGE", detail: "Neither the weekly levels nor the weighted evidence justify a new action.", amount: 0, score, model, confirmations, contradictions };
   }
 
   function weightedCategory(recommendation, personal) {
-    if (personal?.action === "both-hit" || personal?.action === "loading") return "alert";
-    if (recommendation?.label?.startsWith("BUY")) return "buy";
+    if (personal?.action === "both-hit" || personal?.action === "loading" || (["buy", "buy-hit"].includes(personal?.action) && !recommendation?.entryConfirmed)) return "alert";
+    if (recommendation?.entryConfirmed) return "buy";
     if (recommendation?.label?.startsWith("SELL")) return "sell";
     return "hold";
   }
@@ -512,7 +486,7 @@
   }
 
   function exitPlan(item, data, live) {
-    const base = Number(data?.weekly?.openingPrice) || item.average;
+    const base = item.assetType === "future" ? (Number(item.weeklyBase) || item.markPrice || item.average) : (Number(data?.weekly?.openingPrice) || item.average);
     const direction = item.position === "short" ? -1 : 1;
     const weeklyLevels = window.K2_GRID?.exitLevels(base, 2, 5, item.position) || [];
     const targets = weeklyLevels.map((price, index) => {
@@ -589,11 +563,11 @@
   }
 
   function personalSignal(symbol, data, suppliedHolding = null) {
-    const anchor = Number(data?.weekly?.openingPrice);
-    const price = Number(data?.price);
-    const grid = window.K2_GRID?.weeklySignal(anchor, price, 2) || { action: "loading", buyLevels: [], sellAt: null, reachedBuyLevel: 0 };
     const holding = suppliedHolding || holdings().find((item) => item.symbol === symbol);
     const isFuture = holding?.assetType === "future";
+    const anchor = isFuture ? Number(holding.weeklyBase) : Number(data?.weekly?.openingPrice);
+    const price = isFuture ? Number(holding.markPrice) : Number(data?.price);
+    const grid = window.K2_GRID?.weeklySignal(anchor, price, 2) || { action: "loading", buyLevels: [], sellAt: null, reachedBuyLevel: 0 };
     const lots = state.portfolio.lots.filter((lot) => lot.symbol === symbol && lot.assetType !== "future");
     const exit = !isFuture ? window.K2_GRID?.lotExit(lots, price, 2, holding?.position) : null;
     let action = grid.action;
@@ -606,8 +580,8 @@
     } else if (holding && exit?.nextTarget) {
       detail = `${holding.position === "short" ? "Cover" : "Sell"} the next stored lot at ${money(exit.nextTarget)}. Until then, hold.`;
     }
-    const dailyLow = Number(data?.daily?.low);
-    const dailyHigh = Number(data?.daily?.high);
+    const dailyLow = isFuture ? Number(holding.dailyLow) : Number(data?.daily?.low);
+    const dailyHigh = isFuture ? Number(holding.dailyHigh) : Number(data?.daily?.high);
     if (isFuture) {
       const future = window.K2_GRID?.futureSignal(price, grid.buyLevels?.[0], grid.sellAt) || { action: "loading" };
       action = future.action;
@@ -667,13 +641,22 @@
       const assetType = lot.assetType === "future" ? "future" : "equity";
       const position = lot.position === "short" ? "short" : "long";
       const key = lot.contractKey || (assetType === "future" ? `${lot.symbol}|FUT|${lot.expiry}|${position}` : `${lot.symbol}|EQ|long`);
-      if (!grouped.has(key)) grouped.set(key, { key, symbol: lot.symbol, assetType, position, expiry: lot.expiry || null, market: lot.market || (assetType === "future" ? "NSEFUT" : "NSE"), quantity: 0, cost: 0, lots: 0, markCost: 0, exactMark: true, brokerClose: false, source: lot.source || null });
+      if (!grouped.has(key)) grouped.set(key, { key, symbol: lot.symbol, assetType, position, expiry: lot.expiry || null, market: lot.market || (assetType === "future" ? "NSEFUT" : "NSE"), quantity: 0, cost: 0, lots: 0, markCost: 0, brokerMtm: 0, hasBrokerMtm: false, exactMark: true, brokerClose: false, source: lot.source || null, weeklyBase: Number(lot.weeklyBase) || null, weekKey: lot.weekKey || null, dailyLow: Number(lot.dailyLow) || null, dailyHigh: Number(lot.dailyHigh) || null, dayKey: lot.dayKey || null });
       const item = grouped.get(key);
       item.quantity += Number(lot.quantity);
       item.cost += Number(lot.quantity) * Number(lot.price);
       item.markCost += Number(lot.quantity) * Number(lot.markPrice || lot.price);
-      if (assetType === "future" && lot.markSource !== "exchange-live") item.exactMark = false;
+      const lotMtm = Number(lot.mtm);
+      if (assetType === "future" && Number.isFinite(lotMtm)) { item.brokerMtm += lotMtm; item.hasBrokerMtm = true; }
+      if (assetType === "future" && !["exchange-live", "gm-mark"].includes(lot.markSource)) item.exactMark = false;
       if (assetType === "future" && lot.markSource === "broker-close") item.brokerClose = true;
+      if (assetType === "future") {
+        item.weeklyBase = Number(lot.weeklyBase) || item.weeklyBase;
+        item.weekKey = lot.weekKey || item.weekKey;
+        item.dailyLow = Number(lot.dailyLow) || item.dailyLow;
+        item.dailyHigh = Number(lot.dailyHigh) || item.dailyHigh;
+        item.dayKey = lot.dayKey || item.dayKey;
+      }
       item.lots += 1;
     }
     return [...grouped.values()].map((item) => ({ ...item, average: item.quantity ? item.cost / item.quantity : 0, markPrice: item.quantity ? item.markCost / item.quantity : 0 }));
@@ -683,14 +666,31 @@
     const items = holdings();
     let value = 0;
     let cost = 0;
-    let pnl = 0;
+    let calculatedPnl = 0;
+    let brokerMtm = 0;
+    let totalQty = 0;
     for (const item of items) {
       const mark = item.assetType === "future" ? item.markPrice : (currentPrice(item.symbol) ?? item.average);
       value += mark * item.quantity;
       cost += item.cost;
-      pnl += (mark - item.average) * item.quantity * (item.position === "short" ? -1 : 1);
+      totalQty += item.quantity;
+      calculatedPnl += (mark - item.average) * item.quantity * (item.position === "short" ? -1 : 1);
+      if (item.assetType === "future" && item.hasBrokerMtm) brokerMtm += item.brokerMtm;
     }
-    return { items, value, cost, pnl, pnlPct: cost ? (pnl / cost) * 100 : 0, hasFutures: items.some((item) => item.assetType === "future") };
+    const hasFutures = items.some((item) => item.assetType === "future");
+    const brokerMtmComplete = Boolean(items.length) && items.every((item) => item.assetType !== "future" || item.hasBrokerMtm);
+    const verified = state.portfolio?.brokerSync?.verifiedComplete === true;
+    const pnl = hasFutures && verified ? Number(state.portfolio.brokerSync.totalMtm) : hasFutures && brokerMtmComplete ? brokerMtm : calculatedPnl;
+    const signedTotalQty = hasFutures && verified ? Number(state.portfolio.brokerSync.totalQuantity) : items.reduce((sum, item) => sum + item.quantity * (item.position === "short" ? -1 : 1), 0);
+    return { items, value, cost, pnl, calculatedPnl, brokerMtm, brokerMtmComplete, totalQty, signedTotalQty, verified, pnlPct: cost ? (pnl / cost) * 100 : 0, hasFutures };
+  }
+
+  function brokerSyncTime() {
+    const capturedAt = state.portfolio?.brokerSync?.capturedAt;
+    if (!capturedAt || !Number.isFinite(Date.parse(capturedAt))) return "Waiting for verified GM snapshot";
+    const age = Date.now() - Date.parse(capturedAt);
+    const stamp = new Date(capturedAt).toLocaleString("en-IN", { day: "2-digit", month: "short", hour: "2-digit", minute: "2-digit", timeZone: "Asia/Kolkata" });
+    return age > 15 * 60_000 ? "STALE · " + stamp : stamp;
   }
 
   function portfolioActionCategory(item) {
@@ -775,12 +775,17 @@
     if (cap !== "all") items = items.filter((item) => item.marketCapCategory === cap);
     if (model !== "all") items = items.filter((item) => market.get(item.symbol)?.signals?.marketRegime === model);
     if (state.user !== "ai" && state.actionFilter !== "all") {
-      items = items.filter((item) => {
-        const data = market.get(item.symbol);
-        if (!data) return false;
-        const personal = personalSignal(item.symbol, data);
-        return weightedCategory(weightedRecommendation(data, personal), personal) === state.actionFilter;
-      });
+      if (state.actionFilter === "owned") {
+        const owned = new Set(holdings().map((item) => item.symbol));
+        items = items.filter((item) => owned.has(item.symbol));
+      } else {
+        items = items.filter((item) => {
+          const data = market.get(item.symbol);
+          if (!data) return false;
+          const personal = personalSignal(item.symbol, data);
+          return weightedCategory(weightedRecommendation(data, personal), personal) === state.actionFilter;
+        });
+      }
     }
     if (band !== "all") {
       items = items.filter((item) => {
@@ -804,7 +809,7 @@
 
   function renderWatchlist() {
     if (state.user !== "ai") {
-      const counts = { all: watchlist.length, buy: 0, hold: 0, sell: 0, alert: 0 };
+      const counts = { all: watchlist.length, owned: new Set(holdings().map((item) => item.symbol)).size, buy: 0, hold: 0, sell: 0, alert: 0 };
       watchlist.forEach((item) => {
         const data = market.get(item.symbol);
         if (!data) return;
@@ -812,6 +817,7 @@
         counts[weightedCategory(weightedRecommendation(data, personal), personal)] += 1;
       });
       el("actionAllCount").textContent = counts.all;
+      el("actionOwnedCount").textContent = counts.owned;
       el("actionBuyCount").textContent = counts.buy;
       el("actionHoldCount").textContent = counts.hold;
       el("actionSellCount").textContent = counts.sell;
@@ -959,9 +965,9 @@
       <details class="quant-vault"><summary><span>Open the full maths, statistics &amp; probability evidence</span><b>${evidenceCards.length} CHECKS</b></summary><div class="signal-grid">${evidenceCards.map((card) => `<article class="signal-card ${card.tone}"><span>${card.name}</span><div><strong>${card.value}</strong><b>${card.label}</b></div><p>${card.note}</p></article>`).join("")}</div><p class="probability-note"><b>Probability sample:</b> ${data.empirical?.weeks || 0} completed weeks from the available six-month history. A weekly high/low can prove a level was touched, but not whether the buy or sell happened first when both were reached. Historical frequency is not a forecast.</p></details>
       <p class="daily-range-title"><b>Today's live market range</b> · resets every trading day</p>
       <div class="daily-range focus-daily-range">
-        <div><span>DAILY LOW</span><strong>${money(data.daily?.low)}</strong></div>
+        <div><span>OBSERVED LOW</span><strong>${money(data.daily?.low)}</strong></div>
         <div class="decision-now"><span>CURRENT PRICE</span><strong>${money(data.price)}</strong></div>
-        <div><span>DAILY HIGH</span><strong>${money(data.daily?.high)}</strong></div>
+        <div><span>OBSERVED HIGH</span><strong>${money(data.daily?.high)}</strong></div>
       </div>
       <div class="plain-rule"><b>Monday reset:</b> this week's action base is ${money(mondayBase)}. Five buy prices compound downward by 2%; five sell prices compound upward by 2%. The 31-day midpoint ${money(data.window.midpoint)} is comparison context only. ${actionCopy}</div>
       <div class="decision-river">
@@ -1006,10 +1012,10 @@
     el("portfolioValueLabel").textContent = metrics.hasFutures ? "Reference notional" : "Portfolio value";
     el("openPnlLabel").textContent = metrics.hasFutures ? "Marked P&L" : "Open P&L";
     el("portfolioValue").textContent = money(metrics.value, metrics.value >= 100000);
-    el("holdingCount").textContent = metrics.items.length ? `${metrics.items.length} holding${metrics.items.length === 1 ? "" : "s"}` : "No positions yet";
+    el("holdingCount").textContent = metrics.items.length ? (metrics.hasFutures ? `${metrics.items.length} GM positions · ${number(metrics.totalQty)} total qty` : `${metrics.items.length} holding${metrics.items.length === 1 ? "" : "s"}`) : "No positions yet";
     el("openPnl").textContent = money(metrics.pnl, Math.abs(metrics.pnl) >= 100000);
     el("openPnl").className = metrics.pnl > 0 ? "positive" : metrics.pnl < 0 ? "negative" : "";
-    el("openPnlPct").textContent = metrics.items.length ? `${pct(metrics.pnlPct)} on ${metrics.hasFutures ? "entry notional" : "tracked cost"}` : "Add a position to begin";
+    el("openPnlPct").textContent = metrics.items.length ? (metrics.hasFutures ? `GM snapshot · ${brokerSyncTime()}` : `${pct(metrics.pnlPct)} on tracked cost`) : "Add a position to begin";
     el("portfolioBadge").textContent = metrics.items.length;
     el("loadedCount").textContent = `${market.size} / ${watchlist.length}`;
   }
@@ -1176,14 +1182,7 @@
 
     const filteredItems = filteredPortfolioItems(metrics.items);
 
-    const weeklyPortfolioPnl = metrics.items.reduce((sum, item) => {
-      const data = market.get(item.symbol);
-      const base = Number(data?.weekly?.openingPrice);
-      const current = Number(data?.price);
-      if (!Number.isFinite(base) || !Number.isFinite(current)) return sum;
-      const direction = item.position === "short" ? -1 : 1;
-      return sum + (current - base) * item.quantity * direction;
-    }, 0);
+
     const cards = filteredItems.map((item) => {
       const isFuture = item.assetType === "future";
       const live = isFuture ? item.markPrice : (currentPrice(item.symbol) ?? item.average);
@@ -1191,14 +1190,15 @@
       const data = market.get(item.symbol);
       const value = live * item.quantity;
       const direction = item.position === "short" ? -1 : 1;
-      const pnlValue = (live - item.average) * item.quantity * direction;
+      const pnlValue = isFuture && item.hasBrokerMtm ? item.brokerMtm : (live - item.average) * item.quantity * direction;
       const pnlPercent = item.cost ? (pnlValue / item.cost) * 100 : 0;
-      const weeklyBase = Number(data?.weekly?.openingPrice) || item.average;
-      const weeklyReference = Number(data?.price) || live;
-      const weeklyPnl = (weeklyReference - weeklyBase) * item.quantity * direction;
+      const weeklyBase = isFuture ? (Number(item.weeklyBase) || live) : (Number(data?.weekly?.openingPrice) || item.average);
+      const weeklyReference = isFuture ? live : (Number(data?.price) || live);
+
       const weeklyPnlPct = weeklyBase ? direction * (weeklyReference / weeklyBase - 1) * 100 : 0;
       const plan = exitPlan(item, data, live);
       const suggestion = data ? personalSignal(item.symbol, data, item) : { action: "loading", label: "LOADING WEEKLY CALL", detail: "Waiting for the latest market session" };
+      const recommendation = data ? weightedRecommendation(data, suggestion) : { tone: "wait", label: "WAITING FOR EVIDENCE", detail: "The current technical and statistical evidence is still loading." };
       const lastTarget = plan.targets.at(-1).price;
       const progress = Math.max(0, Math.min(100, direction * (live - plan.base) / Math.abs(lastTarget - plan.base) * 100));
       const flagProgress = Math.max(4, Math.min(96, progress));
@@ -1208,12 +1208,12 @@
       }).join("");
       const expiry = item.expiry ? new Date(`${item.expiry}T00:00:00Z`).toLocaleDateString("en-IN", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }) : "";
       const instrumentCopy = isFuture ? `${item.market} · ${expiry} · ${item.position.toUpperCase()} ${number(item.quantity)}` : `${bySymbol.get(item.symbol)?.marketCapCategory || "Equity"} · ${number(item.quantity)} units · ${item.lots} lot${item.lots === 1 ? "" : "s"}`;
-      const markCopy = isFuture && item.brokerClose ? "Closing price" : isFuture && !item.exactMark ? "Broker snapshot" : "Live price";
+      const markCopy = isFuture && item.brokerClose ? "Closing price" : isFuture && item.exactMark ? "Synchronized GM price" : isFuture ? "Broker snapshot" : "Live price";
       const actionMarkup = isFuture ? `<span class="contract-chip ${item.position}">${item.position === "short" ? "SHORT FUTURE" : "LONG FUTURE"}</span>` : `<button class="small-button" data-open-buy="${item.symbol}">Add</button><button class="small-button sell" data-open-sell="${item.symbol}">Reduce</button>`;
       const suggestionAction = !isFuture && suggestion.action === "buy" ? `<button class="suggestion-button" data-open-buy="${item.symbol}">Open buy ticket</button>` : !isFuture && suggestion.action === "sell" ? `<button class="suggestion-button" data-open-sell="${item.symbol}">Open sell ticket</button>` : "";
       const mobileExpanded = state.mobileExpandedHoldings.has(item.symbol);
       const mobileHoldingBrief = `<section class="mobile-holding-brief ${suggestion.action}">
-        <div><span><small>TODAY'S ACTION</small><strong>${suggestion.label}</strong></span><span><small>MONDAY BASE</small><b>${money(weeklyBase)}</b></span><span><small>THIS WEEK P&amp;L</small><b class="${weeklyPnl >= 0 ? "positive" : "negative"}">${money(weeklyPnl)} · ${pct(weeklyPnlPct)}</b></span></div>
+        <div><span><small>CURRENT DECISION</small><strong>${recommendation.label}</strong></span><span><small>VERIFIED WEEKLY GM BASE</small><b>${money(weeklyBase)}</b></span><span><small>MOVE FROM WEEKLY BASE</small><b class="${weeklyPnlPct >= 0 ? "positive" : "negative"}">${pct(weeklyPnlPct)} · signal only</b></span></div>
         <div class="mobile-decision-grid"><span><small>BUY ≤</small><b>${money(suggestion.buyAt)}</b></span><span><small>NOW</small><b>${money(suggestion.current ?? live)}</b></span><span><small>SELL ≥</small><b>${money(suggestion.sellAt)}</b></span></div>
         <button type="button" data-toggle-mobile-holding="${item.symbol}" aria-expanded="${mobileExpanded}">${mobileExpanded ? "Hide levels and maths ↑" : "Show levels and maths ↓"}</button>
       </section>`;
@@ -1227,11 +1227,11 @@
         <div class="holding-metric"><span>${markCopy} · notional</span><strong>${money(live)} · ${money(value)}</strong>${isFuture && Number.isFinite(spot) ? `<small class="spot-reference">Spot reference ${money(spot)}</small>` : ""}</div>
         <div class="holding-metric"><span>Open P&amp;L</span><strong class="${pnlValue >= 0 ? "positive" : "negative"}">${isFuture && !item.exactMark && !item.brokerClose ? "Awaiting futures LTP" : `${money(pnlValue)} · ${pct(pnlPercent)}`}</strong></div>
         <div class="holding-actions">${actionMarkup}</div>
-      </div>${mobileHoldingBrief}<section class="portfolio-call ${suggestion.action}"><div><span>TODAY'S ACTION</span><strong>${suggestion.label}</strong><p>${suggestion.detail}</p><div class="weekly-book-strip"><span>WEEK RESET · MONDAY ${money(weeklyBase)}</span><b class="${weeklyPnl >= 0 ? "positive" : "negative"}">${money(weeklyPnl)} · ${pct(weeklyPnlPct)} this week</b><small>Friday closes the weekly reference book; the next Monday opening becomes the new base.</small></div><div class="decision-levels"><div class="decision-buy"><span>${item.position === "short" ? "COVER AT OR BELOW" : "BUY AT OR BELOW"}</span><strong>${money(suggestion.buyAt)}</strong></div><div class="decision-now"><span>CURRENT PRICE</span><strong>${money(suggestion.current)}</strong></div><div class="decision-sell"><span>${item.position === "short" ? "RISK AT OR ABOVE" : "SELL AT OR ABOVE"}</span><strong>${money(suggestion.sellAt)}</strong></div></div><span class="daily-range-title">TODAY'S LIVE RANGE</span><div class="daily-range"><div><span>DAILY LOW</span><strong>${money(data?.daily?.low)}</strong></div><div><span>NOW</span><strong>${money(suggestion.current)}</strong></div><div><span>DAILY HIGH</span><strong>${money(data?.daily?.high)}</strong></div></div>${isFuture ? `<small class="price-source-note">Action uses the live underlying price. ${item.brokerClose ? `P&amp;L above uses the broker closing price ${money(live)}.` : "Live futures P&amp;L needs the contract LTP."}</small>` : ""}</div>${suggestionAction}</section>${holdingEvidence}<section class="exit-plan">
-        <div class="exit-plan-head"><div><span>${item.position === "short" ? "FIVE 2% COVER CHUNKS · BELOW" : "FIVE 2% SELL CHUNKS · ABOVE"} ${money(plan.base)} MONDAY BASE</span><h3>${item.position === "short" ? "Every further 2% fall → cover one slice" : "Every further 2% rise → sell one slice"}</h3></div><p>Even split: ${number(plan.slice)} of ${number(item.quantity)} units per chunk. Every level uses the same Monday opening base and resets at the next Monday opening.</p></div>
+      </div>${mobileHoldingBrief}<section class="portfolio-call ${recommendation.tone}"><div><span>OPEN-TRADE DECISION</span><strong>${recommendation.label}</strong><p>${recommendation.detail}</p><div class="weekly-book-strip"><span>VERIFIED WEEKLY GM BASE ${money(weeklyBase)}</span><b class="${weeklyPnlPct >= 0 ? "positive" : "negative"}">${pct(weeklyPnlPct)} from weekly base</b><small>Signal distance only—not profit or loss. GM MTM above is the authoritative P&amp;L.</small></div><div class="decision-levels"><div class="decision-buy"><span>${item.position === "short" ? "COVER AT OR BELOW" : "BUY AT OR BELOW"}</span><strong>${money(suggestion.buyAt)}</strong></div><div class="decision-now"><span>CURRENT PRICE</span><strong>${money(suggestion.current)}</strong></div><div class="decision-sell"><span>${item.position === "short" ? "RISK AT OR ABOVE" : "SELL AT OR ABOVE"}</span><strong>${money(suggestion.sellAt)}</strong></div></div><span class="daily-range-title">TODAY'S OBSERVED GM RANGE</span><div class="daily-range"><div><span>${isFuture ? "OBSERVED GM LOW" : "DAILY LOW"}</span><strong>${money(isFuture ? item.dailyLow : data?.daily?.low)}</strong></div><div><span>NOW</span><strong>${money(suggestion.current)}</strong></div><div><span>${isFuture ? "OBSERVED GM HIGH" : "DAILY HIGH"}</span><strong>${money(isFuture ? item.dailyHigh : data?.daily?.high)}</strong></div></div>${isFuture ? `<small class="price-source-note">Action and P&amp;L use the synchronized GM futures mark ${money(live)}. Spot evidence is shown separately for technical context.</small>` : ""}</div>${suggestionAction}</section>${holdingEvidence}<section class="exit-plan">
+        <div class="exit-plan-head"><div><span>${item.position === "short" ? "FIVE 2% COVER CHUNKS · BELOW" : "FIVE 2% SELL CHUNKS · ABOVE"} ${money(plan.base)} VERIFIED WEEKLY GM BASE</span><h3>${item.position === "short" ? "Every further 2% fall → cover one slice" : "Every further 2% rise → sell one slice"}</h3></div><p>Even split: ${number(plan.slice)} of ${number(item.quantity)} units per chunk. Every level uses the verified weekly GM futures base and resets with the first valid Monday market capture.</p></div>
         <div class="exit-progress ${item.position === "short" ? "short-progress" : ""} ${isFuture && !item.exactMark && !item.brokerClose ? "snapshot-progress" : ""}"><span style="width:${progress}%"></span><i style="left:${flagProgress}%">${item.brokerClose ? "CLOSE" : isFuture && !item.exactMark ? "ENTRY MARK" : "NOW"} ${money(live)}</i><b>BASE ${money(plan.base)}</b><b>FINAL ${money(lastTarget)}</b></div>
         <div class="exit-bands">${targets}</div>
-        <p class="exit-risk"><b>Monday-base 2% rule:</b> the first ${item.position === "short" ? "cover" : "sell"} line is ${money(plan.targets[0]?.price)} and the opposite 2% line is ${money(plan.riskLine)}. Average entry is used only for P&amp;L—not for action levels.</p>
+        <p class="exit-risk"><b>Verified weekly GM-base 2% rule:</b> the first ${item.position === "short" ? "cover" : "sell"} line is ${money(plan.targets[0]?.price)} and the opposite 2% line is ${money(plan.riskLine)}. Average entry is used only for P&amp;L—not for action levels.</p>
       </section></article>`;
     }).join("");
 
@@ -1249,9 +1249,10 @@
       <div class="portfolio-summary">
         <article class="portfolio-mini"><span>${metrics.hasFutures ? "Reference notional" : "Market value"}</span><strong>${money(metrics.value)}</strong></article>
         <article class="portfolio-mini"><span>${metrics.hasFutures ? "Entry notional" : "Invested cost"}</span><strong>${money(metrics.cost)}</strong></article>
-        <article class="portfolio-mini"><span>${metrics.hasFutures ? "Realized P&L" : "Realized P&amp;L"}</span><strong class="${state.portfolio.realizedPnl >= 0 ? "positive" : "negative"}">${money(state.portfolio.realizedPnl)}</strong></article>
-        <article class="portfolio-mini"><span>This week · Monday reset</span><strong class="${weeklyPortfolioPnl >= 0 ? "positive" : "negative"}">${money(weeklyPortfolioPnl)}</strong><small>Friday reference close; underlying proxy for imported futures</small></article>
-        <article class="portfolio-mini"><span>Private database</span><strong class="${state.databaseOnline ? "positive" : "negative"}">${state.databaseOnline ? "Synchronized" : "Offline copy"}</strong></article>
+        ${metrics.hasFutures ? `<article class="portfolio-mini"><span>GM reported MTM</span><strong class="${metrics.pnl >= 0 ? "positive" : "negative"}">${money(metrics.pnl)}</strong><small>Broker value—not an underlying proxy</small></article>
+        <article class="portfolio-mini"><span>GM signed net quantity</span><strong>${number(metrics.signedTotalQty)}</strong><small>${number(metrics.totalQty)} absolute · ${metrics.items.length} open positions</small></article>
+        <article class="portfolio-mini"><span>Latest GM snapshot</span><strong class="${state.databaseOnline ? "positive" : "negative"}">${brokerSyncTime()}</strong><small>${state.portfolio?.brokerSync?.source === "gm-extension" ? "Automatic browser bridge" : "Synchronized broker source"}</small></article>` : `<article class="portfolio-mini"><span>Realized P&amp;L</span><strong class="${state.portfolio.realizedPnl >= 0 ? "positive" : "negative"}">${money(state.portfolio.realizedPnl)}</strong></article>
+        <article class="portfolio-mini"><span>Private database</span><strong class="${state.databaseOnline ? "positive" : "negative"}">${state.databaseOnline ? "Synchronized" : "Offline copy"}</strong></article>`}
       </div>
       <div class="holdings-list">${cards || `<div class="empty-portfolio"><div><div class="empty-orbit">⌕</div><h3>No portfolio position matches</h3><p>Change the action, symbol, sector, market-cap, range or quant filter.</p><button class="empty-reset" type="button" data-reset-portfolio-filters>Show every portfolio position</button></div></div>`}</div>
       ${transactions ? `<div class="portfolio-intro" style="padding-top:55px;padding-bottom:20px"><div><p class="eyebrow"><span></span> Recent activity</p><h2 style="font-size:38px">Lot journal</h2></div></div><div class="holdings-list">${transactions}</div>` : ""}`;
@@ -1766,6 +1767,7 @@
     if (!market.size) void refreshAll(); else void refreshPriority();
     if (!state.refreshTimer) state.refreshTimer = setInterval(refreshPriority, 60_000);
     if (aiMode && !state.aiRefreshTimer) state.aiRefreshTimer = setInterval(syncAiLedger, 60_000);
+    if (!aiMode && !state.portfolioRefreshTimer) state.portfolioRefreshTimer = setInterval(() => { if (!document.hidden && state.user) void syncServerPortfolio(); }, 60_000);
   }
 
   function showLogin() {
@@ -1787,6 +1789,8 @@
     el("actionFilters").hidden = false;
     clearInterval(state.aiRefreshTimer);
     state.aiRefreshTimer = null;
+    clearInterval(state.portfolioRefreshTimer);
+    state.portfolioRefreshTimer = null;
     el("trackedLabel").textContent = "Tracked universe";
     el("trackedDescription").textContent = "symbols from journal (1).xlsx";
     el("loadedLabel").textContent = "Live map";
@@ -2057,10 +2061,10 @@
     await Promise.all(registrations.map((registration) => registration.unregister())).catch(() => {});
     const keys = await caches.keys().catch(() => []);
     await Promise.all(keys.filter((key) => key.startsWith("k2-")).map((key) => caches.delete(key))).catch(() => {});
-    if (navigator.serviceWorker.controller && !sessionStorage.getItem("k2-cache-retired-22")) {
-      sessionStorage.setItem("k2-cache-retired-22", "1");
+    if (navigator.serviceWorker.controller && !sessionStorage.getItem("k2-cache-retired-23")) {
+      sessionStorage.setItem("k2-cache-retired-23", "1");
       const url = new URL(location.href);
-      url.searchParams.set("k2v", "22");
+      url.searchParams.set("k2v", "23");
       location.replace(url.href);
     }
   });

@@ -30,7 +30,7 @@ function cleanLot(raw) {
   if (raw?.source === "broker-snapshot") lot.source = "broker-snapshot";
   const markPrice = positive(raw?.markPrice);
   if (markPrice) lot.markPrice = markPrice;
-  if (["broker-snapshot", "broker-close", "exchange-live"].includes(raw?.markSource)) lot.markSource = raw.markSource;
+  if (["broker-snapshot", "broker-close", "exchange-live", "gm-mark"].includes(raw?.markSource)) lot.markSource = raw.markSource;
   if (assetType === "future" && raw?.source === "broker-snapshot") {
     const buyQuantity = Number(raw.buyQuantity);
     const buyAverage = Number(raw.buyAverage);
@@ -42,6 +42,14 @@ function cleanLot(raw) {
     if (Number.isFinite(sellQuantity) && sellQuantity >= 0) lot.sellQuantity = sellQuantity;
     if (Number.isFinite(sellAverage) && sellAverage >= 0) lot.sellAverage = sellAverage;
     if (Number.isFinite(mtm)) lot.mtm = mtm;
+    const weeklyBase = positive(raw.weeklyBase);
+    const dailyLow = positive(raw.dailyLow);
+    const dailyHigh = positive(raw.dailyHigh);
+    if (weeklyBase) lot.weeklyBase = weeklyBase;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(raw.weekKey || ""))) lot.weekKey = String(raw.weekKey);
+    if (dailyLow) lot.dailyLow = dailyLow;
+    if (dailyHigh) lot.dailyHigh = dailyHigh;
+    if (/^\d{4}-\d{2}-\d{2}$/.test(String(raw.dayKey || ""))) lot.dayKey = String(raw.dayKey);
   }
   return lot;
 }
@@ -72,9 +80,13 @@ function cleanPortfolio(portfolio) {
   if (portfolio?.brokerSync && typeof portfolio.brokerSync === "object") {
     cleaned.brokerSync = {
       capturedAt: String(portfolio.brokerSync.capturedAt || "").slice(0, 40),
-      source: portfolio.brokerSync.source === "gm-extension" ? "gm-extension" : "broker-import",
+      source: ["gm-extension", "gm-cloud"].includes(portfolio.brokerSync.source) ? portfolio.brokerSync.source : "broker-import",
       snapshotId: String(portfolio.brokerSync.snapshotId || "").slice(0, 100),
-      positionCount: Number(portfolio.brokerSync.positionCount) || cleaned.lots.filter((lot) => lot.assetType === "future").length
+      positionCount: Number(portfolio.brokerSync.positionCount) || cleaned.lots.filter((lot) => lot.assetType === "future").length,
+      totalQuantity: Number(portfolio.brokerSync.totalQuantity) || 0,
+      totalAbsoluteQuantity: Number(portfolio.brokerSync.totalAbsoluteQuantity) || 0,
+      totalMtm: Number(portfolio.brokerSync.totalMtm) || 0,
+      verifiedComplete: portfolio.brokerSync.verifiedComplete === true
     };
   }
   return cleaned;
@@ -91,13 +103,29 @@ function brokerPosition(raw) {
     id: crypto.randomUUID(), symbol, price, quantity, position, expiry,
     assetType: "future", market: "NSEFUT", source: "broker-snapshot",
     markPrice: positive(raw?.markPrice) || price,
-    markSource: positive(raw?.markPrice) ? "broker-close" : "broker-snapshot", time: Date.now(),
+    markSource: positive(raw?.markPrice) ? "gm-mark" : "broker-snapshot", time: Date.now(),
     buyQuantity: Number(raw?.buyQuantity) || 0,
     buyAverage: Number(raw?.buyAverage) || 0,
     sellQuantity: Number(raw?.sellQuantity) || 0,
     sellAverage: Number(raw?.sellAverage) || 0,
-    mtm: Number(raw?.mtm) || 0
+    mtm: Number(raw?.mtm) || 0,
+    weeklyBase: raw?.weeklyBase,
+    weekKey: raw?.weekKey,
+    dailyLow: raw?.dailyLow,
+    dailyHigh: raw?.dailyHigh,
+    dayKey: raw?.dayKey
   });
+}
+
+function istDateKeys(value) {
+  const date = new Date(value || Date.now());
+  const parts = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).formatToParts(date);
+  const map = Object.fromEntries(parts.map((part) => [part.type, part.value]));
+  const dayKey = `${map.year}-${map.month}-${map.day}`;
+  const utc = new Date(`${dayKey}T00:00:00Z`);
+  const offset = (utc.getUTCDay() + 6) % 7;
+  utc.setUTCDate(utc.getUTCDate() - offset);
+  return { dayKey, weekKey: utc.toISOString().slice(0, 10) };
 }
 
 function replaceBrokerSnapshot(portfolio, positions, snapshotId, realizedPnl, sync = null) {
@@ -119,9 +147,22 @@ function replaceBrokerSnapshot(portfolio, positions, snapshotId, realizedPnl, sy
   const current = cleanPortfolio(portfolio);
   const alreadyRecorded = current.transactions.some((item) => item.snapshotId === snapshotId);
   const previousByContract = new Map(current.lots.map((lot) => [lot.contractKey, lot]));
+  const keys = istDateKeys(sync?.capturedAt);
   current.lots = cleaned.map((lot) => {
     const previous = previousByContract.get(lot.contractKey);
-    return previous ? { ...lot, id: previous.id, time: previous.time } : lot;
+    const mark = positive(lot.markPrice) || lot.price;
+    const sameDay = previous?.dayKey === keys.dayKey;
+    const sameWeek = previous?.weekKey === keys.weekKey;
+    return {
+      ...lot,
+      id: previous?.id || lot.id,
+      time: previous?.time || lot.time,
+      dayKey: keys.dayKey,
+      dailyLow: sameDay ? Math.min(positive(previous.dailyLow) || mark, mark) : mark,
+      dailyHigh: sameDay ? Math.max(positive(previous.dailyHigh) || mark, mark) : mark,
+      weekKey: keys.weekKey,
+      weeklyBase: sameWeek ? (positive(previous.weeklyBase) || mark) : mark
+    };
   });
   if (realizedPnl !== undefined && Number.isFinite(Number(realizedPnl))) current.realizedPnl = Number(realizedPnl);
   if (!alreadyRecorded) {
@@ -134,7 +175,11 @@ function replaceBrokerSnapshot(portfolio, positions, snapshotId, realizedPnl, sy
     capturedAt: sync.capturedAt,
     source: sync.source,
     snapshotId,
-    positionCount: cleaned.length
+    positionCount: cleaned.length,
+    totalQuantity: Number(sync.totalQuantity) || 0,
+    totalAbsoluteQuantity: Number(sync.totalAbsoluteQuantity) || 0,
+    totalMtm: Number(sync.totalMtm) || 0,
+    verifiedComplete: sync.verifiedComplete === true
   };
   return cleanPortfolio(current);
 }

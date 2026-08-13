@@ -42,8 +42,14 @@ async function configureAlarm() {
 function parseCapture(capture) {
   let payload;
   try { payload = JSON.parse(capture?.responseText || ""); } catch { payload = null; }
-  const rows = K2_GM_BRIDGE.rowsFromPayload(payload);
-  return K2_GM_BRIDGE.normalizeRows([...rows, ...(capture?.tableRows || [])]);
+  const positions = K2_GM_BRIDGE.normalizeRows(capture?.tableRows || []);
+  return {
+    positions,
+    recordCount: Number(payload?.iTotalDisplayRecords ?? payload?.iTotalRecords),
+    totalQuantity: Number(payload?.total_qty),
+    totalMtm: positions.reduce((sum, item) => sum + Number(item.mtm || 0), 0),
+    networkVerified: Array.isArray(payload?.aaData)
+  };
 }
 
 async function holdingsFingerprint(positions) {
@@ -66,8 +72,9 @@ async function holdingsFingerprint(positions) {
 async function uploadCapture(capture, reason) {
   const config = await settings();
   if (!config.deviceToken) throw new Error("Connect the extension to the Kamlesh K² account once.");
-  const positions = parseCapture(capture);
-  if (!capture.tableFound) throw new Error("GM Portfolio did not render. Sign in to GM and confirm that Portfolio is visible.");
+  const parsed = parseCapture(capture);
+  const { positions, recordCount, totalQuantity, totalMtm } = parsed;
+  if (!parsed.networkVerified || recordCount !== positions.length || !Number.isFinite(totalQuantity)) throw new Error("GM did not return a complete verifiable portfolio response.");
   const snapshotId = await holdingsFingerprint(positions);
   const response = await fetch(K2_SYNC_URL, {
     method: "POST",
@@ -81,6 +88,9 @@ async function uploadCapture(capture, reason) {
       capturedAt: capture.capturedAt || new Date().toISOString(),
       sourceEndpoint: capture.url,
       reason,
+      recordCount,
+      totalQuantity,
+      totalMtm,
       positions
     })
   });
@@ -180,16 +190,11 @@ async function captureFreshPortfolio() {
   }
   try {
     await waitForTabComplete(tab.id);
+    const capturePromise = waitForCapture(tab.id);
     await requestPositionReport(tab.id);
-    await new Promise((resolve) => setTimeout(resolve, 2200));
+    const capture = await capturePromise;
     const table = await readRenderedTable(tab.id);
-    return {
-      url: "https://gmglobal.org/datatables/position_book_list.php",
-      method: "RENDERED TABLE",
-      capturedAt: new Date().toISOString(),
-      tableRows: table.rows,
-      tableFound: table.found
-    };
+    return { ...capture, tableRows: table.rows, tableFound: table.found };
   } finally {
     if (temporary) {
       captureWaiters.delete(tab.id);
