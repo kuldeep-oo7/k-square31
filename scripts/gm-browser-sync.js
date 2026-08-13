@@ -89,6 +89,9 @@ async function fetchPortfolioWithBrowser(username, password) {
       payload = candidate;
       return true;
     }, { timeout: 60_000 });
+    // The UI interaction below can fail before this promise is awaited. Attach
+    // an immediate rejection observer so browser cleanup cannot mask that error.
+    responsePromise.catch(() => {});
     await page.evaluate(() => {
       const compact = (value) => String(value || "").replace(/\s+/g, " ").trim().toUpperCase();
       const choose = (wanted) => {
