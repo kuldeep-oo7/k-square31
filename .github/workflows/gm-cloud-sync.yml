@@ -35,5 +35,6 @@ jobs:
           GM_USERNAME: ${{ secrets.GM_USERNAME }}
           GM_PASSWORD: ${{ secrets.GM_PASSWORD }}
           K2_GM_CLOUD_SYNC_SECRET: ${{ secrets.K2_GM_CLOUD_SYNC_SECRET }}
+          K2_GM_SYNC_URL: https://k-square-market-grid.k-girdharlal-6294.chatgpt.site/api/gm-sync
           GM_CLOUD_DRY_RUN: ${{ inputs.dry_run && '1' || '0' }}
         run: node scripts/gm-browser-sync.js
