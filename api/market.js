@@ -3,6 +3,8 @@ const { readSession } = require("./_lib/security");
 const { readAiShards } = require("./_lib/store");
 const { symbolShard } = require("./_lib/universe");
 const { candleStudy, strategyLab, weightedModel } = require("./_lib/strategy-lab");
+const { weeklyCycle } = require("./_lib/weekly-cycle");
+const { recommendation } = require("./_lib/recommendation");
 let benchmarkCache = { expires: 0, result: null };
 const historyShardCache = new Map();
 const marketResultCache = new Map();
@@ -278,7 +280,7 @@ function analogForecast(closes) {
   };
 }
 
-function calculate(symbol, result, benchmarkResult = null) {
+function calculate(symbol, result, benchmarkResult = null, options = {}) {
   const meta = result.meta || {};
   const bars = resultBars(result);
 
@@ -500,6 +502,18 @@ function calculate(symbol, result, benchmarkResult = null) {
     strategyLab: strategies,
     rsi14
   });
+  // The weekly replay is cheap and runs inline. The boosted-tree fit and the
+  // fundamentals fetch are deliberately skipped here (explicit nulls) so a quote
+  // request stays fast; the scheduled runner supplies them.
+  const cycle = options.weeklyPlan ? weeklyCycle(bars) : null;
+  const weeklyPlan = cycle ? recommendation({
+    symbol: symbol.replace(/\.NS$/, ""),
+    bars,
+    cycle,
+    model: null,
+    fundamentals: null,
+    technical: decisionModel
+  }) : null;
 
   return {
     symbol: symbol.replace(/\.NS$/, ""),
@@ -524,6 +538,8 @@ function calculate(symbol, result, benchmarkResult = null) {
     candleStudy: candleEvidence,
     strategyLab: strategies,
     decisionModel,
+    weeklyCycle: cycle,
+    recommendation: weeklyPlan,
     window: {
       calendarDays: 31,
       sessions: windowBars.length,
@@ -585,14 +601,16 @@ async function benchmark() {
   return result;
 }
 
-async function fetchSymbol(rawSymbol, benchmarkResult, storedHistory = {}) {
-  const cacheKey = rawSymbol.replace(/\.NS$/, "");
+async function fetchSymbol(rawSymbol, benchmarkResult, storedHistory = {}, options = {}) {
+  // The weekly replay costs real CPU, so a result computed without it must never
+  // be served to a request that asked for it.
+  const cacheKey = `${rawSymbol.replace(/\.NS$/, "")}${options.weeklyPlan ? "|plan" : ""}`;
   const cached = marketResultCache.get(cacheKey);
   if (cached?.expires > Date.now()) return cached.result;
   const symbol = rawSymbol === "NIFTY" ? "^NSEI" : rawSymbol.endsWith(".NS") ? rawSymbol : `${rawSymbol}.NS`;
   const live = await fetchChart(symbol);
   const history = storedHistory[rawSymbol.replace(/\.NS$/, "")]?.observations;
-  const result = calculate(symbol, mergeStoredHistory(live, history), benchmarkResult);
+  const result = calculate(symbol, mergeStoredHistory(live, history), benchmarkResult, options);
   result.symbol = rawSymbol.replace(/\.NS$/, "");
   result.history = {
     storedSessions: Array.isArray(history) ? history.length : 0,
@@ -637,7 +655,10 @@ module.exports = async function handler(request, response) {
     console.error("Historical database read failed; continuing with the live provider", error);
   }
   const benchmarkResult = await benchmark().catch(() => null);
-  const settled = await Promise.allSettled(valid.map((symbol) => fetchSymbol(symbol, benchmarkResult, storedHistory)));
+  // A watchlist refresh asks for up to ten names and only needs quotes; the
+  // detail panel asks for one or two and wants the ladder plan with it.
+  const weeklyPlan = String(request.query?.plan || "") === "1" || valid.length <= 2;
+  const settled = await Promise.allSettled(valid.map((symbol) => fetchSymbol(symbol, benchmarkResult, storedHistory, { weeklyPlan })));
   const data = [];
   const errors = [];
   settled.forEach((item, index) => {

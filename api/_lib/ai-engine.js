@@ -1,5 +1,6 @@
 const crypto = require("node:crypto");
 const { resultBars } = require("./market-feed");
+const { weekKeyOf } = require("./weekly-cycle");
 
 const DAY = 86_400_000;
 const CONFIG = Object.freeze({
@@ -8,7 +9,11 @@ const CONFIG = Object.freeze({
   slotBudget: 40_000,
   buyStepPct: 2,
   takeProfitPct: 2,
-  historySessionLimit: 1_300
+  historySessionLimit: 1_300,
+  bookOutWeekday: 5,
+  // Leftover capacity used to open one-share positions whose 2% target could
+  // not cover its own round trip. A rung is skipped below this ticket size.
+  minimumTicketValue: 5_000
 });
 
 function round(value, digits = 2) {
@@ -27,6 +32,12 @@ function indiaParts(milliseconds) {
 function localDate(milliseconds) {
   const part = indiaParts(milliseconds);
   return `${part.year}-${part.month}-${part.day}`;
+}
+
+// The desk carries nothing over the weekend: Friday's close books every open
+// leg, win or lose, and Monday's open sets the next week's anchor.
+function isBookOutSession(isoDate) {
+  return new Date(`${isoDate}T12:00:00Z`).getUTCDay() === CONFIG.bookOutWeekday;
 }
 
 function dateMinus(isoDate, days) {
@@ -180,6 +191,37 @@ function processSymbol(previous, result, nowMs = Date.now(), context = {}) {
   }
   state.lots = remainingLots;
 
+  // Weekly book-out. Every leg still open on the week's final session is closed
+  // at that close, profit or loss. A leg belonging to an earlier week is booked
+  // at the last close of its own week, which also covers a Friday holiday where
+  // the final session was only identifiable once the next week opened.
+  const bookOut = (lot, price, session, reason) => {
+    const exit = round(price);
+    const proceeds = round(lot.quantity * exit);
+    const pnl = round((exit - lot.price) * lot.quantity);
+    state.cash = round(Number(state.cash) + proceeds);
+    state.realizedPnl = round(Number(state.realizedPnl) + pnl);
+    events.push({
+      id: transactionId(lot.id, "BOOK", session), action: "sell", symbol: state.symbol,
+      price: exit, quantity: lot.quantity, amount: proceeds, pnl, reason,
+      time: nowMs, session, anchorWeek: lot.anchorWeek, level: lot.level
+    });
+  };
+  const held = [];
+  for (const lot of state.lots) {
+    if (lot.anchorWeek && lot.anchorWeek !== reference.weekKey) {
+      const lastOfLotWeek = state.observations.filter((item) => weekKeyOf(item.session) === lot.anchorWeek).at(-1);
+      bookOut(lot, lastOfLotWeek?.close ?? bar.close, lastOfLotWeek?.session || sessionDate, "Weekly book-out at the last close of the trading week");
+      continue;
+    }
+    if (isBookOutSession(sessionDate) && lot.boughtSession !== sessionDate) {
+      bookOut(lot, bar.close, sessionDate, "Friday book-out; the desk carries nothing over the weekend");
+      continue;
+    }
+    held.push(lot);
+  }
+  state.lots = held;
+
   if (anchorChanged) {
     state.anchor = reference;
     state.levels = buyLevels(reference.price);
@@ -187,6 +229,9 @@ function processSymbol(previous, result, nowMs = Date.now(), context = {}) {
   }
 
   state.levels.forEach((levelPrice, index) => {
+    // A rung filled on the book-out session would be closed at the same close,
+    // paying the round trip for nothing.
+    if (isBookOutSession(sessionDate)) return;
     if (state.triggeredLevels[index] || bar.low > levelPrice) return;
     const deployed = (state.lots || []).reduce((sum, lot) => sum + Number(lot.amount || lot.quantity * lot.price), 0);
     const remainingCapacity = Math.max(0, CONFIG.budgetPerStock - deployed);
@@ -195,6 +240,7 @@ function processSymbol(previous, result, nowMs = Date.now(), context = {}) {
     const quantity = Math.floor(available / levelPrice);
     if (quantity < 1) return;
     const amount = round(quantity * levelPrice);
+    if (amount < CONFIG.minimumTicketValue) return;
     const id = transactionId(state.symbol, reference.weekKey, `B${index + 1}`);
     state.cash = round(Number(state.cash) - amount);
     state.triggeredLevels[index] = true;

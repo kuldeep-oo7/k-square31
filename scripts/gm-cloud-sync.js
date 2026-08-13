@@ -2,6 +2,8 @@
 
 const crypto = require("node:crypto");
 const bridge = require("../extensions/gm-k2-bridge/core.js");
+const { BRIDGE_USERNAME } = require("../api/_lib/gm-bridge");
+const { googleStoreConfigured } = require("../api/_lib/google-store");
 
 const GM_ORIGIN = "https://gmglobal.org";
 const GM_LOGIN_URL = `${GM_ORIGIN}/ajaxfiles/logincheck.php`;
@@ -87,7 +89,13 @@ function fingerprint(positions) {
 async function responseJson(response, label) {
   const text = await response.text();
   let payload;
-  try { payload = JSON.parse(text); } catch { throw new Error(`${label} returned an unreadable response`); }
+  try { payload = JSON.parse(text); } catch {
+    // A paused or rate-limited host answers with an HTML or plain-text page.
+    // Reporting its status and first line turns "unreadable response" into a
+    // diagnosis that names the failing hop.
+    const detail = text.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim().slice(0, 120);
+    throw new Error(`${label} returned HTTP ${response.status} with an unreadable response${detail ? `: ${detail}` : ""}`);
+  }
   if (!response.ok) throw new Error(`${label} returned HTTP ${response.status}`);
   return payload;
 }
@@ -209,27 +217,63 @@ async function fetchGmPortfolio(username, password) {
   return best;
 }
 
+function snapshotPayload(positions, metadata = {}) {
+  return {
+    action: "sync-broker-portfolio",
+    snapshotId: fingerprint(positions),
+    capturedAt: new Date().toISOString(),
+    sourceEndpoint: metadata.endpoint || GM_PORTFOLIO_URL,
+    reason: "cloud-schedule",
+    recordCount: Number(metadata.recordCount) || positions.length,
+    totalQuantity: Number.isFinite(Number(metadata.totalQuantity)) ? Number(metadata.totalQuantity) : positions.reduce((sum, item) => sum + (item.position === "short" ? -1 : 1) * Number(item.quantity || 0), 0),
+    totalMtm: Number.isFinite(Number(metadata.totalMtm)) ? Number(metadata.totalMtm) : positions.reduce((sum, item) => sum + Number(item.mtm || 0), 0),
+    positions
+  };
+}
+
 async function uploadToK2(positions, secret, metadata = {}) {
-  const capturedAt = new Date().toISOString();
-  const snapshotId = fingerprint(positions);
+  const payload = snapshotPayload(positions, metadata);
   const response = await fetch(K2_SYNC_URL, {
     method: "POST",
     headers: { "Authorization": `Bearer ${secret}`, "Content-Type": "application/json" },
-    body: JSON.stringify({
-      action: "sync-broker-portfolio",
-      snapshotId,
-      capturedAt,
-      sourceEndpoint: GM_PORTFOLIO_URL,
-      reason: "cloud-schedule",
-      recordCount: Number(metadata.recordCount) || positions.length,
-      totalQuantity: Number.isFinite(Number(metadata.totalQuantity)) ? Number(metadata.totalQuantity) : positions.reduce((sum, item) => sum + (item.position === "short" ? -1 : 1) * Number(item.quantity || 0), 0),
-      totalMtm: Number.isFinite(Number(metadata.totalMtm)) ? Number(metadata.totalMtm) : positions.reduce((sum, item) => sum + Number(item.mtm || 0), 0),
-      positions
-    }),
+    body: JSON.stringify(payload),
     signal: AbortSignal.timeout(45_000)
   });
   const result = await responseJson(response, "K² GM sync");
-  return { ...result, capturedAt, snapshotId };
+  return { ...result, capturedAt: payload.capturedAt, snapshotId: payload.snapshotId, via: K2_SYNC_URL };
+}
+
+// The operational store is the same document store the web app reads, so the
+// scheduled sync writes to it directly when its credentials are present. That
+// keeps the portfolio tracking GM even while the web host itself is unavailable.
+function directStoreConfigured() {
+  return googleStoreConfigured() || Boolean(process.env.BLOB_READ_WRITE_TOKEN);
+}
+
+async function storeSnapshot(positions, metadata = {}) {
+  const { applyBrokerSnapshot } = require("../api/_lib/gm-snapshot");
+  const payload = snapshotPayload(positions, metadata);
+  const result = await applyBrokerSnapshot(BRIDGE_USERNAME, payload, { source: "gm-cloud", deviceId: "gm-cloud-worker" });
+  return { ok: true, username: BRIDGE_USERNAME, ...result, via: googleStoreConfigured() ? "google-sheets-store" : "vercel-blob-store" };
+}
+
+async function publishSnapshot(positions, secret, metadata = {}) {
+  const mode = String(process.env.K2_GM_PUBLISH_MODE || "auto").toLowerCase();
+  if (mode !== "http" && directStoreConfigured()) return storeSnapshot(positions, metadata);
+  if (!secret || secret.length < 32) throw new Error("K2_GM_CLOUD_SYNC_SECRET is required to publish through the K² web host");
+  return uploadToK2(positions, secret, metadata);
+}
+
+// In direct-store mode the shared bridge secret is not part of the write path,
+// so it is only mandatory when the snapshot still travels over HTTP.
+function requirePublishCredentials(secret) {
+  const mode = String(process.env.K2_GM_PUBLISH_MODE || "auto").toLowerCase();
+  if (mode !== "http" && directStoreConfigured()) return;
+  if (String(secret || "").length < 32) {
+    throw new Error(directStoreConfigured()
+      ? "K2_GM_CLOUD_SYNC_SECRET must contain at least 32 characters"
+      : "Configure the K² operational store (K2_GOOGLE_SHEETS_WEB_APP_URL and K2_GOOGLE_SHEETS_ARCHIVE_SECRET, or BLOB_READ_WRITE_TOKEN) or a 32-character K2_GM_CLOUD_SYNC_SECRET");
+  }
 }
 
 async function runOnce() {
@@ -237,14 +281,14 @@ async function runOnce() {
   const password = String(process.env.GM_PASSWORD || "");
   const secret = String(process.env.K2_GM_CLOUD_SYNC_SECRET || "");
   if (!username || !password) throw new Error("GM_USERNAME and GM_PASSWORD cloud secrets are required");
-  if (secret.length < 32) throw new Error("K2_GM_CLOUD_SYNC_SECRET must contain at least 32 characters");
+  requirePublishCredentials(secret);
   const positions = await fetchGmPortfolio(username, password);
   if (process.env.GM_CLOUD_DRY_RUN === "1") {
     console.log(`GM read-only cloud check succeeded: ${positions.length} open positions`);
     return;
   }
-  const result = await uploadToK2(positions, secret);
-  console.log(`GM → K² cloud sync succeeded: ${positions.length} Kamlesh positions at ${result.capturedAt}`);
+  const result = await publishSnapshot(positions, secret);
+  console.log(`GM → K² cloud sync succeeded: ${positions.length} Kamlesh positions at ${result.capturedAt} via ${result.via}`);
 }
 
 if (require.main === module) runOnce().catch((error) => {
@@ -252,4 +296,19 @@ if (require.main === module) runOnce().catch((error) => {
   process.exitCode = 1;
 });
 
-module.exports = { CookieJar, fetchGmPortfolio, fingerprint, linkedAccounts, positionForm, requestPortfolio, runOnce, selectLinkedAccount, uploadToK2 };
+module.exports = {
+  CookieJar,
+  directStoreConfigured,
+  fetchGmPortfolio,
+  fingerprint,
+  linkedAccounts,
+  positionForm,
+  publishSnapshot,
+  requestPortfolio,
+  requirePublishCredentials,
+  runOnce,
+  selectLinkedAccount,
+  snapshotPayload,
+  storeSnapshot,
+  uploadToK2
+};

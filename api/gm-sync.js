@@ -1,7 +1,6 @@
-const { issueBridgeToken, bearerToken, readBridgeToken, readCloudBridgeToken } = require("./_lib/gm-bridge");
+const { BRIDGE_USERNAME, issueBridgeToken, bearerToken, readBridgeToken, readCloudBridgeToken } = require("./_lib/gm-bridge");
 const { noStore, readSession, validCsrf, validOrigin } = require("./_lib/security");
-const { mutatePortfolio } = require("./_lib/store");
-const { cleanPortfolio, replaceBrokerSnapshot } = require("./_lib/portfolio-model");
+const { applyBrokerSnapshot } = require("./_lib/gm-snapshot");
 
 function bridgeHeaders(response) {
   noStore(response);
@@ -25,7 +24,7 @@ module.exports = async function handler(request, response) {
   const body = bodyOf(request);
   if (body.action === "issue-device-token") {
     const session = readSession(request);
-    if (!session || session.username !== "shah@kamlesh") return response.status(403).json({ error: "Sign in to the Kamlesh K² account first" });
+    if (!session || session.username !== BRIDGE_USERNAME) return response.status(403).json({ error: "Sign in to the Kamlesh K² account first" });
     if (!validOrigin(request) || !validCsrf(request, session)) return response.status(403).json({ error: "Forbidden" });
     return response.status(200).json({
       token: issueBridgeToken(session.username),
@@ -39,46 +38,18 @@ module.exports = async function handler(request, response) {
   if (!claims) return response.status(401).json({ error: "The GM bridge is not paired or its device token has expired" });
   if (body.action !== "sync-broker-portfolio") return response.status(400).json({ error: "Invalid bridge action" });
 
-  const snapshotId = String(body.snapshotId || "");
-  const positions = Array.isArray(body.positions) ? body.positions : [];
-  const capturedAt = Date.parse(body.capturedAt || "");
-  const recordCount = Number(body.recordCount);
-  const totalQuantity = Number(body.totalQuantity);
-  const totalMtm = Number(body.totalMtm);
-  const signedQuantity = positions.reduce((sum, item) => sum + (item.position === "short" ? -1 : 1) * Number(item.quantity || 0), 0);
-  const totalAbsoluteQuantity = positions.reduce((sum, item) => sum + Math.abs(Number(item.quantity || 0)), 0);
-  const summedMtm = positions.reduce((sum, item) => sum + Number(item.mtm || 0), 0);
-  const verifiedComplete = Number.isInteger(recordCount) && recordCount === positions.length && Number.isFinite(totalQuantity) && Math.abs(signedQuantity - totalQuantity) < .01 && Number.isFinite(totalMtm) && Math.abs(summedMtm - totalMtm) < Math.max(1, positions.length * .05);
-  if (!/^[a-f0-9]{64}$/.test(snapshotId) || positions.length > 250 || !Number.isFinite(capturedAt) || capturedAt > Date.now() + 5 * 60 * 1000 || capturedAt < Date.now() - 24 * 60 * 60 * 1000 || !verifiedComplete) {
-    return response.status(400).json({ error: "GM snapshot failed completeness, quantity or MTM validation" });
-  }
-
   try {
-    let ignoredStale = false;
-    const updated = await mutatePortfolio(claims.username, (portfolio) => {
-      const previousCapture = Date.parse(portfolio?.brokerSync?.capturedAt || "");
-      if (Number.isFinite(previousCapture) && previousCapture > capturedAt) {
-        ignoredStale = true;
-        return cleanPortfolio(portfolio);
-      }
-      return replaceBrokerSnapshot(portfolio, positions, snapshotId, undefined, {
-        capturedAt: new Date(capturedAt).toISOString(),
-        source: claims.deviceId === "gm-cloud-worker" ? "gm-cloud" : "gm-extension",
-        deviceId: claims.deviceId,
-        totalQuantity,
-        totalAbsoluteQuantity,
-        totalMtm,
-        verifiedComplete
-      });
+    const result = await applyBrokerSnapshot(claims.username, body, {
+      source: claims.deviceId === "gm-cloud-worker" ? "gm-cloud" : "gm-extension",
+      deviceId: claims.deviceId
     });
-    const clean = cleanPortfolio(updated);
     return response.status(200).json({
       ok: true,
       username: claims.username,
-      positions: clean.lots.length,
-      updatedAt: clean.updatedAt,
-      snapshotId: clean.brokerSync?.snapshotId || snapshotId,
-      ignoredStale
+      positions: result.positions,
+      updatedAt: result.updatedAt,
+      snapshotId: result.snapshotId,
+      ignoredStale: result.ignoredStale
     });
   } catch (error) {
     if (error.code === "SNAPSHOT") return response.status(400).json({ error: error.message });

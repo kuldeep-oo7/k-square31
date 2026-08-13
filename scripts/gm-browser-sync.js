@@ -3,7 +3,7 @@
 const crypto = require("node:crypto");
 const { chromium } = require("playwright");
 const bridge = require("../extensions/gm-k2-bridge/core.js");
-const { uploadToK2 } = require("./gm-cloud-sync");
+const { publishSnapshot, requirePublishCredentials } = require("./gm-cloud-sync");
 
 const GM_ORIGIN = "https://gmglobal.org";
 const PORTFOLIO_URL = `${GM_ORIGIN}/#/Portfolio`;
@@ -152,7 +152,7 @@ async function runBrowserOnce() {
   const password = String(process.env.GM_PASSWORD || "");
   const secret = String(process.env.K2_GM_CLOUD_SYNC_SECRET || "");
   if (!username || !password) throw new Error("GM_USERNAME and GM_PASSWORD cloud secrets are required");
-  if (secret.length < 32) throw new Error("K2_GM_CLOUD_SYNC_SECRET must contain at least 32 characters");
+  requirePublishCredentials(secret);
   let snapshot = null;
   let lastError = null;
   let integrityError = null;
@@ -169,8 +169,8 @@ async function runBrowserOnce() {
     console.log(`GM cloud-browser validation succeeded: ${snapshot.recordCount} positions, signed quantity ${snapshot.totalQuantity}, MTM ${snapshot.totalMtm.toFixed(2)}`);
     return snapshot;
   }
-  const result = await uploadToK2(snapshot.positions, secret, snapshot);
-  console.log(`GM → K² browser sync succeeded: ${snapshot.recordCount} positions, signed quantity ${snapshot.totalQuantity}, MTM ${snapshot.totalMtm.toFixed(2)} at ${result.capturedAt}`);
+  const result = await publishSnapshot(snapshot.positions, secret, snapshot);
+  console.log(`GM → K² browser sync succeeded: ${snapshot.recordCount} positions, signed quantity ${snapshot.totalQuantity}, MTM ${snapshot.totalMtm.toFixed(2)} at ${result.capturedAt} via ${result.via}`);
   return result;
 }
 
