@@ -3,7 +3,7 @@
 const crypto = require("node:crypto");
 const { chromium } = require("playwright");
 const bridge = require("../extensions/gm-k2-bridge/core.js");
-const { positionForm, uploadToK2 } = require("./gm-cloud-sync");
+const { uploadToK2 } = require("./gm-cloud-sync");
 
 const GM_ORIGIN = "https://gmglobal.org";
 const PORTFOLIO_URL = `${GM_ORIGIN}/#/Portfolio`;
@@ -77,17 +77,33 @@ async function fetchPortfolioWithBrowser(username, password) {
 
     await page.goto(PORTFOLIO_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
     await page.waitForSelector("#load_data", { timeout: 60_000 });
-    const requestBody = positionForm().toString();
-    const payload = await page.evaluate(async (body) => {
-      const response = await fetch("/datatables/position_book_list.php", {
-        method: "POST",
-        credentials: "include",
-        headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "X-Requested-With": "XMLHttpRequest" },
-        body
-      });
-      if (!response.ok) throw new Error(`GM portfolio HTTP ${response.status}`);
-      return response.json();
-    }, requestBody);
+    await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => {});
+    await page.waitForTimeout(2_000);
+    let payload = null;
+    const responsePromise = page.waitForResponse(async (response) => {
+      if (!POSITION_ENDPOINT.test(new URL(response.url()).pathname) || response.request().method() !== "POST") return false;
+      const candidate = await responsePayload(response);
+      const count = Number(candidate?.iTotalDisplayRecords ?? candidate?.iTotalRecords);
+      const quantity = Number(candidate?.total_qty);
+      if (!Array.isArray(candidate?.aaData) || !Number.isInteger(count) || !Number.isFinite(quantity)) return false;
+      payload = candidate;
+      return true;
+    }, { timeout: 60_000 });
+    await page.evaluate(() => {
+      const compact = (value) => String(value || "").replace(/\s+/g, " ").trim().toUpperCase();
+      const choose = (wanted) => {
+        const labels = [...document.querySelectorAll("label")];
+        const label = labels.find((node) => compact(node.innerText) === wanted);
+        const input = label?.querySelector("input") || (label?.htmlFor ? document.getElementById(label.htmlFor) : null);
+        if (input && !input.checked) input.click();
+      };
+      choose("ALL");
+      choose("SCRIPT WISE");
+      const button = [...document.querySelectorAll("button,input[type=button],input[type=submit]")].find((node) => compact(node.innerText || node.value) === "GET POSITION");
+      if (!button) throw new Error("GM Get Position button is not available");
+      button.click();
+    });
+    await responsePromise;
     const recordCount = Number(payload?.iTotalDisplayRecords ?? payload?.iTotalRecords);
     const totalQuantity = Number(payload?.total_qty);
     if (!Array.isArray(payload?.aaData) || !Number.isInteger(recordCount) || !Number.isFinite(totalQuantity)) throw new Error("GM did not return a complete portfolio response");
@@ -96,7 +112,6 @@ async function fetchPortfolioWithBrowser(username, password) {
       const jq = window.jQuery;
       if (!jq?.fn?.DataTable?.isDataTable?.("#load_data")) throw new Error("GM portfolio table is not initialized");
       const table = jq("#load_data").DataTable();
-      table.clear().rows.add(rows.map((row) => row.slice(0, 13))).draw();
       if (table.page.info().recordsDisplay > table.page.info().end) {
         await new Promise((resolve) => {
           const timer = setTimeout(resolve, 10_000);
@@ -104,7 +119,7 @@ async function fetchPortfolioWithBrowser(username, password) {
           table.page.len(-1).draw();
         });
       }
-    }, payload.aaData);
+    });
     await page.waitForFunction((expected) => document.querySelectorAll("#load_data tbody tr").length >= expected, recordCount, { timeout: 60_000 });
     const apiPositions = bridge.normalizeRows(payload.aaData);
     const apiSignedQuantity = apiPositions.reduce((sum, item) => sum + (item.position === "short" ? -1 : 1) * item.quantity, 0);
