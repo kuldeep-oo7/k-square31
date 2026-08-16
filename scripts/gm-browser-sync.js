@@ -117,7 +117,20 @@ async function fetchPortfolioWithBrowser(username, password) {
         return false;
       }
     };
-    if (!await controlsReady(25_000)) throw new Error("GM portfolio route rendered without its controls");
+    if (!await controlsReady(50_000)) {
+      // Twenty-five seconds was too short: three attempts in a row gave up while
+      // the route may simply have been slow. Report what the page is actually
+      // showing so the next failure says whether the controls are late or the
+      // app has fallen back to its login screen.
+      const showing = await page.evaluate(() => ({
+        buttons: [...document.querySelectorAll("button,input[type=button],input[type=submit]")]
+          .map((node) => (node.innerText || node.value || "").replace(/\s+/g, " ").trim())
+          .filter(Boolean).slice(0, 12),
+        hasTable: Boolean(document.querySelector("#load_data")),
+        route: location.hash || location.pathname
+      })).catch(() => null);
+      throw new Error(`GM portfolio route rendered without its controls (route ${showing?.route || "unknown"}, table ${showing?.hasTable ? "present" : "absent"}, buttons: ${(showing?.buttons || []).join(" | ") || "none"})`);
+    }
 
 
     await page.evaluate(() => {

@@ -35,12 +35,20 @@ function argument(name, fallback = null) {
   return index > -1 && process.argv[index + 1] ? process.argv[index + 1] : fallback;
 }
 
-function universe() {
+// The tradable set is every NSE name with a futures contract. Taking the Nifty
+// 500 list and keeping the intersection missed names that have futures but sit
+// outside that index, so the F&O list itself is the universe and the index file
+// is only a fallback for when the exchange archive cannot be reached.
+function universe(front) {
   const explicit = argument("symbols");
   if (explicit) return explicit.split(",").map((value) => value.trim().toUpperCase()).filter(Boolean);
+  const limit = Number(argument("limit", "0"));
+  if (front?.size) {
+    const symbols = [...front.keys()].sort();
+    return limit > 0 ? symbols.slice(0, limit) : symbols;
+  }
   const data = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "ai-universe-data.json"), "utf8"));
   const symbols = (data.stocks || []).map((stock) => String(stock.symbol || "").toUpperCase()).filter(Boolean);
-  const limit = Number(argument("limit", "0"));
   return limit > 0 ? symbols.slice(0, limit) : symbols;
 }
 
@@ -102,16 +110,9 @@ async function planFor(symbol, options) {
 async function run() {
   const skipFundamentals = process.argv.includes("--no-fundamentals");
   const { front, asOf } = await tradableFutures();
-  const requested = universe();
-  // An explicit --symbols list is honoured as given; a universe scan is trimmed
-  // to what can actually be traded.
-  const symbols = (argument("symbols") || !front.size)
-    ? requested
-    : requested.filter((symbol) => front.has(symbol));
-  if (symbols.length !== requested.length) {
-    console.log(`${requested.length - symbols.length} of ${requested.length} names have no futures contract and were skipped.
+  const symbols = universe(front);
+  console.log(`Measuring ${symbols.length} name${symbols.length === 1 ? "" : "s"}${front.size ? " — every NSE stock with a futures contract" : " from the stored index"}.
 `);
-  }
   const plans = [];
   let failed = 0;
 

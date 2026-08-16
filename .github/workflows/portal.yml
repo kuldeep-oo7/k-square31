@@ -84,6 +84,8 @@ jobs:
         run: npx playwright install --with-deps chromium
 
       - name: Read the GM book
+        id: book
+        continue-on-error: true
         if: ${{ !inputs.skip_book }}
         env:
           GM_USERNAME: ${{ secrets.GM_USERNAME }}
@@ -91,18 +93,20 @@ jobs:
         run: node scripts/gm-portfolio-dump.js gm-positions.json
 
       - name: Measure the held names
-        if: ${{ !inputs.skip_book }}
+        if: ${{ !inputs.skip_book && steps.book.outcome == 'success' }}
         run: node scripts/weekly-plan.js --symbols "$(node scripts/held-symbols.js gm-positions.json)" --top 60 --out plan-holdings.json
 
       # Trend and carry do not depend on the ladder having an edge, so they are
       # read for every holding rather than inherited from the plan.
       - name: Read trend and carry for each holding
-        if: ${{ !inputs.skip_book }}
+        if: ${{ !inputs.skip_book && steps.book.outcome == 'success' }}
         run: node scripts/book-context.js gm-positions.json book-context.json
 
       - name: Measure the universe
         if: ${{ steps.plan.outputs.measure == 'true' }}
-        run: node scripts/weekly-plan.js --limit "${{ inputs.limit || 500 }}" --top 60 --out plan-full.json
+        # No limit: the universe is every NSE name with a futures contract, which
+        # is exactly the set this desk can trade.
+        run: node scripts/weekly-plan.js --top 60 --out plan-full.json
 
       - name: Seal the book and build the portal
         env:
@@ -112,9 +116,19 @@ jobs:
       - name: Refuse to publish a leaking build
         run: node scripts/verify-portal.js site/index.html gm-positions.json
 
+      - name: Report a failed broker read
+        if: ${{ steps.book.outcome == 'failure' }}
+        run: echo "::warning::GM could not be read this run; keeping the previously published book and refreshing only the plan."
+
       - name: Publish
         run: |
-          cp site/index.html publish/index.html
+          # A run that could not read the book must not overwrite the page with a
+          # bookless one: the last good portfolio stays up and only the plan moves.
+          if [ "${{ steps.book.outcome }}" = "success" ] || [ "${{ inputs.skip_book }}" = "true" ]; then
+            cp site/index.html publish/index.html
+          else
+            echo "Broker read failed; leaving the published page in place."
+          fi
           cp plan-full.json publish/plan.json
           touch publish/.nojekyll
           cd publish
