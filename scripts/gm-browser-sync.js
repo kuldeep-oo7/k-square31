@@ -172,7 +172,10 @@ async function runBrowserOnce() {
     catch (error) {
       lastError = error;
       if (String(error?.message || error).includes("GM completeness mismatch")) integrityError = error;
-      if (attempt < 3) console.warn(`GM read attempt ${attempt} failed; retrying a fresh session.`);
+            // Naming the reason matters: a retry that quietly succeeds hides a fault
+      // that will eventually exhaust all three attempts, which is exactly how
+      // the button race went unnoticed.
+      if (attempt < 3) console.warn(`GM read attempt ${attempt} failed (${String(error?.message || error).replace(/\s+/g, " ").slice(0, 200)}); retrying a fresh session.`);
     }
   }
   if (!snapshot) throw integrityError || lastError || new Error("GM portfolio could not be read");
