@@ -79,6 +79,34 @@ async function fetchPortfolioWithBrowser(username, password) {
     await page.waitForSelector("#load_data", { timeout: 60_000 });
     await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => {});
     await page.waitForTimeout(2_000);
+    // The controls are rendered by the route after its first data call, so a
+    // fixed pause races them: on a slow runner the click ran before the button
+    // existed. Waiting for the control removes the race.
+    // Occasionally the route renders without its controls at all — the first
+    // navigation lands before the app has finished adopting the session, and no
+    // amount of waiting produces the button. Reloading recovers it in seconds,
+    // where the outer retry would spend a minute timing out and then rebuild the
+    // whole browser.
+    const controlsReady = async (timeout) => {
+      try {
+        await page.waitForFunction(() => {
+          const compact = (value) => String(value || "").replace(/\s+/g, " ").trim().toUpperCase();
+          return [...document.querySelectorAll("button,input[type=button],input[type=submit]")]
+            .some((node) => compact(node.innerText || node.value) === "GET POSITION");
+        }, null, { timeout });
+        return true;
+      } catch {
+        return false;
+      }
+    };
+    if (!await controlsReady(25_000)) {
+      console.warn("GM portfolio controls did not render; reloading the route.");
+      await page.reload({ waitUntil: "domcontentloaded", timeout: 60_000 });
+      await page.waitForSelector("#load_data", { timeout: 60_000 });
+      await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => {});
+      if (!await controlsReady(35_000)) throw new Error("GM Get Position control never rendered, even after a reload");
+    }
+
     let payload = null;
     const responsePromise = page.waitForResponse(async (response) => {
       if (!POSITION_ENDPOINT.test(new URL(response.url()).pathname) || response.request().method() !== "POST") return false;
@@ -92,16 +120,6 @@ async function fetchPortfolioWithBrowser(username, password) {
     // The UI interaction below can fail before this promise is awaited. Attach
     // an immediate rejection observer so browser cleanup cannot mask that error.
     responsePromise.catch(() => {});
-    // The controls are rendered by the route after its first data call, so a
-    // fixed pause races them: on a slow runner the click ran before the button
-    // existed and all three attempts failed with "button is not available".
-    // Waiting for the control itself removes the race rather than lengthening
-    // the guess.
-    await page.waitForFunction(() => {
-      const compact = (value) => String(value || "").replace(/\s+/g, " ").trim().toUpperCase();
-      return [...document.querySelectorAll("button,input[type=button],input[type=submit]")]
-        .some((node) => compact(node.innerText || node.value) === "GET POSITION");
-    }, null, { timeout: 60_000 });
 
     await page.evaluate(() => {
       const compact = (value) => String(value || "").replace(/\s+/g, " ").trim().toUpperCase();
