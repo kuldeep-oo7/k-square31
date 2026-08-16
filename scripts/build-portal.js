@@ -286,6 +286,12 @@ function document_(plan, sealed, meta) {
         + '<td class="n ' + (p.mtm < 0 ? "neg" : "pos") + '">' + money(p.mtm) + '</td>'
         + '<td class="n">' + num(p.target) + '</td>'
         + '<td class="n">' + (p.toTargetPct <= 0 ? "reached" : num(p.toTargetPct) + "%") + '</td>'
+        + '<td>' + (p.trend
+            ? '<span class="verdict ' + (p.trend.blocked ? "v-bad" : "v-good") + '">' + p.trend.label + '</span>'
+              + '<span class="verdict-detail">12m ' + num(p.trend.returnPct, 1) + '%</span>'
+            : '<span class="verdict-detail">not measured</span>') + '</td>'
+        + '<td class="n ' + (p.carry ? (p.carry.favourable ? "pos" : "neg") : "") + '">'
+            + (p.carry ? num(p.carry.weeklyPct) + '%/wk' : '—') + '</td>'
         + '<td><span class="verdict ' + cls + '">' + v.label + '</span></td>'
         + '</tr>';
     }).join("");
@@ -298,10 +304,12 @@ function document_(plan, sealed, meta) {
       + '<div class="tile"><b>' + book.confirmed + '</b><span>edge confirmed</span></div>'
       + '<div class="tile"><b class="neg">' + book.noEdge + '</b><span>no measured edge</span></div>'
       + '<div class="tile"><b class="neg">' + book.trendBlocked + '</b><span>against the trend</span></div>'
+      + '<div class="tile"><b class="neg">' + (book.carryCosting || 0) + '</b><span>paying carry</span></div>'
       + '</div>'
       + '<div class="scroll"><table><thead><tr>'
       + '<th scope="col">Instrument</th><th scope="col">Qty</th><th scope="col">Your average</th><th scope="col">Mark</th>'
-      + '<th scope="col">MTM</th><th scope="col">2% target</th><th scope="col">To target</th><th scope="col">Measurement</th>'
+      + '<th scope="col">MTM</th><th scope="col">2% target</th><th scope="col">To target</th>'
+      + '<th scope="col">12-month trend</th><th scope="col">Carry</th><th scope="col">Ladder</th>'
       + '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>';
     document.getElementById("book").hidden = false;
     document.getElementById("lock").hidden = true;
@@ -338,7 +346,7 @@ function document_(plan, sealed, meta) {
 
 // The private payload is reduced to exactly what the page renders, so nothing
 // extra is carried into the ciphertext.
-function bookPayload(book, plans) {
+function bookPayload(book, plans, context = {}) {
   const bySymbol = new Map(plans.map((item) => [item.symbol, item]));
   const positions = (book.positions || []).map((position) => {
     const short = position.position === "short";
@@ -353,9 +361,12 @@ function bookPayload(book, plans) {
         : (plan.side === "short") === short
           ? { label: "edge confirmed", tone: "good" }
           : { label: "edge is the other way", tone: "warn" };
+    const reading = context[position.symbol] || {};
     return {
       symbol: position.symbol,
       position: short ? "short" : "long",
+      trend: reading.trend || null,
+      carry: reading.carry || null,
       quantity: Number(position.quantity),
       average: Math.round(average * 100) / 100,
       mark: Math.round(mark * 100) / 100,
@@ -372,7 +383,11 @@ function bookPayload(book, plans) {
     inProfit: positions.filter((item) => item.mtm > 0).length,
     confirmed: positions.filter((item) => item.verdict.tone === "good").length,
     noEdge: positions.filter((item) => item.verdict.tone === "bad").length,
-    trendBlocked: positions.filter((item) => item.verdict.label === "against the trend").length
+    // Counted from the direct reading rather than from the ladder verdict: a
+    // holding rejected at the significance hurdle never reaches the trend check,
+    // which is why this used to report zero.
+    trendBlocked: positions.filter((item) => item.trend?.blocked).length,
+    carryCosting: positions.filter((item) => item.carry && !item.carry.favourable).length
   };
 }
 
@@ -382,6 +397,7 @@ function run() {
   const book = readJson("gm-positions.json");
   const holdings = readJson("plan-holdings.json");
   const plan = readJson("plan-full.json") || readJson("plan-watchlist.json");
+  const context = readJson("book-context.json")?.context || {};
 
   const holdingPlans = holdings
     ? [...(holdings.best || []), ...(holdings.rejected || []).map((item) => ({ symbol: item.symbol, action: "stand-aside", reasons: [item.reason] }))]
@@ -390,7 +406,7 @@ function run() {
   let sealed = null;
   let meta = { builtAt: new Date().toISOString().slice(0, 16).replace("T", " "), positionCount: 0, capturedAt: "—" };
   if (book && passphrase) {
-    const payload = bookPayload(book, holdingPlans);
+    const payload = bookPayload(book, holdingPlans, context);
     sealed = sealPayload(payload, passphrase);
     meta = { ...meta, positionCount: payload.positions.length, capturedAt: String(book.capturedAt || "").slice(0, 16).replace("T", " ") };
   } else if (book && !passphrase) {

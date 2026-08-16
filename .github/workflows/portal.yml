@@ -94,6 +94,12 @@ jobs:
         if: ${{ !inputs.skip_book }}
         run: node scripts/weekly-plan.js --symbols "$(node scripts/held-symbols.js gm-positions.json)" --top 60 --out plan-holdings.json
 
+      # Trend and carry do not depend on the ladder having an edge, so they are
+      # read for every holding rather than inherited from the plan.
+      - name: Read trend and carry for each holding
+        if: ${{ !inputs.skip_book }}
+        run: node scripts/book-context.js gm-positions.json book-context.json
+
       - name: Measure the universe
         if: ${{ steps.plan.outputs.measure == 'true' }}
         run: node scripts/weekly-plan.js --limit "${{ inputs.limit || 500 }}" --top 60 --out plan-full.json
