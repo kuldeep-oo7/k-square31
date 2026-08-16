@@ -82,11 +82,12 @@ async function fetchPortfolioWithBrowser(username, password) {
     // The controls are rendered by the route after its first data call, so a
     // fixed pause races them: on a slow runner the click ran before the button
     // existed. Waiting for the control removes the race.
-    // Occasionally the route renders without its controls at all — the first
-    // navigation lands before the app has finished adopting the session, and no
-    // amount of waiting produces the button. Reloading recovers it in seconds,
-    // where the outer retry would spend a minute timing out and then rebuild the
-    // whole browser.
+    // Sometimes the route renders with no controls at all, because the first
+    // navigation lands before the app has adopted the session. Reloading does
+    // not recover it — the reloaded app returns to its login route and the table
+    // never comes back — so the only cure is a fresh session, which the caller
+    // already retries. Failing in twenty-five seconds instead of sixty hands
+    // that retry the time it needs.
     const controlsReady = async (timeout) => {
       try {
         await page.waitForFunction(() => {
@@ -99,13 +100,7 @@ async function fetchPortfolioWithBrowser(username, password) {
         return false;
       }
     };
-    if (!await controlsReady(25_000)) {
-      console.warn("GM portfolio controls did not render; reloading the route.");
-      await page.reload({ waitUntil: "domcontentloaded", timeout: 60_000 });
-      await page.waitForSelector("#load_data", { timeout: 60_000 });
-      await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => {});
-      if (!await controlsReady(35_000)) throw new Error("GM Get Position control never rendered, even after a reload");
-    }
+    if (!await controlsReady(25_000)) throw new Error("GM portfolio route rendered without its controls");
 
     let payload = null;
     const responsePromise = page.waitForResponse(async (response) => {
