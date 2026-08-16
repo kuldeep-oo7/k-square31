@@ -168,6 +168,11 @@ function document_(plan, sealed, meta) {
   .lock button:hover { color: #fffefa; opacity: .9; }
   .err { color: var(--coral-deep); font-size: 13px; margin: 14px 0 0; min-height: 1.2em; }
   [hidden] { display: none !important; }
+  .glossary { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 14px; }
+  .glossary > div { background: var(--white); border: 1px solid var(--line); border-radius: 14px; padding: 15px 17px; }
+  .glossary dt { font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--violet); margin-bottom: 5px; }
+  .glossary dd { margin: 0; font-size: 13.5px; color: var(--muted); }
+  .glossary em { font-style: normal; color: var(--ink); font-weight: 600; }
   footer { border-top: 1px solid var(--line); padding-top: 22px; color: var(--muted); font-size: 12.5px; }
   footer p { margin: 0 0 7px; max-width: 74ch; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
@@ -223,6 +228,19 @@ function document_(plan, sealed, meta) {
         <thead><tr><th scope="col">Instrument</th><th scope="col">Expected week</th><th scope="col">Conviction</th><th scope="col">Rungs from Monday's open</th><th scope="col">Size</th></tr></thead>
         <tbody id="plan-rows">${best.map(planRow).join("")}</tbody>
       </table>
+    </div>
+  </section>
+
+  <section>
+    <h2>What the numbers mean</h2>
+    <p class="sub">Written out once, because a figure you have to guess at is worse than no figure.</p>
+    <div class="glossary">
+      <div><dt>Settled at, and why P&amp;L reads zero</dt><dd>NSE futures are settled <em>every day</em>. At each close the exchange books that day's gain or loss to your account in cash and resets the position's cost to the settlement price. So this is yesterday's settlement, not what you first paid, and open P&amp;L only measures movement <em>since</em> that settlement — outside market hours it is correctly zero. Your profit since entry has already been paid out or collected, day by day.</dd></div>
+      <div><dt>Carry</dt><dd>A futures contract and its share trade at different prices, and that gap must close by expiry. If the future sits <em>above</em> the share you pay that premium away a little each day you hold a long; if it sits below, you are paid to hold. A known cost or credit that happens whatever the price does, shown as what it is worth to your position over one week.</dd></div>
+      <div><dt>Mark</dt><dd>The contract's latest price, with its source underneath. GM publishes nothing once the market closes, so outside session hours this is the exchange's official close.</dd></div>
+      <div><dt>Day and month range</dt><dd>Day range is the contract's own high and low for the session. Month range is the share's high and low over the last 21 sessions — the wider context the ladder rungs sit inside.</dd></div>
+      <div><dt>12-month trend</dt><dd>Where the share has gone over a year, scaled by its own volatility. Buying dips in something that has fallen all year is the largest single source of loss in this rule, so a position leaning against its trend is flagged.</dd></div>
+      <div><dt>Ladder</dt><dd>Whether the 2% weekly rule has a measured edge on that name over five years. "No measured edge" is not a forecast of loss — it means the rule that opened the position has no historical support in that name.</dd></div>
     </div>
   </section>
 
@@ -301,7 +319,7 @@ function document_(plan, sealed, meta) {
     document.getElementById("book").innerHTML =
       '<div class="grid">'
       + '<div class="tile"><b>' + money(book.totalNotional) + '</b><span>portfolio value</span></div>'
-      + '<div class="tile"><b class="' + (book.totalUnrealised < 0 ? "neg" : "pos") + '">' + money(book.totalUnrealised) + '</b><span>open profit and loss</span></div>'
+      + '<div class="tile"><b class="' + (book.totalUnrealised < 0 ? "neg" : "pos") + '">' + money(book.totalUnrealised) + '</b><span>P&L since settlement</span></div>'
       + '<div class="tile"><b>' + book.positions.length + '</b><span>open positions</span></div>'
 
       + '<div class="tile"><b>' + book.inProfit + ' / ' + book.positions.length + '</b><span>in profit</span></div>'
@@ -311,7 +329,7 @@ function document_(plan, sealed, meta) {
       + '<div class="tile"><b class="neg">' + (book.carryCosting || 0) + '</b><span>paying carry</span></div>'
       + '</div>'
       + '<div class="scroll"><table><thead><tr>'
-      + '<th scope="col">Instrument</th><th scope="col">Qty</th><th scope="col">Your average</th><th scope="col">Mark</th>'
+      + '<th scope="col">Instrument</th><th scope="col">Qty</th><th scope="col">Settled at</th><th scope="col">Mark</th>'
       + '<th scope="col">Day range</th><th scope="col">Month range</th>'
       + '<th scope="col">Open P&L</th><th scope="col">2% target</th><th scope="col">To target</th>'
       + '<th scope="col">12-month trend</th><th scope="col">Carry</th><th scope="col">Ladder</th>'
