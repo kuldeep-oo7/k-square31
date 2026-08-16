@@ -1,10 +1,14 @@
 name: K2 portal
 
-# Builds and publishes the desk portal as static files.
+# Builds and publishes the desk portal.
 #
-# The book is read from GM in this job, sealed with a passphrase and published as
-# ciphertext, so the hosted site never holds readable positions. The ladder plan
-# carries no personal information and stays in the clear.
+# The book is read from GM here, sealed with a passphrase, and pushed to the
+# public site repository as ciphertext, so the host never holds a readable
+# position. The ladder plan carries no holdings and stays in the clear.
+#
+# Pages is not available on a private repository on this plan, so the built page
+# is pushed to kuldeep-oo7/k2-portal over SSH with a deploy key. The engine stays
+# private; only the page travels.
 
 on:
   workflow_dispatch:
@@ -13,15 +17,20 @@ on:
         description: "How many names to measure (500 covers the Nifty 500)"
         required: false
         default: "500"
+      force_universe:
+        description: "Re-measure the universe even if this week's plan exists"
+        required: false
+        type: boolean
+        default: false
       skip_book:
         description: "Publish the plan only, without reading GM"
         required: false
         type: boolean
         default: false
   schedule:
-    # 09:20 IST on weekdays: Monday's open has printed, so the week's anchor and
-    # therefore the rung prices are known.
-    - cron: "50 3 * * 1-5"
+    # Every 30 minutes through the NSE session (09:15-15:30 IST is 03:45-10:00
+    # UTC). The book is re-read every time; the universe is not.
+    - cron: "*/30 3-10 * * 1-5"
 
 concurrency:
   group: k2-portal
@@ -29,11 +38,9 @@ concurrency:
 
 permissions:
   contents: read
-  pages: write
-  id-token: write
 
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
     timeout-minutes: 55
     steps:
@@ -43,6 +50,34 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+
+      - name: Open the site repository
+        env:
+          DEPLOY_KEY: ${{ secrets.K2_PORTAL_DEPLOY_KEY }}
+        run: |
+          mkdir -p ~/.ssh
+          echo "$DEPLOY_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
+          git clone --depth 1 git@github.com:kuldeep-oo7/k2-portal.git publish
+
+      # The universe measurement takes about twenty minutes and only changes when
+      # the week's anchor changes, so the published plan is carried forward and
+      # re-measured once a week. Without this, a half-hourly refresh would spend
+      # its whole window rescanning five hundred names.
+      - name: Decide whether the universe needs re-measuring
+        id: plan
+        run: |
+          if [ -f publish/plan.json ] && [ "${{ inputs.force_universe }}" != "true" ]; then
+            cp publish/plan.json plan-full.json
+            if node scripts/plan-is-current.js plan-full.json; then
+              echo "measure=false" >> "$GITHUB_OUTPUT"
+            else
+              echo "measure=true" >> "$GITHUB_OUTPUT"
+            fi
+          else
+            echo "measure=true" >> "$GITHUB_OUTPUT"
+          fi
 
       - name: Install a browser for the GM read
         if: ${{ !inputs.skip_book }}
@@ -60,6 +95,7 @@ jobs:
         run: node scripts/weekly-plan.js --symbols "$(node scripts/held-symbols.js gm-positions.json)" --top 60 --out plan-holdings.json
 
       - name: Measure the universe
+        if: ${{ steps.plan.outputs.measure == 'true' }}
         run: node scripts/weekly-plan.js --limit "${{ inputs.limit || 500 }}" --top 60 --out plan-full.json
 
       - name: Seal the book and build the portal
@@ -70,16 +106,16 @@ jobs:
       - name: Refuse to publish a leaking build
         run: node scripts/verify-portal.js site/index.html gm-positions.json
 
-      - uses: actions/upload-pages-artifact@v3
-        with:
-          path: site
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-    environment:
-      name: github-pages
-      url: ${{ steps.deployment.outputs.page_url }}
-    steps:
-      - id: deployment
-        uses: actions/deploy-pages@v4
+      - name: Publish
+        run: |
+          cp site/index.html publish/index.html
+          cp plan-full.json publish/plan.json
+          touch publish/.nojekyll
+          cd publish
+          git config user.name "K2 portal publisher"
+          git config user.email "noreply@users.noreply.github.com"
+          git add -A
+          # An unchanged page is a normal outcome outside market hours.
+          git diff --staged --quiet && echo "Nothing changed." && exit 0
+          git commit -m "Refresh the desk: $(date -u '+%Y-%m-%d %H:%M') UTC"
+          git push
