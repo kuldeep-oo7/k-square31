@@ -15,6 +15,8 @@
 
 const { chromium } = require("playwright");
 
+const { safeToProbe } = require("../api/_lib/gm-readonly");
+
 const GM_ORIGIN = "https://gmglobal.org";
 const ENDPOINT_PATTERN = /['"`]([^'"`\s]*\/?(?:ajaxfiles|datatables|api)\/[a-z0-9_-]+\.php)['"`]/gi;
 
@@ -114,7 +116,15 @@ async function run() {
     console.log("\nEndpoints the app actually called while loading:");
     [...observed].sort().forEach((path) => console.log(`    ${path}`));
 
-    const candidates = declared.filter((path) => INTERESTING.test(path));
+    // Anything whose name indicates it writes is dropped before it can be
+    // probed. An earlier pass swept add_market_watch.php into the candidates
+    // purely because the name contains "market"; the server refused it, but
+    // nothing here would have.
+    const matched = declared.filter((path) => INTERESTING.test(path));
+    const candidates = matched.filter(safeToProbe);
+    const refused = matched.filter((path) => !safeToProbe(path));
+    if (refused.length) console.log(`Refusing to probe ${refused.length} endpoint(s) whose names indicate they change state: ${refused.join(", ")}
+`);
     console.log(`\nProbing ${candidates.length} candidates that could carry a contract price:\n`);
     for (const path of candidates) {
       // Two shapes: the DataTables form the position book uses, and an empty

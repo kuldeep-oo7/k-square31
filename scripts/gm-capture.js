@@ -13,6 +13,8 @@
 
 const { chromium } = require("playwright");
 
+const { assertReadOnly, safeToProbe } = require("../api/_lib/gm-readonly");
+
 const GM_ORIGIN = "https://gmglobal.org";
 const TARGETS = /(market|watch|script|scrip|expiry|position|trade|ltp|rate)/i;
 const MENU = ["Watchlist", "Trades", "Portfolio/Position"];
@@ -126,7 +128,10 @@ async function run() {
     }
 
     console.log("Probing price endpoints with the login identity attached:\n");
-    for (const path of PRICE_ENDPOINTS) {
+    // The guard drops anything whose name indicates it writes, before a request
+    // is made. Reading is the entire remit here.
+    for (const path of PRICE_ENDPOINTS.filter(safeToProbe)) {
+      assertReadOnly(path);
       const result = await page.evaluate(async ({ path, identity }) => {
         const form = new URLSearchParams({
           ...Object.fromEntries(Object.entries(identity).filter(([, value]) => value !== undefined && value !== null)),

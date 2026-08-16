@@ -63,8 +63,39 @@ async function run() {
       entry.trend = { label: "trend unavailable", reason: String(error?.message || error).slice(0, 60) };
     }
 
+    // The underlying's medium-term range, for context on where the mark sits.
+    // Labelled as the underlying because these are spot bars; the contract's own
+    // high and low come from the bhavcopy below.
+    try {
+      const bars = await dailyBars(symbol);
+      const window = (count) => bars.slice(-count);
+      const lowOf = (list) => Math.min(...list.map((bar) => Number(bar.low)));
+      const highOf = (list) => Math.max(...list.map((bar) => Number(bar.high)));
+      if (bars.length >= 21) {
+        entry.range = {
+          monthLow: Math.round(lowOf(window(21)) * 100) / 100,
+          monthHigh: Math.round(highOf(window(21)) * 100) / 100,
+          yearLow: Math.round(lowOf(window(Math.min(252, bars.length))) * 100) / 100,
+          yearHigh: Math.round(highOf(window(Math.min(252, bars.length))) * 100) / 100,
+          spot: Math.round(Number(bars.at(-1).close) * 100) / 100
+        };
+      }
+    } catch { /* the trend read above already reported the fetch failure */ }
+
     const contract = front.get(symbol);
     if (contract) {
+      // GM reports no live mark once the session closes, which left the portal
+      // showing the entry price as the mark and every P&L as zero. The bhavcopy
+      // close is a real, dated contract price, so it is used whenever GM has
+      // nothing live to offer.
+      entry.mark = {
+        price: contract.futures,
+        source: "NSE close",
+        dayHigh: contract.dayHigh,
+        dayLow: contract.dayLow,
+        previousClose: contract.previousClose,
+        lotSize: contract.lotSize
+      };
       const basis = carry({ futures: contract.futures, spot: contract.spot, expiry: contract.expiry, side, nowMs: asOf });
       if (basis.ready) {
         entry.carry = {

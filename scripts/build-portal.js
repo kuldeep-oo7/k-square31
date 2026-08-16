@@ -282,8 +282,10 @@ function document_(plan, sealed, meta) {
         + '<th scope="row"><span class="tkr">' + p.symbol + '</span><span class="chip chip-' + (short ? "short" : "long") + '">' + (short ? "short" : "long") + '</span></th>'
         + '<td class="n">' + p.quantity.toLocaleString("en-IN") + '</td>'
         + '<td class="n">' + num(p.average) + '</td>'
-        + '<td class="n">' + num(p.mark) + '</td>'
-        + '<td class="n ' + (p.mtm < 0 ? "neg" : "pos") + '">' + money(p.mtm) + '</td>'
+        + '<td class="n">' + num(p.mark) + '<span class="verdict-detail">' + p.markSource + '</span></td>'
+        + '<td class="n">' + (p.dayLow && p.dayHigh ? num(p.dayLow) + ' – ' + num(p.dayHigh) : "—") + '</td>'
+        + '<td class="n">' + (p.range ? num(p.range.monthLow) + ' – ' + num(p.range.monthHigh) : "—") + '</td>'
+        + '<td class="n ' + (p.unrealised < 0 ? "neg" : "pos") + '">' + money(p.unrealised) + '</td>'
         + '<td class="n">' + num(p.target) + '</td>'
         + '<td class="n">' + (p.toTargetPct <= 0 ? "reached" : num(p.toTargetPct) + "%") + '</td>'
         + '<td>' + (p.trend
@@ -298,8 +300,10 @@ function document_(plan, sealed, meta) {
 
     document.getElementById("book").innerHTML =
       '<div class="grid">'
+      + '<div class="tile"><b>' + money(book.totalNotional) + '</b><span>portfolio value</span></div>'
+      + '<div class="tile"><b class="' + (book.totalUnrealised < 0 ? "neg" : "pos") + '">' + money(book.totalUnrealised) + '</b><span>open profit and loss</span></div>'
       + '<div class="tile"><b>' + book.positions.length + '</b><span>open positions</span></div>'
-      + '<div class="tile"><b class="' + (book.totalMtm < 0 ? "neg" : "pos") + '">' + money(book.totalMtm) + '</b><span>mark to market</span></div>'
+
       + '<div class="tile"><b>' + book.inProfit + ' / ' + book.positions.length + '</b><span>in profit</span></div>'
       + '<div class="tile"><b>' + book.confirmed + '</b><span>edge confirmed</span></div>'
       + '<div class="tile"><b class="neg">' + book.noEdge + '</b><span>no measured edge</span></div>'
@@ -308,7 +312,8 @@ function document_(plan, sealed, meta) {
       + '</div>'
       + '<div class="scroll"><table><thead><tr>'
       + '<th scope="col">Instrument</th><th scope="col">Qty</th><th scope="col">Your average</th><th scope="col">Mark</th>'
-      + '<th scope="col">MTM</th><th scope="col">2% target</th><th scope="col">To target</th>'
+      + '<th scope="col">Day range</th><th scope="col">Month range</th>'
+      + '<th scope="col">Open P&L</th><th scope="col">2% target</th><th scope="col">To target</th>'
       + '<th scope="col">12-month trend</th><th scope="col">Carry</th><th scope="col">Ladder</th>'
       + '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>';
     document.getElementById("book").hidden = false;
@@ -353,7 +358,7 @@ function bookPayload(book, plans, context = {}) {
     const average = Number(position.buyAverage) || Number(position.price);
     const mark = Number(position.markPrice) || average;
     const target = short ? average * 0.98 : average * 1.02;
-    const toTargetPct = short ? (mark / target - 1) * 100 : (target / mark - 1) * 100;
+    const toTargetPct = short ? (marked / target - 1) * 100 : (target / marked - 1) * 100;
     const plan = bySymbol.get(position.symbol);
     const verdict = !plan ? { label: "not measured", tone: "none" }
       : plan.action === "stand-aside"
@@ -362,14 +367,28 @@ function bookPayload(book, plans, context = {}) {
           ? { label: "edge confirmed", tone: "good" }
           : { label: "edge is the other way", tone: "warn" };
     const reading = context[position.symbol] || {};
+    // GM stops publishing a mark once the session closes, which showed the entry
+    // price as the mark and every P&L as zero. The exchange close is a real,
+    // dated price, so it is preferred whenever GM has nothing live.
+    const marked = Number(reading.mark?.price) || Number(position.markPrice) || average;
+    const signed = short ? -1 : 1;
+    const quantity = Number(position.quantity);
+    const unrealised = (marked - average) * quantity * signed;
     return {
       symbol: position.symbol,
       position: short ? "short" : "long",
       trend: reading.trend || null,
       carry: reading.carry || null,
+      range: reading.range || null,
+      dayHigh: reading.mark?.dayHigh ?? null,
+      dayLow: reading.mark?.dayLow ?? null,
+      lotSize: reading.carry?.lotSize ?? reading.mark?.lotSize ?? null,
+      markSource: Number(reading.mark?.price) ? (reading.mark.source || "NSE close") : (Number(position.markPrice) ? "GM live" : "entry price"),
+      notional: Math.round(marked * quantity),
+      unrealised: Math.round(unrealised),
       quantity: Number(position.quantity),
       average: Math.round(average * 100) / 100,
-      mark: Math.round(mark * 100) / 100,
+      mark: Math.round(marked * 100) / 100,
       mtm: Number(position.mtm),
       target: Math.round(target * 100) / 100,
       toTargetPct: Math.round(toTargetPct * 100) / 100,
@@ -379,8 +398,10 @@ function bookPayload(book, plans, context = {}) {
   return {
     capturedAt: book.capturedAt,
     totalMtm: Number(book.totalMtm),
+    totalNotional: positions.reduce((sum, item) => sum + Number(item.notional || 0), 0),
+    totalUnrealised: positions.reduce((sum, item) => sum + Number(item.unrealised || 0), 0),
     positions,
-    inProfit: positions.filter((item) => item.mtm > 0).length,
+    inProfit: positions.filter((item) => Number(item.unrealised) > 0).length,
     confirmed: positions.filter((item) => item.verdict.tone === "good").length,
     noEdge: positions.filter((item) => item.verdict.tone === "bad").length,
     // Counted from the direct reading rather than from the ladder verdict: a

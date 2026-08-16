@@ -94,6 +94,12 @@ function frontFutures(rows) {
       futures: close,
       spot,
       settlement: Number(row.SttlmPric) || close,
+      // The contract's own session range, which is the honest daily high and low
+      // for a futures position — the underlying's range is a different number.
+      dayHigh: Number(row.HghPric) || null,
+      dayLow: Number(row.LwPric) || null,
+      dayOpen: Number(row.OpnPric) || null,
+      previousClose: Number(row.PrvsClsgPric) || null,
       openInterest: Number(row.OpnIntrst) || 0,
       volume: Number(row.TtlTradgVol) || 0,
       lotSize: Number(row.NewBrdLotQty) || null,
