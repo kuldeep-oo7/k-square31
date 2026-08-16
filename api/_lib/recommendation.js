@@ -13,6 +13,7 @@
 const { tradingWeeks, ladder, weeklyCycle, DEFAULT_CONFIG } = require("./weekly-cycle");
 const { weeklyForecast } = require("./ml-model");
 const { trendAlignment, trendGate } = require("./trend");
+const { carryScore } = require("./carry");
 
 function round(value, digits = 2) {
   if (!Number.isFinite(value)) return null;
@@ -49,7 +50,7 @@ function currentAnchor(bars) {
   return { weekKey: week.weekKey, anchor: week.sessions[0].open, sessionsElapsed: week.sessions.length };
 }
 
-function convictionOf({ cycle, model, technical, fundamentals, trend, side, config }) {
+function convictionOf({ cycle, model, technical, fundamentals, trend, carry, side, config }) {
   const sideCycle = cycle[side];
   const target = Number(config.targetPct) || 2;
   const bestLevel = sideCycle.levels.find((entry) => entry.level === sideCycle.viableLevels[0]);
@@ -58,15 +59,23 @@ function convictionOf({ cycle, model, technical, fundamentals, trend, side, conf
     ? clamp((side === "short" ? -technicalScore : technicalScore) / 60)
     : 0;
   const balanceSheet = Number(fundamentals?.balanceSheetScore) || 0;
+  // Carry is the only component that is not a forecast: the basis has to close
+  // by expiry, so it is a known credit or cost on the week. It earns real weight
+  // for that, taken from the components that merely re-read the same history.
+  // It is supplied for the long side, so a short ladder takes the opposite sign.
+  const carryForSide = carry?.ready
+    ? { ...carry, weeklyPct: side === "short" ? -Number(carry.weeklyPct) : Number(carry.weeklyPct) }
+    : null;
 
   const components = [
-    ["Realised weekly edge", 25, clamp(Number(sideCycle.outOfSample.averageWeeklyPct) / target), `${sideCycle.outOfSample.averageWeeklyPct}% average out-of-sample week over ${sideCycle.outOfSample.weeks} weeks`],
-    ["Target hit reliability", 18, clamp((Number(bestLevel?.lowerPct) - 50) / 30), `rung ${bestLevel?.level} hits its ${target}% target at least ${bestLevel?.lowerPct}% of the time with 95% confidence`],
-    ["Trend alignment", 17, trendAlignment(trend, side), trend?.ready ? `12-month move ${trend.returnPct}%, ${round(trend.scaled, 2)} per unit of risk` : "not enough history to measure the trend"],
-    ["Model expectation", 18, model?.trustworthy ? clamp(Number(model.expectedWeeklyPct) / target) : 0, model?.trustworthy ? `boosted trees expect ${model.expectedWeeklyPct}% this week` : "model did not clear its out-of-sample gate"],
-    ["Model skill", 8, model?.validation?.ready ? clamp(Number(model.validation.outOfSample.informationCoefficient) / 0.1) : 0, model?.validation?.ready ? `out-of-sample information coefficient ${model.validation.outOfSample.informationCoefficient}` : "no validated model"],
-    ["Technical alignment", 7, technicalAlignment, Number.isFinite(technicalScore) ? `composite score ${round(technicalScore)} versus a ${side} ladder` : "no technical composite supplied"],
-    ["Balance-sheet asymmetry", 7, clamp((side === "short" ? -balanceSheet : balanceSheet) + 0.5, 0, 1), fundamentals?.available ? `balance-sheet score ${balanceSheet}` : "fundamentals unavailable"]
+    ["Realised weekly edge", 22, clamp(Number(sideCycle.outOfSample.averageWeeklyPct) / target), `${sideCycle.outOfSample.averageWeeklyPct}% average out-of-sample week over ${sideCycle.outOfSample.weeks} weeks`],
+    ["Target hit reliability", 16, clamp((Number(bestLevel?.lowerPct) - 50) / 30), `rung ${bestLevel?.level} hits its ${target}% target at least ${bestLevel?.lowerPct}% of the time with 95% confidence`],
+    ["Trend alignment", 15, trendAlignment(trend, side), trend?.ready ? `12-month move ${trend.returnPct}%, ${round(trend.scaled, 2)} per unit of risk` : "not enough history to measure the trend"],
+    ["Model expectation", 16, model?.trustworthy ? clamp(Number(model.expectedWeeklyPct) / target) : 0, model?.trustworthy ? `boosted trees expect ${model.expectedWeeklyPct}% this week` : "model did not clear its out-of-sample gate"],
+    ["Model skill", 7, model?.validation?.ready ? clamp(Number(model.validation.outOfSample.informationCoefficient) / 0.1) : 0, model?.validation?.ready ? `out-of-sample information coefficient ${model.validation.outOfSample.informationCoefficient}` : "no validated model"],
+    ["Technical alignment", 6, technicalAlignment, Number.isFinite(technicalScore) ? `composite score ${round(technicalScore)} versus a ${side} ladder` : "no technical composite supplied"],
+    ["Carry", 12, carryScore(carryForSide, target), carryForSide ? `futures at a ${carryForSide.state} of ${carryForSide.basisPct}%, worth ${carryForSide.weeklyPct}% to this side over the week` : "no contract price for this name"],
+    ["Balance-sheet asymmetry", 6, clamp((side === "short" ? -balanceSheet : balanceSheet) + 0.5, 0, 1), fundamentals?.available ? `balance-sheet score ${balanceSheet}` : "fundamentals unavailable"]
   ].map(([name, weight, score, note]) => ({ name, weight, score: round(score, 4), contribution: round(weight * score, 2), note }));
 
   return { convictionPct: round(components.reduce((sum, item) => sum + Number(item.contribution), 0)), components };
@@ -126,10 +135,27 @@ function recommendation(input) {
     };
   });
 
-  const { convictionPct, components } = convictionOf({ cycle, model, technical, fundamentals, trend, side, config });
-  const expectedWeeklyPct = model?.trustworthy && Number.isFinite(Number(model.expectedWeeklyPct))
-    ? round((Number(model.expectedWeeklyPct) + Number(cycle[side].outOfSample.averageWeeklyPct)) / 2, 3)
-    : round(Number(cycle[side].outOfSample.averageWeeklyPct), 3);
+  const { convictionPct, components } = convictionOf({ cycle, model, technical, fundamentals, trend, carry: input.carry || null, side, config });
+  // Carry is added rather than averaged in: it is not another opinion about the
+  // week, it is a credit or cost that accrues whatever the price does. Leaving it
+  // out ranked a name earning 1.3% a week from basis alone below one earning
+  // nothing.
+  const priceExpectation = model?.trustworthy && Number.isFinite(Number(model.expectedWeeklyPct))
+    ? (Number(model.expectedWeeklyPct) + Number(cycle[side].outOfSample.averageWeeklyPct)) / 2
+    : Number(cycle[side].outOfSample.averageWeeklyPct);
+  const carryContribution = input.carry?.ready
+    ? (side === "short" ? -Number(input.carry.weeklyPct) : Number(input.carry.weeklyPct))
+    : 0;
+  const expectedWeeklyPct = round(priceExpectation + carryContribution, 3);
+
+  // A ladder whose carry costs more than the price edge is expected to earn is
+  // not a trade, however well the rule has scored historically. This is checked
+  // after the expectation is assembled because it depends on the total, not on
+  // any single component.
+  if (expectedWeeklyPct <= 0) {
+    return standAside(symbol, `The week is not expected to pay: ${round(priceExpectation, 3)}% from price against ${round(carryContribution, 3)}% of carry`, evidence);
+  }
+
 
   return {
     symbol,
@@ -142,6 +168,8 @@ function recommendation(input) {
     entries,
     convictionPct,
     expectedWeeklyPct,
+    expectedFromPricePct: round(priceExpectation, 3),
+    expectedFromCarryPct: round(carryContribution, 3),
     // Conviction only scales the ticket; it never creates one.
     sizeMultiplier: round(0.25 + 0.75 * clamp(convictionPct / 70), 3),
     bookOut: "Book every open leg at the Friday close; Monday's open sets the next anchor",

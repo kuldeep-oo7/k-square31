@@ -23,6 +23,8 @@ const { weeklyCycle } = require("../api/_lib/weekly-cycle");
 const { weeklyForecast } = require("../api/_lib/ml-model");
 const { fundamentals } = require("../api/_lib/fundamentals");
 const { recommendation, rankRecommendations } = require("../api/_lib/recommendation");
+const { latestBhavcopy, frontFutures } = require("../api/_lib/bhavcopy");
+const { carry } = require("../api/_lib/carry");
 const { googleStoreConfigured, writeGoogleDocument, readGoogleDocument } = require("../api/_lib/google-store");
 
 const CHART = "https://query1.finance.yahoo.com/v8/finance/chart";
@@ -63,6 +65,21 @@ async function dailyBars(symbol) {
   })).filter((bar) => [bar.high, bar.low, bar.close].every(Number.isFinite));
 }
 
+// Only about 214 NSE names have futures at all, so scanning the Nifty 500 spends
+// most of its time measuring instruments this desk cannot trade — and returns
+// recommendations it cannot act on.
+async function tradableFutures() {
+  try {
+    const book = await latestBhavcopy();
+    const front = frontFutures(book.rows);
+    console.log(`F&O universe from the ${book.tradeDate} bhavcopy: ${front.size} names with a front-month contract`);
+    return { front, asOf: Date.parse(`${book.tradeDate.slice(0, 4)}-${book.tradeDate.slice(4, 6)}-${book.tradeDate.slice(6, 8)}T10:00:00Z`) };
+  } catch (error) {
+    console.warn(`Could not read the bhavcopy (${String(error?.message || error).slice(0, 90)}); measuring every name without carry.`);
+    return { front: new Map(), asOf: Date.now() };
+  }
+}
+
 async function planFor(symbol, options) {
   const bars = await dailyBars(symbol);
   const cycle = weeklyCycle(bars);
@@ -73,19 +90,34 @@ async function planFor(symbol, options) {
   const side = cycle.verdict.side;
   const model = side ? weeklyForecast(bars, side) : null;
   const financials = side && !options.skipFundamentals ? await fundamentals(symbol) : null;
-  const plan = recommendation({ symbol, bars, cycle, model, fundamentals: financials, technical: null });
+  const contract = options.futures?.get(symbol);
+  // Carry is supplied for the long side; the recommendation flips it for a short.
+  const basis = contract
+    ? carry({ futures: contract.futures, spot: contract.spot, expiry: contract.expiry, side: "long", nowMs: options.asOf })
+    : null;
+  const plan = recommendation({ symbol, bars, cycle, model, fundamentals: financials, technical: null, carry: basis });
   return { ...plan, symbolBars: bars.length };
 }
 
 async function run() {
-  const symbols = universe();
   const skipFundamentals = process.argv.includes("--no-fundamentals");
+  const { front, asOf } = await tradableFutures();
+  const requested = universe();
+  // An explicit --symbols list is honoured as given; a universe scan is trimmed
+  // to what can actually be traded.
+  const symbols = (argument("symbols") || !front.size)
+    ? requested
+    : requested.filter((symbol) => front.has(symbol));
+  if (symbols.length !== requested.length) {
+    console.log(`${requested.length - symbols.length} of ${requested.length} names have no futures contract and were skipped.
+`);
+  }
   const plans = [];
   let failed = 0;
 
   for (const [index, symbol] of symbols.entries()) {
     try {
-      const plan = await planFor(symbol, { skipFundamentals });
+      const plan = await planFor(symbol, { skipFundamentals, futures: front, asOf });
       plans.push(plan);
       const label = plan.action === "stand-aside" ? "-" : `${plan.side} ${plan.expectedWeeklyPct}% conviction ${plan.convictionPct}`;
       console.log(`[${index + 1}/${symbols.length}] ${symbol}: ${plan.action} ${label}`);
