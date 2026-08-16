@@ -1,0 +1,85 @@
+name: K2 portal
+
+# Builds and publishes the desk portal as static files.
+#
+# The book is read from GM in this job, sealed with a passphrase and published as
+# ciphertext, so the hosted site never holds readable positions. The ladder plan
+# carries no personal information and stays in the clear.
+
+on:
+  workflow_dispatch:
+    inputs:
+      limit:
+        description: "How many names to measure (500 covers the Nifty 500)"
+        required: false
+        default: "500"
+      skip_book:
+        description: "Publish the plan only, without reading GM"
+        required: false
+        type: boolean
+        default: false
+  schedule:
+    # 09:20 IST on weekdays: Monday's open has printed, so the week's anchor and
+    # therefore the rung prices are known.
+    - cron: "50 3 * * 1-5"
+
+concurrency:
+  group: k2-portal
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 55
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+
+      - name: Install a browser for the GM read
+        if: ${{ !inputs.skip_book }}
+        run: npx playwright install --with-deps chromium
+
+      - name: Read the GM book
+        if: ${{ !inputs.skip_book }}
+        env:
+          GM_USERNAME: ${{ secrets.GM_USERNAME }}
+          GM_PASSWORD: ${{ secrets.GM_PASSWORD }}
+        run: node scripts/gm-portfolio-dump.js gm-positions.json
+
+      - name: Measure the held names
+        if: ${{ !inputs.skip_book }}
+        run: node scripts/weekly-plan.js --symbols "$(node scripts/held-symbols.js gm-positions.json)" --top 60 --out plan-holdings.json
+
+      - name: Measure the universe
+        run: node scripts/weekly-plan.js --limit "${{ inputs.limit || 500 }}" --top 60 --out plan-full.json
+
+      - name: Seal the book and build the portal
+        env:
+          K2_PORTAL_PASSPHRASE: ${{ secrets.K2_PORTAL_PASSPHRASE }}
+        run: node scripts/build-portal.js site
+
+      - name: Refuse to publish a leaking build
+        run: node scripts/verify-portal.js site/index.html gm-positions.json
+
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: site
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4
