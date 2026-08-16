@@ -92,6 +92,17 @@ async function fetchPortfolioWithBrowser(username, password) {
     // The UI interaction below can fail before this promise is awaited. Attach
     // an immediate rejection observer so browser cleanup cannot mask that error.
     responsePromise.catch(() => {});
+    // The controls are rendered by the route after its first data call, so a
+    // fixed pause races them: on a slow runner the click ran before the button
+    // existed and all three attempts failed with "button is not available".
+    // Waiting for the control itself removes the race rather than lengthening
+    // the guess.
+    await page.waitForFunction(() => {
+      const compact = (value) => String(value || "").replace(/\s+/g, " ").trim().toUpperCase();
+      return [...document.querySelectorAll("button,input[type=button],input[type=submit]")]
+        .some((node) => compact(node.innerText || node.value) === "GET POSITION");
+    }, null, { timeout: 60_000 });
+
     await page.evaluate(() => {
       const compact = (value) => String(value || "").replace(/\s+/g, " ").trim().toUpperCase();
       const choose = (wanted) => {
