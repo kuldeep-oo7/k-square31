@@ -356,7 +356,14 @@ function bookPayload(book, plans, context = {}) {
   const positions = (book.positions || []).map((position) => {
     const short = position.position === "short";
     const average = Number(position.buyAverage) || Number(position.price);
-    const mark = Number(position.markPrice) || average;
+    const reading = context[position.symbol] || {};
+    // GM stops publishing a mark once the session closes, which showed the entry
+    // price as the mark and every P&L as zero. The exchange close is a real,
+    // dated price, so it is preferred whenever GM has nothing live.
+    const marked = Number(reading.mark?.price) || Number(position.markPrice) || average;
+    const signed = short ? -1 : 1;
+    const quantity = Number(position.quantity);
+    const unrealised = (marked - average) * quantity * signed;
     const target = short ? average * 0.98 : average * 1.02;
     const toTargetPct = short ? (marked / target - 1) * 100 : (target / marked - 1) * 100;
     const plan = bySymbol.get(position.symbol);
@@ -366,14 +373,6 @@ function bookPayload(book, plans, context = {}) {
         : (plan.side === "short") === short
           ? { label: "edge confirmed", tone: "good" }
           : { label: "edge is the other way", tone: "warn" };
-    const reading = context[position.symbol] || {};
-    // GM stops publishing a mark once the session closes, which showed the entry
-    // price as the mark and every P&L as zero. The exchange close is a real,
-    // dated price, so it is preferred whenever GM has nothing live.
-    const marked = Number(reading.mark?.price) || Number(position.markPrice) || average;
-    const signed = short ? -1 : 1;
-    const quantity = Number(position.quantity);
-    const unrealised = (marked - average) * quantity * signed;
     return {
       symbol: position.symbol,
       position: short ? "short" : "long",

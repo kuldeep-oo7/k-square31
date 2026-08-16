@@ -75,7 +75,27 @@ async function fetchPortfolioWithBrowser(username, password) {
     }, { username, password });
     if (!login.ok || String(login.data?.status || "").toLowerCase() !== "ok") throw new Error("GM rejected the configured cloud credentials");
 
+    // The app sometimes lands on its own login screen instead of the portfolio,
+    // even though the login call succeeded — the diagnostics caught it showing
+    // route #/Login with a SIGN IN button and no table. Signing in again inside
+    // the same browser recovers it, which a page reload could not: reloading
+    // returned to the login route and lost the table entirely.
     await page.goto(PORTFOLIO_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
+    for (let recovery = 0; recovery < 2; recovery += 1) {
+      const route = await page.evaluate(() => location.hash || "");
+      if (!/login/i.test(route)) break;
+      console.warn(`GM returned to ${route} instead of the portfolio; signing in again.`);
+      await page.evaluate(async ({ username, password }) => {
+        await fetch("/ajaxfiles/logincheck.php", {
+          method: "POST",
+          credentials: "include",
+          headers: { "Content-Type": "application/json;charset=UTF-8", "X-Requested-With": "XMLHttpRequest" },
+          body: JSON.stringify({ username, password })
+        });
+      }, { username, password });
+      await page.goto(PORTFOLIO_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
+      await page.waitForTimeout(2_500);
+    }
     await page.waitForSelector("#load_data", { timeout: 60_000 });
     await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => {});
     await page.waitForTimeout(2_000);

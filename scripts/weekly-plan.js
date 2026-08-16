@@ -27,6 +27,14 @@ const { latestBhavcopy, frontFutures } = require("../api/_lib/bhavcopy");
 const { carry } = require("../api/_lib/carry");
 const { googleStoreConfigured, writeGoogleDocument, readGoogleDocument } = require("../api/_lib/google-store");
 
+// Names the desk has traded before, marked on every recommendation. Deliberately
+// not a filter: a name being absent is not evidence it cannot be traded, and 28
+// of them have since left the F&O segment anyway.
+const JOURNAL = new Set((() => {
+  try { return JSON.parse(fs.readFileSync(path.join(__dirname, "..", "data", "journal-symbols.json"), "utf8")).symbols || []; }
+  catch { return []; }
+})());
+
 const CHART = "https://query1.finance.yahoo.com/v8/finance/chart";
 const USER_AGENT = "Mozilla/5.0 K-Square/2.0";
 
@@ -104,7 +112,7 @@ async function planFor(symbol, options) {
     ? carry({ futures: contract.futures, spot: contract.spot, expiry: contract.expiry, side: "long", nowMs: options.asOf })
     : null;
   const plan = recommendation({ symbol, bars, cycle, model, fundamentals: financials, technical: null, carry: basis });
-  return { ...plan, symbolBars: bars.length };
+  return { ...plan, symbolBars: bars.length, inJournal: JOURNAL.has(symbol) };
 }
 
 async function run() {
@@ -138,6 +146,10 @@ async function run() {
   };
 
   console.log(`\nWeek ${report.weekKey || "(pending anchor)"}: ${report.actionable} of ${report.considered} names cleared every veto\n`);
+  if (JOURNAL.size) {
+    const familiar = report.best.filter((item) => item.inJournal).length;
+    console.log(`${familiar} of the top ${report.best.length} are names from the trading journal.`);
+  }
   report.best.forEach((item, position) => {
     const rungs = item.entries.map((entry) => `L${entry.level} @ ${entry.entry}→${entry.target}`).join("  ");
     console.log(`${String(position + 1).padStart(2)}. ${item.symbol.padEnd(12)} ${item.side.padEnd(5)} expected ${String(item.expectedWeeklyPct).padStart(6)}%  conviction ${String(item.convictionPct).padStart(5)}  size ×${item.sizeMultiplier}`);
