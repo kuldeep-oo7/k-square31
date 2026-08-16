@@ -31,3 +31,9 @@ jobs:
           GM_USERNAME: ${{ secrets.GM_USERNAME }}
           GM_PASSWORD: ${{ secrets.GM_PASSWORD }}
         run: node scripts/gm-explore.js
+      - name: Capture the shape of the app's own requests
+        if: always()
+        env:
+          GM_USERNAME: ${{ secrets.GM_USERNAME }}
+          GM_PASSWORD: ${{ secrets.GM_PASSWORD }}
+        run: node scripts/gm-capture.js
