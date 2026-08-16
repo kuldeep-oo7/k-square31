@@ -1,26 +1,47 @@
 "use strict";
 
-// Records the exact shape of the requests GM's own UI makes.
+// Records the exact shape of the requests GM's own UI makes, then probes the
+// price endpoints with what the login handed back.
 //
-// Probing the endpoints directly returns "Session Expired1" even on a session
-// that reads the position book successfully, so the session cookie is not the
-// whole story: these calls carry something else the guessed requests omit. The
-// only reliable way to learn what is to let the app issue them and write down
-// the method, headers and body verbatim.
-//
-// Navigation is by clicking the app's own menu, because a single-page app does
-// not re-route on a URL hash change.
+// Two things the earlier passes got wrong. The menu item is "Watchlist", not
+// "Market Watch", so nothing was ever clicked. And the login response carries an
+// auth_key alongside the session cookie — the position book happens to accept
+// the cookie alone, which is why it worked while every other endpoint answered
+// "Session Expired1".
 //
 //   GM_USERNAME=... GM_PASSWORD=... node scripts/gm-capture.js
 
 const { chromium } = require("playwright");
 
 const GM_ORIGIN = "https://gmglobal.org";
-const TARGETS = /(market|watch|script|scrip|expiry|position|trade)/i;
+const TARGETS = /(market|watch|script|scrip|expiry|position|trade|ltp|rate)/i;
+const MENU = ["Watchlist", "Trades", "Portfolio/Position"];
 
-function trim(value, limit = 700) {
+// Endpoints most likely to carry a contract price for the whole tradable list.
+const PRICE_ENDPOINTS = [
+  "ajaxfiles/market_watch_list.php",
+  "ajaxfiles/get_market_watch_filter.php",
+  "ajaxfiles/get_market_lists.php",
+  "ajaxfiles/get_market_script_list_for_place.php",
+  "ajaxfiles/fetch_expiry_list.php",
+  "ajaxfiles/get_script_name_search.php",
+  "ajaxfiles/get_market_type.php"
+];
+
+const trim = (value, limit = 600) => {
   const text = String(value || "");
   return text.length > limit ? `${text.slice(0, limit)}…` : text;
+};
+
+function summarise(text) {
+  try {
+    const parsed = JSON.parse(text);
+    const rows = [parsed?.aaData, parsed?.data, parsed?.rows, parsed?.result].find(Array.isArray);
+    if (rows) return `table, ${rows.length} rows | first: ${trim(JSON.stringify(rows[0]), 320)}`;
+    return `json | ${trim(JSON.stringify(parsed), 320)}`;
+  } catch {
+    return `non-json | ${trim(text.replace(/<[^>]*>/g, " ").replace(/\s+/g, " ").trim(), 160)}`;
+  }
 }
 
 async function run() {
@@ -35,21 +56,16 @@ async function run() {
   const captured = [];
   page.on("request", (request) => {
     const url = new URL(request.url());
-    if (url.origin !== GM_ORIGIN || !/\.php$/.test(url.pathname)) return;
-    if (!TARGETS.test(url.pathname)) return;
-    captured.push({
-      path: url.pathname,
-      method: request.method(),
-      headers: request.headers(),
-      body: request.postData() || ""
-    });
+    if (url.origin === GM_ORIGIN && /\.php$/.test(url.pathname) && TARGETS.test(url.pathname)) {
+      captured.push({ path: url.pathname, method: request.method(), body: request.postData() || "" });
+    }
   });
   const answers = new Map();
   page.on("response", async (response) => {
     const url = new URL(response.url());
     if (url.origin !== GM_ORIGIN || !/\.php$/.test(url.pathname) || !TARGETS.test(url.pathname)) return;
     const text = await response.text().catch(() => "");
-    if (text) answers.set(url.pathname, { status: response.status(), text: text.slice(0, 900) });
+    if (text) answers.set(url.pathname, text.slice(0, 1200));
   });
 
   try {
@@ -61,55 +77,74 @@ async function run() {
         headers: { "Content-Type": "application/json;charset=UTF-8", "X-Requested-With": "XMLHttpRequest" },
         body: JSON.stringify(credentials)
       });
-      return { ok: response.ok, data: await response.json().catch(() => ({})) };
+      return await response.json().catch(() => ({}));
     }, { username, password });
-    if (!login.ok || String(login.data?.status || "").toLowerCase() !== "ok") throw new Error("GM rejected the credentials");
-    console.log(`Signed in. Login payload keys: ${Object.keys(login.data || {}).join(", ")}\n`);
+    if (String(login?.status || "").toLowerCase() !== "ok") throw new Error("GM rejected the credentials");
+
+    const identity = {
+      auth_key: login.auth_key,
+      user_id: login.user_id,
+      login_id: login.login_id,
+      login_string: login.login_string,
+      server_code: login.server_code,
+      user_type: login.user_type
+    };
+    console.log("Identity handed back by login:");
+    Object.entries(identity).forEach(([key, value]) => {
+      const shown = key === "auth_key" || key === "login_string" ? `${String(value).slice(0, 8)}… (${String(value).length} chars)` : value;
+      console.log(`  ${key}: ${shown}`);
+    });
+    console.log(`  market_types: ${trim(JSON.stringify(login.market_types), 200)}\n`);
 
     await page.goto(`${GM_ORIGIN}/#/Portfolio`, { waitUntil: "domcontentloaded", timeout: 60_000 });
     await page.waitForSelector("#load_data", { timeout: 60_000 }).catch(() => {});
     await page.waitForLoadState("networkidle", { timeout: 25_000 }).catch(() => {});
 
-    // Whatever the app stores client-side is what the guessed requests were
-    // missing; the menu is also read from here rather than assumed.
-    const clientState = await page.evaluate(() => ({
-      local: Object.fromEntries(Object.entries(localStorage).map(([key, value]) => [key, String(value).slice(0, 120)])),
-      session: Object.fromEntries(Object.entries(sessionStorage).map(([key, value]) => [key, String(value).slice(0, 120)])),
-      links: [...document.querySelectorAll("a,button,li")]
-        .map((node) => (node.innerText || "").replace(/\s+/g, " ").trim())
-        .filter((text) => text && text.length < 40)
-        .slice(0, 60)
-    }));
-    console.log("localStorage:", JSON.stringify(clientState.local));
-    console.log("sessionStorage:", JSON.stringify(clientState.session));
-    console.log("\nMenu text seen:", [...new Set(clientState.links)].join(" | "), "\n");
-
-    for (const wanted of ["MARKET WATCH", "MARKETWATCH", "TRADE BOOK", "SCRIPT"]) {
-      const clicked = await page.evaluate((label) => {
+    for (const label of MENU) {
+      const clicked = await page.evaluate((wanted) => {
         const compact = (value) => String(value || "").replace(/\s+/g, " ").trim().toUpperCase();
-        const node = [...document.querySelectorAll("a,button,li,span")].find((item) => compact(item.innerText) === label);
+        const node = [...document.querySelectorAll("a,button,li,span,div")]
+          .filter((item) => item.children.length === 0)
+          .find((item) => compact(item.innerText) === compact(wanted));
         if (!node) return false;
         node.click();
         return true;
-      }, wanted);
-      if (!clicked) continue;
-      console.log(`Clicked "${wanted}"`);
-      await page.waitForTimeout(4_000);
+      }, label);
+      console.log(clicked ? `Clicked "${label}"` : `Could not find "${label}"`);
+      if (clicked) await page.waitForTimeout(5_000);
     }
 
-    console.log(`\nCaptured ${captured.length} requests the app made itself:\n`);
+    console.log(`\nRequests the app made itself (${captured.length}):\n`);
     const seen = new Set();
     for (const request of captured) {
       if (seen.has(request.path)) continue;
       seen.add(request.path);
       console.log(`${request.method} ${request.path}`);
-      const interesting = Object.entries(request.headers)
-        .filter(([name]) => /token|auth|csrf|requested|content-type|x-/i.test(name));
-      console.log(`  headers: ${JSON.stringify(Object.fromEntries(interesting))}`);
       console.log(`  body: ${trim(request.body)}`);
-      const answer = answers.get(request.path);
-      if (answer) console.log(`  -> ${answer.status}: ${trim(answer.text, 400)}`);
+      if (answers.has(request.path)) console.log(`  -> ${summarise(answers.get(request.path))}`);
       console.log();
+    }
+
+    console.log("Probing price endpoints with the login identity attached:\n");
+    for (const path of PRICE_ENDPOINTS) {
+      const result = await page.evaluate(async ({ path, identity }) => {
+        const form = new URLSearchParams({
+          ...Object.fromEntries(Object.entries(identity).filter(([, value]) => value !== undefined && value !== null)),
+          iDisplayStart: "0", iDisplayLength: "10", sEcho: "1", market_type_id: "", script_id: "", expiry_date: ""
+        });
+        try {
+          const response = await fetch(`/${path}`, {
+            method: "POST",
+            credentials: "include",
+            headers: { "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8", "X-Requested-With": "XMLHttpRequest" },
+            body: form
+          });
+          return { status: response.status, text: (await response.text()).slice(0, 2500) };
+        } catch (error) {
+          return { status: 0, text: String(error && error.message) };
+        }
+      }, { path, identity });
+      console.log(`  ${path} [${result.status}] ${summarise(result.text)}`);
     }
   } finally {
     await browser.close();
