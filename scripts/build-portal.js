@@ -175,6 +175,34 @@ function document_(plan, sealed, meta) {
   .glossary em { font-style: normal; color: var(--ink); font-weight: 600; }
   footer { border-top: 1px solid var(--line); padding-top: 22px; color: var(--muted); font-size: 12.5px; }
   footer p { margin: 0 0 7px; max-width: 74ch; }
+  /* On a phone a ten-column table is a sideways scroll nobody reads. Each row
+     becomes a card and every figure carries its own label. */
+  @media (max-width: 760px) {
+    .scroll { border-radius: 14px; }
+    table { min-width: 0; }
+    thead { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); }
+    tbody tr { display: block; padding: 14px 16px; }
+    tbody th { padding: 0 0 10px; font-size: 15px; }
+    tbody td { display: flex; align-items: baseline; justify-content: space-between; gap: 14px; padding: 5px 0; text-align: right; }
+    tbody td::before {
+      content: attr(data-label);
+      font-family: var(--mono); font-size: 10px; letter-spacing: .07em; text-transform: uppercase;
+      color: var(--muted); text-align: left; flex: 0 0 auto;
+    }
+    tbody td.rungs { flex-wrap: wrap; justify-content: flex-start; }
+    tbody td.rungs::before { flex-basis: 100%; margin-bottom: 4px; }
+    .verdict-detail { display: inline; margin-left: 6px; }
+    .masthead { flex-direction: column; align-items: flex-start; gap: 8px; }
+    .stamp { text-align: left; }
+    .grid { grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 8px; }
+    .tile { padding: 12px 13px; }
+    .tile b { font-size: 20px; }
+    .lock { padding: 20px; }
+  }
+  .search { flex: 1 1 190px; min-width: 0; max-width: 280px; font: inherit; font-size: 13px; padding: 7px 15px;
+    border: 1px solid var(--line); border-radius: 999px; background: var(--white); color: var(--ink); }
+  .search:focus-visible { outline: 2px solid var(--violet); outline-offset: 1px; }
+  .no-hits { padding: 18px; color: var(--muted); font-size: 14px; }
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -196,9 +224,28 @@ function document_(plan, sealed, meta) {
     <div class="tile"><b>${fixed(best[0]?.expectedWeeklyPct)}%</b><span>best expected week</span></div>
   </div>
 
+  <section>
+    <h2>Qualified ladders${plan?.weekKey ? ` · week of ${escapeHtml(monday || plan.weekKey)}` : ""}</h2>
+    <p class="sub">Rungs are distance from Monday's open, with the measured hit rate and the number of historical fills behind it. Prices are set from that open each week.</p>
+    <div class="row-tools">
+      <button type="button" data-filter="all" aria-pressed="true">All ${best.length}</button>
+      <button type="button" data-filter="long" aria-pressed="false">Buy ${longs}</button>
+      <button type="button" data-filter="short" aria-pressed="false">Sell ${shorts}</button>
+      <button type="button" data-sort="expected" aria-pressed="true">Expected</button>
+      <button type="button" data-sort="conviction" aria-pressed="false">Conviction</button>
+      <input type="search" class="search" id="plan-search" placeholder="Search a stock" aria-label="Search the ladder list">
+    </div>
+    <div class="scroll">
+      <table>
+        <thead><tr><th scope="col">Instrument</th><th scope="col">Expected week</th><th scope="col">Conviction</th><th scope="col">Rungs from Monday's open</th><th scope="col">Size</th></tr></thead>
+        <tbody id="plan-rows">${best.map(planRow).join("")}</tbody>
+      </table>
+    </div>
+  </section>
+
   <section id="book-section">
     <h2>The book</h2>
-    <p class="sub">Your positions are encrypted in this page. The passphrase never leaves your browser, and the server only ever stores ciphertext.</p>
+    <p class="sub"><strong>Settled at</strong> is the cost the exchange reset your position to at the last daily settlement — not what you first paid. <strong>Mark</strong> is the contract's latest price. The gap between the two is your profit or loss since that settlement, which is why it reads zero while the market is shut. Positions are encrypted in this page; the passphrase never leaves your browser.</p>
     ${sealed ? `
     <div class="lock" id="lock">
       <h3>Unlock the book</h3>
@@ -210,25 +257,12 @@ function document_(plan, sealed, meta) {
       </form>
       <p class="err" id="err" role="alert"></p>
     </div>
-    <div id="book" hidden></div>` : '<p class="sub">No book was included in this build.</p>'}
-  </section>
-
-  <section>
-    <h2>Qualified ladders${plan?.weekKey ? ` · week of ${escapeHtml(monday || plan.weekKey)}` : ""}</h2>
-    <p class="sub">Rungs are distance from Monday's open, with the measured hit rate and the number of historical fills behind it. Prices are set from that open each week.</p>
-    <div class="row-tools">
-      <button type="button" data-filter="all" aria-pressed="true">All ${best.length}</button>
-      <button type="button" data-filter="long" aria-pressed="false">Buy ${longs}</button>
-      <button type="button" data-filter="short" aria-pressed="false">Sell ${shorts}</button>
-      <button type="button" data-sort="expected" aria-pressed="true">Expected</button>
-      <button type="button" data-sort="conviction" aria-pressed="false">Conviction</button>
-    </div>
-    <div class="scroll">
-      <table>
-        <thead><tr><th scope="col">Instrument</th><th scope="col">Expected week</th><th scope="col">Conviction</th><th scope="col">Rungs from Monday's open</th><th scope="col">Size</th></tr></thead>
-        <tbody id="plan-rows">${best.map(planRow).join("")}</tbody>
-      </table>
-    </div>
+    <div id="book" hidden></div>
+    <p class="sub" id="book-key" hidden style="margin-top:14px">
+      <strong>No measured edge</strong> — the 2% weekly rule has no proven record in that stock over five years. It is not a prediction that the position loses; it means the reason for opening it is not supported by its own history.
+      <strong>Against the trend</strong> — the stock has moved the other way for twelve months, and buying dips in something falling all year is where this rule loses most of its money.
+      <strong>Paying carry</strong> — the futures contract sits above the share, so holding a long bleeds that premium away a little each day until expiry.
+    </p>` : '<p class="sub">No book was included in this build.</p>'}
   </section>
 
   <section>
@@ -265,12 +299,28 @@ function document_(plan, sealed, meta) {
     rows.forEach(function (n) { n.style.display = filter === "all" || n.dataset.side === filter ? "" : "none"; });
   }
   document.querySelectorAll("[data-filter]").forEach(function (b) {
-    b.addEventListener("click", function () { filter = b.dataset.filter; press("filter", filter); apply(); });
+    b.addEventListener("click", function () { filter = b.dataset.filter; press("filter", filter); apply(); refresh(); });
   });
   document.querySelectorAll("[data-sort]").forEach(function (b) {
-    b.addEventListener("click", function () { sort = b.dataset.sort; press("sort", sort); apply(); });
+    b.addEventListener("click", function () { sort = b.dataset.sort; press("sort", sort); apply(); refresh(); });
   });
+  // Search filters alongside the buy/sell buttons rather than replacing them.
+  var planSearch = document.getElementById("plan-search");
+  function refresh() {
+    var term = planSearch ? planSearch.value.trim().toUpperCase() : "";
+    var shown = 0;
+    rows.forEach(function (node) {
+      var name = (node.querySelector(".tkr") || {}).textContent || "";
+      var visible = (filter === "all" || node.dataset.side === filter) && (!term || name.indexOf(term) > -1);
+      node.style.display = visible ? "" : "none";
+      if (visible) shown += 1;
+    });
+    var empty = document.getElementById("plan-empty");
+    if (empty) empty.hidden = shown > 0;
+  }
+  if (planSearch) planSearch.addEventListener("input", refresh);
   apply();
+  refresh();
 
   var sealedNode = document.getElementById("sealed");
   var sealed = null;
@@ -298,21 +348,20 @@ function document_(plan, sealed, meta) {
       var cls = v.tone === "good" ? "v-good" : v.tone === "bad" ? "v-bad" : v.tone === "warn" ? "v-warn" : "";
       return '<tr>'
         + '<th scope="row"><span class="tkr">' + p.symbol + '</span><span class="chip chip-' + (short ? "short" : "long") + '">' + (short ? "short" : "long") + '</span></th>'
-        + '<td class="n">' + p.quantity.toLocaleString("en-IN") + '</td>'
-        + '<td class="n">' + num(p.average) + '</td>'
-        + '<td class="n">' + num(p.mark) + '<span class="verdict-detail">' + p.markSource + '</span></td>'
-        + '<td class="n">' + (p.dayLow && p.dayHigh ? num(p.dayLow) + ' – ' + num(p.dayHigh) : "—") + '</td>'
-        + '<td class="n">' + (p.range ? num(p.range.monthLow) + ' – ' + num(p.range.monthHigh) : "—") + '</td>'
-        + '<td class="n ' + (p.unrealised < 0 ? "neg" : "pos") + '">' + money(p.unrealised) + '</td>'
-        + '<td class="n">' + num(p.target) + '</td>'
-        + '<td class="n">' + (p.toTargetPct <= 0 ? "reached" : num(p.toTargetPct) + "%") + '</td>'
-        + '<td>' + (p.trend
+        + '<td class="n" data-label="Quantity">' + p.quantity.toLocaleString("en-IN") + '</td>'
+        + '<td class="n" data-label="Settled at">' + num(p.average) + '</td>'
+        + '<td class="n" data-label="Mark">' + num(p.mark) + '<span class="verdict-detail">' + p.markSource + '</span></td>'
+        + '<td class="n" data-label="Day range">' + (p.dayLow && p.dayHigh ? num(p.dayLow) + ' – ' + num(p.dayHigh) : "—") + '</td>'
+        + '<td class="n" data-label="Month range">' + (p.range ? num(p.range.monthLow) + ' – ' + num(p.range.monthHigh) : "—") + '</td>'
+        + '<td class="n ' + (p.unrealised < 0 ? "neg" : "pos") + '" data-label="P&L since settlement">' + money(p.unrealised) + '</td>'
+        + '<td class="n" data-label="2% target">' + num(p.target) + '</td>'
+        + '<td data-label="12-month trend">' + (p.trend
             ? '<span class="verdict ' + (p.trend.blocked ? "v-bad" : "v-good") + '">' + p.trend.label + '</span>'
               + '<span class="verdict-detail">12m ' + num(p.trend.returnPct, 1) + '%</span>'
             : '<span class="verdict-detail">not measured</span>') + '</td>'
-        + '<td class="n ' + (p.carry ? (p.carry.favourable ? "pos" : "neg") : "") + '">'
+        + '<td class="n ' + (p.carry ? (p.carry.favourable ? "pos" : "neg") : "") + '" data-label="Carry">'
             + (p.carry ? num(p.carry.weeklyPct) + '%/wk' : '—') + '</td>'
-        + '<td><span class="verdict ' + cls + '">' + v.label + '</span></td>'
+        + '<td data-label="Ladder"><span class="verdict ' + cls + '">' + v.label + '</span></td>'
         + '</tr>';
     }).join("");
 
@@ -331,11 +380,13 @@ function document_(plan, sealed, meta) {
       + '<div class="scroll"><table><thead><tr>'
       + '<th scope="col">Instrument</th><th scope="col">Qty</th><th scope="col">Settled at</th><th scope="col">Mark</th>'
       + '<th scope="col">Day range</th><th scope="col">Month range</th>'
-      + '<th scope="col">Open P&L</th><th scope="col">2% target</th><th scope="col">To target</th>'
+      + '<th scope="col">P&L since settlement</th><th scope="col">2% target</th>'
       + '<th scope="col">12-month trend</th><th scope="col">Carry</th><th scope="col">Ladder</th>'
       + '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>';
     document.getElementById("book").hidden = false;
     document.getElementById("lock").hidden = true;
+    var key = document.getElementById("book-key");
+    if (key) key.hidden = false;
   }
 
   form.addEventListener("submit", function (event) {
