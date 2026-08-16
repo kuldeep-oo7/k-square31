@@ -79,6 +79,23 @@ async function fetchPortfolioWithBrowser(username, password) {
     await page.waitForSelector("#load_data", { timeout: 60_000 });
     await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => {});
     await page.waitForTimeout(2_000);
+    // Armed before the controls are waited on, so it accepts either the call the
+    // route makes itself or the one the click triggers. Arming it after the wait
+    // narrowed it to the click alone, and a click that lands without producing a
+    // request then hung for the full minute.
+    let payload = null;
+    const responsePromise = page.waitForResponse(async (response) => {
+      if (!POSITION_ENDPOINT.test(new URL(response.url()).pathname) || response.request().method() !== "POST") return false;
+      const candidate = await responsePayload(response);
+      const count = Number(candidate?.iTotalDisplayRecords ?? candidate?.iTotalRecords);
+      const quantity = Number(candidate?.total_qty);
+      if (!Array.isArray(candidate?.aaData) || !Number.isInteger(count) || !Number.isFinite(quantity)) return false;
+      payload = candidate;
+      return true;
+    }, { timeout: 60_000 });
+    // The UI interaction below can fail before this promise is awaited. Attach
+    // an immediate rejection observer so browser cleanup cannot mask that error.
+    responsePromise.catch(() => {});
     // The controls are rendered by the route after its first data call, so a
     // fixed pause races them: on a slow runner the click ran before the button
     // existed. Waiting for the control removes the race.
@@ -102,19 +119,6 @@ async function fetchPortfolioWithBrowser(username, password) {
     };
     if (!await controlsReady(25_000)) throw new Error("GM portfolio route rendered without its controls");
 
-    let payload = null;
-    const responsePromise = page.waitForResponse(async (response) => {
-      if (!POSITION_ENDPOINT.test(new URL(response.url()).pathname) || response.request().method() !== "POST") return false;
-      const candidate = await responsePayload(response);
-      const count = Number(candidate?.iTotalDisplayRecords ?? candidate?.iTotalRecords);
-      const quantity = Number(candidate?.total_qty);
-      if (!Array.isArray(candidate?.aaData) || !Number.isInteger(count) || !Number.isFinite(quantity)) return false;
-      payload = candidate;
-      return true;
-    }, { timeout: 60_000 });
-    // The UI interaction below can fail before this promise is awaited. Attach
-    // an immediate rejection observer so browser cleanup cannot mask that error.
-    responsePromise.catch(() => {});
 
     await page.evaluate(() => {
       const compact = (value) => String(value || "").replace(/\s+/g, " ").trim().toUpperCase();
