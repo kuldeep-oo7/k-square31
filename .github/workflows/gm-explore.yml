@@ -1,0 +1,33 @@
+name: K2 GM endpoint reconnaissance
+
+# Read-only. Signs in, watches which endpoints the site's own UI calls, and probes
+# a short list of guessed names. Used to find a futures price feed for the whole
+# universe rather than only for names already held.
+
+on:
+  workflow_dispatch:
+
+concurrency:
+  group: k2-gm-explore
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  explore:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Probe GM
+        env:
+          GM_USERNAME: ${{ secrets.GM_USERNAME }}
+          GM_PASSWORD: ${{ secrets.GM_PASSWORD }}
+        run: node scripts/gm-explore.js
