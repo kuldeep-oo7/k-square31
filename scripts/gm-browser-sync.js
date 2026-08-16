@@ -75,30 +75,38 @@ async function fetchPortfolioWithBrowser(username, password) {
     }, { username, password });
     if (!login.ok || String(login.data?.status || "").toLowerCase() !== "ok") throw new Error("GM rejected the configured cloud credentials");
 
-    // The app sometimes lands on its own login screen instead of the portfolio,
-    // even though the login call succeeded — the diagnostics caught it showing
-    // route #/Login with a SIGN IN button and no table. Signing in again inside
-    // the same browser recovers it, which a page reload could not: reloading
-    // returned to the login route and lost the table entirely.
-    await page.goto(PORTFOLIO_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
-    for (let recovery = 0; recovery < 2; recovery += 1) {
-      const route = await page.evaluate(() => location.hash || "");
-      if (!/login/i.test(route)) break;
-      console.warn(`GM returned to ${route} instead of the portfolio; signing in again.`);
-      await page.evaluate(async ({ username, password }) => {
-        await fetch("/ajaxfiles/logincheck.php", {
+    // The app sometimes shows its own login screen instead of the portfolio even
+    // though the login call returned ok — the diagnostics caught route #/Login
+    // with a SIGN IN button and no table. The redirect happens a moment after
+    // navigation, so checking the route right after goto sees #/Portfolio and
+    // misses it; the check belongs where the symptom appears. Signing in again in
+    // the same browser recovers it, which a reload could not.
+    const signIn = async () => {
+      const attempt = await page.evaluate(async (credentials) => {
+        const response = await fetch("/ajaxfiles/logincheck.php", {
           method: "POST",
           credentials: "include",
           headers: { "Content-Type": "application/json;charset=UTF-8", "X-Requested-With": "XMLHttpRequest" },
-          body: JSON.stringify({ username, password })
+          body: JSON.stringify(credentials)
         });
+        return await response.json().catch(() => ({}));
       }, { username, password });
+      return String(attempt?.status || "").toLowerCase() === "ok";
+    };
+
+    const openPortfolio = async () => {
       await page.goto(PORTFOLIO_URL, { waitUntil: "domcontentloaded", timeout: 60_000 });
-      await page.waitForTimeout(2_500);
-    }
-    await page.waitForSelector("#load_data", { timeout: 60_000 });
-    await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => {});
-    await page.waitForTimeout(2_000);
+      try {
+        await page.waitForSelector("#load_data", { timeout: 45_000 });
+      } catch {
+        return false;
+      }
+      await page.waitForLoadState("networkidle", { timeout: 30_000 }).catch(() => {});
+      await page.waitForTimeout(2_000);
+      return true;
+    };
+
+    let opened = await openPortfolio();
     // Armed before the controls are waited on, so it accepts either the call the
     // route makes itself or the one the click triggers. Arming it after the wait
     // narrowed it to the click alone, and a click that lands without producing a
@@ -137,7 +145,16 @@ async function fetchPortfolioWithBrowser(username, password) {
         return false;
       }
     };
-    if (!await controlsReady(50_000)) {
+    if (opened && !await controlsReady(50_000)) {
+      const route = await page.evaluate(() => location.hash || "").catch(() => "");
+      if (/login/i.test(route)) {
+        console.warn(`GM is showing ${route} rather than the portfolio; signing in again in the same session.`);
+        if (await signIn()) opened = await openPortfolio();
+      } else {
+        opened = false;
+      }
+    }
+    if (!opened || !await controlsReady(50_000)) {
       // Twenty-five seconds was too short: three attempts in a row gave up while
       // the route may simply have been slow. Report what the page is actually
       // showing so the next failure says whether the controls are late or the
