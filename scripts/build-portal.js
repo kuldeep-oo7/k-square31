@@ -245,7 +245,7 @@ function document_(plan, sealed, meta) {
 
   <section id="book-section">
     <h2>The book</h2>
-    <p class="sub"><strong>Settled at</strong> is the cost the exchange reset your position to at the last daily settlement — not what you first paid. <strong>Mark</strong> is the contract's latest price. The gap between the two is your profit or loss since that settlement, which is why it reads zero while the market is shut. Positions are encrypted in this page; the passphrase never leaves your browser.</p>
+    <p class="sub"><strong>Your average</strong> is what you bought at, or sold at on a short. <strong>Mark</strong> is the contract's price at the broker right now, falling back to the exchange close when the market is shut. <strong>MTM</strong> is the broker's own figure, and it is more than mark minus average: it also holds the profit already banked by partly closing a position. Every figure here is read from GM, not recalculated. Positions are encrypted in this page; the passphrase never leaves your browser.</p>
     ${sealed ? `
     <div class="lock" id="lock">
       <h3>Unlock the book</h3>
@@ -269,7 +269,7 @@ function document_(plan, sealed, meta) {
     <h2>What the numbers mean</h2>
     <p class="sub">Written out once, because a figure you have to guess at is worse than no figure.</p>
     <div class="glossary">
-      <div><dt>Settled at, and why P&amp;L reads zero</dt><dd>NSE futures are settled <em>every day</em>. At each close the exchange books that day's gain or loss to your account in cash and resets the position's cost to the settlement price. So this is yesterday's settlement, not what you first paid, and open P&amp;L only measures movement <em>since</em> that settlement — outside market hours it is correctly zero. Your profit since entry has already been paid out or collected, day by day.</dd></div>
+      <div><dt>MTM, and why it is not simply mark minus average</dt><dd>A partly closed position has two halves. ASHOKLEY: 400 bought at 172.56, 250 of those sold at 177.22, 150 still open against a mark of 177.60. The closed 250 banked <em>1,165</em>, the open 150 shows <em>756</em>, and the broker's MTM of <em>1,921</em> is both together. Mark minus average on the open lots alone loses the banked half, so this page reports the broker's figure rather than doing its own arithmetic.</dd></div>
       <div><dt>Carry</dt><dd>A futures contract and its share trade at different prices, and that gap must close by expiry. If the future sits <em>above</em> the share you pay that premium away a little each day you hold a long; if it sits below, you are paid to hold. A known cost or credit that happens whatever the price does, shown as what it is worth to your position over one week.</dd></div>
       <div><dt>Mark</dt><dd>The contract's latest price, with its source underneath. GM publishes nothing once the market closes, so outside session hours this is the exchange's official close.</dd></div>
       <div><dt>Day and month range</dt><dd>Day range is the contract's own high and low for the session. Month range is the share's high and low over the last 21 sessions — the wider context the ladder rungs sit inside.</dd></div>
@@ -348,12 +348,14 @@ function document_(plan, sealed, meta) {
       var cls = v.tone === "good" ? "v-good" : v.tone === "bad" ? "v-bad" : v.tone === "warn" ? "v-warn" : "";
       return '<tr>'
         + '<th scope="row"><span class="tkr">' + p.symbol + '</span><span class="chip chip-' + (short ? "short" : "long") + '">' + (short ? "short" : "long") + '</span></th>'
-        + '<td class="n" data-label="Quantity">' + p.quantity.toLocaleString("en-IN") + '</td>'
-        + '<td class="n" data-label="Settled at">' + num(p.average) + '</td>'
+        + '<td class="n" data-label="Net qty">' + p.quantity.toLocaleString("en-IN") + '</td>' 
+        + '<td class="n" data-label="Bought">' + (p.buyQuantity ? p.buyQuantity.toLocaleString("en-IN") + ' @ ' + num(p.buyAverage) : "—") + '</td>' 
+        + '<td class="n" data-label="Sold">' + (p.sellQuantity ? p.sellQuantity.toLocaleString("en-IN") + ' @ ' + num(p.sellAverage) : "—") + '</td>' 
+        + '<td class="n" data-label="Your average">' + num(p.average) + '</td>' 
         + '<td class="n" data-label="Mark">' + num(p.mark) + '<span class="verdict-detail">' + p.markSource + '</span></td>'
         + '<td class="n" data-label="Day range">' + (p.dayLow && p.dayHigh ? num(p.dayLow) + ' – ' + num(p.dayHigh) : "—") + '</td>'
         + '<td class="n" data-label="Month range">' + (p.range ? num(p.range.monthLow) + ' – ' + num(p.range.monthHigh) : "—") + '</td>'
-        + '<td class="n ' + (p.unrealised < 0 ? "neg" : "pos") + '" data-label="P&L since settlement">' + money(p.unrealised) + '</td>'
+        + '<td class="n ' + (p.unrealised < 0 ? "neg" : "pos") + '" data-label="MTM">' + money(p.unrealised) + (p.mtmSource === "computed" ? '<span class="verdict-detail">estimated</span>' : '') + '</td>' 
         + '<td class="n" data-label="2% target">' + num(p.target) + '</td>'
         + '<td data-label="12-month trend">' + (p.trend
             ? '<span class="verdict ' + (p.trend.blocked ? "v-bad" : "v-good") + '">' + p.trend.label + '</span>'
@@ -368,7 +370,8 @@ function document_(plan, sealed, meta) {
     document.getElementById("book").innerHTML =
       '<div class="grid">'
       + '<div class="tile"><b>' + money(book.totalNotional) + '</b><span>portfolio value</span></div>'
-      + '<div class="tile"><b class="' + (book.totalUnrealised < 0 ? "neg" : "pos") + '">' + money(book.totalUnrealised) + '</b><span>P&L since settlement</span></div>'
+      + '<div class="tile"><b class="' + (book.totalUnrealised < 0 ? "neg" : "pos") + '">' + money(book.totalUnrealised) + '</b><span>total MTM</span></div>'
+      + '<div class="tile"><b>' + (book.totalQuantity || 0).toLocaleString("en-IN") + '</b><span>total quantity</span></div>'
       + '<div class="tile"><b>' + book.positions.length + '</b><span>open positions</span></div>'
 
       + '<div class="tile"><b>' + book.inProfit + ' / ' + book.positions.length + '</b><span>in profit</span></div>'
@@ -378,9 +381,9 @@ function document_(plan, sealed, meta) {
       + '<div class="tile"><b class="neg">' + (book.carryCosting || 0) + '</b><span>paying carry</span></div>'
       + '</div>'
       + '<div class="scroll"><table><thead><tr>'
-      + '<th scope="col">Instrument</th><th scope="col">Qty</th><th scope="col">Settled at</th><th scope="col">Mark</th>'
+      + '<th scope="col">Instrument</th><th scope="col">Net qty</th><th scope="col">Bought</th><th scope="col">Sold</th><th scope="col">Your average</th><th scope="col">Mark</th>' 
       + '<th scope="col">Day range</th><th scope="col">Month range</th>'
-      + '<th scope="col">P&L since settlement</th><th scope="col">2% target</th>'
+      + '<th scope="col">MTM</th><th scope="col">2% target</th>'
       + '<th scope="col">12-month trend</th><th scope="col">Carry</th><th scope="col">Ladder</th>'
       + '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>';
     document.getElementById("book").hidden = false;
@@ -426,13 +429,19 @@ function bookPayload(book, plans, context = {}) {
     const short = position.position === "short";
     const average = Number(position.buyAverage) || Number(position.price);
     const reading = context[position.symbol] || {};
-    // GM stops publishing a mark once the session closes, which showed the entry
-    // price as the mark and every P&L as zero. The exchange close is a real,
-    // dated price, so it is preferred whenever GM has nothing live.
-    const marked = Number(reading.mark?.price) || Number(position.markPrice) || average;
+    // The broker's own live price comes first. Preferring the exchange close over
+    // it showed ASHOKLEY marked at 172.56 while GM was quoting 177.60, and every
+    // P&L with it. The close is only a fallback for when the market is shut.
+    const marked = Number(position.markPrice) || Number(reading.mark?.price) || average;
     const signed = short ? -1 : 1;
     const quantity = Number(position.quantity);
-    const unrealised = (marked - average) * quantity * signed;
+    // GM's own MTM is authoritative and is not the same as mark minus average on
+    // the open lots: it also carries the profit already realised by partial
+    // sells. ASHOKLEY nets 150 long, but 250 of 400 bought were sold at 177.22,
+    // and that 1,165 belongs in the number. Recomputing it threw that half away.
+    const brokerMtm = Number(position.mtm);
+    const openOnly = (marked - average) * quantity * signed;
+    const unrealised = Number.isFinite(brokerMtm) && brokerMtm !== 0 ? brokerMtm : openOnly;
     const target = short ? average * 0.98 : average * 1.02;
     const toTargetPct = short ? (marked / target - 1) * 100 : (target / marked - 1) * 100;
     const plan = bySymbol.get(position.symbol);
@@ -454,6 +463,11 @@ function bookPayload(book, plans, context = {}) {
       markSource: Number(reading.mark?.price) ? (reading.mark.source || "NSE close") : (Number(position.markPrice) ? "GM live" : "entry price"),
       notional: Math.round(marked * quantity),
       unrealised: Math.round(unrealised),
+      mtmSource: Number.isFinite(brokerMtm) && brokerMtm !== 0 ? "broker" : "computed",
+      buyQuantity: Number(position.buyQuantity) || 0,
+      buyAverage: Number(position.buyAverage) || 0,
+      sellQuantity: Number(position.sellQuantity) || 0,
+      sellAverage: Number(position.sellAverage) || 0,
       quantity: Number(position.quantity),
       average: Math.round(average * 100) / 100,
       mark: Math.round(marked * 100) / 100,
@@ -467,7 +481,11 @@ function bookPayload(book, plans, context = {}) {
     capturedAt: book.capturedAt,
     totalMtm: Number(book.totalMtm),
     totalNotional: positions.reduce((sum, item) => sum + Number(item.notional || 0), 0),
-    totalUnrealised: positions.reduce((sum, item) => sum + Number(item.unrealised || 0), 0),
+    // The broker's total is reported as the broker states it, not re-derived.
+    totalUnrealised: Number.isFinite(Number(book.totalMtm)) && Number(book.totalMtm) !== 0
+      ? Number(book.totalMtm)
+      : positions.reduce((sum, item) => sum + Number(item.unrealised || 0), 0),
+    totalQuantity: Number(book.totalQuantity) || positions.reduce((sum, item) => sum + Number(item.quantity || 0), 0),
     positions,
     inProfit: positions.filter((item) => Number(item.unrealised) > 0).length,
     confirmed: positions.filter((item) => item.verdict.tone === "good").length,
