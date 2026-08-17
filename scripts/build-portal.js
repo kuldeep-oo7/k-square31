@@ -269,7 +269,7 @@ function document_(plan, sealed, meta) {
     <h2>What the numbers mean</h2>
     <p class="sub">Written out once, because a figure you have to guess at is worse than no figure.</p>
     <div class="glossary">
-      <div><dt>MTM, and why it is not simply mark minus average</dt><dd>A partly closed position has two halves. ASHOKLEY: 400 bought at 172.56, 250 of those sold at 177.22, 150 still open against a mark of 177.60. The closed 250 banked <em>1,165</em>, the open 150 shows <em>756</em>, and the broker's MTM of <em>1,921</em> is both together. Mark minus average on the open lots alone loses the banked half, so this page reports the broker's figure rather than doing its own arithmetic.</dd></div>
+      <div><dt>MTM, and why it is not simply mark minus average</dt><dd>A partly closed position has two halves. Say 400 were bought at 100 and 250 of those sold at 104, leaving 150 open against a mark of 105. The closed 250 banked <em>1,000</em>, the open 150 shows <em>750</em>, and the broker's MTM of <em>1,750</em> is both together. Mark minus average on the open lots alone loses the banked half, so this page reports the broker's figure rather than doing its own arithmetic.</dd></div>
       <div><dt>Carry</dt><dd>A futures contract and its share trade at different prices, and that gap must close by expiry. If the future sits <em>above</em> the share you pay that premium away a little each day you hold a long; if it sits below, you are paid to hold. A known cost or credit that happens whatever the price does, shown as what it is worth to your position over one week.</dd></div>
       <div><dt>Mark</dt><dd>The contract's latest price, with its source underneath. GM publishes nothing once the market closes, so outside session hours this is the exchange's official close.</dd></div>
       <div><dt>Day and month range</dt><dd>Day range is the contract's own high and low for the session. Month range is the share's high and low over the last 21 sessions — the wider context the ladder rungs sit inside.</dd></div>
@@ -430,15 +430,15 @@ function bookPayload(book, plans, context = {}) {
     const average = Number(position.buyAverage) || Number(position.price);
     const reading = context[position.symbol] || {};
     // The broker's own live price comes first. Preferring the exchange close over
-    // it showed ASHOKLEY marked at 172.56 while GM was quoting 177.60, and every
-    // P&L with it. The close is only a fallback for when the market is shut.
+    // it marked a live position several rupees below what GM was quoting, and
+    // dragged its P&L with it. The close is only a fallback for a shut market.
     const marked = Number(position.markPrice) || Number(reading.mark?.price) || average;
     const signed = short ? -1 : 1;
     const quantity = Number(position.quantity);
     // GM's own MTM is authoritative and is not the same as mark minus average on
     // the open lots: it also carries the profit already realised by partial
-    // sells. ASHOKLEY nets 150 long, but 250 of 400 bought were sold at 177.22,
-    // and that 1,165 belongs in the number. Recomputing it threw that half away.
+    // sells. On a position where most of the bought quantity has been sold again,
+    // that banked half is the larger one, and recomputing threw it away.
     const brokerMtm = Number(position.mtm);
     const openOnly = (marked - average) * quantity * signed;
     const unrealised = Number.isFinite(brokerMtm) && brokerMtm !== 0 ? brokerMtm : openOnly;
