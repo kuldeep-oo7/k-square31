@@ -94,6 +94,8 @@ jobs:
 
       - name: Measure the held names
         if: ${{ !inputs.skip_book && steps.book.outcome == 'success' }}
+        env:
+          K2_UPSIDE_MODEL: models/upside.json
         run: node scripts/weekly-plan.js --symbols "$(node scripts/held-symbols.js gm-positions.json)" --top 60 --out plan-holdings.json
 
       # Trend and carry do not depend on the ladder having an edge, so they are
@@ -104,6 +106,8 @@ jobs:
 
       - name: Measure the universe
         if: ${{ steps.plan.outputs.measure == 'true' }}
+        env:
+          K2_UPSIDE_MODEL: models/upside.json
         # No limit: the universe is every NSE name with a futures contract, which
         # is exactly the set this desk can trade.
         run: node scripts/weekly-plan.js --top 60 --out plan-full.json

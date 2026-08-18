@@ -1,0 +1,68 @@
+name: K2 upside model
+
+# Trains the pooled forward-move model across the tradable universe and commits it
+# to this repository, where the portal build reads it.
+#
+# Pooled rather than per name because a single stock cannot support the question:
+# five years of daily data at a five-session horizon leaves about 250 independent
+# observations and a standard error of ±0.11 on the correlation. Pooling 200 names
+# gives order 50,000, where a real coefficient of 0.05 becomes measurable.
+#
+# The model records its own validation and a `skilled` flag. The portal will not
+# admit a single name on expected move unless that flag is true, so a weak fit
+# closes the route rather than quietly widening the buy list.
+
+on:
+  workflow_dispatch:
+    inputs:
+      horizon:
+        description: "Forward horizon in sessions"
+        required: false
+        default: "5"
+  schedule:
+    # Saturday morning IST: after the week has closed, before Monday's anchor.
+    - cron: "30 2 * * 6"
+
+concurrency:
+  group: k2-upside-model
+  cancel-in-progress: false
+
+permissions:
+  contents: write
+
+jobs:
+  train:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+
+      - name: Train across the universe
+        run: node scripts/train-upside.js --horizon "${{ inputs.horizon || 5 }}" --cache upside-rows.json --out models/upside.json
+
+      - name: Report the verdict
+        run: |
+          node -e "
+            const model = require('./models/upside.json');
+            const v = model.validation || {};
+            const bar = v.informationCoefficientStandardError ? 2 * v.informationCoefficientStandardError : null;
+            console.log('names', model.names, 'rows', model.rows);
+            console.log('information coefficient', v.informationCoefficient, 'against', bar);
+            console.log('favourite tenth', v.topDecileAveragePct + '% against', v.allAveragePct + '% for everything');
+            console.log('skilled:', model.skilled);
+            if (!model.skilled) console.log('::warning::The pooled model showed no measurable skill, so the expected-move route stays closed.');
+          "
+
+      - name: Commit the model
+        run: |
+          git config user.name "K2 model trainer"
+          git config user.email "noreply@users.noreply.github.com"
+          git add models/upside.json
+          git diff --staged --quiet && echo "Model unchanged." && exit 0
+          git commit -m "Retrain the pooled upside model: $(date -u '+%Y-%m-%d')"
+          git push

@@ -36,11 +36,15 @@ function nextMonday(weekKey) {
 function planRow(item) {
   const side = item.side === "short" ? "short" : "long";
   const sign = side === "short" ? "+" : "−";
+  // A rung admitted on expected move has no measured hit rate to show. Printing a
+  // dash is the honest rendering; borrowing the ladder's format would imply
+  // history that does not exist.
+  const potential = item.route === "potential";
   const rungs = (item.entries || []).map((entry) => `
-            <span class="rung">${sign}${fixed(entry.stepFromAnchorPct, 0)}%<em>${fixed(entry.hitRatePct, 0)}% · ${entry.historicalFills}</em></span>`).join("");
+            <span class="rung">${sign}${fixed(entry.stepFromAnchorPct, 0)}%<em>${entry.historicalFills ? `${fixed(entry.hitRatePct, 0)}% · ${entry.historicalFills}` : "no history"}</em></span>`).join("");
   return `
         <tr data-side="${side}" data-expected="${Number(item.expectedWeeklyPct)}" data-conviction="${Number(item.convictionPct)}">
-          <th scope="row"><span class="tkr">${escapeHtml(item.symbol)}</span><span class="chip chip-${side}">${side === "short" ? "sell" : "buy"}</span></th>
+          <th scope="row"><span class="tkr">${escapeHtml(item.symbol)}</span><span class="chip chip-${side}">${side === "short" ? "sell" : "buy"}</span>${potential ? '<span class="chip chip-potential">potential</span>' : ""}${item.inJournal ? '<span class="chip chip-journal">traded before</span>' : ""}</th>
           <td class="n big">${fixed(item.expectedWeeklyPct)}%</td>
           <td class="n"><span class="bar"><i style="width:${Math.max(2, Math.min(100, Number(item.convictionPct)))}%"></i></span>${fixed(item.convictionPct, 0)}</td>
           <td class="rungs">${rungs}</td>
@@ -148,6 +152,8 @@ function document_(plan, sealed, meta) {
   .chip { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; text-transform: uppercase; padding: 3px 8px; border-radius: 999px; }
   .chip-long { color: var(--mint-deep); background: color-mix(in srgb, var(--mint) 40%, transparent); }
   .chip-short { color: var(--coral-deep); background: color-mix(in srgb, var(--coral) 26%, transparent); }
+  .chip-potential { color: #8a6b0f; background: color-mix(in srgb, var(--sun) 34%, transparent); }
+  .chip-journal { color: var(--muted); border: 1px solid var(--line); }
   .bar { display: inline-block; width: 56px; height: 5px; background: var(--line); border-radius: 999px; overflow: hidden; vertical-align: middle; margin-right: 9px; }
   .bar i { display: block; height: 100%; background: var(--violet); }
   .rungs { display: flex; gap: 7px; flex-wrap: wrap; }
@@ -274,6 +280,8 @@ function document_(plan, sealed, meta) {
       <div><dt>Mark</dt><dd>The contract's latest price, with its source underneath. GM publishes nothing once the market closes, so outside session hours this is the exchange's official close.</dd></div>
       <div><dt>Day and month range</dt><dd>Day range is the contract's own high and low for the session. Month range is the share's high and low over the last 21 sessions — the wider context the ladder rungs sit inside.</dd></div>
       <div><dt>12-month trend</dt><dd>Where the share has gone over a year, scaled by its own volatility. Buying dips in something that has fallen all year is the largest single source of loss in this rule, so a position leaning against its trend is flagged.</dd></div>
+      <div><dt>Potential</dt><dd>Most names reach this list because the 2% ladder has a measured record on them. A few arrive the other way: the ladder has none, but every reading together puts the expected move <em>above</em> your 2% floor. Those carry a "potential" tag, offer only the first rung, show no hit rate because there is none to show, and are sized smaller. A 2% floor is a floor — a name set up to travel further belongs here even when the slice-harvesting rule cannot measure it.</dd></div>
+      <div><dt>Traded before</dt><dd>The name appears in the journal exported from the old platform. A marker, not a filter: 28 of those names have since left the F&amp;O segment, and 114 tradable names were never in it.</dd></div>
       <div><dt>Ladder</dt><dd>Whether the 2% weekly rule has a measured edge on that name over five years. "No measured edge" is not a forecast of loss — it means the rule that opened the position has no historical support in that name.</dd></div>
     </div>
   </section>

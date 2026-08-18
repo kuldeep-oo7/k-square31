@@ -140,7 +140,25 @@ async function run() {
   const symbols = limit > 0 ? all.slice(0, limit) : all;
   console.log(`Pooling ${symbols.length} names, ${horizon}-session horizon, non-overlapping rows.\n`);
 
-  const rows = await gather(symbols, horizon);
+  // Gathering 200 names takes about ten minutes of fetching. Caching it means an
+  // interrupted evaluation costs seconds to retry rather than starting over.
+  const cache = argument("cache");
+  let rows = null;
+  if (cache && fs.existsSync(cache)) {
+    const held = JSON.parse(fs.readFileSync(cache, "utf8"));
+    if (held.horizon === horizon && Array.isArray(held.rows) && held.rows.length) {
+      rows = held.rows;
+      console.log(`Reusing ${rows.length} cached rows from ${cache}.`);
+    }
+  }
+  if (!rows) {
+    rows = await gather(symbols, horizon);
+    if (cache) {
+      fs.mkdirSync(path.dirname(cache), { recursive: true });
+      fs.writeFileSync(cache, JSON.stringify({ horizon, gatheredAt: new Date().toISOString(), rows }));
+      console.log(`Cached ${rows.length} rows to ${cache}.`);
+    }
+  }
   const names = new Set(rows.map((row) => row.symbol)).size;
   console.log(`\n${rows.length} rows from ${names} names, ${new Set(rows.map((row) => row.date)).size} distinct dates.\n`);
   if (rows.length < 2000) throw new Error(`Only ${rows.length} rows; pooling needs thousands to beat the per-name noise floor`);
