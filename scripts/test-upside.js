@@ -76,6 +76,8 @@ assert.equal(refused.clearsFloor, false);
 assert.match(refused.reason, /no measurable skill/);
 
 // A model that cleared its bar does admit a name, once the floor is beaten.
+// Admission rests on how often scores in this band actually cleared the floor,
+// not on the size of the prediction, so the carrier needs its calibration table.
 const skilled = {
   skilled: true,
   horizon: 5,
@@ -84,7 +86,15 @@ const skilled = {
   // One leaf, so the carrier is a model rather than a bare constant: the guard
   // refuses a tree-less payload, which is the right call.
   model: { base: 4, learningRate: 0.05, featureNames: [], trees: [{ value: 0 }] },
-  validation: { informationCoefficient: 0.05, informationCoefficientStandardError: 0.007, rSquared: 0.01, topDecileAveragePct: 1.1 },
+  validation: {
+    informationCoefficient: 0.05,
+    informationCoefficientStandardError: 0.007,
+    rSquared: 0.01,
+    topDecileAveragePct: 1.1,
+    floorPct: 2,
+    baseClearedFloorPct: 30.8,
+    deciles: [{ decile: 1, predictedFrom: 1.2, predictedTo: 9, averagePct: 0.9, clearedFloorPct: 37.4, cases: 2249 }]
+  },
   importance: []
 };
 const admitted = upside({ bars: climbing, side: "long", floorPct: 2, overrides: { pooledModel: skilled } });
@@ -92,12 +102,27 @@ assert.equal(admitted.ready, true);
 assert.equal(admitted.trustworthy, true);
 assert.ok(admitted.expectedMovePct > 2, `expected the stub's 4% to clear the floor, got ${admitted.expectedMovePct}`);
 assert.equal(admitted.clearsFloor, true);
+assert.equal(admitted.clearedFloorPct, 37.4, "the band's own historical rate is reported");
+assert.equal(admitted.baseClearedFloorPct, 30.8, "against the unaided baseline");
+assert.match(admitted.reason, /37.4% of 2249 past occasions, against a 30.8% baseline/);
 assert.equal(admitted.components.length, 6, "every reading must be accounted for");
 
 // Costs come off, and the floor is respected in both directions.
 const gross = admitted.components.reduce((sum, item) => sum + Number(item.expectedPct || 0), 0);
 assert.ok(admitted.expectedMovePct < gross, "costs must be subtracted");
-assert.equal(upside({ bars: climbing, side: "long", floorPct: 99, overrides: { pooledModel: skilled } }).clearsFloor, false);
+// A table built for a 2% floor is not evidence about any other floor, and must
+// decline rather than answering a question it was never calibrated for.
+const wrongFloor = upside({ bars: climbing, side: "long", floorPct: 5, overrides: { pooledModel: skilled } });
+assert.equal(wrongFloor.clearsFloor, false);
+assert.match(wrongFloor.reason, /calibrated against a 2% floor/);
+
+// A carrier with no calibration at all admits nothing: Number(null) is 0 and slips
+// past a bare isFinite check, which once let everything through.
+const uncalibrated = upside({
+  bars: climbing, side: "long", floorPct: 2,
+  overrides: { pooledModel: { ...skilled, validation: { informationCoefficient: 0.05, informationCoefficientStandardError: 0.007 } } }
+});
+assert.equal(uncalibrated.clearsFloor, false, "no calibration table means no admission");
 
 // A short is the mirror of the long on the same series.
 const shortSide = upside({ bars: climbing, side: "short", floorPct: 2, overrides: { pooledModel: skilled } });

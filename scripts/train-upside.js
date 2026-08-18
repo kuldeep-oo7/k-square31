@@ -101,6 +101,24 @@ function evaluate(rows, horizon, options) {
     // The decile the model likes most, which is what a buy list actually uses.
     const ranked = [...usable].sort((left, right) => right.value - left.value);
     const top = ranked.slice(0, Math.max(10, Math.floor(ranked.length / 10)));
+    // Expected value is the wrong question for a floor. "Can this clear 2%" is a
+    // probability: a name whose average move is 0.8% still clears 2% whenever the
+    // week runs hot, and how often that happens is measurable rather than assumed.
+    const floorPct = Number(options.floorPct) || 2;
+    const decileSize = Math.max(1, Math.floor(ranked.length / 10));
+    const deciles = Array.from({ length: 10 }, (_, index) => {
+      const slice = ranked.slice(index * decileSize, (index + 1) * decileSize);
+      if (!slice.length) return null;
+      return {
+        decile: index + 1,
+        predictedFrom: round(slice.at(-1).value, 3),
+        predictedTo: round(slice[0].value, 3),
+        averagePct: round(mean(slice.map((item) => item.actual)), 3),
+        clearedFloorPct: round(slice.filter((item) => item.actual >= floorPct).length / slice.length * 100, 1),
+        cases: slice.length
+      };
+    }).filter(Boolean);
+    const baseClearedPct = round(usable.filter((item) => item.actual >= floorPct).length / usable.length * 100, 1);
     results.push({
       fold: fold + 1,
       trainRows: trainRows.length,
@@ -111,7 +129,11 @@ function evaluate(rows, horizon, options) {
       rSquared: totalSumSquares ? round(1 - residual / totalSumSquares) : null,
       allAveragePct: round(actualMean, 3),
       topDecileAveragePct: round(mean(top.map((item) => item.actual)), 3),
-      topDecileWinPct: round(top.filter((item) => item.actual > 0).length / top.length * 100, 1)
+      topDecileWinPct: round(top.filter((item) => item.actual > 0).length / top.length * 100, 1),
+      floorPct,
+      baseClearedFloorPct: baseClearedPct,
+      topDecileClearedFloorPct: round(top.filter((item) => item.actual >= floorPct).length / top.length * 100, 1),
+      deciles
     });
   }
   if (!results.length) return { ready: false, reason: "no fold had enough rows" };
@@ -128,6 +150,23 @@ function evaluate(rows, horizon, options) {
     topDecileAveragePct: round(mean(results.map((item) => Number(item.topDecileAveragePct))), 3),
     allAveragePct: round(mean(results.map((item) => Number(item.allAveragePct))), 3),
     topDecileWinPct: round(mean(results.map((item) => Number(item.topDecileWinPct))), 1),
+    floorPct: results[0].floorPct,
+    baseClearedFloorPct: round(mean(results.map((item) => Number(item.baseClearedFloorPct))), 1),
+    topDecileClearedFloorPct: round(mean(results.map((item) => Number(item.topDecileClearedFloorPct))), 1),
+    // Averaged across folds so the portal can turn a prediction into "how often a
+    // score like this has cleared the floor" rather than a bare expectation.
+    deciles: Array.from({ length: 10 }, (_, index) => {
+      const matching = results.map((item) => item.deciles[index]).filter(Boolean);
+      if (!matching.length) return null;
+      return {
+        decile: index + 1,
+        predictedFrom: round(mean(matching.map((item) => item.predictedFrom)), 3),
+        predictedTo: round(mean(matching.map((item) => item.predictedTo)), 3),
+        averagePct: round(mean(matching.map((item) => item.averagePct)), 3),
+        clearedFloorPct: round(mean(matching.map((item) => item.clearedFloorPct)), 1),
+        cases: matching.reduce((sum, item) => sum + item.cases, 0)
+      };
+    }).filter(Boolean),
     perFold: results
   };
 }
@@ -173,6 +212,12 @@ async function run() {
   console.log(`  explained variance ${validation.rSquared}`);
   console.log(`  the model's favourite tenth returned ${validation.topDecileAveragePct}% per ${horizon} sessions against ${validation.allAveragePct}% for everything`);
   console.log(`  and was positive ${validation.topDecileWinPct}% of the time`);
+  console.log(`
+  clearing the ${validation.floorPct}% floor: the favourite tenth managed it ${validation.topDecileClearedFloorPct}% of the time against ${validation.baseClearedFloorPct}% across everything`);
+  console.log("  by decile, most-liked first:");
+  [...validation.deciles].reverse().forEach((entry) => {
+    console.log(`    ${String(entry.decile).padStart(2)}  score ${String(entry.predictedFrom).padStart(7)} to ${String(entry.predictedTo).padStart(7)}  average ${String(entry.averagePct).padStart(7)}%  cleared ${String(entry.clearedFloorPct).padStart(5)}%  (${entry.cases} cases)`);
+  });
   const skilled = Number(validation.informationCoefficient) > bar;
   console.log(`\n  verdict: ${skilled ? "the pooled model has measurable skill" : "no measurable skill — the potential route must stay closed"}`);
 

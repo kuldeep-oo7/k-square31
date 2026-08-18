@@ -50,9 +50,21 @@ function pooledForecast(bars, overrides = {}) {
       validation: carrier.validation || null
     };
   }
+  const validation = carrier.validation || {};
+  // Expected value is the wrong test for a floor. Measured across 22,509
+  // out-of-sample stock-weeks, the model's favourite tenth averages 0.87% — far
+  // under 2% — yet clears 2% on 37.4% of occasions against a 30.8% baseline. The
+  // honest claim is that shift in the odds, not an expectation nobody can support.
+  const deciles = Array.isArray(validation.deciles) ? validation.deciles : [];
   const latest = features(bars, bars.length - 1);
   const expectedMovePct = latest ? predict({ ...carrier.model, ready: true }, latest) : null;
-  const validation = carrier.validation || {};
+  // Which band of past predictions this score falls in, and how often those
+  // actually cleared the floor. Calibrated on the model's own output only — the
+  // combined estimate below adds trend, candles and carry, which were never part
+  // of this calibration, so the two numbers are deliberately different and only
+  // this one may decide admission.
+  const band = deciles.find((entry) => Number(expectedMovePct) >= Number(entry.predictedFrom) && Number(expectedMovePct) <= Number(entry.predictedTo))
+    || (deciles.length && Number(expectedMovePct) > Number(deciles[0].predictedTo) ? deciles[0] : null);
   return {
     ready: Number.isFinite(expectedMovePct),
     pooled: true,
@@ -66,6 +78,11 @@ function pooledForecast(bars, overrides = {}) {
     rSquared: validation.rSquared ?? null,
     // What the buy list actually consumes: what the model's favourite names did.
     topDecileAveragePct: validation.topDecileAveragePct ?? null,
+    floorPct: validation.floorPct ?? null,
+    baseClearedFloorPct: validation.baseClearedFloorPct ?? null,
+    clearedFloorPct: band ? Number(band.clearedFloorPct) : (validation.baseClearedFloorPct ?? null),
+    bandAveragePct: band ? Number(band.averagePct) : null,
+    bandCases: band ? Number(band.cases) : null,
     meanAbsoluteErrorPct: null,
     importance: carrier.importance ? carrier.importance.slice(0, 6) : [],
     validation
@@ -223,17 +240,39 @@ function upside(input) {
     horizon: forecast?.horizon || DEFAULT_HORIZON,
     floorPct,
     expectedMovePct,
-    // The floor is the desk's own: it is content with 2%, so anything the
-    // evidence puts above 2% net of costs is worth being on the list.
-    clearsFloor: Boolean(forecast?.trustworthy && expectedMovePct > floorPct),
+    // A third of all stock-weeks clear 2% unaided, so clearing it is not the test —
+    // clearing it more often than that is. A name is admitted when its band of
+    // model scores has historically beaten the baseline by a fifth, which is
+    // roughly the whole edge the model has, and never on an expectation of 2%
+    // that the evidence does not support.
+    clearsFloor: Boolean(
+      forecast?.trustworthy
+      // Null must be rejected outright: Number(null) is 0 and passes isFinite, so
+      // a model carrying no calibration would otherwise satisfy "0 >= 0" and admit
+      // everything.
+      && forecast.clearedFloorPct !== null && forecast.clearedFloorPct !== undefined
+      && forecast.baseClearedFloorPct !== null && forecast.baseClearedFloorPct !== undefined
+      && Number.isFinite(Number(forecast.clearedFloorPct))
+      && Number.isFinite(Number(forecast.baseClearedFloorPct))
+      // The table was built for one floor. Asked about a different one it is not
+      // evidence, so it declines rather than answering the wrong question.
+      && Number(forecast.floorPct) === Number(floorPct)
+      && Number(forecast.clearedFloorPct) >= Number(forecast.baseClearedFloorPct) * 1.15
+      && expectedMovePct > 0
+    ),
+    clearedFloorPct: forecast?.clearedFloorPct ?? null,
+    baseClearedFloorPct: forecast?.baseClearedFloorPct ?? null,
     trustworthy: Boolean(forecast?.trustworthy),
     typicalErrorPct: error,
     components,
     forecast,
     reason: !forecast?.ready ? (forecast?.reason || "no forecast")
-      : !forecast.trustworthy ? "the forward model showed no out-of-sample skill on this name"
-        : expectedMovePct > floorPct ? `the evidence puts the ${forecast.horizon}-session move at ${expectedMovePct}%, above the ${floorPct}% floor`
-          : `the evidence puts the move at ${expectedMovePct}%, under the ${floorPct}% floor`
+      : !forecast.trustworthy ? "the pooled model showed no measurable skill"
+        : forecast.floorPct !== null && Number(forecast.floorPct) !== Number(floorPct)
+          ? `the model is calibrated against a ${forecast.floorPct}% floor and cannot speak to ${floorPct}%`
+          : forecast.clearedFloorPct !== null && Number.isFinite(Number(forecast.clearedFloorPct))
+          ? `scores in this band cleared ${floorPct}% on ${forecast.clearedFloorPct}% of ${forecast.bandCases || 0} past occasions, against a ${forecast.baseClearedFloorPct}% baseline`
+          : `the ${forecast.horizon}-session move is put at ${expectedMovePct}%`
   };
 }
 
