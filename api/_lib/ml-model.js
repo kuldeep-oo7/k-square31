@@ -306,9 +306,23 @@ function scoreFold(model, rows) {
 
 // Expanding-window walk-forward: fit on everything up to a cut, score the block
 // that follows, roll the cut forward. No fold ever trains on its own future.
+//
+// `embargo` drops that many rows immediately before each cut. It matters whenever
+// labels overlap: with a five-session forward return sampled daily, neighbouring
+// rows share four fifths of their label, so a training row just before the cut
+// already contains the first days of the test block. Without the embargo a purely
+// random series scored as though the model had skill.
 function walkForward(rows, overrides = {}) {
   const minimumTrain = Number(overrides.minimumTrain) || 80;
   const folds = Math.max(2, Number(overrides.folds) || 4);
+  const embargo = Math.max(0, Number(overrides.embargo) || 0);
+  // Overlapping labels also inflate the score itself, not just the split. With a
+  // five-session forward return sampled daily, neighbouring test rows share four
+  // fifths of their label and their errors are serially correlated, which lifted a
+  // random walk's information coefficient to 0.14 while a shuffled-label control
+  // over the same pipeline sat at -0.02. Scoring every stride-th test row instead
+  // removes the overlap from the measurement.
+  const scoreStride = Math.max(1, Number(overrides.scoreStride) || 1);
   if (rows.length < minimumTrain + folds * 8) {
     return { ready: false, rows: rows.length, reason: `Need at least ${minimumTrain + folds * 8} labelled weeks for ${folds} walk-forward folds` };
   }
@@ -318,22 +332,32 @@ function walkForward(rows, overrides = {}) {
     const trainTo = minimumTrain + fold * blockSize;
     const testRows = rows.slice(trainTo, fold === folds - 1 ? rows.length : trainTo + blockSize);
     if (!testRows.length) continue;
-    const model = trainBoostedTrees(rows.slice(0, trainTo), overrides);
+    const trainRows = rows.slice(0, Math.max(1, trainTo - embargo));
+    const model = trainBoostedTrees(trainRows, overrides);
     if (!model.ready) continue;
-    const score = scoreFold(model, testRows);
-    if (score) results.push({ fold: fold + 1, trainWeeks: trainTo, from: testRows[0].weekKey, to: testRows.at(-1).weekKey, ...score });
+    const scored = scoreStride > 1 ? testRows.filter((_, index) => index % scoreStride === 0) : testRows;
+    const score = scoreFold(model, scored);
+    if (score) results.push({ fold: fold + 1, trainWeeks: trainRows.length, embargoed: embargo, from: testRows[0].weekKey, to: testRows.at(-1).weekKey, ...score });
   }
   if (!results.length) return { ready: false, rows: rows.length, reason: "No walk-forward fold produced a usable model" };
   const acted = results.flatMap((item) => Array(item.actedWeeks).fill(item.actedAverageWeeklyPct)).filter(Number.isFinite);
+  const scoredWeeks = results.reduce((sum, item) => sum + item.weeks, 0);
   return {
     ready: true,
-    method: "expanding-window walk-forward; features at the prior week's close, label the following week's ladder result",
+    method: `expanding-window walk-forward${embargo ? ` with a ${embargo}-row embargo before each cut` : ""}${scoreStride > 1 ? `, scored on every ${scoreStride}th row so labels do not overlap` : ""}; features at the prior close, label the following period`,
+    // The standard error of a correlation over n independent observations. A
+    // coefficient inside two of these is indistinguishable from luck.
+    informationCoefficientStandardError: scoredWeeks > 3 ? round(1 / Math.sqrt(scoredWeeks - 3), 4) : null,
     folds: results.length,
     rows: rows.length,
     outOfSample: {
       weeks: results.reduce((sum, item) => sum + item.weeks, 0),
       actedWeeks: results.reduce((sum, item) => sum + item.actedWeeks, 0),
       informationCoefficient: round(mean(results.map((item) => Number(item.informationCoefficient)).filter(Number.isFinite)), 4),
+      // Was computed per fold and then dropped, so every caller read undefined.
+      // It is the more robust of the two skill measures when labels have little
+      // spread, where a correlation is unstable but the error is still meaningful.
+      rSquared: round(mean(results.map((item) => Number(item.rSquared)).filter(Number.isFinite)), 4),
       meanAbsoluteErrorPct: round(mean(results.map((item) => Number(item.meanAbsoluteErrorPct))), 3),
       actedAverageWeeklyPct: round(mean(acted), 3),
       actedWinRatePct: round(mean(results.map((item) => Number(item.actedWinRatePct)).filter(Number.isFinite)), 2),

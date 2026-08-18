@@ -14,6 +14,7 @@ const { tradingWeeks, ladder, weeklyCycle, DEFAULT_CONFIG } = require("./weekly-
 const { weeklyForecast } = require("./ml-model");
 const { trendAlignment, trendGate } = require("./trend");
 const { carryScore } = require("./carry");
+const { upside } = require("./upside");
 
 function round(value, digits = 2) {
   if (!Number.isFinite(value)) return null;
@@ -81,6 +82,71 @@ function convictionOf({ cycle, model, technical, fundamentals, trend, carry, sid
   return { convictionPct: round(components.reduce((sum, item) => sum + Number(item.contribution), 0)), components };
 }
 
+// A name admitted on expected move rather than on ladder history. It carries no
+// measured rung statistics, because none passed — so it is labelled differently
+// and sized more cautiously.
+function potentialCall(symbol, { bars, cycle, potential, config, input }) {
+  const anchorInfo = currentAnchor(bars);
+  if (!anchorInfo?.anchor) return standAside(symbol, "No anchor session for the week in progress", { cycle, upside: potential });
+  const side = potential.side;
+  const rungs = ladder(anchorInfo.anchor, side, config);
+  const targetStep = 1 + (side === "short" ? -1 : 1) * Number(config.targetPct) / 100;
+  const vetoes = [];
+  if (input.fundamentals?.veto) vetoes.push(input.fundamentals.veto);
+  const trend = input.trend === undefined ? trendGate(bars, side, input.overrides || {}) : input.trend;
+  if (trend?.veto) vetoes.push(trend.veto);
+  if (vetoes.length) return standAside(symbol, vetoes[0], { cycle, upside: potential, trend, vetoes });
+
+  // Confidence is the margin over the floor against the model's typical error:
+  // a 6% call with a 3% average error is a weaker claim than a 3% call with 0.5%.
+  const margin = Number(potential.expectedMovePct) - Number(potential.floorPct);
+  const error = Number(potential.typicalErrorPct);
+  const convictionPct = round(clamp(margin / Math.max(error || 1, 0.5)) * 55 + clamp(Number(potential.forecast?.informationCoefficient) / 0.1) * 15);
+
+  return {
+    symbol,
+    action: side === "short" ? "sell-potential" : "buy-potential",
+    route: "potential",
+    side,
+    weekKey: anchorInfo.weekKey,
+    anchor: round(anchorInfo.anchor),
+    sessionsElapsed: anchorInfo.sessionsElapsed,
+    levels: [1],
+    // Only the first rung is offered. The deeper rungs exist to average into a
+    // measured mean reversion, and there is no measured reversion here.
+    entries: [{
+      level: 1,
+      entry: round(rungs[0].price),
+      target: round(rungs[0].price * targetStep),
+      stepFromAnchorPct: round(Number(config.stepPct)),
+      historicalFills: null,
+      hitRatePct: null,
+      hitRateLowerPct: null,
+      averageNetPct: null,
+      medianSessionsHeld: null
+    }],
+    convictionPct,
+    expectedWeeklyPct: round(potential.expectedMovePct, 3),
+    expectedFromPricePct: round(potential.expectedMovePct, 3),
+    expectedFromCarryPct: round(Number(potential.components?.find((item) => item.name === "Carry")?.expectedPct) || 0, 3),
+    sizeMultiplier: round(0.25 + 0.5 * clamp(convictionPct / 70), 3),
+    bookOut: "Book every open leg at the Friday close; Monday's open sets the next anchor",
+    reasons: [potential.reason, ...potential.components.filter((item) => Number(item.expectedPct) > 0).map((item) => `${item.name}: ${item.note}`)],
+    vetoes: [],
+    components: potential.components.map((item) => ({ name: item.name, weight: null, score: null, contribution: item.expectedPct, note: item.note })),
+    evidence: {
+      route: "expected move rather than ladder history",
+      cycleWeeks: cycle.weeks,
+      ladderVerdict: cycle.verdict.reason,
+      horizonSessions: potential.horizon,
+      typicalErrorPct: potential.typicalErrorPct,
+      informationCoefficient: potential.forecast?.informationCoefficient ?? null,
+      topFeatures: potential.forecast?.importance || [],
+      trend: trend?.ready ? { returnPct: trend.returnPct, scaled: trend.scaled } : null
+    }
+  };
+}
+
 function recommendation(input) {
   const symbol = String(input.symbol || "").toUpperCase();
   const bars = Array.isArray(input.bars) ? input.bars : [];
@@ -92,7 +158,21 @@ function recommendation(input) {
   if (!cycle.ready) return standAside(symbol, cycle.reason, { cycle });
 
   const verdict = cycle.verdict;
-  if (verdict.action === "stand-aside") return standAside(symbol, verdict.reason, { cycle });
+  // Two ways onto the list. The ladder route asks whether harvesting 2% slices
+  // has paid on this name before. The potential route asks a different question:
+  // whether the name is set up to travel further than the desk's 2% floor at all.
+  // A stock can fail the first and pass the second — the 2% ladder is simply the
+  // wrong instrument for something poised to move six — and rejecting it for that
+  // was discarding most of the universe.
+  if (verdict.action === "stand-aside") {
+    const potential = input.upside === undefined
+      ? upside({ bars, side: "long", technical: input.technical, fundamentals: input.fundamentals, carry: input.carry, floorPct: Number(config.targetPct) || 2, overrides: input.overrides })
+      : input.upside;
+    if (!potential?.clearsFloor) {
+      return standAside(symbol, verdict.reason, { cycle, upside: potential });
+    }
+    return potentialCall(symbol, { bars, cycle, potential, config, input });
+  }
 
   const side = verdict.side;
   const model = input.model === undefined ? weeklyForecast(bars, side, input.overrides || {}) : input.model;
