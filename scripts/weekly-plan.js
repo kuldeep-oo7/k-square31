@@ -26,6 +26,8 @@ const { recommendation, rankRecommendations } = require("../api/_lib/recommendat
 const { latestBhavcopy, frontFutures } = require("../api/_lib/bhavcopy");
 const { carry } = require("../api/_lib/carry");
 const { googleStoreConfigured, writeGoogleDocument, readGoogleDocument } = require("../api/_lib/google-store");
+const { createSignalRecord, evaluateOutcome, summarizePerformance } = require("../api/_lib/trade-tracker");
+const { analyzeOutcomeSignatures } = require("../api/_lib/adaptive-learning");
 
 // Names the desk has traded before, marked on every recommendation. Deliberately
 // not a filter: a name being absent is not evidence it cannot be traded, and 28
@@ -156,6 +158,33 @@ async function run() {
     console.log(`    ${rungs}`);
   });
 
+  // Persist & Audit Trade Signals in Ledger
+  const ledgerPath = path.join(__dirname, "..", "data", "trade-signals.json");
+  let ledger = [];
+  try {
+    if (fs.existsSync(ledgerPath)) {
+      ledger = JSON.parse(fs.readFileSync(ledgerPath, "utf8")) || [];
+    }
+  } catch {}
+
+  const newRecords = (report.best || []).map((item) => createSignalRecord(item, { weekKey: report.weekKey }));
+  for (const rec of newRecords) {
+    if (!ledger.some((existing) => existing.signalId === rec.signalId)) {
+      ledger.push(rec);
+    }
+  }
+
+  const performance = summarizePerformance(ledger);
+  const learning = analyzeOutcomeSignatures(ledger.filter((s) => s.outcome === "WIN" || s.outcome === "LOSS"));
+
+  report.performance = performance;
+  report.learning = learning;
+
+  try {
+    fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });
+    fs.writeFileSync(ledgerPath, JSON.stringify(ledger, null, 2), "utf8");
+  } catch {}
+
   const out = argument("out");
   if (out) {
     fs.writeFileSync(out, JSON.stringify(report, null, 2));
@@ -166,6 +195,10 @@ async function run() {
     const current = await readGoogleDocument(pathname, null).catch(() => ({ etag: null }));
     await writeGoogleDocument(pathname, report, current?.etag || null);
     console.log(`Stored the plan in the operational Google Sheets store at ${pathname}`);
+
+    const ledgerDocPath = "trade-signals/v1/ledger.json";
+    const currentLedger = await readGoogleDocument(ledgerDocPath, null).catch(() => ({ etag: null }));
+    await writeGoogleDocument(ledgerDocPath, { ledger, performance, learning }, currentLedger?.etag || null);
   }
   return report;
 }
