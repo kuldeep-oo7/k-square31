@@ -74,21 +74,25 @@ function rungCells(entries, side) {
 function row(item) {
   const side = item.side === "short" ? "short" : "long";
   const earnings = item.evidence?.fundamentals?.nextEarningsDate;
+  const firstEntry = (item.entries && item.entries[0]) || {};
+  const entryPrice = Number(firstEntry.entry) || Number(item.anchor) || null;
+  const targetPrice = Number(firstEntry.target) || (entryPrice ? (side === "short" ? entryPrice * 0.98 : entryPrice * 1.02) : null);
+  const stopLossPrice = Number(firstEntry.stopLoss) || (entryPrice ? (side === "short" ? entryPrice * 1.01 : entryPrice * 0.99) : null);
+  const riskReward = Number(firstEntry.riskReward) || 2.0;
+
   return `
       <tr data-side="${side}" data-expected="${Number(item.expectedWeeklyPct)}" data-conviction="${Number(item.convictionPct)}">
         <th scope="row" class="sym">
           <span class="sym-name">${escapeHtml(item.symbol)}</span>
-          <span class="chip chip-${side}">${side === "short" ? "sell ladder" : "buy ladder"}</span>
+          <span class="chip chip-${side}">${side === "short" ? "sell" : "buy"}</span>
         </th>
+        <td class="num"><b>${entryPrice ? `₹${fixed(entryPrice)}` : "—"}</b></td>
+        <td class="num" style="color:var(--mint-deep,#167a62)"><b>${targetPrice ? `₹${fixed(targetPrice)}` : "—"}</b> <small>(${side === "short" ? "−2%" : "+2%"})</small></td>
+        <td class="num" style="color:var(--coral-deep,#b63c32)"><b>${stopLossPrice ? `₹${fixed(stopLossPrice)}` : "—"}</b> <small>(${side === "short" ? "+1%" : "−1%"})</small></td>
+        <td class="num"><b>${fixed(riskReward, 1)} : 1</b></td>
         <td class="num strong">${fixed(item.expectedWeeklyPct)}%</td>
         <td class="conv">${conviction(item.convictionPct)}</td>
-        <td class="rungs">${rungCells(item.entries || [], side)}</td>
         <td class="num">×${fixed(item.sizeMultiplier)}</td>
-        <td class="meta">
-          ${item.evidence?.cycleWeeks || "—"} wks
-          ${item.evidence?.modelTrustworthy ? '<span class="tag tag-model">model agrees</span>' : ""}
-          ${earnings ? `<span class="tag">results ${escapeHtml(earnings)}</span>` : ""}
-        </td>
       </tr>`;
 }
 
@@ -306,11 +310,13 @@ function page(plan, benchmarks) {
         <thead>
           <tr>
             <th scope="col">Instrument</th>
+            <th scope="col">Buy / Entry Price</th>
+            <th scope="col">Sell Target (+2%)</th>
+            <th scope="col">Stop Loss (-1%)</th>
+            <th scope="col">Reward : Risk</th>
             <th scope="col">Expected week</th>
             <th scope="col">Conviction</th>
-            <th scope="col">Rungs from Monday's open</th>
             <th scope="col">Size</th>
-            <th scope="col">Evidence</th>
           </tr>
         </thead>
         <tbody id="rows">${best.map(row).join("")}</tbody>

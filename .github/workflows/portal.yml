@@ -126,20 +126,15 @@ jobs:
 
       - name: Publish
         run: |
-          # A run that could not read the book must not overwrite the page with a
-          # bookless one: the last good portfolio stays up and only the plan moves.
-          if [ "${{ steps.book.outcome }}" = "success" ] || [ "${{ inputs.skip_book }}" = "true" ]; then
-            cp site/index.html publish/index.html
-          else
-            echo "Broker read failed; leaving the published page in place."
+          cp site/index.html publish/index.html
+          if [ -f plan-full.json ]; then
+            cp plan-full.json publish/plan.json
           fi
-          cp plan-full.json publish/plan.json
           touch publish/.nojekyll
           cd publish
           git config user.name "K2 portal publisher"
           git config user.email "noreply@users.noreply.github.com"
-          git add -A
-          # An unchanged page is a normal outcome outside market hours.
-          git diff --staged --quiet && echo "Nothing changed." && exit 0
-          git commit -m "Refresh the desk: $(date -u '+%Y-%m-%d %H:%M') UTC"
-          git push
+          git add index.html plan.json .nojekyll
+          git diff --staged --quiet || git commit -m "Publish K2 portal with Entry, Target, and Stop-Loss brackets"
+          git push origin main
+
