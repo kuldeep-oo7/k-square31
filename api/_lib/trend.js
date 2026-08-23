@@ -168,11 +168,26 @@ function trendMetrics(bars) {
     atrPct: round((atr14 / lastClose) * 100, 2),
     high52Week: round(high52Week, 2),
     low52Week: round(low52Week, 2),
-    highProximityPct: round(highProximityPct, 2),
     isUptrendStructure,
     isDowntrendStructure
   };
 }
 
-module.exports = { annualisedVolatilityPct, calcAtr, calcEma, calcSma, timeSeriesMomentum, trendAlignment, trendGate, trendMetrics };
+function relativeStrengthScore(stockBars, indexBars, period = 63) {
+  const stockCloses = closesOf(stockBars);
+  const indexCloses = closesOf(indexBars);
+  if (stockCloses.length < period || indexCloses.length < period) return { rsScore: 1.0, outperforming: true };
+  const stockReturn = (stockCloses.at(-1) / stockCloses.at(-period)) - 1;
+  const indexReturn = (indexCloses.at(-1) / indexCloses.at(-period)) - 1;
+  const rsRatio = (1 + stockReturn) / Math.max(0.01, 1 + indexReturn);
+  return {
+    rsScore: round(rsRatio, 3),
+    stockReturnPct: round(stockReturn * 100, 2),
+    indexReturnPct: round(indexReturn * 100, 2),
+    outperforming: rsRatio >= 1.0
+  };
+}
+
+module.exports = { annualisedVolatilityPct, calcAtr, calcEma, calcSma, relativeStrengthScore, timeSeriesMomentum, trendAlignment, trendGate, trendMetrics };
+
 
