@@ -16,6 +16,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { sealPayload } = require("../api/_lib/portal-crypto");
+const { auditPurchases } = require("../api/_lib/trade-audit");
 
 const escapeHtml = (value) => String(value)
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -349,35 +350,36 @@ function document_(plan, sealed, meta) {
     return (value < 0 ? "\\u2212" : "") + "\\u20B9" + Math.abs(Math.round(value)).toLocaleString("en-IN");
   };
   var num = function (value, digits) {
-    return typeof value === "number" && isFinite(value) ? value.toFixed(digits === undefined ? 2 : digits) : "\\u2014";
-  };
-
-  function render(book) {
+    return typeof value === "number" && isFinite(value) ? value.toFixed(digits === u  function render(book) {
     var rowsHtml = book.positions.map(function (p) {
       var short = p.position === "short";
       var v = p.verdict || { label: "not measured", tone: "none" };
       var cls = v.tone === "good" ? "v-good" : v.tone === "bad" ? "v-bad" : v.tone === "warn" ? "v-warn" : "";
+      var audit = p.audit || {};
+      var healthCls = audit.tradeHealth === "TARGET_REACHED" || audit.tradeHealth === "IN_PROFIT" ? "v-good"
+        : audit.tradeHealth === "STOP_TRIGGERED" || audit.tradeHealth === "DRAWDOWN" ? "v-bad" : "v-warn";
+      var healthLabel = audit.tradeHealth === "TARGET_REACHED" ? "TARGET HIT (+2%)"
+        : audit.tradeHealth === "STOP_TRIGGERED" ? "STOP TRIGGERED (-1%)"
+        : audit.tradeHealth === "IN_PROFIT" ? "IN PROFIT"
+        : audit.tradeHealth === "DRAWDOWN" ? "DRAWDOWN"
+        : (audit.onBuyList ? "ON BUY LIST" : "OFF-PLAN");
+
       return '<tr>'
-        + '<th scope="row"><span class="tkr">' + p.symbol + '</span><span class="chip chip-' + (short ? "short" : "long") + '">' + (short ? "short" : "long") + '</span></th>'
+        + '<th scope="row"><span class="tkr">' + p.symbol + '</span><span class="chip chip-' + (short ? "short" : "long") + '">' + (short ? "short" : "long") + '</span>'
+        + (audit.onBuyList ? ' <span class="chip chip-potential">MODEL</span>' : ' <span class="chip chip-journal">OFF-PLAN</span>') + '</th>'
         + '<td class="n" data-label="Net qty">' + p.quantity.toLocaleString("en-IN") + '</td>' 
-        + '<td class="n" data-label="Bought">' + (p.buyQuantity ? p.buyQuantity.toLocaleString("en-IN") + ' @ ' + num(p.buyAverage) : "—") + '</td>' 
-        + '<td class="n" data-label="Sold">' + (p.sellQuantity ? p.sellQuantity.toLocaleString("en-IN") + ' @ ' + num(p.sellAverage) : "—") + '</td>' 
-        + '<td class="n" data-label="Your average">' + num(p.average) + '</td>' 
-        + '<td class="n" data-label="Mark">' + num(p.mark) + '<span class="verdict-detail">' + p.markSource + '</span></td>'
-        + '<td class="n" data-label="Day range">' + (p.dayLow && p.dayHigh ? num(p.dayLow) + ' – ' + num(p.dayHigh) : "—") + '</td>'
-        + '<td class="n" data-label="Month range">' + (p.range ? num(p.range.monthLow) + ' – ' + num(p.range.monthHigh) : "—") + '</td>'
-        + '<td class="n ' + (p.unrealised < 0 ? "neg" : "pos") + '" data-label="MTM">' + money(p.unrealised) + (p.mtmSource === "computed" ? '<span class="verdict-detail">estimated</span>' : '') + '</td>' 
-        + '<td class="n" data-label="2% target">' + num(p.target) + '</td>'
-        + '<td data-label="12-month trend">' + (p.trend
-            ? '<span class="verdict ' + (p.trend.blocked ? "v-bad" : "v-good") + '">' + p.trend.label + '</span>'
-              + '<span class="verdict-detail">12m ' + num(p.trend.returnPct, 1) + '%</span>'
-            : '<span class="verdict-detail">not measured</span>') + '</td>'
-        + '<td class="n ' + (p.carry ? (p.carry.favourable ? "pos" : "neg") : "") + '" data-label="Carry">'
-            + (p.carry ? num(p.carry.weeklyPct) + '%/wk' : '—') + '</td>'
-        + '<td data-label="Ladder"><span class="verdict ' + cls + '">' + v.label + '</span></td>'
+        + '<td class="n" data-label="Bought @"><b>' + num(p.average) + '</b></td>' 
+        + '<td class="n" data-label="Model Entry">' + (audit.modelEntryPrice ? '₹' + num(audit.modelEntryPrice) : "—") + '</td>' 
+        + '<td class="n ' + (audit.slippagePct > 0 ? "neg" : "pos") + '" data-label="Slippage">' + (audit.slippagePct !== null ? (audit.slippagePct > 0 ? "+" : "") + num(audit.slippagePct) + "%" : "—") + '</td>' 
+        + '<td class="n pos" data-label="Target (+2%)"><b>' + (audit.modelTargetPrice ? '₹' + num(audit.modelTargetPrice) : num(p.target)) + '</b></td>' 
+        + '<td class="n neg" data-label="Stop Loss (-1%)"><b>' + (audit.modelStopLossPrice ? '₹' + num(audit.modelStopLossPrice) : "—") + '</b></td>' 
+        + '<td class="n" data-label="Mark">' + num(p.mark) + '</td>'
+        + '<td class="n ' + (p.unrealised < 0 ? "neg" : "pos") + '" data-label="MTM"><b>' + money(p.unrealised) + '</b></td>' 
+        + '<td data-label="Trade Audit"><span class="verdict ' + healthCls + '">' + healthLabel + '</span></td>'
         + '</tr>';
     }).join("");
 
+    var auditSummary = book.audit?.summary || {};
     document.getElementById("book").innerHTML =
       '<div class="grid">'
       + '<div class="tile"><b>' + money(book.totalNotional) + '</b><span>portfolio value</span></div>'
@@ -385,17 +387,15 @@ function document_(plan, sealed, meta) {
       + '<div class="tile"><b>' + (book.totalQuantity || 0).toLocaleString("en-IN") + '</b><span>total quantity</span></div>'
       + '<div class="tile"><b>' + book.positions.length + '</b><span>open positions</span></div>'
 
+      + '<div class="tile"><b>' + (auditSummary.compliantPositions || 0) + ' / ' + book.positions.length + '</b><span>on buy list</span></div>'
+      + '<div class="tile"><b class="' + ((auditSummary.targetsReached || 0) > 0 ? "pos" : "") + '">' + (auditSummary.targetsReached || 0) + '</b><span>targets hit</span></div>'
+      + '<div class="tile"><b class="' + ((auditSummary.stopsTriggered || 0) > 0 ? "neg" : "") + '">' + (auditSummary.stopsTriggered || 0) + '</b><span>stops triggered</span></div>'
       + '<div class="tile"><b>' + book.inProfit + ' / ' + book.positions.length + '</b><span>in profit</span></div>'
-      + '<div class="tile"><b>' + book.confirmed + '</b><span>edge confirmed</span></div>'
-      + '<div class="tile"><b class="neg">' + book.noEdge + '</b><span>no measured edge</span></div>'
-      + '<div class="tile"><b class="neg">' + book.trendBlocked + '</b><span>against the trend</span></div>'
       + '<div class="tile"><b class="neg">' + (book.carryCosting || 0) + '</b><span>paying carry</span></div>'
       + '</div>'
       + '<div class="scroll"><table><thead><tr>'
-      + '<th scope="col">Instrument</th><th scope="col">Net qty</th><th scope="col">Bought</th><th scope="col">Sold</th><th scope="col">Your average</th><th scope="col">Mark</th>' 
-      + '<th scope="col">Day range</th><th scope="col">Month range</th>'
-      + '<th scope="col">MTM</th><th scope="col">2% target</th>'
-      + '<th scope="col">12-month trend</th><th scope="col">Carry</th><th scope="col">Ladder</th>'
+      + '<th scope="col">Instrument</th><th scope="col">Net qty</th><th scope="col">Bought @</th><th scope="col">Model Entry</th><th scope="col">Slippage</th>' 
+      + '<th scope="col">Target (+2%)</th><th scope="col">Stop (-1%)</th><th scope="col">Mark</th><th scope="col">MTM P&L</th><th scope="col">Audit Status</th>'
       + '</tr></thead><tbody>' + rowsHtml + '</tbody></table></div>';
     document.getElementById("book").hidden = false;
     document.getElementById("lock").hidden = true;
@@ -435,21 +435,17 @@ function document_(plan, sealed, meta) {
 // The private payload is reduced to exactly what the page renders, so nothing
 // extra is carried into the ciphertext.
 function bookPayload(book, plans, context = {}) {
+  const auditResult = auditPurchases(book.positions || [], plans);
+  const auditMap = new Map((auditResult.items || []).map((item) => [item.symbol, item]));
   const bySymbol = new Map(plans.map((item) => [item.symbol, item]));
   const positions = (book.positions || []).map((position) => {
     const short = position.position === "short";
     const average = Number(position.buyAverage) || Number(position.price);
     const reading = context[position.symbol] || {};
-    // The broker's own live price comes first. Preferring the exchange close over
-    // it marked a live position several rupees below what GM was quoting, and
-    // dragged its P&L with it. The close is only a fallback for a shut market.
+    const auditItem = auditMap.get(String(position.symbol).toUpperCase()) || null;
     const marked = Number(position.markPrice) || Number(reading.mark?.price) || average;
     const signed = short ? -1 : 1;
     const quantity = Number(position.quantity);
-    // GM's own MTM is authoritative and is not the same as mark minus average on
-    // the open lots: it also carries the profit already realised by partial
-    // sells. On a position where most of the bought quantity has been sold again,
-    // that banked half is the larger one, and recomputing threw it away.
     const brokerMtm = Number(position.mtm);
     const openOnly = (marked - average) * quantity * signed;
     const unrealised = Number.isFinite(brokerMtm) && brokerMtm !== 0 ? brokerMtm : openOnly;
@@ -485,19 +481,20 @@ function bookPayload(book, plans, context = {}) {
       mtm: Number(position.mtm),
       target: Math.round(target * 100) / 100,
       toTargetPct: Math.round(toTargetPct * 100) / 100,
-      verdict
+      verdict,
+      audit: auditItem
     };
   });
   return {
     capturedAt: book.capturedAt,
     totalMtm: Number(book.totalMtm),
     totalNotional: positions.reduce((sum, item) => sum + Number(item.notional || 0), 0),
-    // The broker's total is reported as the broker states it, not re-derived.
     totalUnrealised: Number.isFinite(Number(book.totalMtm)) && Number(book.totalMtm) !== 0
       ? Number(book.totalMtm)
       : positions.reduce((sum, item) => sum + Number(item.unrealised || 0), 0),
     totalQuantity: Number(book.totalQuantity) || positions.reduce((sum, item) => sum + Number(item.quantity || 0), 0),
     positions,
+    audit: auditResult,
     inProfit: positions.filter((item) => Number(item.unrealised) > 0).length,
     confirmed: positions.filter((item) => item.verdict.tone === "good").length,
     noEdge: positions.filter((item) => item.verdict.tone === "bad").length,
