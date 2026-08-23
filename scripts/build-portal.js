@@ -43,12 +43,15 @@ function planRow(item) {
   const stopLossPrice = Number(firstEntry.stopLoss) || (entryPrice ? (side === "short" ? entryPrice * 1.01 : entryPrice * 0.99) : null);
   const riskReward = Number(firstEntry.riskReward) || 2.0;
 
+  const targetPct = Number(firstEntry.targetPct) || (entryPrice && targetPrice ? Math.abs((targetPrice - entryPrice) / entryPrice * 100) : 2.0);
+  const stopLossPct = Number(firstEntry.stopLossPct) || (entryPrice && stopLossPrice ? Math.abs((stopLossPrice - entryPrice) / entryPrice * 100) : 1.0);
+
   return `
         <tr data-side="${side}" data-expected="${Number(item.expectedWeeklyPct)}" data-conviction="${Number(item.convictionPct)}">
           <th scope="row"><span class="tkr">${escapeHtml(item.symbol)}</span><span class="chip chip-${side}">${side === "short" ? "sell" : "buy"}</span>${potential ? '<span class="chip chip-potential">potential</span>' : ""}${item.inJournal ? '<span class="chip chip-journal">traded before</span>' : ""}</th>
           <td class="n"><b>${entryPrice ? `₹${fixed(entryPrice)}` : "—"}</b></td>
-          <td class="n pos"><b>${targetPrice ? `₹${fixed(targetPrice)}` : "—"}</b> <span class="verdict-detail">${side === "short" ? "−2.0%" : "+2.0%"}</span></td>
-          <td class="n neg"><b>${stopLossPrice ? `₹${fixed(stopLossPrice)}` : "—"}</b> <span class="verdict-detail">${side === "short" ? "+1.0%" : "−1.0%"}</span></td>
+          <td class="n pos"><b>${targetPrice ? `₹${fixed(targetPrice)}` : "—"}</b> <span class="verdict-detail">${side === "short" ? "−" : "+"}${fixed(targetPct, 1)}%</span></td>
+          <td class="n neg"><b>${stopLossPrice ? `₹${fixed(stopLossPrice)}` : "—"}</b> <span class="verdict-detail">${side === "short" ? "+" : "−"}${fixed(stopLossPct, 1)}%</span></td>
           <td class="n"><b>${fixed(riskReward, 1)} : 1</b></td>
           <td class="n">${fixed(item.expectedWeeklyPct)}%</td>
           <td class="n"><span class="bar"><i style="width:${Math.max(2, Math.min(100, Number(item.convictionPct)))}%"></i></span>${fixed(item.convictionPct, 0)}</td>
