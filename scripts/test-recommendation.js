@@ -55,6 +55,8 @@ assert.equal(buy.action, "buy-ladder");
 assert.equal(buy.side, "long");
 assert.ok(buy.entries.length > 0, "an actionable call must name the rungs to work");
 assert.ok(buy.entries.every((entry) => entry.entry > 0 && entry.target > entry.entry), "long targets sit above their entry");
+assert.ok(buy.entries.every((entry) => entry.stopLoss < entry.entry), "long stop loss sits below entry");
+assert.ok(buy.entries.every((entry) => entry.riskReward >= 1.5), "risk reward ratio is at least 1.5");
 assert.equal(buy.entries[0].entry, Math.round(anchor.anchor * 0.98 * 100) / 100);
 assert.ok(buy.convictionPct > 0 && buy.convictionPct <= 100);
 assert.ok(buy.sizeMultiplier >= 0.25 && buy.sizeMultiplier <= 1);

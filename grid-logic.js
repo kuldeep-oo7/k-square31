@@ -57,5 +57,20 @@
     };
   }
 
-  return { exitLevels, futureSignal, levels, lotExit, weeklySignal };
+  function bracketSignal(current, entryPrice, targetPrice, stopLossPrice) {
+    const price = Number(current);
+    const entry = Number(entryPrice);
+    const target = Number(targetPrice);
+    const stop = Number(stopLossPrice);
+    if (!(price > 0) || !(entry > 0) || !(target > 0) || !(stop > 0)) {
+      return { status: "pending", label: "Awaiting Trigger" };
+    }
+    if (price >= target) return { status: "target_hit", label: "Target Reached (Take Profit)" };
+    if (price <= stop) return { status: "stopped_out", label: "Invalidated (Stop Loss Hit)" };
+    if (price <= entry * 1.005 && price >= stop) return { status: "in_zone", label: "Buy / Entry Zone" };
+    return { status: "active", label: "Trade Active" };
+  }
+
+  return { bracketSignal, exitLevels, futureSignal, levels, lotExit, weeklySignal };
 });
+
