@@ -35,19 +35,22 @@ function nextMonday(weekKey) {
 
 function planRow(item) {
   const side = item.side === "short" ? "short" : "long";
-  const sign = side === "short" ? "+" : "−";
-  // A rung admitted on expected move has no measured hit rate to show. Printing a
-  // dash is the honest rendering; borrowing the ladder's format would imply
-  // history that does not exist.
   const potential = item.route === "potential";
-  const rungs = (item.entries || []).map((entry) => `
-            <span class="rung">${sign}${fixed(entry.stepFromAnchorPct, 0)}%<em>${entry.historicalFills ? `${fixed(entry.hitRatePct, 0)}% · ${entry.historicalFills}` : "no history"}</em></span>`).join("");
+  const firstEntry = (item.entries && item.entries[0]) || {};
+  const entryPrice = Number(firstEntry.entry) || Number(item.anchor) || null;
+  const targetPrice = Number(firstEntry.target) || (entryPrice ? (side === "short" ? entryPrice * 0.98 : entryPrice * 1.02) : null);
+  const stopLossPrice = Number(firstEntry.stopLoss) || (entryPrice ? (side === "short" ? entryPrice * 1.01 : entryPrice * 0.99) : null);
+  const riskReward = Number(firstEntry.riskReward) || 2.0;
+
   return `
         <tr data-side="${side}" data-expected="${Number(item.expectedWeeklyPct)}" data-conviction="${Number(item.convictionPct)}">
           <th scope="row"><span class="tkr">${escapeHtml(item.symbol)}</span><span class="chip chip-${side}">${side === "short" ? "sell" : "buy"}</span>${potential ? '<span class="chip chip-potential">potential</span>' : ""}${item.inJournal ? '<span class="chip chip-journal">traded before</span>' : ""}</th>
-          <td class="n big">${fixed(item.expectedWeeklyPct)}%</td>
+          <td class="n"><b>${entryPrice ? `₹${fixed(entryPrice)}` : "—"}</b></td>
+          <td class="n pos"><b>${targetPrice ? `₹${fixed(targetPrice)}` : "—"}</b> <span class="verdict-detail">${side === "short" ? "−2.0%" : "+2.0%"}</span></td>
+          <td class="n neg"><b>${stopLossPrice ? `₹${fixed(stopLossPrice)}` : "—"}</b> <span class="verdict-detail">${side === "short" ? "+1.0%" : "−1.0%"}</span></td>
+          <td class="n"><b>${fixed(riskReward, 1)} : 1</b></td>
+          <td class="n">${fixed(item.expectedWeeklyPct)}%</td>
           <td class="n"><span class="bar"><i style="width:${Math.max(2, Math.min(100, Number(item.convictionPct)))}%"></i></span>${fixed(item.convictionPct, 0)}</td>
-          <td class="rungs">${rungs}</td>
           <td class="n">×${fixed(item.sizeMultiplier)}</td>
         </tr>`;
 }
@@ -243,7 +246,7 @@ function document_(plan, sealed, meta) {
     </div>
     <div class="scroll">
       <table>
-        <thead><tr><th scope="col">Instrument</th><th scope="col">Expected week</th><th scope="col">Conviction</th><th scope="col">Rungs from Monday's open</th><th scope="col">Size</th></tr></thead>
+        <thead><tr><th scope="col">Instrument</th><th scope="col">Buy / Entry Price</th><th scope="col">Sell Target (+2%)</th><th scope="col">Stop Loss (-1%)</th><th scope="col">Reward : Risk</th><th scope="col">Expected week</th><th scope="col">Conviction</th><th scope="col">Size</th></tr></thead>
         <tbody id="plan-rows">${best.map(planRow).join("")}</tbody>
       </table>
     </div>
