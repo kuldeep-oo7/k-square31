@@ -79,6 +79,8 @@ function row(item) {
   const targetPrice = Number(firstEntry.target) || (entryPrice ? (side === "short" ? entryPrice * 0.98 : entryPrice * 1.02) : null);
   const stopLossPrice = Number(firstEntry.stopLoss) || (entryPrice ? (side === "short" ? entryPrice * 1.01 : entryPrice * 0.99) : null);
   const riskReward = Number(firstEntry.riskReward) || 2.0;
+  const targetPct = Number(firstEntry.targetPct) || (entryPrice && targetPrice ? Math.abs((targetPrice - entryPrice) / entryPrice * 100) : 2.0);
+  const stopLossPct = Number(firstEntry.stopLossPct) || (entryPrice && stopLossPrice ? Math.abs((stopLossPrice - entryPrice) / entryPrice * 100) : 1.0);
 
   return `
       <tr data-side="${side}" data-expected="${Number(item.expectedWeeklyPct)}" data-conviction="${Number(item.convictionPct)}">
@@ -87,8 +89,8 @@ function row(item) {
           <span class="chip chip-${side}">${side === "short" ? "sell" : "buy"}</span>
         </th>
         <td class="num"><b>${entryPrice ? `₹${fixed(entryPrice)}` : "—"}</b></td>
-        <td class="num" style="color:var(--mint-deep,#167a62)"><b>${targetPrice ? `₹${fixed(targetPrice)}` : "—"}</b> <small>(${side === "short" ? "−2%" : "+2%"})</small></td>
-        <td class="num" style="color:var(--coral-deep,#b63c32)"><b>${stopLossPrice ? `₹${fixed(stopLossPrice)}` : "—"}</b> <small>(${side === "short" ? "+1%" : "−1%"})</small></td>
+        <td class="num" style="color:var(--mint-deep,#167a62)"><b>${targetPrice ? `₹${fixed(targetPrice)}` : "—"}</b> <small>(${side === "short" ? "−" : "+"}${fixed(targetPct, 1)}%)</small></td>
+        <td class="num" style="color:var(--coral-deep,#b63c32)"><b>${stopLossPrice ? `₹${fixed(stopLossPrice)}` : "—"}</b> <small>(${side === "short" ? "+" : "−"}${fixed(stopLossPct, 1)}%)</small></td>
         <td class="num"><b>${fixed(riskReward, 1)} : 1</b></td>
         <td class="num strong">${fixed(item.expectedWeeklyPct)}%</td>
         <td class="conv">${conviction(item.convictionPct)}</td>

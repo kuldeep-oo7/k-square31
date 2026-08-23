@@ -103,6 +103,15 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
   const error = Number(potential.typicalErrorPct);
   const convictionPct = round(clamp(margin / Math.max(error || 1, 0.5)) * 55 + clamp(Number(potential.forecast?.informationCoefficient) / 0.1) * 15);
 
+  const metrics = trendMetrics(bars);
+  const atrPct = metrics?.ready ? Number(metrics.atrPct) || 2.0 : 2.0;
+  const stopLossPct = round(Math.max(0.8, Math.min(2.0, atrPct * 0.6)), 2);
+  const targetPct = round(Math.max(Number(config.targetPct) || 2.0, stopLossPct * 2.0), 2);
+  const riskReward = round(targetPct / stopLossPct, 1);
+  const entryPrice = round(rungs[0].price);
+  const targetPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (targetPct / 100)));
+  const stopLossPrice = round(entryPrice * (1 - (side === "short" ? -1 : 1) * (stopLossPct / 100)));
+
   return {
     symbol,
     action: side === "short" ? "sell-potential" : "buy-potential",
@@ -116,10 +125,12 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
     // measured mean reversion, and there is no measured reversion here.
     entries: [{
       level: 1,
-      entry: round(rungs[0].price),
-      target: round(rungs[0].price * targetStep),
-      stopLoss: round(rungs[0].price * (1 - (side === "short" ? -1 : 1) * (Number(config.targetPct) || 2) / 200)),
-      riskReward: 2.0,
+      entry: entryPrice,
+      target: targetPrice,
+      stopLoss: stopLossPrice,
+      riskReward,
+      targetPct,
+      stopLossPct,
       stepFromAnchorPct: round(Number(config.stepPct)),
       historicalFills: null,
       hitRatePct: null,
@@ -200,18 +211,26 @@ function recommendation(input) {
   if (!anchorInfo?.anchor) return standAside(symbol, "No anchor session for the week in progress", evidence);
 
   const rungs = ladder(anchorInfo.anchor, side, config);
-  const targetStep = 1 + (side === "short" ? -1 : 1) * Number(config.targetPct) / 100;
+  const metrics = trendMetrics(bars);
+  const atrPct = metrics?.ready ? Number(metrics.atrPct) || 2.0 : 2.0;
+  const stopLossPct = round(Math.max(0.8, Math.min(2.0, atrPct * 0.6)), 2);
+  const targetPct = round(Math.max(Number(config.targetPct) || 2.0, stopLossPct * 2.0), 2);
+  const riskReward = round(targetPct / stopLossPct, 1);
+
   const entries = verdict.levels.map((level) => {
     const rung = rungs.find((item) => item.level === level);
     const stats = cycle[side].levels.find((item) => item.level === level);
-    const targetPrice = round(rung.price * targetStep);
-    const stopLossPrice = round(rung.price * (1 - (side === "short" ? -1 : 1) * (Number(config.targetPct) || 2) / 200));
+    const entryPrice = round(rung.price);
+    const targetPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (targetPct / 100)));
+    const stopLossPrice = round(entryPrice * (1 - (side === "short" ? -1 : 1) * (stopLossPct / 100)));
     return {
       level,
-      entry: round(rung.price),
+      entry: entryPrice,
       target: targetPrice,
       stopLoss: stopLossPrice,
-      riskReward: 2.0,
+      riskReward,
+      targetPct,
+      stopLossPct,
       stepFromAnchorPct: round(level * Number(config.stepPct)),
       historicalFills: stats?.fills ?? null,
       hitRatePct: stats?.hitRatePct ?? null,
