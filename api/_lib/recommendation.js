@@ -12,7 +12,7 @@
 
 const { tradingWeeks, ladder, weeklyCycle, DEFAULT_CONFIG } = require("./weekly-cycle");
 const { weeklyForecast } = require("./ml-model");
-const { trendAlignment, trendGate } = require("./trend");
+const { trendAlignment, trendGate, trendMetrics } = require("./trend");
 const { carryScore } = require("./carry");
 const { upside } = require("./upside");
 
@@ -118,6 +118,8 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
       level: 1,
       entry: round(rungs[0].price),
       target: round(rungs[0].price * targetStep),
+      stopLoss: round(rungs[0].price * (1 - (side === "short" ? -1 : 1) * (Number(config.targetPct) || 2) / 200)),
+      riskReward: 2.0,
       stepFromAnchorPct: round(Number(config.stepPct)),
       historicalFills: null,
       hitRatePct: null,
@@ -202,10 +204,14 @@ function recommendation(input) {
   const entries = verdict.levels.map((level) => {
     const rung = rungs.find((item) => item.level === level);
     const stats = cycle[side].levels.find((item) => item.level === level);
+    const targetPrice = round(rung.price * targetStep);
+    const stopLossPrice = round(rung.price * (1 - (side === "short" ? -1 : 1) * (Number(config.targetPct) || 2) / 200));
     return {
       level,
       entry: round(rung.price),
-      target: round(rung.price * targetStep),
+      target: targetPrice,
+      stopLoss: stopLossPrice,
+      riskReward: 2.0,
       stepFromAnchorPct: round(level * Number(config.stepPct)),
       historicalFills: stats?.fills ?? null,
       hitRatePct: stats?.hitRatePct ?? null,

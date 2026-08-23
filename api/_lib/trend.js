@@ -113,4 +113,66 @@ function trendAlignment(trend, side) {
   return Math.max(0, Math.min(1, (withTrend + 0.5) / 1.5));
 }
 
-module.exports = { annualisedVolatilityPct, timeSeriesMomentum, trendAlignment, trendGate };
+function calcEma(values, period) {
+  if (!Array.isArray(values) || values.length < period) return null;
+  const k = 2 / (period + 1);
+  let ema = mean(values.slice(0, period));
+  for (let index = period; index < values.length; index += 1) {
+    ema = values[index] * k + ema * (1 - k);
+  }
+  return ema;
+}
+
+function calcSma(values, period) {
+  if (!Array.isArray(values) || values.length < period) return null;
+  return mean(values.slice(-period));
+}
+
+function calcAtr(bars, period = 14) {
+  const usable = Array.isArray(bars) ? bars.filter((b) => Number.isFinite(b.high) && Number.isFinite(b.low) && Number.isFinite(b.close)) : [];
+  if (usable.length < period + 1) return null;
+  const trs = [];
+  for (let i = 1; i < usable.length; i += 1) {
+    const high = Number(usable[i].high);
+    const low = Number(usable[i].low);
+    const prevClose = Number(usable[i - 1].close);
+    trs.push(Math.max(high - low, Math.abs(high - prevClose), Math.abs(low - prevClose)));
+  }
+  return mean(trs.slice(-period));
+}
+
+function trendMetrics(bars) {
+  const closes = closesOf(bars);
+  if (closes.length < 20) return { ready: false, reason: "Need at least 20 bars for trend metrics" };
+  const lastClose = closes.at(-1);
+  const ema20 = calcEma(closes, 20);
+  const sma50 = closes.length >= 50 ? calcSma(closes, 50) : null;
+  const sma200 = closes.length >= 200 ? calcSma(closes, 200) : null;
+  const atr14 = calcAtr(bars, 14) || (lastClose * 0.02);
+  
+  const highWindow = (Array.isArray(bars) ? bars : []).slice(-Math.min(252, bars.length));
+  const high52Week = Math.max(...highWindow.map((b) => Number(b.high || b.close)).filter(Number.isFinite));
+  const low52Week = Math.min(...highWindow.map((b) => Number(b.low || b.close)).filter(Number.isFinite));
+  const highProximityPct = high52Week > 0 ? ((lastClose / high52Week) - 1) * 100 : 0;
+
+  const isUptrendStructure = Boolean(ema20 && lastClose >= ema20 && (!sma50 || ema20 >= sma50 * 0.99));
+  const isDowntrendStructure = Boolean(ema20 && lastClose <= ema20 && (!sma50 || ema20 <= sma50 * 1.01));
+
+  return {
+    ready: true,
+    lastClose: round(lastClose, 2),
+    ema20: round(ema20, 2),
+    sma50: round(sma50, 2),
+    sma200: round(sma200, 2),
+    atr14: round(atr14, 2),
+    atrPct: round((atr14 / lastClose) * 100, 2),
+    high52Week: round(high52Week, 2),
+    low52Week: round(low52Week, 2),
+    highProximityPct: round(highProximityPct, 2),
+    isUptrendStructure,
+    isDowntrendStructure
+  };
+}
+
+module.exports = { annualisedVolatilityPct, calcAtr, calcEma, calcSma, timeSeriesMomentum, trendAlignment, trendGate, trendMetrics };
+

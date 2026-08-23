@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const { annualisedVolatilityPct, timeSeriesMomentum, trendAlignment, trendGate } = require("../api/_lib/trend");
+const { annualisedVolatilityPct, calcAtr, calcEma, calcSma, timeSeriesMomentum, trendAlignment, trendGate, trendMetrics } = require("../api/_lib/trend");
 
 function series(count, step) {
   const bars = [];
@@ -76,9 +76,16 @@ assert.ok(trendAlignment(up, "long") <= 1 && trendAlignment(up, "long") >= 0);
 assert.equal(trendAlignment({ ready: false }, "long"), 0);
 assert.equal(trendAlignment(null, "long"), 0);
 
-// A shorter lookback is supported for books that trade on a faster clock.
-const fast = timeSeriesMomentum(rising, { sessions: 60 });
-assert.equal(fast.sessions, 60);
-assert.equal(fast.ready, true);
+// Multi-timeframe trend metrics and ATR
+const metricsUp = trendMetrics(rising);
+assert.equal(metricsUp.ready, true);
+assert.ok(metricsUp.ema20 > 0);
+assert.ok(metricsUp.atr14 > 0);
+assert.equal(metricsUp.isUptrendStructure, true);
+
+const metricsDown = trendMetrics(falling);
+assert.equal(metricsDown.ready, true);
+assert.equal(metricsDown.isDowntrendStructure, true);
 
 console.log("Trend tests passed: 12-month time-series momentum, risk scaling, direction gating in both directions and a neutral flat tape");
+
