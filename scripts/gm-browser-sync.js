@@ -226,6 +226,10 @@ async function fetchPortfolioWithBrowser(username, password) {
 }
 
 async function runBrowserOnce() {
+  if (process.env.GM_DISABLE_SYNC !== "false") {
+    console.log("GM automated browser sync is disabled to protect broker session from lockouts.");
+    return { ok: true, disabled: true };
+  }
   const username = String(process.env.GM_USERNAME || "");
   const password = String(process.env.GM_PASSWORD || "");
   const secret = String(process.env.K2_GM_CLOUD_SYNC_SECRET || "");
