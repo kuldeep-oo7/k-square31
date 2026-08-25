@@ -45,11 +45,13 @@ function planRow(item) {
 
   const targetPct = Number(firstEntry.targetPct) || (entryPrice && targetPrice ? Math.abs((targetPrice - entryPrice) / entryPrice * 100) : 2.0);
   const stopLossPct = Number(firstEntry.stopLossPct) || (entryPrice && stopLossPrice ? Math.abs((stopLossPrice - entryPrice) / entryPrice * 100) : 1.0);
+  const maxBuyCap = entryPrice ? (side === "short" ? entryPrice * 0.992 : entryPrice * 1.008) : null;
 
   return `
-        <tr data-side="${side}" data-expected="${Number(item.expectedWeeklyPct)}" data-conviction="${Number(item.convictionPct)}">
+        <tr data-side="${side}" data-symbol="${escapeHtml(item.symbol)}" data-entry="${entryPrice || 0}" data-target="${targetPrice || 0}" data-stop="${stopLossPrice || 0}" data-targetpct="${fixed(targetPct, 1)}" data-stoppct="${fixed(stopLossPct, 1)}" data-expected="${Number(item.expectedWeeklyPct)}" data-conviction="${Number(item.convictionPct)}" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
           <th scope="row"><span class="tkr">${escapeHtml(item.symbol)}</span><span class="chip chip-${side}">${side === "short" ? "sell" : "buy"}</span>${potential ? '<span class="chip chip-potential">potential</span>' : ""}${item.inJournal ? '<span class="chip chip-journal">traded before</span>' : ""}</th>
           <td class="n"><b>${entryPrice ? `₹${fixed(entryPrice)}` : "—"}</b></td>
+          <td class="n" style="color:var(--muted);"><small>Max: ₹${maxBuyCap ? fixed(maxBuyCap) : "—"}</small></td>
           <td class="n pos"><b>${targetPrice ? `₹${fixed(targetPrice)}` : "—"}</b> <span class="verdict-detail">${side === "short" ? "−" : "+"}${fixed(targetPct, 1)}%</span></td>
           <td class="n neg"><b>${stopLossPrice ? `₹${fixed(stopLossPrice)}` : "—"}</b> <span class="verdict-detail">${side === "short" ? "+" : "−"}${fixed(stopLossPct, 1)}%</span></td>
           <td class="n"><b>${fixed(riskReward, 1)} : 1</b></td>
@@ -216,6 +218,28 @@ function document_(plan, sealed, meta) {
     border: 1px solid var(--line); border-radius: 999px; background: var(--white); color: var(--ink); }
   .search:focus-visible { outline: 2px solid var(--violet); outline-offset: 1px; }
   .no-hits { padding: 18px; color: var(--muted); font-size: 14px; }
+  
+  .calc-section { margin-bottom: 28px; }
+  .calc-card { background: var(--white); border: 1px solid var(--line); border-radius: 20px; padding: 22px 24px; box-shadow: var(--shadow); }
+  .calc-title { font-family: var(--display); font-size: 21px; font-weight: 400; margin: 0 0 6px; }
+  .calc-desc { color: var(--muted); font-size: 13.5px; margin: 0 0 18px; max-width: 74ch; }
+  .calc-inputs { display: flex; flex-wrap: wrap; gap: 14px; align-items: flex-end; margin-bottom: 16px; }
+  .calc-group { flex: 1 1 200px; min-width: 180px; }
+  .calc-group label { display: block; font-family: var(--mono); font-size: 11px; text-transform: uppercase; letter-spacing: .08em; color: var(--muted); margin-bottom: 6px; }
+  .calc-group select, .calc-group input { width: 100%; font: inherit; font-family: var(--mono); font-size: 14px; padding: 10px 14px; border: 1px solid var(--line); border-radius: 12px; background: var(--paper); color: var(--ink); }
+  .calc-group select:focus-visible, .calc-group input:focus-visible { outline: 2px solid var(--violet); }
+  .calc-badge-container { flex: 1 1 280px; min-width: 240px; display: flex; align-items: center; }
+  .calc-badge { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 11px 18px; border-radius: 12px; font-weight: 600; font-size: 13px; font-family: var(--mono); text-align: center; }
+  .badge-buy { background: color-mix(in srgb, var(--mint) 40%, transparent); color: var(--mint-deep); border: 1px solid var(--mint-deep); }
+  .badge-warn { background: color-mix(in srgb, var(--sun) 34%, transparent); color: #8a6b0f; border: 1px solid #d4a72c; }
+  .badge-stop { background: color-mix(in srgb, var(--coral) 26%, transparent); color: var(--coral-deep); border: 1px solid var(--coral-deep); }
+  .badge-info { background: var(--violet-soft); color: var(--violet); border: 1px solid var(--violet); }
+  .calc-results-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 14px 18px; }
+  .calc-metric .lbl { display: block; font-size: 11px; color: var(--muted); margin-bottom: 2px; }
+  .calc-metric b { font-family: var(--mono); font-size: 16px; font-weight: 600; }
+  .calc-metric.full { grid-column: 1 / -1; border-top: 1px dashed var(--line); padding-top: 8px; margin-top: 2px; }
+  .order-text { font-size: 13.5px !important; color: var(--ink) !important; font-weight: 500 !important; }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -237,9 +261,41 @@ function document_(plan, sealed, meta) {
     <div class="tile"><b>${fixed(best[0]?.expectedWeeklyPct)}%</b><span>best expected week</span></div>
   </div>
 
+  <section class="calc-section">
+    <div class="calc-card" id="decision-assistant">
+      <div class="calc-header">
+        <h3 class="calc-title">⚡ Live Price Decision Assistant & Distance Calculator</h3>
+        <p class="calc-desc">Enter the current price from your broker app (or click any row in the table below). The system automatically calculates the exact distance from entry, remaining profit to target, and gives you a clear <b>BUY NOW</b> or <b>DO NOT CHASE</b> instruction.</p>
+      </div>
+      <div class="calc-body">
+        <div class="calc-inputs">
+          <div class="calc-group">
+            <label for="calc-symbol">Stock Setup</label>
+            <select id="calc-symbol">
+              ${best.map(item => `<option value="${escapeHtml(item.symbol)}">${escapeHtml(item.symbol)} (${item.side.toUpperCase()})</option>`).join("")}
+            </select>
+          </div>
+          <div class="calc-group">
+            <label for="calc-live-price">Live Market Price (₹)</label>
+            <input id="calc-live-price" type="number" step="any" placeholder="Enter live broker price">
+          </div>
+          <div class="calc-badge-container">
+            <div class="calc-badge badge-buy" id="calc-badge">Select a stock to evaluate</div>
+          </div>
+        </div>
+        <div class="calc-results-grid">
+          <div class="calc-metric"><span class="lbl">Distance from Entry</span><b id="calc-dist-entry">—</b></div>
+          <div class="calc-metric"><span class="lbl">Remaining to Target</span><b id="calc-dist-target" class="pos">—</b></div>
+          <div class="calc-metric"><span class="lbl">Buffer to Stop-Loss</span><b id="calc-dist-stop" class="neg">—</b></div>
+          <div class="calc-metric full"><span class="lbl">Exact Broker Action</span><b id="calc-order-plan" class="order-text">—</b></div>
+        </div>
+      </div>
+    </div>
+  </section>
+
   <section>
     <h2>Qualified ladders${plan?.weekKey ? ` · week of ${escapeHtml(monday || plan.weekKey)}` : ""}</h2>
-    <p class="sub">Rungs are distance from Monday's open, with the measured hit rate and the number of historical fills behind it. Prices are set from that open each week.</p>
+    <p class="sub">Rungs are distance from Monday's open, with the measured hit rate and the number of historical fills behind it. Prices are set from that open each week. <em>Click any row to load into the Live Decision Assistant above.</em></p>
     <div class="row-tools">
       <button type="button" data-filter="all" aria-pressed="true">All ${best.length}</button>
       <button type="button" data-filter="long" aria-pressed="false">Buy ${longs}</button>
@@ -250,7 +306,7 @@ function document_(plan, sealed, meta) {
     </div>
     <div class="scroll">
       <table>
-        <thead><tr><th scope="col">Instrument</th><th scope="col">Buy / Entry Price</th><th scope="col">Sell Target (+2%)</th><th scope="col">Stop Loss (-1%)</th><th scope="col">Reward : Risk</th><th scope="col">Expected week</th><th scope="col">Conviction</th><th scope="col">Size</th></tr></thead>
+        <thead><tr><th scope="col">Instrument</th><th scope="col">Buy / Entry Price</th><th scope="col">Max Buy Cap (+0.8%)</th><th scope="col">Sell Target</th><th scope="col">Stop Loss</th><th scope="col">Reward : Risk</th><th scope="col">Expected week</th><th scope="col">Conviction</th><th scope="col">Size</th></tr></thead>
         <tbody id="plan-rows">${best.map(planRow).join("")}</tbody>
       </table>
     </div>
@@ -336,6 +392,104 @@ function document_(plan, sealed, meta) {
   if (planSearch) planSearch.addEventListener("input", refresh);
   apply();
   refresh();
+
+  // Live Decision Assistant & Distance Calculator logic
+  var calcSymbol = document.getElementById("calc-symbol");
+  var calcLivePrice = document.getElementById("calc-live-price");
+  var calcBadge = document.getElementById("calc-badge");
+  var calcDistEntry = document.getElementById("calc-dist-entry");
+  var calcDistTarget = document.getElementById("calc-dist-target");
+  var calcDistStop = document.getElementById("calc-dist-stop");
+  var calcOrderPlan = document.getElementById("calc-order-plan");
+
+  function evaluateLiveDecision() {
+    if (!calcSymbol) return;
+    var sym = calcSymbol.value;
+    var targetRow = rows.find(function (r) { return r.dataset.symbol === sym; });
+    if (!targetRow) return;
+
+    var side = targetRow.dataset.side || "long";
+    var entry = Number(targetRow.dataset.entry) || 0;
+    var target = Number(targetRow.dataset.target) || 0;
+    var stop = Number(targetRow.dataset.stop) || 0;
+
+    var liveVal = parseFloat(calcLivePrice.value);
+    var isUserPrice = Number.isFinite(liveVal) && liveVal > 0;
+    var live = isUserPrice ? liveVal : entry;
+
+    if (!isUserPrice) {
+      calcLivePrice.placeholder = "Entry is ₹" + entry.toFixed(2) + " (enter live price)";
+    }
+
+    var distEntryPct = side === "short"
+      ? ((entry - live) / entry) * 100
+      : ((live - entry) / entry) * 100;
+    var distTargetPct = Math.abs((target - live) / live) * 100;
+    var distStopPct = Math.abs((stop - live) / live) * 100;
+
+    var distEntryDiff = Math.abs(live - entry);
+    var distTargetDiff = Math.abs(target - live);
+    var distStopDiff = Math.abs(stop - live);
+
+    calcDistEntry.textContent = (distEntryPct >= 0 ? "+" : "") + distEntryPct.toFixed(2) + "% (" + (live >= entry ? "+" : "-") + "₹" + distEntryDiff.toFixed(2) + ")";
+    calcDistEntry.className = Math.abs(distEntryPct) <= 0.8 ? "pos" : (distEntryPct > 1.0 ? "neg" : "");
+
+    calcDistTarget.textContent = "+" + distTargetPct.toFixed(2) + "% (+₹" + distTargetDiff.toFixed(2) + " left)";
+    calcDistStop.textContent = "−" + distStopPct.toFixed(2) + "% (₹" + distStopDiff.toFixed(2) + " cushion)";
+
+    calcBadge.className = "calc-badge";
+
+    if (side === "long" && live >= target) {
+      calcBadge.className += " badge-buy";
+      calcBadge.textContent = "🏁 TARGET REACHED (+" + distEntryPct.toFixed(1) + "%) · PROFIT BOOKED";
+      calcOrderPlan.textContent = "Trade complete. Target was hit at ₹" + target.toFixed(2) + ". Do not enter now.";
+    } else if (side === "long" && live <= stop) {
+      calcBadge.className += " badge-stop";
+      calcBadge.textContent = "🛑 STOP-LOSS BREACHED (" + distEntryPct.toFixed(1) + "%) · DO NOT BUY";
+      calcOrderPlan.textContent = "Setup invalidated. Price dropped below stop-loss (₹" + stop.toFixed(2) + ").";
+    } else if (distEntryPct <= 0.8 && distEntryPct >= -1.5) {
+      calcBadge.className += " badge-buy";
+      calcBadge.textContent = "🟢 IN BUY ZONE · SAFE TO ENTER NOW";
+      calcOrderPlan.textContent = "Place " + (distEntryPct < 0 ? "Discount Buy" : "Buy") + " @ ₹" + live.toFixed(2) + " | Set GTT Target @ ₹" + target.toFixed(2) + " | Set GTT Stop-Loss @ ₹" + stop.toFixed(2);
+    } else if (distEntryPct > 0.8) {
+      calcBadge.className += " badge-warn";
+      calcBadge.textContent = "🛑 EXTENDED (+" + distEntryPct.toFixed(1) + "% above entry) · DO NOT CHASE";
+      calcOrderPlan.textContent = "Price is too high above entry. Place a Limit Buy Order @ ₹" + entry.toFixed(2) + " and wait for pullback.";
+    } else {
+      calcBadge.className += " badge-info";
+      calcBadge.textContent = "ℹ️ BELOW ENTRY · VERIFY MOMENTUM";
+      calcOrderPlan.textContent = "Place Limit Order @ ₹" + entry.toFixed(2) + " | Target: ₹" + target.toFixed(2) + " | Stop: ₹" + stop.toFixed(2);
+    }
+  }
+
+  if (calcSymbol) calcSymbol.addEventListener("change", function () {
+    var sym = calcSymbol.value;
+    var targetRow = rows.find(function (r) { return r.dataset.symbol === sym; });
+    if (targetRow) {
+      calcLivePrice.value = "";
+      calcLivePrice.placeholder = "Entry: ₹" + Number(targetRow.dataset.entry).toFixed(2);
+    }
+    evaluateLiveDecision();
+  });
+
+  if (calcLivePrice) calcLivePrice.addEventListener("input", evaluateLiveDecision);
+
+  // Clicking any row in the table automatically loads it into the Decision Assistant
+  rows.forEach(function (r) {
+    r.addEventListener("click", function () {
+      var sym = r.dataset.symbol;
+      if (calcSymbol && sym) {
+        calcSymbol.value = sym;
+        calcLivePrice.value = "";
+        calcLivePrice.placeholder = "Entry: ₹" + Number(r.dataset.entry).toFixed(2);
+        evaluateLiveDecision();
+        var assistant = document.getElementById("decision-assistant");
+        if (assistant) assistant.scrollIntoView({ behavior: "smooth", block: "center" });
+      }
+    });
+  });
+
+  evaluateLiveDecision();
 
   var sealedNode = document.getElementById("sealed");
   var sealed = null;
