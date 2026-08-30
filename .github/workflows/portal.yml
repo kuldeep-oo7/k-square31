@@ -1,7 +1,10 @@
 name: K2 portal
 
-# Builds and publishes the desk portal using independent public market data.
-# Zero broker dependencies, zero automated logins, 100% cloud-safe.
+# Builds and publishes the desk portal.
+#
+# The book is read from GM here, sealed with a passphrase, and pushed to the
+# public site repository as ciphertext, so the host never holds a readable
+# position. The ladder plan carries no holdings and stays in the clear.
 
 on:
   workflow_dispatch:
@@ -15,9 +18,14 @@ on:
         required: false
         type: boolean
         default: false
+      skip_book:
+        description: "Publish the plan only, without reading GM"
+        required: false
+        type: boolean
+        default: false
   schedule:
-    # Run once a day before NSE market opens (03:30 UTC = 09:00 AM IST)
-    - cron: "30 3 * * 1-5"
+    # Every 30 minutes through the NSE session (09:15-15:30 IST is 03:45-10:00 UTC)
+    - cron: "*/30 3-10 * * 1-5"
 
 concurrency:
   group: k2-portal
@@ -48,6 +56,9 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
           git clone --depth 1 git@github.com:kuldeep-oo7/k2-portal.git publish
 
+      # The universe measurement takes about twenty minutes and only changes when
+      # the week's anchor changes, so the published plan is carried forward and
+      # re-measured once a week.
       - name: Decide whether the universe needs re-measuring
         id: plan
         run: |
@@ -62,17 +73,48 @@ jobs:
             echo "measure=true" >> "$GITHUB_OUTPUT"
           fi
 
+      - name: Install a browser for the GM read
+        if: ${{ !inputs.skip_book }}
+        run: npx playwright install --with-deps chromium
+
+      - name: Read the GM book
+        id: book
+        continue-on-error: true
+        if: ${{ !inputs.skip_book }}
+        env:
+          GM_USERNAME: ${{ secrets.GM_USERNAME }}
+          GM_PASSWORD: ${{ secrets.GM_PASSWORD }}
+        run: node scripts/gm-portfolio-dump.js gm-positions.json
+
+      - name: Measure the held names
+        if: ${{ !inputs.skip_book && steps.book.outcome == 'success' }}
+        env:
+          K2_UPSIDE_MODEL: models/upside.json
+        run: node scripts/weekly-plan.js --symbols "$(node scripts/held-symbols.js gm-positions.json)" --top 60 --out plan-holdings.json
+
+      # Trend and carry do not depend on the ladder having an edge, so they are
+      # read for every holding rather than inherited from the plan.
+      - name: Read trend and carry for each holding
+        if: ${{ !inputs.skip_book && steps.book.outcome == 'success' }}
+        run: node scripts/book-context.js gm-positions.json book-context.json
+
       - name: Measure the universe
         if: ${{ steps.plan.outputs.measure == 'true' }}
         env:
           K2_UPSIDE_MODEL: models/upside.json
         run: node scripts/weekly-plan.js --top 60 --out plan-full.json
 
-      - name: Build the portal
+      - name: Seal the book and build the portal
+        env:
+          K2_PORTAL_PASSPHRASE: ${{ secrets.K2_PORTAL_PASSPHRASE }}
         run: node scripts/build-portal.js site
 
       - name: Refuse to publish a leaking build
-        run: node scripts/verify-portal.js site/index.html
+        run: node scripts/verify-portal.js site/index.html gm-positions.json
+
+      - name: Report a failed broker read
+        if: ${{ steps.book.outcome == 'failure' }}
+        run: echo "::warning::GM could not be read this run; keeping the previously published book and refreshing only the plan."
 
       - name: Publish
         run: |
@@ -85,7 +127,8 @@ jobs:
           git config user.name "K2 portal publisher"
           git config user.email "noreply@users.noreply.github.com"
           git add index.html plan.json .nojekyll
-          git diff --staged --quiet || git commit -m "Publish K2 portal with public market data"
+          git diff --staged --quiet || git commit -m "Publish K2 portal with encrypted GM book and decision assistant"
           git push origin main
+
 
 
