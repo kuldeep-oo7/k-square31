@@ -141,6 +141,8 @@ function calcAtr(bars, period = 14) {
   return mean(trs.slice(-period));
 }
 
+const { calculateHurstExponent, calculateKaufmanER } = require("./advanced-quant");
+
 function trendMetrics(bars) {
   const closes = closesOf(bars);
   if (closes.length < 20) return { ready: false, reason: "Need at least 20 bars for trend metrics" };
@@ -149,6 +151,8 @@ function trendMetrics(bars) {
   const sma50 = closes.length >= 50 ? calcSma(closes, 50) : null;
   const sma200 = closes.length >= 200 ? calcSma(closes, 200) : null;
   const atr14 = calcAtr(bars, 14) || (lastClose * 0.02);
+  const hurstExponent = calculateHurstExponent(closes);
+  const kaufmanEr = calculateKaufmanER(closes, 20);
   
   const highWindow = (Array.isArray(bars) ? bars : []).slice(-Math.min(252, bars.length));
   const high52Week = Math.max(...highWindow.map((b) => Number(b.high || b.close)).filter(Number.isFinite));
@@ -166,6 +170,10 @@ function trendMetrics(bars) {
     sma200: round(sma200, 2),
     atr14: round(atr14, 2),
     atrPct: round((atr14 / lastClose) * 100, 2),
+    hurstExponent: round(hurstExponent, 3),
+    kaufmanEr: round(kaufmanEr, 3),
+    isTrendingMemory: hurstExponent >= 0.52,
+    isEfficientTrend: kaufmanEr >= 0.30,
     high52Week: round(high52Week, 2),
     low52Week: round(low52Week, 2),
     isUptrendStructure,

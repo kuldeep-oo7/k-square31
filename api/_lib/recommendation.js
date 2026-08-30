@@ -222,11 +222,15 @@ function recommendation(input) {
     const stats = cycle[side].levels.find((item) => item.level === level);
     const entryPrice = round(rung.price);
     const targetPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (targetPct / 100)));
+    const runnerTargetPct = round(Math.max(5.0, targetPct * 2.2), 2);
+    const runnerTargetPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (runnerTargetPct / 100)));
     const stopLossPrice = round(entryPrice * (1 - (side === "short" ? -1 : 1) * (stopLossPct / 100)));
     return {
       level,
       entry: entryPrice,
       target: targetPrice,
+      runnerTarget: runnerTargetPrice,
+      runnerTargetPct,
       stopLoss: stopLossPrice,
       riskReward,
       targetPct,
