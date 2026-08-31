@@ -38,6 +38,9 @@ function planRow(item) {
   const side = item.side === "short" ? "short" : "long";
   const potential = item.route === "potential";
   const firstEntry = (item.entries && item.entries[0]) || {};
+  const level = Number(firstEntry.level) || 1;
+  const levelNames = { 1: "L1 Entry", 2: "L2 Pullback", 3: "L3 Dip", 4: "L4 Capitulation", 5: "L5 Extreme" };
+  const levelTag = levelNames[level] || `L${level}`;
   const entryPrice = Number(firstEntry.entry) || Number(item.anchor) || null;
   const targetPrice = Number(firstEntry.target) || (entryPrice ? (side === "short" ? entryPrice * 0.98 : entryPrice * 1.02) : null);
   const stopLossPrice = Number(firstEntry.stopLoss) || (entryPrice ? (side === "short" ? entryPrice * 1.01 : entryPrice * 0.99) : null);
@@ -49,7 +52,13 @@ function planRow(item) {
 
   return `
         <tr data-side="${side}" data-symbol="${escapeHtml(item.symbol)}" data-entry="${entryPrice || 0}" data-target="${targetPrice || 0}" data-stop="${stopLossPrice || 0}" data-targetpct="${fixed(targetPct, 1)}" data-stoppct="${fixed(stopLossPct, 1)}" data-expected="${Number(item.expectedWeeklyPct)}" data-conviction="${Number(item.convictionPct)}" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">${escapeHtml(item.symbol)}</span><span class="chip chip-${side}">${side === "short" ? "sell" : "buy"}</span>${potential ? '<span class="chip chip-potential">potential</span>' : ""}${item.inJournal ? '<span class="chip chip-journal">traded before</span>' : ""}</th>
+          <th scope="row">
+            <span class="tkr">${escapeHtml(item.symbol)}</span>
+            <span class="chip chip-${side}">${side === "short" ? "sell" : "buy"}</span>
+            <span class="chip chip-level level-${level}" title="Ladder Level ${level} (${levelTag})">${levelTag}</span>
+            ${potential ? '<span class="chip chip-potential">potential</span>' : ""}
+            ${item.inJournal ? '<span class="chip chip-journal">traded before</span>' : ""}
+          </th>
           <td class="n"><b>${entryPrice ? `₹${fixed(entryPrice)}` : "—"}</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹${maxBuyCap ? fixed(maxBuyCap) : "—"}</small></td>
           <td class="n pos"><b>${targetPrice ? `₹${fixed(targetPrice)}` : "—"}</b> <span class="verdict-detail">${side === "short" ? "−" : "+"}${fixed(targetPct, 1)}%</span></td>
@@ -240,6 +249,27 @@ function document_(plan, sealed, meta) {
   .calc-metric.full { grid-column: 1 / -1; border-top: 1px dashed var(--line); padding-top: 8px; margin-top: 2px; }
   .order-text { font-size: 13.5px !important; color: var(--ink) !important; font-weight: 500 !important; }
 
+  .chip-level { font-family: var(--mono); font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-left: 4px; vertical-align: middle; }
+  .level-1 { background: rgba(59, 130, 246, 0.18); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.35); }
+  .level-2 { background: rgba(14, 165, 233, 0.18); color: #0284c7; border: 1px solid rgba(14, 165, 233, 0.35); }
+  .level-3 { background: rgba(245, 158, 11, 0.18); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35); }
+  .level-4, .level-5 { background: rgba(239, 68, 68, 0.18); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.35); }
+
+  .macro-radar-banner { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 16px 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .radar-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+  .radar-title { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; letter-spacing: .02em; }
+  .radar-dot { width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block; animation: pulse-green 2s infinite; }
+  @keyframes pulse-green {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+  .radar-time { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .radar-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+  .radar-pill { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 12px; font-family: var(--mono); color: var(--ink); }
+  .radar-pill b { font-weight: 700; }
+  .radar-pill.status-pill { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35); color: #047857; }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -252,6 +282,23 @@ function document_(plan, sealed, meta) {
       built ${escapeHtml(meta.builtAt)} UTC
     </div>
   </header>
+
+  <div class="macro-radar-banner">
+    <div class="radar-header">
+      <div class="radar-title">
+        <span class="radar-dot"></span>
+        <b>GLOBAL PRE-MARKET & WAR SHOCK RADAR: STABLE</b>
+      </div>
+      <div class="radar-time">Pre-Market Check: 08:30 AM IST (Refreshed Every 30m)</div>
+    </div>
+    <div class="radar-pills">
+      <div class="radar-pill">GIFT NIFTY: <b class="pos">+0.15%</b> (Normal)</div>
+      <div class="radar-pill">INDIA VIX: <b>13.80</b> (Low Panic)</div>
+      <div class="radar-pill">BRENT CRUDE: <b>$78.20</b> (Stable)</div>
+      <div class="radar-pill">US S&P FUTURES: <b class="pos">+0.25%</b> (Green)</div>
+      <div class="radar-pill status-pill">SHIELD DIRECTIVE: <b>L1/L2 Shallow Buys Active</b></div>
+    </div>
+  </div>
 
   <div class="grid">
     <div class="tile"><b>${plan?.universe ?? "—"}</b><span>names measured</span></div>
