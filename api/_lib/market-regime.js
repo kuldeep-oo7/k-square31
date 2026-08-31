@@ -94,6 +94,102 @@ function classifyMarketRegime(indexBars = []) {
   };
 }
 
+/**
+ * Pre-Market Global Macro Shock & Geopolitical Bloodbath Shield
+ * Monitors GIFT NIFTY, VIX, Crude Oil spikes (War indicator), and US/Global futures.
+ */
+function evaluateGlobalMacroShock({
+  giftNiftyGapPct = 0,
+  indiaVix = 14,
+  indiaVixChangePct = 0,
+  usVix = 15,
+  brentCrudeSpikePct = 0,
+  sp500FuturesGapPct = 0
+}) {
+  const gap = Number(giftNiftyGapPct) || 0;
+  const vix = Number(indiaVix) || 14;
+  const vixChange = Number(indiaVixChangePct) || 0;
+  const crudeSpike = Number(brentCrudeSpikePct) || 0;
+  const spGap = Number(sp500FuturesGapPct) || 0;
+
+  let shockScore = 0;
+  const shockFactors = [];
+
+  // 1. Overnight Gap Risk (GIFT NIFTY)
+  if (gap <= -1.8) {
+    shockScore += 40;
+    shockFactors.push(`Severe overnight gap-down (${gap}% on GIFT NIFTY)`);
+  } else if (gap <= -1.0) {
+    shockScore += 25;
+    shockFactors.push(`Moderate overnight gap-down (${gap}% on GIFT NIFTY)`);
+  }
+
+  // 2. Volatility / Panic Spike (VIX)
+  if (vix >= 22 || vixChange >= 15.0) {
+    shockScore += 30;
+    shockFactors.push(`High Volatility / Panic Spike (VIX: ${vix}, +${vixChange}%)`);
+  } else if (vix >= 18 || vixChange >= 8.0) {
+    shockScore += 15;
+    shockFactors.push(`Elevated Volatility (VIX: ${vix})`);
+  }
+
+  // 3. Geopolitical / War Indicator (Brent Crude Oil Spike)
+  if (crudeSpike >= 4.0) {
+    shockScore += 25;
+    shockFactors.push(`Geopolitical Crude Shock (+${crudeSpike}% overnight)`);
+  } else if (crudeSpike >= 2.5) {
+    shockScore += 10;
+    shockFactors.push(`Crude Oil Spiking (+${crudeSpike}%)`);
+  }
+
+  // 4. US / Global Bloodbath Spillover
+  if (spGap <= -2.0) {
+    shockScore += 20;
+    shockFactors.push(`US Markets Bloodbath (S&P Futures ${spGap}%)`);
+  }
+
+  // Categorize Shield Status
+  if (shockScore >= 55) {
+    return {
+      severity: "CRITICAL_BLOODBATH",
+      shieldActive: true,
+      allowedLongLevels: [4, 5], // ONLY deep capitulation dips allowed (no shallow knife catching)
+      vetoedLongLevels: [1, 2, 3],
+      shortMultiplier: 1.35,     // Boost short setups to profit from the selloff
+      longMultiplier: 0.50,      // Defend long exposure
+      actionDirective: "FULL_DEFENSE",
+      reasons: shockFactors,
+      summary: "CRITICAL GLOBAL SHOCK: All shallow buys vetoed. Capitulation dips & Short setups active."
+    };
+  }
+
+  if (shockScore >= 25) {
+    return {
+      severity: "ELEVATED_RISK",
+      shieldActive: true,
+      allowedLongLevels: [2, 3, 4, 5], // Veto Level 1 shallow entries
+      vetoedLongLevels: [1],
+      shortMultiplier: 1.15,
+      longMultiplier: 0.75,
+      actionDirective: "CAUTION_DEEP_DIPS_ONLY",
+      reasons: shockFactors,
+      summary: "ELEVATED GLOBAL RISK: Level 1 shallow entries blocked. Waiting for deep pullbacks."
+    };
+  }
+
+  return {
+    severity: "NORMAL",
+    shieldActive: false,
+    allowedLongLevels: [1, 2, 3, 4, 5],
+    vetoedLongLevels: [],
+    shortMultiplier: 1.0,
+    longMultiplier: 1.0,
+    actionDirective: "STANDARD_EXECUTION",
+    reasons: ["Global macro and volatility conditions are within normal baseline thresholds."],
+    summary: "NORMAL REGIME: Standard ladder entries active."
+  };
+}
+
 function enforceSectorDiversification(recommendations = [], maxPerSector = 2) {
   const sectorCounts = new Map();
   const filtered = [];
@@ -113,6 +209,7 @@ function enforceSectorDiversification(recommendations = [], maxPerSector = 2) {
 module.exports = {
   classifyMarketRegime,
   calcGarmanKlassVol,
+  evaluateGlobalMacroShock,
   enforceSectorDiversification,
   round
 };
