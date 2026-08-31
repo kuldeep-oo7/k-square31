@@ -10,6 +10,9 @@
 // 5. The Trillion Dollar Equation: Black-Scholes-Merton Partial Differential Equation & Greeks
 // 6. Kelly Criterion & Merton's Optimal Allocation Ratio (John Kelly / Robert Merton)
 // 7. Ornstein-Uhlenbeck (OU) Mean-Reversion Stochastic Drift & Half-Life
+// 8. Fractional Differentiation: Stationarity with Maximum Memory Retention (López de Prado)
+// 9. VPIN: Volume-Synchronized Probability of Informed Trading & Toxicity (Easley, O'Hara & López de Prado)
+// 10. Meta-Labeling: Secondary Machine Learning Quality Control Gate (López de Prado)
 
 function stdNormCdf(x) {
   const b1 = 0.319381530;
@@ -283,6 +286,155 @@ function calculateOuHalfLife(prices) {
   };
 }
 
+/**
+ * Fractional Differentiation (Marcos López de Prado)
+ * Preserves maximal long-term memory while achieving statistical stationarity.
+ * d typically in range [0.35, 0.50].
+ */
+function calculateFractionalDiff(prices, d = 0.45, threshold = 1e-4) {
+  if (!Array.isArray(prices) || prices.length < 20) return prices;
+
+  const weights = [1.0];
+  let k = 1;
+  while (true) {
+    const w = -weights[k - 1] * (d - k + 1) / k;
+    if (Math.abs(w) < threshold || k >= prices.length) break;
+    weights.push(w);
+    k++;
+  }
+
+  const result = [];
+  for (let i = 0; i < prices.length; i++) {
+    if (i < weights.length - 1) {
+      result.push(0);
+      continue;
+    }
+    let val = 0;
+    for (let j = 0; j < weights.length; j++) {
+      val += weights[j] * prices[i - j];
+    }
+    result.push(Number(val.toFixed(4)));
+  }
+
+  return {
+    fractionalSeries: result,
+    d,
+    memoryRetentionPct: Number(((1.0 - d) * 100).toFixed(1)),
+    weightsLength: weights.length
+  };
+}
+
+/**
+ * VPIN: Volume-Synchronized Probability of Informed Trading & Toxicity
+ * (David Easley, Maureen O'Hara & Marcos López de Prado)
+ * Slices volume into equal-sized buckets to measure order flow toxicity.
+ */
+function calculateVpin(bars, numBuckets = 30) {
+  if (!Array.isArray(bars) || bars.length < 10) {
+    return { vpin: 0.35, toxicOrderFlow: false, toxicityTone: "LOW" };
+  }
+
+  const totalVolume = bars.reduce((sum, b) => sum + (Number(b.volume) || 1000), 0);
+  const bucketSize = Math.max(100, Math.floor(totalVolume / numBuckets));
+
+  let currentBucketVol = 0;
+  let currentBuyVol = 0;
+  let currentSellVol = 0;
+  const imbalances = [];
+
+  // Typical price absolute volatility
+  let sumAbsChange = 0;
+  for (let i = 1; i < bars.length; i++) {
+    sumAbsChange += Math.abs(bars[i].close - bars[i - 1].close);
+  }
+  const avgChange = Math.max(0.01, sumAbsChange / (bars.length - 1));
+
+  for (let i = 1; i < bars.length; i++) {
+    const bar = bars[i];
+    const prevBar = bars[i - 1];
+    const diff = bar.close - prevBar.close;
+    // Standardized direction metric
+    const zScore = diff / avgChange;
+    const buyFrac = Math.max(0.02, Math.min(0.98, stdNormCdf(zScore * 1.5)));
+    const vol = Number(bar.volume) || 1000;
+
+    let remainingVol = vol;
+    while (remainingVol > 0) {
+      const needed = bucketSize - currentBucketVol;
+      const add = Math.min(needed, remainingVol);
+
+      currentBuyVol += add * buyFrac;
+      currentSellVol += add * (1.0 - buyFrac);
+      currentBucketVol += add;
+      remainingVol -= add;
+
+      if (currentBucketVol >= bucketSize) {
+        imbalances.push(Math.abs(currentBuyVol - currentSellVol));
+        currentBucketVol = 0;
+        currentBuyVol = 0;
+        currentSellVol = 0;
+      }
+    }
+  }
+
+  if (!imbalances.length) {
+    return { vpin: 0.35, toxicOrderFlow: false, toxicityTone: "LOW" };
+  }
+
+  const sumImbalance = imbalances.reduce((a, b) => a + b, 0);
+  const vpin = sumImbalance / (imbalances.length * bucketSize);
+  const normalizedVpin = Number(Math.max(0.01, Math.min(0.99, vpin)).toFixed(3));
+
+  const toxicOrderFlow = normalizedVpin >= 0.65;
+  const toxicityTone = normalizedVpin >= 0.65 ? "CRITICAL" : normalizedVpin >= 0.45 ? "MODERATE" : "LOW";
+
+  return {
+    vpin: normalizedVpin,
+    toxicOrderFlow,
+    toxicityTone,
+    bucketsEvaluated: imbalances.length
+  };
+}
+
+/**
+ * Meta-Labeling Quality Control Gate (Marcos López de Prado)
+ * Secondary AI filter: evaluates probability that primary trade will be profitable.
+ */
+function metaLabelConfidence({ primarySide = "long", primaryScore = 50, hurst = 0.55, er = 0.50, vpin = 0.30, isUptrend = true }) {
+  let z = -0.5;
+
+  z += (Number(primaryScore) / 100) * 1.5;
+
+  if (hurst >= 0.60) z += 0.8;
+  else if (hurst >= 0.55) z += 0.4;
+  else if (hurst < 0.45) z -= 1.0;
+
+  if (er >= 0.50) z += 0.7;
+  else if (er < 0.25) z -= 0.9;
+
+  if (vpin >= 0.65) z -= 1.5;
+  else if (vpin <= 0.35) z += 0.5;
+
+  if (primarySide === "long" && isUptrend) z += 0.5;
+  else if (primarySide === "long" && !isUptrend) z -= 0.6;
+
+  const metaProb = Number((1.0 / (1.0 + Math.exp(-z))).toFixed(3));
+
+  const decision = (metaProb >= 0.55 && vpin < 0.65) ? "TAKE" : "VETO";
+  let metaMultiplier = 1.0;
+  if (metaProb >= 0.75) metaMultiplier = 1.25;
+  else if (metaProb >= 0.65) metaMultiplier = 1.0;
+  else if (metaProb >= 0.55) metaMultiplier = 0.75;
+  else metaMultiplier = 0.0;
+
+  return {
+    metaProb,
+    decision,
+    metaMultiplier,
+    qualityRating: metaProb >= 0.75 ? "PRIME" : metaProb >= 0.60 ? "HIGH_CONVICTION" : metaProb >= 0.55 ? "ACCEPTABLE" : "REJECTED"
+  };
+}
+
 module.exports = {
   blackScholesMerton,
   calculateHurstExponent,
@@ -290,5 +442,8 @@ module.exports = {
   calculateAnchoredVwap,
   classifyOiBuildup,
   calculateKellyFraction,
-  calculateOuHalfLife
+  calculateOuHalfLife,
+  calculateFractionalDiff,
+  calculateVpin,
+  metaLabelConfidence
 };
