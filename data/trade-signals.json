@@ -1,0 +1,44 @@
+[
+  {
+    "id": "sig_ABB_2026-08-31_long",
+    "symbol": "ABB",
+    "side": "long",
+    "action": "buy-ladder",
+    "weekKey": "2026-08-31",
+    "timestamp": 1788192548016,
+    "entryPrice": 7047.65,
+    "targetPrice": 7226.66,
+    "stopLossPrice": 6958.14,
+    "riskReward": 2,
+    "convictionPct": 44.29,
+    "expectedWeeklyPct": 0.752,
+    "sizeMultiplier": 0.725,
+    "reasons": [
+      "Rungs 3 cleared t≥1.89 with 0.155% average out-of-sample week",
+      "Realised weekly edge: 0.155% average out-of-sample week over 79 weeks",
+      "Target hit reliability: rung 3 hits its 2% target at least 64.15% of the time with 95% confidence",
+      "Trend alignment: 12-month move 52.755%, 1.97 per unit of risk",
+      "Model skill: out-of-sample information coefficient 0.029",
+      "Carry: futures at a discount of -2.473%, worth 0.597% to this side over the week",
+      "Balance-sheet asymmetry: balance-sheet score 0.9411"
+    ],
+    "features": {
+      "return5Pct": 0,
+      "return21Pct": 0,
+      "atr14Pct": 0,
+      "realisedVol21Pct": 0,
+      "rsi14": 50,
+      "zScore20": 0,
+      "volumeRatio520": 1,
+      "highProximityPct": 0
+    },
+    "status": "PENDING",
+    "outcome": null,
+    "exitPrice": null,
+    "pnlPct": null,
+    "mfePct": null,
+    "maePct": null,
+    "holdingSessions": 0,
+    "resolvedAt": null
+  }
+]
