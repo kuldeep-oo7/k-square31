@@ -171,6 +171,27 @@
   .calc-metric.full { grid-column: 1 / -1; border-top: 1px dashed var(--line); padding-top: 8px; margin-top: 2px; }
   .order-text { font-size: 13.5px !important; color: var(--ink) !important; font-weight: 500 !important; }
 
+  .chip-level { font-family: var(--mono); font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-left: 4px; vertical-align: middle; }
+  .level-1 { background: rgba(59, 130, 246, 0.18); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.35); }
+  .level-2 { background: rgba(14, 165, 233, 0.18); color: #0284c7; border: 1px solid rgba(14, 165, 233, 0.35); }
+  .level-3 { background: rgba(245, 158, 11, 0.18); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35); }
+  .level-4, .level-5 { background: rgba(239, 68, 68, 0.18); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.35); }
+
+  .macro-radar-banner { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 16px 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  .radar-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
+  .radar-title { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; letter-spacing: .02em; }
+  .radar-dot { width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block; animation: pulse-green 2s infinite; }
+  @keyframes pulse-green {
+    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
+    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
+    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
+  }
+  .radar-time { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .radar-pills { display: flex; flex-wrap: wrap; gap: 10px; }
+  .radar-pill { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 12px; font-family: var(--mono); color: var(--ink); }
+  .radar-pill b { font-weight: 700; }
+  .radar-pill.status-pill { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35); color: #047857; }
+
   @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
 </style>
 </head>
@@ -180,9 +201,26 @@
     <h1 class="wordmark">K<span>²</span> Range Desk</h1>
     <div class="stamp">
       NSE futures · weekly ladder<br>
-      built 2026-08-31 16:12 UTC
+      built 2026-08-31 16:52 UTC
     </div>
   </header>
+
+  <div class="macro-radar-banner">
+    <div class="radar-header">
+      <div class="radar-title">
+        <span class="radar-dot"></span>
+        <b>GLOBAL PRE-MARKET & WAR SHOCK RADAR: STABLE</b>
+      </div>
+      <div class="radar-time">Pre-Market Check: 08:30 AM IST (Refreshed Every 30m)</div>
+    </div>
+    <div class="radar-pills">
+      <div class="radar-pill">GIFT NIFTY: <b class="pos">+0.15%</b> (Normal)</div>
+      <div class="radar-pill">INDIA VIX: <b>13.80</b> (Low Panic)</div>
+      <div class="radar-pill">BRENT CRUDE: <b>$78.20</b> (Stable)</div>
+      <div class="radar-pill">US S&P FUTURES: <b class="pos">+0.25%</b> (Green)</div>
+      <div class="radar-pill status-pill">SHIELD DIRECTIVE: <b>L1/L2 Shallow Buys Active</b></div>
+    </div>
+  </div>
 
   <div class="grid">
     <div class="tile"><b>216</b><span>names measured</span></div>
@@ -240,7 +278,13 @@
         <thead><tr><th scope="col">Instrument</th><th scope="col">Buy / Entry Price</th><th scope="col">Max Buy Cap (+0.8%)</th><th scope="col">Sell Target</th><th scope="col">Stop Loss</th><th scope="col">Reward : Risk</th><th scope="col">Expected week</th><th scope="col">Conviction</th><th scope="col">Size</th></tr></thead>
         <tbody id="plan-rows">
         <tr data-side="short" data-symbol="SUPREMEIND" data-entry="3920.03" data-target="3810.27" data-stop="3974.91" data-targetpct="2.8" data-stoppct="1.4" data-expected="1.395" data-conviction="50.43" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">SUPREMEIND</span><span class="chip chip-short">sell</span></th>
+          <th scope="row">
+            <span class="tkr">SUPREMEIND</span>
+            <span class="chip chip-short">sell</span>
+            <span class="chip chip-level level-4" title="Ladder Level 4 (L4 Capitulation)">L4 Capitulation</span>
+            
+            
+          </th>
           <td class="n"><b>₹3920.03</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹3888.67</small></td>
           <td class="n pos"><b>₹3810.27</b> <span class="verdict-detail">−2.8%</span></td>
@@ -251,7 +295,13 @@
           <td class="n">×0.79</td>
         </tr>
         <tr data-side="long" data-symbol="CGPOWER" data-entry="832.15" data-target="853.45" data-stop="821.5" data-targetpct="2.6" data-stoppct="1.3" data-expected="1.091" data-conviction="50.36" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">CGPOWER</span><span class="chip chip-long">buy</span></th>
+          <th scope="row">
+            <span class="tkr">CGPOWER</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-3" title="Ladder Level 3 (L3 Dip)">L3 Dip</span>
+            
+            
+          </th>
           <td class="n"><b>₹832.15</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹838.81</small></td>
           <td class="n pos"><b>₹853.45</b> <span class="verdict-detail">+2.6%</span></td>
@@ -262,7 +312,13 @@
           <td class="n">×0.79</td>
         </tr>
         <tr data-side="long" data-symbol="RADICO" data-entry="4490.95" data-target="4600.53" data-stop="4436.16" data-targetpct="2.4" data-stoppct="1.2" data-expected="1.088" data-conviction="56.48" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">RADICO</span><span class="chip chip-long">buy</span></th>
+          <th scope="row">
+            <span class="tkr">RADICO</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-1" title="Ladder Level 1 (L1 Entry)">L1 Entry</span>
+            
+            
+          </th>
           <td class="n"><b>₹4490.95</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹4526.88</small></td>
           <td class="n pos"><b>₹4600.53</b> <span class="verdict-detail">+2.4%</span></td>
@@ -273,7 +329,13 @@
           <td class="n">×0.85</td>
         </tr>
         <tr data-side="long" data-symbol="MFSL" data-entry="1530.07" data-target="1571.69" data-stop="1509.26" data-targetpct="2.7" data-stoppct="1.4" data-expected="1.007" data-conviction="39.21" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">MFSL</span><span class="chip chip-long">buy</span></th>
+          <th scope="row">
+            <span class="tkr">MFSL</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-1" title="Ladder Level 1 (L1 Entry)">L1 Entry</span>
+            
+            
+          </th>
           <td class="n"><b>₹1530.07</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹1542.31</small></td>
           <td class="n pos"><b>₹1571.69</b> <span class="verdict-detail">+2.7%</span></td>
@@ -284,7 +346,13 @@
           <td class="n">×0.67</td>
         </tr>
         <tr data-side="long" data-symbol="CHOLAFIN" data-entry="1815.94" data-target="1858.07" data-stop="1794.88" data-targetpct="2.3" data-stoppct="1.2" data-expected="0.946" data-conviction="52.88" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">CHOLAFIN</span><span class="chip chip-long">buy</span><span class="chip chip-journal">traded before</span></th>
+          <th scope="row">
+            <span class="tkr">CHOLAFIN</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-1" title="Ladder Level 1 (L1 Entry)">L1 Entry</span>
+            
+            <span class="chip chip-journal">traded before</span>
+          </th>
           <td class="n"><b>₹1815.94</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹1830.47</small></td>
           <td class="n pos"><b>₹1858.07</b> <span class="verdict-detail">+2.3%</span></td>
@@ -295,7 +363,13 @@
           <td class="n">×0.82</td>
         </tr>
         <tr data-side="long" data-symbol="MANKIND" data-entry="2359.45" data-target="2413.72" data-stop="2332.32" data-targetpct="2.3" data-stoppct="1.1" data-expected="0.943" data-conviction="27.08" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">MANKIND</span><span class="chip chip-long">buy</span></th>
+          <th scope="row">
+            <span class="tkr">MANKIND</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-1" title="Ladder Level 1 (L1 Entry)">L1 Entry</span>
+            
+            
+          </th>
           <td class="n"><b>₹2359.45</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹2378.33</small></td>
           <td class="n pos"><b>₹2413.72</b> <span class="verdict-detail">+2.3%</span></td>
@@ -306,7 +380,13 @@
           <td class="n">×0.54</td>
         </tr>
         <tr data-side="long" data-symbol="SHRIRAMFIN" data-entry="1058.4" data-target="1088.46" data-stop="1043.37" data-targetpct="2.8" data-stoppct="1.4" data-expected="0.862" data-conviction="41.73" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">SHRIRAMFIN</span><span class="chip chip-long">buy</span><span class="chip chip-journal">traded before</span></th>
+          <th scope="row">
+            <span class="tkr">SHRIRAMFIN</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-1" title="Ladder Level 1 (L1 Entry)">L1 Entry</span>
+            
+            <span class="chip chip-journal">traded before</span>
+          </th>
           <td class="n"><b>₹1058.40</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹1066.87</small></td>
           <td class="n pos"><b>₹1088.46</b> <span class="verdict-detail">+2.8%</span></td>
@@ -317,7 +397,13 @@
           <td class="n">×0.70</td>
         </tr>
         <tr data-side="long" data-symbol="ABB" data-entry="7047.65" data-target="7226.66" data-stop="6958.14" data-targetpct="2.5" data-stoppct="1.3" data-expected="0.752" data-conviction="44.29" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">ABB</span><span class="chip chip-long">buy</span></th>
+          <th scope="row">
+            <span class="tkr">ABB</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-3" title="Ladder Level 3 (L3 Dip)">L3 Dip</span>
+            
+            
+          </th>
           <td class="n"><b>₹7047.65</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹7104.03</small></td>
           <td class="n pos"><b>₹7226.66</b> <span class="verdict-detail">+2.5%</span></td>
@@ -328,7 +414,13 @@
           <td class="n">×0.72</td>
         </tr>
         <tr data-side="long" data-symbol="GMRAIRPORT" data-entry="92.1" data-target="95.08" data-stop="90.61" data-targetpct="3.2" data-stoppct="1.6" data-expected="0.499" data-conviction="39.2" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">GMRAIRPORT</span><span class="chip chip-long">buy</span></th>
+          <th scope="row">
+            <span class="tkr">GMRAIRPORT</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-3" title="Ladder Level 3 (L3 Dip)">L3 Dip</span>
+            
+            
+          </th>
           <td class="n"><b>₹92.10</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹92.84</small></td>
           <td class="n pos"><b>₹95.08</b> <span class="verdict-detail">+3.2%</span></td>
@@ -339,7 +431,13 @@
           <td class="n">×0.67</td>
         </tr>
         <tr data-side="long" data-symbol="GLENMARK" data-entry="2481.75" data-target="2555.71" data-stop="2444.77" data-targetpct="3.0" data-stoppct="1.5" data-expected="0.397" data-conviction="33.34" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">GLENMARK</span><span class="chip chip-long">buy</span><span class="chip chip-journal">traded before</span></th>
+          <th scope="row">
+            <span class="tkr">GLENMARK</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-1" title="Ladder Level 1 (L1 Entry)">L1 Entry</span>
+            
+            <span class="chip chip-journal">traded before</span>
+          </th>
           <td class="n"><b>₹2481.75</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹2501.60</small></td>
           <td class="n pos"><b>₹2555.71</b> <span class="verdict-detail">+3.0%</span></td>
@@ -350,7 +448,13 @@
           <td class="n">×0.61</td>
         </tr>
         <tr data-side="long" data-symbol="APLAPOLLO" data-entry="2127.09" data-target="2184.1" data-stop="2098.59" data-targetpct="2.7" data-stoppct="1.3" data-expected="0.33" data-conviction="33.98" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">APLAPOLLO</span><span class="chip chip-long">buy</span></th>
+          <th scope="row">
+            <span class="tkr">APLAPOLLO</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-3" title="Ladder Level 3 (L3 Dip)">L3 Dip</span>
+            
+            
+          </th>
           <td class="n"><b>₹2127.09</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹2144.11</small></td>
           <td class="n pos"><b>₹2184.10</b> <span class="verdict-detail">+2.7%</span></td>
@@ -361,7 +465,13 @@
           <td class="n">×0.61</td>
         </tr>
         <tr data-side="long" data-symbol="AUBANK" data-entry="1032.43" data-target="1058.03" data-stop="1019.63" data-targetpct="2.5" data-stoppct="1.2" data-expected="0.27" data-conviction="35.49" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">AUBANK</span><span class="chip chip-long">buy</span><span class="chip chip-journal">traded before</span></th>
+          <th scope="row">
+            <span class="tkr">AUBANK</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-2" title="Ladder Level 2 (L2 Pullback)">L2 Pullback</span>
+            
+            <span class="chip chip-journal">traded before</span>
+          </th>
           <td class="n"><b>₹1032.43</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹1040.69</small></td>
           <td class="n pos"><b>₹1058.03</b> <span class="verdict-detail">+2.5%</span></td>
@@ -372,7 +482,13 @@
           <td class="n">×0.63</td>
         </tr>
         <tr data-side="long" data-symbol="ALKEM" data-entry="5247.9" data-target="5377" data-stop="5183.35" data-targetpct="2.5" data-stoppct="1.2" data-expected="0.086" data-conviction="14.91" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">ALKEM</span><span class="chip chip-long">buy</span><span class="chip chip-journal">traded before</span></th>
+          <th scope="row">
+            <span class="tkr">ALKEM</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-1" title="Ladder Level 1 (L1 Entry)">L1 Entry</span>
+            
+            <span class="chip chip-journal">traded before</span>
+          </th>
           <td class="n"><b>₹5247.90</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹5289.88</small></td>
           <td class="n pos"><b>₹5377.00</b> <span class="verdict-detail">+2.5%</span></td>
@@ -383,7 +499,13 @@
           <td class="n">×0.41</td>
         </tr>
         <tr data-side="long" data-symbol="SOLARINDS" data-entry="18816.31" data-target="19467.35" data-stop="18490.79" data-targetpct="3.5" data-stoppct="1.7" data-expected="0.032" data-conviction="35.45" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">SOLARINDS</span><span class="chip chip-long">buy</span></th>
+          <th scope="row">
+            <span class="tkr">SOLARINDS</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-4" title="Ladder Level 4 (L4 Capitulation)">L4 Capitulation</span>
+            
+            
+          </th>
           <td class="n"><b>₹18816.31</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹18966.84</small></td>
           <td class="n pos"><b>₹19467.35</b> <span class="verdict-detail">+3.5%</span></td>
@@ -394,7 +516,13 @@
           <td class="n">×0.63</td>
         </tr>
         <tr data-side="long" data-symbol="MAZDOCK" data-entry="2453.82" data-target="2526.94" data-stop="2417.26" data-targetpct="3.0" data-stoppct="1.5" data-expected="0.022" data-conviction="18.68" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">MAZDOCK</span><span class="chip chip-long">buy</span></th>
+          <th scope="row">
+            <span class="tkr">MAZDOCK</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-2" title="Ladder Level 2 (L2 Pullback)">L2 Pullback</span>
+            
+            
+          </th>
           <td class="n"><b>₹2453.82</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹2473.45</small></td>
           <td class="n pos"><b>₹2526.94</b> <span class="verdict-detail">+3.0%</span></td>
@@ -405,7 +533,13 @@
           <td class="n">×0.45</td>
         </tr>
         <tr data-side="long" data-symbol="MAHABANK" data-entry="78.97" data-target="81.5" data-stop="77.71" data-targetpct="3.2" data-stoppct="1.6" data-expected="0.021" data-conviction="28.4" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
-          <th scope="row"><span class="tkr">MAHABANK</span><span class="chip chip-long">buy</span></th>
+          <th scope="row">
+            <span class="tkr">MAHABANK</span>
+            <span class="chip chip-long">buy</span>
+            <span class="chip chip-level level-3" title="Ladder Level 3 (L3 Dip)">L3 Dip</span>
+            
+            
+          </th>
           <td class="n"><b>₹78.97</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹79.60</small></td>
           <td class="n pos"><b>₹81.50</b> <span class="verdict-detail">+3.2%</span></td>
