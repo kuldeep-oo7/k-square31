@@ -15,6 +15,7 @@ const { weeklyForecast } = require("./ml-model");
 const { trendAlignment, trendGate, trendMetrics } = require("./trend");
 const { carryScore } = require("./carry");
 const { upside } = require("./upside");
+const { calculateVpin, metaLabelConfidence, calculateKellyFraction } = require("./advanced-quant");
 
 function round(value, digits = 2) {
   if (!Number.isFinite(value)) return null;
@@ -107,10 +108,28 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
   const atrPct = metrics?.ready ? Number(metrics.atrPct) || 2.0 : 2.0;
   const stopLossPct = round(Math.max(0.8, Math.min(2.0, atrPct * 0.6)), 2);
   const targetPct = round(Math.max(Number(config.targetPct) || 2.0, stopLossPct * 2.0), 2);
+  const runnerTargetPct = round(Math.max(5.0, targetPct * 2.2), 2);
   const riskReward = round(targetPct / stopLossPct, 1);
   const entryPrice = round(rungs[0].price);
   const targetPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (targetPct / 100)));
+  const runnerTargetPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (runnerTargetPct / 100)));
   const stopLossPrice = round(entryPrice * (1 - (side === "short" ? -1 : 1) * (stopLossPct / 100)));
+
+  const hurst = metrics?.hurstExponent || 0.50;
+  const er = metrics?.kaufmanEr || 0.30;
+  const vpinData = calculateVpin(bars, 20);
+  const metaGate = metaLabelConfidence({
+    primarySide: side,
+    primaryScore: convictionPct,
+    hurst,
+    er,
+    vpin: vpinData.vpin,
+    isUptrend: metrics?.isUptrendStructure
+  });
+  const kelly = calculateKellyFraction({
+    winRate: Math.max(0.40, convictionPct / 100),
+    rewardToRiskRatio: riskReward
+  });
 
   return {
     symbol,
@@ -121,12 +140,12 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
     anchor: round(anchorInfo.anchor),
     sessionsElapsed: anchorInfo.sessionsElapsed,
     levels: [1],
-    // Only the first rung is offered. The deeper rungs exist to average into a
-    // measured mean reversion, and there is no measured reversion here.
     entries: [{
       level: 1,
       entry: entryPrice,
       target: targetPrice,
+      runnerTarget: runnerTargetPrice,
+      runnerTargetPct,
       stopLoss: stopLossPrice,
       riskReward,
       targetPct,
@@ -142,7 +161,17 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
     expectedWeeklyPct: round(potential.expectedMovePct, 3),
     expectedFromPricePct: round(potential.expectedMovePct, 3),
     expectedFromCarryPct: round(Number(potential.components?.find((item) => item.name === "Carry")?.expectedPct) || 0, 3),
-    sizeMultiplier: round(0.25 + 0.5 * clamp(convictionPct / 70), 3),
+    sizeMultiplier: round(clamp((0.25 + 0.5 * clamp(convictionPct / 70)) * metaGate.metaMultiplier, 0.25, 1.0), 3),
+    advancedQuant: {
+      hurst,
+      er,
+      vpin: vpinData.vpin,
+      toxicityTone: vpinData.toxicityTone,
+      metaProb: metaGate.metaProb,
+      metaDecision: metaGate.decision,
+      qualityRating: metaGate.qualityRating,
+      kellyFraction: kelly
+    },
     bookOut: "Book every open leg at the Friday close; Monday's open sets the next anchor",
     reasons: [potential.reason, ...potential.components.filter((item) => Number(item.expectedPct) > 0).map((item) => `${item.name}: ${item.note}`)],
     vetoes: [],
@@ -266,6 +295,22 @@ function recommendation(input) {
   }
 
 
+  const hurst = metrics?.hurstExponent || 0.50;
+  const er = metrics?.kaufmanEr || 0.30;
+  const vpinData = calculateVpin(bars, 20);
+  const metaGate = metaLabelConfidence({
+    primarySide: side,
+    primaryScore: convictionPct,
+    hurst,
+    er,
+    vpin: vpinData.vpin,
+    isUptrend: metrics?.isUptrendStructure
+  });
+  const kelly = calculateKellyFraction({
+    winRate: Math.max(0.40, convictionPct / 100),
+    rewardToRiskRatio: riskReward
+  });
+
   return {
     symbol,
     action: verdict.action,
@@ -279,8 +324,18 @@ function recommendation(input) {
     expectedWeeklyPct,
     expectedFromPricePct: round(priceExpectation, 3),
     expectedFromCarryPct: round(carryContribution, 3),
-    // Conviction only scales the ticket; it never creates one.
-    sizeMultiplier: round(0.25 + 0.75 * clamp(convictionPct / 70), 3),
+    // Conviction and Meta-Labeling scale the ticket
+    sizeMultiplier: round(clamp((0.25 + 0.75 * clamp(convictionPct / 70)) * metaGate.metaMultiplier, 0.25, 1.0), 3),
+    advancedQuant: {
+      hurst,
+      er,
+      vpin: vpinData.vpin,
+      toxicityTone: vpinData.toxicityTone,
+      metaProb: metaGate.metaProb,
+      metaDecision: metaGate.decision,
+      qualityRating: metaGate.qualityRating,
+      kellyFraction: kelly
+    },
     bookOut: "Book every open leg at the Friday close; Monday's open sets the next anchor",
     reasons: [
       verdict.reason,
