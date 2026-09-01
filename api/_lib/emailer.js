@@ -6,6 +6,16 @@ const https = require("node:https");
 
 const DEFAULT_RECIPIENT = "kuldeepsavaliya70@gmail.com";
 
+// Auto-load .env.local if present
+const envLocal = path.resolve(__dirname, "../../.env.local");
+if (fs.existsSync(envLocal)) {
+  const lines = fs.readFileSync(envLocal, "utf8").split("\n");
+  for (const line of lines) {
+    const [k, ...v] = line.trim().split("=");
+    if (k && v.length && !process.env[k]) process.env[k] = v.join("=");
+  }
+}
+
 /**
  * Builds a beautifully styled HTML trade recommendation and threat email.
  */
