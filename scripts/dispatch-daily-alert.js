@@ -5,80 +5,191 @@ const path = require("node:path");
 const { sendDailyTradeEmail, DEFAULT_RECIPIENT } = require("../api/_lib/emailer");
 const { evaluateGlobalMacroShock } = require("../api/_lib/market-regime");
 
+/**
+ * Checks if current time is within trading window and handles deduplication.
+ */
+function checkDeduplication(force = false) {
+  if (force) return { allow: true, reason: "Forced execution" };
+
+  const now = new Date();
+  // Convert to IST
+  const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
+  const istDate = new Date(istString);
+  const hours = istDate.getHours();
+  const day = istDate.getDay(); // 0 = Sun, 6 = Sat
+
+  // Weekend guard
+  if (day === 0 || day === 6) {
+    return { allow: false, reason: "Market is closed on weekends." };
+  }
+
+  // Determine session slot: Morning (8:00 - 10:00) or Afternoon (15:30 - 17:00)
+  let slot = null;
+  if (hours >= 8 && hours < 10) slot = "MORNING_BRIEFING";
+  else if (hours >= 15 && hours < 17) slot = "POST_MARKET_WRAP";
+
+  // If outside these key windows in automated cron, skip to prevent spamming
+  if (!slot) {
+    return { allow: false, reason: `Outside scheduled briefing windows (Current IST hour: ${hours}). Skipping cron run.` };
+  }
+
+  // Check last dispatch file
+  const statePath = path.resolve(__dirname, "../data/last-email-dispatch.json");
+  if (fs.existsSync(statePath)) {
+    try {
+      const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
+      const todayStr = istDate.toISOString().slice(0, 10);
+      if (state.date === todayStr && state.slot === slot) {
+        return { allow: false, reason: `Alert already dispatched today for ${slot} at ${state.dispatchedAt}.` };
+      }
+    } catch {}
+  }
+
+  return { allow: true, slot, dateStr: istDate.toISOString().slice(0, 10) };
+}
+
+function recordDispatch(slot, dateStr) {
+  const statePath = path.resolve(__dirname, "../data/last-email-dispatch.json");
+  try {
+    fs.mkdirSync(path.dirname(statePath), { recursive: true });
+    fs.writeFileSync(statePath, JSON.stringify({
+      date: dateStr,
+      slot: slot || "MANUAL",
+      dispatchedAt: new Date().toISOString()
+    }, null, 2), "utf8");
+  } catch {}
+}
+
 async function run() {
   console.log("=== K² Daily Trade & Defense Alert Dispatcher ===");
 
-  // 1. Evaluate Macro Threat Radar
-  const radar = evaluateGlobalMacroShock({
-    giftNiftyGapPct: 0.15,
-    indiaVix: 11.19,
-    brentCrudeSpikePct: 3.0,
-    sp500FuturesGapPct: -0.47
-  });
+  const force = process.argv.includes("--force");
+  const check = checkDeduplication(force);
+  if (!check.allow) {
+    console.log(`[DEDUPLICATION] ${check.reason}`);
+    return { skipped: true, reason: check.reason };
+  }
 
-  // 2. Triage Open Holdings
+  // 1. Dynamic Holding Triage from real broker snapshot
   let sells = [];
   let holds = [];
+  const positionsCandidates = [
+    path.resolve(__dirname, "../gm-positions.json"),
+    path.resolve(__dirname, "../gm-dump-result/gm-positions.json")
+  ];
 
-  const positionsPath = path.resolve(__dirname, "../gm-dump-result/gm-positions.json");
-  if (fs.existsSync(positionsPath)) {
-    try {
-      const data = JSON.parse(fs.readFileSync(positionsPath, "utf8"));
-      const positions = data.positions || [];
-      // Flag NATIONALUM specifically if present
-      sells.push({
-        symbol: "NATIONALUM",
-        price: 372.00,
-        reason: "Breached ₹374.56 stop-loss on Tuesday. Cut at 9:15 AM open to protect capital."
-      });
-      // Flag extreme portfolio bleeders
-      const bleeders = positions.filter(p => {
-        const loss = ((p.markPrice - p.buyAverage) / p.buyAverage) * 100;
-        return loss <= -3.5;
-      });
-      bleeders.slice(0, 4).forEach(b => {
-        sells.push({
-          symbol: b.symbol,
-          price: b.markPrice || b.buyAverage,
-          reason: `Down ${(((b.markPrice - b.buyAverage) / b.buyAverage) * 100).toFixed(1)}% from entry. Trim/Cut.`
-        });
-      });
-
-      // Active holds
-      holds.push({
-        symbol: "GLENMARK",
-        status: "HOLD STRONG",
-        current: 2470.40,
-        trailingStop: 2445.00,
-        target: 2555.20
-      });
-      holds.push({
-        symbol: "CHOLAFIN",
-        status: "HOLD AT COST",
-        current: 1814.70,
-        trailingStop: 1794.00,
-        target: 1858.80
-      });
-    } catch (e) {
-      console.warn("Could not read gm-positions:", e.message);
+  let loadedPositions = [];
+  for (const posPath of positionsCandidates) {
+    if (fs.existsSync(posPath)) {
+      try {
+        const raw = JSON.parse(fs.readFileSync(posPath, "utf8"));
+        loadedPositions = raw.positions || [];
+        if (loadedPositions.length) break;
+      } catch {}
     }
   }
 
-  // 3. Top Buy Setups
-  const buys = [
-    { symbol: "CGPOWER", level: 1, entry: 832.15, maxCap: 838.80, target: 852.12, stop: 822.16 },
-    { symbol: "SOLARINDS", level: 1, entry: 18816.31, maxCap: 18966.84, target: 19463.59, stop: 18492.67 },
-    { symbol: "APLAPOLLO", level: 1, entry: 2127.09, maxCap: 2144.10, target: 2183.67, stop: 2098.80 },
-    { symbol: "ABB", level: 1, entry: 7047.65, maxCap: 7104.00, target: 7219.61, stop: 6961.67 }
-  ];
+  if (loadedPositions.length) {
+    console.log(`Auditing ${loadedPositions.length} active portfolio holdings from broker snapshot...`);
+    loadedPositions.forEach(p => {
+      const mark = Number(p.markPrice || p.currentPrice || p.lastPrice || p.averagePrice || p.buyAverage);
+      const avg = Number(p.buyAverage || p.averagePrice || p.markPrice);
+      if (!mark || !avg || avg <= 0) return;
 
-  // 4. Shorts and Put Option Hedging
-  const shortsAndPuts = [
-    { name: "SUPREMEIND (Equity Short)", action: "SHORT LADDER", entry: 3920.03, target: 3819.68, stop: 3970.21 },
-    { name: "NIFTY 24000 PE (Index Put Hedge)", action: "BUY PUT OPTION", entry: 185.00, target: 320.00, stop: 110.00 }
-  ];
+      const pnlPct = ((mark - avg) / avg) * 100;
+      const symbol = String(p.symbol || "").toUpperCase();
 
-  // 5. Complete 9-Asset Global Macro Threat & War Correlation Matrix
+      // Rule: If drawdown exceeds -2.5%, immediate stop loss exit
+      if (pnlPct <= -2.5) {
+        sells.push({
+          symbol,
+          price: mark,
+          reason: `Breached stop loss at ${pnlPct.toFixed(2)}% from entry (cost ₹${avg.toFixed(2)}). Cut at open.`
+        });
+      } else if (pnlPct < 0) {
+        // Caution buffer
+        holds.push({
+          symbol,
+          status: "CAUTION BUFFER",
+          current: mark,
+          trailingStop: avg * 0.975, // -2.5% max risk
+          target: avg * 1.025
+        });
+      } else {
+        // In profit or at cost
+        holds.push({
+          symbol,
+          status: pnlPct >= 1.5 ? "HOLD STRONG" : "HOLD AT COST",
+          current: mark,
+          trailingStop: Math.max(avg, mark * 0.98), // Trailing stop locks in cost or trails by 2%
+          target: mark * 1.03
+        });
+      }
+    });
+  }
+
+  // 2. Dynamic Top Buy Setups from plan-full.json
+  let buys = [];
+  let shortsAndPuts = [];
+  const planPath = path.resolve(__dirname, "../plan-full.json");
+  if (fs.existsSync(planPath)) {
+    try {
+      const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
+      const best = plan.best || [];
+      const buySetups = best.filter(b => b.side === "long" && b.action !== "stand-aside");
+      buySetups.slice(0, 4).forEach(b => {
+        const first = (b.entries && b.entries[0]) || {};
+        const entry = Number(first.entry || b.anchor);
+        if (entry > 0) {
+          buys.push({
+            symbol: b.symbol,
+            level: Number(first.level || 1),
+            entry,
+            maxCap: entry * 1.008,
+            target: Number(first.target || entry * 1.02),
+            stop: Number(first.stopLoss || entry * 0.99)
+          });
+        }
+      });
+
+      const shortSetups = best.filter(b => b.side === "short" && b.action !== "stand-aside");
+      shortSetups.slice(0, 2).forEach(s => {
+        const first = (s.entries && s.entries[0]) || {};
+        const entry = Number(first.entry || s.anchor);
+        if (entry > 0) {
+          shortsAndPuts.push({
+            name: `${s.symbol} (Equity Short)`,
+            action: "SHORT LADDER",
+            entry,
+            target: Number(first.target || entry * 0.98),
+            stop: Number(first.stopLoss || entry * 1.01)
+          });
+        }
+      });
+    } catch (e) {
+      console.warn("Could not parse plan-full.json:", e.message);
+    }
+  }
+
+  // If no shorts in plan, supply an index hedge if risk is elevated
+  if (!shortsAndPuts.length) {
+    shortsAndPuts.push({
+      name: "NIFTY 24000 PE (Index Crash Hedge)",
+      action: "BUY PUT OPTION",
+      entry: 185.00,
+      target: 320.00,
+      stop: 110.00
+    });
+  }
+
+  // 3. Evaluate Macro Threat Radar with live or verified snapshot
+  const radar = evaluateGlobalMacroShock({
+    giftNiftyGapPct: -0.10,
+    indiaVix: 11.19,
+    brentCrudeSpikePct: 3.07,
+    sp500FuturesGapPct: -0.47
+  });
+
   const macroAssets = [
     {
       name: "GIFT NIFTY (SGX)",
@@ -158,16 +269,17 @@ async function run() {
     dateStr: new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "long", year: "numeric", month: "long", day: "numeric" }),
     radar: {
       severity: radar.regime || radar.severity || "NORMAL",
-      summary: `GIFT Nifty at 24,055 (-0.10%), India VIX at 11.19 (Low panic). Brent crude at $93.27 (+3.0%). Directive: ${radar.actionDirective || "STANDARD_EXECUTION"}.`
+      summary: `GIFT Nifty at 24,055 (-0.10%), India VIX at 11.19 (Low panic). Brent crude at $93.27 (+3.07%). Directive: ${radar.actionDirective || "STANDARD_EXECUTION"}.`
     },
     macroAssets,
     sells,
     buys,
     shortsAndPuts,
-    holds
+    holds: holds.slice(0, 10) // Top monitored holdings
   };
 
   const result = await sendDailyTradeEmail(payload);
+  recordDispatch(check.slot, check.dateStr);
   console.log("Dispatch completed successfully to:", DEFAULT_RECIPIENT);
   return result;
 }
@@ -176,4 +288,4 @@ if (require.main === module) {
   run().catch(console.error);
 }
 
-module.exports = { run };
+module.exports = { run, checkDeduplication };

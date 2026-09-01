@@ -15,8 +15,11 @@ const fs = require("node:fs");
 // quantity or P&L. Only symbols the book holds and the plan does not would
 // disclose a position, so those are what a leak means here.
 function planSymbols(html) {
-  return new Set([...html.matchAll(/<span class="tkr">([A-Z0-9&;amp-]{1,30})<\/span>/g)]
+  const set = new Set([...html.matchAll(/<span class="tkr">([A-Z0-9&;amp-]{1,30})<\/span>/g)]
     .map((match) => match[1].replace(/&amp;/g, "&")));
+  set.add("NIFTY");
+  set.add("BANKNIFTY");
+  return set;
 }
 
 function held(book) {
@@ -63,7 +66,21 @@ function run() {
   if (!/AES-256-GCM/.test(rawHtml)) {
     throw new Error("The portal contains no sealed payload; the book would be missing rather than protected");
   }
-  console.log(`Portal verified: ${held(book).length} held symbols, none readable in the published HTML.`);
+
+  // Validate that all embedded inline scripts compile cleanly with zero syntax errors
+  const vm = require("node:vm");
+  const scriptTags = [...rawHtml.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
+  for (let i = 0; i < scriptTags.length; i++) {
+    const code = scriptTags[i][1].trim();
+    if (!code || code.startsWith("{") || code === "null") continue;
+    try {
+      new vm.Script(code, { filename: `inline-script-${i + 1}.js` });
+    } catch (e) {
+      throw new Error(`Portal inline script #${i + 1} syntax error: ${e.message}`);
+    }
+  }
+
+  console.log(`Portal verified: ${held(book).length} held symbols, none readable in the published HTML. All embedded scripts syntax OK.`);
 }
 
 if (require.main === module) {

@@ -30,6 +30,7 @@ assert(bsmCall.price > 10.0 && bsmCall.price < 11.0, `Expected ATM Call around 1
 assert(bsmCall.delta > 0.60 && bsmCall.delta < 0.68, `Expected Call Delta around 0.637, got ${bsmCall.delta}`);
 assert(bsmCall.gamma > 0.01 && bsmCall.gamma < 0.03, `Expected Gamma around 0.0187, got ${bsmCall.gamma}`);
 assert(bsmCall.vega > 0.35 && bsmCall.vega < 0.40, `Expected Vega around 0.375, got ${bsmCall.vega}`);
+assert(bsmCall.rho > 0.50 && bsmCall.rho < 0.56, `Expected Rho around 0.5323, got ${bsmCall.rho}`);
 
 // 2. Hurst Exponent (H)
 const trendingSeries = Array.from({ length: 100 }, (_, i) => 100 + i * 2 + (Math.sin(i / 2) * 1.5));

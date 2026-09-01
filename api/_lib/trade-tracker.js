@@ -17,8 +17,10 @@ function createSignalRecord(rec, features = {}) {
   const stopLossPrice = Number(firstEntry.stopLoss) || round(entryPrice * (1 - (side === "short" ? -1 : 1) * 0.01));
   const riskReward = Number(firstEntry.riskReward) || 2.0;
 
+  const signalId = `sig_${rec.symbol}_${rec.weekKey || new Date().toISOString().slice(0, 10)}_${side}`;
   return {
-    id: `sig_${rec.symbol}_${rec.weekKey || new Date().toISOString().slice(0, 10)}_${side}`,
+    id: signalId,
+    signalId,
     symbol: String(rec.symbol).toUpperCase(),
     side,
     action: rec.action || "buy-momentum",

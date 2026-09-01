@@ -12,7 +12,7 @@
 
 const crypto = require("node:crypto");
 
-const ITERATIONS = 210_000;
+const ITERATIONS = 600_000;
 const KEY_BYTES = 32;
 const SALT_BYTES = 16;
 const IV_BYTES = 12;
