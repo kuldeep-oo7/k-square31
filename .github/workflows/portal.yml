@@ -130,5 +130,10 @@ jobs:
           git diff --staged --quiet || git commit -m "Publish K2 portal with encrypted GM book and decision assistant"
           git push origin main
 
+      - name: Dispatch daily trade & defense email alert
+        env:
+          K2_EMAIL_WEBHOOK_URL: ${{ secrets.K2_EMAIL_WEBHOOK_URL }}
+        run: node scripts/dispatch-daily-alert.js
+
 
 
