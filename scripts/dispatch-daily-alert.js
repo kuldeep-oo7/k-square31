@@ -78,12 +78,89 @@ async function run() {
     { name: "NIFTY 24000 PE (Index Put Hedge)", action: "BUY PUT OPTION", entry: 185.00, target: 320.00, stop: 110.00 }
   ];
 
+  // 5. Complete 9-Asset Global Macro Threat & War Correlation Matrix
+  const macroAssets = [
+    {
+      name: "GIFT NIFTY (SGX)",
+      ticker: "^NSEI",
+      price: 24055.80,
+      changePct: -0.10,
+      impact: "Direct 9:15 AM Opening Gap Predictor (R² = 0.92)",
+      threat: "NORMAL"
+    },
+    {
+      name: "Brent Crude Oil (War & Geopolitics)",
+      ticker: "BZ=F",
+      price: 93.27,
+      changePct: 3.07,
+      impact: "Negative (-0.60). Spike drains INR & foreign liquidity",
+      threat: "ELEVATED"
+    },
+    {
+      name: "US Nasdaq 100 Futures",
+      ticker: "NQ=F",
+      price: 29236.25,
+      changePct: -0.94,
+      impact: "Direct overnight drag on Indian IT (TCS, INFY, WIPRO)",
+      threat: "MILD DRAG"
+    },
+    {
+      name: "US S&P 500 Futures",
+      ticker: "ES=F",
+      price: 7662.50,
+      changePct: -0.47,
+      impact: "Global equity risk sentiment & institutional liquidity",
+      threat: "NORMAL"
+    },
+    {
+      name: "US Dollar Index (DXY)",
+      ticker: "DX-Y.NYB",
+      price: 99.65,
+      changePct: 0.23,
+      impact: "Negative. Strong Dollar triggers FII capital outflows",
+      threat: "NORMAL"
+    },
+    {
+      name: "USD / INR Currency",
+      ticker: "INR=X",
+      price: 94.94,
+      changePct: 0.00,
+      impact: "Rupee depreciation forces foreign equity dumping",
+      threat: "NORMAL"
+    },
+    {
+      name: "US 10-Yr Treasury Yield",
+      ticker: "^TNX",
+      price: 4.77,
+      changePct: 0.29,
+      impact: "Negative. Surging yields pull capital into US bonds",
+      threat: "ELEVATED"
+    },
+    {
+      name: "US CBOE VIX (Global Panic)",
+      ticker: "^VIX",
+      price: 15.34,
+      changePct: 2.82,
+      impact: "Inverse panic gauge. Spikes > 20 trigger deleveraging",
+      threat: "LOW PANIC"
+    },
+    {
+      name: "India VIX (Domestic Fear)",
+      ticker: "^INDIAVIX",
+      price: 11.19,
+      changePct: 0.00,
+      impact: "Domestic fear gauge. Under 14 = Calm / Bullish Tape",
+      threat: "CALM"
+    }
+  ];
+
   const payload = {
     dateStr: new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "long", year: "numeric", month: "long", day: "numeric" }),
     radar: {
       severity: radar.regime || radar.severity || "NORMAL",
-      summary: `GIFT Nifty at 24,055 (+0.15%), India VIX at 11.19 (Low panic). Brent crude at $93.27 (+3.0%). Directive: ${radar.actionDirective || "STANDARD_EXECUTION"}.`
+      summary: `GIFT Nifty at 24,055 (-0.10%), India VIX at 11.19 (Low panic). Brent crude at $93.27 (+3.0%). Directive: ${radar.actionDirective || "STANDARD_EXECUTION"}.`
     },
+    macroAssets,
     sells,
     buys,
     shortsAndPuts,

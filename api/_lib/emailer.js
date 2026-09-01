@@ -21,6 +21,7 @@ if (fs.existsSync(envLocal)) {
 function buildEmailHtml({
   dateStr = new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "long", year: "numeric", month: "long", day: "numeric" }),
   radar = {},
+  macroAssets = [],
   sells = [],
   buys = [],
   shortsAndPuts = [],
@@ -50,12 +51,12 @@ function buildEmailHtml({
     -webkit-font-smoothing: antialiased;
   }
   .wrapper {
-    max-width: 720px;
+    max-width: 760px;
     margin: 0 auto;
     background-color: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
     overflow: hidden;
   }
   .masthead {
@@ -111,13 +112,14 @@ function buildEmailHtml({
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.07em;
-    margin: 28px 0 12px 0;
+    margin: 32px 0 12px 0;
     padding-bottom: 8px;
     border-bottom: 2px solid #e2e8f0;
   }
   .sh-red { color: #dc2626; border-color: #fca5a5; }
   .sh-green { color: #047857; border-color: #6ee7b7; }
   .sh-blue { color: #1d4ed8; border-color: #93c5fd; }
+  .sh-purple { color: #7c3aed; border-color: #c4b5fd; }
   .sh-amber { color: #b45309; border-color: #fcd34d; }
 
   table {
@@ -141,7 +143,7 @@ function buildEmailHtml({
   td {
     padding: 12px;
     border-bottom: 1px solid #e2e8f0;
-    font-size: 13.5px;
+    font-size: 13px;
     color: #1e293b;
     vertical-align: middle;
   }
@@ -181,7 +183,7 @@ function buildEmailHtml({
   .footer {
     background-color: #f8fafc;
     border-top: 1px solid #e2e8f0;
-    padding: 20px 32px;
+    padding: 24px 32px;
     font-size: 12px;
     color: #64748b;
     line-height: 1.6;
@@ -201,6 +203,34 @@ function buildEmailHtml({
       <div class="radar-title">🛡️ ${radarBadgeText}</div>
       <p class="radar-desc">${radar.summary || "All global macro drivers (GIFT Nifty, India VIX, Brent Crude, US Futures) are within standard operating thresholds. Normal trade execution authorized."}</p>
     </div>
+
+    ${macroAssets.length ? `
+    <div class="section-header sh-purple">🌐 GLOBAL MACRO & WAR RADAR (9 CORRELATION ASSETS DRIVING NSE)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Global Driver / Risk Factor</th>
+          <th>Live Ticker</th>
+          <th class="n">Price / Level</th>
+          <th class="n">24h Change</th>
+          <th>Direct Drag / Impact on Indian Market</th>
+          <th>Threat Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        ${macroAssets.map(m => `
+          <tr>
+            <td><span class="stock-ticker">${m.name}</span></td>
+            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">${m.ticker}</code></td>
+            <td class="n"><span class="price-entry">${m.price ? (m.price >= 1000 ? m.price.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : m.price.toFixed(2)) : "—"}</span></td>
+            <td class="n"><span class="${m.threat === 'ELEVATED' || m.threat === 'CRITICAL' ? 'price-stop' : 'price-target'}">${m.changePct ? (m.changePct >= 0 ? '+' : '') + m.changePct.toFixed(2) + '%' : 'Stable'}</span></td>
+            <td style="font-size:12.5px;color:#334155;line-height:1.4;">${m.impact}</td>
+            <td><span class="badge ${m.threat === 'CRITICAL' ? 'badge-sell' : m.threat === 'ELEVATED' ? 'badge-hold' : 'badge-buy'}">${m.threat || 'NORMAL'}</span></td>
+          </tr>
+        `).join("")}
+      </tbody>
+    </table>
+    ` : ""}
 
     ${sells.length ? `
     <div class="section-header sh-red">🚨 1. IMMEDIATE EXITS & SELLS (ACTION AT 9:15 AM OPEN)</div>
@@ -309,7 +339,7 @@ function buildEmailHtml({
 
   <div class="footer">
     Sent by <b>K² Range Desk Quantitative Engine</b> to <b>${DEFAULT_RECIPIENT}</b>.<br>
-    Mathematical foundations: Black-Scholes-Merton PDE, Hurst Fractal Dimension, Kaufman Efficiency Ratio & Volume-Synchronized Probability of Informed Trading (VPIN).
+    Mathematical foundations: Black-Scholes-Merton PDE, Hurst Fractal Dimension ($H$), Kaufman Efficiency Ratio & Volume-Synchronized Probability of Informed Trading (VPIN).
   </div>
 </div>
 </body>
