@@ -49,6 +49,21 @@ function doPost(event) {
         return writeDocument_(spreadsheet, payload);
       }));
     }
+    if (payload.action === 'appendTradeSignals') {
+      return json_(withWriteLock_(function () {
+        return appendTradeSignals_(spreadsheet, payload.signals);
+      }));
+    }
+    if (payload.action === 'appendPortfolioAudit') {
+      return json_(withWriteLock_(function () {
+        return appendPortfolioAudit_(spreadsheet, payload.holdings);
+      }));
+    }
+    if (payload.action === 'appendMacroRadar') {
+      return json_(withWriteLock_(function () {
+        return appendMacroRadar_(spreadsheet, payload.radar);
+      }));
+    }
     return json_({ ok: false, error: 'Invalid action' });
   } catch (error) {
     return json_({ ok: false, error: String(error && error.message || error).slice(0, 200) });
@@ -207,4 +222,106 @@ function constantTimeEqual_(left, right) {
 
 function json_(payload) {
   return ContentService.createTextOutput(JSON.stringify(payload)).setMimeType(ContentService.MimeType.JSON);
+}
+
+const K2_TRADE_LEDGER_HEADERS = [
+  'Timestamp', 'Week Key', 'Signal ID', 'Symbol', 'Side', 'Action',
+  'Entry Price', 'Target Price', 'Stop Loss', 'Risk/Reward',
+  'Conviction %', 'Size Multiplier', 'VPIN', 'Hurst Exponent',
+  'Kaufman ER', 'Meta Decision', 'Outcome'
+];
+
+const K2_HOLDINGS_AUDIT_HEADERS = [
+  'Timestamp', 'Symbol', 'Buy Average', 'Mark Price', 'P&L %',
+  'Trailing Stop', 'Target Price', 'Action Status', 'Risk Rationale'
+];
+
+const K2_MACRO_RADAR_HEADERS = [
+  'Timestamp', 'Global Regime', 'Action Directive', 'GIFT Nifty %',
+  'Brent Crude ($)', 'India VIX', 'US VIX', 'US 10Y Yield', 'Macro Summary'
+];
+
+function getOrCreateSheet_(spreadsheet, sheetName, headers) {
+  var sheet = spreadsheet.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = spreadsheet.insertSheet(sheetName);
+  }
+  if (sheet.getLastRow() === 0) {
+    sheet.getRange(1, 1, 1, headers.length).setValues([headers]);
+    sheet.setFrozenRows(1);
+    sheet.getRange(1, 1, 1, headers.length).setFontWeight('bold').setBackground('#201d31').setFontColor('#ffffff');
+  }
+  return sheet;
+}
+
+function appendTradeSignals_(spreadsheet, signals) {
+  if (!Array.isArray(signals) || !signals.length) return { ok: true, appended: 0 };
+  var sheet = getOrCreateSheet_(spreadsheet, 'K2_TRADE_LEDGER', K2_TRADE_LEDGER_HEADERS);
+  var now = new Date();
+  var rows = signals.map(function (s) {
+    return [
+      now,
+      s.weekKey || '',
+      s.id || s.signalId || '',
+      s.symbol || '',
+      s.side || '',
+      s.action || '',
+      Number(s.entryPrice || s.entry || 0),
+      Number(s.targetPrice || s.target || 0),
+      Number(s.stopLossPrice || s.stopLoss || s.stop || 0),
+      Number(s.riskReward || 0),
+      Number(s.convictionPct || 0),
+      Number(s.sizeMultiplier || 1.0),
+      Number(s.vpin || (s.advancedQuant && s.advancedQuant.vpin) || 0),
+      Number(s.hurst || (s.advancedQuant && s.advancedQuant.hurst) || 0),
+      Number(s.er || (s.advancedQuant && s.advancedQuant.er) || 0),
+      s.metaDecision || (s.advancedQuant && s.advancedQuant.metaDecision) || 'TAKE',
+      s.outcome || 'PENDING'
+    ];
+  });
+  sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, K2_TRADE_LEDGER_HEADERS.length).setValues(rows);
+  SpreadsheetApp.flush();
+  return { ok: true, appended: rows.length, sheet: 'K2_TRADE_LEDGER' };
+}
+
+function appendPortfolioAudit_(spreadsheet, holdings) {
+  if (!Array.isArray(holdings) || !holdings.length) return { ok: true, appended: 0 };
+  var sheet = getOrCreateSheet_(spreadsheet, 'K2_PORTFOLIO_AUDIT', K2_HOLDINGS_AUDIT_HEADERS);
+  var now = new Date();
+  var rows = holdings.map(function (h) {
+    return [
+      now,
+      h.symbol || '',
+      Number(h.buyAverage || h.avg || 0),
+      Number(h.markPrice || h.current || 0),
+      Number(h.pnlPct || 0),
+      Number(h.trailingStop || 0),
+      Number(h.target || 0),
+      h.status || h.action || 'HOLD',
+      h.reason || h.riskRationale || ''
+    ];
+  });
+  sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, K2_HOLDINGS_AUDIT_HEADERS.length).setValues(rows);
+  SpreadsheetApp.flush();
+  return { ok: true, appended: rows.length, sheet: 'K2_PORTFOLIO_AUDIT' };
+}
+
+function appendMacroRadar_(spreadsheet, radar) {
+  if (!radar) return { ok: true, appended: 0 };
+  var sheet = getOrCreateSheet_(spreadsheet, 'K2_MACRO_RADAR', K2_MACRO_RADAR_HEADERS);
+  var now = new Date();
+  var row = [
+    now,
+    radar.regime || radar.severity || 'NORMAL',
+    radar.actionDirective || 'STANDARD_EXECUTION',
+    Number(radar.giftNiftyGapPct || 0),
+    Number(radar.brentCrudePrice || 0),
+    Number(radar.indiaVix || 0),
+    Number(radar.usVix || 0),
+    Number(radar.us10y || 0),
+    radar.summary || ''
+  ];
+  sheet.getRange(sheet.getLastRow() + 1, 1, 1, K2_MACRO_RADAR_HEADERS.length).setValues([row]);
+  SpreadsheetApp.flush();
+  return { ok: true, appended: 1, sheet: 'K2_MACRO_RADAR' };
 }

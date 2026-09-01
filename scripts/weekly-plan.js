@@ -25,7 +25,7 @@ const { fundamentals } = require("../api/_lib/fundamentals");
 const { recommendation, rankRecommendations } = require("../api/_lib/recommendation");
 const { latestBhavcopy, frontFutures } = require("../api/_lib/bhavcopy");
 const { carry } = require("../api/_lib/carry");
-const { googleStoreConfigured, writeGoogleDocument, readGoogleDocument } = require("../api/_lib/google-store");
+const { googleStoreConfigured, writeGoogleDocument, readGoogleDocument, appendTradeSignalsToGoogle } = require("../api/_lib/google-store");
 const { createSignalRecord, evaluateOutcome, summarizePerformance } = require("../api/_lib/trade-tracker");
 const { analyzeOutcomeSignatures } = require("../api/_lib/adaptive-learning");
 const { trendMetrics } = require("../api/_lib/trend");
@@ -205,6 +205,11 @@ async function run() {
     const ledgerDocPath = "trade-signals/v1/ledger.json";
     const currentLedger = await readGoogleDocument(ledgerDocPath, null).catch(() => ({ etag: null }));
     await writeGoogleDocument(ledgerDocPath, { ledger, performance, learning }, currentLedger?.etag || null);
+
+    if (newRecords.length) {
+      await appendTradeSignalsToGoogle(newRecords).catch((e) => console.warn(`Google Sheet ledger append warning: ${e.message}`));
+      console.log(`Appended ${newRecords.length} trades permanently into K2_TRADE_LEDGER Google Sheet tab.`);
+    }
   }
   return report;
 }

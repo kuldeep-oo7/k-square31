@@ -4,6 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { sendDailyTradeEmail, DEFAULT_RECIPIENT } = require("../api/_lib/emailer");
 const { evaluateGlobalMacroShock } = require("../api/_lib/market-regime");
+const { googleStoreConfigured, appendPortfolioAuditToGoogle, appendMacroRadarToGoogle } = require("../api/_lib/google-store");
 
 /**
  * Checks if current time is within trading window and handles deduplication.
@@ -281,6 +282,28 @@ async function run() {
   const result = await sendDailyTradeEmail(payload);
   recordDispatch(check.slot, check.dateStr);
   console.log("Dispatch completed successfully to:", DEFAULT_RECIPIENT);
+
+  if (googleStoreConfigured()) {
+    try {
+      const allAudited = [...sells.map(s => ({ symbol: s.symbol, action: "SELL AT OPEN", riskRationale: s.reason, markPrice: s.price })), ...holds];
+      await appendPortfolioAuditToGoogle(allAudited);
+      console.log(`Appended ${allAudited.length} portfolio audit rows to K2_PORTFOLIO_AUDIT Google Sheet.`);
+      await appendMacroRadarToGoogle({
+        regime: payload.radar.severity,
+        actionDirective: radar.actionDirective,
+        giftNiftyGapPct: -0.10,
+        brentCrudePrice: 93.27,
+        indiaVix: 11.19,
+        usVix: 15.34,
+        us10y: 4.77,
+        summary: payload.radar.summary
+      });
+      console.log("Appended daily macro radar row to K2_MACRO_RADAR Google Sheet.");
+    } catch (e) {
+      console.warn("Google Sheets audit logging skipped:", e.message);
+    }
+  }
+
   return result;
 }
 

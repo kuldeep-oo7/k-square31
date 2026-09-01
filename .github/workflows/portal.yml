@@ -90,6 +90,8 @@ jobs:
         if: ${{ !inputs.skip_book && steps.book.outcome == 'success' }}
         env:
           K2_UPSIDE_MODEL: models/upside.json
+          K2_GOOGLE_SHEETS_WEB_APP_URL: ${{ secrets.K2_GOOGLE_SHEETS_WEB_APP_URL }}
+          K2_GOOGLE_SHEETS_ARCHIVE_SECRET: ${{ secrets.K2_GOOGLE_SHEETS_ARCHIVE_SECRET }}
         run: node scripts/weekly-plan.js --symbols "$(node scripts/held-symbols.js gm-positions.json)" --top 60 --out plan-holdings.json
 
       # Trend and carry do not depend on the ladder having an edge, so they are
@@ -102,6 +104,8 @@ jobs:
         if: ${{ steps.plan.outputs.measure == 'true' }}
         env:
           K2_UPSIDE_MODEL: models/upside.json
+          K2_GOOGLE_SHEETS_WEB_APP_URL: ${{ secrets.K2_GOOGLE_SHEETS_WEB_APP_URL }}
+          K2_GOOGLE_SHEETS_ARCHIVE_SECRET: ${{ secrets.K2_GOOGLE_SHEETS_ARCHIVE_SECRET }}
         run: node scripts/weekly-plan.js --top 60 --out plan-full.json
 
       - name: Seal the book and build the portal
@@ -133,6 +137,8 @@ jobs:
       - name: Dispatch daily trade & defense email alert
         env:
           K2_EMAIL_WEBHOOK_URL: ${{ secrets.K2_EMAIL_WEBHOOK_URL }}
+          K2_GOOGLE_SHEETS_WEB_APP_URL: ${{ secrets.K2_GOOGLE_SHEETS_WEB_APP_URL }}
+          K2_GOOGLE_SHEETS_ARCHIVE_SECRET: ${{ secrets.K2_GOOGLE_SHEETS_ARCHIVE_SECRET }}
         run: node scripts/dispatch-daily-alert.js
 
 
