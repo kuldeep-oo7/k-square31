@@ -554,7 +554,10 @@ function document_(plan, sealed, meta) {
     return (value < 0 ? "\\u2212" : "") + "\\u20B9" + Math.abs(Math.round(value)).toLocaleString("en-IN");
   };
   var num = function (value, digits) {
-    return typeof value === "number" && isFinite(value) ? value.toFixed(digits === u  function render(book) {
+    return typeof value === "number" && isFinite(value) ? value.toFixed(digits === undefined ? 2 : digits) : "\\u2014";
+  };
+
+  function render(book) {
     var rowsHtml = book.positions.map(function (p) {
       var short = p.position === "short";
       var v = p.verdict || { label: "not measured", tone: "none" };

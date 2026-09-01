@@ -37,18 +37,21 @@ function stdNormPdf(x) {
 }
 
 /**
- * The Trillion Dollar Equation (Black-Scholes-Merton Model & Greeks)
- * Calculates theoretical option price, Delta, Gamma, Vega, and Theta.
+/**
+ * The Trillion Dollar Equation (Black-Scholes-Merton Model & 5 Greeks)
+ * Calculates theoretical option price, Delta, Gamma, Vega, Theta, and Rho.
  */
 function blackScholesMerton({ spot, strike, timeToExpiryYears, riskFreeRate = 0.065, volatility, isCall = true }) {
   const S = Number(spot);
   const K = Number(strike);
-  const T = Math.max(0.0001, Number(timeToExpiryYears));
-  const r = Number(riskFreeRate);
-  const sigma = Math.max(0.01, Number(volatility));
+  const rawT = Number(timeToExpiryYears);
+  const T = Number.isFinite(rawT) && rawT > 0 ? Math.max(0.0001, rawT) : 0.0833; // default ~30 days
+  const r = Number.isFinite(Number(riskFreeRate)) ? Number(riskFreeRate) : 0.065;
+  const rawVol = Number(volatility);
+  const sigma = Number.isFinite(rawVol) && rawVol > 0 ? Math.max(0.01, rawVol) : 0.25;
 
   if (!Number.isFinite(S) || !Number.isFinite(K) || S <= 0 || K <= 0) {
-    return { price: 0, delta: 0, gamma: 0, vega: 0, theta: 0, iv: sigma };
+    return { price: 0, delta: 0, gamma: 0, vega: 0, theta: 0, rho: 0, iv: sigma };
   }
 
   const sqrtT = Math.sqrt(T);
@@ -79,6 +82,9 @@ function blackScholesMerton({ spot, strike, timeToExpiryYears, riskFreeRate = 0.
 
   const gamma = pdf_d1 / (S * sigma * sqrtT);
   const vega = S * sqrtT * pdf_d1;
+  const rho = isCall
+    ? (K * T * discount * Nd2) / 100
+    : (-K * T * discount * N_neg_d2) / 100;
 
   return {
     price: Math.max(0, Number(price.toFixed(2))),
@@ -86,6 +92,7 @@ function blackScholesMerton({ spot, strike, timeToExpiryYears, riskFreeRate = 0.
     gamma: Number(gamma.toFixed(6)),
     vega: Number((vega / 100).toFixed(4)),
     theta: Number((theta / 365).toFixed(4)),
+    rho: Number(rho.toFixed(4)),
     d1: Number(d1.toFixed(4)),
     d2: Number(d2.toFixed(4))
   };
@@ -400,38 +407,49 @@ function calculateVpin(bars, numBuckets = 30) {
  * Meta-Labeling Quality Control Gate (Marcos López de Prado)
  * Secondary AI filter: evaluates probability that primary trade will be profitable.
  */
-function metaLabelConfidence({ primarySide = "long", primaryScore = 50, hurst = 0.55, er = 0.50, vpin = 0.30, isUptrend = true }) {
-  let z = -0.5;
+function metaLabelConfidence({ primarySide = "long", primaryScore = 50, hurst = 0.55, er = 0.50, vpin = 0.30, isUptrend = true, strategy = "reversal" }) {
+  let z = -0.2;
 
-  z += (Number(primaryScore) / 100) * 1.5;
+  // Primary trade conviction baseline
+  z += (Number(primaryScore) / 100) * 1.8;
 
-  if (hurst >= 0.60) z += 0.8;
-  else if (hurst >= 0.55) z += 0.4;
-  else if (hurst < 0.45) z -= 1.0;
+  // Regime alignment: Reversal ladders vs Trend breakouts
+  if (strategy === "reversal" || strategy === "ladder") {
+    // For dip-buying ladders, mean-reverting or moderate persistence is favorable
+    if (hurst <= 0.45) z += 0.5; // Mean reverting regime confirms dip bounce
+    else if (hurst >= 0.65 && primarySide === "long" && !isUptrend) z -= 1.0; // Strong downtrend momentum kills long dips
+  } else {
+    // For trend breakouts, high Hurst confirms persistence
+    if (hurst >= 0.60) z += 0.8;
+    else if (hurst < 0.45) z -= 0.8;
+  }
 
-  if (er >= 0.50) z += 0.7;
-  else if (er < 0.25) z -= 0.9;
+  // Kaufman Efficiency: High ER (>0.4) is clean directional flow
+  if (er >= 0.40) z += 0.4;
+  else if (er < 0.20 && strategy !== "reversal") z -= 0.6;
 
-  if (vpin >= 0.65) z -= 1.5;
-  else if (vpin <= 0.35) z += 0.5;
+  // VPIN: Order flow toxicity is universally dangerous
+  if (vpin >= 0.65) z -= 1.8;
+  else if (vpin <= 0.35) z += 0.4;
 
-  if (primarySide === "long" && isUptrend) z += 0.5;
-  else if (primarySide === "long" && !isUptrend) z -= 0.6;
+  // Long trend structure alignment
+  if (primarySide === "long" && isUptrend) z += 0.4;
+  else if (primarySide === "long" && !isUptrend && strategy !== "reversal") z -= 0.5;
 
   const metaProb = Number((1.0 / (1.0 + Math.exp(-z))).toFixed(3));
 
-  const decision = (metaProb >= 0.55 && vpin < 0.65) ? "TAKE" : "VETO";
+  const decision = (metaProb >= 0.50 && vpin < 0.65) ? "TAKE" : "VETO";
   let metaMultiplier = 1.0;
   if (metaProb >= 0.75) metaMultiplier = 1.25;
-  else if (metaProb >= 0.65) metaMultiplier = 1.0;
-  else if (metaProb >= 0.55) metaMultiplier = 0.75;
+  else if (metaProb >= 0.60) metaMultiplier = 1.0;
+  else if (metaProb >= 0.50) metaMultiplier = 0.75;
   else metaMultiplier = 0.0;
 
   return {
     metaProb,
     decision,
     metaMultiplier,
-    qualityRating: metaProb >= 0.75 ? "PRIME" : metaProb >= 0.60 ? "HIGH_CONVICTION" : metaProb >= 0.55 ? "ACCEPTABLE" : "REJECTED"
+    qualityRating: metaProb >= 0.75 ? "PRIME" : metaProb >= 0.60 ? "HIGH_CONVICTION" : metaProb >= 0.50 ? "ACCEPTABLE" : "REJECTED"
   };
 }
 

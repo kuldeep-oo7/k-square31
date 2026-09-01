@@ -161,7 +161,7 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
     expectedWeeklyPct: round(potential.expectedMovePct, 3),
     expectedFromPricePct: round(potential.expectedMovePct, 3),
     expectedFromCarryPct: round(Number(potential.components?.find((item) => item.name === "Carry")?.expectedPct) || 0, 3),
-    sizeMultiplier: round(clamp((0.25 + 0.5 * clamp(convictionPct / 70)) * metaGate.metaMultiplier, 0.25, 1.0), 3),
+    sizeMultiplier: round(clamp((0.25 + 0.5 * clamp(convictionPct / 70)) * Math.min(1.0, metaGate.metaMultiplier), 0.10, 0.75), 3),
     advancedQuant: {
       hurst,
       er,
@@ -311,6 +311,19 @@ function recommendation(input) {
     rewardToRiskRatio: riskReward
   });
 
+  // Hard Veto Gate: A rejected meta-label setup must NEVER pass through with capital
+  if (metaGate.decision === "VETO" || metaGate.metaMultiplier <= 0) {
+    const vetoReason = `Meta-Labeling VETO: Low win probability (${metaGate.metaProb || 0}) or high flow toxicity (VPIN: ${vpinData.vpin})`;
+    evidence.vetoes.push(vetoReason);
+    return standAside(symbol, vetoReason, evidence);
+  }
+
+  // Base sizing scaled strictly by conviction and meta-labeling multiplier
+  const baseSize = 0.25 + 0.75 * clamp(convictionPct / 70);
+  const finalSizeMultiplier = metaGate.metaMultiplier > 0
+    ? round(clamp(baseSize * metaGate.metaMultiplier, 0.10, 1.0), 3)
+    : 0;
+
   return {
     symbol,
     action: verdict.action,
@@ -324,8 +337,7 @@ function recommendation(input) {
     expectedWeeklyPct,
     expectedFromPricePct: round(priceExpectation, 3),
     expectedFromCarryPct: round(carryContribution, 3),
-    // Conviction and Meta-Labeling scale the ticket
-    sizeMultiplier: round(clamp((0.25 + 0.75 * clamp(convictionPct / 70)) * metaGate.metaMultiplier, 0.25, 1.0), 3),
+    sizeMultiplier: finalSizeMultiplier,
     advancedQuant: {
       hurst,
       er,

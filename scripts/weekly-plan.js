@@ -28,6 +28,7 @@ const { carry } = require("../api/_lib/carry");
 const { googleStoreConfigured, writeGoogleDocument, readGoogleDocument } = require("../api/_lib/google-store");
 const { createSignalRecord, evaluateOutcome, summarizePerformance } = require("../api/_lib/trade-tracker");
 const { analyzeOutcomeSignatures } = require("../api/_lib/adaptive-learning");
+const { trendMetrics } = require("../api/_lib/trend");
 
 // Names the desk has traded before, marked on every recommendation. Deliberately
 // not a filter: a name being absent is not evidence it cannot be traded, and 28
@@ -113,7 +114,11 @@ async function planFor(symbol, options) {
   const basis = contract
     ? carry({ futures: contract.futures, spot: contract.spot, expiry: contract.expiry, side: "long", nowMs: options.asOf })
     : null;
-  const plan = recommendation({ symbol, bars, cycle, model, fundamentals: financials, technical: null, carry: basis });
+  const metrics = trendMetrics(bars);
+  const technicalScore = (metrics?.isUptrendStructure ? 35 : metrics?.isDowntrendStructure ? -35 : 0) +
+                         (metrics?.isEfficientTrend ? (metrics?.isUptrendStructure ? 15 : -15) : 0);
+  const technical = { score: technicalScore, ready: true, metrics };
+  const plan = recommendation({ symbol, bars, cycle, model, fundamentals: financials, technical, carry: basis });
   return { ...plan, symbolBars: bars.length, inJournal: JOURNAL.has(symbol) };
 }
 
@@ -169,7 +174,8 @@ async function run() {
 
   const newRecords = (report.best || []).map((item) => createSignalRecord(item, { weekKey: report.weekKey }));
   for (const rec of newRecords) {
-    if (!ledger.some((existing) => existing.signalId === rec.signalId)) {
+    const recId = rec.id || rec.signalId;
+    if (!ledger.some((existing) => (existing.id || existing.signalId) === recId)) {
       ledger.push(rec);
     }
   }
