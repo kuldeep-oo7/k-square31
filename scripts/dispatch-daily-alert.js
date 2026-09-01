@@ -81,8 +81,8 @@ async function run() {
   const payload = {
     dateStr: new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "long", year: "numeric", month: "long", day: "numeric" }),
     radar: {
-      severity: radar.regime,
-      summary: `GIFT Nifty at 24,055 (+0.15%), India VIX at 11.19 (Low panic). Brent crude at $93.27 (+3.0%). Shield status: ${radar.description}`
+      severity: radar.regime || radar.severity || "NORMAL",
+      summary: `GIFT Nifty at 24,055 (+0.15%), India VIX at 11.19 (Low panic). Brent crude at $93.27 (+3.0%). Directive: ${radar.actionDirective || "STANDARD_EXECUTION"}.`
     },
     sells,
     buys,

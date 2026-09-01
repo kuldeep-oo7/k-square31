@@ -1,153 +1,322 @@
 <!doctype html>
-<html>
+<html lang="en">
 <head>
 <meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>K² Range Desk Intelligence</title>
 <style>
-  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif; background: #0f111a; color: #e2e8f0; margin: 0; padding: 20px; }
-  .box { max-width: 680px; margin: 0 auto; background: #1a1d2e; border: 1px solid #2d334d; border-radius: 14px; padding: 24px; }
-  .header { border-bottom: 1px solid #2d334d; padding-bottom: 16px; margin-bottom: 20px; }
-  .title { font-size: 22px; font-weight: 800; color: #fff; margin: 0; }
-  .sub { font-size: 13px; color: #94a3b8; margin-top: 4px; }
-  .radar-card { background: #131625; border-left: 4px solid #16a34a; padding: 14px 16px; border-radius: 8px; margin-bottom: 24px; }
-  .radar-title { font-size: 14px; font-weight: 700; color: #16a34a; margin-bottom: 6px; }
-  .radar-desc { font-size: 13px; color: #cbd5e1; margin: 0; }
-  .sec-title { font-size: 15px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin: 20px 0 10px; display: flex; align-items: center; gap: 8px; }
-  .red { color: #f87171; }
-  .green { color: #4ade80; }
-  .purple { color: #c084fc; }
-  .yellow { color: #facc15; }
-  table { width: 100%; border-collapse: collapse; margin-bottom: 16px; font-size: 13px; }
-  th { text-align: left; padding: 8px 10px; background: #232840; color: #94a3b8; font-size: 11px; text-transform: uppercase; }
-  td { padding: 10px; border-bottom: 1px solid #232840; }
-  .badge { display: inline-block; padding: 2px 6px; border-radius: 4px; font-size: 11px; font-weight: 700; font-family: monospace; }
-  .b-red { background: rgba(239, 68, 68, 0.2); color: #f87171; }
-  .b-green { background: rgba(34, 197, 94, 0.2); color: #4ade80; }
-  .b-blue { background: rgba(59, 130, 246, 0.2); color: #60a5fa; }
-  .footer { margin-top: 24px; padding-top: 16px; border-top: 1px solid #2d334d; font-size: 11px; color: #64748b; text-align: center; }
+  body {
+    margin: 0;
+    padding: 24px 12px;
+    background-color: #f1f5f9;
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
+    color: #0f172a;
+    -webkit-font-smoothing: antialiased;
+  }
+  .wrapper {
+    max-width: 720px;
+    margin: 0 auto;
+    background-color: #ffffff;
+    border: 1px solid #cbd5e1;
+    border-radius: 16px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+    overflow: hidden;
+  }
+  .masthead {
+    background-color: #0f172a;
+    color: #ffffff;
+    padding: 28px 32px;
+  }
+  .masthead h1 {
+    font-family: Georgia, 'Times New Roman', serif;
+    font-size: 26px;
+    font-weight: 700;
+    margin: 0 0 6px 0;
+    letter-spacing: -0.02em;
+    color: #ffffff;
+  }
+  .masthead .sub {
+    font-size: 13px;
+    color: #94a3b8;
+    margin: 0;
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  }
+  .content {
+    padding: 28px 32px;
+  }
+  .radar-card {
+    background-color: #ecfdf5;
+    border-left: 5px solid #059669;
+    border-radius: 8px;
+    padding: 16px 20px;
+    margin-bottom: 28px;
+  }
+  .radar-title {
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #065f46;
+    margin: 0 0 4px 0;
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+  }
+  .radar-desc {
+    font-size: 14px;
+    color: #334155;
+    margin: 0;
+    line-height: 1.5;
+  }
+  .section-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    font-size: 13px;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.07em;
+    margin: 28px 0 12px 0;
+    padding-bottom: 8px;
+    border-bottom: 2px solid #e2e8f0;
+  }
+  .sh-red { color: #dc2626; border-color: #fca5a5; }
+  .sh-green { color: #047857; border-color: #6ee7b7; }
+  .sh-blue { color: #1d4ed8; border-color: #93c5fd; }
+  .sh-amber { color: #b45309; border-color: #fcd34d; }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin-bottom: 24px;
+  }
+  th {
+    background-color: #f8fafc;
+    color: #475569;
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    text-align: left;
+    padding: 10px 12px;
+    border-bottom: 2px solid #cbd5e1;
+  }
+  th.n, td.n { text-align: right; }
+  td {
+    padding: 12px;
+    border-bottom: 1px solid #e2e8f0;
+    font-size: 13.5px;
+    color: #1e293b;
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tr:hover td { background-color: #f8fafc; }
+
+  /* High-Contrast Stock Tickers - Black, Bold, Monospace */
+  .stock-ticker {
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    font-size: 15px;
+    font-weight: 800;
+    color: #0f172a !important;
+    letter-spacing: 0.02em;
+    display: inline-block;
+  }
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 6px;
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+    margin-left: 6px;
+    vertical-align: middle;
+  }
+  .badge-buy { background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; }
+  .badge-sell { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
+  .badge-level { background-color: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
+  .badge-hold { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
+
+  .price-entry { font-family: ui-monospace, Consolas, monospace; font-weight: 800; font-size: 14.5px; color: #0f172a; }
+  .price-cap { font-family: ui-monospace, Consolas, monospace; font-size: 13px; color: #334155; font-weight: 700; }
+  .price-target { font-family: ui-monospace, Consolas, monospace; font-weight: 800; font-size: 14px; color: #047857; }
+  .price-stop { font-family: ui-monospace, Consolas, monospace; font-weight: 800; font-size: 14px; color: #b91c1c; }
+
+  .footer {
+    background-color: #f8fafc;
+    border-top: 1px solid #e2e8f0;
+    padding: 20px 32px;
+    font-size: 12px;
+    color: #64748b;
+    line-height: 1.6;
+    text-align: center;
+  }
 </style>
 </head>
 <body>
-<div class="box">
-  <div class="header">
-    <h1 class="title">⚡ K² Range Desk · Daily Trade Alert</h1>
-    <div class="sub">Market Actionable Report for <b>Tuesday, 1 September 2026</b> · Target Recipient: kuldeepsavaliya70@gmail.com</div>
+<div class="wrapper">
+  <div class="masthead">
+    <h1>K² Range Desk · Daily Trade Briefing</h1>
+    <div class="sub">SESSION: TUESDAY, 1 SEPTEMBER 2026 · RECIPIENT: kuldeepsavaliya70@gmail.com</div>
   </div>
 
-  <div class="radar-card">
-    <div class="radar-title">🟢 STABLE / NORMAL REGIME</div>
-    <p class="radar-desc">GIFT Nifty at 24,055 (+0.15%), India VIX at 11.19 (Low panic). Brent crude at $93.27 (+3.0%). Shield status: undefined</p>
+  <div class="content">
+    <div class="radar-card">
+      <div class="radar-title">🛡️ GLOBAL MARKET REGIME: STABLE</div>
+      <p class="radar-desc">GIFT Nifty at 24,055 (+0.15%), India VIX at 11.19 (Low panic). Brent crude at $93.27 (+3.0%). Directive: STANDARD_EXECUTION.</p>
+    </div>
+
+    
+    <div class="section-header sh-red">🚨 1. IMMEDIATE EXITS & SELLS (ACTION AT 9:15 AM OPEN)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Stock Instrument</th>
+          <th>Action</th>
+          <th class="n">Exit Price</th>
+          <th>Risk Rationale</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+          <tr>
+            <td><span class="stock-ticker">NATIONALUM</span></td>
+            <td><span class="badge badge-sell">SELL AT OPEN</span></td>
+            <td class="n"><span class="price-stop">₹372.00</span></td>
+            <td style="color:#b91c1c;font-weight:600;">Breached ₹374.56 stop-loss on Tuesday. Cut at 9:15 AM open to protect capital.</td>
+          </tr>
+        
+      </tbody>
+    </table>
+    
+
+    
+    <div class="section-header sh-green">🎯 2. QUALIFIED BUY SETUPS (TODAY'S LADDERS)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Instrument</th>
+          <th>Level</th>
+          <th class="n">Buy Entry</th>
+          <th class="n">Max Buy Cap (+0.8%)</th>
+          <th class="n">Sell Target 1</th>
+          <th class="n">Stop Loss</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+          <tr>
+            <td><span class="stock-ticker">CGPOWER</span></td>
+            <td><span class="badge badge-level">L1</span></td>
+            <td class="n"><span class="price-entry">₹832.15</span></td>
+            <td class="n"><span class="price-cap">₹838.80</span></td>
+            <td class="n"><span class="price-target">₹852.12</span></td>
+            <td class="n"><span class="price-stop">₹822.16</span></td>
+          </tr>
+        
+          <tr>
+            <td><span class="stock-ticker">SOLARINDS</span></td>
+            <td><span class="badge badge-level">L1</span></td>
+            <td class="n"><span class="price-entry">₹18816.31</span></td>
+            <td class="n"><span class="price-cap">₹18966.84</span></td>
+            <td class="n"><span class="price-target">₹19463.59</span></td>
+            <td class="n"><span class="price-stop">₹18492.67</span></td>
+          </tr>
+        
+          <tr>
+            <td><span class="stock-ticker">APLAPOLLO</span></td>
+            <td><span class="badge badge-level">L1</span></td>
+            <td class="n"><span class="price-entry">₹2127.09</span></td>
+            <td class="n"><span class="price-cap">₹2144.10</span></td>
+            <td class="n"><span class="price-target">₹2183.67</span></td>
+            <td class="n"><span class="price-stop">₹2098.80</span></td>
+          </tr>
+        
+          <tr>
+            <td><span class="stock-ticker">ABB</span></td>
+            <td><span class="badge badge-level">L1</span></td>
+            <td class="n"><span class="price-entry">₹7047.65</span></td>
+            <td class="n"><span class="price-cap">₹7104.00</span></td>
+            <td class="n"><span class="price-target">₹7219.61</span></td>
+            <td class="n"><span class="price-stop">₹6961.67</span></td>
+          </tr>
+        
+      </tbody>
+    </table>
+    
+
+    
+    <div class="section-header sh-blue">📉 3. SHORT LADDERS & INDEX PUT OPTION HEDGING (PE)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Instrument / Option Contract</th>
+          <th>Type</th>
+          <th class="n">Entry Strike / Price</th>
+          <th class="n">Target Exit</th>
+          <th class="n">Stop Loss</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+          <tr>
+            <td><span class="stock-ticker">SUPREMEIND (Equity Short)</span></td>
+            <td><span class="badge badge-sell">SHORT LADDER</span></td>
+            <td class="n"><span class="price-entry">₹3920.03</span></td>
+            <td class="n"><span class="price-target">₹3819.68</span></td>
+            <td class="n"><span class="price-stop">₹3970.21</span></td>
+          </tr>
+        
+          <tr>
+            <td><span class="stock-ticker">NIFTY 24000 PE (Index Put Hedge)</span></td>
+            <td><span class="badge badge-sell">BUY PUT OPTION</span></td>
+            <td class="n"><span class="price-entry">₹185.00</span></td>
+            <td class="n"><span class="price-target">₹320.00</span></td>
+            <td class="n"><span class="price-stop">₹110.00</span></td>
+          </tr>
+        
+      </tbody>
+    </table>
+    
+
+    
+    <div class="section-header sh-amber">🛡️ 4. YOUR EXISTING OPEN HOLDINGS (MONITORING & TRAILING STOPS)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Holding Instrument</th>
+          <th>Status</th>
+          <th class="n">Current Price</th>
+          <th class="n">Trailing Stop-Loss</th>
+          <th class="n">Target 1</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+          <tr>
+            <td><span class="stock-ticker">GLENMARK</span></td>
+            <td><span class="badge badge-hold">HOLD STRONG</span></td>
+            <td class="n"><span class="price-entry">₹2470.40</span></td>
+            <td class="n"><span class="price-stop" style="color:#b45309;">₹2445.00</span></td>
+            <td class="n"><span class="price-target">₹2555.20</span></td>
+          </tr>
+        
+          <tr>
+            <td><span class="stock-ticker">CHOLAFIN</span></td>
+            <td><span class="badge badge-hold">HOLD AT COST</span></td>
+            <td class="n"><span class="price-entry">₹1814.70</span></td>
+            <td class="n"><span class="price-stop" style="color:#b45309;">₹1794.00</span></td>
+            <td class="n"><span class="price-target">₹1858.80</span></td>
+          </tr>
+        
+      </tbody>
+    </table>
+    
   </div>
-
-  
-  <div class="sec-title red">🚨 WHAT TO SELL / EXIT IMMEDIATELY</div>
-  <table>
-    <tr><th>Stock</th><th>Action</th><th>Price / Stop</th><th>Reason</th></tr>
-    
-      <tr>
-        <td><b>NATIONALUM</b></td>
-        <td><span class="badge b-red">SELL AT OPEN</span></td>
-        <td>₹372.00</td>
-        <td style="color:#f87171;">Breached ₹374.56 stop-loss on Tuesday. Cut at 9:15 AM open to protect capital.</td>
-      </tr>
-    
-  </table>
-  
-
-  
-  <div class="sec-title green">🎯 WHAT TO BUY (FRESH LADDERS)</div>
-  <table>
-    <tr><th>Stock</th><th>Level</th><th>Buy Entry</th><th>Max Cap (+0.8%)</th><th>Target 1</th><th>Stop Loss</th></tr>
-    
-      <tr>
-        <td><b>CGPOWER</b></td>
-        <td><span class="badge b-blue">L1</span></td>
-        <td style="color:#4ade80;font-weight:700;">₹832.15</td>
-        <td>₹838.80</td>
-        <td style="color:#4ade80;">₹852.12</td>
-        <td style="color:#f87171;">₹822.16</td>
-      </tr>
-    
-      <tr>
-        <td><b>SOLARINDS</b></td>
-        <td><span class="badge b-blue">L1</span></td>
-        <td style="color:#4ade80;font-weight:700;">₹18816.31</td>
-        <td>₹18966.84</td>
-        <td style="color:#4ade80;">₹19463.59</td>
-        <td style="color:#f87171;">₹18492.67</td>
-      </tr>
-    
-      <tr>
-        <td><b>APLAPOLLO</b></td>
-        <td><span class="badge b-blue">L1</span></td>
-        <td style="color:#4ade80;font-weight:700;">₹2127.09</td>
-        <td>₹2144.10</td>
-        <td style="color:#4ade80;">₹2183.67</td>
-        <td style="color:#f87171;">₹2098.80</td>
-      </tr>
-    
-      <tr>
-        <td><b>ABB</b></td>
-        <td><span class="badge b-blue">L1</span></td>
-        <td style="color:#4ade80;font-weight:700;">₹7047.65</td>
-        <td>₹7104.00</td>
-        <td style="color:#4ade80;">₹7219.61</td>
-        <td style="color:#f87171;">₹6961.67</td>
-      </tr>
-    
-  </table>
-  
-
-  
-  <div class="sec-title purple">📉 WHAT TO SHORT & WHICH PUT OPTIONS (PE)</div>
-  <table>
-    <tr><th>Instrument / PE Contract</th><th>Action</th><th>Strike / Entry</th><th>Target</th><th>Stop</th></tr>
-    
-      <tr>
-        <td><b>SUPREMEIND (Equity Short)</b></td>
-        <td><span class="badge b-red">SHORT LADDER</span></td>
-        <td>₹3920.03</td>
-        <td style="color:#4ade80;">₹3819.68</td>
-        <td style="color:#f87171;">₹3970.21</td>
-      </tr>
-    
-      <tr>
-        <td><b>NIFTY 24000 PE (Index Put Hedge)</b></td>
-        <td><span class="badge b-red">BUY PUT OPTION</span></td>
-        <td>₹185.00</td>
-        <td style="color:#4ade80;">₹320.00</td>
-        <td style="color:#f87171;">₹110.00</td>
-      </tr>
-    
-  </table>
-  
-
-  
-  <div class="sec-title yellow">🛡️ EXISTING HOLDINGS & TRAILING STOPS</div>
-  <table>
-    <tr><th>Stock</th><th>Status</th><th>Current</th><th>Trailing Stop</th><th>Target 1</th></tr>
-    
-      <tr>
-        <td><b>GLENMARK</b></td>
-        <td><span class="badge b-green">HOLD STRONG</span></td>
-        <td>₹2470.40</td>
-        <td style="color:#facc15;font-weight:700;">₹2445.00</td>
-        <td style="color:#4ade80;">₹2555.20</td>
-      </tr>
-    
-      <tr>
-        <td><b>CHOLAFIN</b></td>
-        <td><span class="badge b-green">HOLD AT COST</span></td>
-        <td>₹1814.70</td>
-        <td style="color:#facc15;font-weight:700;">₹1794.00</td>
-        <td style="color:#4ade80;">₹1858.80</td>
-      </tr>
-    
-  </table>
-  
 
   <div class="footer">
-    Sent automatically by K² Range Desk Quantitative Engine to kuldeepsavaliya70@gmail.com.<br>
-    All calculations backed by BSM Trillion Dollar Equation, Hurst Exponent & Meta-Labeling.
+    Sent by <b>K² Range Desk Quantitative Engine</b> to <b>kuldeepsavaliya70@gmail.com</b>.<br>
+    Mathematical foundations: Black-Scholes-Merton PDE, Hurst Fractal Dimension, Kaufman Efficiency Ratio & Volume-Synchronized Probability of Informed Trading (VPIN).
   </div>
 </div>
 </body>
