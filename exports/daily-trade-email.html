@@ -14,12 +14,12 @@
     -webkit-font-smoothing: antialiased;
   }
   .wrapper {
-    max-width: 720px;
+    max-width: 760px;
     margin: 0 auto;
     background-color: #ffffff;
     border: 1px solid #cbd5e1;
     border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
+    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
     overflow: hidden;
   }
   .masthead {
@@ -75,13 +75,14 @@
     font-weight: 800;
     text-transform: uppercase;
     letter-spacing: 0.07em;
-    margin: 28px 0 12px 0;
+    margin: 32px 0 12px 0;
     padding-bottom: 8px;
     border-bottom: 2px solid #e2e8f0;
   }
   .sh-red { color: #dc2626; border-color: #fca5a5; }
   .sh-green { color: #047857; border-color: #6ee7b7; }
   .sh-blue { color: #1d4ed8; border-color: #93c5fd; }
+  .sh-purple { color: #7c3aed; border-color: #c4b5fd; }
   .sh-amber { color: #b45309; border-color: #fcd34d; }
 
   table {
@@ -105,7 +106,7 @@
   td {
     padding: 12px;
     border-bottom: 1px solid #e2e8f0;
-    font-size: 13.5px;
+    font-size: 13px;
     color: #1e293b;
     vertical-align: middle;
   }
@@ -145,7 +146,7 @@
   .footer {
     background-color: #f8fafc;
     border-top: 1px solid #e2e8f0;
-    padding: 20px 32px;
+    padding: 24px 32px;
     font-size: 12px;
     color: #64748b;
     line-height: 1.6;
@@ -163,8 +164,108 @@
   <div class="content">
     <div class="radar-card">
       <div class="radar-title">🛡️ GLOBAL MARKET REGIME: STABLE</div>
-      <p class="radar-desc">GIFT Nifty at 24,055 (+0.15%), India VIX at 11.19 (Low panic). Brent crude at $93.27 (+3.0%). Directive: STANDARD_EXECUTION.</p>
+      <p class="radar-desc">GIFT Nifty at 24,055 (-0.10%), India VIX at 11.19 (Low panic). Brent crude at $93.27 (+3.0%). Directive: STANDARD_EXECUTION.</p>
     </div>
+
+    
+    <div class="section-header sh-purple">🌐 GLOBAL MACRO & WAR RADAR (9 CORRELATION ASSETS DRIVING NSE)</div>
+    <table>
+      <thead>
+        <tr>
+          <th>Global Driver / Risk Factor</th>
+          <th>Live Ticker</th>
+          <th class="n">Price / Level</th>
+          <th class="n">24h Change</th>
+          <th>Direct Drag / Impact on Indian Market</th>
+          <th>Threat Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        
+          <tr>
+            <td><span class="stock-ticker">GIFT NIFTY (SGX)</span></td>
+            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">^NSEI</code></td>
+            <td class="n"><span class="price-entry">24,055.8</span></td>
+            <td class="n"><span class="price-target">-0.10%</span></td>
+            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Direct 9:15 AM Opening Gap Predictor (R² = 0.92)</td>
+            <td><span class="badge badge-buy">NORMAL</span></td>
+          </tr>
+        
+          <tr>
+            <td><span class="stock-ticker">Brent Crude Oil (War & Geopolitics)</span></td>
+            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">BZ=F</code></td>
+            <td class="n"><span class="price-entry">93.27</span></td>
+            <td class="n"><span class="price-stop">+3.07%</span></td>
+            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Negative (-0.60). Spike drains INR & foreign liquidity</td>
+            <td><span class="badge badge-hold">ELEVATED</span></td>
+          </tr>
+        
+          <tr>
+            <td><span class="stock-ticker">US Nasdaq 100 Futures</span></td>
+            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">NQ=F</code></td>
+            <td class="n"><span class="price-entry">29,236.25</span></td>
+            <td class="n"><span class="price-target">-0.94%</span></td>
+            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Direct overnight drag on Indian IT (TCS, INFY, WIPRO)</td>
+            <td><span class="badge badge-buy">MILD DRAG</span></td>
+          </tr>
+        
+          <tr>
+            <td><span class="stock-ticker">US S&P 500 Futures</span></td>
+            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">ES=F</code></td>
+            <td class="n"><span class="price-entry">7,662.5</span></td>
+            <td class="n"><span class="price-target">-0.47%</span></td>
+            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Global equity risk sentiment & institutional liquidity</td>
+            <td><span class="badge badge-buy">NORMAL</span></td>
+          </tr>
+        
+          <tr>
+            <td><span class="stock-ticker">US Dollar Index (DXY)</span></td>
+            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">DX-Y.NYB</code></td>
+            <td class="n"><span class="price-entry">99.65</span></td>
+            <td class="n"><span class="price-target">+0.23%</span></td>
+            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Negative. Strong Dollar triggers FII capital outflows</td>
+            <td><span class="badge badge-buy">NORMAL</span></td>
+          </tr>
+        
+          <tr>
+            <td><span class="stock-ticker">USD / INR Currency</span></td>
+            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">INR=X</code></td>
+            <td class="n"><span class="price-entry">94.94</span></td>
+            <td class="n"><span class="price-target">Stable</span></td>
+            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Rupee depreciation forces foreign equity dumping</td>
+            <td><span class="badge badge-buy">NORMAL</span></td>
+          </tr>
+        
+          <tr>
+            <td><span class="stock-ticker">US 10-Yr Treasury Yield</span></td>
+            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">^TNX</code></td>
+            <td class="n"><span class="price-entry">4.77</span></td>
+            <td class="n"><span class="price-stop">+0.29%</span></td>
+            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Negative. Surging yields pull capital into US bonds</td>
+            <td><span class="badge badge-hold">ELEVATED</span></td>
+          </tr>
+        
+          <tr>
+            <td><span class="stock-ticker">US CBOE VIX (Global Panic)</span></td>
+            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">^VIX</code></td>
+            <td class="n"><span class="price-entry">15.34</span></td>
+            <td class="n"><span class="price-target">+2.82%</span></td>
+            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Inverse panic gauge. Spikes > 20 trigger deleveraging</td>
+            <td><span class="badge badge-buy">LOW PANIC</span></td>
+          </tr>
+        
+          <tr>
+            <td><span class="stock-ticker">India VIX (Domestic Fear)</span></td>
+            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">^INDIAVIX</code></td>
+            <td class="n"><span class="price-entry">11.19</span></td>
+            <td class="n"><span class="price-target">Stable</span></td>
+            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Domestic fear gauge. Under 14 = Calm / Bullish Tape</td>
+            <td><span class="badge badge-buy">CALM</span></td>
+          </tr>
+        
+      </tbody>
+    </table>
+    
 
     
     <div class="section-header sh-red">🚨 1. IMMEDIATE EXITS & SELLS (ACTION AT 9:15 AM OPEN)</div>
@@ -316,7 +417,7 @@
 
   <div class="footer">
     Sent by <b>K² Range Desk Quantitative Engine</b> to <b>kuldeepsavaliya70@gmail.com</b>.<br>
-    Mathematical foundations: Black-Scholes-Merton PDE, Hurst Fractal Dimension, Kaufman Efficiency Ratio & Volume-Synchronized Probability of Informed Trading (VPIN).
+    Mathematical foundations: Black-Scholes-Merton PDE, Hurst Fractal Dimension ($H$), Kaufman Efficiency Ratio & Volume-Synchronized Probability of Informed Trading (VPIN).
   </div>
 </div>
 </body>
