@@ -64,6 +64,11 @@ function doPost(event) {
         return appendMacroRadar_(spreadsheet, payload.radar);
       }));
     }
+    if (payload.action === 'appendStockFundamentals') {
+      return json_(withWriteLock_(function () {
+        return appendStockFundamentals_(spreadsheet, payload.fundamentals);
+      }));
+    }
     return json_({ ok: false, error: 'Invalid action' });
   } catch (error) {
     return json_({ ok: false, error: String(error && error.message || error).slice(0, 200) });
@@ -324,4 +329,47 @@ function appendMacroRadar_(spreadsheet, radar) {
   sheet.getRange(sheet.getLastRow() + 1, 1, 1, K2_MACRO_RADAR_HEADERS.length).setValues([row]);
   SpreadsheetApp.flush();
   return { ok: true, appended: 1, sheet: 'K2_MACRO_RADAR' };
+}
+
+const K2_FUNDAMENTALS_HEADERS = [
+  'Timestamp', 'Week Key', 'Symbol', 'Forward P/E', 'Debt / Equity',
+  'Current Ratio', 'Quick Ratio', 'Return on Equity (ROE %)', 'Return on Assets (ROA %)',
+  'Operating Margin %', 'Profit Margin %', 'Revenue Growth %', 'Earnings Growth %',
+  'Total Cash', 'Total Debt', 'Enterprise Value', 'Beta',
+  'Balance Sheet Score (-1 to +1)', 'Next Earnings Date', 'Earnings Inside Week Veto'
+];
+
+function appendStockFundamentals_(spreadsheet, fundamentals) {
+  if (!Array.isArray(fundamentals) || !fundamentals.length) return { ok: true, appended: 0 };
+  var sheet = getOrCreateSheet_(spreadsheet, 'K2_FUNDAMENTALS_BALANCE_SHEET', K2_FUNDAMENTALS_HEADERS);
+  var now = new Date();
+  var rows = fundamentals.map(function (f) {
+    var m = f.metrics || {};
+    var e = f.events || {};
+    return [
+      now,
+      f.weekKey || '',
+      f.symbol || '',
+      Number(m.forwardPE || 0),
+      Number(m.debtToEquity || 0),
+      Number(m.currentRatio || 0),
+      Number(m.quickRatio || 0),
+      Number(m.returnOnEquity || 0) * 100,
+      Number(m.returnOnAssets || 0) * 100,
+      Number(m.operatingMargin || 0) * 100,
+      Number(m.profitMargin || 0) * 100,
+      Number(m.revenueGrowth || 0) * 100,
+      Number(m.earningsGrowth || 0) * 100,
+      Number(m.totalCash || 0),
+      Number(m.totalDebt || 0),
+      Number(m.enterpriseValue || 0),
+      Number(m.beta || 0),
+      Number(f.balanceSheetScore || 0),
+      e.nextEarningsDate || 'None Announced',
+      e.insideTradingWeek ? 'YES (EVENT VETO)' : 'NO'
+    ];
+  });
+  sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, K2_FUNDAMENTALS_HEADERS.length).setValues(rows);
+  SpreadsheetApp.flush();
+  return { ok: true, appended: rows.length, sheet: 'K2_FUNDAMENTALS_BALANCE_SHEET' };
 }

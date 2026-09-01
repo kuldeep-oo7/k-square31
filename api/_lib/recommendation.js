@@ -16,6 +16,7 @@ const { trendAlignment, trendGate, trendMetrics } = require("./trend");
 const { carryScore } = require("./carry");
 const { upside } = require("./upside");
 const { calculateVpin, metaLabelConfidence, calculateKellyFraction } = require("./advanced-quant");
+const { scanChartPatterns } = require("./chart-patterns");
 
 function round(value, digits = 2) {
   if (!Number.isFinite(value)) return null;
@@ -298,16 +299,29 @@ function recommendation(input) {
   const hurst = metrics?.hurstExponent || 0.50;
   const er = metrics?.kaufmanEr || 0.30;
   const vpinData = calculateVpin(bars, 20);
+  const patternScan = scanChartPatterns(bars);
+
+  let adjustedConviction = convictionPct;
+  let patternReason = null;
+  if (patternScan.detected && patternScan.primaryPattern) {
+    const isAligned = (side === "long" && patternScan.primaryPattern.bias === "BULLISH") ||
+                      (side === "short" && patternScan.primaryPattern.bias === "BEARISH");
+    if (isAligned) {
+      adjustedConviction = Math.min(95, Math.round(convictionPct + Math.abs(patternScan.confluenceBonus || 12)));
+      patternReason = `Geometric Pattern: ${patternScan.primaryPattern.pattern} confirmed (Target: ₹${patternScan.primaryPattern.targetPrice})`;
+    }
+  }
+
   const metaGate = metaLabelConfidence({
     primarySide: side,
-    primaryScore: convictionPct,
+    primaryScore: adjustedConviction,
     hurst,
     er,
     vpin: vpinData.vpin,
     isUptrend: metrics?.isUptrendStructure
   });
   const kelly = calculateKellyFraction({
-    winRate: Math.max(0.40, convictionPct / 100),
+    winRate: Math.max(0.40, adjustedConviction / 100),
     rewardToRiskRatio: riskReward
   });
 
@@ -319,7 +333,7 @@ function recommendation(input) {
   }
 
   // Base sizing scaled strictly by conviction and meta-labeling multiplier
-  const baseSize = 0.25 + 0.75 * clamp(convictionPct / 70);
+  const baseSize = 0.25 + 0.75 * clamp(adjustedConviction / 70);
   const finalSizeMultiplier = metaGate.metaMultiplier > 0
     ? round(clamp(baseSize * metaGate.metaMultiplier, 0.10, 1.0), 3)
     : 0;
@@ -333,11 +347,12 @@ function recommendation(input) {
     sessionsElapsed: anchorInfo.sessionsElapsed,
     levels: verdict.levels,
     entries,
-    convictionPct,
+    convictionPct: adjustedConviction,
     expectedWeeklyPct,
     expectedFromPricePct: round(priceExpectation, 3),
     expectedFromCarryPct: round(carryContribution, 3),
     sizeMultiplier: finalSizeMultiplier,
+    chartPattern: patternScan.primaryPattern || null,
     advancedQuant: {
       hurst,
       er,
@@ -351,6 +366,7 @@ function recommendation(input) {
     bookOut: "Book every open leg at the Friday close; Monday's open sets the next anchor",
     reasons: [
       verdict.reason,
+      ...(patternReason ? [patternReason] : []),
       ...components.filter((item) => Number(item.contribution) > 0).map((item) => `${item.name}: ${item.note}`)
     ],
     vetoes: [],
