@@ -71,8 +71,26 @@ async function writeGoogleDocument(pathname, data, etag) {
   return { etag: String(result.version) };
 }
 
+async function appendTradeSignalsToGoogle(signals) {
+  if (!googleStoreConfigured() || !Array.isArray(signals) || !signals.length) return { ok: false, appended: 0 };
+  return requestGoogle("appendTradeSignals", { signals });
+}
+
+async function appendPortfolioAuditToGoogle(holdings) {
+  if (!googleStoreConfigured() || !Array.isArray(holdings) || !holdings.length) return { ok: false, appended: 0 };
+  return requestGoogle("appendPortfolioAudit", { holdings });
+}
+
+async function appendMacroRadarToGoogle(radar) {
+  if (!googleStoreConfigured() || !radar) return { ok: false, appended: 0 };
+  return requestGoogle("appendMacroRadar", { radar });
+}
+
 module.exports = {
   GoogleStoreConflictError,
+  appendMacroRadarToGoogle,
+  appendPortfolioAuditToGoogle,
+  appendTradeSignalsToGoogle,
   decodeDocument,
   encodeDocument,
   googleStoreConfigured,

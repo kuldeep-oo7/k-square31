@@ -1,5 +1,8 @@
 const assert = require("node:assert");
 const {
+  appendMacroRadarToGoogle,
+  appendPortfolioAuditToGoogle,
+  appendTradeSignalsToGoogle,
   decodeDocument,
   encodeDocument,
   googleStoreConfigured,
@@ -52,6 +55,15 @@ global.fetch = async (_url, options) => {
       })
     };
   }
+  if (body.action === "appendTradeSignals") {
+    return { ok: true, json: async () => ({ ok: true, appended: body.signals.length, sheet: "K2_TRADE_LEDGER" }) };
+  }
+  if (body.action === "appendPortfolioAudit") {
+    return { ok: true, json: async () => ({ ok: true, appended: body.holdings.length, sheet: "K2_PORTFOLIO_AUDIT" }) };
+  }
+  if (body.action === "appendMacroRadar") {
+    return { ok: true, json: async () => ({ ok: true, appended: 1, sheet: "K2_MACRO_RADAR" }) };
+  }
   assert.strictEqual(body.action, "writeDocument");
   assert.strictEqual(body.expectedVersion, 7);
   assert.deepStrictEqual(decodeDocument(body.encoded), sample);
@@ -68,6 +80,13 @@ global.fetch = async (_url, options) => {
   assert.deepStrictEqual(batch[0], { data: sample, etag: "7" });
   assert.deepStrictEqual(batch[1], { data: { empty: true }, etag: null });
   assert.deepStrictEqual(await writeGoogleDocument("ai-grid/v1/shard-0.json", sample, "7"), { etag: "8" });
+
+  const signalsRes = await appendTradeSignalsToGoogle([{ id: "sig_1", symbol: "RELIANCE" }]);
+  assert.strictEqual(signalsRes.appended, 1);
+  const auditRes = await appendPortfolioAuditToGoogle([{ symbol: "SBIN", pnlPct: 1.5 }]);
+  assert.strictEqual(auditRes.appended, 1);
+  const radarRes = await appendMacroRadarToGoogle({ regime: "NORMAL" });
+  assert.strictEqual(radarRes.appended, 1);
   global.fetch = originalFetch;
   if (previousUrl === undefined) delete process.env.K2_GOOGLE_SHEETS_WEB_APP_URL;
   else process.env.K2_GOOGLE_SHEETS_WEB_APP_URL = previousUrl;
