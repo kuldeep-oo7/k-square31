@@ -2,60 +2,62 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>K² Range Desk Intelligence</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>K² Range Desk Daily Briefing</title>
 <style>
   body {
     margin: 0;
-    padding: 24px 12px;
+    padding: 16px 8px;
     background-color: #f1f5f9;
     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif;
     color: #0f172a;
     -webkit-font-smoothing: antialiased;
   }
   .wrapper {
-    max-width: 760px;
+    max-width: 720px;
     margin: 0 auto;
     background-color: #ffffff;
     border: 1px solid #cbd5e1;
-    border-radius: 16px;
-    box-shadow: 0 4px 24px rgba(15, 23, 42, 0.08);
+    border-radius: 12px;
+    box-shadow: 0 4px 20px rgba(15, 23, 42, 0.08);
     overflow: hidden;
   }
   .masthead {
     background-color: #0f172a;
     color: #ffffff;
-    padding: 28px 32px;
+    padding: 24px 20px;
+    text-align: left;
   }
   .masthead h1 {
     font-family: Georgia, 'Times New Roman', serif;
-    font-size: 26px;
+    font-size: 22px;
     font-weight: 700;
     margin: 0 0 6px 0;
-    letter-spacing: -0.02em;
     color: #ffffff;
+    line-height: 1.2;
   }
   .masthead .sub {
-    font-size: 13px;
+    font-size: 12px;
     color: #94a3b8;
     margin: 0;
     font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    line-height: 1.4;
   }
   .content {
-    padding: 28px 32px;
+    padding: 20px 16px;
   }
   .radar-card {
     background-color: #ecfdf5;
     border-left: 5px solid #059669;
     border-radius: 8px;
-    padding: 16px 20px;
-    margin-bottom: 28px;
+    padding: 14px 16px;
+    margin-bottom: 24px;
   }
   .radar-title {
     font-size: 13px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.04em;
     color: #065f46;
     margin: 0 0 4px 0;
     font-family: ui-monospace, 'SF Mono', Consolas, monospace;
@@ -67,16 +69,13 @@
     line-height: 1.5;
   }
   .section-header {
-    display: flex;
-    align-items: center;
-    gap: 8px;
     font-family: ui-monospace, 'SF Mono', Consolas, monospace;
     font-size: 13px;
     font-weight: 800;
     text-transform: uppercase;
-    letter-spacing: 0.07em;
-    margin: 32px 0 12px 0;
-    padding-bottom: 8px;
+    letter-spacing: 0.05em;
+    margin: 28px 0 12px 0;
+    padding-bottom: 6px;
     border-bottom: 2px solid #e2e8f0;
   }
   .sh-red { color: #dc2626; border-color: #fca5a5; }
@@ -85,72 +84,137 @@
   .sh-purple { color: #7c3aed; border-color: #c4b5fd; }
   .sh-amber { color: #b45309; border-color: #fcd34d; }
 
+  /* Mobile-first card elements */
+  .stock-card {
+    background: #ffffff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 14px 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.03);
+  }
+  .card-exit { border-left: 4px solid #dc2626; background: #fffbfb; }
+  .card-buy { border-left: 4px solid #059669; background: #fbfdfc; }
+  .card-hold { border-left: 4px solid #d97706; background: #fffdfa; }
+  .card-short { border-left: 4px solid #2563eb; background: #fbfdff; }
+
+  .card-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+  }
+  .ticker {
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    font-size: 16px;
+    font-weight: 800;
+    color: #0f172a;
+    letter-spacing: 0.02em;
+  }
+  .badge {
+    display: inline-block;
+    padding: 3px 8px;
+    border-radius: 5px;
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.03em;
+  }
+  .badge-sell { background-color: #fee2e2; color: #991b1b; border: 1px solid #fca5a5; }
+  .badge-buy { background-color: #dcfce7; color: #166534; border: 1px solid #86efac; }
+  .badge-level { background-color: #dbeafe; color: #1e40af; border: 1px solid #bfdbfe; }
+  .badge-hold { background-color: #fef3c7; color: #92400e; border: 1px solid #fde68a; }
+
+  .data-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
+    gap: 8px;
+    margin-top: 6px;
+    font-size: 13px;
+  }
+  .data-item {
+    background: #f8fafc;
+    padding: 6px 10px;
+    border-radius: 6px;
+    border: 1px solid #f1f5f9;
+  }
+  .data-label {
+    font-size: 11px;
+    color: #64748b;
+    font-weight: 600;
+    text-transform: uppercase;
+    display: block;
+    margin-bottom: 2px;
+  }
+  .data-val {
+    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    font-size: 14px;
+    font-weight: 700;
+    color: #0f172a;
+  }
+  .val-green { color: #047857; }
+  .val-red { color: #b91c1c; }
+  .val-amber { color: #b45309; }
+
+  .reason-box {
+    margin-top: 8px;
+    padding: 8px 10px;
+    background: #fef2f2;
+    border-radius: 6px;
+    font-size: 12.5px;
+    color: #991b1b;
+    font-weight: 500;
+    line-height: 1.4;
+  }
+
+  .table-scroll {
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    margin-bottom: 16px;
+  }
   table {
     width: 100%;
+    min-width: 500px;
     border-collapse: collapse;
-    margin-bottom: 24px;
   }
   th {
     background-color: #f8fafc;
     color: #475569;
-    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
+    font-family: ui-monospace, Consolas, monospace;
     font-size: 11px;
     font-weight: 700;
     text-transform: uppercase;
-    letter-spacing: 0.05em;
     text-align: left;
-    padding: 10px 12px;
+    padding: 8px 10px;
     border-bottom: 2px solid #cbd5e1;
   }
-  th.n, td.n { text-align: right; }
   td {
-    padding: 12px;
+    padding: 10px;
     border-bottom: 1px solid #e2e8f0;
     font-size: 13px;
     color: #1e293b;
     vertical-align: middle;
   }
-  tr:last-child td { border-bottom: none; }
-  tr:hover td { background-color: #f8fafc; }
-
-  /* High-Contrast Stock Tickers - Black, Bold, Monospace */
-  .stock-ticker {
-    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
-    font-size: 15px;
-    font-weight: 800;
-    color: #0f172a !important;
-    letter-spacing: 0.02em;
-    display: inline-block;
-  }
-  .badge {
-    display: inline-block;
-    padding: 3px 8px;
-    border-radius: 6px;
-    font-family: ui-monospace, 'SF Mono', Consolas, monospace;
-    font-size: 11px;
-    font-weight: 700;
-    letter-spacing: 0.03em;
-    margin-left: 6px;
-    vertical-align: middle;
-  }
-  .badge-buy { background-color: #dcfce7; color: #15803d; border: 1px solid #86efac; }
-  .badge-sell { background-color: #fee2e2; color: #b91c1c; border: 1px solid #fca5a5; }
-  .badge-level { background-color: #dbeafe; color: #1d4ed8; border: 1px solid #bfdbfe; }
-  .badge-hold { background-color: #fef3c7; color: #b45309; border: 1px solid #fde68a; }
-
-  .price-entry { font-family: ui-monospace, Consolas, monospace; font-weight: 800; font-size: 14.5px; color: #0f172a; }
-  .price-cap { font-family: ui-monospace, Consolas, monospace; font-size: 13px; color: #334155; font-weight: 700; }
-  .price-target { font-family: ui-monospace, Consolas, monospace; font-weight: 800; font-size: 14px; color: #047857; }
-  .price-stop { font-family: ui-monospace, Consolas, monospace; font-weight: 800; font-size: 14px; color: #b91c1c; }
+  th.n, td.n { text-align: right; }
 
   .footer {
     background-color: #f8fafc;
     border-top: 1px solid #e2e8f0;
-    padding: 24px 32px;
+    padding: 20px 16px;
     font-size: 12px;
     color: #64748b;
     line-height: 1.6;
     text-align: center;
+  }
+
+  @media only screen and (max-width: 600px) {
+    body { padding: 4px 2px; }
+    .wrapper { border-radius: 8px; }
+    .masthead { padding: 18px 14px; }
+    .masthead h1 { font-size: 19px; }
+    .content { padding: 14px 10px; }
+    .data-grid { grid-template-columns: 1fr 1fr; }
   }
 </style>
 </head>
@@ -158,300 +222,515 @@
 <div class="wrapper">
   <div class="masthead">
     <h1>K² Range Desk · Daily Trade Briefing</h1>
-    <div class="sub">SESSION: TUESDAY, 1 SEPTEMBER 2026 · RECIPIENT: kuldeepsavaliya70@gmail.com</div>
+    <div class="sub">SESSION: WEDNESDAY, 2 SEPTEMBER 2026<br>RECIPIENT: kuldeepsavaliya70@gmail.com</div>
   </div>
 
   <div class="content">
+    <!-- Macro Radar Header -->
     <div class="radar-card">
       <div class="radar-title">🛡️ GLOBAL MARKET REGIME: STABLE</div>
       <p class="radar-desc">GIFT Nifty at 24,055 (-0.10%), India VIX at 11.19 (Low panic). Brent crude at $93.27 (+3.07%). Directive: STANDARD_EXECUTION.</p>
     </div>
 
-    
-    <div class="section-header sh-purple">🌐 GLOBAL MACRO & WAR RADAR (9 CORRELATION ASSETS DRIVING NSE)</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Global Driver / Risk Factor</th>
-          <th>Live Ticker</th>
-          <th class="n">Price / Level</th>
-          <th class="n">24h Change</th>
-          <th>Direct Drag / Impact on Indian Market</th>
-          <th>Threat Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        
-          <tr>
-            <td><span class="stock-ticker">GIFT NIFTY (SGX)</span></td>
-            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">^NSEI</code></td>
-            <td class="n"><span class="price-entry">24,055.8</span></td>
-            <td class="n"><span class="price-target">-0.10%</span></td>
-            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Direct 9:15 AM Opening Gap Predictor (R² = 0.92)</td>
-            <td><span class="badge badge-buy">NORMAL</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">Brent Crude Oil (War & Geopolitics)</span></td>
-            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">BZ=F</code></td>
-            <td class="n"><span class="price-entry">93.27</span></td>
-            <td class="n"><span class="price-stop">+3.07%</span></td>
-            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Negative (-0.60). Spike drains INR & foreign liquidity</td>
-            <td><span class="badge badge-hold">ELEVATED</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">US Nasdaq 100 Futures</span></td>
-            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">NQ=F</code></td>
-            <td class="n"><span class="price-entry">29,236.25</span></td>
-            <td class="n"><span class="price-target">-0.94%</span></td>
-            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Direct overnight drag on Indian IT (TCS, INFY, WIPRO)</td>
-            <td><span class="badge badge-buy">MILD DRAG</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">US S&P 500 Futures</span></td>
-            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">ES=F</code></td>
-            <td class="n"><span class="price-entry">7,662.5</span></td>
-            <td class="n"><span class="price-target">-0.47%</span></td>
-            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Global equity risk sentiment & institutional liquidity</td>
-            <td><span class="badge badge-buy">NORMAL</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">US Dollar Index (DXY)</span></td>
-            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">DX-Y.NYB</code></td>
-            <td class="n"><span class="price-entry">99.65</span></td>
-            <td class="n"><span class="price-target">+0.23%</span></td>
-            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Negative. Strong Dollar triggers FII capital outflows</td>
-            <td><span class="badge badge-buy">NORMAL</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">USD / INR Currency</span></td>
-            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">INR=X</code></td>
-            <td class="n"><span class="price-entry">94.94</span></td>
-            <td class="n"><span class="price-target">Stable</span></td>
-            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Rupee depreciation forces foreign equity dumping</td>
-            <td><span class="badge badge-buy">NORMAL</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">US 10-Yr Treasury Yield</span></td>
-            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">^TNX</code></td>
-            <td class="n"><span class="price-entry">4.77</span></td>
-            <td class="n"><span class="price-stop">+0.29%</span></td>
-            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Negative. Surging yields pull capital into US bonds</td>
-            <td><span class="badge badge-hold">ELEVATED</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">US CBOE VIX (Global Panic)</span></td>
-            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">^VIX</code></td>
-            <td class="n"><span class="price-entry">15.34</span></td>
-            <td class="n"><span class="price-target">+2.82%</span></td>
-            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Inverse panic gauge. Spikes > 20 trigger deleveraging</td>
-            <td><span class="badge badge-buy">LOW PANIC</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">India VIX (Domestic Fear)</span></td>
-            <td><code style="font-family:ui-monospace,Consolas,monospace;font-weight:700;color:#334155;background:#f1f5f9;padding:2px 6px;border-radius:4px;">^INDIAVIX</code></td>
-            <td class="n"><span class="price-entry">11.19</span></td>
-            <td class="n"><span class="price-target">Stable</span></td>
-            <td style="font-size:12.5px;color:#334155;line-height:1.4;">Domestic fear gauge. Under 14 = Calm / Bullish Tape</td>
-            <td><span class="badge badge-buy">CALM</span></td>
-          </tr>
-        
-      </tbody>
-    </table>
+    <!-- Section 1: Exits & Sells -->
     
 
-    
-
+    <!-- Section 2: Buy Setups -->
     
     <div class="section-header sh-green">🎯 2. QUALIFIED BUY SETUPS (TODAY'S LADDERS)</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Instrument</th>
-          <th>Level</th>
-          <th class="n">Buy Entry</th>
-          <th class="n">Max Buy Cap (+0.8%)</th>
-          <th class="n">Sell Target 1</th>
-          <th class="n">Stop Loss</th>
-        </tr>
-      </thead>
-      <tbody>
-        
-          <tr>
-            <td><span class="stock-ticker">CGPOWER</span></td>
-            <td><span class="badge badge-level">L3</span></td>
-            <td class="n"><span class="price-entry">₹832.15</span></td>
-            <td class="n"><span class="price-cap">₹838.81</span></td>
-            <td class="n"><span class="price-target">₹853.45</span></td>
-            <td class="n"><span class="price-stop">₹821.50</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">RADICO</span></td>
-            <td><span class="badge badge-level">L1</span></td>
-            <td class="n"><span class="price-entry">₹4490.95</span></td>
-            <td class="n"><span class="price-cap">₹4526.88</span></td>
-            <td class="n"><span class="price-target">₹4600.53</span></td>
-            <td class="n"><span class="price-stop">₹4436.16</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">MFSL</span></td>
-            <td><span class="badge badge-level">L1</span></td>
-            <td class="n"><span class="price-entry">₹1530.07</span></td>
-            <td class="n"><span class="price-cap">₹1542.31</span></td>
-            <td class="n"><span class="price-target">₹1571.69</span></td>
-            <td class="n"><span class="price-stop">₹1509.26</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">CHOLAFIN</span></td>
-            <td><span class="badge badge-level">L1</span></td>
-            <td class="n"><span class="price-entry">₹1815.94</span></td>
-            <td class="n"><span class="price-cap">₹1830.47</span></td>
-            <td class="n"><span class="price-target">₹1858.07</span></td>
-            <td class="n"><span class="price-stop">₹1794.88</span></td>
-          </tr>
-        
-      </tbody>
-    </table>
+    
+      <div class="stock-card card-buy">
+        <div class="card-top">
+          <span class="ticker">CGPOWER</span>
+          <span class="badge badge-level">LEVEL 3</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Buy Entry</span>
+            <span class="data-val">₹832.15</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Max Buy Cap (+0.8%)</span>
+            <span class="data-val">₹838.81</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Sell Target 1</span>
+            <span class="data-val val-green">₹853.45</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Stop Loss</span>
+            <span class="data-val val-red">₹821.50</span>
+          </div>
+        </div>
+      </div>
+    
+      <div class="stock-card card-buy">
+        <div class="card-top">
+          <span class="ticker">RADICO</span>
+          <span class="badge badge-level">LEVEL 1</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Buy Entry</span>
+            <span class="data-val">₹4490.95</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Max Buy Cap (+0.8%)</span>
+            <span class="data-val">₹4526.88</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Sell Target 1</span>
+            <span class="data-val val-green">₹4600.53</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Stop Loss</span>
+            <span class="data-val val-red">₹4436.16</span>
+          </div>
+        </div>
+      </div>
+    
+      <div class="stock-card card-buy">
+        <div class="card-top">
+          <span class="ticker">MFSL</span>
+          <span class="badge badge-level">LEVEL 1</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Buy Entry</span>
+            <span class="data-val">₹1530.07</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Max Buy Cap (+0.8%)</span>
+            <span class="data-val">₹1542.31</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Sell Target 1</span>
+            <span class="data-val val-green">₹1571.69</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Stop Loss</span>
+            <span class="data-val val-red">₹1509.26</span>
+          </div>
+        </div>
+      </div>
+    
+      <div class="stock-card card-buy">
+        <div class="card-top">
+          <span class="ticker">CHOLAFIN</span>
+          <span class="badge badge-level">LEVEL 1</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Buy Entry</span>
+            <span class="data-val">₹1815.94</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Max Buy Cap (+0.8%)</span>
+            <span class="data-val">₹1830.47</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Sell Target 1</span>
+            <span class="data-val val-green">₹1858.07</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Stop Loss</span>
+            <span class="data-val val-red">₹1794.88</span>
+          </div>
+        </div>
+      </div>
+    
     
 
+    <!-- Section 3: Shorts & Hedges -->
     
-    <div class="section-header sh-blue">📉 3. SHORT LADDERS & INDEX PUT OPTION HEDGING (PE)</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Instrument / Option Contract</th>
-          <th>Type</th>
-          <th class="n">Entry Strike / Price</th>
-          <th class="n">Target Exit</th>
-          <th class="n">Stop Loss</th>
-        </tr>
-      </thead>
-      <tbody>
-        
-          <tr>
-            <td><span class="stock-ticker">SUPREMEIND (Equity Short)</span></td>
-            <td><span class="badge badge-sell">SHORT LADDER</span></td>
-            <td class="n"><span class="price-entry">₹3920.03</span></td>
-            <td class="n"><span class="price-target">₹3810.27</span></td>
-            <td class="n"><span class="price-stop">₹3974.91</span></td>
-          </tr>
-        
-      </tbody>
-    </table>
+    <div class="section-header sh-blue">📉 3. SHORT LADDERS & INDEX PUT HEDGES (PE)</div>
+    
+      <div class="stock-card card-short">
+        <div class="card-top">
+          <span class="ticker">SUPREMEIND (Equity Short)</span>
+          <span class="badge badge-sell">SHORT LADDER</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Strike / Entry</span>
+            <span class="data-val">₹3920.03</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Target Exit</span>
+            <span class="data-val val-green">₹3810.27</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Stop Loss</span>
+            <span class="data-val val-red">₹3974.91</span>
+          </div>
+        </div>
+      </div>
+    
     
 
+    <!-- Section 4: Existing Open Holdings -->
     
-    <div class="section-header sh-amber">🛡️ 4. YOUR EXISTING OPEN HOLDINGS (MONITORING & TRAILING STOPS)</div>
-    <table>
-      <thead>
-        <tr>
-          <th>Holding Instrument</th>
-          <th>Status</th>
-          <th class="n">Current Price</th>
-          <th class="n">Trailing Stop-Loss</th>
-          <th class="n">Target 1</th>
-        </tr>
-      </thead>
-      <tbody>
-        
+    <div class="section-header sh-amber">🛡️ 4. OPEN HOLDINGS & TRAILING STOPS</div>
+    
+      <div class="stock-card card-hold">
+        <div class="card-top">
+          <span class="ticker">AMBUJACEM</span>
+          <span class="badge badge-hold">HOLD AT COST</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Mark Price</span>
+            <span class="data-val">₹414.65</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Trailing Stop</span>
+            <span class="data-val val-amber">₹414.65</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Target 1</span>
+            <span class="data-val val-green">₹427.09</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">P&L Status</span>
+            <span class="data-val val-red">0.00%</span>
+          </div>
+        </div>
+      </div>
+    
+      <div class="stock-card card-hold">
+        <div class="card-top">
+          <span class="ticker">ASHOKLEY</span>
+          <span class="badge badge-hold">HOLD AT COST</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Mark Price</span>
+            <span class="data-val">₹177.18</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Trailing Stop</span>
+            <span class="data-val val-amber">₹177.18</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Target 1</span>
+            <span class="data-val val-green">₹182.50</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">P&L Status</span>
+            <span class="data-val val-red">0.00%</span>
+          </div>
+        </div>
+      </div>
+    
+      <div class="stock-card card-hold">
+        <div class="card-top">
+          <span class="ticker">ASIANPAINT</span>
+          <span class="badge badge-hold">HOLD AT COST</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Mark Price</span>
+            <span class="data-val">₹2608.70</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Trailing Stop</span>
+            <span class="data-val val-amber">₹2608.70</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Target 1</span>
+            <span class="data-val val-green">₹2686.96</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">P&L Status</span>
+            <span class="data-val val-red">0.00%</span>
+          </div>
+        </div>
+      </div>
+    
+      <div class="stock-card card-hold">
+        <div class="card-top">
+          <span class="ticker">AUBANK</span>
+          <span class="badge badge-hold">HOLD AT COST</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Mark Price</span>
+            <span class="data-val">₹1085.10</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Trailing Stop</span>
+            <span class="data-val val-amber">₹1085.10</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Target 1</span>
+            <span class="data-val val-green">₹1117.65</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">P&L Status</span>
+            <span class="data-val val-red">0.00%</span>
+          </div>
+        </div>
+      </div>
+    
+      <div class="stock-card card-hold">
+        <div class="card-top">
+          <span class="ticker">BAJAJFINSV</span>
+          <span class="badge badge-hold">HOLD AT COST</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Mark Price</span>
+            <span class="data-val">₹2009.00</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Trailing Stop</span>
+            <span class="data-val val-amber">₹2009.00</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Target 1</span>
+            <span class="data-val val-green">₹2069.27</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">P&L Status</span>
+            <span class="data-val val-red">0.00%</span>
+          </div>
+        </div>
+      </div>
+    
+      <div class="stock-card card-hold">
+        <div class="card-top">
+          <span class="ticker">BAJFINANCE</span>
+          <span class="badge badge-hold">HOLD AT COST</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Mark Price</span>
+            <span class="data-val">₹1086.40</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Trailing Stop</span>
+            <span class="data-val val-amber">₹1086.40</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Target 1</span>
+            <span class="data-val val-green">₹1118.99</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">P&L Status</span>
+            <span class="data-val val-red">0.00%</span>
+          </div>
+        </div>
+      </div>
+    
+      <div class="stock-card card-hold">
+        <div class="card-top">
+          <span class="ticker">BEL</span>
+          <span class="badge badge-hold">HOLD AT COST</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Mark Price</span>
+            <span class="data-val">₹412.25</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Trailing Stop</span>
+            <span class="data-val val-amber">₹412.25</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Target 1</span>
+            <span class="data-val val-green">₹424.62</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">P&L Status</span>
+            <span class="data-val val-red">0.00%</span>
+          </div>
+        </div>
+      </div>
+    
+      <div class="stock-card card-hold">
+        <div class="card-top">
+          <span class="ticker">BHARATFORG</span>
+          <span class="badge badge-hold">HOLD AT COST</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Mark Price</span>
+            <span class="data-val">₹2044.40</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Trailing Stop</span>
+            <span class="data-val val-amber">₹2044.40</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Target 1</span>
+            <span class="data-val val-green">₹2105.73</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">P&L Status</span>
+            <span class="data-val val-red">0.00%</span>
+          </div>
+        </div>
+      </div>
+    
+      <div class="stock-card card-hold">
+        <div class="card-top">
+          <span class="ticker">BHARTIARTL</span>
+          <span class="badge badge-hold">HOLD AT COST</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Mark Price</span>
+            <span class="data-val">₹1892.10</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Trailing Stop</span>
+            <span class="data-val val-amber">₹1892.10</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Target 1</span>
+            <span class="data-val val-green">₹1948.86</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">P&L Status</span>
+            <span class="data-val val-red">0.00%</span>
+          </div>
+        </div>
+      </div>
+    
+      <div class="stock-card card-hold">
+        <div class="card-top">
+          <span class="ticker">BIOCON</span>
+          <span class="badge badge-hold">HOLD AT COST</span>
+        </div>
+        <div class="data-grid">
+          <div class="data-item">
+            <span class="data-label">Mark Price</span>
+            <span class="data-val">₹415.25</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Trailing Stop</span>
+            <span class="data-val val-amber">₹415.25</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">Target 1</span>
+            <span class="data-val val-green">₹427.71</span>
+          </div>
+          <div class="data-item">
+            <span class="data-label">P&L Status</span>
+            <span class="data-val val-red">0.00%</span>
+          </div>
+        </div>
+      </div>
+    
+    
+
+    <!-- Section 5: Global Macro Assets Table (Horizontal scroll on mobile) -->
+    
+    <div class="section-header sh-purple">🌐 GLOBAL MACRO & WAR RADAR (9 KEY DRIVERS)</div>
+    <div class="table-scroll">
+      <table>
+        <thead>
           <tr>
-            <td><span class="stock-ticker">AMBUJACEM</span></td>
-            <td><span class="badge badge-hold">HOLD AT COST</span></td>
-            <td class="n"><span class="price-entry">₹414.65</span></td>
-            <td class="n"><span class="price-stop" style="color:#b45309;">₹414.65</span></td>
-            <td class="n"><span class="price-target">₹427.09</span></td>
+            <th>Driver</th>
+            <th>Ticker</th>
+            <th class="n">Price</th>
+            <th class="n">Change</th>
+            <th>Impact</th>
+            <th>Threat</th>
           </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">ASHOKLEY</span></td>
-            <td><span class="badge badge-hold">HOLD AT COST</span></td>
-            <td class="n"><span class="price-entry">₹177.18</span></td>
-            <td class="n"><span class="price-stop" style="color:#b45309;">₹177.18</span></td>
-            <td class="n"><span class="price-target">₹182.50</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">ASIANPAINT</span></td>
-            <td><span class="badge badge-hold">HOLD AT COST</span></td>
-            <td class="n"><span class="price-entry">₹2608.70</span></td>
-            <td class="n"><span class="price-stop" style="color:#b45309;">₹2608.70</span></td>
-            <td class="n"><span class="price-target">₹2686.96</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">AUBANK</span></td>
-            <td><span class="badge badge-hold">HOLD AT COST</span></td>
-            <td class="n"><span class="price-entry">₹1085.10</span></td>
-            <td class="n"><span class="price-stop" style="color:#b45309;">₹1085.10</span></td>
-            <td class="n"><span class="price-target">₹1117.65</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">BAJAJFINSV</span></td>
-            <td><span class="badge badge-hold">HOLD AT COST</span></td>
-            <td class="n"><span class="price-entry">₹2009.00</span></td>
-            <td class="n"><span class="price-stop" style="color:#b45309;">₹2009.00</span></td>
-            <td class="n"><span class="price-target">₹2069.27</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">BAJFINANCE</span></td>
-            <td><span class="badge badge-hold">HOLD AT COST</span></td>
-            <td class="n"><span class="price-entry">₹1086.40</span></td>
-            <td class="n"><span class="price-stop" style="color:#b45309;">₹1086.40</span></td>
-            <td class="n"><span class="price-target">₹1118.99</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">BEL</span></td>
-            <td><span class="badge badge-hold">HOLD AT COST</span></td>
-            <td class="n"><span class="price-entry">₹412.25</span></td>
-            <td class="n"><span class="price-stop" style="color:#b45309;">₹412.25</span></td>
-            <td class="n"><span class="price-target">₹424.62</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">BHARATFORG</span></td>
-            <td><span class="badge badge-hold">HOLD AT COST</span></td>
-            <td class="n"><span class="price-entry">₹2044.40</span></td>
-            <td class="n"><span class="price-stop" style="color:#b45309;">₹2044.40</span></td>
-            <td class="n"><span class="price-target">₹2105.73</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">BHARTIARTL</span></td>
-            <td><span class="badge badge-hold">HOLD AT COST</span></td>
-            <td class="n"><span class="price-entry">₹1892.10</span></td>
-            <td class="n"><span class="price-stop" style="color:#b45309;">₹1892.10</span></td>
-            <td class="n"><span class="price-target">₹1948.86</span></td>
-          </tr>
-        
-          <tr>
-            <td><span class="stock-ticker">BIOCON</span></td>
-            <td><span class="badge badge-hold">HOLD AT COST</span></td>
-            <td class="n"><span class="price-entry">₹415.25</span></td>
-            <td class="n"><span class="price-stop" style="color:#b45309;">₹415.25</span></td>
-            <td class="n"><span class="price-target">₹427.71</span></td>
-          </tr>
-        
-      </tbody>
-    </table>
+        </thead>
+        <tbody>
+          
+            <tr>
+              <td><b>GIFT NIFTY (SGX)</b></td>
+              <td><code>^NSEI</code></td>
+              <td class="n">24,055.8</td>
+              <td class="n"><span style="font-weight:700;color:#047857">-0.10%</span></td>
+              <td style="font-size:12px;color:#475569;">Direct 9:15 AM Opening Gap Predictor (R² = 0.92)</td>
+              <td><span class="badge badge-buy">NORMAL</span></td>
+            </tr>
+          
+            <tr>
+              <td><b>Brent Crude Oil (War & Geopolitics)</b></td>
+              <td><code>BZ=F</code></td>
+              <td class="n">93.27</td>
+              <td class="n"><span style="font-weight:700;color:#b91c1c">+3.07%</span></td>
+              <td style="font-size:12px;color:#475569;">Negative (-0.60). Spike drains INR & foreign liquidity</td>
+              <td><span class="badge badge-hold">ELEVATED</span></td>
+            </tr>
+          
+            <tr>
+              <td><b>US Nasdaq 100 Futures</b></td>
+              <td><code>NQ=F</code></td>
+              <td class="n">29,236.25</td>
+              <td class="n"><span style="font-weight:700;color:#047857">-0.94%</span></td>
+              <td style="font-size:12px;color:#475569;">Direct overnight drag on Indian IT (TCS, INFY, WIPRO)</td>
+              <td><span class="badge badge-buy">MILD DRAG</span></td>
+            </tr>
+          
+            <tr>
+              <td><b>US S&P 500 Futures</b></td>
+              <td><code>ES=F</code></td>
+              <td class="n">7,662.5</td>
+              <td class="n"><span style="font-weight:700;color:#047857">-0.47%</span></td>
+              <td style="font-size:12px;color:#475569;">Global equity risk sentiment & institutional liquidity</td>
+              <td><span class="badge badge-buy">NORMAL</span></td>
+            </tr>
+          
+            <tr>
+              <td><b>US Dollar Index (DXY)</b></td>
+              <td><code>DX-Y.NYB</code></td>
+              <td class="n">99.65</td>
+              <td class="n"><span style="font-weight:700;color:#047857">+0.23%</span></td>
+              <td style="font-size:12px;color:#475569;">Negative. Strong Dollar triggers FII capital outflows</td>
+              <td><span class="badge badge-buy">NORMAL</span></td>
+            </tr>
+          
+            <tr>
+              <td><b>USD / INR Currency</b></td>
+              <td><code>INR=X</code></td>
+              <td class="n">94.94</td>
+              <td class="n"><span style="font-weight:700;color:#047857">0.00%</span></td>
+              <td style="font-size:12px;color:#475569;">Rupee depreciation forces foreign equity dumping</td>
+              <td><span class="badge badge-buy">NORMAL</span></td>
+            </tr>
+          
+            <tr>
+              <td><b>US 10-Yr Treasury Yield</b></td>
+              <td><code>^TNX</code></td>
+              <td class="n">4.77</td>
+              <td class="n"><span style="font-weight:700;color:#b91c1c">+0.29%</span></td>
+              <td style="font-size:12px;color:#475569;">Negative. Surging yields pull capital into US bonds</td>
+              <td><span class="badge badge-hold">ELEVATED</span></td>
+            </tr>
+          
+            <tr>
+              <td><b>US CBOE VIX (Global Panic)</b></td>
+              <td><code>^VIX</code></td>
+              <td class="n">15.34</td>
+              <td class="n"><span style="font-weight:700;color:#047857">+2.82%</span></td>
+              <td style="font-size:12px;color:#475569;">Inverse panic gauge. Spikes > 20 trigger deleveraging</td>
+              <td><span class="badge badge-buy">LOW PANIC</span></td>
+            </tr>
+          
+            <tr>
+              <td><b>India VIX (Domestic Fear)</b></td>
+              <td><code>^INDIAVIX</code></td>
+              <td class="n">11.19</td>
+              <td class="n"><span style="font-weight:700;color:#047857">0.00%</span></td>
+              <td style="font-size:12px;color:#475569;">Domestic fear gauge. Under 14 = Calm / Bullish Tape</td>
+              <td><span class="badge badge-buy">CALM</span></td>
+            </tr>
+          
+        </tbody>
+      </table>
+    </div>
     
   </div>
 
   <div class="footer">
-    Sent by <b>K² Range Desk Quantitative Engine</b> to <b>kuldeepsavaliya70@gmail.com</b>.<br>
-    Mathematical foundations: Black-Scholes-Merton PDE, Hurst Fractal Dimension ($H$), Kaufman Efficiency Ratio & Volume-Synchronized Probability of Informed Trading (VPIN).
+    Sent by <b>K² Range Desk Quantitative Decision Engine</b> to <b>kuldeepsavaliya70@gmail.com</b>.<br>
+    Mathematical safeguards active: Black-Scholes-Merton PDE, Hurst Fractal Dimension ($H$), VPIN Flow Toxicity, and Classical Structure Recognition.
   </div>
 </div>
 </body>
