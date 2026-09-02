@@ -22,9 +22,13 @@ on:
         description: "Publish the plan only, without reading GM"
         required: false
         type: boolean
-        default: false
+        default: true
   schedule:
-    # Every 30 minutes through the NSE session (09:15-15:30 IST is 03:45-10:00 UTC)
+    # 02:45 UTC is 08:15 AM IST (Guaranteed Morning Briefing before Market Open)
+    - cron: "45 2 * * 1-5"
+    # 10:15 UTC is 15:45 PM IST (Guaranteed Post-Market Wrap after Market Close)
+    - cron: "15 10 * * 1-5"
+    # Regular 30-minute interval during market hours
     - cron: "*/30 3-10 * * 1-5"
 
 concurrency:
@@ -44,6 +48,8 @@ jobs:
         with:
           node-version: 24
           cache: npm
+        env:
+          ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
       - run: npm ci
 
       - name: Open the site repository
@@ -72,33 +78,6 @@ jobs:
           else
             echo "measure=true" >> "$GITHUB_OUTPUT"
           fi
-
-      - name: Install a browser for the GM read
-        if: ${{ !inputs.skip_book }}
-        run: npx playwright install --with-deps chromium
-
-      - name: Read the GM book
-        id: book
-        continue-on-error: true
-        if: ${{ !inputs.skip_book }}
-        env:
-          GM_USERNAME: ${{ secrets.GM_USERNAME }}
-          GM_PASSWORD: ${{ secrets.GM_PASSWORD }}
-        run: node scripts/gm-portfolio-dump.js gm-positions.json
-
-      - name: Measure the held names
-        if: ${{ !inputs.skip_book && steps.book.outcome == 'success' }}
-        env:
-          K2_UPSIDE_MODEL: models/upside.json
-          K2_GOOGLE_SHEETS_WEB_APP_URL: ${{ secrets.K2_GOOGLE_SHEETS_WEB_APP_URL }}
-          K2_GOOGLE_SHEETS_ARCHIVE_SECRET: ${{ secrets.K2_GOOGLE_SHEETS_ARCHIVE_SECRET }}
-        run: node scripts/weekly-plan.js --symbols "$(node scripts/held-symbols.js gm-positions.json)" --top 60 --out plan-holdings.json
-
-      # Trend and carry do not depend on the ladder having an edge, so they are
-      # read for every holding rather than inherited from the plan.
-      - name: Read trend and carry for each holding
-        if: ${{ !inputs.skip_book && steps.book.outcome == 'success' }}
-        run: node scripts/book-context.js gm-positions.json book-context.json
 
       - name: Measure the universe
         if: ${{ steps.plan.outputs.measure == 'true' }}

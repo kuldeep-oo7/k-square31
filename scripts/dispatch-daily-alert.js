@@ -24,10 +24,10 @@ function checkDeduplication(force = false) {
     return { allow: false, reason: "Market is closed on weekends." };
   }
 
-  // Determine session slot: Morning (8:00 - 10:00) or Afternoon (15:30 - 17:00)
+  // Determine session slot: Morning (7:00 - 11:00) or Afternoon/Evening (15:00 - 21:30)
   let slot = null;
-  if (hours >= 8 && hours < 10) slot = "MORNING_BRIEFING";
-  else if (hours >= 15 && hours < 17) slot = "POST_MARKET_WRAP";
+  if (hours >= 7 && hours < 11) slot = "MORNING_BRIEFING";
+  else if (hours >= 15 && hours < 22) slot = "POST_MARKET_WRAP";
 
   // If outside these key windows in automated cron, skip to prevent spamming
   if (!slot) {
