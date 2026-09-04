@@ -5,6 +5,7 @@ const path = require("node:path");
 const { sendDailyTradeEmail, DEFAULT_RECIPIENT } = require("../api/_lib/emailer");
 const { evaluateGlobalMacroShock } = require("../api/_lib/market-regime");
 const { googleStoreConfigured, appendPortfolioAuditToGoogle, appendMacroRadarToGoogle } = require("../api/_lib/google-store");
+const { fetchLiveMacroRadar } = require("../api/_lib/market-feed");
 
 /**
  * Checks if current time is within trading window and handles deduplication.
@@ -183,94 +184,86 @@ async function run() {
     });
   }
 
-  // 3. Evaluate Macro Threat Radar with live or verified snapshot
+  // 3. Evaluate Macro Threat Radar with real live global feeds
+  const liveMacro = await fetchLiveMacroRadar().catch(() => null);
+  const giftPrice = liveMacro?.giftNifty?.price || 24050;
+  const giftChange = liveMacro?.giftNifty?.changePct || 0;
+  const vixPrice = liveMacro?.indiaVix?.price || 11.5;
+  const vixChange = liveMacro?.indiaVix?.changePct || 0;
+  const brentPrice = liveMacro?.brentCrude?.price || 95.0;
+  const brentChange = liveMacro?.brentCrude?.changePct || 0;
+  const spPrice = liveMacro?.sp500Futures?.price || 7750;
+  const spChange = liveMacro?.sp500Futures?.changePct || 0;
+  const nqPrice = liveMacro?.nasdaqFutures?.price || 29500;
+  const nqChange = liveMacro?.nasdaqFutures?.changePct || 0;
+  const inrPrice = liveMacro?.usdInr?.price || 94.4;
+  const inrChange = liveMacro?.usdInr?.changePct || 0;
+
   const radar = evaluateGlobalMacroShock({
-    giftNiftyGapPct: -0.10,
-    indiaVix: 11.19,
-    brentCrudeSpikePct: 3.07,
-    sp500FuturesGapPct: -0.47
+    giftNiftyGapPct: giftChange,
+    indiaVix: vixPrice,
+    indiaVixChangePct: vixChange,
+    brentCrudeSpikePct: brentChange,
+    sp500FuturesGapPct: spChange
   });
 
   const macroAssets = [
     {
-      name: "GIFT NIFTY (SGX)",
-      ticker: "^NSEI",
-      price: 24055.80,
-      changePct: -0.10,
+      name: "GIFT NIFTY (NSEIX Live)",
+      ticker: "NSEIX:NIFTY1!",
+      price: giftPrice,
+      changePct: giftChange,
       impact: "Direct 9:15 AM Opening Gap Predictor (R² = 0.92)",
-      threat: "NORMAL"
-    },
-    {
-      name: "Brent Crude Oil (War & Geopolitics)",
-      ticker: "BZ=F",
-      price: 93.27,
-      changePct: 3.07,
-      impact: "Negative (-0.60). Spike drains INR & foreign liquidity",
-      threat: "ELEVATED"
-    },
-    {
-      name: "US Nasdaq 100 Futures",
-      ticker: "NQ=F",
-      price: 29236.25,
-      changePct: -0.94,
-      impact: "Direct overnight drag on Indian IT (TCS, INFY, WIPRO)",
-      threat: "MILD DRAG"
-    },
-    {
-      name: "US S&P 500 Futures",
-      ticker: "ES=F",
-      price: 7662.50,
-      changePct: -0.47,
-      impact: "Global equity risk sentiment & institutional liquidity",
-      threat: "NORMAL"
-    },
-    {
-      name: "US Dollar Index (DXY)",
-      ticker: "DX-Y.NYB",
-      price: 99.65,
-      changePct: 0.23,
-      impact: "Negative. Strong Dollar triggers FII capital outflows",
-      threat: "NORMAL"
-    },
-    {
-      name: "USD / INR Currency",
-      ticker: "INR=X",
-      price: 94.94,
-      changePct: 0.00,
-      impact: "Rupee depreciation forces foreign equity dumping",
-      threat: "NORMAL"
-    },
-    {
-      name: "US 10-Yr Treasury Yield",
-      ticker: "^TNX",
-      price: 4.77,
-      changePct: 0.29,
-      impact: "Negative. Surging yields pull capital into US bonds",
-      threat: "ELEVATED"
-    },
-    {
-      name: "US CBOE VIX (Global Panic)",
-      ticker: "^VIX",
-      price: 15.34,
-      changePct: 2.82,
-      impact: "Inverse panic gauge. Spikes > 20 trigger deleveraging",
-      threat: "LOW PANIC"
+      threat: giftChange <= -1.2 ? "CRITICAL" : giftChange <= -0.6 ? "ELEVATED" : "NORMAL"
     },
     {
       name: "India VIX (Domestic Fear)",
       ticker: "^INDIAVIX",
-      price: 11.19,
-      changePct: 0.00,
+      price: vixPrice,
+      changePct: vixChange,
       impact: "Domestic fear gauge. Under 14 = Calm / Bullish Tape",
-      threat: "CALM"
+      threat: vixPrice >= 18 ? "CRITICAL" : vixPrice >= 14 ? "ELEVATED" : "CALM"
+    },
+    {
+      name: "Brent Crude Oil (War & Geopolitics)",
+      ticker: "BZ=F",
+      price: brentPrice,
+      changePct: brentChange,
+      impact: "Spike drains INR & foreign liquidity",
+      threat: brentChange >= 3.0 ? "ELEVATED" : "NORMAL"
+    },
+    {
+      name: "US S&P 500 Futures",
+      ticker: "ES=F",
+      price: spPrice,
+      changePct: spChange,
+      impact: "Global equity risk sentiment & institutional liquidity",
+      threat: spChange <= -1.0 ? "ELEVATED" : "NORMAL"
+    },
+    {
+      name: "US Nasdaq 100 Futures",
+      ticker: "NQ=F",
+      price: nqPrice,
+      changePct: nqChange,
+      impact: "Direct overnight drag on Indian IT (TCS, INFY, WIPRO)",
+      threat: nqChange <= -1.0 ? "ELEVATED" : "NORMAL"
+    },
+    {
+      name: "USD / INR Currency",
+      ticker: "INR=X",
+      price: inrPrice,
+      changePct: inrChange,
+      impact: "Rupee depreciation forces foreign equity dumping",
+      threat: inrChange >= 0.5 ? "ELEVATED" : "NORMAL"
     }
   ];
 
+  const sign = giftChange >= 0 ? "+" : "";
   const payload = {
     dateStr: new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "long", year: "numeric", month: "long", day: "numeric" }),
     radar: {
       severity: radar.regime || radar.severity || "NORMAL",
-      summary: `GIFT Nifty at 24,055 (-0.10%), India VIX at 11.19 (Low panic). Brent crude at $93.27 (+3.07%). Directive: ${radar.actionDirective || "STANDARD_EXECUTION"}.`
+      summary: `GIFT Nifty at ${giftPrice.toFixed(0)} (${sign}${giftChange.toFixed(2)}%), India VIX at ${vixPrice.toFixed(2)}. Brent crude at $${brentPrice.toFixed(2)}. Directive: ${radar.actionDirective || "STANDARD_EXECUTION"}.`
     },
     macroAssets,
     sells,
