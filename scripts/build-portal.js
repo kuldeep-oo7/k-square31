@@ -17,6 +17,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { sealPayload } = require("../api/_lib/portal-crypto");
 const { auditPurchases } = require("../api/_lib/trade-audit");
+const { fetchLiveMacroRadar } = require("../api/_lib/market-feed");
 
 const escapeHtml = (value) => String(value)
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -70,11 +71,20 @@ function planRow(item) {
         </tr>`;
 }
 
-function document_(plan, sealed, meta) {
+function document_(plan, sealed, meta, macro = {}) {
   const best = (plan?.best || []).slice(0, 60);
   const longs = best.filter((item) => item.side === "long").length;
   const shorts = best.filter((item) => item.side === "short").length;
   const monday = nextMonday(plan?.weekKey);
+
+  const giftPct = Number(macro?.giftNifty?.changePct || 0);
+  const giftPrice = Number(macro?.giftNifty?.price || 0);
+  const vixVal = Number(macro?.indiaVix?.price || 11.59);
+  const crudeVal = Number(macro?.brentCrude?.price || 96.05);
+  const spPct = Number(macro?.sp500Futures?.changePct || 0);
+  const isShock = giftPct <= -1.0 || vixVal >= 18 || crudeVal >= 100;
+  const radarTone = isShock ? "ELEVATED RISK / DEFENSIVE" : "STABLE";
+  const directive = isShock ? "L3/L4 Deep Dips Only" : "L1/L2 Shallow Buys Active";
 
   return `<!doctype html>
 <html lang="en">
@@ -250,27 +260,16 @@ function document_(plan, sealed, meta) {
   .order-text { font-size: 13.5px !important; color: var(--ink) !important; font-weight: 500 !important; }
 
   .chip-level { font-family: var(--mono); font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-left: 4px; vertical-align: middle; }
-  .level-1 { background: rgba(59, 130, 246, 0.18); color: #2563eb; border: 1px solid rgba(59, 130, 246, 0.35); }
-  .level-2 { background: rgba(14, 165, 233, 0.18); color: #0284c7; border: 1px solid rgba(14, 165, 233, 0.35); }
-  .level-3 { background: rgba(245, 158, 11, 0.18); color: #d97706; border: 1px solid rgba(245, 158, 11, 0.35); }
-  .level-4, .level-5 { background: rgba(239, 68, 68, 0.18); color: #dc2626; border: 1px solid rgba(239, 68, 68, 0.35); }
-
-  .macro-radar-banner { background: var(--white); border: 1px solid var(--line); border-radius: 16px; padding: 16px 20px; margin-bottom: 20px; box-shadow: var(--shadow); }
+  
+  .macro-radar-banner { background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 16px 20px; margin-bottom: 20px; box-shadow: var(--shadow); color: #f8fafc; }
   .radar-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
   .radar-title { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; letter-spacing: .02em; }
-  .radar-dot { width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block; animation: pulse-green 2s infinite; }
-  @keyframes pulse-green {
-    0% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0.7); }
-    70% { transform: scale(1); box-shadow: 0 0 0 6px rgba(16, 185, 129, 0); }
-    100% { transform: scale(0.95); box-shadow: 0 0 0 0 rgba(16, 185, 129, 0); }
-  }
-  .radar-time { font-family: var(--mono); font-size: 11px; color: var(--muted); }
+  .radar-dot { width: 10px; height: 10px; border-radius: 50%; background: #10b981; display: inline-block; }
+  .radar-time { font-family: var(--mono); font-size: 11px; color: #94a3b8; }
   .radar-pills { display: flex; flex-wrap: wrap; gap: 10px; }
-  .radar-pill { background: var(--paper); border: 1px solid var(--line); border-radius: 8px; padding: 6px 12px; font-size: 12px; font-family: var(--mono); color: var(--ink); }
+  .radar-pill { background: rgba(255, 255, 255, 0.06); border: 1px solid rgba(255, 255, 255, 0.12); border-radius: 8px; padding: 6px 12px; font-size: 12px; font-family: var(--mono); color: #e2e8f0; }
   .radar-pill b { font-weight: 700; }
-  .radar-pill.status-pill { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35); color: #047857; }
-
-  @media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+  .radar-pill.status-pill { background: rgba(16, 185, 129, 0.12); border-color: rgba(16, 185, 129, 0.35); color: #34d399; }
 </style>
 </head>
 <body>
@@ -286,17 +285,17 @@ function document_(plan, sealed, meta) {
   <div class="macro-radar-banner">
     <div class="radar-header">
       <div class="radar-title">
-        <span class="radar-dot"></span>
-        <b>GLOBAL PRE-MARKET & WAR SHOCK RADAR: STABLE</b>
+        <span class="radar-dot" style="${isShock ? 'background:#ef4444;box-shadow:0 0 8px rgba(239,68,68,0.6);' : ''}"></span>
+        <b id="radar-title-text">GLOBAL PRE-MARKET & WAR SHOCK RADAR: ${radarTone}</b>
       </div>
-      <div class="radar-time">Pre-Market Check: 08:30 AM IST (Refreshed Every 30m)</div>
+      <div class="radar-time" id="radar-sync-time">Live TradingView Sync (Auto-refreshing)</div>
     </div>
     <div class="radar-pills">
-      <div class="radar-pill">GIFT NIFTY: <b class="pos">+0.15%</b> (Normal)</div>
-      <div class="radar-pill">INDIA VIX: <b>13.80</b> (Low Panic)</div>
-      <div class="radar-pill">BRENT CRUDE: <b>$78.20</b> (Stable)</div>
-      <div class="radar-pill">US S&P FUTURES: <b class="pos">+0.25%</b> (Green)</div>
-      <div class="radar-pill status-pill">SHIELD DIRECTIVE: <b>L1/L2 Shallow Buys Active</b></div>
+      <div class="radar-pill">GIFT NIFTY: <b id="radar-gift-val" class="${giftPct >= 0 ? 'pos' : 'neg'}">${giftPct >= 0 ? '+' : ''}${giftPct.toFixed(2)}%</b> <span id="radar-gift-price">${giftPrice ? `(${Math.round(giftPrice)})` : ''}</span></div>
+      <div class="radar-pill">INDIA VIX: <b id="radar-vix-val">${vixVal.toFixed(2)}</b></div>
+      <div class="radar-pill">BRENT CRUDE: <b id="radar-crude-val">$${crudeVal.toFixed(2)}</b></div>
+      <div class="radar-pill">US S&P FUTURES: <b id="radar-sp-val" class="${spPct >= 0 ? 'pos' : 'neg'}">${spPct >= 0 ? '+' : ''}${spPct.toFixed(2)}%</b></div>
+      <div class="radar-pill status-pill">SHIELD DIRECTIVE: <b id="radar-directive">${directive}</b></div>
     </div>
   </div>
 
@@ -631,7 +630,32 @@ function document_(plan, sealed, meta) {
       .catch(function () {
         err.textContent = "That passphrase did not open the book. Check it and try again.";
       });
-  });
+  (function initLiveTradingViewSync() {
+    function fetchGiftLive() {
+      fetch("https://scanner.tradingview.com/symbol?symbol=NSEIX:NIFTY1!&fields=close,change,change_abs", { cache: "no-store" })
+        .then(function (r) { return r.json(); })
+        .then(function (d) {
+          var pill = document.getElementById("radar-gift-val");
+          var priceEl = document.getElementById("radar-gift-price");
+          if (pill && typeof d.change === "number") {
+            var sign = d.change >= 0 ? "+" : "";
+            pill.textContent = sign + d.change.toFixed(2) + "%";
+            pill.className = d.change >= 0 ? "pos" : "neg";
+          }
+          if (priceEl && typeof d.close === "number") {
+            priceEl.textContent = "(" + Math.round(d.close) + ")";
+          }
+          var timeEl = document.getElementById("radar-sync-time");
+          if (timeEl) {
+            var dt = new Date();
+            timeEl.textContent = "Live TradingView Sync: " + dt.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST";
+          }
+        })
+        .catch(function () {});
+    }
+    fetchGiftLive();
+    setInterval(fetchGiftLive, 10000);
+  }());
 }());
 </script>
 </body>
@@ -713,7 +737,7 @@ function bookPayload(book, plans, context = {}) {
   };
 }
 
-function run() {
+async function run() {
   const outputDir = process.argv[2] || "site";
   const passphrase = process.env.K2_PORTAL_PASSPHRASE || "";
   const book = readJson("gm-positions.json");
@@ -735,18 +759,20 @@ function run() {
     console.warn("K2_PORTAL_PASSPHRASE is not set: publishing the plan only, with no book.");
   }
 
+  const macro = await fetchLiveMacroRadar().catch(() => null);
+
   fs.mkdirSync(outputDir, { recursive: true });
-  fs.writeFileSync(path.join(outputDir, "index.html"), document_(plan, sealed, meta));
+  fs.writeFileSync(path.join(outputDir, "index.html"), document_(plan, sealed, meta, macro));
   // Keeps Pages from running the output through Jekyll.
   fs.writeFileSync(path.join(outputDir, ".nojekyll"), "");
   console.log(`Portal written to ${outputDir}: ${(plan?.best || []).length} ladders, ${sealed ? `${meta.positionCount} positions sealed` : "no book"}`);
 }
 
 if (require.main === module) {
-  try { run(); } catch (error) {
+  run().catch((error) => {
     console.error(`Portal build failed: ${String(error?.message || error).slice(0, 200)}`);
     process.exitCode = 1;
-  }
+  });
 }
 
 module.exports = { bookPayload, document_ };
