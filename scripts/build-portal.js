@@ -630,32 +630,36 @@ function document_(plan, sealed, meta, macro = {}) {
       .catch(function () {
         err.textContent = "That passphrase did not open the book. Check it and try again.";
       });
-  (function initLiveTradingViewSync() {
-    function fetchGiftLive() {
-      fetch("https://scanner.tradingview.com/symbol?symbol=NSEIX:NIFTY1!&fields=close,change,change_abs", { cache: "no-store" })
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-          var pill = document.getElementById("radar-gift-val");
-          var priceEl = document.getElementById("radar-gift-price");
-          if (pill && typeof d.change === "number") {
-            var sign = d.change >= 0 ? "+" : "";
-            pill.textContent = sign + d.change.toFixed(2) + "%";
-            pill.className = d.change >= 0 ? "pos" : "neg";
-          }
-          if (priceEl && typeof d.close === "number") {
-            priceEl.textContent = "(" + Math.round(d.close) + ")";
-          }
-          var timeEl = document.getElementById("radar-sync-time");
-          if (timeEl) {
-            var dt = new Date();
-            timeEl.textContent = "Live TradingView Sync: " + dt.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST";
-          }
-        })
-        .catch(function () {});
-    }
-    fetchGiftLive();
-    setInterval(fetchGiftLive, 10000);
-  }());
+  });
+}());
+</script>
+<script>
+// Real-Time Live TradingView Auto-Sync for GIFT NIFTY (NSEIX:NIFTY1!)
+(function initLiveTradingViewSync() {
+  function fetchGiftLive() {
+    fetch("https://scanner.tradingview.com/symbol?symbol=NSEIX:NIFTY1!&fields=close,change,change_abs", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var pill = document.getElementById("radar-gift-val");
+        var priceEl = document.getElementById("radar-gift-price");
+        if (pill && typeof d.change === "number") {
+          var sign = d.change >= 0 ? "+" : "";
+          pill.textContent = sign + d.change.toFixed(2) + "%";
+          pill.className = d.change >= 0 ? "pos" : "neg";
+        }
+        if (priceEl && typeof d.close === "number") {
+          priceEl.textContent = "(" + Math.round(d.close) + ")";
+        }
+        var timeEl = document.getElementById("radar-sync-time");
+        if (timeEl) {
+          var dt = new Date();
+          timeEl.textContent = "Live TradingView Sync: " + dt.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST";
+        }
+      })
+      .catch(function () {});
+  }
+  fetchGiftLive();
+  setInterval(fetchGiftLive, 10000);
 }());
 </script>
 </body>

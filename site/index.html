@@ -190,7 +190,7 @@
     <h1 class="wordmark">K<span>²</span> Range Desk</h1>
     <div class="stamp">
       NSE futures · weekly ladder<br>
-      built 2026-09-04 02:00 UTC
+      built 2026-09-04 02:15 UTC
     </div>
   </header>
 
@@ -203,10 +203,10 @@
       <div class="radar-time" id="radar-sync-time">Live TradingView Sync (Auto-refreshing)</div>
     </div>
     <div class="radar-pills">
-      <div class="radar-pill">GIFT NIFTY: <b id="radar-gift-val" class="pos">+0.38%</b> <span id="radar-gift-price">(24024)</span></div>
+      <div class="radar-pill">GIFT NIFTY: <b id="radar-gift-val" class="pos">+0.15%</b> <span id="radar-gift-price">(24050)</span></div>
       <div class="radar-pill">INDIA VIX: <b id="radar-vix-val">11.59</b></div>
-      <div class="radar-pill">BRENT CRUDE: <b id="radar-crude-val">$96.02</b></div>
-      <div class="radar-pill">US S&P FUTURES: <b id="radar-sp-val" class="pos">+1.02%</b></div>
+      <div class="radar-pill">BRENT CRUDE: <b id="radar-crude-val">$96.04</b></div>
+      <div class="radar-pill">US S&P FUTURES: <b id="radar-sp-val" class="pos">+1.04%</b></div>
       <div class="radar-pill status-pill">SHIELD DIRECTIVE: <b id="radar-directive">L1/L2 Shallow Buys Active</b></div>
     </div>
   </div>
@@ -798,32 +798,36 @@
       .catch(function () {
         err.textContent = "That passphrase did not open the book. Check it and try again.";
       });
-  (function initLiveTradingViewSync() {
-    function fetchGiftLive() {
-      fetch("https://scanner.tradingview.com/symbol?symbol=NSEIX:NIFTY1!&fields=close,change,change_abs", { cache: "no-store" })
-        .then(function (r) { return r.json(); })
-        .then(function (d) {
-          var pill = document.getElementById("radar-gift-val");
-          var priceEl = document.getElementById("radar-gift-price");
-          if (pill && typeof d.change === "number") {
-            var sign = d.change >= 0 ? "+" : "";
-            pill.textContent = sign + d.change.toFixed(2) + "%";
-            pill.className = d.change >= 0 ? "pos" : "neg";
-          }
-          if (priceEl && typeof d.close === "number") {
-            priceEl.textContent = "(" + Math.round(d.close) + ")";
-          }
-          var timeEl = document.getElementById("radar-sync-time");
-          if (timeEl) {
-            var dt = new Date();
-            timeEl.textContent = "Live TradingView Sync: " + dt.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST";
-          }
-        })
-        .catch(function () {});
-    }
-    fetchGiftLive();
-    setInterval(fetchGiftLive, 10000);
-  }());
+  });
+}());
+</script>
+<script>
+// Real-Time Live TradingView Auto-Sync for GIFT NIFTY (NSEIX:NIFTY1!)
+(function initLiveTradingViewSync() {
+  function fetchGiftLive() {
+    fetch("https://scanner.tradingview.com/symbol?symbol=NSEIX:NIFTY1!&fields=close,change,change_abs", { cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (d) {
+        var pill = document.getElementById("radar-gift-val");
+        var priceEl = document.getElementById("radar-gift-price");
+        if (pill && typeof d.change === "number") {
+          var sign = d.change >= 0 ? "+" : "";
+          pill.textContent = sign + d.change.toFixed(2) + "%";
+          pill.className = d.change >= 0 ? "pos" : "neg";
+        }
+        if (priceEl && typeof d.close === "number") {
+          priceEl.textContent = "(" + Math.round(d.close) + ")";
+        }
+        var timeEl = document.getElementById("radar-sync-time");
+        if (timeEl) {
+          var dt = new Date();
+          timeEl.textContent = "Live TradingView Sync: " + dt.toLocaleTimeString("en-IN", { timeZone: "Asia/Kolkata" }) + " IST";
+        }
+      })
+      .catch(function () {});
+  }
+  fetchGiftLive();
+  setInterval(fetchGiftLive, 10000);
 }());
 </script>
 </body>
