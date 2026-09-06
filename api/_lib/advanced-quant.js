@@ -41,7 +41,7 @@ function stdNormPdf(x) {
  * The Trillion Dollar Equation (Black-Scholes-Merton Model & 5 Greeks)
  * Calculates theoretical option price, Delta, Gamma, Vega, Theta, and Rho.
  */
-function blackScholesMerton({ spot, strike, timeToExpiryYears, riskFreeRate = 0.065, volatility, isCall = true }) {
+function blackScholesMerton({ spot, strike, timeToExpiryYears, riskFreeRate = 0.065, volatility, isCall = true, isFutures = false }) {
   const S = Number(spot);
   const K = Number(strike);
   const rawT = Number(timeToExpiryYears);
@@ -71,9 +71,15 @@ function blackScholesMerton({ spot, strike, timeToExpiryYears, riskFreeRate = 0.
 
   const T = Math.max(0.0001, rawT);
   const sigma = Number.isFinite(rawVol) && rawVol > 0 ? rawVol : 0.20;
+  const isFuturesOption = Boolean(isFutures);
 
   const sqrtT = Math.sqrt(T);
-  const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * sqrtT);
+  const discount = Math.exp(-r * T);
+
+  // Black-76 for futures options vs Black-Scholes-Merton for spot options
+  const d1 = isFuturesOption
+    ? (Math.log(S / K) + (0.5 * sigma * sigma) * T) / (sigma * sqrtT)
+    : (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * sqrtT);
   const d2 = d1 - sigma * sqrtT;
 
   const Nd1 = stdNormCdf(d1);
@@ -86,15 +92,13 @@ function blackScholesMerton({ spot, strike, timeToExpiryYears, riskFreeRate = 0.
   let delta = 0;
   let theta = 0;
 
-  const discount = Math.exp(-r * T);
-
   if (isCall) {
-    price = S * Nd1 - K * discount * Nd2;
-    delta = Nd1;
+    price = isFuturesOption ? discount * (S * Nd1 - K * Nd2) : (S * Nd1 - K * discount * Nd2);
+    delta = isFuturesOption ? discount * Nd1 : Nd1;
     theta = -(S * pdf_d1 * sigma) / (2 * sqrtT) - r * K * discount * Nd2;
   } else {
-    price = K * discount * N_neg_d2 - S * N_neg_d1;
-    delta = Nd1 - 1.0;
+    price = isFuturesOption ? discount * (K * N_neg_d2 - S * N_neg_d1) : (K * discount * N_neg_d2 - S * N_neg_d1);
+    delta = isFuturesOption ? -discount * N_neg_d1 : (Nd1 - 1.0);
     theta = -(S * pdf_d1 * sigma) / (2 * sqrtT) + r * K * discount * N_neg_d2;
   }
 
@@ -326,7 +330,14 @@ function calculateOuHalfLife(prices) {
  * d typically in range [0.35, 0.50].
  */
 function calculateFractionalDiff(prices, d = 0.45, threshold = 1e-4) {
-  if (!Array.isArray(prices) || prices.length < 20) return prices;
+  if (!Array.isArray(prices) || prices.length < 20) {
+    return {
+      fractionalSeries: Array.isArray(prices) ? prices : [],
+      d,
+      memoryRetentionPct: Number(((1.0 - d) * 100).toFixed(1)),
+      weightsLength: 0
+    };
+  }
 
   const weights = [1.0];
   let k = 1;

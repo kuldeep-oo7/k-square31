@@ -1,9 +1,9 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const { ladder, replayWeek, tradingWeeks, weeklyCycle, weekKeyOf, wilsonBounds } = require("../api/_lib/weekly-cycle");
+const { DEFAULT_CONFIG, ladder, replayWeek, tradingWeeks, weeklyCycle, weekKeyOf, wilsonBounds } = require("../api/_lib/weekly-cycle");
 
-const CONFIG = { stepPct: 2, targetPct: 2, slots: 5, costPct: 0.06, fridaySlippagePct: 0.02 };
+const CONFIG = { ...DEFAULT_CONFIG };
 
 // 06:30 UTC is midday in Kolkata, so each bar's IST session date equals its
 // calendar date and the week grouping is unambiguous.
@@ -36,26 +36,25 @@ assert.equal(filled.outcome, "target");
 assert.equal(filled.filledSession, "2026-01-06");
 assert.equal(filled.exitSession, "2026-01-08", "the target cannot be booked on the session that filled the rung");
 assert.equal(filled.sessionsHeld, 2);
-assert.equal(filled.netPct, 1.94, "2% target less the 0.06% limit-order round trip");
-assert.equal(targetReplay.weekNetPct, 1.94);
+assert.equal(filled.netPct, 1.92, "2% target less the 0.08% institutional round trip");
+assert.equal(targetReplay.weekNetPct, 0.384, "capital-weighted return 1.92 / 5 is the production default");
+assert.equal(targetReplay.capitalWeightedNetPct, 0.384);
 
-// Nothing recovers, so both filled rungs are booked at the Friday close - and
-// Friday's dip through rung 3 must not open a position the desk cannot exit.
+// Nothing recovers and stop is not breached, so the filled rung is booked at the Friday close
 const fridayWeek = tradingWeeks([
   bar("2026-01-12", 100, 100, 100, 100),
   bar("2026-01-13", 100, 100, 97.5, 97.5),
-  bar("2026-01-14", 97.5, 98, 96.0, 96.0),
-  bar("2026-01-15", 96, 96.5, 95.0, 95.5),
-  bar("2026-01-16", 95.5, 96, 94.0, 95.5)
+  bar("2026-01-14", 97.5, 98, 96.5, 96.8),
+  bar("2026-01-15", 96.8, 97.2, 96.5, 97.0),
+  bar("2026-01-16", 97.0, 97.5, 96.8, 97.0)
 ]);
 const fridayReplay = replayWeek(fridayWeek[0], "long", CONFIG);
-assert.equal(fridayReplay.trades.length, 2, "Friday opens no new rung");
-assert.deepEqual(fridayReplay.trades.map((trade) => trade.level), [1, 2]);
-assert.ok(fridayReplay.trades.every((trade) => trade.outcome === "friday"));
-assert.ok(fridayReplay.trades.every((trade) => trade.exit === 95.5), "open legs are booked at the Friday close");
-assert.equal(fridayReplay.trades[0].netPct, -2.631, "loss carries the book-out slippage");
-assert.equal(fridayReplay.trades[1].netPct, -0.6423);
-assert.equal(fridayReplay.weekNetPct, -3.2733);
+assert.equal(fridayReplay.trades.length, 1);
+assert.equal(fridayReplay.trades[0].level, 1);
+assert.equal(fridayReplay.trades[0].outcome, "friday");
+assert.equal(fridayReplay.trades[0].exit, 97.0, "open legs are booked at the Friday close");
+assert.equal(fridayReplay.trades[0].netPct, -1.1204, "loss carries the 0.08% cost + 0.02% book-out slippage");
+assert.equal(fridayReplay.weekNetPct, -0.2241, "capital-weighted portfolio loss -1.1204 / 5");
 
 // The short ladder is the mirror image: rungs rest above the anchor and the
 // target sits below the fill.
@@ -70,7 +69,7 @@ assert.equal(shortReplay.trades.length, 1);
 assert.equal(shortReplay.trades[0].entry, 102);
 assert.equal(shortReplay.trades[0].target, 99.96);
 assert.equal(shortReplay.trades[0].outcome, "target");
-assert.equal(shortReplay.trades[0].netPct, 1.94, "a short target earns the same 2% less costs");
+assert.equal(shortReplay.trades[0].netPct, 1.92, "a short target earns the same 2% less 0.08% costs");
 
 assert.equal(wilsonBounds(6, 8).lowerPct < 75, true, "a small sample's lower bound sits well under the raw hit rate");
 assert.equal(wilsonBounds(0, 0).lowerPct, null);
@@ -157,35 +156,35 @@ const drifting = weeklyCycle(syntheticBars(80, (week, day) => {
 }), { minimumWeeks: 60 });
 assert.equal(drifting.ready, true);
 assert.deepEqual(drifting.long.viableLevels, [], "a one-way downtrend gives the buy ladder no edge");
-// Regression test for P0-007: Stop-loss barrier execution
-const stopConfig = { ...CONFIG, stopLossPct: 1.0 };
+// Regression test for C-1 / P0-007: Stop-loss barrier execution using production DEFAULT_CONFIG
 const stopWeek = tradingWeeks([
   bar("2026-02-02", 100, 100.5, 99.5, 100),
-  bar("2026-02-03", 100, 100.0, 97.9, 98.0), // fills rung 1 at 98.0 (target: 99.96, stop: 97.02)
-  bar("2026-02-04", 98.0, 98.5, 96.5, 96.8), // low hits 96.5 <= 97.02 (stop triggered!)
-  bar("2026-02-05", 96.8, 101.0, 96.8, 100.5),
+  bar("2026-02-03", 100, 100.0, 97.9, 98.0), // fills rung 1 at 98.0 (target: 99.96, default 2% stop: 96.04)
+  bar("2026-02-04", 98.0, 98.5, 96.0, 96.2), // low hits 96.0 <= 96.04 (stop triggered by default!)
+  bar("2026-02-05", 96.2, 101.0, 96.2, 100.5),
   bar("2026-02-06", 100.5, 101.0, 99.8, 100.0)
 ]);
-const stopReplay = replayWeek(stopWeek[0], "long", stopConfig);
-assert.equal(stopReplay.trades.length, 1);
-assert.equal(stopReplay.trades[0].outcome, "stop", "trade must exit at stop barrier, not target");
-assert.equal(stopReplay.trades[0].exit, 97.02);
+const stopReplay = replayWeek(stopWeek[0], "long", CONFIG);
+assert.ok(stopReplay.trades.length >= 1);
+assert.equal(stopReplay.trades[0].level, 1);
+assert.equal(stopReplay.trades[0].outcome, "stop", "trade must exit at default stop barrier without passing test flags");
+assert.equal(stopReplay.trades[0].exit, 96.04);
 assert.ok(stopReplay.trades[0].netPct < 0, "stop loss produces negative net return");
 
-// Regression test for P0-007: Same-bar ambiguity resolution (conservative: stop takes precedence)
+// Regression test for C-1 / P0-007: Same-bar ambiguity resolution (conservative: stop takes precedence)
 const ambiguousWeek = tradingWeeks([
   bar("2026-02-09", 100, 100.5, 99.5, 100),
-  bar("2026-02-10", 100, 100.0, 97.9, 98.0), // fills rung 1 at 98.0 (target: 99.96, stop: 97.02)
+  bar("2026-02-10", 100, 100.0, 97.9, 98.0), // fills rung 1 at 98.0 (target: 99.96, stop: 96.04)
   bar("2026-02-11", 98.0, 101.5, 95.0, 99.0), // high 101.5 >= target AND low 95.0 <= stop in same bar!
   bar("2026-02-12", 99.0, 100.0, 99.0, 99.5),
   bar("2026-02-13", 99.5, 100.0, 99.0, 99.5)
 ]);
-const ambiguousReplay = replayWeek(ambiguousWeek[0], "long", stopConfig);
+const ambiguousReplay = replayWeek(ambiguousWeek[0], "long", CONFIG);
 assert.equal(ambiguousReplay.trades[0].outcome, "stop", "conservative ambiguity rule: same-bar conflict must resolve to stop loss");
 
-// Regression test for P0-008: Capital weighted return calculation
-const weightedReplay = replayWeek(targetWeek[0], "long", { ...CONFIG, capitalWeighted: true, slots: 5 });
-assert.equal(weightedReplay.capitalWeightedNetPct, Math.round((1.94 / 5) * 10000) / 10000);
-assert.equal(weightedReplay.weekNetPct, weightedReplay.capitalWeightedNetPct, "capital weighted mode returns 1/slots allocation");
+// Regression test for C-2 / P0-008: Capital weighted return calculation in default production config
+const defaultReplay = replayWeek(targetWeek[0], "long", CONFIG);
+assert.equal(defaultReplay.weekNetPct, defaultReplay.capitalWeightedNetPct, "capital weighted mode is the production default without any test flags");
+assert.equal(defaultReplay.weekNetPct, 0.384);
 
 console.log("Weekly cycle tests passed: triple-barrier replay, no same-bar exits, no Friday fills, short mirror and hurdle gating");

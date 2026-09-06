@@ -1,0 +1,1248 @@
+================================================================================
+K-SQUARE RANGE DESK (K2 / PIVOT31)
+INDEPENDENT COUNTER-AUDIT OF THE REMEDIATION REPORT
+================================================================================
+
+Date            : 2026-09-06
+Commit reviewed : 153e62c (gm-portfolio-view)
+Method          : Source read; `npm run check` executed (32 suites, exit 0);
+                  call-site tracing for every claimed fix; defect-ID diff across
+                  all four documents in the folder; regulatory rates verified
+                  against live published sources.
+Verdict         : NO-GO for Gate B in current state.
+
+--------------------------------------------------------------------------------
+TOP LINE
+--------------------------------------------------------------------------------
+The engineering craft in this repo is genuinely above average. The verification
+discipline is not.
+
+`npm run check` exits 0 across 32 suites, and that number is load-bearing in the
+remediation report -- it is cited as proof that seventeen P0 defects are closed.
+It proves no such thing. The tests pass configuration flags that no production
+call site passes. The suite verifies a code path the live system never executes.
+
+Four most damaging consequences:
+  1. The backtest has NO stop-loss.
+  2. Weekly returns are still inflated roughly 5x.
+  3. Research and live engines measure two different strategies.
+  4. The tax engine understates real round-trip cost by ~48% (stale STT rate).
+
+Running a shadow cycle on this code would produce a month of unusable data.
+
+
+================================================================================
+SCORECARD
+================================================================================
+  Defects raised by independent re-audit ....... 64  (17 P0 / 35 P1 / 12 P2)
+  Addressed in remediation report .............. 22  (17 P0 + 5 P1)
+  Never mentioned .............................. 42
+  Headline fixes that are TEST-ONLY ............  3
+  "Advanced quant" functions reachable .........  5 of 10
+  Independent cost models in one system ........  4  (0.25% / 0.08% / 0.06% / itemised)
+  Portfolio-level risk limits ..................  0
+
+
+================================================================================
+1. THE PATTERN BEHIND THE PATTERN
+================================================================================
+Before the individual findings, the shape they share. One habit, repeated. This
+is the single most important item in this document.
+
+  THE FIXES WERE VERIFIED BY MAKING THE TEST PASS THE FLAG, RATHER THAN BY
+  TURNING THE FLAG ON BY DEFAULT.
+
+The feature gets written correctly. A test is added that enables it. The suite
+goes green. The report records the defect as "RESOLVED & VERIFIED IN FULL TEST
+SUITE." Production, which never sets the flag, carries on running the defective
+path -- with a passing test suite as cover.
+
+The whole diagnosis as one command:
+
+  $ grep -rn "stopLossPct" api/ scripts/ | grep -v "scripts/test-"
+
+    api/_lib/recommendation.js  -> order-intent display field only; never
+                                   reaches the replay engine
+    api/_lib/weekly-cycle.js:96 -> const stopLossPct = Number(config.stopLossPct) || null;
+    scripts/build-portal.js     -> HTML rendering only
+
+    # DEFAULT_CONFIG does not define it. Every production caller omits it.
+    # The ONLY place it is ever set:
+    scripts/test-weekly-cycle.js:161  const stopConfig = { ...CONFIG, stopLossPct: 1.0 };
+
+The same command over `capitalWeighted` returns exactly one non-test hit (the
+line that reads it) and one test that sets it.
+
+Two of the report's most consequential P0 fixes. Both dead in production. Both
+marked verified.
+
+ADOPT THIS AS A CI RULE
+  Any behaviour a defect register claims to have fixed must be ON BY DEFAULT,
+  or CI must fail. A config flag that is only ever enabled by a test is not a
+  fix; it is a fix plus a switch that is off. Add a check that greps every
+  documented remediation flag and fails the build if its only non-library
+  occurrence is under scripts/test-.
+
+  Your own dossier already called this: P1-032 "Tests verify synthetic
+  behavior, not production economics." The remediation report does not mention
+  P1-032. It is the defect that lets the other defects survive being fixed.
+
+
+================================================================================
+2. CRITICAL FINDINGS
+================================================================================
+
+--------------------------------------------------------------------------------
+C-1  THE BACKTEST HAS NO STOP-LOSS, AND THE SAME-BAR RULE THAT DEPENDS ON IT
+     IS UNREACHABLE
+--------------------------------------------------------------------------------
+REPORT CLAIMS
+  P0-007 fixed: longStop = rungPrice * (1 - (config.stopLossPct || 0.02)), plus
+  "conservative same-bar ambiguity resolution" where a bar touching both
+  barriers books the stop.
+
+CODE SAYS
+  weekly-cycle.js:96 -- Number(config.stopLossPct) || null
+  There is no 0.02 default anywhere. DEFAULT_CONFIG omits the key entirely.
+
+EVIDENCE
+  Production callers, all passing nothing:
+    market.js:508, weekly-plan.js:104, recommendation.js:296,
+    build-desk-page.js:39, exit-policy-study.js:50, rule-study.js:59
+  Only test-weekly-cycle.js:161 sets it.
+
+CONSEQUENCE
+  With lot.stopLoss null, stopReached is ALWAYS false. The celebrated same-bar
+  branch is therefore dead code too -- ONE LINE KILLS TWO HEADLINE FIXES.
+
+  Every win rate, Sharpe, profit factor and drawdown in the system describes a
+  ladder that never stops out.
+
+  Then: the live engine (ai-engine.js) has no stop either, and no longer flattens
+  on Friday. A losing leg is now held indefinitely. You have built an
+  unbounded-loss averaging-down grid and measured it with a backtest that cannot
+  represent a loss.
+
+
+--------------------------------------------------------------------------------
+C-2  WEEKLY RETURN IS STILL THE SUM OF LEG PERCENTAGES -- AND IT POISONS THE
+     ML LABELS AND THE LARGEST CONVICTION COMPONENT
+--------------------------------------------------------------------------------
+REPORT CLAIMS
+  P0-008 fixed: "Replaced unweighted sum with capitalWeightedNetPct... 20% per
+  rung."
+
+CODE SAYS
+  weekly-cycle.js:168
+    weekNetPct: config.capitalWeighted ? capitalWeightedNetPct : sumNetPct
+  `capitalWeighted` is absent from DEFAULT_CONFIG and set only at
+  test-weekly-cycle.js:187. THE DEFAULT IS STILL THE INFLATED SUM.
+
+BLAST RADIUS -- this is not confined to a report figure:
+
+  1. THE ML TRAINING LABEL.
+     ml-model.js:163 calls replayWeek(week, side, config) built from
+     DEFAULT_CONFIG. weekly-plan.js:110 calls weeklyForecast(bars, side) with no
+     overrides. Every label the boosted trees learn is ~5x the real portfolio
+     move.
+
+  2. THE CONVICTION SCORE.
+     convictionOf gives "Realised weekly edge" a weight of 22 points -- the
+     single largest component -- computed as
+       clamp(outOfSample.averageWeeklyPct / 2)
+     Feed a 5x-inflated number into a clamp with a ceiling of 2%, and it
+     saturates at 1.0 almost always.
+
+CONSEQUENCE
+  The biggest input to every ranking decision is pinned at maximum by an
+  accounting bug, and the model is fitting a label that does not correspond to
+  any tradable P&L.
+
+  This is your own P1-001 "ML label does not match the trade being executed" --
+  raised, unaddressed, and now compounded.
+
+
+--------------------------------------------------------------------------------
+C-3  THREE ENGINES, THREE PRODUCTS, THREE EXIT POLICIES -- NONE OF WHICH AGREE
+--------------------------------------------------------------------------------
+The report devotes its longest section to celebrating the removal of forced
+Friday liquidation. That change was made in ONE of three engines. The other two
+were not touched, and nothing reconciles them.
+
+  ENGINE                INSTRUMENT              EXIT POLICY             STOP
+  --------------------  ----------------------  ----------------------  --------
+  weekly-cycle.js       Cash daily bars         Books out at Friday     NONE
+  (research, backtest,                          close -- outcome:       (C-1)
+   ML labels)                                   "friday"; the `method`
+                                                string still says
+                                                "forced book-out"
+
+  ai-engine.js          CASH EQUITY, whole      Holds indefinitely;     NONE
+  (the live paper       shares -- state.cash,   target only
+   ledger)              floor(available/price),
+                        no lots, no margin,
+                        no roll
+
+  recommendation.js     Stock futures order     ATR target/stop; but    ATR*0.6
+  (what you read)       intents                 the payload literally   clamped
+                                                returns bookOut:        0.8-2.0%
+                                                "Book every open leg
+                                                at the Friday close"
+
+NOTHING MEASURED DESCRIBES ANYTHING TRADED.
+
+The report insists the product is "Pure NSE Individual-Stock Futures
+(FinInstrmTp === STF)." Yet ai-engine.js -- the engine that actually holds
+positions -- is a cash-equity grid buying whole shares against a Rs 2,00,000
+cash balance. There is no lot size, no SPAN margin, no expiry, no roll anywhere
+in it.
+
+DOWNSTREAM SYMPTOM WORTH NAMING (it is quoted as a headline statistic):
+  weekStats annualises with sqrt(52) and justifies it in a comment --
+  "Weekly returns are independent draws under this rule (every position is flat
+  by Friday)." That premise is exactly what the report removed. The Sharpe
+  figure is now unjustified by its own reasoning. It also never subtracts a
+  risk-free rate (~6.5% in India), so it is a return/vol ratio, not a Sharpe.
+
+
+--------------------------------------------------------------------------------
+C-4  THE "AUTHENTIC NSE TAXATION ENGINE" USES A TAX RATE THAT EXPIRED FIVE
+     MONTHS AGO
+--------------------------------------------------------------------------------
+shadow-broker.js is described as modelling charges "exact... as published by
+SEBI, NSE." Its percentage-to-decimal conversions are all correct -- I checked
+each one. The problem is the rate itself.
+
+  CHARGE                        IN CODE     ACTUAL (Sep 2026)   EFFECT
+  ----------------------------  ----------  ------------------  ----------------
+  STT, futures sell side         0.020%      0.050%             2.5x UNDERSTATED
+  Exchange transaction           0.00190%    0.00183%           minor over-charge
+  IPFT                           absent      Rs 0.01/crore      "exact" is claimed
+  Stamp (buy), SEBI, clearing,   correct     correct            --
+    GST
+
+STT on equity futures rose to 0.05% on the sell side effective 1 April 2026.
+
+On a representative Rs 7,40,000 round trip:
+  True cost   ~ Rs 466  (0.063%)
+  Engine books ~ Rs 244  (0.033%)
+  => It books 52% of real friction. STT is the largest single line item, so this
+     is not a rounding matter.
+
+TWO STRUCTURAL PROBLEMS SIT BEHIND THE RATE:
+
+  a) THE EXECUTION MODEL IS INVERTED.
+     buildOrderIntent emits orderType: "LIMIT". simulateExecutionFill then fills
+     a buy at limitPrice + slippage and hardcodes status: "FILLED".
+     A limit order cannot fill worse than its limit, and is not guaranteed to
+     fill at all. Real limit orders trade PRICE CERTAINTY for FILL UNCERTAINTY;
+     this model does the reverse. No rejection, no partial, no queue position.
+
+  b) RETURN IS REPORTED ON NOTIONAL, NOT MARGIN.
+     returnOnTurnoverPct = netPnl / turnover. At ~22% margin, return on capital
+     is ~4.5x that. For a leveraged product this understates both the gain and
+     the risk by the same factor.
+
+ALSO: orderId uses Math.random() and Date.now(), so contract notes are not
+reproducible -- in a module whose selling point is an idempotent audit trail,
+and in a repo whose ML code goes to real trouble to seed its RNG
+deterministically.
+
+
+--------------------------------------------------------------------------------
+C-5  UNTRAINED MAGIC NUMBERS HOLD HARD VETO POWER; THE ONE HONESTLY-MEASURED
+     MODEL IS SIDELINED
+--------------------------------------------------------------------------------
+The most conceptually serious finding, and invisible to the test suite because
+the tests assert that the gate FIRES, never that its coefficients MEAN anything.
+
+metaLabelConfidence is documented as "Meta-Labeling: Secondary Machine Learning
+Quality Control Gate (Lopez de Prado)." It is a hand-written logistic function:
+
+    let z = -0.2;
+    z += (primaryScore / 100) * 1.8;
+    if (hurst <= 0.45) z += 0.5;
+    if (vpin >= 0.65) z -= 1.8;
+    if (er >= 0.40) z += 0.4;
+    const metaProb = 1 / (1 + Math.exp(-z));
+    const decision = (metaProb >= 0.50 && vpin < 0.65) ? "TAKE" : "VETO";
+
+Not one of those coefficients was fitted to anything. Meta-labelling in Lopez de
+Prado is a secondary classifier TRAINED ON THE PRIMARY MODEL'S REALISED
+OUTCOMES; that is the entire point of the technique. This is a scoring rubric
+wearing its name. Via enforceHardVetoes it has ABSOLUTE VETO AUTHORITY OVER
+EVERY TRADE IN BOTH ROUTES.
+
+Its two most influential inputs are equally unfounded:
+
+  VPIN is computed on DAILY bars. Real VPIN buckets a volume clock. The
+  bulk-volume classifier should normalise by sigma of price changes; the code
+  uses MEAN ABSOLUTE CHANGE (~0.80 sigma for a normal) and then multiplies by an
+  arbitrary 1.5. The 0.65 toxicity threshold is an absolute constant -- VPIN is
+  conventionally read as a percentile of its own history, because its level is
+  not comparable across instruments. That arbitrary constant is a hard veto.
+
+  HURST is R/S over four lags with no Anis-Lloyd small-sample correction. R/S is
+  badly upward-biased at these lengths and the standard error is roughly +/-0.1
+  -- wider than the 0.45 / 0.65 decision bands it feeds.
+
+Meanwhile the pooled upside model -- the one component that WAS trained,
+walk-forward validated with an embargo, and honestly reported (IC 0.0203,
+R^2 -0.0217, non-monotonic deciles) -- is correctly demoted to advisory-only.
+
+  THE MEASURED THING IS SIDELINED; THE UNMEASURED THINGS GOVERN.
+
+Your dossier raised both: P1-011 ("VPIN is a daily trend/volume proxy") and
+P1-012 ("meta-label probability is hand-written, not trained or calibrated").
+Neither appears in the remediation report.
+
+
+--------------------------------------------------------------------------------
+C-6  THERE IS NO PORTFOLIO RISK ENGINE, AND THE PER-TRADE "RISK BUDGET" IS A
+     FLOOR, NOT A CAP
+--------------------------------------------------------------------------------
+Position-level risk exists. Portfolio-level risk does not exist at all. For a
+leveraged futures book this is the largest single design gap, and it is your own
+unaddressed P1-020 "Portfolio risk engine is missing."
+
+    const BASE_RISK_BUDGET = 25000;
+    const targetLots = Math.max(1, Math.floor((BASE_RISK_BUDGET * sizeMultiplier) / riskPerLot));
+    const estMarginRequired = round(notional * 0.22, 2);
+    const lotSize = Number(contract?.lotSize) || 1;
+
+  * Math.max(1, ...) CONVERTS A BUDGET INTO A MINIMUM. A high-priced, volatile
+    name whose single lot risks more than Rs 25,000 is taken anyway. The cap is
+    unenforceable by construction.
+
+  * NO AGGREGATE ANYTHING. No cross-name risk cap, no correlation adjustment, no
+    total-margin check against available capital, no sector concentration limit,
+    no gross or net exposure limit, no daily loss limit, no kill switch. Twenty
+    names is Rs 5,00,000 of nominal risk that nothing in the system is aware of.
+
+  * FLAT 22% MARGIN FOR EVERY STOCK. Real SPAN + Exposure runs from roughly 12%
+    to over 50% by name and volatility. Sizing on a constant will produce margin
+    shortfalls on exactly the volatile names where it matters.
+
+  * lotSize || 1 FAILS OPEN, SILENTLY. Missing contract metadata yields lot size
+    1, and then quantity, notional, estMarginRequired and maxRiskInr are all
+    plausible-looking nonsense. This is precisely the failure mode P0-002 was
+    fixed to eliminate for market data -- still live in the order path.
+
+RELATED
+  market-regime.js, the "Global Macro Shock Shield," is imported only by
+  dispatch-daily-alert.js. It gates no trade. It decorates an email.
+
+  calculateKellyFraction is computed in both routes, written to a display field
+  (advancedQuant.kellyFraction), and never read. Final sizing is
+  baseSize * metaGate.metaMultiplier. Your P1-013 said "Kelly is reported but
+  not used for final sizing." The report claims to have fixed Kelly's artificial
+  0.05 floor -- a real fix to a number nothing consumes.
+
+
+--------------------------------------------------------------------------------
+C-7  CORRELATED OBSERVATIONS ARE COUNTED AS INDEPENDENT -- IN BOTH SIGNIFICANCE
+     TESTS
+--------------------------------------------------------------------------------
+One statistical error, two places, both of which decide whether a trade is taken.
+
+RUNG SELECTION
+  tradeStats computes standardError = sigma / sqrt(netReturns.length) over
+  FILLS. But the five rungs of one week share one anchor and one week's price
+  move; they are close to a single observation. The effective sample is the
+  number of WEEKS, not fills -- so the t-statistic is inflated by roughly
+  sqrt(fills / weeks).
+
+  The multiple-testing hurdle sqrt(2*ln(k)) ~ 1.89 is a defensible heuristic;
+  the problem is that it is applied to an already-inflated statistic. Combined
+  with requiredFills = 5 -- five observations to declare a rung tradable --
+  noise clears the gate routinely.
+
+MODEL SKILL
+  upside.json reports informationCoefficientStandardError: 0.0068, which is
+  1/sqrt(21429-3). But rows are NAMES x DATES, and on any given date ~500 Indian
+  large caps share one market factor. The effective sample is the number of
+  scored DATES -- order 10^2, not 10^4 -- so the true standard error is roughly
+  an order of magnitude larger, plausibly 0.10-0.16.
+
+  IC = 0.0203 IS THEN WELL INSIDE ONE STANDARD ERROR OF ZERO.
+
+  Your model-governance.json already lists "enforce date-block resampling to
+  account for cross-sectional stock correlation" as a promotion prerequisite,
+  and your dossier raised it as P1-003. The file knows. The number printed next
+  to it does not.
+
+CREDIT WHERE DUE
+  The governance layer reaches the right conclusion anyway -- the model is
+  demoted, and the audit findings in that JSON are candid in a way most systems
+  never are.
+
+  BUT NOTE THE SIDE EFFECT: with canGenerateTrades: false, potentialCall stands
+  aside unconditionally, so THE ENTIRE "POTENTIAL" ROUTE IS CURRENTLY DEAD. That
+  may well be correct. It should be a deliberate decision, not a discovery.
+
+
+--------------------------------------------------------------------------------
+C-8  FILLS ARE ASSUMED ON TOUCH, ON BOTH SIDES OF EVERY TRADE
+--------------------------------------------------------------------------------
+    const filled = short ? session.high >= entry.price : session.low <= entry.price;
+    const targetReached = short ? session.low <= lot.target : session.high >= lot.target;
+
+A resting limit buy fills whenever the day's low TOUCHES it -- 100% of the time,
+including when the low IS your price and the market never traded through. The
+exit assumes the same. Entry and exit optimism therefore compound in the same
+direction, and the effect is completely invisible to the test suite because the
+tests supply synthetic bars constructed to trigger fills.
+
+On a 2% target against ~0.06% modelled cost, fill realism is not a refinement --
+it is most of the edge. At minimum: require trade-through (low < price,
+strictly), or a volume-at-price condition, or a haircut calibrated against the
+intraday feed you already have a module for.
+
+
+================================================================================
+3. SUBSTANTIVE, SECOND TIER
+================================================================================
+
+--------------------------------------------------------------------------------
+H-1  THE FUNDAMENTALS ENGINE IS FIVE RATIOS, AND ITS NORMALISATION IS DEAD CODE
+--------------------------------------------------------------------------------
+You named fundamentals as priority one -- "this is where all of the numbers come
+from." Today it is a single scraped Yahoo quoteSummary call reduced to five
+ratios with hand-picked weights and arbitrary scalings (x5, x8, /80, /1.2, x6).
+
+No balance sheet. No cash-flow statement. No income-statement history. For
+Indian equities specifically: no shareholding pattern, no promoter pledge, no
+related-party transactions, no auditor changes, no CARO qualifications.
+
+THERE IS ALSO A LIVE BUG. balanceSheetScore intends to renormalise over
+available metrics:
+
+    const available = parts.filter(([, score]) => Number.isFinite(score));
+
+But every score comes from clamp(), which does Number(value) || 0 and therefore
+ALWAYS returns a finite number. The filter removes nothing; the denominator is
+always 1.0. A company with only ROE available scores 0.3*roe + 0.7*0 -- biased
+hard toward zero rather than renormalised. Missing data is silently scored as
+mediocrity.
+
+ONE TRAP AHEAD, NOT A DEFECT TODAY: Yahoo returns CURRENT, POSSIBLY RESTATED
+financials. Right now fundamentals only drive a live veto and a tilt, so no
+historical number is contaminated. The moment fundamentals enter any backtest
+without point-in-time storage, every result is look-ahead biased. Build the
+point-in-time store BEFORE the first fundamental backtest, not after.
+(Your P1-015 and P2-002.)
+
+
+--------------------------------------------------------------------------------
+H-2  HALF THE "ADVANCED QUANT" LIBRARY IS UNREACHABLE FROM PRODUCTION
+--------------------------------------------------------------------------------
+The suite prints "ALL 10 Advanced Quantitative & Institutional Formulas passed."
+Reachability from non-test code:
+
+  calculateVpin, metaLabelConfidence, calculateKellyFraction
+      -> recommendation.js   (Kelly is display-only, see C-6)
+  calculateHurstExponent, calculateKaufmanER
+      -> trend.js
+  blackScholesMerton, calculateAnchoredVwap, classifyOiBuildup,
+  calculateOuHalfLife, calculateFractionalDiff
+      -> TESTS ONLY
+
+Passing tests for unreferenced functions is a test achievement, not a
+capability. Two are also wrong on their own terms:
+
+  * blackScholesMerton prices SPOT options, but options on FUTURES require
+    Black-76 with the forward, and there is no dividend yield term.
+  * calculateFractionalDiff returns a bare array for short inputs and an object
+    otherwise, so any caller reading .fractionalSeries gets undefined on short
+    series.
+
+This is your P1-014, claimed fixed, fixed in part.
+
+
+--------------------------------------------------------------------------------
+H-3  FOUR INCOMPATIBLE COST MODELS, AND THE REPORT'S STATED FIGURE MATCHES NONE
+--------------------------------------------------------------------------------
+  LOCATION                  ROUND-TRIP   USED FOR
+  ------------------------  -----------  ------------------------------------
+  strategy-lab.js:1          0.25%        Pattern studies
+  upside.js:188              0.08%        Expected-move admission
+  weekly-cycle.js:19         0.06%        Backtest, ML labels, conviction
+  shadow-broker.js           itemised     Shadow ledger, contract notes
+                             (~0.033%)
+  Remediation report P0-010  0.08%        Describes weekly-cycle.js,
+                                          WHICH SAYS 0.06%
+
+A 4x spread between the most and least conservative assumption, and the document
+describing the code disagrees with the code. There should be ONE costing
+function, called by everything, sourced from the same rate table as the shadow
+broker.
+
+
+--------------------------------------------------------------------------------
+M-1  OUT-OF-SAMPLE DATA IS USED TWICE -- TO SELECT, THEN TO SIZE
+--------------------------------------------------------------------------------
+P0-009 correctly moved rung selection in-sample. But verdict() then picks long
+versus short by filtering on outOfSample.averageWeeklyPct > 0, and convictionOf
+feeds that same out-of-sample average into its 22-point component.
+
+Choosing a side by peeking at the held-out result makes that result in-sample;
+scoring conviction with it spends the same evidence twice. Pick the side
+in-sample, and report the OOS number without letting it touch a decision.
+
+
+--------------------------------------------------------------------------------
+M-2  A FEATURE THAT VARIES IN TRAINING IS ALWAYS ZERO AT INFERENCE
+--------------------------------------------------------------------------------
+weeklyTrainingRows sets gapFromWeekOpenPct: anchorGap -- a real, varying value.
+weeklyForecast predicts with { ...latest, gapFromWeekOpenPct: 0 }.
+
+Trees split on that feature during training and then always take the same branch
+in production. Classic train/serve skew: either compute the live gap, or drop
+the feature from FEATURE_NAMES.
+
+RELATED, SMALLER: weeklyForecast gates on edge > 0.02 while evaluateModelFitness
+requires ic >= 0.05 -- two different hurdles in one file, and the WEAKER one is
+what convictionOf reads. evaluateModelFitness is wired into potentialCall only,
+never into the main ladder route.
+
+
+--------------------------------------------------------------------------------
+M-3  SMALLER, REAL, WORTH A CLEANUP PASS
+--------------------------------------------------------------------------------
+  * CHART-PATTERN CONFIDENCES ARE MAGIC NUMBERS (0.65 / 0.80 / 0.82 / 0.85 /
+    0.88), unvalidated against any hit rate. Triangles ARE now implemented
+    (P1-008 genuinely fixed), but the module docstring still claims "polynomial
+    regression" -- findPivots is neighbourhood extrema and there is no
+    regression anywhere.
+
+  * CONTRACT SYMBOL FORMAT IS INVENTED. Code emits RELIANCE-2026-09-24-FUT; the
+    report's example is RELIANCE26SEPFUT. Neither is what your broker's API
+    expects, and the report's example does not exist in the code.
+
+  * THE GAP RECONCILIATION INVARIANT IS A TEST FIXTURE.
+    lifetime = prior + gap + weekly is asserted only in test-weekly-rebase.js.
+    ai-engine.js never checks it at runtime. And if a scheduled run misses a
+    Friday, lot.fridayClosePrice holds a STALE prior close, so the weekend gap
+    is computed against the wrong price and the invariant breaks silently.
+
+  * BOOSTING INCONSISTENCY. growTree scores splits with the L2-regularised form
+    sum^2/(n+lambda) but sets leaves to sum/n. Gains do not correspond to the
+    loss reduction actually realised. Small at lambda=1, but free to fix.
+
+  * SENTINELS AND VESTIGES. profitFactor: 99 as an infinity marker;
+    CONFIG.bookOutWeekday now only suppresses Friday entries; the
+    ai-engine.js:37 comment still states the desk carries nothing over the
+    weekend.
+
+
+================================================================================
+4. THE AUDIT TRAIL AUDITS POORLY
+================================================================================
+You asked me to read everything in the folder. The documents themselves have two
+problems.
+
+TWO OF THE THREE "PRESERVED EVIDENCE DOCUMENTS" ARE THE SAME FILE.
+  The report lists MASTER_SYSTEM_AUDIT_AND_RESOLUTION_DOSSIER.txt and
+  SYSTEM_AUDIT_DOSSIER.txt as separate artefacts with a shared SHA-256 prefix.
+  They are byte-identical -- same MD5 f4691bdd..., both 37,423 bytes, same
+  timestamp. One document, counted twice, presented as corroboration.
+
+COVERAGE IS 34%.
+  SEVERITY        RAISED   ADDRESSED   SILENT
+  --------------  ------   ---------   ------
+  P0 Critical         17          17        0
+  P1 High             35           5       30
+  P2 Structural       12           0       12
+
+Among the thirty silent P1s are the ones that matter most for what you are
+trying to build -- and, as this counter-audit found independently, they are all
+still open:
+
+  P1-001  ML label does not match the trade being executed     -> open (C-2)
+  P1-003  Naive SE treats correlated stock-date rows as indep.  -> open (C-7)
+  P1-011  VPIN is a daily trend/volume proxy                    -> open (C-5)
+  P1-012  Meta-label probability is hand-written, not trained   -> open (C-5)
+  P1-013  Kelly is reported but not used for sizing             -> open (C-6)
+  P1-020  Portfolio risk engine is missing                      -> open (C-6)
+  P1-032  Tests verify synthetic behaviour, not production      -> open; ROOT
+          economics                                                CAUSE of §1
+
+Your independent auditor was right about nearly everything. The remediation
+cycle closed the seventeen loudest items and left the thirty that require
+architectural work -- which is the natural gradient, and exactly why a defect
+register needs an explicit DEFERRED state rather than silence.
+
+
+================================================================================
+5. WHAT IS GENUINELY GOOD
+================================================================================
+Blunt cuts both ways. These are not consolation prizes -- they are the reason
+the system is worth fixing rather than restarting.
+
+  * P0-002 IS A REAL, COMPLETE FIX. market-feed.js now returns structured
+    LIVE/UNAVAILABLE envelopes with fallbackUsed: false and null prices on
+    failure. Fabricating plausible prices during an outage is one of the few
+    defects that can destroy an account outright, and it is properly dead. This
+    is what a real fix looks like -- THE DEFAULT BEHAVIOUR CHANGED, no flag
+    required.
+
+  * THE WALK-FORWARD IMPLEMENTATION IS BETTER THAN MOST PRODUCTION QUANT CODE.
+    Expanding window, embargo before each cut, scoreStride to break label
+    overlap, deterministic seeded RNG, and a comment explaining that the
+    shuffled-label control sat at -0.02 while the naive version showed 0.14.
+    Someone understood why the naive version lies.
+
+  * models/model-governance.json IS EXEMPLARY. It publishes a negative R^2,
+    names its own weakest fold, states the hazard, and revokes the model's
+    authority. Most systems bury this. Publishing it and acting on it is the
+    single strongest signal in the repo.
+
+  * THE WILSON LOWER BOUND on hit rate is the right statistic, correctly
+    implemented, and used for sizing rather than the point estimate.
+
+  * THE NO-SAME-BAR-EXIT RULE (if (lot.filledIndex === index) continue;) is
+    correct and is the discipline most retail backtests get wrong.
+
+  * P0-001, P0-005, P0-014 ARE GENUINELY CLOSED. The veto gate does fire ahead
+    of conviction in both routes; STF filtering does exclude index and options
+    instruments; the shard count does now cover all 502 symbols.
+
+The pattern in that list is worth noticing:
+  EVERY REAL FIX CHANGED A DEFAULT. EVERY FAKE FIX ADDED A FLAG.
+
+
+================================================================================
+6. ON THE AMBITION -- THE SEQUENCING IS INVERTED
+================================================================================
+Your stated goal is a system that starts from company fundamentals, goes deep on
+technicals and candlesticks, then mathematics, statistics, probability, physics,
+calculus and linear algebra, then quantitative finance, then advanced data
+science, machine learning and deep learning -- working across equities, forex,
+crypto, bonds and commodities.
+
+I am not going to hand you a longer list of techniques, because THE EVIDENCE IN
+THIS REPO SAYS A LONGER LIST IS PRECISELY WHAT IS HURTING YOU.
+
+The system already contains Hurst exponents, fractional differentiation, VPIN,
+meta-labelling, Ornstein-Uhlenbeck half-lives, Black-Scholes greeks, Kelly,
+chart-pattern geometry and gradient-boosted trees. What it does NOT contain is a
+stop-loss in the backtest, one agreed cost model, or a portfolio risk limit.
+
+The pattern is unambiguous: MANY NAMED TECHNIQUES, THIN WIRING, UNTRAINED
+CONSTANTS HOLDING VETO POWER, AND STATISTICS THAT TREAT CORRELATED DATA AS
+INDEPENDENT. Adding deep learning and four asset classes on top of that
+substrate multiplies the problem. Every new model would be trained on the
+5x-inflated label, validated by a t-statistic computed on non-independent
+samples, costed with one of four incompatible assumptions, and gated by an
+untrained logistic function.
+
+  THE CORE ARGUMENT
+  A system that cannot honestly measure a five-rung 2% ladder cannot evaluate a
+  transformer. The measurement layer is not a prerequisite you get past -- it is
+  the thing that determines whether every future addition is signal or
+  self-deception. Fix it once, and everything you build afterwards inherits a
+  truthful scoreboard. Skip it, and each new technique adds a new way to be
+  confidently wrong.
+
+So the sequence below is not a smaller version of your ambition. It is the order
+that makes your ambition reachable. Steps 1-4 are weeks, not quarters, and they
+are almost entirely deletion and consolidation of code that already exists.
+
+  01  MAKE ONE EXIT POLICY, SHARED BY RESEARCH AND LIVE
+      One module owns entry, target, stop, time-stop and roll. weekly-cycle,
+      ai-engine and recommendation all call it. Decide deliberately whether the
+      product is cash equity or stock futures -- right now it is both, in
+      different files -- and delete the other.
+      WHY FIRST: until this exists, no backtest result is evidence about the
+      live system.
+
+  02  TURN THE DEFAULTS ON, AND MAKE CI PROVE IT
+      stopLossPct and capitalWeighted into DEFAULT_CONFIG. Then add the grep
+      gate from §1: any remediation flag whose only non-test occurrence is its
+      own definition fails the build.
+      WHY: one afternoon. Closes C-1 and C-2 and prevents the next dozen.
+
+  03  ONE COSTING FUNCTION, ONE RATE TABLE, DATED
+      Collapse 0.25% / 0.08% / 0.06% / itemised into a single
+      charges(side, price, qty, asOfDate). Rates carry effective dates so a 2023
+      backtest uses 2023's STT and a 2026 trade uses 0.05%. Add IPFT. Correct
+      the exchange charge to 0.00183%.
+      WHY: also fixes C-4 and makes historical results comparable across the tax
+      change.
+
+  04  MAKE FILLS PESSIMISTIC AND PORTFOLIO RISK REAL
+      Require trade-through rather than touch. Model no-fill and partial fill.
+      Stop charging slippage on limit orders that could not have paid it. Then
+      add the layer that does not exist at all: aggregate margin check, gross
+      and net exposure caps, per-sector and per-name limits, correlation-aware
+      sizing, a daily loss limit and a kill switch. Replace the flat 22% margin
+      with per-symbol SPAN.
+      WHY: this is the difference between a signal generator and a trading
+      system.
+
+  05  FIX THE SIGNIFICANCE TESTS, THEN RE-MEASURE EVERYTHING
+      Block-bootstrap by week for rung statistics; block by date for
+      cross-sectional IC. Raise requiredFills far above 5. Re-run every
+      historical claim in the repo through the corrected pipeline and expect
+      most reported edges to shrink or vanish -- that is the pipeline working.
+      WHY: you will lose numbers you like. The ones that survive will be real.
+
+  06  ONLY NOW, TRAIN THE META-LABEL YOU ALREADY NAMED
+      You have the ledger and the outcome tracker. Log every primary signal with
+      its features and its realised outcome, then fit an actual secondary
+      classifier on that record -- which is what meta-labelling is. Calibrate it
+      (reliability curve, Brier score) and let it SIZE rather than VETO. Delete
+      the hand-written coefficients.
+      WHY: converts your single largest liability into your most defensible
+      component.
+
+  07  BUILD THE POINT-IN-TIME FUNDAMENTALS STORE BEFORE THE FIRST FUNDAMENTAL
+      BACKTEST
+      For your stated priority this is the real work: BSE/NSE XBRL filings keyed
+      by FILING DATE, not period end. Full statements, shareholding pattern,
+      promoter pledge, auditor changes, related-party transactions. Then
+      earnings quality -- accruals, Piotroski F, Altman Z, Beneish M -- computed
+      only from data available on the decision date.
+      WHY: retrofitting point-in-time after a backtest exists means throwing the
+      backtest away.
+
+  08  EARN DEEP LEARNING; DO NOT ASSUME IT
+      Your honest baseline is IC ~ 0.02 with negative R^2 on ~47,000 rows of a
+      boosted tree. That is the number a neural network must beat under the same
+      corrected walk-forward. Sequence models need orders of magnitude more
+      independent samples than you have independent DATES. Fix the label first
+      (step 1), the validation second (step 5), then let the model class be an
+      empirical question.
+      WHY: your own ml-model.js header already argues this correctly. Trust it.
+
+
+================================================================================
+7. TWO CONSTRAINTS YOUR PLAN IMPLIES BUT DOES NOT STATE
+================================================================================
+
+MULTI-ASSET IS NOT AN INCREMENTAL FEATURE
+  Equity, forex, crypto, bonds and commodities are not five symbol lists behind
+  one engine. They need an instrument abstraction that does not exist anywhere
+  in these 15,000 lines: trading calendars and session boundaries, contract
+  rolls and expiry conventions, funding rates for perpetuals, day-count and
+  accrual conventions for bonds, delivery and storage for commodities, 24/7
+  versus session-based bar construction, and a different microstructure per
+  venue. Every module here assumes a daily NSE bar in IST.
+
+  This is scope reality, not a refusal. The right move is an adapter boundary --
+  one instrument interface, one adapter per market -- introduced AT step 1 above
+  so the shared exit policy is written against the interface rather than against
+  NSE daily bars. Retrofitting it later means rewriting everything downstream.
+  Your own P2-010 says exactly this.
+
+SEBI'S RETAIL ALGO FRAMEWORK IS ALREADY IN FORCE
+  Gate C lists "SEBI retail algo compliance" as an unchecked box with no detail.
+  The framework has been live since 1 AUGUST 2025. The substance, and it is
+  mostly good news at your frequency:
+
+    - Retail algos must be registered with the exchange only ABOVE an
+      orders-per-second threshold -- initially 10 OPS per exchange per client. A
+      weekly ladder placing a handful of orders is far below that, so no
+      registration burden.
+    - The broker is the PRINCIPAL; any algo provider or vendor is its AGENT.
+      Providers offering API order placement must be empanelled with the
+      exchanges.
+    - Brokers must issue API keys tied to static IPs, and every algo order must
+      carry a unique identifier for tagging and audit.
+
+  PRACTICAL IMPLICATION FOR GATE C: choose a broker whose API is already
+  compliant, and make sure your order path can emit and persist the unique algo
+  tag from day one. Small piece of engineering if designed in now; unpleasant
+  retrofit if discovered during a live cutover.
+
+
+================================================================================
+8. DO THESE FIVE THINGS FIRST
+================================================================================
+  1. DO NOT START THE GATE B SHADOW CLOCK YET.
+     With C-1, C-2 and C-3 open, a month of shadow data would measure a stopless
+     strategy against a backtest of a different strategy, on 5x-inflated labels,
+     costed at half the real tax rate. Fix the measurement layer, then start the
+     clock -- otherwise you spend a month and learn nothing.
+
+  2. ADD stopLossPct AND capitalWeighted TO DEFAULT_CONFIG, then re-run every
+     reported statistic. Expect the numbers to get worse. That is the point.
+
+  3. ADD THE GREP GATE TO CI so a remediation flag can never again be enabled
+     only by its own test.
+
+  4. UPDATE STT TO 0.05% and give the rate table effective dates.
+
+  5. PICK ONE PRODUCT. Cash equity or stock futures. Delete the other engine.
+     Every ambiguity in this report traces back to that unmade decision.
+
+None of this is a reason to be discouraged. A system whose governance file
+voluntarily publishes a negative R^2 and revokes its own model's authority is
+more honest than most professional trading infrastructure. The gap is not
+capability -- it is that the verification layer was allowed to certify itself.
+Close that, and the rest of the ambition becomes ordinary engineering.
+
+
+================================================================================
+SOURCES FOR REGULATORY FIGURES (verified 2026-09-06)
+================================================================================
+  Zerodha, brokerage and statutory charges
+    https://zerodha.com/charges/
+  NSE Clearing, Securities Transaction Tax
+    https://www.nseclearing.in/clearing-settlement/equity-derivatives/securities-transaction-tax
+  SEBI guidelines on retail participation in algorithmic trading
+    https://www.finseclaw.com/article/finsec-tracker-on-sebi-issues-guidelines-on-retail-participation-in-algorithmic-trading
+  SEBI circular SEBI/HO/MIRSD/MIRSD-PoD/P/CIR/2025/13
+    https://www.cse-india.com/upload/upload/Feb_042025.pdf
+  FYERS, statutory charges including IPFT
+    https://support.fyers.in/portal/en/kb/articles/what-are-the-statutory-charges-on-trades-at-fyers-stt-gst-sebi-turnover-fee-ipft-etc
+
+================================================================================
+END OF COUNTER-AUDIT
+================================================================================
+
+
+================================================================================
+APPENDIX A -- WHAT WOULD ACTUALLY MAKE THIS BETTER
+Ideas ranked by expected value. Each is paired with the measurement that makes
+it testable, because an idea you cannot score is just another citation.
+Every claim below was verified against the source or against live data. Where a
+number appears, the command that produced it is shown.
+================================================================================
+
+--------------------------------------------------------------------------------
+A-1  [CRITICAL, NEWLY FOUND]  DIVIDEND EX-DATES ARE PHANTOM LADDER FILLS
+--------------------------------------------------------------------------------
+This is not an improvement idea. It is a defect I found while verifying one, and
+it is more serious than anything in the original report's second tier.
+
+VERIFIED FACTS
+  1. scripts/weekly-plan.js:67 -- dailyBars(), the function that feeds the
+     ENTIRE backtest, requests:
+         ?range=5y&interval=1d&includePrePost=false
+     It does not request events=div,splits at all.
+  2. It reads result.indicators.quote[0] -- open/high/low/close/volume.
+  3. grep across api/ scripts/ app.js for "adjclose":
+         >>> NO CODE ANYWHERE IN THE REPOSITORY READS adjclose <<<
+  4. grep for events.dividends / events.splits:
+         >>> NO CODE ANYWHERE READS THEM <<<
+     (api/_lib/market-feed.js DOES request events=div,splits in its URL and
+      then never reads the events object it receives.)
+
+WHAT YAHOO ACTUALLY RETURNS -- measured empirically, not assumed
+  quote[0] IS back-adjusted for splits. It is NOT adjusted for dividends.
+  Verified by comparing close against adjclose over 2 years:
+
+    SYMBOL       BARS  DIV EVENTS  SPLITS  BARS WHERE close != adjclose  MAX DIFF
+    RELIANCE.NS   501           2       1                           435     0.86%
+    ITC.NS        501           4       0                           428     7.83%
+    TCS.NS        501           8       0                           463     7.09%
+
+  The ratio close/adjclose starts near 1.08 and ends at exactly 1.0000 -- the
+  signature of cumulative dividend back-adjustment present in adjclose and
+  absent from quote[0]. RELIANCE has a split event and shows no step in that
+  ratio, confirming splits ARE handled.
+
+THE PER-EVENT DAMAGE -- this is what fills a rung
+  Dividend amount as a percentage of the price on the ex-date, 5-year history:
+
+    SYMBOL        DIVS   >1%   >2%    LARGEST     ON
+    ITC             10    10     5      2.74%     2026-05-27
+    TCS             20     4     1      2.25%     2023-01-16
+    COALINDIA       17    16     7      6.46%     2022-11-15
+    HINDZINC        11    11     8      8.70%     2023-03-29
+    VEDL            17    16    13      8.74%     2022-05-06
+    POWERGRID       15    12     4      3.47%     2021-12-22
+    RELIANCE         5     0     0      0.46%     2026-06-05
+    INFY            10     9     1      2.18%     2026-06-10
+
+  Across these eight F&O names: 105 dividend events, 78 of them a >1% single-day
+  drop, and 39 OF THEM A >2% SINGLE-DAY DROP -- exactly one full rung of the
+  ladder. VEDL's 8.74% ex-date fills rungs 1 through 4 in a single session.
+  HINDZINC 8.70%. COALINDIA 6.46%.
+
+WHY THIS IS WORSE THAN A ROUNDING ERROR
+  1. PHANTOM SIGNAL. The rung fills on a mechanical ex-entitlement adjustment,
+     not on a mean-reversion opportunity. You would really buy -- the price is
+     real -- but the reason the order triggered is void.
+  2. THE STRATEGY IS SYSTEMATICALLY ATTRACTED TO THEM. A dip-buying ladder
+     screening for 2% declines will preferentially fill on ex-dates. High-yield
+     PSUs and metals -- Coal India, Vedanta, Hindustan Zinc, ITC, Power Grid --
+     will look like the universe's BEST mean-reversion candidates because they
+     appear to drop 2%+ repeatedly. They did not drop.
+  3. IT CORRUPTS RUNG SELECTION. Phantom fills inflate the fill count, which
+     pushes rungs past requiredFills >= 5, which shrinks sigma/sqrt(n), which
+     raises the t-stat, which gets the rung declared viable -- on non-signal
+     data. This compounds directly with C-7.
+  4. IT CORRUPTS THE ML LABEL. replayWeek fills on these bars, so labels reflect
+     trades entered on nothing.
+
+THE FIX -- roughly one line, plus a backfill
+  Read indicators.adjclose[0].adjclose, or overlay the dividend events the
+  endpoint already returns, and re-derive open/high/low on the same adjustment
+  factor. Then re-run every historical statistic. Expect participation rates in
+  the high-yield names to fall materially. That fall is the phantom edge leaving.
+
+  NOTE THE PATTERN: dividend events requested and never read (market-feed.js),
+  openInterest parsed and never filtered on (bhavcopy.js:105), futures OHLC
+  captured and never backtested (see A-2). Three times, the right data is
+  fetched and discarded.
+
+
+--------------------------------------------------------------------------------
+A-2  THE BACKTEST RUNS ON CASH BARS -- AND THE FUTURES BARS ARE ALREADY THERE
+--------------------------------------------------------------------------------
+VERIFIED
+  scripts/weekly-plan.js:66-67  dailyBars(symbol) -> `${symbol}.NS` Yahoo CASH
+  scripts/weekly-plan.js:103-104  const bars = await dailyBars(symbol);
+                                  const cycle = weeklyCycle(bars);
+
+Every ladder statistic, every ML label and every "expected weekly %" is computed
+on cash equity prices, for a strategy traded in stock futures. The futures price
+enters only through carry(), as a 12-point tilt.
+
+Invisible as a result: roll gaps between contracts, basis convergence into
+expiry, the futures' own liquidity and spread, and the fact that the futures
+series has different highs and lows than cash -- which is exactly what decides
+whether your limit rungs fill.
+
+AND HERE IS THE PART THAT MATTERS: api/_lib/bhavcopy.js:99-106 ALREADY captures
+the futures contract's own dayHigh, dayLow, dayOpen and previousClose, with this
+comment sitting directly above it:
+
+    // The contract's own session range, which is the honest daily high and low
+    // for a futures position -- the underlying's range is a different number.
+
+The author knew. The data is fetched every day. The backtest uses cash anyway.
+
+Your own models/model-governance.json lists "retrain with point-in-time NSE
+futures contracts rather than cash bars" as a promotion prerequisite. This is
+agreement, not accusation. It is also the gate on every idea below: none of them
+can be honestly evaluated until the backtest runs on the instrument you trade.
+
+  MEASUREMENT: build a continuous futures series by accumulating the daily
+  bhavcopy you already parse -- front contract, back-adjusted at each roll, roll
+  date and roll gap recorded. Re-run every existing statistic against it. The
+  difference between the two is the size of the error you have been trading on.
+
+
+--------------------------------------------------------------------------------
+A-3  LADDER THE RESIDUAL, NOT THE PRICE  [HIGHEST VALUE IDEA]
+--------------------------------------------------------------------------------
+weeklyCycle runs per symbol on raw price. So a stock down 6% while Nifty is down
+6%, and a stock down 6% while Nifty is flat, are indistinguishable to this
+system. Only the second is oversold. The first is just beta.
+
+Equity mean reversion is overwhelmingly a CROSS-SECTIONAL phenomenon: reversal
+works on residuals after removing the market and sector factor, not on raw
+prices. Your ladder harvests whatever reversal survives in raw prices -- which
+is mostly market noise. It is also why a dip-buying grid gets destroyed in a
+drawdown: every name fills at once, because they are all filling on the same
+hidden factor.
+
+THE CHANGE
+  1. Estimate each name's beta to Nifty, and ideally to its sector index.
+  2. Compute the residual series: r_stock - beta * r_index.
+  3. Hang the ladder off the RESIDUAL, not the price.
+  4. Hedge the residual book's net beta with an index future.
+
+This converts a directional dip-buying grid into statistical arbitrage, and it
+removes the largest source of correlated loss in the book.
+
+THE INPUTS ALREADY EXIST -- verified
+  api/market.js:365   beta20 = covariance(stockRiskReturns, benchmarkRiskReturns)
+                              / benchmarkVariance
+  api/ai-run.js:36    benchmark = await fetchChart("^NSEI", { range: "5y" })
+
+  MEASUREMENT: for each week, decompose ladder P&L into (factor component) +
+  (residual component). If the edge lives in the residual, the hedged version
+  should show a similar mean with materially lower variance. If the edge is
+  entirely factor, you have been running a levered long-Nifty position with
+  extra steps -- and that is worth knowing before you scale it.
+
+
+--------------------------------------------------------------------------------
+A-4  NORMALISE THE GRID TO VOLATILITY, NOT TO PERCENT  [HIGHEST VALUE IDEA]
+--------------------------------------------------------------------------------
+DEFAULT_CONFIG uses stepPct: 2 and targetPct: 2 for all 502 names.
+
+A 2% move in a low-vol large cap is a two-sigma event. A 2% move in a high-vol
+midcap is Tuesday. The same geometry therefore means completely different things
+across the universe:
+
+  Low-vol names   rungs rarely fill  -> barely deployed where mean reversion is
+                                        most reliable
+  High-vol names  all five rungs fill in a day, then blow straight through
+                                     -> maximum exposure exactly where the
+                                        ladder has least edge
+
+Effective exposure is INVERSELY related to where the strategy has room to work.
+
+THE CHANGE
+    step   = k_step   * (ATR14 / close)
+    target = k_target * (ATR14 / close)
+  with k calibrated once, cross-sectionally.
+
+THE INPUT ALREADY EXISTS -- verified
+  api/_lib/trend.js:171-172   atr14, atrPct  (returned by trendMetrics)
+  and atr14Pct is already a feature in ml-model.js
+
+This is also the change that makes cross-sectional pooling statistically
+coherent. Right now the pooled ML model is trained on weeks whose "2%" label
+means a different thing in every name -- which is part of why the pooled IC is
+indistinguishable from zero (C-7).
+
+  MEASUREMENT: fill rate per rung, bucketed by the universe's volatility decile.
+  Today that will be steeply sloped. Flattening the slope is the test.
+
+
+--------------------------------------------------------------------------------
+A-5  YOU ARE SHORT GAMMA AND MEASURING IT WITH THE WRONG FAMILY OF STATISTICS
+--------------------------------------------------------------------------------
+Buy dips, sell 2% rallies, no stop. That is a structurally SHORT GAMMA payoff:
+many small wins, rare large losses.
+
+Every headline statistic in the system is from the wrong family for that shape:
+hitRatePct, profitFactor, targetHits, and the Wilson lower bound on hit rate.
+All are well implemented. All are least informative about the only thing that
+can hurt you.
+
+It is worse than uninformative. Rung selection filters on lowerPct >= 45 --
+selecting on hit rate. For a short-gamma payoff THAT ACTIVELY SELECTS FOR TAIL
+RISK, because the rungs with the best hit rates are the ones that mean-revert
+reliably right up until they do not.
+
+WHAT TO MEASURE INSTEAD
+  * CVaR / expected shortfall at 95 and 99, per rung and per portfolio week.
+  * Average win divided by WORST loss, not by average loss.
+  * Ulcer index and time-under-water, which respect the path.
+  * Omega ratio at a zero threshold, which uses the whole distribution.
+  * MOST IMPORTANTLY: the explicit distribution of "the ladder went five deep
+    and kept going." How often, how far past rung 5, how long to recover. That
+    is the loss mode of this strategy and NOTHING in the repo estimates it.
+
+  MEASUREMENT: build the depth-conditional survival curve. For every historical
+  week where rung 5 filled, record the maximum adverse excursion beyond rung 5
+  and the time to recovery. The tail of that curve is your true risk, and it is
+  currently unmeasured, unbudgeted and unhedged.
+
+This single reframe would change WHICH rungs the system selects.
+
+
+--------------------------------------------------------------------------------
+A-6  THE ANCHOR IS AN UNTESTED FREE PARAMETER -- AND THE TWO BEST FIXES ARE
+     ALREADY DEAD CODE
+--------------------------------------------------------------------------------
+The entire geometry of the ladder hangs off "Monday's first open." That is a
+calendar convention, not a market-structure fact. It has never been tested
+against an alternative, and a single gap-day opening print misplaces all five
+rungs for the whole week.
+
+Alternatives worth measuring:
+  * Prior week's VWAP, or prior week's close.
+  * Anchored VWAP from a structural pivot.
+  * The OU process mean, with rungs spaced in half-lives rather than percent.
+  * ENSEMBLE: run the rule from several anchors and trade only where they agree.
+    Cheap, and it removes anchor-luck without needing to pick a winner.
+
+THE IRONY, VERIFIED: calculateAnchoredVwap and calculateOuHalfLife are both
+written, both tested, and both called ONLY from tests. The two functions in this
+repository best suited to fixing the anchor are the two that production never
+calls.
+
+  MEASUREMENT: same rule, N anchors, everything else identical, compared on the
+  corrected out-of-sample pipeline. If Monday's open wins, you have earned the
+  convention. If it does not, you have been paying for a calendar habit.
+
+
+--------------------------------------------------------------------------------
+A-7  PROMOTE CARRY FROM A 12-POINT TILT TO A STRATEGY IN ITS OWN RIGHT
+--------------------------------------------------------------------------------
+api/_lib/carry.js is the best-motivated module in this repository. It cites
+Koijen, Moskowitz, Pedersen and Vrugt correctly, and it is the only component in
+the system that is NOT a forecast: the basis MUST converge to zero by expiry.
+That is arithmetic, not prediction.
+
+It receives 12 of 100 conviction points.
+
+In Indian single-stock futures the basis carries real information -- it embeds
+the implied financing rate, and it INVERTS when a stock is hard to borrow, which
+is itself a signal. Stock futures also let you take the short side with no borrow
+and no recall risk at all. That is a genuine structural advantage of the
+instrument over cash equity, and nothing in the system states or exploits it.
+
+  MEASUREMENT: run carry standalone. Rank the universe by annualised basis each
+  week, take the top and bottom deciles, hold to expiry, cost it properly with
+  the single rate table from step 3 of the main report. If that alone has
+  positive expectancy after friction, you have a second, largely uncorrelated
+  strategy sitting inside a module you are currently using as a tiebreaker.
+
+
+--------------------------------------------------------------------------------
+A-8  NO LIQUIDITY FILTER, NO CAPACITY ANALYSIS
+--------------------------------------------------------------------------------
+VERIFIED: there is no ADV filter, no bid-ask spread model, no market-impact
+model and no open-interest filter anywhere in the selection path.
+  api/_lib/bhavcopy.js:105-106  openInterest and volume ARE parsed
+  Their only other appearance is scripts/universe-carry.js:35 -- reporting only
+  frontStockFutures(rows) filters on instrument type ONLY. Nothing else.
+
+And capacity is never mentioned in the repo or in any of the four documents. How
+much capital can this take before impact eats the edge? On a 2% target, crossing
+a 0.15% spread on entry and exit is 15% of the gross move. In the illiquid tail
+of the F&O list it is far worse.
+
+THE CHANGE
+  * Filter on futures ADV and open interest before a name is eligible.
+  * Model spread as a cost that scales with (order size / ADV).
+  * Publish a capacity curve: expected net edge as a function of deployed
+    capital. Every institutional system has one. It is the number that decides
+    whether a strategy is a business or a hobby.
+
+  MEASUREMENT: sort historical fills by the name's ADV decile and compare
+  realised net edge across deciles. If the edge concentrates in the illiquid
+  deciles, it is not edge -- it is unmodelled spread.
+
+
+--------------------------------------------------------------------------------
+A-9  THE PAYOFF IS CAPPED ON THE RIGHT AND OPEN ON THE LEFT. INVERT IT.
+--------------------------------------------------------------------------------
+Every leg exits at exactly +2%. With no stop (C-1), the right tail is hard-capped
+and the left tail is unbounded -- the worst available shape for a short-gamma
+strategy.
+
+api/_lib/recommendation.js already computes runnerTarget = max(5.0, targetPct *
+2.2). The backtest models runners nowhere.
+
+THE CHANGE
+  Scale out a fraction at the 2% target and trail the remainder on an ATR or
+  chandelier stop. This converts part of the left-tail exposure into right-tail
+  participation, and it is the cheapest available structural improvement to the
+  return distribution.
+
+  MEASUREMENT: full-exit versus partial-runner on the same weeks. Expect a
+  slightly LOWER hit rate and a materially better tail. Judge it on CVaR and
+  average-win-to-worst-loss (A-5), NOT on hit rate -- otherwise the correct
+  answer will look like a regression and you will reject it.
+
+
+--------------------------------------------------------------------------------
+A-10  MAKE REGIME PARTICIPATION EMPIRICAL RATHER THAN ASSERTED
+--------------------------------------------------------------------------------
+A mean-reversion grid works in mean-reverting, low-trend regimes and is destroyed
+in trending and crash regimes. That is the defining property of the strategy, not
+a controversial claim.
+
+The system has the ingredients and uses them wrongly:
+  * api/_lib/market-regime.js is imported only by scripts/dispatch-daily-alert.js
+    -- it gates no trade; it decorates an email.
+  * Hurst and Kaufman ER feed the untrained meta-label as hardcoded z-score
+    nudges (C-5).
+
+THE CHANGE
+  Do it empirically instead of by assertion. Bucket every historical week by
+  regime state, measure the ladder's ACTUAL expectancy per bucket, and stand
+  aside in the buckets where it loses. There are no coefficients to invent --
+  the buckets either pay or they do not.
+
+  MEASUREMENT: expectancy, CVaR and fill depth per regime bucket, with enough
+  weeks per bucket to mean something. If regime does not separate outcomes, DROP
+  the regime machinery rather than letting it decorate the output. Either answer
+  is progress.
+
+
+--------------------------------------------------------------------------------
+A-11  BUILD A STRATEGY OBSERVABILITY LAYER -- THIS IS WHAT KEEPS SYSTEMS ALIVE
+--------------------------------------------------------------------------------
+The system has no way to know whether it is still working. No live-versus-
+backtest divergence monitor, no model decay detector, no feature drift monitor,
+no slippage reconciliation.
+
+This -- far more than the mathematics -- is what separates institutional
+infrastructure from retail. The maths is public. The monitoring is the moat.
+
+WHAT TO BUILD (all cheap, all high value)
+  * SLIPPAGE RECONCILIATION: realised fill price versus modelled fill price, per
+    name and per week. When they diverge, the cost model is wrong and you learn
+    it in days rather than after a quarter.
+  * LIVE-VS-BACKTEST DIVERGENCE: is the live hit rate inside the backtest's
+    confidence interval? Outside it is the earliest possible warning.
+  * FEATURE DRIFT: distribution of each model input, live versus training. A
+    shifted input distribution invalidates a model before the P&L reveals it.
+  * POST-TRADE ATTRIBUTION: decompose realised P&L into alpha / factor / timing
+    / cost / slippage. api/_lib/trade-audit.js exists but does not attribute.
+  * A DEAD-MAN SWITCH: if any of the above breaches, halt and alert.
+
+Build this ALONGSIDE Gate B, not after it. It is what makes the shadow period
+produce knowledge instead of just a P&L number.
+
+
+--------------------------------------------------------------------------------
+A-12  CREDIT WHERE DUE: rule-study.js ALREADY DEFLATES FOR MULTIPLE TESTING
+--------------------------------------------------------------------------------
+I checked this expecting to find a missing correction. It is there:
+
+  scripts/rule-study.js:68
+    // One hurdle for the whole grid, not per cell.
+    const hurdle = Math.sqrt(2 * Math.log(STEPS.length * TARGETS.length * 2));
+
+That is correct, and better than most retail research does. The parameter sweep
+is deflated for the size of the sweep.
+
+THE GAP IS TWOFOLD, AND IT IS SMALLER THAN THE PRAISE
+  1. The hurdle is per-symbol and does not account for 502 names being swept.
+     Cross-sectional multiple testing is the larger multiplier.
+  2. THE STUDY'S OUTPUT NEVER FEEDS BACK. DEFAULT_CONFIG is still stepPct: 2 /
+     targetPct: 2 regardless of what the sweep found. You built the right tool
+     and never wired its answer into the product.
+
+
+--------------------------------------------------------------------------------
+SUGGESTED ORDER
+--------------------------------------------------------------------------------
+  A-1   Dividend adjustment       -- one line; it is corrupting every statistic
+                                     you have, today
+  A-2   Futures bars              -- gate on everything; nothing is honestly
+                                     evaluable until this is done
+  A-4   Vol-normalised grid       -- cheapest change with the largest
+                                     structural effect
+  A-5   Short-gamma statistics    -- changes WHICH rungs get selected
+  A-3   Cross-sectional residual  -- highest expected value; needs A-2 and A-4
+                                     to be measurable
+  A-8   Liquidity and capacity    -- decides whether any of this is a business
+  A-9   Runners                   -- cheap distribution improvement
+  A-6   Anchor study              -- cheap, and revives two dead modules
+  A-7   Carry standalone          -- potential second uncorrelated strategy
+  A-10  Empirical regime buckets  -- after A-5, since it needs the right
+                                     statistics to score buckets with
+  A-11  Observability             -- build alongside Gate B, not after
+
+Note what is absent from that list: no new model families, no deep learning, no
+additional asset classes. Every item is a change to how the EXISTING strategy is
+specified, measured or risk-managed. That is where the value is right now, and
+each one makes the eventual machine-learning work more likely to find something
+real rather than better at fitting noise.
+
+================================================================================
+VERIFICATION LOG FOR APPENDIX A
+================================================================================
+  A-1  Yahoo close-vs-adjclose divergence and per-dividend-event drops measured
+       live against query1.finance.yahoo.com on 2026-09-06 for 8 NSE F&O names
+       over 2y and 5y ranges. adjclose / events.dividends absence confirmed by
+       grep across api/ scripts/ app.js.
+  A-2  weekly-plan.js:66-67, 103-104 read. bhavcopy.js:99-106 read.
+       model-governance.json promotionPrerequisites read.
+  A-3  market.js:365 (beta20), ai-run.js:36 (^NSEI benchmark) read.
+  A-4  trend.js:171-172 (atr14, atrPct) read.
+  A-5  weekly-cycle.js:256-260 (requiredFills, lowerPct >= 45) read.
+  A-6  Reachability grep for all 10 advanced-quant exports, excluding
+       scripts/test-.
+  A-7  carry.js header and recommendation.js convictionOf weights read.
+  A-8  bhavcopy.js:105-106, universe-carry.js:35, frontStockFutures read.
+  A-9  recommendation.js runnerTargetPct read.
+  A-10 grep for market-regime importers, excluding scripts/test-.
+  A-12 rule-study.js:60-70 read.
+
+================================================================================
+END OF APPENDIX A
+================================================================================

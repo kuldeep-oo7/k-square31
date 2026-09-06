@@ -101,19 +101,26 @@ function buildOrderIntent({ symbol, side, entry, target, runnerTarget, stopLoss,
   const runnerTargetTick = runnerTarget ? round(Math.round(runnerTarget / TICK_SIZE) * TICK_SIZE, 2) : null;
   const stopLossTick = round(Math.round(stopLoss / TICK_SIZE) * TICK_SIZE, 2);
 
-  const lotSize = Number(contract?.lotSize) || 1;
+  // C-6: Fail closed if contract lot size is missing - never default to 1 share for stock futures
+  const lotSize = Number(contract?.lotSize);
+  const validLotSize = (Number.isFinite(lotSize) && lotSize > 0) ? lotSize : null;
   const expiry = contract?.expiry || null;
   const contractSymbol = expiry ? `${symbol}-${expiry}-FUT` : `${symbol}-FUT`;
 
-  // Risk budget modeling for NSE F&O: ₹25,000 baseline risk per setup scaled by sizeMultiplier
+  // C-6: Risk budget cap modeling: ₹25,000 baseline risk budget scaled by sizeMultiplier
+  // C-6 FIX: Do NOT use Math.max(1, ...). If riskPerLot exceeds risk budget, targetLots = 0!
   const BASE_RISK_BUDGET = 25000;
+  const effectiveRiskBudget = BASE_RISK_BUDGET * (sizeMultiplier || 1.0);
   const riskPerShare = Math.max(0.05, Math.abs(entryTick - stopLossTick));
-  const riskPerLot = riskPerShare * lotSize;
-  const targetLots = Math.max(1, Math.floor((BASE_RISK_BUDGET * (sizeMultiplier || 1.0)) / Math.max(1, riskPerLot)));
-  const quantity = targetLots * lotSize;
+  const riskPerLot = validLotSize ? riskPerShare * validLotSize : riskPerShare;
+  const targetLots = validLotSize ? Math.floor(effectiveRiskBudget / Math.max(1, riskPerLot)) : 0;
+  const quantity = targetLots * (validLotSize || 0);
   const notional = round(quantity * entryTick, 2);
-  const estMarginRequired = round(notional * 0.22, 2); // ~22% SPAN + Exposure margin
+  // Real margin tier: 22% default, or higher if high volatility
+  const marginPct = Number(contract?.marginPct) || (stopLossPct > 1.5 ? 0.28 : 0.22);
+  const estMarginRequired = round(notional * marginPct, 2);
   const maxRiskInr = round(riskPerShare * quantity, 2);
+  const executable = Boolean(validLotSize && targetLots >= 1);
 
   return {
     contractSymbol,
@@ -121,9 +128,11 @@ function buildOrderIntent({ symbol, side, entry, target, runnerTarget, stopLoss,
     instrumentType: "STOCK_FUTURE",
     finInstrmTp: "STF",
     expiry,
-    lotSize,
+    lotSize: validLotSize,
     lots: targetLots,
     quantity,
+    executable,
+    rejectionReason: !validLotSize ? "MISSING_CONTRACT_LOT_SIZE" : (targetLots < 1 ? "RISK_EXCEEDS_BUDGET" : null),
     tickSize: TICK_SIZE,
     entryPrice: entryTick,
     targetPrice: targetTick,
@@ -134,6 +143,7 @@ function buildOrderIntent({ symbol, side, entry, target, runnerTarget, stopLoss,
     stopLossPct,
     contractNotional: notional,
     estMarginRequired,
+    marginPct,
     maxRiskInr,
     orderType: "LIMIT",
     timeInForce: "DAY"
@@ -270,7 +280,7 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
       qualityRating: metaGate.qualityRating,
       kellyFraction: kelly
     },
-    bookOut: "Book every open leg at the Friday close; Monday's open sets the next anchor",
+    bookOut: "Hold open legs continuously across weekends with Monday reference rebase; exit strictly on 2% target, 2% stop-loss, or mandatory 3-day monthly futures expiry roll window",
     reasons: [potential.reason, ...potential.components.filter((item) => Number(item.expectedPct) > 0).map((item) => `${item.name}: ${item.note}`)],
     vetoes: [],
     components: potential.components.map((item) => ({ name: item.name, weight: null, score: null, contribution: item.expectedPct, note: item.note })),
@@ -479,7 +489,7 @@ function recommendation(input) {
       qualityRating: metaGate.qualityRating,
       kellyFraction: kelly
     },
-    bookOut: "Book every open leg at the Friday close; Monday's open sets the next anchor",
+    bookOut: "Hold open legs continuously across weekends with Monday reference rebase; exit strictly on 2% target, 2% stop-loss, or mandatory 3-day monthly futures expiry roll window",
     reasons: [
       verdict.reason,
       ...(patternReason ? [patternReason] : []),

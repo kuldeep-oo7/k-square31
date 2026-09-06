@@ -1,14 +1,29 @@
 function resultBars(result) {
   const timestamps = result?.timestamp || [];
   const quote = result?.indicators?.quote?.[0] || {};
-  return timestamps.map((timestamp, index) => ({
-    timestamp,
-    open: quote.open?.[index],
-    high: quote.high?.[index],
-    low: quote.low?.[index],
-    close: quote.close?.[index],
-    volume: quote.volume?.[index]
-  })).filter((bar) => [bar.high, bar.low, bar.close].every(Number.isFinite));
+  const adjclose = result?.indicators?.adjclose?.[0]?.adjclose || [];
+  return timestamps.map((timestamp, index) => {
+    const rawClose = quote.close?.[index];
+    const adjClose = adjclose?.[index];
+    // A-1: Dividend adjustment ratio removes artificial ex-dividend price drops
+    const factor = (Number.isFinite(adjClose) && Number.isFinite(rawClose) && rawClose > 0)
+      ? adjClose / rawClose
+      : 1.0;
+    const rawOpen = quote.open?.[index];
+    const rawHigh = quote.high?.[index];
+    const rawLow = quote.low?.[index];
+
+    return {
+      timestamp,
+      open: Number.isFinite(rawOpen) ? Math.round(rawOpen * factor * 100) / 100 : null,
+      high: Number.isFinite(rawHigh) ? Math.round(rawHigh * factor * 100) / 100 : null,
+      low: Number.isFinite(rawLow) ? Math.round(rawLow * factor * 100) / 100 : null,
+      close: Number.isFinite(adjClose) ? Math.round(adjClose * 100) / 100 : (Number.isFinite(rawClose) ? Math.round(rawClose * 100) / 100 : null),
+      rawClose: Number.isFinite(rawClose) ? rawClose : null,
+      dividendAdjFactor: Math.round(factor * 10000) / 10000,
+      volume: quote.volume?.[index]
+    };
+  }).filter((bar) => [bar.high, bar.low, bar.close].every(Number.isFinite));
 }
 
 function formatSymbol(rawSymbol) {

@@ -9,6 +9,8 @@ const CONFIG = Object.freeze({
   slotBudget: 40_000,
   buyStepPct: 2,
   takeProfitPct: 2,
+  // C-1 / C-3: Stop-loss protection (2% default)
+  stopLossPct: 2,
   historySessionLimit: 1_300,
   bookOutWeekday: 5,
   // Leftover capacity used to open one-share positions whose 2% target could
@@ -34,8 +36,8 @@ function localDate(milliseconds) {
   return `${part.year}-${part.month}-${part.day}`;
 }
 
-// The desk carries nothing over the weekend: Friday's close books every open
-// leg, win or lose, and Monday's open sets the next week's anchor.
+// Continuous position holding across weekends: open legs are carried over
+// until they reach 2% profit target or 2% stop loss, with Monday weekly reference rebase.
 function isBookOutSession(isoDate) {
   return new Date(`${isoDate}T12:00:00Z`).getUTCDay() === CONFIG.bookOutWeekday;
 }
@@ -176,7 +178,39 @@ function processSymbol(previous, result, nowMs = Date.now(), context = {}) {
   // against the same daily candle because the high/low ordering is unknown.
   const remainingLots = [];
   for (const lot of Array.isArray(state.lots) ? state.lots : []) {
-    if (lot.boughtSession !== sessionDate && bar.high >= lot.target) {
+    if (lot.boughtSession === sessionDate) {
+      remainingLots.push(lot);
+      continue;
+    }
+
+    const targetReached = bar.high >= lot.target;
+    const stopPrice = lot.stopPrice || lot.stopLoss || round(lot.price * (1 - (CONFIG.stopLossPct / 100)));
+    const stopReached = bar.low <= stopPrice;
+
+    // Conservative ambiguity: if both hit on same bar, stop takes precedence
+    if (stopReached && targetReached) {
+      const proceeds = round(lot.quantity * stopPrice);
+      const pnl = round((stopPrice - lot.price) * lot.quantity);
+      state.cash = round(Number(state.cash) + proceeds);
+      state.realizedPnl = round(Number(state.realizedPnl) + pnl);
+      events.push({
+        id: transactionId(lot.id, "STOP_LOSS"), action: "stop_loss", symbol: state.symbol,
+        price: stopPrice, quantity: lot.quantity, amount: proceeds, pnl,
+        reason: "2% stop loss triggered (same-bar conservative resolution)", time: nowMs, session: sessionDate,
+        anchorWeek: lot.anchorWeek, level: lot.level
+      });
+    } else if (stopReached) {
+      const proceeds = round(lot.quantity * stopPrice);
+      const pnl = round((stopPrice - lot.price) * lot.quantity);
+      state.cash = round(Number(state.cash) + proceeds);
+      state.realizedPnl = round(Number(state.realizedPnl) + pnl);
+      events.push({
+        id: transactionId(lot.id, "STOP_LOSS"), action: "stop_loss", symbol: state.symbol,
+        price: stopPrice, quantity: lot.quantity, amount: proceeds, pnl,
+        reason: "2% stop loss triggered", time: nowMs, session: sessionDate,
+        anchorWeek: lot.anchorWeek, level: lot.level
+      });
+    } else if (targetReached) {
       const proceeds = round(lot.quantity * lot.target);
       const pnl = round((lot.target - lot.price) * lot.quantity);
       state.cash = round(Number(state.cash) + proceeds);
@@ -187,7 +221,9 @@ function processSymbol(previous, result, nowMs = Date.now(), context = {}) {
         reason: "2% lot target reached", time: nowMs, session: sessionDate,
         anchorWeek: lot.anchorWeek, level: lot.level
       });
-    } else remainingLots.push(lot);
+    } else {
+      remainingLots.push(lot);
+    }
   }
   state.lots = remainingLots;
 
@@ -256,9 +292,11 @@ function processSymbol(previous, result, nowMs = Date.now(), context = {}) {
     const id = transactionId(state.symbol, reference.weekKey, `B${index + 1}`);
     state.cash = round(Number(state.cash) - amount);
     state.triggeredLevels[index] = true;
+    const stopPrice = round(levelPrice * (1 - (CONFIG.stopLossPct / 100)));
     const lot = {
       id, symbol: state.symbol, price: levelPrice, quantity, amount,
-      target: round(levelPrice * 1.02), boughtSession: sessionDate,
+      target: round(levelPrice * 1.02), stopPrice, stopLoss: stopPrice,
+      boughtSession: sessionDate,
       anchorWeek: reference.weekKey, level: index + 1, time: nowMs,
       quantMultiplier: sizing.multiplier
     };

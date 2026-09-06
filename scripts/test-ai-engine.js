@@ -16,7 +16,7 @@ function result(days, price, state = "REGULAR") {
 
 const friday = { time: "2026-07-17T10:00:00Z", open: 498, high: 504, low: 496, close: 500 };
 const monday = { time: "2026-07-20T10:00:00Z", open: 497, high: 500, low: 469, close: 472 };
-const tuesday = { time: "2026-07-21T10:00:00Z", open: 474, high: 500, low: 473, close: 493 };
+const tuesday = { time: "2026-07-21T10:00:00Z", open: 480, high: 500, low: 478, close: 493 };
 
 assert.deepEqual(buyLevels(500), [490, 480.2, 470.6, 461.18, 451.96]);
 assert.deepEqual(mondayOpening(result([friday], 500, "CLOSED")), { weekKey: "2026-07-13", barDate: "2026-07-17", price: 498 });
@@ -47,6 +47,11 @@ assert.ok(second.state.realizedPnl > 0);
 assert.ok(second.state.cash > 200000, "realized paper profit should return to the stock cash ledger");
 assert.equal(second.state.observations.length, 3, "daily observations should deduplicate by market session");
 
+// Dedicated Stop-Loss Test in ai-engine:
+const stopDay = { time: "2026-07-21T10:00:00Z", open: 476, high: 477, low: 465, close: 466 };
+const stoppedOut = processSymbol(repeated.state, result([friday, monday, stopDay], 466), new Date("2026-07-21T10:01:00Z").getTime());
+assert.ok(stoppedOut.events.some((e) => e.action === "stop_loss"), "Low below stop barrier must trigger stop_loss exit");
+
 const longHistory = Array.from({ length: 1400 }, (_, index) => ({
   time: new Date(Date.UTC(2021, 0, 1 + index)).toISOString(),
   open: 100 + index, high: 102 + index, low: 98 + index, close: 101 + index
@@ -56,7 +61,7 @@ assert.equal(historyRun.state.observations.length, 1300, "history should retain 
 
 // Positions carry over the weekend: a leg still open on Friday is NOT liquidated.
 // Its mark is recorded, and no new rung is opened that session.
-const fridayBar = { time: "2026-07-24T10:00:00Z", open: 490, high: 492, low: 470, close: 480 };
+const fridayBar = { time: "2026-07-24T10:00:00Z", open: 485, high: 490, low: 480, close: 480 };
 const openWeek = emptySymbolState("BOOKOUT");
 openWeek.anchor = { weekKey: "2026-07-20", barDate: "2026-07-20", price: 497 };
 openWeek.levels = buyLevels(497);
@@ -86,7 +91,7 @@ capped.anchor = { weekKey: "2026-07-20", barDate: "2026-07-20", price: 497 };
 capped.levels = buyLevels(497);
 capped.triggeredLevels = [true, false, false, false, false];
 capped.cash = 100000;
-capped.lots = [{ id: "big-lot", symbol: "CAPTEST", price: 487.06, quantity: 390, amount: 190000, target: 600, boughtSession: "2026-07-20", anchorWeek: "2026-07-20", level: 1 }];
+capped.lots = [{ id: "big-lot", symbol: "CAPTEST", price: 487.06, stopPrice: 400, stopLoss: 400, quantity: 390, amount: 190000, target: 600, boughtSession: "2026-07-20", anchorWeek: "2026-07-20", level: 1 }];
 const cappedRun = processSymbol(capped, result([friday, monday, { ...tuesday, low: 420 }], 493), new Date("2026-07-21T10:01:00Z").getTime());
 const deployed = cappedRun.state.lots.reduce((sum, lot) => sum + Number(lot.amount), 0);
 assert.ok(deployed <= 200000, `deployed capital must stay at or below ₹2 lakh, received ${deployed}`);

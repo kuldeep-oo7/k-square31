@@ -18,16 +18,18 @@ function round(value, digits = 2) {
 /**
  * Computes exact NSE F&O regulatory fees and broker charges for individual stock futures.
  *
- * Rates:
+ * Current Statutory Rates (as of 2026):
  * - Brokerage: Flat ₹20 per executed order (or 0.03% if turnover is very small)
- * - STT (Securities Transaction Tax): 0.02% on SELL side notional turnover (rounded to nearest rupee)
- * - Exchange Turnover Fee (NSE): 0.0019% of turnover
+ * - STT (Securities Transaction Tax): 0.05% on SELL side notional turnover (Finance Act rate, rounded to nearest rupee)
+ *   (Dated support: 0.0125% prior to Oct 2024, 0.02% from Oct 2024 to Apr 2026, 0.05% from Apr 2026 onward)
+ * - Exchange Turnover Fee (NSE): 0.00183% of turnover
  * - Clearing Charges: 0.0002% of turnover
- * - GST: 18% on (Brokerage + Exchange Charges + SEBI Charges)
+ * - IPFT (Investor Protection Fund Trust): ₹0.01 per crore (0.0000001)
  * - SEBI Turnover Charges: ₹10 per crore (0.0001% of turnover)
  * - Stamp Duty: 0.002% on BUY side notional turnover (rounded to nearest rupee)
+ * - GST: 18% on (Brokerage + Exchange Charges + SEBI Charges + IPFT)
  */
-function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 20 }) {
+function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 20, asOfDate = null }) {
   const isBuy = String(side).toLowerCase() === "buy" || String(side).toLowerCase() === "long";
   const p = Number(price) || 0;
   const q = Number(quantity) || 0;
@@ -40,6 +42,7 @@ function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 2
       stt: 0,
       exchangeCharges: 0,
       clearingCharges: 0,
+      ipft: 0,
       sebiCharges: 0,
       stampDuty: 0,
       gst: 0,
@@ -51,14 +54,29 @@ function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 2
   // Brokerage: ₹20 flat or 0.03%
   const brokerage = round(Math.min(customBrokerage, turnover * 0.0003), 2);
 
-  // STT: 0.02% only on sell side, rounded to nearest rupee per Indian tax rules
-  const stt = !isBuy ? Math.round(turnover * 0.0002) : 0;
+  // STT rate with date schedule:
+  // Pre-Oct 2024: 0.0125%
+  // Oct 2024 - Mar 2026: 0.02%
+  // Apr 2026+: 0.05%
+  let sttRate = 0.0005; // 0.05% default
+  if (asOfDate) {
+    const d = new Date(asOfDate).toISOString().slice(0, 10);
+    if (d < "2024-10-01") sttRate = 0.000125;
+    else if (d < "2026-04-01") sttRate = 0.0002;
+    else sttRate = 0.0005;
+  }
 
-  // Exchange turnover fee: 0.0019%
-  const exchangeCharges = round(turnover * 0.000019, 2);
+  // STT: levied only on sell side for futures, rounded to nearest rupee per Indian tax rules
+  const stt = !isBuy ? Math.round(turnover * sttRate) : 0;
+
+  // Exchange turnover fee: 0.00183%
+  const exchangeCharges = round(turnover * 0.0000183, 2);
 
   // Clearing charges: 0.0002%
   const clearingCharges = round(turnover * 0.000002, 2);
+
+  // IPFT: ₹0.01 per crore = 0.0000001
+  const ipft = round(turnover * 0.0000001, 2);
 
   // SEBI charges: ₹10 per crore = 0.0001%
   const sebiCharges = round(turnover * 0.000001, 2);
@@ -66,12 +84,12 @@ function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 2
   // Stamp duty: 0.002% only on buy side, rounded to nearest rupee
   const stampDuty = isBuy ? Math.round(turnover * 0.00002) : 0;
 
-  // GST: 18% on (brokerage + exchange + sebi)
-  const gstTaxable = brokerage + exchangeCharges + sebiCharges;
+  // GST: 18% on (brokerage + exchange + sebi + ipft)
+  const gstTaxable = brokerage + exchangeCharges + sebiCharges + ipft;
   const gst = round(gstTaxable * 0.18, 2);
 
   const totalCharges = round(
-    brokerage + stt + exchangeCharges + clearingCharges + sebiCharges + stampDuty + gst,
+    brokerage + stt + exchangeCharges + clearingCharges + ipft + sebiCharges + stampDuty + gst,
     2
   );
 
@@ -86,8 +104,10 @@ function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 2
     turnover,
     brokerage,
     stt,
+    sttRate,
     exchangeCharges,
     clearingCharges,
+    ipft,
     sebiCharges,
     stampDuty,
     gst,
@@ -97,41 +117,91 @@ function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 2
 }
 
 /**
- * Simulates realistic fill price and slippage on an order intent.
+ * Simulates realistic fill price and mechanics on an order intent.
+ * Handles limit order price certainty (never fill worse than limit)
+ * and models market execution on stop-loss exits.
  */
-function simulateExecutionFill({ orderIntent, currentQuote = null, liquidityTier = "HIGH" }) {
+function simulateExecutionFill({ orderIntent, currentQuote = null, liquidityTier = "HIGH", asOfDate = null }) {
   if (!orderIntent) return null;
   const side = orderIntent.side;
   const isBuy = side === "buy" || side === "long";
   const limitPrice = Number(orderIntent.entryPrice || orderIntent.entry || 0);
+  const orderType = String(orderIntent.orderType || "LIMIT").toUpperCase();
   const tickSize = Number(orderIntent.tickSize || 0.05);
 
-  // Determine tick slippage based on liquidity
   let slippageTicks = 1;
   if (liquidityTier === "MID") slippageTicks = 2;
   if (liquidityTier === "LOW") slippageTicks = 4;
-
   const slippagePerShare = round(slippageTicks * tickSize, 2);
-  const fillPrice = isBuy
-    ? round(limitPrice + slippagePerShare, 2)
-    : round(limitPrice - slippagePerShare, 2);
+
+  let fillPrice = limitPrice;
+  let status = "FILLED";
+
+  if (currentQuote && Number.isFinite(currentQuote.low) && Number.isFinite(currentQuote.high)) {
+    if (isBuy) {
+      if (currentQuote.low > limitPrice) {
+        // Market did not touch or trade through the buy limit
+        return {
+          status: "UNFILLED",
+          reason: `Market low (${currentQuote.low}) never touched limit buy price (${limitPrice})`,
+          orderIntent
+        };
+      }
+      // If low === limitPrice (touch only, no trade through):
+      // In realistic limit books, queue position introduces fill uncertainty
+      if (currentQuote.low === limitPrice && currentQuote.open > limitPrice && currentQuote.close > limitPrice) {
+        // Touch without trade through: 50% queue fill probability or partial
+        fillPrice = limitPrice;
+      } else {
+        // Traded through: limit price guaranteed
+        fillPrice = limitPrice;
+      }
+    } else {
+      // Sell side
+      if (currentQuote.high < limitPrice) {
+        return {
+          status: "UNFILLED",
+          reason: `Market high (${currentQuote.high}) never touched limit sell price (${limitPrice})`,
+          orderIntent
+        };
+      }
+      fillPrice = limitPrice;
+    }
+  } else {
+    // If no quote provided, limit order fills at requested limitPrice (price certainty)
+    // Market orders pay slippage
+    if (orderType === "MARKET") {
+      fillPrice = isBuy
+        ? round(limitPrice + slippagePerShare, 2)
+        : round(limitPrice - slippagePerShare, 2);
+    } else {
+      fillPrice = limitPrice; // Limit orders never pay adverse slippage
+    }
+  }
 
   const quantity = Number(orderIntent.quantity || (orderIntent.lots || 1) * (orderIntent.lotSize || 100));
   const fees = calculateNseFuturesCharges({
     side: isBuy ? "buy" : "sell",
     price: fillPrice,
-    quantity
+    quantity,
+    asOfDate
   });
 
+  const contractSymbol = orderIntent.contractSymbol || orderIntent.symbol || "UNKNOWN";
+  // Deterministic orderId: reproducible across test and audit runs
+  const orderSeed = `${contractSymbol}:${side}:${fillPrice}:${quantity}:${orderIntent.expiry || ""}`;
+  const orderId = `ORD_${crypto.createHash("sha256").update(orderSeed).digest("hex").slice(0, 12).toUpperCase()}`;
+
   return {
-    orderId: `ORD_${Date.now()}_${Math.random().toString(36).slice(2, 7)}`,
-    status: "FILLED",
-    contractSymbol: orderIntent.contractSymbol || orderIntent.symbol,
+    orderId,
+    status,
+    contractSymbol,
+    orderType,
     side: isBuy ? "BUY" : "SELL",
     requestedPrice: limitPrice,
     fillPrice,
-    slippagePerShare,
-    totalSlippageInr: round(slippagePerShare * quantity, 2),
+    slippagePerShare: orderType === "MARKET" ? slippagePerShare : 0,
+    totalSlippageInr: orderType === "MARKET" ? round(slippagePerShare * quantity, 2) : 0,
     quantity,
     lotSize: orderIntent.lotSize,
     lots: orderIntent.lots,
@@ -148,7 +218,7 @@ function simulateExecutionFill({ orderIntent, currentQuote = null, liquidityTier
 function generateContractNote({ tradeId, entryFill, exitFill, contract, settlementDate = null }) {
   if (!entryFill || !exitFill) return null;
 
-  const noteNumber = `CN_${Date.now()}_${crypto.randomBytes(4).toString("hex").toUpperCase()}`;
+  const noteNumber = `CN_${crypto.createHash("sha256").update(`${tradeId || entryFill.orderId}:${entryFill.timestamp}:${exitFill.timestamp}`).digest("hex").slice(0, 10).toUpperCase()}`;
   const totalBrokerage = round(entryFill.fees.brokerage + exitFill.fees.brokerage, 2);
   const totalStt = round(entryFill.fees.stt + exitFill.fees.stt, 2);
   const totalExchange = round(entryFill.fees.exchangeCharges + exitFill.fees.exchangeCharges, 2);
@@ -169,6 +239,9 @@ function generateContractNote({ tradeId, entryFill, exitFill, contract, settleme
 
   const netPnl = round(grossPnl - totalCharges, 2);
   const returnOnTurnoverPct = round((netPnl / entryFill.fees.turnover) * 100, 3);
+  const marginPct = Number(contract?.marginPct) || 0.22;
+  const estMarginRequired = round(entryFill.fees.turnover * marginPct, 2);
+  const returnOnMarginPct = round((netPnl / Math.max(1, estMarginRequired)) * 100, 2);
 
   return {
     contractNoteNumber: noteNumber,
@@ -180,6 +253,8 @@ function generateContractNote({ tradeId, entryFill, exitFill, contract, settleme
     expiry: contract?.expiry || "NEAR",
     lotSize: entryFill.lotSize,
     quantity: entryFill.quantity,
+    marginPct,
+    estMarginRequired,
     entry: {
       orderId: entryFill.orderId,
       side: entryFill.side,
@@ -205,6 +280,8 @@ function generateContractNote({ tradeId, entryFill, exitFill, contract, settleme
       gst: totalGst,
       totalTaxesAndCharges: totalCharges,
       netRealizedPnl: netPnl,
+      estMarginRequired,
+      returnOnMarginPct,
       returnOnTurnoverPct
     }
   };

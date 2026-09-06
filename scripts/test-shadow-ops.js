@@ -37,7 +37,7 @@ function testShadowOperationsLifecycle() {
 
   // 1. Monday Open Fill
   const fillDetails = simulateExecutionFill({ orderIntent, liquidityTier: "HIGH" });
-  assert.equal(fillDetails.fillPrice, 150.05); // 1 tick slippage
+  assert.equal(fillDetails.fillPrice, 150.00, "Limit orders fill at limit price, zero adverse slippage");
 
   const openRes = openShadowPosition(ledger, {
     orderIntent,
@@ -73,7 +73,7 @@ function testShadowOperationsLifecycle() {
   const rebaseRes = rebaseMondayPosition(pos, mondayOpen, "2026-08-31");
   assert.equal(rebaseRes.rebased, true);
   assert.equal(pos.weeklyReferencePrice, 152.0);
-  assert.equal(pos.originalEntryPrice, 150.05, "Original entry price stays immutable");
+  assert.equal(pos.originalEntryPrice, 150.00, "Original entry price stays immutable");
   assert.equal(pos.weekendGapPnl, (152.0 - 151.50) * 5500); // 2750
 
   // 5. Target Hit on Tuesday @ 153.0

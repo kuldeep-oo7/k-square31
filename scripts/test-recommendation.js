@@ -50,7 +50,11 @@ const anchor = currentAnchor(bars);
 assert.ok(anchor.anchor > 0);
 assert.equal(anchor.sessionsElapsed, 5);
 
-const buy = recommendation({ symbol: "TESTLONG", bars });
+const buy = recommendation({
+  symbol: "TESTLONG",
+  bars,
+  contract: { expiry: "2026-09-24", lotSize: 250, futures: 2950, spot: 2940 }
+});
 assert.equal(buy.action, "buy-ladder");
 assert.equal(buy.side, "long");
 assert.ok(buy.entries.length > 0, "an actionable call must name the rungs to work");
@@ -60,7 +64,7 @@ assert.ok(buy.entries.every((entry) => entry.riskReward >= 1.5), "risk reward ra
 assert.equal(buy.entries[0].entry, Math.round(anchor.anchor * 0.98 * 100) / 100);
 assert.ok(buy.convictionPct > 0 && buy.convictionPct <= 100);
 assert.ok(buy.sizeMultiplier >= 0.25 && buy.sizeMultiplier <= 1);
-assert.match(buy.bookOut, /Friday close/);
+assert.match(buy.bookOut, /continuously across weekends/);
 assert.deepEqual(buy.vetoes, []);
 assert.ok(buy.reasons.length > 1);
 
@@ -133,6 +137,11 @@ assert.ok(buy.entries[0].orderIntent.contractNotional > 0);
 assert.ok(buy.entries[0].orderIntent.estMarginRequired > 0);
 assert.ok(buy.entries[0].orderIntent.maxRiskInr > 0);
 assert.equal(buy.entries[0].orderIntent.tickSize, 0.05);
+
+// C-6: Fail-closed when contract lot size is missing:
+const missingContract = recommendation({ symbol: "NOLOT", bars });
+assert.equal(missingContract.entries[0].orderIntent.executable, false);
+assert.equal(missingContract.entries[0].orderIntent.rejectionReason, "MISSING_CONTRACT_LOT_SIZE");
 
 // Regression test for P0-001: Potential route must strictly obey Meta VETO
 const potentialVeto = recommendation({

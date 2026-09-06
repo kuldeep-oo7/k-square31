@@ -84,14 +84,16 @@ function earningsWindow(calendarEvents, nowMs) {
 // One number in [-1, 1]: positive means the balance sheet supports being long
 // through a weekly gap, negative means it is the better short.
 function balanceSheetScore(metrics) {
+  if (!metrics) return 0;
   const parts = [
-    [0.3, clamp(Number(metrics.returnOnEquity) * 5)],
-    [0.2, clamp(Number(metrics.profitMargin) * 8)],
-    [0.2, metrics.debtToEquity === null ? 0 : clamp((80 - Number(metrics.debtToEquity)) / 80)],
-    [0.15, metrics.currentRatio === null ? 0 : clamp((Number(metrics.currentRatio) - 1) / 1.2)],
-    [0.15, clamp(Number(metrics.revenueGrowth) * 6)]
+    [0.3, Number.isFinite(Number(metrics.returnOnEquity)) ? clamp(Number(metrics.returnOnEquity) * 5) : null],
+    [0.2, Number.isFinite(Number(metrics.profitMargin)) ? clamp(Number(metrics.profitMargin) * 8) : null],
+    [0.2, Number.isFinite(Number(metrics.debtToEquity)) ? clamp((80 - Number(metrics.debtToEquity)) / 80) : null],
+    [0.15, Number.isFinite(Number(metrics.currentRatio)) ? clamp((Number(metrics.currentRatio) - 1) / 1.2) : null],
+    [0.15, Number.isFinite(Number(metrics.revenueGrowth)) ? clamp(Number(metrics.revenueGrowth) * 6) : null]
   ];
-  const available = parts.filter(([, score]) => Number.isFinite(score));
+  // H-1: Filter out missing metrics so available weights renormalise accurately to 1.0
+  const available = parts.filter(([, score]) => score !== null && Number.isFinite(score));
   const weight = available.reduce((sum, [share]) => sum + share, 0);
   if (!weight) return 0;
   return round(available.reduce((sum, [share, score]) => sum + share * score, 0) / weight, 4);

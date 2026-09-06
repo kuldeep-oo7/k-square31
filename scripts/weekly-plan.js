@@ -64,7 +64,7 @@ function universe(front) {
 }
 
 async function dailyBars(symbol) {
-  const url = `${CHART}/${encodeURIComponent(`${symbol}.NS`)}?range=5y&interval=1d&includePrePost=false`;
+  const url = `${CHART}/${encodeURIComponent(`${symbol}.NS`)}?range=5y&interval=1d&includePrePost=false&events=div,splits`;
   const response = await fetch(url, {
     headers: { "User-Agent": USER_AGENT, Accept: "application/json" },
     signal: AbortSignal.timeout(20_000)
@@ -74,14 +74,29 @@ async function dailyBars(symbol) {
   const result = payload?.chart?.result?.[0];
   if (!result) throw new Error(payload?.chart?.error?.description || "no chart result");
   const quote = result.indicators?.quote?.[0] || {};
-  return (result.timestamp || []).map((timestamp, index) => ({
-    timestamp,
-    open: quote.open?.[index],
-    high: quote.high?.[index],
-    low: quote.low?.[index],
-    close: quote.close?.[index],
-    volume: quote.volume?.[index]
-  })).filter((bar) => [bar.high, bar.low, bar.close].every(Number.isFinite));
+  const adjclose = result.indicators?.adjclose?.[0]?.adjclose || [];
+  return (result.timestamp || []).map((timestamp, index) => {
+    const rawClose = quote.close?.[index];
+    const adjClose = adjclose?.[index];
+    // A-1: Dividend adjustment ratio removes mechanical ex-dividend ladder dip fills
+    const factor = (Number.isFinite(adjClose) && Number.isFinite(rawClose) && rawClose > 0)
+      ? adjClose / rawClose
+      : 1.0;
+    const rawOpen = quote.open?.[index];
+    const rawHigh = quote.high?.[index];
+    const rawLow = quote.low?.[index];
+
+    return {
+      timestamp,
+      open: Number.isFinite(rawOpen) ? Math.round(rawOpen * factor * 100) / 100 : null,
+      high: Number.isFinite(rawHigh) ? Math.round(rawHigh * factor * 100) / 100 : null,
+      low: Number.isFinite(rawLow) ? Math.round(rawLow * factor * 100) / 100 : null,
+      close: Number.isFinite(adjClose) ? Math.round(adjClose * 100) / 100 : (Number.isFinite(rawClose) ? Math.round(rawClose * 100) / 100 : null),
+      rawClose: Number.isFinite(rawClose) ? rawClose : null,
+      dividendAdjFactor: Math.round(factor * 10000) / 10000,
+      volume: quote.volume?.[index]
+    };
+  }).filter((bar) => [bar.high, bar.low, bar.close].every(Number.isFinite));
 }
 
 // Only about 214 NSE names have futures at all, so scanning the Nifty 500 spends

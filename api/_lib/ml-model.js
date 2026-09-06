@@ -190,7 +190,8 @@ function splitCandidates(values, bins) {
 
 function growTree(matrix, residuals, indices, depth, options) {
   const total = indices.reduce((sum, index) => sum + residuals[index], 0);
-  const leaf = { value: total / indices.length };
+  // M-3: Consistent L2 shrinkage on leaf value matching split gain formula
+  const leaf = { value: total / (indices.length + (options.lambda || 1)) };
   if (depth >= options.maxDepth || indices.length < options.minSamplesSplit * 2) return leaf;
 
   let best = null;
@@ -375,7 +376,15 @@ function weeklyForecast(bars, side = "long", overrides = {}) {
   const model = trainBoostedTrees(rows, overrides);
   const latestIndex = bars.length - 1;
   const latest = features(bars, latestIndex);
-  const expectedWeeklyPct = latest && model.ready ? predict(model, { ...latest, gapFromWeekOpenPct: 0 }) : null;
+  const latestBar = bars[latestIndex];
+  const previousBar = bars[latestIndex - 1];
+  let liveGap = 0;
+  if (latestBar && previousBar && Number(overrides.anchorPrice)) {
+    liveGap = round((Number(overrides.anchorPrice) - previousBar.close) / previousBar.close * 100, 3) || 0;
+  } else if (latestBar && previousBar && Number(latestBar.open)) {
+    liveGap = round((latestBar.open - previousBar.close) / previousBar.close * 100, 3) || 0;
+  }
+  const expectedWeeklyPct = latest && model.ready ? predict(model, { ...latest, gapFromWeekOpenPct: liveGap }) : null;
   const edge = validation.ready ? Number(validation.outOfSample.informationCoefficient) : null;
   return {
     ready: Boolean(model.ready && validation.ready),

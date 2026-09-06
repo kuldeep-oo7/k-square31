@@ -13,10 +13,12 @@ const DEFAULT_CONFIG = Object.freeze({
   stepPct: 2,
   targetPct: 2,
   slots: 5,
-  // Liquid NSE stock futures: brokerage, exchange charges, GST, STT and stamp
-  // duty land near 0.06% for a round trip. Ladder entries and targets are limit
-  // orders, so only the Friday book-out is charged additional slippage.
-  costPct: 0.06,
+  // C-1: Mandatory default 2% stop-loss barrier on every ladder rung
+  stopLossPct: 2.0,
+  // C-2: Mandatory capital-weighted return (1/slots per rung) as the system default
+  capitalWeighted: true,
+  // Liquid NSE stock futures: statutory round-trip cost (0.05% STT on sell + 0.00183% exchange + GST + stamp duty ~ 0.08%)
+  costPct: 0.08,
   fridaySlippagePct: 0.02
 });
 
@@ -93,7 +95,7 @@ function replayWeek(week, side, config) {
   const levels = ladder(anchor, side, config);
   const short = side === "short";
   const targetStep = 1 + (short ? -1 : 1) * Number(config.targetPct) / 100;
-  const stopLossPct = Number(config.stopLossPct) || null;
+  const stopLossPct = Number(config.stopLossPct ?? DEFAULT_CONFIG.stopLossPct) || null;
   const stopLossStep = stopLossPct ? (1 - (short ? -1 : 1) * stopLossPct / 100) : null;
   const open = new Map();
   const trades = [];
@@ -165,7 +167,7 @@ function replayWeek(week, side, config) {
     trades: priced,
     sumNetPct,
     capitalWeightedNetPct,
-    weekNetPct: config.capitalWeighted ? capitalWeightedNetPct : sumNetPct
+    weekNetPct: config.capitalWeighted !== false ? capitalWeightedNetPct : sumNetPct
   };
 }
 
@@ -278,8 +280,10 @@ function sideResult(weeks, side, config, splitRatio) {
 }
 
 function verdict(long, short) {
+  // M-1: Select candidate side based strictly on in-sample viable rungs and positive expected weekly return.
+  // Held-out out-of-sample data is preserved for honest validation, not for directional selection.
   const candidates = [long, short]
-    .filter((side) => side.viableLevels.length && Number(side.outOfSample.averageWeeklyPct) > 0)
+    .filter((side) => side.viableLevels.length && Number(side.expectedWeeklyPct) > 0)
     .sort((left, right) => Number(right.expectedWeeklyPct) - Number(left.expectedWeeklyPct));
   const best = candidates[0];
   if (!best) {
@@ -287,7 +291,7 @@ function verdict(long, short) {
       action: "stand-aside",
       side: null,
       levels: [],
-      reason: "No ladder rung cleared its significance hurdle with a positive out-of-sample week"
+      reason: "No ladder rung cleared its significance hurdle with positive in-sample expected return"
     };
   }
   return {
@@ -296,7 +300,7 @@ function verdict(long, short) {
     levels: best.viableLevels,
     expectedWeeklyPct: best.expectedWeeklyPct,
     hitRateLowerPct: best.levels.find((entry) => entry.level === best.viableLevels[0])?.lowerPct ?? null,
-    reason: `Rungs ${best.viableLevels.join(", ")} cleared t≥${best.significanceHurdleTStat} with ${best.outOfSample.averageWeeklyPct}% average out-of-sample week`
+    reason: `Rungs ${best.viableLevels.join(", ")} cleared in-sample t≥${best.significanceHurdleTStat} (OOS week: ${best.outOfSample.averageWeeklyPct}%)`
   };
 }
 
