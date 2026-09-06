@@ -229,15 +229,15 @@ function classifyOiBuildup({ priceChangePct, oiChangePct }) {
   const oiChange = Number(oiChangePct) || 0;
 
   if (pChange > 0.2 && oiChange > 1.0) {
-    return { code: "LONG_BUILDUP", label: "Long Buildup", tone: "bullish", convictionBoost: 1.15 };
+    return { code: "LONG_BUILDUP", regime: "LONG_BUILDUP", label: "Long Buildup", interpretation: "Long Buildup (Aggressive Institutional Buying)", tone: "bullish", convictionBoost: 1.15 };
   } else if (pChange > 0.2 && oiChange < -1.0) {
-    return { code: "SHORT_COVERING", label: "Short Covering", tone: "neutral_bullish", convictionBoost: 1.05 };
+    return { code: "SHORT_COVERING", regime: "SHORT_COVERING", label: "Short Covering", interpretation: "Short Covering (Bearish Short Sellers Exiting)", tone: "neutral_bullish", convictionBoost: 1.05 };
   } else if (pChange < -0.2 && oiChange > 1.0) {
-    return { code: "SHORT_BUILDUP", label: "Short Buildup", tone: "bearish", convictionBoost: 0.70 };
+    return { code: "SHORT_BUILDUP", regime: "SHORT_BUILDUP", label: "Short Buildup", interpretation: "Short Buildup (Aggressive Institutional Shorting)", tone: "bearish", convictionBoost: 0.70 };
   } else if (pChange < -0.2 && oiChange < -1.0) {
-    return { code: "LONG_UNWINDING", label: "Long Unwinding", tone: "bearish", convictionBoost: 0.80 };
+    return { code: "LONG_UNWINDING", regime: "LONG_UNWINDING", label: "Long Unwinding", interpretation: "Long Unwinding (Bullish Traders Dumping Longs)", tone: "bearish", convictionBoost: 0.80 };
   }
-  return { code: "NEUTRAL", label: "Neutral Flow", tone: "neutral", convictionBoost: 1.0 };
+  return { code: "NEUTRAL", regime: "NEUTRAL", label: "Neutral Flow", interpretation: "Neutral Flow (Balanced Order Flow)", tone: "neutral", convictionBoost: 1.0 };
 }
 
 /**
