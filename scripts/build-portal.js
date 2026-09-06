@@ -92,6 +92,9 @@ function document_(plan, sealed, meta, macro = {}) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>K² · Range Desk</title>
 <style>
   /* Tokens lifted from the desk's own styles.css so the portal reads as the same
@@ -250,6 +253,7 @@ function document_(plan, sealed, meta, macro = {}) {
   .calc-badge-container { flex: 1 1 280px; min-width: 240px; display: flex; align-items: center; }
   .calc-badge { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 11px 18px; border-radius: 12px; font-weight: 600; font-size: 13px; font-family: var(--mono); text-align: center; }
   .badge-buy { background: color-mix(in srgb, var(--mint) 40%, transparent); color: var(--mint-deep); border: 1px solid var(--mint-deep); }
+  .badge-sell { background: color-mix(in srgb, var(--coral) 26%, transparent); color: var(--coral-deep); border: 1px solid var(--coral-deep); }
   .badge-warn { background: color-mix(in srgb, var(--sun) 34%, transparent); color: #8a6b0f; border: 1px solid #d4a72c; }
   .badge-stop { background: color-mix(in srgb, var(--coral) 26%, transparent); color: var(--coral-deep); border: 1px solid var(--coral-deep); }
   .badge-info { background: var(--violet-soft); color: var(--violet); border: 1px solid var(--violet); }
@@ -342,6 +346,10 @@ function document_(plan, sealed, meta, macro = {}) {
   <section>
     <h2>Qualified ladders${plan?.weekKey ? ` · week of ${escapeHtml(monday || plan.weekKey)}` : ""}</h2>
     <p class="sub">Rungs are distance from Monday's open, with the measured hit rate and the number of historical fills behind it. Prices are set from that open each week. <em>Click any row to load into the Live Decision Assistant above.</em></p>
+    ${longs === 0 ? `
+    <div style="background: rgba(239, 68, 68, 0.08); border: 1px solid rgba(239, 68, 68, 0.28); border-radius: 14px; padding: 14px 18px; margin-bottom: 18px; font-size: 13.5px; color: var(--ink);">
+      <strong>🛡️ Capital Protection Shield Active (0 Buys):</strong> With strict 2.0% stop-loss barriers and 0.08% statutory friction active, <strong>no shallow buy ladder cleared the statistical significance hurdle (t ≥ 1.89)</strong> across the 210 F&amp;O universe this week. The system refuses to recommend shallow dip buys that bleed capital into choppy markets.
+    </div>` : ""}
     <div class="row-tools">
       <button type="button" data-filter="all" aria-pressed="true">All ${best.length}</button>
       <button type="button" data-filter="long" aria-pressed="false">Buy ${longs}</button>
@@ -485,26 +493,50 @@ function document_(plan, sealed, meta, macro = {}) {
 
     calcBadge.className = "calc-badge";
 
-    if (side === "long" && live >= target) {
-      calcBadge.className += " badge-buy";
-      calcBadge.textContent = "🏁 TARGET REACHED (+" + distEntryPct.toFixed(1) + "%) · PROFIT BOOKED";
-      calcOrderPlan.textContent = "Trade complete. Target was hit at ₹" + target.toFixed(2) + ". Do not enter now.";
-    } else if (side === "long" && live <= stop) {
-      calcBadge.className += " badge-stop";
-      calcBadge.textContent = "🛑 STOP-LOSS BREACHED (" + distEntryPct.toFixed(1) + "%) · DO NOT BUY";
-      calcOrderPlan.textContent = "Setup invalidated. Price dropped below stop-loss (₹" + stop.toFixed(2) + ").";
-    } else if (distEntryPct <= 0.8 && distEntryPct >= -1.5) {
-      calcBadge.className += " badge-buy";
-      calcBadge.textContent = "🟢 IN BUY ZONE · SAFE TO ENTER NOW";
-      calcOrderPlan.textContent = "Place " + (distEntryPct < 0 ? "Discount Buy" : "Buy") + " @ ₹" + live.toFixed(2) + " | Set GTT Target @ ₹" + target.toFixed(2) + " | Set GTT Stop-Loss @ ₹" + stop.toFixed(2);
-    } else if (distEntryPct > 0.8) {
-      calcBadge.className += " badge-warn";
-      calcBadge.textContent = "🛑 EXTENDED (+" + distEntryPct.toFixed(1) + "% above entry) · DO NOT CHASE";
-      calcOrderPlan.textContent = "Price is too high above entry. Place a Limit Buy Order @ ₹" + entry.toFixed(2) + " and wait for pullback.";
+    if (side === "long") {
+      if (live >= target) {
+        calcBadge.className += " badge-buy";
+        calcBadge.textContent = "🏁 TARGET REACHED (+" + distEntryPct.toFixed(1) + "%) · PROFIT BOOKED";
+        calcOrderPlan.textContent = "Trade complete. Target was hit at ₹" + target.toFixed(2) + ". Do not enter now.";
+      } else if (live <= stop) {
+        calcBadge.className += " badge-stop";
+        calcBadge.textContent = "🛑 STOP-LOSS BREACHED (" + distEntryPct.toFixed(1) + "%) · DO NOT BUY";
+        calcOrderPlan.textContent = "Setup invalidated. Price dropped below stop-loss (₹" + stop.toFixed(2) + ").";
+      } else if (distEntryPct <= 0.8 && distEntryPct >= -1.5) {
+        calcBadge.className += " badge-buy";
+        calcBadge.textContent = "🟢 IN BUY ZONE · SAFE TO ENTER NOW";
+        calcOrderPlan.textContent = "Place " + (distEntryPct < 0 ? "Discount Buy" : "Buy") + " @ ₹" + live.toFixed(2) + " | Set GTT Target @ ₹" + target.toFixed(2) + " | Set GTT Stop-Loss @ ₹" + stop.toFixed(2);
+      } else if (distEntryPct > 0.8) {
+        calcBadge.className += " badge-warn";
+        calcBadge.textContent = "🛑 EXTENDED (+" + distEntryPct.toFixed(1) + "% above entry) · DO NOT CHASE";
+        calcOrderPlan.textContent = "Price is too high above entry. Place a Limit Buy Order @ ₹" + entry.toFixed(2) + " and wait for pullback.";
+      } else {
+        calcBadge.className += " badge-info";
+        calcBadge.textContent = "ℹ️ BELOW ENTRY · VERIFY MOMENTUM";
+        calcOrderPlan.textContent = "Place Limit Order @ ₹" + entry.toFixed(2) + " | Target: ₹" + target.toFixed(2) + " | Stop: ₹" + stop.toFixed(2);
+      }
     } else {
-      calcBadge.className += " badge-info";
-      calcBadge.textContent = "ℹ️ BELOW ENTRY · VERIFY MOMENTUM";
-      calcOrderPlan.textContent = "Place Limit Order @ ₹" + entry.toFixed(2) + " | Target: ₹" + target.toFixed(2) + " | Stop: ₹" + stop.toFixed(2);
+      if (live <= target) {
+        calcBadge.className += " badge-buy";
+        calcBadge.textContent = "🏁 TARGET REACHED (+" + distEntryPct.toFixed(1) + "%) · PROFIT BOOKED";
+        calcOrderPlan.textContent = "Short trade complete. Target hit at ₹" + target.toFixed(2) + ". Cover position / do not short now.";
+      } else if (live >= stop) {
+        calcBadge.className += " badge-stop";
+        calcBadge.textContent = "🛑 STOP-LOSS BREACHED (−" + distEntryPct.toFixed(1) + "%) · DO NOT SHORT";
+        calcOrderPlan.textContent = "Setup invalidated. Price rallied above stop-loss (₹" + stop.toFixed(2) + ").";
+      } else if (Math.abs(live - entry) / entry <= 0.008) {
+        calcBadge.className += " badge-sell";
+        calcBadge.textContent = "🔴 IN SELL ZONE · SAFE TO SHORT NOW";
+        calcOrderPlan.textContent = "Place Short Sell @ ₹" + live.toFixed(2) + " | Set GTT Cover Target @ ₹" + target.toFixed(2) + " | Set GTT Stop-Loss @ ₹" + stop.toFixed(2);
+      } else if (live < entry * 0.992) {
+        calcBadge.className += " badge-warn";
+        calcBadge.textContent = "🛑 EXTENDED (dropped below entry) · DO NOT CHASE SHORT";
+        calcOrderPlan.textContent = "Price fell too far below entry. Place Limit Sell @ ₹" + entry.toFixed(2) + " and wait for bounce.";
+      } else {
+        calcBadge.className += " badge-info";
+        calcBadge.textContent = "ℹ️ ABOVE ENTRY (Discount Short) · VERIFY MOMENTUM";
+        calcOrderPlan.textContent = "Place Limit Sell Order @ ₹" + entry.toFixed(2) + " | Target: ₹" + target.toFixed(2) + " | Stop: ₹" + stop.toFixed(2);
+      }
     }
   }
 
