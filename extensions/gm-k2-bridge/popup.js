@@ -68,9 +68,9 @@ async function waitForTab(tabId) {
 }
 
 async function k2Tab() {
-  const tabs = await chrome.tabs.query({ url: "https://k-square31.vercel.app/*" });
+  const tabs = await chrome.tabs.query({ url: "https://kuldeep-oo7.github.io/k2-portal/*" });
   if (tabs[0]) return tabs[0];
-  return chrome.tabs.create({ url: "https://k-square31.vercel.app", active: false });
+  return chrome.tabs.create({ url: "https://kuldeep-oo7.github.io/k2-portal/", active: false });
 }
 
 async function issueDeviceToken(tabId) {
