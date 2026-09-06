@@ -1,0 +1,2666 @@
+INDEPENDENT DEEP RE-AUDIT, BUG REGISTER, WH QUESTION REGISTER,
+AND IMPLEMENTATION/RESOLUTION DOSSIER
+======================================================================
+
+Project: K2 / pivot31
+Audit date: 2026-09-06 (Asia/Kolkata)
+Audit snapshot:
+  Branch: gm-portfolio-view
+  Commit: 216181b3f79d577fc4ba170579a77656a87aea12
+  Node: v24.13.0
+  npm: 11.6.2
+
+Primary document audited:
+  C:\Users\kulde\Downloads\pivot31\MASTER_SYSTEM_AUDIT_AND_RESOLUTION_DOSSIER.txt
+
+Independent conclusion:
+  RED / NO-GO FOR REAL CAPITAL.
+
+This document is intentionally separate from the existing master dossier.
+Do not delete or overwrite the earlier dossier. It is part of the evidence.
+
+
+======================================================================
+0. PURPOSE, SCOPE, AND INSTRUCTIONS TO THE FIXING AGENT
+======================================================================
+
+PURPOSE
+-------
+This is the actionable handoff file. It contains:
+
+  1. Every material finding confirmed in the independent re-audit.
+  2. Exact source files, functions, and line anchors.
+  3. Why each behavior is wrong or unsafe.
+  4. A required resolution, not merely a general suggestion.
+  5. Acceptance tests and evidence required before an item may be closed.
+  6. A full What/Why/Where/When/Who/Whom/Whose/Which/How/How-much/
+     What-if question register.
+  7. The target system architecture and implementation order.
+  8. Promotion gates for paper, shadow, and real-capital operation.
+
+INSTRUCTION TO ANY CODING AGENT
+-------------------------------
+Do not respond to this dossier by only changing documentation or adding a
+function that is not used by production.
+
+For every defect:
+
+  A. Trace every caller and every route.
+  B. Fix the production path, backtest path, persistence path, and user output
+     where applicable.
+  C. Add a regression test that fails before the fix and passes after it.
+  D. Run the test in CI, not only locally.
+  E. Provide a file/function reference and test/log evidence.
+  F. Do not mark a defect resolved if the result is "warning", "skipped",
+     "fallback", "no book", "no rows", or an unexecuted test.
+  G. Do not claim accuracy, institutional validation, or time-tested success
+     without the evidence required in Sections 8 and 9.
+
+Line numbers below refer to the audited commit. Search by function name as the
+stable anchor because line numbers will move after fixes.
+
+
+NON-NEGOTIABLE INITIAL PRODUCT SCOPE
+------------------------------------
+The first production scope must be:
+
+  NSE INDIVIDUAL-STOCK FUTURES ONLY.
+
+Until a separate market adapter is independently validated, exclude:
+
+  - cash-equity execution,
+  - index futures,
+  - index options,
+  - stock options,
+  - forex,
+  - commodities,
+  - crypto.
+
+Research inputs may include cash prices, indices, macro assets, and corporate
+filings, but every executable recommendation must identify an actual NSE
+individual-stock futures contract.
+
+
+SEVERITY DEFINITIONS
+--------------------
+P0 CRITICAL:
+  Can create an unauthorized/invalid trade, fabricated data, materially false
+  P&L, duplicate external action, privacy exposure, or a false production-green
+  result. Real-capital use is blocked.
+
+P1 HIGH:
+  Can invalidate statistical evidence, sizing, ranking, auditability, or
+  production reliability. Paper/shadow promotion is blocked.
+
+P2 MATERIAL ENHANCEMENT:
+  Needed for the requested institutional-quality system, cross-market expansion,
+  or materially better accuracy, but should be implemented after P0/P1.
+
+DOC:
+  False or unverifiable statements in the existing dossier.
+
+
+======================================================================
+1. EVIDENCE SUMMARY AND DIRECT VERDICT
+======================================================================
+
+1.1 THE TWO AUDIT DOSSIERS ARE IDENTICAL
+----------------------------------------
+Files:
+  MASTER_SYSTEM_AUDIT_AND_RESOLUTION_DOSSIER.txt
+  SYSTEM_AUDIT_DOSSIER.txt
+
+Both are 37,423 bytes and have the same SHA-256:
+  1D49A092629EBA9D9E79E9BCE7AD15347A65F25A6C9564764428235B25D0AC8E
+
+Therefore the "master" document is not an independent post-fix audit. It is a
+copy of the earlier dossier.
+
+
+1.2 TEST RESULT
+---------------
+npm run check:
+  PASS at the audited snapshot.
+
+However:
+  - It executes 26 test programs, not 27 test suites.
+  - scripts/verify-portal.js is syntax-checked by npm run check, not executed.
+  - Production portal.yml runs npm ci but does not run npm run check.
+  - Most strategy/quant tests use synthetic fixtures, not execution-grade NSE
+    futures histories.
+
+A passing unit test suite is useful but does not establish economic validity,
+live integration, data quality, or production readiness.
+
+
+1.3 DEPENDENCY RESULT
+---------------------
+Command:
+  npm audit --json --omit=dev
+
+Result:
+  3 high-severity production dependency findings.
+
+Packages:
+  - fast-uri 3.0.0 through 3.1.5
+  - image-size <= 2.0.2
+  - vinext 0.0.46 through 1.0.0-beta.5 (direct dependency)
+
+Advisories:
+  https://github.com/advisories/GHSA-5jgf-p345-68v8
+  https://github.com/advisories/GHSA-f65p-4m7j-42xc
+  https://github.com/advisories/GHSA-fph4-wmhf-6fwf
+  https://github.com/advisories/GHSA-jqff-g426-hqxp
+  https://github.com/advisories/GHSA-w3rx-r6r6-pgpr
+  https://github.com/advisories/GHSA-5p2g-fcmc-qvqq
+
+
+1.4 PRODUCTION EVIDENCE
+-----------------------
+Production run:
+  https://github.com/kuldeep-oo7/k-square31/actions/runs/33872928116
+  Created: 2026-09-04T12:28:15Z
+  Conclusion: success
+
+Relevant log evidence:
+  - "3 high severity vulnerabilities"
+  - "Portal written to site: 16 ladders, no book"
+  - "No book in this build; nothing to seal, nothing to leak."
+  - "Dispatch completed successfully to: kuldeepsavaliya70@gmail.com"
+  - "Appended 0 portfolio audit rows..."
+  - "Google Sheets audit logging skipped: Invalid action"
+
+Second production run:
+  https://github.com/kuldeep-oo7/k-square31/actions/runs/33883315171
+  Created: 2026-09-04T14:22:05Z
+  Conclusion: success
+
+It repeated the same email, zero-row audit, invalid Google action, no-book
+verification, and vulnerability output.
+
+This proves:
+  - local-file email deduplication fails across fresh runners,
+  - a Google integration failure can leave the workflow green,
+  - the live Apps Script deployment did not accept appendMacroRadar at that
+    time,
+  - production security verification did not exercise an encrypted book,
+  - production did not gate on high dependency findings.
+
+
+1.5 MODEL ARTIFACT RESULT
+-------------------------
+File:
+  models/upside.json
+
+Artifact metadata:
+  trainedAt: 2026-09-05T07:27:23.842Z
+  tradeDate: 20260904
+  names: 210
+  rows: 47,300
+  OOS scored rows: 21,429
+
+Aggregate validation:
+  informationCoefficient: 0.0203
+  naive informationCoefficientStandardError: 0.0068
+  rSquared: -0.0217
+  topDecileAveragePct: 0.566
+  allAveragePct: 0.159
+  topDecileWinPct: 52.7
+  baseCleared2Pct: 29.4
+  topDecileCleared2Pct: 35.6
+
+Fold IC values:
+  0.0097, 0.0610, -0.0238, 0.0342
+
+All four fold R-squared values are negative.
+
+Interpretation:
+  This may be a small, unstable ranking signal. It is not proof of profitable
+  futures execution, because its label is not actual futures trade P&L and its
+  validation has the issues listed below.
+
+
+1.6 CURRENT PLAN AND LEDGER
+---------------------------
+File:
+  plan-full.json
+
+Generated:
+  2026-08-31T16:12:12.002Z
+
+Universe:
+  216
+Considered:
+  210
+Failed:
+  6
+Actionable:
+  16
+
+All 16 actionable entries lack complete executable contract/lot/margin/quantity
+fields.
+
+File:
+  data/trade-signals.json
+
+Records:
+  1
+Status:
+  PENDING
+Outcome:
+  null
+
+The only recorded signal has default/neutral feature values rather than the
+actual advanced-quant feature state. No live outcome loop has resolved it.
+
+
+1.7 LIVE GOOGLE SHEET AUDIT LIMITATION
+--------------------------------------
+The complete local Google Apps Script and Node transport code were audited.
+Production call results were audited from GitHub workflow logs.
+
+The live Sheet cells were NOT independently read because this audit did not
+receive:
+  - a read-only Google Sheet link,
+  - an XLSX/CSV export of every tab, or
+  - a connector capable of reading that Sheet.
+
+No person or agent may honestly claim that every live Sheet cell is verified
+until one of those is provided. This is tracked as an open external-evidence
+requirement, not silently assumed.
+
+
+======================================================================
+2. P0 CRITICAL DEFECT REGISTER
+======================================================================
+
+P0-001: META VETO IS BYPASSED BY THE POTENTIAL ROUTE
+----------------------------------------------------
+Status:
+  CONFIRMED CODE DEFECT AND REPRODUCED.
+
+Where:
+  api/_lib/recommendation.js
+  function potentialCall(), lines approximately 90-180
+  meta gate calculated around lines 121-133
+  trade returned around lines 135-179
+
+Correct comparison path:
+  same file, normal ladder route, lines approximately 328-333
+
+What is wrong:
+  potentialCall calculates metaLabelConfidence and records metaDecision, but it
+  never returns stand-aside when metaDecision is VETO. It clamps sizing to a
+  positive minimum.
+
+Observed reproduction:
+  action: buy-potential
+  metaDecision: VETO
+  metaProb: approximately 0.383
+  vpin: approximately 0.866
+  sizeMultiplier: non-zero
+
+Why it matters:
+  A stated hard risk control is only applied to one route. A new or fallback
+  route can trade precisely when the safety model rejects the trade.
+
+Required resolution:
+  Create one shared enforceHardVetoes() function and invoke it after all evidence
+  is assembled but before any actionable object is returned. No route may create
+  a positive size when a hard veto exists.
+
+Acceptance tests:
+  1. Potential long plus meta VETO => stand-aside and size 0.
+  2. Potential short plus meta VETO => stand-aside and size 0.
+  3. Ladder long/short behave identically.
+  4. Missing/invalid meta evidence follows the declared fail-closed policy.
+  5. Property test: every actionable recommendation has no hard veto and size > 0;
+     every hard-veto result has action stand-aside and size 0.
+
+
+P0-002: MARKET DATA FALLBACKS LOOK LIKE FRESH LIVE DATA
+-------------------------------------------------------
+Status:
+  CONFIRMED CODE DEFECT.
+
+Where:
+  api/_lib/market-feed.js
+  function fetchLiveMacroRadar(), lines approximately 46-55
+
+What is wrong:
+  The response object starts with plausible fixed market numbers:
+    GIFT Nifty 24050 / +0.15%
+    India VIX 11.5
+    Brent 95
+    S&P futures 7750 / +0.8%
+    Nasdaq futures 29500 / +1.0%
+    USDINR 94.4
+  It also assigns a new updatedAt timestamp. Failed provider calls leave these
+  values in place.
+
+Why it matters:
+  Fabricated numbers can be indistinguishable from live observations and can
+  change risk regime, alerts, and trade decisions.
+
+Required resolution:
+  Remove all numeric defaults. Use a per-field data envelope:
+    value
+    provider
+    providerSymbol
+    exchange
+    instrumentId
+    eventTime
+    receivedTime
+    expectedDelayMs
+    ageMs
+    freshnessStatus
+    qualityStatus
+    fallbackUsed
+    error
+
+  A missing or stale hard-risk input must create DATA_UNAVAILABLE/STAND_ASIDE,
+  not a plausible number.
+
+Acceptance tests:
+  - Every provider times out => no numeric market values and no actionable trade.
+  - Old event timestamp => stale veto.
+  - Mixed fresh/stale fields => each field retains its own status.
+  - updatedAt cannot be newer than the underlying event without receivedAt being
+    separately recorded.
+
+
+P0-003: DAILY ALERT WRITES DIFFERENT HARDCODED MACRO DATA TO GOOGLE
+------------------------------------------------------------------
+Status:
+  CONFIRMED CODE DEFECT; PRODUCTION FAILURE OBSERVED.
+
+Where:
+  scripts/dispatch-daily-alert.js
+  lines approximately 187-217 and 279-297
+
+What is wrong:
+  Email rendering uses fetched/fallback variables, but the Google append payload
+  hardcodes:
+    giftNiftyGapPct -0.10
+    Brent 93.27
+    India VIX 11.19
+    US VIX 15.34
+    US 10Y 4.77
+
+  The message also claims GIFT Nifty is a direct opening predictor with R-squared
+  0.92, with no referenced, versioned, reproducible model.
+
+Why it matters:
+  The email, displayed portal, decision engine, and audit log can disagree. An
+  audit trail that does not record the decision inputs cannot reproduce a trade.
+
+Required resolution:
+  Build one immutable MacroSnapshot object, validate it once, pass the same object
+  to regime evaluation, email, portal, persistence, and audit hash. Remove the
+  unsupported R-squared statement unless its model artifact and validation are
+  committed and independently reviewed.
+
+Acceptance tests:
+  - Fixture snapshot values must be byte-equivalent across decision, email, and
+    persisted row.
+  - Missing input must remain missing; zero must not mean missing.
+  - Audit row must include snapshot/model version and hash.
+
+
+P0-004: HARDCODED NIFTY OPTION CAN BE EMAILED AS A TRADE
+--------------------------------------------------------
+Status:
+  CONFIRMED CODE DEFECT.
+
+Where:
+  scripts/dispatch-daily-alert.js
+  lines approximately 176-184
+
+What is wrong:
+  If there are no short recommendations, the script inserts:
+    NIFTY 24000 PE
+    entry 185
+    target 320
+    stop 110
+
+Why it matters:
+  It is stale, has no expiry or contract identifier, violates stock-futures-only
+  scope, and can become an unexecutable or dangerously misleading instruction.
+
+Required resolution:
+  Delete the fallback. If an index-option hedge is later desired, implement it as
+  a separately approved strategy with an exact expiry, strike, option type, lot,
+  live quote, volatility surface, max premium, liquidity check, and independent
+  validation.
+
+Acceptance test:
+  No output may contain an instrument not present in the validated current
+  contract master.
+
+
+P0-005: PRODUCT SCOPE IS MIXED, NOT PURE STOCK FUTURES
+------------------------------------------------------
+Status:
+  CONFIRMED ARCHITECTURAL DEFECT.
+
+Where:
+  api/_lib/bhavcopy.js line approximately 19
+    FUTURES includes STF and IDF.
+  api/_lib/ai-engine.js lines approximately 6-16 and 240-260
+    long-only cash-share budgeting and quantities.
+  scripts/dispatch-daily-alert.js lines approximately 176-184
+    index option.
+  api/_lib/ml-model.js line approximately 172
+    label originates from cash-bar weekly replay.
+
+What is wrong:
+  The system has multiple incompatible definitions of "trade".
+
+Required resolution:
+  Introduce a canonical Instrument and Contract type. For Phase 1 require:
+    segment = NSE_FO
+    instrumentType = STOCK_FUTURE
+    FinInstrmTp = STF
+    underlyingSymbol
+    exchangeInstrumentId
+    expiry
+    lotSize
+    tickSize
+    settlementType
+
+  Reject IDF, options, cash-share orders, and unknown contracts at the final
+  recommendation boundary.
+
+Acceptance tests:
+  - IDF row cannot enter the Phase-1 universe.
+  - Cash symbol without an STF contract cannot become actionable.
+  - Every actionable order passes a schema validator for STOCK_FUTURE.
+
+
+P0-006: RECOMMENDATIONS ARE NOT EXECUTABLE FUTURES ORDERS
+---------------------------------------------------------
+Status:
+  CONFIRMED OUTPUT DEFECT.
+
+Where:
+  plan-full.json
+  recommendation output built in api/_lib/recommendation.js
+  lines approximately 243-275 and 341-385
+
+What is wrong:
+  Current actionable rows contain entry/target/stop percentages but not complete:
+    contract ID
+    expiry
+    lot size
+    quantity in lots
+    tick-rounded prices
+    required margin
+    notional
+    maximum loss after gap/slippage
+    order type/time in force
+    validity and cancellation timestamp
+
+All 16 current actionable recommendations are missing complete lot/contract
+execution fields.
+
+Required resolution:
+  Separate Signal from OrderIntent. A signal may rank an underlying, but only an
+  OrderBuilder using current contract master, quote, margin, liquidity, and risk
+  limits may emit an executable OrderIntent.
+
+Acceptance tests:
+  - JSON schema rejects an incomplete OrderIntent.
+  - Entry/stop/target round to tick size.
+  - Quantity is an integer multiple of lot size.
+  - Required margin and stressed loss fit available risk budget.
+  - Contract is not in roll/ban/expiry exclusion window.
+
+
+P0-007: BACKTEST CALLED TRIPLE-BARRIER HAS NO STOP BARRIER
+----------------------------------------------------------
+Status:
+  CONFIRMED CALCULATION DEFECT.
+
+Where:
+  api/_lib/weekly-cycle.js
+  function replayWeek(), lines approximately 90-150
+  misleading method string around line 289
+  scripts/test-weekly-cycle.js line approximately 162
+
+What is wrong:
+  The replay exits a position at target or Friday. It never tests the stop-loss
+  shown in live recommendations. The code and test output call this
+  "triple-barrier", but only target and time barriers exist.
+
+Why it matters:
+  Backtest profit, loss distribution, win rate, expected return, and sizing do
+  not describe the live strategy.
+
+Required resolution:
+  Implement the same state machine for research, paper, shadow, and live:
+    signal time
+    order submission time
+    fill rules
+    target barrier
+    stop barrier
+    time barrier
+    cancellation
+    partial fills
+    gap-through behavior
+
+  Use minute/tick or quote data where both target and stop may occur within a
+  daily bar. If only daily bars exist, use a conservative ambiguity policy and
+  report an uncertainty range rather than selecting the favorable outcome.
+
+Acceptance tests:
+  - stop-only scenario,
+  - target-only scenario,
+  - target and stop in same bar,
+  - gap through stop,
+  - entry and exit in same session,
+  - unfilled order,
+  - Friday/holiday/expiry close.
+
+
+P0-008: WEEKLY PORTFOLIO RETURN IS THE SUM OF LEG PERCENTAGES
+-------------------------------------------------------------
+Status:
+  CONFIRMED CALCULATION DEFECT.
+
+Where:
+  api/_lib/weekly-cycle.js line approximately 148
+
+What is wrong:
+  weekNetPct adds the percentage return of each rung. It does not apply rung
+  capital weights, margin, notional, overlapping exposure, or unused cash.
+
+Why it matters:
+  Adding five leg percentages can report roughly five times the return of a
+  single unit-capital portfolio, depending on the intended allocation.
+
+Required resolution:
+  Define capital accounting explicitly:
+    starting equity
+    margin reserved per contract
+    notional
+    realized/unrealized P&L
+    cash flows
+    fees/taxes
+    peak margin
+    return denominator
+
+  Compute time-weighted portfolio equity, not summed trade percentages.
+
+Acceptance tests:
+  Hand-calculated one-, two-, and five-rung portfolios must match the simulator.
+
+
+P0-009: LEVEL SELECTION CONTAMINATES OUT-OF-SAMPLE RESULTS
+----------------------------------------------------------
+Status:
+  CONFIRMED VALIDATION DEFECT.
+
+Where:
+  api/_lib/weekly-cycle.js
+  function sideResult(), lines approximately 225-246
+
+What is wrong:
+  levels = levelBreakdown(replayed, config) uses all replayed weeks, including
+  the out-of-sample period. viableLevels are selected from those all-period
+  statistics. The later out-of-sample positivity check does not undo that
+  selection leakage.
+
+Required resolution:
+  For each walk-forward fold:
+    select levels only on the training window,
+    freeze the choice,
+    score only the following validation window,
+    concatenate untouched validation results.
+
+  Reserve a final untouched holdout not used for thresholds or design choices.
+
+Acceptance tests:
+  - Mutating future/OOS data cannot change the level selected for an earlier fold.
+  - Fold manifest explicitly records train dates, purge/embargo, selected
+    parameters, and test dates.
+
+
+P0-010: EXECUTION COSTS AND FUTURES MECHANICS ARE NOT MODELED
+-------------------------------------------------------------
+Status:
+  CONFIRMED MODEL-RISK DEFECT.
+
+Where:
+  api/_lib/weekly-cycle.js lines approximately 18-20 and 133-148
+  api/_lib/strategy-lab.js cost constant and tradeReturns()
+  api/_lib/ai-engine.js cash-share simulator
+
+Missing:
+  bid/ask spread
+  latency
+  partial fills
+  participation/market impact
+  brokerage
+  exchange/clearing charges
+  STT and applicable taxes/levies
+  margin and margin changes
+  price bands/limit states
+  MWPL/ban periods
+  quantity freeze
+  rolls
+  expiry
+  physical settlement
+  corporate-action contract adjustments
+  rejected/cancelled orders
+
+Required resolution:
+  Build a versioned NSE futures execution-cost and contract-lifecycle model.
+  Calibrate it against actual broker contract notes/order fills. Stress at least
+  normal, adverse, and severe liquidity assumptions.
+
+Acceptance test:
+  A representative sample of shadow orders must reconcile predicted versus
+  broker fill, fee, margin, and P&L within predeclared tolerances.
+
+
+P0-011: EMAIL DEDUPLICATION IS EPHEMERAL
+----------------------------------------
+Status:
+  PRODUCTION-PROVEN DEFECT.
+
+Where:
+  scripts/dispatch-daily-alert.js
+  checkDeduplication() and recordDispatch(), lines approximately 13-63
+
+What is wrong:
+  Dedupe state is data/last-email-dispatch.json on the local runner. GitHub-hosted
+  runners are fresh machines, so later scheduled jobs do not see earlier state.
+
+Evidence:
+  Both production runs in Section 1.4 sent the post-market email on the same day.
+
+Required resolution:
+  Use a transactional persistent idempotency key:
+    notificationType + marketDate + slot + recipient + contentVersion
+
+  Reserve the key atomically before sending. Record provider message ID and final
+  delivery result. Retries must reuse the same key.
+
+Acceptance tests:
+  - Ten concurrent attempts result in one external email.
+  - Retry after timeout does not double-send.
+  - Failed reservation/send is observable and recoverable.
+
+
+P0-012: IMPORTANT FAILURES ARE SWALLOWED AND WORKFLOW REMAINS GREEN
+-------------------------------------------------------------------
+Status:
+  PRODUCTION-PROVEN DEFECT.
+
+Where:
+  scripts/dispatch-daily-alert.js lines approximately 279-304
+    Google error reduced to warning.
+    run().catch(console.error) does not set exitCode.
+  api/ai-run.js lines approximately 90-105
+    Google archive failure can coexist with HTTP 200.
+  .github/workflows/portal.yml
+    no postcondition gate.
+
+Required resolution:
+  Define failure classes:
+    HARD_FAIL: stale/invalid decision data, persistence failure, schema failure,
+               notification inconsistency, security failure.
+    SOFT_DEGRADED: explicitly non-decision ancillary feature unavailable.
+
+  Hard failures must:
+    emit no trade,
+    produce non-zero process/HTTP/workflow status,
+    page/notify operator,
+    preserve diagnostic context without secrets.
+
+Acceptance tests:
+  Inject each dependency failure and assert exact status, no external trade/email
+  where inappropriate, and an observable incident.
+
+
+P0-013: LOCAL AND LIVE APPS SCRIPT DEPLOYMENTS ARE OUT OF SYNC
+--------------------------------------------------------------
+Status:
+  PRODUCTION-PROVEN; CURRENT LIVE STATE UNVERIFIED.
+
+Where:
+  Local:
+    google-sheets/K2MarketArchive.gs
+    doPost(), lines approximately 33-75
+    local code recognizes appendMacroRadar.
+
+Production evidence:
+  Both Section 1.4 runs returned "Invalid action".
+
+What is wrong:
+  A repository change is being treated as a deployed fix without a deployment
+  version check or smoke test.
+
+Required resolution:
+  - Add service version and schema version to doGet/doPost.
+  - Deploy an immutable Apps Script version, not an assumed editor head.
+  - Store expected version in CI configuration.
+  - Before production work, call health/capabilities and require the exact
+    actions/schema.
+  - Add an end-to-end append/read/reconcile smoke test against a dedicated test
+    spreadsheet.
+
+Acceptance evidence:
+  Live capability response, deployed version ID, successful macro append, row ID,
+  and read-back equality.
+
+
+P0-014: ONLY 130 OF 502 AI-UNIVERSE SYMBOLS ARE SCHEDULED
+---------------------------------------------------------
+Status:
+  CONFIRMED CONFIGURATION DEFECT.
+
+Where:
+  api/_lib/universe.js line approximately 6
+    SHARD_COUNT = 50
+  vercel.json lines approximately 7-17
+    only shard 0 through shard 9
+
+Measured:
+  total universe = 502
+  scheduled shards 0-9 = 130
+  unscheduled = 372
+
+Required resolution:
+  Prefer a durable queue/orchestrator that enumerates current tradable STF
+  contracts and records completion per market date. If Vercel cron is retained,
+  schedule all required shards and add a completion barrier.
+
+Acceptance tests:
+  - Expected universe equals completed plus explicitly failed.
+  - No symbol silently missing.
+  - Completion dashboard reports freshness per symbol.
+  - Re-run is idempotent.
+
+
+P0-015: OUTCOME EVALUATION IS NOT CONNECTED TO THE WEEKLY LEDGER
+---------------------------------------------------------------
+Status:
+  CONFIRMED INTEGRATION DEFECT.
+
+Where:
+  scripts/weekly-plan.js
+  import around line 29
+  persistence logic around lines 166-212
+
+What is wrong:
+  evaluateOutcome is imported but never called. summarizePerformance and
+  adaptive learning consume unresolved records. The current ledger confirms the
+  result: one PENDING record, no outcome.
+
+Required resolution:
+  Create an event-sourced trade lifecycle:
+    SIGNAL_CREATED
+    ORDER_SUBMITTED
+    ORDER_REJECTED/CANCELLED
+    PARTIAL_FILL/FILLED
+    STOP/TARGET/TIME_EXIT
+    FEES_POSTED
+    RECONCILED
+
+  Outcomes must derive from actual shadow/broker events where available, not be
+  retroactively guessed from daily bars.
+
+Acceptance tests:
+  - Weekly reconciliation resolves every due signal or reports a named reason.
+  - Open and closed counts reconcile to broker/paper engine.
+  - No learning job consumes PENDING/ambiguous outcomes.
+
+
+P0-016: SENSITIVE PORTFOLIO EXPORTS REMAIN TRACKED AND HISTORY CONTAINS A SNAPSHOT
+--------------------------------------------------------------------------------
+Status:
+  CONFIRMED SECURITY/PRIVACY FINDING.
+
+Currently tracked examples:
+  exports/GM_Global_Complete_Portfolio_All_51_Positions.csv
+  exports/GM_Global_Portfolio_Export.csv
+  exports/GM_Portfolio_Execution_Plan.xlsx
+  exports/GM_Portfolio_Execution_Plan_Clean.csv
+  exports/daily-trade-email.html
+  data/trade-signals.json
+
+Git history includes gm-dump-result/gm-positions.json in commits:
+  a1e8ac5
+  c7d71a5
+
+Why it matters:
+  Deleting the current file does not erase Git history. A private repository
+  reduces exposure but is not equivalent to secret storage.
+
+Required resolution:
+  - Inventory whether each file contains personal/portfolio/trading information.
+  - Move operational exports outside Git.
+  - Add precise ignore rules.
+  - Rewrite history only after making a backup and obtaining explicit approval.
+  - Rotate credentials/secrets that may have accompanied exposed snapshots.
+  - Document who can access source, build artifacts, Sheets, Blob, and portal.
+
+Acceptance evidence:
+  secret scan, repository-history scan, access review, rotation record, and
+  explicit confirmation that production still works.
+
+
+P0-017: PRODUCTION CAN PUBLISH WITHOUT RUNNING THE FULL TEST GATE
+---------------------------------------------------------------
+Status:
+  CONFIRMED CI DEFECT.
+
+Where:
+  .github/workflows/portal.yml
+  npm ci around line 53
+  build around lines 82-96
+
+What is wrong:
+  No npm run check step exists before publish. The verifier can say "nothing to
+  seal, nothing to leak" when no book exists. A dead condition references
+  steps.book.outcome although no step has id: book.
+
+Required resolution:
+  Required CI gates before publish:
+    npm ci
+    npm audit policy
+    lint/type/schema checks
+    full test execution
+    deterministic build
+    real fixture portal verification with synthetic secrets/positions
+    no-book verification as a separate case
+    artifact manifest/hash
+
+Acceptance test:
+  Deliberately break each invariant and prove the publish job cannot proceed.
+
+
+======================================================================
+3. P1 HIGH DEFECT REGISTER
+======================================================================
+
+P1-001: ML LABEL DOES NOT MATCH THE TRADE BEING EXECUTED
+---------------------------------------------------------
+Where:
+  scripts/train-upside.js
+  api/_lib/ml-model.js around line 172
+  models/upside.json
+
+What is wrong:
+  The pooled model predicts a five-session cash return. The strategy claims to
+  execute particular futures contracts with ladder fills, stops, targets, fees,
+  and expiry mechanics.
+
+Required resolution:
+  Define labels from the shared execution state machine:
+    probability of fill
+    probability target before stop/time
+    expected net P&L conditional on fill
+    expected shortfall/tail loss
+    time to exit
+  Use exact futures contract histories and point-in-time features.
+
+
+P1-002: CURRENT MODEL EVIDENCE IS SMALL, UNSTABLE, AND MISDESCRIBED AS SKILL
+---------------------------------------------------------------------------
+Evidence:
+  IC 0.0203, R-squared -0.0217, one fold negative IC, all folds negative R-squared.
+
+What is wrong:
+  A small rank correlation may be real or may reflect dependence/selection. It
+  does not justify a universal "skilled" boolean or a potential trade route.
+
+Required resolution:
+  Report confidence intervals using date/sector blocks, calibration, coverage,
+  turnover, net return, drawdown, tail loss, and stability by regime. Define a
+  pre-registered promotion rule. Until it passes, the model may be displayed as
+  research only and must not create a trade.
+
+
+P1-003: NAIVE STANDARD ERROR TREATS CORRELATED STOCK-DATE ROWS AS INDEPENDENT
+----------------------------------------------------------------------------
+Where:
+  scripts/train-upside.js validation logic
+  models/upside.json validation summary
+
+What is wrong:
+  Hundreds of stocks on the same date share market/sector shocks. The effective
+  number of independent observations is much smaller than row count.
+
+Required resolution:
+  Resample by date blocks and preferably date-by-sector clusters. Report results
+  at the portfolio rebalance date, not only the row level.
+
+
+P1-004: POINT-IN-TIME UNIVERSE AND SURVIVORSHIP CONTROL ARE ABSENT
+-----------------------------------------------------------------
+What is wrong:
+  The current F&O/member universe is applied to historical cash data. Names that
+  left F&O, delisted, merged, or failed are not represented correctly.
+
+Required resolution:
+  Preserve the eligible universe for every historical date, including additions,
+  removals, symbol changes, lot changes, corporate actions, and unavailable
+  contracts. No future membership knowledge may enter training.
+
+
+P1-005: TRAINING DATA IS NOT REPRODUCIBLE FROM THE MODEL ARTIFACT
+----------------------------------------------------------------
+What is missing:
+  raw dataset URI/hash
+  provider/license/version
+  extraction code version
+  feature schema version
+  corporate-action version
+  universe snapshot IDs
+  split manifest
+  hyperparameter/trial registry
+  random seed/environment lock
+
+Required resolution:
+  Produce a signed model manifest that can rebuild the artifact and metrics
+  deterministically from immutable raw data.
+
+
+P1-006: POTENTIAL-ROUTE ADMISSION IS NOT AN EXECUTION EXPECTANCY TEST
+--------------------------------------------------------------------
+Where:
+  api/_lib/recommendation.js lines approximately 90-187
+  api/_lib/upside.js
+
+What is wrong:
+  A cash-return forecast that marginally clears a 2% floor can create a
+  potential trade. meanAbsoluteErrorPct may be null, causing a fallback error of
+  1. This is not probability(target before stop) or net trade expectancy.
+
+Required resolution:
+  Disable the route until separately validated. If retained, require:
+    calibrated probability,
+    coverage/abstention policy,
+    execution-matched label,
+    net positive expected value,
+    tail-loss limit,
+    hard veto compliance,
+    untouched OOS evidence.
+
+
+P1-007: CHART-PATTERN CONFIDENCE IS ARBITRARY AND UNCONFIRMED PATTERNS ADD CONVICTION
+------------------------------------------------------------------------------------
+Where:
+  api/_lib/chart-patterns.js
+    confidence constants around lines 74, 96, 129, 152, 199
+    confluence bonus around lines 238-241
+  api/_lib/recommendation.js lines approximately 304-312
+
+What is wrong:
+  Confidence 0.65/0.82/0.85/0.88 is not learned/calibrated. recommendation()
+  checks detected/alignment but not primaryPattern.confirmed, then calls it
+  "confirmed" and adds conviction.
+
+Required resolution:
+  Require confirmed = true and model confirmation latency. Replace confidence
+  constants with observed, leakage-free OOS conditional outcomes after costs.
+  If insufficient sample exists, contribute zero and display "research only".
+
+
+P1-008: CHART MODULE CLAIMS TRIANGLES AND POLYNOMIAL REGRESSION BUT DOES NOT IMPLEMENT THEM
+------------------------------------------------------------------------------------------
+Where:
+  api/_lib/chart-patterns.js header lines approximately 3-13
+
+What is wrong:
+  Implemented detectors cover double pivots, head-and-shoulders, and a simplified
+  cup/handle. Triangle detection and polynomial regression described in the
+  header are absent.
+
+Required resolution:
+  Correct the claims or implement and validate the features. Never equate a
+  feature list with proven alpha.
+
+
+P1-009: PIVOT AND CANDLE TIMING CAN CREATE LOOKAHEAD/MISLEADING EVIDENCE
+------------------------------------------------------------------------
+Where:
+  api/_lib/chart-patterns.js findPivots(), lines approximately 24-49
+  api/_lib/strategy-lab.js candleStudy(), lines approximately 84-116
+
+What is wrong:
+  A pivot requires four later bars for confirmation; the recorded pattern time
+  does not explicitly shift availability to that later confirmation time.
+  Candle forward outcomes overlap. With fewer than five examples candleStudy is
+  not ready, yet directionScore retains an intrinsic +/-0.45 base.
+
+Required resolution:
+  Every feature needs eventTime and availableAt. Purge overlapping labels or use
+  block inference. Unready evidence must contribute exactly zero.
+
+
+P1-010: STRATEGY-LAB SPLITS ARE NOT PROPERLY PURGED/EMBARGOED
+-------------------------------------------------------------
+Where:
+  api/_lib/strategy-lab.js lines approximately 248-300
+
+What is wrong:
+  Training includes signals at the split boundary whose holding period can enter
+  the test interval. Test begins at the same boundary. Variant/family selection
+  adds multiple-testing risk beyond the simple hurdle.
+
+Required resolution:
+  Purge at least the maximum label horizon around each boundary and add an
+  embargo. Record all tried variants. Apply portfolio-level White Reality Check,
+  false-discovery control, Deflated Sharpe, and PBO/CPCV-style analysis where
+  appropriate.
+
+
+P1-011: "VPIN" IS A DAILY TREND/VOLUME PROXY, NOT DECISION-GRADE VPIN
+--------------------------------------------------------------------
+Where:
+  api/_lib/advanced-quant.js calculateVpin(), lines approximately 339-403
+
+What is wrong:
+  It uses daily close changes to fabricate buy fractions, substitutes volume
+  1000 when missing, and creates volume buckets from daily bars. A default 0.35
+  is returned on insufficient data.
+
+Why it matters:
+  This proxy can trigger a hard VETO while being labeled as institutional order
+  flow toxicity.
+
+Required resolution:
+  Rename it honestly and remove it from hard vetoes, or implement a validated
+  trade/quote-based toxicity model with high-frequency classified flow, proper
+  volume buckets, and OOS calibration to the actual horizon.
+
+
+P1-012: META-LABEL "PROBABILITY" IS HAND-WRITTEN, NOT TRAINED OR CALIBRATED
+--------------------------------------------------------------------------
+Where:
+  api/_lib/advanced-quant.js metaLabelConfidence(), lines approximately 410-453
+
+What is wrong:
+  Intercept, coefficients, thresholds, and multipliers are manual constants.
+  The output is formatted as a probability despite no fitting, calibration,
+  Brier score, reliability curve, or OOS outcomes.
+
+Required resolution:
+  Call it a rules score, or train a true secondary classifier on OOS primary
+  signals with execution-matched labels. Calibrate on a separate window and
+  preserve a final untouched evaluation set.
+
+
+P1-013: KELLY IS REPORTED BUT NOT USED FOR FINAL SIZING
+-------------------------------------------------------
+Where:
+  api/_lib/advanced-quant.js calculateKellyFraction(), lines approximately 246-256
+  api/_lib/recommendation.js lines approximately 130-165 and 323-364
+
+What is wrong:
+  Kelly uses conviction as win rate, floors any positive result to 5%, and is
+  placed only in advancedQuant output. Final size uses conviction multiplied by
+  the meta multiplier. The dossier's Half-Kelly/capped-at-35% control is false.
+
+Required resolution:
+  Do not use Kelly until probability and payoff distribution are calibrated.
+  Then combine fractional Kelly with independent caps for volatility, drawdown,
+  concentration, liquidity, margin, and tail loss. Zero/unknown edge must size
+  zero.
+
+
+P1-014: ADVANCED QUANT ROUTINES FAIL OPEN OR ARE NOT INTEGRATED
+---------------------------------------------------------------
+Where:
+  api/_lib/advanced-quant.js
+
+Examples:
+  - blackScholesMerton defaults invalid time to 30 days and invalid volatility to
+    25%, returning plausible outputs.
+  - It lacks dividend yield, IV inversion/surface, term structure, instrument
+    identity, and settlement/exercise treatment.
+  - For an option whose underlying is a futures contract, Black-76 is the
+    relevant baseline rather than unqualified spot BSM.
+  - OU half-life is fit on raw price levels without stationarity/cointegration
+    qualification.
+  - fractional differentiation reports memoryRetentionPct = (1-d)*100, which is
+    not a validated memory statistic.
+  - anchored VWAP expects bar.date while core bars use timestamp; missing volume
+    is replaced with one.
+  - many routines are test-only and do not affect production.
+
+Required resolution:
+  Create a model inventory. For each model record:
+    purpose, theory, inputs, units, assumptions, failure policy, callers,
+    validation, monitoring, owner, and approval status.
+  Remove unused decorative models from production claims.
+
+
+P1-015: FUNDAMENTALS ARE A SMALL YAHOO SNAPSHOT, NOT FULL FINANCIAL STATEMENTS
+-----------------------------------------------------------------------------
+Where:
+  api/_lib/fundamentals.js
+  MODULES line approximately 16
+  balanceSheetScore() lines approximately 84-98
+  fundamentals() lines approximately 100-147
+
+Current inputs:
+  financialData, defaultKeyStatistics, calendarEvents
+
+Missing:
+  full income statement, balance sheet, cash flow, notes, period/as-of/filing
+  timestamps, restatements, consolidated/standalone status, auditor flags,
+  accrual quality, FCF, interest coverage, maturity/covenants, working capital,
+  dilution, promoter pledges, ratings, related parties, corporate actions.
+
+What is wrong:
+  Provider failure returns available false, veto null, balanceSheetScore 0. That
+  is fail-open. One generic score is not valid for banks/NBFCs/insurers/REITs.
+
+Required resolution:
+  Ingest point-in-time NSE filings/XBRL and announcements with original filing
+  timestamp and revision history. Use sector-specific schemas. For short-horizon
+  trading, fundamentals should primarily serve event/risk/veto functions unless
+  incremental alpha is independently demonstrated.
+
+
+P1-016: FUNDAMENTALS SHEET TAB EXISTS BUT IS NOT POPULATED BY NODE CODE
+----------------------------------------------------------------------
+Where:
+  google-sheets/K2MarketArchive.gs
+  appendStockFundamentals_(), lines approximately 334-375
+  api/_lib/google-store.js
+
+What is wrong:
+  Apps Script accepts appendStockFundamentals, but google-store.js has no
+  appendStockFundamentalsToGoogle wrapper and weekly-plan.js does not call it.
+
+Required resolution:
+  Add a versioned, idempotent persistence call after point-in-time validation.
+  Include provider, source filing ID, filing time, period end, revision, schema,
+  missingness, and hash. Do not convert missing values to zero.
+
+
+P1-017: INTERACTIVE AND SCHEDULED RECOMMENDATION PATHS ARE NOT THE SAME
+----------------------------------------------------------------------
+Where:
+  api/market.js lines approximately 505-516
+  scripts/weekly-plan.js lines approximately 102-122
+
+What is wrong:
+  Interactive api/market.js explicitly passes model:null and fundamentals:null
+  and does not supply carry. The scheduled planner supplies them only under
+  certain conditions.
+
+Required resolution:
+  One versioned DecisionContext builder must serve batch, API, email, portal,
+  backtest, paper, and shadow. The response must disclose missing components and
+  never present two different engines as the same recommendation.
+
+
+P1-018: STAND-ASIDE NAMES CAN ENTER POTENTIAL ROUTE WITHOUT FUNDAMENTALS/MODEL FETCH
+----------------------------------------------------------------------------------
+Where:
+  scripts/weekly-plan.js lines approximately 107-121
+  api/_lib/recommendation.js lines approximately 203-217
+
+What is wrong:
+  Expensive model and fundamentals are fetched only when cycle.verdict.side
+  exists. But when the ladder verdict is stand-aside, recommendation() can invoke
+  the potential route. Those names may therefore reach potential without the
+  evidence the dossier says controls them.
+
+Required resolution:
+  Build required evidence based on the intended candidate route before
+  recommendation. If any mandatory evidence is unavailable, return stand-aside.
+
+
+P1-019: FUTURES SELECTION, OI, EXPIRY, AND CARRY ARE INSUFFICIENT
+----------------------------------------------------------------
+Where:
+  api/_lib/bhavcopy.js frontFutures(), lines approximately 82-111
+  api/_lib/carry.js carry(), lines approximately 38-72
+
+What is wrong:
+  - frontFutures selects earliest expiry without minimum days-to-expiry,
+    liquidity, roll, ban, or settlement checks.
+  - It includes index futures.
+  - Only current OI exists; no OI delta/history/term structure/participant data.
+  - carry assumes the current basis accrues linearly over calendar time.
+  - sessionsBetween omits exchange holidays.
+  - Fair basis should account for financing/dividends and actual contract path.
+
+Required resolution:
+  Create a ContractSelector with liquidity, expiry buffer, roll rule, ban/MWPL,
+  quantity-freeze, physical-settlement, and holiday calendar. Backtest actual
+  contract histories and rolls. Treat carry as a forecast with uncertainty, not
+  a guaranteed weekly accrual.
+
+
+P1-020: PORTFOLIO RISK ENGINE IS MISSING
+----------------------------------------
+What is missing:
+  gross/net exposure
+  name/sector caps
+  factor/beta exposure
+  correlation clusters
+  volatility targeting
+  liquidity/exit-day limits
+  margin buffer
+  daily/weekly loss limits
+  gap/limit stress
+  drawdown de-risking
+  portfolio expected shortfall
+  kill switch
+
+Required resolution:
+  Recommendation produces alpha/risk forecasts; a separate portfolio optimizer
+  and pre-trade risk service determines permitted contract quantities. Risk has
+  authority to reduce or reject, never increase, a proposed trade.
+
+
+P1-021: OUTCOME TRACKER IS OPTIMISTIC AND TEMPORALLY UNSAFE
+-----------------------------------------------------------
+Where:
+  api/_lib/trade-tracker.js evaluateOutcome(), lines approximately 58-135
+
+What is wrong:
+  - long is treated filled if low <= entry * 1.005;
+  - short is treated filled if high >= entry * 0.995;
+  - target is checked before stop on the same daily bar;
+  - bars are not filtered strictly after signal/order time;
+  - no Friday/time barrier;
+  - no costs, partial fills, or gap behavior.
+
+Required resolution:
+  Delete guessed fills from the canonical ledger. Use the shared execution
+  state machine and actual paper/broker events. For historical daily-only
+  research, report ambiguous/conservative outcomes.
+
+
+P1-022: LEDGER IDENTITIES AND GOOGLE APPENDS ARE NOT IDEMPOTENT
+---------------------------------------------------------------
+Where:
+  api/_lib/trade-tracker.js createSignalRecord(), lines approximately 9-55
+  scripts/weekly-plan.js lines approximately 166-212
+  google-sheets/K2MarketArchive.gs appendTradeSignals_(), lines 262-289
+
+What is wrong:
+  ID is broadly symbol/week/side and cannot uniquely represent route, contract,
+  expiry, rung, model version, or order revision. weekly-plan appends newRecords
+  to Google even if equivalent records already exist in the local ledger. Apps
+  Script blindly appends.
+
+Required resolution:
+  Use immutable event IDs and deterministic idempotency keys including strategy,
+  signal version, contract, expiry, rung, market date, and order version. Enforce
+  uniqueness in a transactional database. Treat Sheets as a rendered view.
+
+
+P1-023: ADAPTIVE LEARNING DOES NOT ADAPT PRODUCTION
+---------------------------------------------------
+Where:
+  api/_lib/adaptive-learning.js
+  scripts/weekly-plan.js lines approximately 183-187
+
+What is wrong:
+  It analyzes as few as five results using mean comparisons without robust
+  inference. Output is written to the report but not applied to production
+  weights. Current outcomes are not populated anyway.
+
+Required resolution:
+  Do not market this as adaptive ML. Establish sufficient sample/precision,
+  shrinkage, change control, challenger evaluation, rollback, and a frozen OOS
+  promotion process. Online self-modification must never bypass validation.
+
+
+P1-024: PORTFOLIO TOTAL P&L IS WRONG WHEN SHORTS EXIST
+------------------------------------------------------
+Where:
+  api/_lib/trade-audit.js lines approximately 71-87
+
+What is wrong:
+  Per-item short open P&L is calculated correctly, but totalPnl is recomputed as
+  total market value minus total cost, which is a long-only formula.
+
+Required resolution:
+  Aggregate the already calculated item.openPnl, or use a signed position/account
+  ledger. Define short sale proceeds, margin, fees, and liability explicitly.
+
+Acceptance test:
+  Mixed long/short hand-calculated portfolio must match totals exactly.
+
+
+P1-025: GOOGLE STATE IS LATEST-ONLY, NOT AN IMMUTABLE DATABASE
+--------------------------------------------------------------
+Where:
+  google-sheets/K2MarketArchive.gs
+  writeDocument_(), lines approximately 100-130
+  ensureStateOnlyStorage_(), lines approximately 212-218
+  api/_lib/google-archive.js syncGoogleArchive(), lines approximately 27-38
+
+What is wrong:
+  - New K2_STATE chunks are written, then all previous rows for the path are
+    deleted.
+  - gzip+Base64 is compression/encoding, not encryption.
+  - ensureStateOnlyStorage_ deletes OHLCV tabs.
+  - syncGoogleArchive reports synced:true and a row count without transmitting
+    OHLCV rows.
+  - append tabs have no schema version, unique key, update/reconciliation route,
+    or completeness query.
+
+Required resolution:
+  Canonical storage:
+    immutable object store for raw versioned Parquet/files plus checksums;
+    transactional SQL/event ledger for orders, fills, positions, model versions;
+    Sheets only as a read/reporting projection.
+
+
+P1-026: APPS SCRIPT SETUP LOGS THE SHARED SECRET
+------------------------------------------------
+Where:
+  google-sheets/K2MarketArchive.gs lines approximately 16-27
+
+What is wrong:
+  setupK2Archive logs spreadsheet ID and K2 archive secret. Web app may execute as
+  owner and be accessible to Anyone with a bearer-like shared secret.
+
+Required resolution:
+  Do not log secrets. Use scoped service identity/OAuth where possible, secret
+  rotation/versioning, least privilege, audit log, rate limiting, and separate
+  test/prod Sheets. Rotate the current secret if it was exposed in logs.
+
+
+P1-027: BROWSER CLAIMS LIVE TRADINGVIEW SYNC THAT VERCEL CSP BLOCKS
+------------------------------------------------------------------
+Where:
+  scripts/build-portal.js lines approximately 640-662
+  vercel.json line approximately 39
+  generated site/index.html lines approximately 808-830
+
+What is wrong:
+  Browser JavaScript fetches scanner.tradingview.com every 10 seconds, while
+  Vercel Content-Security-Policy says connect-src 'self'. The endpoint is also
+  undocumented for this purpose. Built HTML currently embeds fallback-like
+  GIFT values.
+
+Required resolution:
+  Remove client scraping. Fetch licensed data server-side, validate it, expose a
+  same-origin endpoint with provenance/freshness, and update the UI only when
+  data is valid. The UI must visibly show STALE/UNAVAILABLE.
+
+
+P1-028: SCHEDULES ARE DESCRIBED AS GUARANTEED
+---------------------------------------------
+Where:
+  .github/workflows/portal.yml comments around lines 26-32
+
+What is wrong:
+  GitHub explicitly documents that scheduled workflows may be delayed and some
+  queued jobs may be dropped during high load. The observed scheduled jobs ran
+  much later than their declared times.
+
+Required resolution:
+  Use a durable scheduler/queue with expected-run records, leases, retries,
+  heartbeat, deadline, and missed-run alarms. Treat GitHub schedule as a trigger,
+  not a guarantee.
+
+
+P1-029: MANUAL BROKER WORKFLOWS REMAIN AVAILABLE
+-------------------------------------------------
+Where:
+  .github/workflows/gm-cloud-sync.yml
+  .github/workflows/gm-portfolio-dump.yml
+  .github/workflows/gm-explore.yml
+
+What is wrong:
+  All retain workflow_dispatch. "Removed/deactivated" is not equivalent to "no
+  execution path".
+
+Required resolution:
+  Either remove the workflows or enforce explicit authorization, environment
+  approval, read-only endpoint allowlisting, secret isolation, logging, and data
+  retention rules.
+
+
+P1-030: AUTHENTICATION SECRET DOMAINS ARE COUPLED
+-------------------------------------------------
+Where:
+  api/_lib/security.js lines approximately 3-42
+
+What is wrong:
+  - users, salts, and hashes are hardcoded in source;
+  - auth pepper falls back to BLOB_READ_WRITE_TOKEN;
+  - session secret also falls back to BLOB_READ_WRITE_TOKEN;
+  - local fallback secret exists outside Vercel;
+  - dossier calls this PBKDF2 although code uses scrypt.
+
+Required resolution:
+  Separate auth pepper, session signing, Blob access, Sheet access, cron auth,
+  email, and portal encryption secrets. Use a managed identity/auth provider or
+  a versioned credential store, MFA where appropriate, rotation, rate limiting,
+  lockout/alerting, and session revocation.
+
+
+P1-031: MODEL/REGIME/RISK COMPONENTS ARE PARTIALLY UNUSED OR MISAPPLIED
+----------------------------------------------------------------------
+Where:
+  api/_lib/market-regime.js
+  api/_lib/recommendation.js
+
+Examples:
+  - evaluateGlobalMacroShock accepts usVix but does not use it.
+  - Nasdaq and USDINR are displayed but not part of the decision call.
+  - sector diversification and bloodbath helpers are not integrated into final
+    ranking/portfolio allocation.
+  - bloodbath logic boosts short sizing to 1.35 instead of functioning purely as
+    a risk-reduction gate.
+
+Required resolution:
+  Create an explicit feature-to-decision dependency graph. Every displayed
+  decision driver must either affect a versioned model with validation or be
+  labeled informational. Crisis controls may reduce risk or veto; they must not
+  automatically manufacture additional directional exposure.
+
+
+P1-032: TESTS VERIFY SYNTHETIC BEHAVIOR, NOT PRODUCTION ECONOMICS
+----------------------------------------------------------------
+Where:
+  scripts/test-*.js
+  package.json scripts.check
+  .github/workflows/portal.yml
+
+What is missing:
+  production provider contract tests
+  historical futures golden dataset
+  same-bar ambiguity tests
+  costs/margin/roll/expiry tests
+  failure injection
+  property/invariant tests
+  live Sheet deployment smoke tests
+  broker/paper reconciliation tests
+  model/data reproducibility tests
+
+Required resolution:
+  Build a layered test system:
+    unit
+    property
+    schema/contract
+    integration
+    historical golden replay
+    failure/chaos
+    shadow reconciliation
+    security/privacy
+    deployment smoke
+
+
+P1-033: HIGH-SEVERITY PRODUCTION DEPENDENCY FINDINGS ARE NOT GATED
+------------------------------------------------------------------
+Where:
+  package.json / package-lock.json
+  .github/workflows/portal.yml
+
+Required resolution:
+  Upgrade/override to fixed versions, rebuild lockfile, run full tests, and add a
+  CI policy that blocks new high/critical production advisories unless a dated,
+  owner-approved, narrowly scoped exception exists.
+
+
+P1-034: SECURITY VERIFIER DOES NOT TEST THE REAL BOOK PATH IN PRODUCTION
+------------------------------------------------------------------------
+Where:
+  scripts/verify-portal.js
+  .github/workflows/portal.yml lines approximately 90-100
+
+What is wrong:
+  With no book, verifier reports there is nothing to seal/leak. This is not proof
+  that a real encrypted book contains no plaintext or metadata leak. Public
+  ciphertext is also exposed to offline passphrase guessing.
+
+Required resolution:
+  In CI, create a synthetic book containing unique canary strings, seal it, build
+  the portal, scan every artifact for canaries, verify decryption only with the
+  expected passphrase, verify tamper failure, and check metadata leakage. Enforce
+  strong randomly generated passphrases and rotation/revocation procedure.
+
+
+P1-035: DOSSIER FILE MAP DOES NOT MATCH ACTUAL EXPORTS/IMPLEMENTATION
+--------------------------------------------------------------------
+Examples:
+  Dossier claims fundamentals exports eventVeto and assessCorporateSolvency.
+  Actual:
+    balanceSheetScore, earningsWindow, fundamentals, weekBounds, yahooSession
+
+  Dossier claims recommendation exports evaluateTradeSuitability and standAside.
+  Actual:
+    convictionOf, currentAnchor, rankRecommendations, recommendation
+
+  Dossier claims trade-audit exports compareFillToPlan.
+  Actual:
+    auditPurchases, round
+
+  Dossier claims portal-crypto exports deriveKey and verifyPassphrase.
+  Actual public exports:
+    ITERATIONS, generatePassphrase, openPayload, sealPayload
+
+Required resolution:
+  Generate module/interface documentation from source and tests. Never use an
+  unaudited prose file as proof that a control exists.
+
+
+======================================================================
+4. P2 MATERIAL FEATURES/IMPROVEMENTS NEEDED FOR THE REQUESTED SYSTEM
+======================================================================
+
+P2-001: INSTITUTIONAL DATA PLANE
+--------------------------------
+Implement:
+  - licensed NSE F&O real-time/1-minute/tick data or authorized vendor;
+  - exact historical contracts, quotes, trades, OI and contract master;
+  - immutable raw zone with hashes and source timestamps;
+  - normalized point-in-time feature zone;
+  - quality rules, missingness, corrections, late data and lineage;
+  - corporate actions, dividends, symbol and lot changes;
+  - historical eligible-universe snapshots.
+
+
+P2-002: FULL POINT-IN-TIME FUNDAMENTALS/EVENT PLANE
+---------------------------------------------------
+Implement:
+  - NSE XBRL financial results and filing timestamps;
+  - full P&L, balance sheet, cash flow and notes;
+  - consolidated/standalone and period taxonomy;
+  - original/revised/restated versions;
+  - results dates and actual announcement timestamps;
+  - board actions, dividends, splits, mergers, pledges, shareholding;
+  - ratings, defaults, restructuring, auditor qualifications;
+  - sector-specific ratios for industrials, banks, NBFCs, insurers, REITs.
+
+Use fundamentals primarily as event/risk and regime features for weekly futures.
+Do not assume P/E or any single ratio has universal short-horizon alpha.
+
+
+P2-003: SHARED EVENT-DRIVEN RESEARCH/LIVE ENGINE
+------------------------------------------------
+One state machine must power:
+  backtest
+  paper
+  shadow
+  live
+  outcome audit
+
+It must model:
+  exchange calendar/time zone
+  data events
+  order submission/acknowledgment
+  fill/partial fill/rejection
+  stops/targets/time exits
+  fees/slippage/impact
+  positions/cash/margin
+  rolls/expiry/settlement
+  recovery/restart/reconciliation
+
+NautilusTrader and LEAN are useful reference engines, but neither creates alpha,
+and India futures require licensed/custom data integration.
+
+
+P2-004: PRE-TRADE AND REAL-TIME PORTFOLIO RISK
+----------------------------------------------
+Implement independent:
+  risk budget
+  volatility target
+  name/sector/factor/correlation caps
+  liquidity/capacity
+  margin buffer
+  daily/weekly loss limit
+  drawdown stages
+  gap/limit stress
+  broker/order kill switch
+  stale-data kill switch
+  operator emergency stop
+
+
+P2-005: RESEARCH GOVERNANCE AND EXPERIMENT REGISTRY
+---------------------------------------------------
+Every attempted rule/model/threshold must have:
+  experiment ID
+  hypothesis
+  data version
+  feature/label version
+  parameters/trials
+  train/validation/test periods
+  costs
+  result
+  owner
+  decision
+
+This prevents only successful experiments from being remembered.
+
+
+P2-006: CALIBRATION, ABSTENTION, AND UNCERTAINTY
+-----------------------------------------------
+Predict:
+  probability of fill
+  probability target before stop/time
+  expected net P&L
+  expected shortfall
+  prediction interval
+
+Measure:
+  Brier score
+  calibration/reliability
+  coverage
+  precision by confidence band
+  stability/drift
+
+Allow the model to abstain. A high-quality system should often say no trade.
+
+
+P2-007: TECHNICAL/CANDLE/PATTERN LIBRARY WITH EMPIRICAL GATING
+--------------------------------------------------------------
+It is reasonable to add more candlestick and chart definitions only if:
+  - definitions are deterministic;
+  - feature availability/confirmation time is explicit;
+  - context such as trend, volatility, volume and liquidity is included;
+  - overlapping labels are handled;
+  - all tried patterns enter multiple-test correction;
+  - only incremental OOS net value affects production.
+
+"All candlesticks" is not a quality goal. A smaller validated set is better than
+a large unvalidated library.
+
+
+P2-008: MARKET MICROSTRUCTURE AND OI
+------------------------------------
+With licensed data, evaluate:
+  bid/ask spread
+  depth/imbalance
+  trade sign
+  volume profile
+  intraday seasonality
+  OI change
+  OI term structure
+  roll pressure
+  participant positioning where lawfully available
+  liquidity/impact
+
+Do not infer institutional order flow from daily close direction alone.
+
+
+P2-009: MACHINE LEARNING AND DEEP LEARNING ROADMAP
+--------------------------------------------------
+Baseline challengers first:
+  unconditional/no-trade
+  linear/logistic
+  regularized generalized models
+  simple trees/GBDT
+
+Only then test:
+  sequence models
+  temporal convolution/transformers
+  graph/sector models
+  multimodal filing/news models
+
+Deep learning becomes production only if it adds stable, incremental, net OOS
+value over simpler challengers and fits latency/cost/explainability controls.
+
+
+P2-010: MULTI-MARKET EXPANSION MUST USE SEPARATE ADAPTERS
+---------------------------------------------------------
+Equity futures, index futures, FX, commodities and crypto differ in:
+  calendars
+  trading hours
+  leverage/margin
+  tick/lot
+  settlement
+  funding/carry
+  price limits
+  liquidity
+  regulation
+  provider/broker APIs
+
+Never reuse universal thresholds such as 2%, 0.65 VPIN, or the same cost model
+across every market. Promote one adapter at a time.
+
+
+P2-011: OPERATIONAL OBSERVABILITY AND MODEL MONITORING
+------------------------------------------------------
+Dashboards/alerts must cover:
+  provider latency/freshness
+  missing/corrected data
+  universe coverage
+  scheduler completeness
+  recommendation counts/veto reasons
+  order/fill/rejects
+  duplicate/idempotency incidents
+  Sheet/report projection lag
+  P&L reconciliation
+  feature drift
+  calibration drift
+  realized-versus-predicted outcomes
+  risk-limit usage
+  model/data/code version
+
+
+P2-012: REGULATORY, DATA-LICENSE, AND AUDIT CONTROLS
+----------------------------------------------------
+Before automated broker API order placement:
+  - map the system to current SEBI/NSE retail-algo requirements;
+  - confirm broker/exchange registration/approval obligations;
+  - document market-data display/non-display/redistribution rights;
+  - preserve order/model audit records;
+  - implement access control, change approval, incident response and retention.
+
+This is a compliance workstream, not a performance feature.
+
+
+======================================================================
+5. COMPLETE WH QUESTION REGISTER
+======================================================================
+
+The purpose of this section is not to generate vague questions. Each question
+states the current answer and the evidence needed to close it.
+
+
+5.1 WHAT QUESTIONS
+------------------
+
+WHAT exactly is the Phase-1 product?
+  Current answer: mixed.
+  Required answer: NSE individual-stock futures decision and risk system.
+
+WHAT constitutes a signal?
+  Current answer: several inconsistent rule/model outputs.
+  Required: versioned Signal schema with event time, horizon, side, probability,
+  expected value, uncertainty, data/model versions, and expiry.
+
+WHAT constitutes an executable trade?
+  Current answer: price levels are treated as trades.
+  Required: validated OrderIntent with exact contract, expiry, lots, price,
+  stop/target/time barrier, margin, notional and max loss.
+
+WHAT is the objective function?
+  Current answer: partly clearing a fixed 2% move and partly expected week.
+  Required: explicitly choose net risk-adjusted portfolio return subject to
+  drawdown, tail, liquidity, margin and turnover limits.
+
+WHAT is "accuracy"?
+  Current answer: mixed between direction, clearing 2%, IC, and hit rate.
+  Required: separate direction accuracy, calibrated event probability, expected
+  net P&L, drawdown, tail loss, turnover, capacity and reconciliation accuracy.
+
+WHAT is the benchmark?
+  Current answer: incomplete.
+  Required: no-trade, simple market/sector-neutral rules, simple momentum/
+  reversion, and current production champion.
+
+WHAT is the holding horizon?
+  Current answer: weekly/Friday, but other models use 3/5/10/63 sessions.
+  Required: fixed per strategy and recorded in every label/order.
+
+WHAT happens at stop, target, Friday, holiday, expiry, roll and gap?
+  Current answer: different modules behave differently.
+  Required: one state machine.
+
+WHAT data is mandatory versus optional?
+  Current answer: not formally defined.
+  Required: data contract with fail-closed mandatory inputs.
+
+WHAT calculations run in Google Sheets?
+  Current answer: core calculations run in Node; Sheets stores outputs/state.
+  Required: document this honestly. Sheets should not be described as the
+  calculation or raw-data engine unless formulas and validation prove it.
+
+WHAT is stored permanently?
+  Current answer: latest documents plus append rows; raw archive claim is false.
+  Required: immutable raw data and event ledger with retention policy.
+
+WHAT happens when there is no trade?
+  Current answer: a hardcoded NIFTY option may be inserted.
+  Required: no trade means no trade.
+
+WHAT models actually affect production?
+  Current answer: weekly cycle, pooled forecast in some paths, hand scores,
+  trend, simplified carry, chart bonus and hand meta gate. Many advanced
+  routines do not.
+  Required: generated dependency/model inventory.
+
+WHAT is the source of each displayed number?
+  Current answer: not always available.
+  Required: click-through provenance and timestamp.
+
+WHAT are the known limitations?
+  Current answer: dossier minimizes them.
+  Required: explicit limitations in operator UI and model card.
+
+
+5.2 WHY QUESTIONS
+-----------------
+
+WHY is the target 2%?
+  Current answer: fixed desk rule; no robust universal proof.
+  Required: cost/risk-aware validation against alternative targets and no-trade,
+  corrected for all trials.
+
+WHY are ladder steps 2%?
+  Current answer: convention/config.
+  Required: training-only selection or a predeclared economic rationale, then
+  untouched validation.
+
+WHY are there five rungs?
+  Current answer: fixed.
+  Required: capital/margin/liquidity rationale and OOS stability.
+
+WHY is Friday mandatory exit optimal?
+  Current answer: asserted.
+  Required: compare realistic alternatives net of risk/cost without data snooping.
+
+WHY should cash features predict futures trade P&L?
+  Current answer: assumed.
+  Required: basis/contract-specific evidence.
+
+WHY should each fundamental ratio affect a weekly trade?
+  Current answer: hand weights.
+  Required: point-in-time incremental evidence or risk-only role.
+
+WHY should chart confidence be 0.82/0.88?
+  Current answer: no empirical source.
+  Required: calibrated OOS estimate or remove probability wording.
+
+WHY should pseudo-VPIN hard-veto a trade?
+  Current answer: label/reference, not validation.
+  Required: execution-horizon validation; otherwise remove.
+
+WHY does meta probability use those coefficients?
+  Current answer: manual.
+  Required: fitted/calibrated model or rename as rules score.
+
+WHY use Kelly?
+  Current answer: institutional-sounding calculation.
+  Required: calibrated probability/payoff distribution and risk overlay.
+
+WHY add deep learning?
+  Current answer: requested breadth.
+  Required: only incremental net OOS benefit over simple baselines.
+
+WHY is the system believed time-tested?
+  Current answer: components are known in finance.
+  Required: the integrated implementation itself must pass reproducible
+  validation and shadow outcomes.
+
+WHY are failures allowed to become defaults/warnings?
+  Current answer: availability.
+  Required: classify hard versus optional dependencies; decision-critical
+  failures must fail closed.
+
+
+5.3 WHERE QUESTIONS
+-------------------
+
+WHERE is raw tick/minute futures data stored?
+  Current answer: not in a verified immutable store.
+  Required: versioned object store with checksum/index/catalog.
+
+WHERE are exact historical contracts stored?
+  Current answer: absent.
+  Required: contract master and histories by exchange instrument ID/expiry.
+
+WHERE are point-in-time universe memberships stored?
+  Current answer: absent.
+  Required: dated universe snapshots.
+
+WHERE are financial statements and revisions stored?
+  Current answer: only snapshot metrics are fetched; fundamentals tab is not
+  populated by Node.
+  Required: filing-version store with source IDs/timestamps.
+
+WHERE are model artifacts and manifests stored?
+  Current answer: model JSON exists; complete data manifest does not.
+  Required: model registry with immutable artifacts/hashes.
+
+WHERE are experiment failures stored?
+  Current answer: no complete registry.
+  Required: experiment/trial registry.
+
+WHERE are order/fill events stored?
+  Current answer: incomplete local/Sheet state.
+  Required: transactional event ledger.
+
+WHERE is email idempotency stored?
+  Current answer: local ephemeral JSON.
+  Required: persistent atomic store.
+
+WHERE are risk limits configured and approved?
+  Current answer: scattered constants.
+  Required: versioned policy with owner/approval/effective dates.
+
+WHERE are secrets stored?
+  Current answer: environment plus code hashes/salts and secret fallbacks.
+  Required: managed secret store and separate secret domains.
+
+WHERE are audit logs reviewed?
+  Current answer: not defined.
+  Required: central logs/alerts and named owner.
+
+WHERE does a live user see stale/unavailable status?
+  Current answer: not reliably.
+  Required: prominent status and trade suppression.
+
+
+5.4 WHEN QUESTIONS
+------------------
+
+WHEN is a datum considered fresh?
+  Current answer: no field-level SLA.
+  Required: provider/instrument/session-specific freshness threshold.
+
+WHEN is a feature legally available?
+  Current answer: bar/filing availability not consistently modeled.
+  Required: availableAt distinct from period/event time.
+
+WHEN is a chart pivot known?
+  Current answer: only after future bars, but latency is not explicit.
+  Required: confirmation time recorded and used in replay.
+
+WHEN is a signal generated, submitted, filled, cancelled and expired?
+  Current answer: incomplete.
+  Required: separate timestamps in event ledger.
+
+WHEN is a recommendation recalculated?
+  Current answer: weekly reuse plus delayed schedules.
+  Required: explicit cadence and invalidation triggers.
+
+WHEN does a contract become too close to expiry?
+  Current answer: not defined.
+  Required: minimum DTE and roll window by product/liquidity.
+
+WHEN is a model retrained?
+  Current answer: operationally unclear.
+  Required: schedule, data cutoff, approval and rollback.
+
+WHEN is model performance considered degraded?
+  Current answer: no threshold.
+  Required: calibration/edge/drift thresholds and automatic de-risking.
+
+WHEN is a system incident declared?
+  Current answer: warnings may remain green.
+  Required: severity/SLA/on-call rules.
+
+WHEN can real capital begin?
+  Current answer: not now.
+  Required: every promotion gate in Section 9.
+
+
+5.5 WHO QUESTIONS
+-----------------
+
+WHO owns data quality?
+  Current answer: unspecified.
+  Required: named role and escalation.
+
+WHO owns each model?
+  Current answer: unspecified.
+  Required: model owner separate from validator where feasible.
+
+WHO independently validates?
+  Current answer: no independent signoff found.
+  Required: qualified reviewer with authority to reject.
+
+WHO approves production model/threshold changes?
+  Current answer: unspecified.
+  Required: change-control owner.
+
+WHO can deploy Apps Script?
+  Current answer: unspecified.
+  Required: access list and versioned deployment process.
+
+WHO can trigger broker workflows?
+  Current answer: repository/workflow permissions.
+  Required: least-privilege approved roles and environment protection.
+
+WHO reconciles broker versus internal positions/P&L?
+  Current answer: no closed loop.
+  Required: named daily process plus automated exception report.
+
+WHO responds to stale data, missed schedules or duplicate emails?
+  Current answer: unspecified.
+  Required: operator/on-call and runbook.
+
+WHO can override a VETO?
+  Current answer: code paths effectively can.
+  Required: no automated override; any human override logged with reason and
+  separate authorization.
+
+WHO decides how much capital is risked?
+  Current answer: conviction/meta multiplier.
+  Required: independent portfolio risk service and approved limits.
+
+
+5.6 WHOM AND WHOSE QUESTIONS
+----------------------------
+
+WHOM is each recommendation intended for?
+  Current answer: no suitability/risk profile.
+  Required: internal paper account or explicitly defined account mandate.
+
+WHOM does an email authorize to act?
+  Current answer: ambiguous.
+  Required: informational versus actionable status displayed clearly.
+
+WHOM must be notified on hard failure?
+  Current answer: not defined.
+  Required: incident routing matrix.
+
+WHOSE broker account/portfolio is being read?
+  Current answer: sensitive exports indicate personal/account data.
+  Required: documented controller, consent, access, retention and deletion.
+
+WHOSE market data license permits storage, non-display, research and trading use?
+  Current answer: not recorded.
+  Required: contract/entitlement register.
+
+WHOSE model decision is final: ladder, potential, meta, risk or human?
+  Current answer: inconsistent route logic.
+  Required: explicit decision hierarchy; risk/veto always dominates.
+
+WHOSE timezone/calendar governs each event?
+  Current answer: some IST conversions, no unified exchange calendar.
+  Required: exchange calendar and UTC event storage with displayed local time.
+
+
+5.7 WHICH QUESTIONS
+-------------------
+
+WHICH symbols are currently eligible STF contracts?
+  Current answer: current bhavcopy, but IDF included.
+  Required: STF-only contract master.
+
+WHICH expiry is selected and why?
+  Current answer: earliest expiry.
+  Required: liquidity/DTE/roll/settlement policy.
+
+WHICH price forms entry: cash, futures last, bid/ask, settlement or limit?
+  Current answer: mixed.
+  Required: explicit per order and per backtest.
+
+WHICH data provider wins when sources disagree?
+  Current answer: not specified.
+  Required: source hierarchy and tolerance/reconciliation.
+
+WHICH values are estimates versus observed?
+  Current answer: not consistently labeled.
+  Required: provenance/type in schema.
+
+WHICH features were available at decision time?
+  Current answer: not reproducibly recorded.
+  Required: point-in-time snapshot/hash.
+
+WHICH trials were attempted before selecting a rule?
+  Current answer: incomplete.
+  Required: experiment registry and multiple-test correction.
+
+WHICH model version made every recommendation?
+  Current answer: not guaranteed in ledger.
+  Required: immutable model ID/hash on signal/order/fill.
+
+WHICH risk limits rejected or resized an order?
+  Current answer: not recorded.
+  Required: decision trace.
+
+WHICH test proves each claimed invariant?
+  Current answer: many claims have no production-path test.
+  Required: claim-to-test traceability matrix.
+
+
+5.8 HOW QUESTIONS
+-----------------
+
+HOW are prices validated?
+  Current answer: numeric/fallback checks.
+  Required: source/time/contract/outlier/cross-source validation.
+
+HOW are missing values represented?
+  Current answer: often zero/default.
+  Required: explicit null plus reason/status.
+
+HOW are corrections/restatements handled?
+  Current answer: not defined.
+  Required: immutable versions and as-was/as-revised views.
+
+HOW are dividends/corporate actions reflected in futures and labels?
+  Current answer: incomplete.
+  Required: event-adjusted contract/feature pipeline.
+
+HOW are fills simulated?
+  Current answer: daily high/low touch.
+  Required: event-driven quote/trade-aware model.
+
+HOW is same-bar target/stop ambiguity handled?
+  Current answer: tracker checks target first; weekly replay has no stop.
+  Required: minute/tick order or conservative ambiguity.
+
+HOW is capital allocated across rungs/names/sectors?
+  Current answer: multipliers and cash budgets, not a unified portfolio.
+  Required: constrained portfolio optimizer/risk service.
+
+HOW is uncertainty communicated?
+  Current answer: point estimates and conviction.
+  Required: calibrated probabilities, intervals, coverage and abstention.
+
+HOW is overfitting measured?
+  Current answer: simple walk-forward/hurdles.
+  Required: purging, embargo, final holdout, PBO/DSR/Reality Check and trial log.
+
+HOW is live performance compared with backtest?
+  Current answer: not closed.
+  Required: attribution and reconciliation by signal/order/fill/model version.
+
+HOW does the system recover after restart?
+  Current answer: mixed local/remote state.
+  Required: event replay, broker reconciliation and idempotent recovery.
+
+HOW is a deployment rolled back?
+  Current answer: not documented.
+  Required: immutable release/model/schema versions and tested rollback.
+
+HOW are secrets rotated without downtime?
+  Current answer: not documented.
+  Required: dual-key/version rotation process.
+
+HOW are regulatory/data-license obligations verified?
+  Current answer: not integrated.
+  Required: compliance checklist and approval before live use.
+
+
+5.9 HOW MUCH / HOW MANY QUESTIONS
+---------------------------------
+
+HOW MUCH capital may be lost per trade?
+  Current answer: percentage stop displayed, gap loss not modeled.
+  Required: currency loss under normal and stressed fill.
+
+HOW MUCH may be lost per day/week/month?
+  Current answer: no unified portfolio limit.
+  Required: approved limits and kill switch.
+
+HOW MUCH margin is required and buffered?
+  Current answer: absent from recommendation.
+  Required: current broker/exchange margin plus stress buffer.
+
+HOW MUCH slippage/impact is assumed?
+  Current answer: simple constants.
+  Required: contract/liquidity/order-size/latency model.
+
+HOW MUCH independent data supports each pattern/model?
+  Current answer: row counts can overstate independence.
+  Required: independent dates/blocks/trades and confidence interval.
+
+HOW MANY experiments were tried?
+  Current answer: not completely recorded.
+  Required: trial registry.
+
+HOW MANY eligible symbols completed today?
+  Current answer: schedules omit 372 of 502 AI-universe names.
+  Required: completeness SLO.
+
+HOW MANY signals remain unresolved?
+  Current answer: current ledger 1 of 1 unresolved.
+  Required: daily reconciliation.
+
+HOW MANY duplicate external actions occurred?
+  Current answer: at least the two observed same-day email sends.
+  Required: idempotency incident metric.
+
+HOW LONG must shadow validation run?
+  Current answer: undefined.
+  Required: enough independent trades, contract cycles and regimes to meet
+  predeclared precision, not merely an arbitrary number of days.
+
+HOW LARGE can capacity be before edge disappears?
+  Current answer: unknown.
+  Required: participation/impact/liquidity study.
+
+
+5.10 WHAT-IF QUESTIONS
+----------------------
+
+WHAT IF every provider fails?
+  Required: no trade; hard incident.
+
+WHAT IF one field is stale but others are fresh?
+  Required: field-level status and policy-based abstention.
+
+WHAT IF providers disagree materially?
+  Required: quarantine/reconciliation, no silent selection.
+
+WHAT IF the exchange is closed unexpectedly?
+  Required: official calendar/status, cancel/no new trade.
+
+WHAT IF a stock enters F&O ban/MWPL restriction?
+  Required: pre-trade veto.
+
+WHAT IF expiry/physical settlement approaches?
+  Required: forced roll/exit policy and margin/delivery control.
+
+WHAT IF price gaps through stop?
+  Required: fill at first executable price plus slippage; record gap loss.
+
+WHAT IF target and stop occur in one daily bar?
+  Required: minute/tick evidence or conservative ambiguity.
+
+WHAT IF an order partially fills?
+  Required: stateful quantities, amended risk and targets.
+
+WHAT IF an email send times out after provider acceptance?
+  Required: provider message ID/idempotency, no blind resend.
+
+WHAT IF Google append fails?
+  Required: durable retry/outbox and hard visibility; decision record retained.
+
+WHAT IF Apps Script deployed code is old?
+  Required: capability/version preflight rejects job.
+
+WHAT IF two runners start simultaneously?
+  Required: lease/idempotency and single effective action.
+
+WHAT IF a model file is missing/corrupt?
+  Required: no model-driven trade; checksum failure incident.
+
+WHAT IF a feature becomes null/outlier?
+  Required: schema/quality policy; never silent zero.
+
+WHAT IF a model degrades after a regime change?
+  Required: monitoring, automatic size reduction/disable, challenger/rollback.
+
+WHAT IF a corporate result is announced after market close?
+  Required: actual filing timestamp, next-session risk veto/reprice.
+
+WHAT IF a filing is later restated?
+  Required: preserve as-was data for backtest and revised version for current use.
+
+WHAT IF a symbol/lot size changes?
+  Required: dated contract master and migration.
+
+WHAT IF a broker position differs from internal state?
+  Required: block new risk, reconcile, alert.
+
+WHAT IF the portal is public?
+  Required: no plaintext positions/secrets/identifying metadata; canary scan.
+
+WHAT IF a passphrase is weak?
+  Required: high-entropy generated secret and rotation; do not rely only on KDF
+  iterations against offline guessing.
+
+WHAT IF a manual workflow is triggered?
+  Required: environment approval, least privilege, immutable audit trail.
+
+WHAT IF a dependency advisory appears?
+  Required: CI policy, triage owner, remediation SLA.
+
+WHAT IF expansion to crypto/FX/commodities is requested?
+  Required: separate adapter, data, costs, risk, regulation and validation; no
+  automatic reuse of India-equity-futures assumptions.
+
+
+======================================================================
+6. REQUIRED TARGET ARCHITECTURE
+======================================================================
+
+DATA SOURCES
+  -> licensed adapters
+  -> immutable raw observations and contract/filing versions
+  -> validation/quarantine/lineage
+  -> point-in-time feature store
+
+RESEARCH
+  -> experiment registry
+  -> shared execution simulator
+  -> purged/nested walk-forward
+  -> final untouched holdout
+  -> cost/risk/capacity stress
+
+MODELS
+  -> registry + manifest + hash
+  -> calibrated forecasts/uncertainty
+  -> champion/challenger
+  -> independent validation/approval
+
+DECISION
+  -> one DecisionContext
+  -> all hard vetoes
+  -> signal
+  -> independent portfolio/risk service
+  -> exact futures OrderIntent
+
+EXECUTION
+  -> broker adapter
+  -> idempotent orders
+  -> order/fill/reject events
+  -> position/margin/P&L
+  -> reconciliation and kill switch
+
+STORAGE
+  -> immutable object storage for raw/history
+  -> transactional database for events/ledger
+  -> Sheets/portal/email as projections only
+
+OBSERVABILITY/GOVERNANCE
+  -> scheduler completion
+  -> data/model drift
+  -> incidents
+  -> release/model/schema versions
+  -> approvals, rollback and audit
+
+
+======================================================================
+7. IMPLEMENTATION ORDER FOR FAST, SAFE RESOLUTION
+======================================================================
+
+SPRINT 0: FREEZE FALSE CLAIMS AND REAL-CAPITAL USE
+  1. Mark system PAPER/RESEARCH ONLY in portal/email/dossier.
+  2. Disable potential route and hardcoded NIFTY option.
+  3. Disable external actionable emails until persistent idempotency exists.
+  4. Remove numeric market fallbacks.
+
+SPRINT 1: INVARIANTS AND OPERATIONS
+  1. Shared hard-veto enforcement.
+  2. Persistent scheduler/email/Sheet idempotency.
+  3. Fail-closed statuses and non-zero failures.
+  4. Apps Script version/capability preflight and live smoke test.
+  5. All-universe completion barrier.
+  6. CI full tests/audit gates.
+
+SPRINT 2: PURE STOCK-FUTURES CONTRACT MODEL
+  1. STF-only contract master.
+  2. exact expiry/lot/tick/margin/order schema.
+  3. liquidity, ban, roll, settlement and holiday rules.
+  4. remove cash-share execution path from Phase 1.
+
+SPRINT 3: STORAGE AND RECONCILIATION
+  1. immutable raw object store.
+  2. transactional signal/order/fill/position ledger.
+  3. Sheets as idempotent report projection.
+  4. live broker/paper reconciliation.
+  5. privacy/history/secrets remediation.
+
+SPRINT 4: SHARED EXECUTION SIMULATOR
+  1. order lifecycle.
+  2. real target/stop/time barriers.
+  3. minute/tick ambiguity resolution.
+  4. costs, slippage, margin, roll and expiry.
+  5. capital-weighted portfolio accounting.
+
+SPRINT 5: POINT-IN-TIME DATA AND VALIDATION
+  1. historical contracts/universe.
+  2. point-in-time filings/fundamentals/events.
+  3. execution-matched labels.
+  4. nested purged walk-forward/final holdout.
+  5. multiple-testing, cost and capacity stress.
+
+SPRINT 6: RISK, MODELS, AND CONTROLLED PROMOTION
+  1. portfolio risk service.
+  2. calibrated baseline/champion/challenger models.
+  3. shadow operation and reconciliation.
+  4. independent validation.
+  5. staged small-capital launch only after Section 9 passes.
+
+SPRINT 7: OPTIONAL ADVANCED FEATURES
+  chart/candle expansion, OI/microstructure, filing NLP, deep learning, and
+  additional markets only after they demonstrate incremental net OOS value.
+
+
+======================================================================
+8. VALIDATION STANDARD: WHAT "TIME-TESTED" MUST MEAN
+======================================================================
+
+A METHOD IS NOT VALIDATED BECAUSE:
+  - a bank or hedge fund has used a technique;
+  - a paper reported an effect in another market/period;
+  - its name includes AI, physics, VPIN, Kelly, Black-Scholes, Hurst, or quant;
+  - code exists;
+  - unit tests pass;
+  - an in-sample backtest is profitable;
+  - a document declares it fixed.
+
+THE INTEGRATED SYSTEM IS VALIDATED ONLY WHEN:
+  1. Data is legally obtained, immutable, point-in-time and reproducible.
+  2. The historical universe has no future membership/survivorship leakage.
+  3. Labels exactly match the executable strategy.
+  4. Research and live share execution semantics.
+  5. Costs, liquidity, margin, rolls and settlement are modeled.
+  6. Every experiment/trial is recorded.
+  7. Split boundaries are purged/embargoed.
+  8. A final holdout is untouched until design is frozen.
+  9. Multiple testing/backtest overfitting is measured.
+ 10. Results are stable across dates, regimes, sectors and cost stresses.
+ 11. Probabilities are calibrated and uncertainty/abstention are reported.
+ 12. Portfolio drawdown/tail/capacity and operational failures are acceptable.
+ 13. Shadow fills/fees/positions/P&L reconcile with real observable outcomes.
+ 14. Independent review challenges assumptions and signs off limitations.
+ 15. Ongoing monitoring can automatically disable a degraded system.
+
+
+======================================================================
+9. PROMOTION GATES
+======================================================================
+
+GATE A: RESEARCH-COMPLETE
+  [ ] All P0 defects closed with regression tests.
+  [ ] Exact STF contract/order schema.
+  [ ] No numeric fallback can look live.
+  [ ] Reproducible immutable dataset/model manifests.
+  [ ] Shared execution state machine.
+  [ ] No known leakage.
+  [ ] All trial families recorded and corrected.
+  [ ] Net cost/margin/roll/settlement simulation.
+  [ ] Portfolio risk limits.
+  [ ] Independent validation report.
+
+GATE B: PAPER/SHADOW-COMPLETE
+  [ ] Persistent idempotency; no duplicate external actions.
+  [ ] 100% expected-universe completion or explicit failures.
+  [ ] No stale/fallback trade incidents.
+  [ ] Orders/fills/fees/margin/P&L reconcile within predeclared tolerances.
+  [ ] Sufficient independent trades, dates, contract cycles and regimes to meet
+      predeclared statistical precision.
+  [ ] Realized calibration/coverage/EV/drawdown/tail metrics pass.
+  [ ] Incident/recovery/kill-switch drills pass.
+
+GATE C: LIMITED CAPITAL
+  [ ] Current SEBI/NSE/broker/data-license requirements reviewed and satisfied.
+  [ ] Explicit capital and loss limits approved.
+  [ ] Start at the smallest practical exposure.
+  [ ] Automatic and manual kill switches tested.
+  [ ] Daily reconciliation and review active.
+  [ ] No automatic scaling until another independent review.
+
+No promotion gate may contain the phrase "tests pass" without naming which tests,
+dataset, release, model, environment, and production evidence.
+
+
+======================================================================
+10. ACCEPTANCE METRICS TO DEFINE BEFORE RESEARCH IS RUN
+======================================================================
+
+Do not choose thresholds after looking at final results. Predeclare:
+
+DATA
+  freshness SLO
+  missing/correction tolerance
+  universe completion SLO
+  lineage/reproducibility requirement
+
+PREDICTION
+  target definition
+  calibration/Brier threshold
+  coverage/abstention
+  confidence interval
+  regime/sector stability
+
+TRADING
+  net expectancy
+  Sharpe/Sortino with uncertainty
+  maximum drawdown
+  expected shortfall
+  turnover
+  win/loss and payoff ratio
+  cost stress
+  capacity
+  margin utilization
+
+OPERATIONS
+  duplicate-action tolerance = zero
+  stale-data trades tolerance = zero
+  unresolved reconciliation tolerance
+  recovery time
+  missed schedule detection
+  model/data version traceability = 100%
+
+No universal numeric profit threshold is supplied here because selecting one
+without the account mandate, capital, risk tolerance, costs, and independent
+sample would create another arbitrary rule.
+
+
+======================================================================
+11. AUTHORITATIVE AND RESEARCH REFERENCES
+======================================================================
+
+MARKET DATA AND LICENSING
+  NSE paid real-time data, levels and authorized vendors:
+  https://www.nseindia.com/static/market-data/real-time-data-subscription
+
+  NSE data usage/sharing policy:
+  https://www.nseindia.com/static/market-data/nse-data-policy
+
+  NSE F&O reports:
+  https://www.nseindia.com/all-reports-derivatives
+
+  TradingView statement that it does not provide a data/indicator API:
+  https://www.tradingview.com/support/solutions/43000474413-i-need-access-to-your-api-in-order-to-get-data-or-indicator-values/
+
+  Yahoo Finance trading disclosure:
+  https://help.yahoo.com/kb/SLN37227.html
+
+FUNDAMENTALS AND FILINGS
+  NSE financial results:
+  https://www.nseindia.com/companies-listing/corporate-filings-financial-results
+
+  NSE XBRL information:
+  https://www.nseindia.com/static/companies-listing/xbrl-information
+
+  NSE paid corporate data:
+  https://www.nseindia.com/static/market-data/corporate-data-subscription
+
+SCHEDULING AND SHEETS
+  GitHub scheduled workflow delay/drop warning:
+  https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows
+
+  Google Apps Script quotas:
+  https://developers.google.com/apps-script/guides/services/quotas
+
+  Google Sheets limits:
+  https://support.google.com/drive/answer/37603?hl=en
+
+MODEL RISK AND BACKTEST VALIDATION
+  Federal Reserve model-risk guidance (conceptual soundness, effective challenge,
+  outcome analysis and ongoing monitoring):
+  https://www.federalreserve.gov/frrs/guidance/supervisory-guidance-on-model-risk-management.htm
+
+  White, A Reality Check for Data Snooping:
+  https://doi.org/10.1111/1468-0262.00152
+
+  Bailey et al., effects/probability of backtest overfitting:
+  https://papers.ssrn.com/sol3/papers.cfm?abstract_id=2308659
+
+  Lo, Mamaysky and Wang, Foundations of Technical Analysis:
+  https://doi.org/10.1111/0022-1082.00265
+
+  Technical trading, false discoveries and transaction costs:
+  https://doi.org/10.1016/j.jfineco.2012.06.001
+
+  VPIN critique:
+  https://doi.org/10.1016/j.finmar.2013.05.005
+
+  Black-76 futures option model:
+  https://doi.org/10.1016/0304-405X(76)90024-6
+
+REFERENCE ENGINES
+  NautilusTrader:
+  https://nautilustrader.io/docs/
+
+  LEAN futures contract documentation; historical INDIA futures are stated as
+  unavailable, requiring live brokerage/third-party/custom data:
+  https://www.quantconnect.com/docs/v2/writing-algorithms/securities/asset-classes/futures/requesting-data/individual-contracts
+
+  LEAN fill modeling:
+  https://www.quantconnect.com/docs/v2/writing-algorithms/reality-modeling/trade-fills/key-concepts
+
+REGULATION
+  SEBI safer participation of retail investors in algorithmic trading, extended
+  implementation timeline; framework applicable to brokers from 2026-04-01:
+  https://www.sebi.gov.in/legal/circulars/sep-2025/extension-of-timeline-for-implementation-of-sebi-circular-dated-february-04-2025-on-safer-participation-of-retail-investors-in-algorithmic-trading-_96979.html
+
+  NSE Decision Support Tools / Algorithms trading:
+  https://www.nseindia.com/static/trade/platform-services-non-neat-decision-support-tools-algorithm-trading
+
+
+======================================================================
+12. FINAL ANSWERS
+======================================================================
+
+IS EVERYTHING FIXED?
+  No.
+
+IS THE CURRENT DOSSIER'S "FULLY AUDITED & VERIFIED" CLAIM TRUE?
+  No. Multiple code paths, artifacts and production logs contradict it.
+
+IS THE SYSTEM PURE STOCK FUTURES?
+  No. It mixes cash labels/execution assumptions, STF/IDF, and an index-option
+  fallback.
+
+IS GOOGLE SHEETS STORING EVERY RAW OBSERVATION AND DOING ALL CALCULATIONS?
+  No. Core calculations run in Node. K2_STATE stores compressed latest documents;
+  append tabs store selected rows; google-archive does not actually append raw
+  OHLCV rows.
+
+WAS THE LIVE GOOGLE SHEET ITSELF FULLY READ?
+  No. No read-only link/export/connector was provided. Local Apps Script and
+  production call results were audited. Live cell-level verification remains an
+  explicit evidence requirement.
+
+IS THERE ADVANCED ML?
+  There is a pooled boosted-tree artifact and several hand-built scores.
+
+IS THERE ADVANCED DEEP LEARNING?
+  No validated production deep-learning model was found.
+
+ARE THE QUANT NAMES PROOF OF INSTITUTIONAL QUALITY?
+  No. Some are approximations, manually parameterized, unused, or mismatched to
+  the data and instrument.
+
+WHAT IS THE REAL TRADING ACCURACY?
+  Unknown. The reported 52.7% top-decile positive-return rate and 35.6% rate of
+  clearing 2% are cash-return research statistics, not realized futures-strategy
+  win rate.
+
+WHAT WILL MOST IMPROVE ACCURACY?
+  1. Licensed point-in-time data.
+  2. Exact futures contracts and executable labels.
+  3. One realistic research/live execution engine.
+  4. Leakage-free validation and multiple-test control.
+  5. Calibrated uncertainty and abstention.
+  6. Portfolio risk and live reconciliation.
+  7. Only then, additional technical/ML/DL features.
+
+CAN ANY SYSTEM GUARANTEE PROFITS OR PERFECT ACCURACY?
+  No. The correct goal is a measured, reproducible, net-positive edge with known
+  uncertainty, limited losses, operational controls, and automatic abstention
+  when evidence or data is insufficient.
+
+
+======================================================================
+END OF INDEPENDENT RE-AUDIT DOSSIER
+======================================================================

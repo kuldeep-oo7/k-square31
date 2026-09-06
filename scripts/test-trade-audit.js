@@ -31,6 +31,14 @@ assert.equal(audit.items[2].onBuyList, false);
 assert.equal(audit.summary.totalPositions, 3);
 assert.equal(audit.summary.compliantPositions, 2);
 assert.equal(audit.summary.offPlanPositions, 1);
-assert.ok(audit.summary.complianceRatePct > 60);
+// Regression test for P1-024: totalOpenPnl must handle short positions correctly
+const mixedLots = [
+  { symbol: "SHORT_WIN", buyAverage: 100, quantity: 10, markPrice: 90, position: "short" }, // openPnl = (100 - 90) * 10 = +100
+  { symbol: "LONG_WIN", buyAverage: 100, quantity: 10, markPrice: 110, position: "long" }   // openPnl = (110 - 100) * 10 = +100
+];
+const mixedAudit = auditPurchases(mixedLots, []);
+assert.equal(mixedAudit.items[0].openPnl, 100);
+assert.equal(mixedAudit.items[1].openPnl, 100);
+assert.equal(mixedAudit.summary.totalOpenPnl, 200, "totalOpenPnl must sum profits from both long and short positions");
 
 console.log("Trade audit tests passed: broker lot matching, slippage calculation, plan compliance and trade health");

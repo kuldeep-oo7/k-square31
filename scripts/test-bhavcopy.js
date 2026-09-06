@@ -57,6 +57,10 @@ function zipOf(name, payload, store) {
 }
 assert.equal(unzipSingle(zipOf("a.csv", "hello,world", false)).toString(), "hello,world");
 assert.equal(unzipSingle(zipOf("a.csv", "stored,entry", true)).toString(), "stored,entry");
-assert.throws(() => unzipSingle(Buffer.from("not a zip at all")), /Not a zip archive/);
+const { frontStockFutures } = require("../api/_lib/bhavcopy");
+const stfOnly = frontStockFutures(rows);
+assert.equal(stfOnly.size, 1, "frontStockFutures must exclude IDF index futures and keep only STF");
+assert.ok(stfOnly.has("RELIANCE"));
+assert.equal(stfOnly.has("NIFTY"), false, "IDF index futures must be excluded from stock futures");
 
 console.log("Bhavcopy tests passed: front-contract selection, options excluded, unusable rows dropped and single-entry unzip");

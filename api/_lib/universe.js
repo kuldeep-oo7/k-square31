@@ -3,7 +3,7 @@ const path = require("node:path");
 
 let cached = null;
 let cachedMetadata = null;
-const SHARD_COUNT = 50;
+const SHARD_COUNT = 10;
 const LEGACY_SHARDS = 10;
 
 function readLegacyUniverse() {
@@ -40,7 +40,7 @@ function universe() {
       sector: item.sector || previous?.sector || "Other",
       marketCapCategory: item.marketCapCategory || previous?.marketCapCategory || "Unclassified",
       universeSource: official.name,
-      shard: previous ? previous.legacyIndex % LEGACY_SHARDS : LEGACY_SHARDS + (shardHash(item.symbol) % (SHARD_COUNT - LEGACY_SHARDS))
+      shard: previous ? previous.legacyIndex % SHARD_COUNT : shardHash(item.symbol) % SHARD_COUNT
     };
   });
   const continuity = legacy.filter((item) => !officialSymbols.has(item.symbol)).map((item) => ({
@@ -48,7 +48,7 @@ function universe() {
     sector: item.sector,
     marketCapCategory: item.marketCapCategory,
     universeSource: "Original watchlist continuity",
-    shard: item.legacyIndex % LEGACY_SHARDS
+    shard: item.legacyIndex % SHARD_COUNT
   }));
   cached = [...broad, ...continuity];
   cachedMetadata = {

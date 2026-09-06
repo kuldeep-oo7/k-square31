@@ -70,7 +70,8 @@ function auditPurchases(lots = [], recommendations = []) {
 
   const totalCost = audited.reduce((sum, item) => sum + item.investedCost, 0);
   const totalVal = audited.reduce((sum, item) => sum + item.currentMarketValue, 0);
-  const totalPnl = totalVal - totalCost;
+  // P1-024: Accurately sum per-position openPnl (handles both long and short positions)
+  const totalPnl = audited.reduce((sum, item) => sum + item.openPnl, 0);
   const compliantTrades = audited.filter((item) => item.onBuyList).length;
   const complianceRatePct = audited.length ? (compliantTrades / audited.length) * 100 : 0;
 
@@ -93,5 +94,6 @@ function auditPurchases(lots = [], recommendations = []) {
 
 module.exports = {
   auditPurchases,
+  compareFillToPlan: auditPurchases,
   round
 };

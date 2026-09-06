@@ -52,6 +52,9 @@ jobs:
           ACTIONS_ALLOW_USE_UNSECURE_NODE_VERSION: "true"
       - run: npm ci
 
+      - name: Run test suite & quantitative integrity check
+        run: npm run check
+
       - name: Open the site repository
         env:
           DEPLOY_KEY: ${{ secrets.K2_PORTAL_DEPLOY_KEY }}
@@ -95,10 +98,6 @@ jobs:
       - name: Refuse to publish a leaking build
         run: node scripts/verify-portal.js site/index.html gm-positions.json
 
-      - name: Report a failed broker read
-        if: ${{ steps.book.outcome == 'failure' }}
-        run: echo "::warning::GM could not be read this run; keeping the previously published book and refreshing only the plan."
-
       - name: Publish
         run: |
           cp site/index.html publish/index.html
@@ -114,6 +113,7 @@ jobs:
           git push origin main
 
       - name: Dispatch daily trade & defense email alert
+        if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '45 2 * * 1-5' || github.event.schedule == '15 10 * * 1-5' }}
         env:
           K2_EMAIL_WEBHOOK_URL: ${{ secrets.K2_EMAIL_WEBHOOK_URL }}
           K2_GOOGLE_SHEETS_WEB_APP_URL: ${{ secrets.K2_GOOGLE_SHEETS_WEB_APP_URL }}

@@ -43,15 +43,40 @@ async function fetchChart(rawSymbol, options = {}) {
  * - GIFT Nifty 50 Futures from TradingView official scanner (NSEIX:NIFTY1!)
  * - India VIX, Brent Crude, US S&P Futures, US Nasdaq Futures from Yahoo Finance
  */
+function createMacroEnvelope(provider, providerSymbol, data = null, error = null) {
+  const isLive = data && Number.isFinite(data.price);
+  return {
+    price: isLive ? Number(data.price) : null,
+    changePct: isLive ? Number(data.changePct || 0) : null,
+    changeAbs: isLive && Number.isFinite(data.changeAbs) ? Number(data.changeAbs) : null,
+    provider,
+    providerSymbol,
+    freshnessStatus: isLive ? "LIVE" : "UNAVAILABLE",
+    qualityStatus: isLive ? "VALID" : "MISSING",
+    fallbackUsed: false,
+    receivedAt: isLive ? new Date().toISOString() : null,
+    error: error ? String(error) : null
+  };
+}
+
+/**
+ * Fetches verified real-time macro drivers for the Indian market:
+ * - GIFT Nifty 50 Futures from TradingView official scanner (NSEIX:NIFTY1!)
+ * - India VIX, Brent Crude, US S&P Futures, US Nasdaq Futures from Yahoo Finance
+ *
+ * NOTE: Returns null / UNAVAILABLE when network or provider fails.
+ * NEVER fabricates plausible synthetic prices.
+ */
 async function fetchLiveMacroRadar() {
   const radar = {
-    giftNifty: { price: 24050, changePct: 0.15, changeAbs: 35 },
-    indiaVix: { price: 11.5, changePct: 0.0 },
-    brentCrude: { price: 95.0, changePct: 0.5 },
-    sp500Futures: { price: 7750, changePct: 0.8 },
-    nasdaqFutures: { price: 29500, changePct: 1.0 },
-    usdInr: { price: 94.4, changePct: 0.0 },
-    updatedAt: new Date().toISOString()
+    giftNifty: createMacroEnvelope("TradingView", "NSEIX:NIFTY1!"),
+    indiaVix: createMacroEnvelope("YahooFinance", "^INDIAVIX"),
+    brentCrude: createMacroEnvelope("YahooFinance", "BZ=F"),
+    sp500Futures: createMacroEnvelope("YahooFinance", "ES=F"),
+    nasdaqFutures: createMacroEnvelope("YahooFinance", "NQ=F"),
+    usdInr: createMacroEnvelope("YahooFinance", "INR=X"),
+    updatedAt: new Date().toISOString(),
+    qualitySummary: "INITIALIZING"
   };
 
   // 1. Live GIFT Nifty from TradingView Scanner
@@ -61,15 +86,17 @@ async function fetchLiveMacroRadar() {
     if (res.ok) {
       const d = await res.json();
       if (Number.isFinite(d.close)) {
-        radar.giftNifty = {
+        radar.giftNifty = createMacroEnvelope("TradingView", "NSEIX:NIFTY1!", {
           price: Number(d.close),
           changePct: Number(d.change || 0),
           changeAbs: Number(d.change_abs || 0)
-        };
+        });
       }
+    } else {
+      radar.giftNifty.error = `TradingView returned status ${res.status}`;
     }
   } catch (e) {
-    console.warn("GIFT Nifty TV fetch warning:", e.message);
+    radar.giftNifty.error = e.message;
   }
 
   // 2. Live global correlation assets from Yahoo Finance
@@ -77,25 +104,28 @@ async function fetchLiveMacroRadar() {
     try {
       const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(ticker)}?range=5d&interval=1d`;
       const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(6000) });
-      if (!res.ok) return null;
+      if (!res.ok) return { data: null, error: `HTTP ${res.status}` };
       const d = await res.json();
       const quote = d.chart?.result?.[0]?.indicators?.quote?.[0];
-      if (!quote || !quote.close) return null;
+      if (!quote || !quote.close) return { data: null, error: "Empty quote indicator" };
       const closes = quote.close.filter(Number.isFinite);
-      if (closes.length < 2) return null;
+      if (closes.length < 2) return { data: null, error: "Insufficient closes" };
       const last = closes.at(-1);
       const prev = closes.at(-2);
       return {
-        price: Number(last),
-        changePct: Number(((last - prev) / prev) * 100)
+        data: {
+          price: Number(last),
+          changePct: Number(((last - prev) / prev) * 100)
+        },
+        error: null
       };
-    } catch {
-      return null;
+    } catch (err) {
+      return { data: null, error: err.message };
     }
   }
 
   try {
-    const [vix, brent, sp500, nq, inr] = await Promise.all([
+    const [vixRes, brentRes, sp500Res, nqRes, inrRes] = await Promise.all([
       fetchYahooQuote("^INDIAVIX"),
       fetchYahooQuote("BZ=F"),
       fetchYahooQuote("ES=F"),
@@ -103,14 +133,21 @@ async function fetchLiveMacroRadar() {
       fetchYahooQuote("INR=X")
     ]);
 
-    if (vix) radar.indiaVix = vix;
-    if (brent) radar.brentCrude = brent;
-    if (sp500) radar.sp500Futures = sp500;
-    if (nq) radar.nasdaqFutures = nq;
-    if (inr) radar.usdInr = inr;
+    radar.indiaVix = createMacroEnvelope("YahooFinance", "^INDIAVIX", vixRes.data, vixRes.error);
+    radar.brentCrude = createMacroEnvelope("YahooFinance", "BZ=F", brentRes.data, brentRes.error);
+    radar.sp500Futures = createMacroEnvelope("YahooFinance", "ES=F", sp500Res.data, sp500Res.error);
+    radar.nasdaqFutures = createMacroEnvelope("YahooFinance", "NQ=F", nqRes.data, nqRes.error);
+    radar.usdInr = createMacroEnvelope("YahooFinance", "INR=X", inrRes.data, inrRes.error);
   } catch (e) {
     console.warn("Global assets fetch warning:", e.message);
   }
+
+  const liveCount = [
+    radar.giftNifty, radar.indiaVix, radar.brentCrude,
+    radar.sp500Futures, radar.nasdaqFutures, radar.usdInr
+  ].filter(item => item.freshnessStatus === "LIVE").length;
+
+  radar.qualitySummary = liveCount >= 4 ? "LIVE_VERIFIED" : liveCount > 0 ? "PARTIAL_DEGRADED" : "DATA_UNAVAILABLE";
 
   return radar;
 }

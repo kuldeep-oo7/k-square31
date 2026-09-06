@@ -17,6 +17,7 @@ const zlib = require("node:zlib");
 const ARCHIVE = "https://nsearchives.nseindia.com/content/fo";
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 const FUTURES = new Set(["STF", "IDF"]);
+const STOCK_FUTURES = new Set(["STF"]);
 
 function stamp(date) {
   return `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, "0")}${String(date.getUTCDate()).padStart(2, "0")}`;
@@ -80,10 +81,11 @@ async function latestBhavcopy(from = new Date(), maxLookback = 7) {
 }
 
 // One entry per symbol, using the front contract — the one this desk trades.
-function frontFutures(rows) {
+function frontFutures(rows, options = {}) {
+  const allowed = options.stockOnly ? STOCK_FUTURES : FUTURES;
   const bySymbol = new Map();
   for (const row of rows) {
-    if (!FUTURES.has(row.FinInstrmTp)) continue;
+    if (!allowed.has(row.FinInstrmTp)) continue;
     const close = Number(row.ClsPric);
     const spot = Number(row.UndrlygPric);
     const symbol = String(row.TckrSymb || "").toUpperCase();
@@ -103,7 +105,11 @@ function frontFutures(rows) {
       openInterest: Number(row.OpnIntrst) || 0,
       volume: Number(row.TtlTradgVol) || 0,
       lotSize: Number(row.NewBrdLotQty) || null,
-      instrument: row.FinInstrmTp
+      instrument: row.FinInstrmTp,
+      segment: "NSE_FO",
+      instrumentType: row.FinInstrmTp === "STF" ? "STOCK_FUTURE" : "INDEX_FUTURE",
+      finInstrmTp: row.FinInstrmTp,
+      tickSize: 0.05
     };
     const existing = bySymbol.get(symbol);
     if (!existing || entry.expiry < existing.expiry) bySymbol.set(symbol, entry);
@@ -111,4 +117,15 @@ function frontFutures(rows) {
   return bySymbol;
 }
 
-module.exports = { fetchBhavcopy, frontFutures, latestBhavcopy, parseCsv, unzipSingle };
+function frontStockFutures(rows) {
+  return frontFutures(rows, { stockOnly: true });
+}
+
+module.exports = {
+  fetchBhavcopy,
+  frontFutures,
+  frontStockFutures,
+  latestBhavcopy,
+  parseCsv,
+  unzipSingle
+};

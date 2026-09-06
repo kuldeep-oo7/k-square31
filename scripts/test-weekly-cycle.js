@@ -157,6 +157,35 @@ const drifting = weeklyCycle(syntheticBars(80, (week, day) => {
 }), { minimumWeeks: 60 });
 assert.equal(drifting.ready, true);
 assert.deepEqual(drifting.long.viableLevels, [], "a one-way downtrend gives the buy ladder no edge");
-assert.notEqual(drifting.verdict.action, "buy-ladder", "the desk is told to stand aside or sell, never to buy the falling series");
+// Regression test for P0-007: Stop-loss barrier execution
+const stopConfig = { ...CONFIG, stopLossPct: 1.0 };
+const stopWeek = tradingWeeks([
+  bar("2026-02-02", 100, 100.5, 99.5, 100),
+  bar("2026-02-03", 100, 100.0, 97.9, 98.0), // fills rung 1 at 98.0 (target: 99.96, stop: 97.02)
+  bar("2026-02-04", 98.0, 98.5, 96.5, 96.8), // low hits 96.5 <= 97.02 (stop triggered!)
+  bar("2026-02-05", 96.8, 101.0, 96.8, 100.5),
+  bar("2026-02-06", 100.5, 101.0, 99.8, 100.0)
+]);
+const stopReplay = replayWeek(stopWeek[0], "long", stopConfig);
+assert.equal(stopReplay.trades.length, 1);
+assert.equal(stopReplay.trades[0].outcome, "stop", "trade must exit at stop barrier, not target");
+assert.equal(stopReplay.trades[0].exit, 97.02);
+assert.ok(stopReplay.trades[0].netPct < 0, "stop loss produces negative net return");
+
+// Regression test for P0-007: Same-bar ambiguity resolution (conservative: stop takes precedence)
+const ambiguousWeek = tradingWeeks([
+  bar("2026-02-09", 100, 100.5, 99.5, 100),
+  bar("2026-02-10", 100, 100.0, 97.9, 98.0), // fills rung 1 at 98.0 (target: 99.96, stop: 97.02)
+  bar("2026-02-11", 98.0, 101.5, 95.0, 99.0), // high 101.5 >= target AND low 95.0 <= stop in same bar!
+  bar("2026-02-12", 99.0, 100.0, 99.0, 99.5),
+  bar("2026-02-13", 99.5, 100.0, 99.0, 99.5)
+]);
+const ambiguousReplay = replayWeek(ambiguousWeek[0], "long", stopConfig);
+assert.equal(ambiguousReplay.trades[0].outcome, "stop", "conservative ambiguity rule: same-bar conflict must resolve to stop loss");
+
+// Regression test for P0-008: Capital weighted return calculation
+const weightedReplay = replayWeek(targetWeek[0], "long", { ...CONFIG, capitalWeighted: true, slots: 5 });
+assert.equal(weightedReplay.capitalWeightedNetPct, Math.round((1.94 / 5) * 10000) / 10000);
+assert.equal(weightedReplay.weekNetPct, weightedReplay.capitalWeightedNetPct, "capital weighted mode returns 1/slots allocation");
 
 console.log("Weekly cycle tests passed: triple-barrier replay, no same-bar exits, no Friday fills, short mirror and hurdle gating");

@@ -84,6 +84,62 @@ function convictionOf({ cycle, model, technical, fundamentals, trend, carry, sid
   return { convictionPct: round(components.reduce((sum, item) => sum + Number(item.contribution), 0)), components };
 }
 
+function enforceHardVetoes({ symbol, metaGate, vpinData, evidence = {} }) {
+  if (metaGate?.decision === "VETO" || (metaGate?.metaMultiplier !== undefined && metaGate.metaMultiplier <= 0)) {
+    const vetoReason = `Meta-Labeling VETO: Low win probability (${metaGate?.metaProb ?? 0}) or high flow toxicity (VPIN: ${vpinData?.vpin ?? 0})`;
+    if (!evidence.vetoes) evidence.vetoes = [];
+    if (!evidence.vetoes.includes(vetoReason)) evidence.vetoes.push(vetoReason);
+    return standAside(symbol, vetoReason, evidence);
+  }
+  return null;
+}
+
+function buildOrderIntent({ symbol, side, entry, target, runnerTarget, stopLoss, sizeMultiplier, riskReward, contract, targetPct, stopLossPct }) {
+  const TICK_SIZE = 0.05;
+  const entryTick = round(Math.round(entry / TICK_SIZE) * TICK_SIZE, 2);
+  const targetTick = round(Math.round(target / TICK_SIZE) * TICK_SIZE, 2);
+  const runnerTargetTick = runnerTarget ? round(Math.round(runnerTarget / TICK_SIZE) * TICK_SIZE, 2) : null;
+  const stopLossTick = round(Math.round(stopLoss / TICK_SIZE) * TICK_SIZE, 2);
+
+  const lotSize = Number(contract?.lotSize) || 1;
+  const expiry = contract?.expiry || null;
+  const contractSymbol = expiry ? `${symbol}-${expiry}-FUT` : `${symbol}-FUT`;
+
+  // Risk budget modeling for NSE F&O: ₹25,000 baseline risk per setup scaled by sizeMultiplier
+  const BASE_RISK_BUDGET = 25000;
+  const riskPerShare = Math.max(0.05, Math.abs(entryTick - stopLossTick));
+  const riskPerLot = riskPerShare * lotSize;
+  const targetLots = Math.max(1, Math.floor((BASE_RISK_BUDGET * (sizeMultiplier || 1.0)) / Math.max(1, riskPerLot)));
+  const quantity = targetLots * lotSize;
+  const notional = round(quantity * entryTick, 2);
+  const estMarginRequired = round(notional * 0.22, 2); // ~22% SPAN + Exposure margin
+  const maxRiskInr = round(riskPerShare * quantity, 2);
+
+  return {
+    contractSymbol,
+    segment: "NSE_FO",
+    instrumentType: "STOCK_FUTURE",
+    finInstrmTp: "STF",
+    expiry,
+    lotSize,
+    lots: targetLots,
+    quantity,
+    tickSize: TICK_SIZE,
+    entryPrice: entryTick,
+    targetPrice: targetTick,
+    runnerTargetPrice: runnerTargetTick,
+    stopLossPrice: stopLossTick,
+    riskReward,
+    targetPct,
+    stopLossPct,
+    contractNotional: notional,
+    estMarginRequired,
+    maxRiskInr,
+    orderType: "LIMIT",
+    timeInForce: "DAY"
+  };
+}
+
 // A name admitted on expected move rather than on ladder history. It carries no
 // measured rung statistics, because none passed — so it is labelled differently
 // and sized more cautiously.
@@ -127,9 +183,37 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
     vpin: vpinData.vpin,
     isUptrend: metrics?.isUptrendStructure
   });
+
+  // Strict Hard Veto Gate for Potential Route (P0-001):
+  const hardVeto = enforceHardVetoes({
+    symbol,
+    metaGate,
+    vpinData,
+    evidence: { cycle, upside: potential, trend, vetoes }
+  });
+  if (hardVeto) return hardVeto;
+
   const kelly = calculateKellyFraction({
     winRate: Math.max(0.40, convictionPct / 100),
     rewardToRiskRatio: riskReward
+  });
+
+  const finalSizeMultiplier = metaGate.metaMultiplier > 0
+    ? round(clamp((0.25 + 0.5 * clamp(convictionPct / 70)) * Math.min(1.0, metaGate.metaMultiplier), 0.10, 0.75), 3)
+    : 0;
+
+  const orderIntent = buildOrderIntent({
+    symbol,
+    side,
+    entry: entryPrice,
+    target: targetPrice,
+    runnerTarget: runnerTargetPrice,
+    stopLoss: stopLossPrice,
+    sizeMultiplier: finalSizeMultiplier,
+    riskReward,
+    contract: input.contract,
+    targetPct,
+    stopLossPct
   });
 
   return {
@@ -156,13 +240,14 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
       hitRatePct: null,
       hitRateLowerPct: null,
       averageNetPct: null,
-      medianSessionsHeld: null
+      medianSessionsHeld: null,
+      orderIntent
     }],
     convictionPct,
     expectedWeeklyPct: round(potential.expectedMovePct, 3),
     expectedFromPricePct: round(potential.expectedMovePct, 3),
     expectedFromCarryPct: round(Number(potential.components?.find((item) => item.name === "Carry")?.expectedPct) || 0, 3),
-    sizeMultiplier: round(clamp((0.25 + 0.5 * clamp(convictionPct / 70)) * Math.min(1.0, metaGate.metaMultiplier), 0.10, 0.75), 3),
+    sizeMultiplier: finalSizeMultiplier,
     advancedQuant: {
       hurst,
       er,
@@ -303,7 +388,7 @@ function recommendation(input) {
 
   let adjustedConviction = convictionPct;
   let patternReason = null;
-  if (patternScan.detected && patternScan.primaryPattern) {
+  if (patternScan.detected && patternScan.primaryPattern && patternScan.primaryPattern.confirmed === true) {
     const isAligned = (side === "long" && patternScan.primaryPattern.bias === "BULLISH") ||
                       (side === "short" && patternScan.primaryPattern.bias === "BEARISH");
     if (isAligned) {
@@ -326,17 +411,36 @@ function recommendation(input) {
   });
 
   // Hard Veto Gate: A rejected meta-label setup must NEVER pass through with capital
-  if (metaGate.decision === "VETO" || metaGate.metaMultiplier <= 0) {
-    const vetoReason = `Meta-Labeling VETO: Low win probability (${metaGate.metaProb || 0}) or high flow toxicity (VPIN: ${vpinData.vpin})`;
-    evidence.vetoes.push(vetoReason);
-    return standAside(symbol, vetoReason, evidence);
-  }
+  const hardVeto = enforceHardVetoes({
+    symbol,
+    metaGate,
+    vpinData,
+    evidence
+  });
+  if (hardVeto) return hardVeto;
 
   // Base sizing scaled strictly by conviction and meta-labeling multiplier
   const baseSize = 0.25 + 0.75 * clamp(adjustedConviction / 70);
   const finalSizeMultiplier = metaGate.metaMultiplier > 0
     ? round(clamp(baseSize * metaGate.metaMultiplier, 0.10, 1.0), 3)
     : 0;
+
+  const entriesWithIntent = entries.map((entry) => ({
+    ...entry,
+    orderIntent: buildOrderIntent({
+      symbol,
+      side,
+      entry: entry.entry,
+      target: entry.target,
+      runnerTarget: entry.runnerTarget,
+      stopLoss: entry.stopLoss,
+      sizeMultiplier: finalSizeMultiplier,
+      riskReward,
+      contract: input.contract,
+      targetPct,
+      stopLossPct
+    })
+  }));
 
   return {
     symbol,
@@ -346,7 +450,7 @@ function recommendation(input) {
     anchor: round(anchorInfo.anchor),
     sessionsElapsed: anchorInfo.sessionsElapsed,
     levels: verdict.levels,
-    entries,
+    entries: entriesWithIntent,
     convictionPct: adjustedConviction,
     expectedWeeklyPct,
     expectedFromPricePct: round(priceExpectation, 3),
@@ -407,4 +511,13 @@ function rankRecommendations(list, options = {}) {
   };
 }
 
-module.exports = { convictionOf, currentAnchor, rankRecommendations, recommendation };
+module.exports = {
+  buildOrderIntent,
+  convictionOf,
+  currentAnchor,
+  enforceHardVetoes,
+  evaluateTradeSuitability: recommendation,
+  rankRecommendations,
+  recommendation,
+  standAside
+};

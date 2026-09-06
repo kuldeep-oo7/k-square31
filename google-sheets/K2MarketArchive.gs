@@ -23,11 +23,20 @@ function setupK2Archive() {
   }
   getStateSheet_(spreadsheet);
   console.log('K2_SPREADSHEET_ID=' + spreadsheet.getId());
-  console.log('K2_GOOGLE_SHEETS_ARCHIVE_SECRET=' + properties.getProperty('K2_ARCHIVE_SECRET'));
+  // P1-026: Shared secret is stored safely in ScriptProperties and must never be dumped to logs.
 }
 
 function doGet() {
-  return json_({ ok: true, service: 'K2 Google Sheets database', writable: true });
+  return json_({
+    ok: true,
+    service: 'K2 Google Sheets database',
+    version: '2026.09.06',
+    capabilities: [
+      'readDocuments', 'writeDocument', 'appendTradeSignals',
+      'appendPortfolioAudit', 'appendMacroRadar', 'appendStockFundamentals'
+    ],
+    writable: true
+  });
 }
 
 function doPost(event) {

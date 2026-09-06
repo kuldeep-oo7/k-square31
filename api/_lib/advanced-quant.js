@@ -45,14 +45,32 @@ function blackScholesMerton({ spot, strike, timeToExpiryYears, riskFreeRate = 0.
   const S = Number(spot);
   const K = Number(strike);
   const rawT = Number(timeToExpiryYears);
-  const T = Number.isFinite(rawT) && rawT > 0 ? Math.max(0.0001, rawT) : 0.0833; // default ~30 days
   const r = Number.isFinite(Number(riskFreeRate)) ? Number(riskFreeRate) : 0.065;
   const rawVol = Number(volatility);
-  const sigma = Number.isFinite(rawVol) && rawVol > 0 ? Math.max(0.01, rawVol) : 0.25;
 
   if (!Number.isFinite(S) || !Number.isFinite(K) || S <= 0 || K <= 0) {
-    return { price: 0, delta: 0, gamma: 0, vega: 0, theta: 0, rho: 0, iv: sigma };
+    return { price: 0, delta: 0, gamma: 0, vega: 0, theta: 0, rho: 0, iv: 0 };
   }
+
+  // P1-014: Boundary gating at expiry (T <= 0): Option value collapses strictly to intrinsic value
+  if (!Number.isFinite(rawT) || rawT <= 0) {
+    const intrinsic = isCall ? Math.max(0, S - K) : Math.max(0, K - S);
+    const delta = isCall ? (S > K ? 1.0 : 0.0) : (S < K ? -1.0 : 0.0);
+    return {
+      price: Number(intrinsic.toFixed(2)),
+      delta,
+      gamma: 0,
+      vega: 0,
+      theta: 0,
+      rho: 0,
+      d1: 0,
+      d2: 0,
+      iv: Number.isFinite(rawVol) ? rawVol : 0
+    };
+  }
+
+  const T = Math.max(0.0001, rawT);
+  const sigma = Number.isFinite(rawVol) && rawVol > 0 ? rawVol : 0.20;
 
   const sqrtT = Math.sqrt(T);
   const d1 = (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * sqrtT);
@@ -203,7 +221,10 @@ function calculateAnchoredVwap(bars, anchorDateStr = null) {
 
   let filteredBars = bars;
   if (anchorDateStr) {
-    const startIndex = bars.findIndex(b => b.date >= anchorDateStr);
+    const startIndex = bars.findIndex(b => {
+      const bDate = b.date || b.session || (b.timestamp ? new Date(b.timestamp * 1000).toISOString().slice(0, 10) : null);
+      return bDate && bDate >= anchorDateStr;
+    });
     if (startIndex >= 0) filteredBars = bars.slice(startIndex);
   }
 
@@ -211,13 +232,18 @@ function calculateAnchoredVwap(bars, anchorDateStr = null) {
   let cumulativeVol = 0;
 
   for (const bar of filteredBars) {
-    const typicalPrice = ((bar.high || bar.close) + (bar.low || bar.close) + bar.close) / 3.0;
-    const vol = Number(bar.volume) || 1;
-    cumulativePv += typicalPrice * vol;
-    cumulativeVol += vol;
+    const typicalPrice = ((Number(bar.high) || Number(bar.close)) + (Number(bar.low) || Number(bar.close)) + Number(bar.close)) / 3.0;
+    const vol = Number(bar.volume);
+    if (Number.isFinite(vol) && vol > 0) {
+      cumulativePv += typicalPrice * vol;
+      cumulativeVol += vol;
+    }
   }
 
-  if (cumulativeVol <= 0) return null;
+  if (cumulativeVol <= 0) {
+    const sumTp = filteredBars.reduce((sum, b) => sum + (((Number(b.high) || Number(b.close)) + (Number(b.low) || Number(b.close)) + Number(b.close)) / 3.0), 0);
+    return filteredBars.length ? Number((sumTp / filteredBars.length).toFixed(2)) : null;
+  }
   return Number((cumulativePv / cumulativeVol).toFixed(2));
 }
 
@@ -252,7 +278,8 @@ function calculateKellyFraction({ winRate, rewardToRiskRatio, fractionMultiplier
   if (fullKelly <= 0) return 0.0;
 
   const safeKelly = fullKelly * fractionMultiplier;
-  return Number(Math.max(0.05, Math.min(0.35, safeKelly)).toFixed(3));
+  // P1-013: Do not artificially floor to 0.05 if actual safe Kelly fraction is lower
+  return Number(Math.max(0.0, Math.min(0.35, safeKelly)).toFixed(3));
 }
 
 /**

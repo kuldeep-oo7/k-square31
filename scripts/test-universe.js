@@ -3,7 +3,7 @@ const { SHARD_COUNT, shardUniverse, symbolShard, universe, universeMetadata } = 
 
 const items = universe();
 const metadata = universeMetadata();
-assert.equal(SHARD_COUNT, 50);
+assert.equal(SHARD_COUNT, 10);
 assert.equal(metadata.officialStocks, 500);
 assert.equal(metadata.continuityStocks, 2);
 assert.equal(items.length, 502);
@@ -14,9 +14,8 @@ assert.equal(new Set(items.map((item) => item.symbol)).size, items.length);
 assert.equal(items.filter((item) => item.shard < 0 || item.shard >= SHARD_COUNT).length, 0);
 assert.equal(Array.from({ length: SHARD_COUNT }, (_, shard) => shardUniverse(shard).length).reduce((sum, value) => sum + value, 0), items.length);
 
-// Existing workbook symbols keep their original ten-shard placement, preserving
-// paper positions while the new broad-market symbols use shards 10–49.
+// 100% of the universe is covered across the 10 scheduled Vercel crons (shards 0-9)
 assert.equal(symbolShard("ICICIGI"), 0);
-assert.ok(symbolShard("360ONE") >= 10);
+assert.ok(symbolShard("360ONE") >= 0 && symbolShard("360ONE") < 10);
 
 console.log(`Broad AI universe tests passed: ${items.length} stocks across ${SHARD_COUNT} shards`);

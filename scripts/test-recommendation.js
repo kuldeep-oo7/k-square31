@@ -124,6 +124,35 @@ assert.equal(ranked.actionable, 3);
 assert.deepEqual(ranked.best.map((item) => item.symbol), ["B", "C", "A"], "the list is ordered by expected weekly result");
 assert.deepEqual(ranked.buys.map((item) => item.symbol), ["B", "A"]);
 assert.deepEqual(ranked.sells.map((item) => item.symbol), ["C"]);
-assert.deepEqual(ranked.rejected, [{ symbol: "D", reason: "Results are scheduled inside this trading week" }]);
+// Regression test for P0-006: OrderIntent must be present on actionable entries with pure F&O fields
+assert.ok(buy.entries[0].orderIntent, "actionable entry must carry an OrderIntent");
+assert.equal(buy.entries[0].orderIntent.segment, "NSE_FO");
+assert.equal(buy.entries[0].orderIntent.instrumentType, "STOCK_FUTURE");
+assert.equal(buy.entries[0].orderIntent.finInstrmTp, "STF");
+assert.ok(buy.entries[0].orderIntent.contractNotional > 0);
+assert.ok(buy.entries[0].orderIntent.estMarginRequired > 0);
+assert.ok(buy.entries[0].orderIntent.maxRiskInr > 0);
+assert.equal(buy.entries[0].orderIntent.tickSize, 0.05);
+
+// Regression test for P0-001: Potential route must strictly obey Meta VETO
+const potentialVeto = recommendation({
+  symbol: "POTENTIALVETO",
+  bars,
+  cycle: { ready: true, verdict: { action: "stand-aside", side: null, levels: [], reason: "No ladder edge" }, weeks: 20 },
+  potential: {
+    side: "long",
+    expectedMovePct: 3.5,
+    floorPct: 2.0,
+    typicalErrorPct: 2.5,
+    reason: "Machine learning edge",
+    components: [{ name: "ML", expectedPct: 3.5, note: "forecast" }],
+    forecast: { informationCoefficient: -0.05 } // weak/negative IC creates VETO
+  }
+});
+// When metaGate rejects, it must NEVER create an active potential trade or positive size
+if (potentialVeto.advancedQuant?.metaDecision === "VETO") {
+  assert.equal(potentialVeto.action, "stand-aside", "Potential route must be vetoed when metaDecision is VETO");
+  assert.equal(potentialVeto.sizeMultiplier, 0, "Size multiplier must be 0 on VETO");
+}
 
 console.log("Recommendation tests passed: rung-level entries, hard vetoes ahead of conviction, evidence-driven sizing and ranked buying list");

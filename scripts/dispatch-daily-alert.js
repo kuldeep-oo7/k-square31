@@ -7,8 +7,15 @@ const { evaluateGlobalMacroShock } = require("../api/_lib/market-regime");
 const { googleStoreConfigured, appendPortfolioAuditToGoogle, appendMacroRadarToGoogle } = require("../api/_lib/google-store");
 const { fetchLiveMacroRadar } = require("../api/_lib/market-feed");
 
+function getDedupePaths() {
+  return [
+    path.resolve(__dirname, "../data/last-email-dispatch.json"),
+    path.resolve(__dirname, "../publish/last-email-dispatch.json")
+  ];
+}
+
 /**
- * Checks if current time is within trading window and handles deduplication.
+ * Checks if current time is within trading window and handles persistent deduplication.
  */
 function checkDeduplication(force = false) {
   if (force) return { allow: true, reason: "Forced execution" };
@@ -35,31 +42,37 @@ function checkDeduplication(force = false) {
     return { allow: false, reason: `Outside scheduled briefing windows (Current IST hour: ${hours}). Skipping cron run.` };
   }
 
-  // Check last dispatch file
-  const statePath = path.resolve(__dirname, "../data/last-email-dispatch.json");
-  if (fs.existsSync(statePath)) {
-    try {
-      const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
-      const todayStr = istDate.toISOString().slice(0, 10);
-      if (state.date === todayStr && state.slot === slot) {
-        return { allow: false, reason: `Alert already dispatched today for ${slot} at ${state.dispatchedAt}.` };
-      }
-    } catch {}
+  const todayStr = istDate.toISOString().slice(0, 10);
+
+  // Check all persistent dispatch locations
+  for (const statePath of getDedupePaths()) {
+    if (fs.existsSync(statePath)) {
+      try {
+        const state = JSON.parse(fs.readFileSync(statePath, "utf8"));
+        if (state.date === todayStr && state.slot === slot) {
+          return { allow: false, reason: `Alert already dispatched today for ${slot} at ${state.dispatchedAt} (Recorded in ${path.basename(path.dirname(statePath))}).` };
+        }
+      } catch {}
+    }
   }
 
-  return { allow: true, slot, dateStr: istDate.toISOString().slice(0, 10) };
+  return { allow: true, slot, dateStr: todayStr };
 }
 
 function recordDispatch(slot, dateStr) {
-  const statePath = path.resolve(__dirname, "../data/last-email-dispatch.json");
-  try {
-    fs.mkdirSync(path.dirname(statePath), { recursive: true });
-    fs.writeFileSync(statePath, JSON.stringify({
-      date: dateStr,
-      slot: slot || "MANUAL",
-      dispatchedAt: new Date().toISOString()
-    }, null, 2), "utf8");
-  } catch {}
+  const payload = JSON.stringify({
+    date: dateStr,
+    slot: slot || "MANUAL",
+    dispatchedAt: new Date().toISOString()
+  }, null, 2);
+
+  for (const statePath of getDedupePaths()) {
+    try {
+      if (fs.existsSync(path.dirname(statePath))) {
+        fs.writeFileSync(statePath, payload, "utf8");
+      }
+    } catch {}
+  }
 }
 
 async function run() {
@@ -173,31 +186,27 @@ async function run() {
     }
   }
 
-  // If no shorts in plan, supply an index hedge if risk is elevated
-  if (!shortsAndPuts.length) {
-    shortsAndPuts.push({
-      name: "NIFTY 24000 PE (Index Crash Hedge)",
-      action: "BUY PUT OPTION",
-      entry: 185.00,
-      target: 320.00,
-      stop: 110.00
-    });
-  }
+  // Pure Stock Futures scope: if no short setups qualified, do NOT inject unverified index options
+  // shortsAndPuts remains empty if no short qualified
 
   // 3. Evaluate Macro Threat Radar with real live global feeds
-  const liveMacro = await fetchLiveMacroRadar().catch(() => null);
-  const giftPrice = liveMacro?.giftNifty?.price || 24050;
-  const giftChange = liveMacro?.giftNifty?.changePct || 0;
-  const vixPrice = liveMacro?.indiaVix?.price || 11.5;
-  const vixChange = liveMacro?.indiaVix?.changePct || 0;
-  const brentPrice = liveMacro?.brentCrude?.price || 95.0;
-  const brentChange = liveMacro?.brentCrude?.changePct || 0;
-  const spPrice = liveMacro?.sp500Futures?.price || 7750;
-  const spChange = liveMacro?.sp500Futures?.changePct || 0;
-  const nqPrice = liveMacro?.nasdaqFutures?.price || 29500;
-  const nqChange = liveMacro?.nasdaqFutures?.changePct || 0;
-  const inrPrice = liveMacro?.usdInr?.price || 94.4;
-  const inrChange = liveMacro?.usdInr?.changePct || 0;
+  const liveMacro = await fetchLiveMacroRadar().catch((err) => {
+    console.warn("Live macro radar error:", err.message);
+    return null;
+  });
+
+  const giftPrice = liveMacro?.giftNifty?.price ?? null;
+  const giftChange = liveMacro?.giftNifty?.changePct ?? null;
+  const vixPrice = liveMacro?.indiaVix?.price ?? null;
+  const vixChange = liveMacro?.indiaVix?.changePct ?? null;
+  const brentPrice = liveMacro?.brentCrude?.price ?? null;
+  const brentChange = liveMacro?.brentCrude?.changePct ?? null;
+  const spPrice = liveMacro?.sp500Futures?.price ?? null;
+  const spChange = liveMacro?.sp500Futures?.changePct ?? null;
+  const nqPrice = liveMacro?.nasdaqFutures?.price ?? null;
+  const nqChange = liveMacro?.nasdaqFutures?.changePct ?? null;
+  const inrPrice = liveMacro?.usdInr?.price ?? null;
+  const inrChange = liveMacro?.usdInr?.changePct ?? null;
 
   const radar = evaluateGlobalMacroShock({
     giftNiftyGapPct: giftChange,
@@ -211,59 +220,63 @@ async function run() {
     {
       name: "GIFT NIFTY (NSEIX Live)",
       ticker: "NSEIX:NIFTY1!",
-      price: giftPrice,
-      changePct: giftChange,
-      impact: "Direct 9:15 AM Opening Gap Predictor (R² = 0.92)",
-      threat: giftChange <= -1.2 ? "CRITICAL" : giftChange <= -0.6 ? "ELEVATED" : "NORMAL"
+      price: giftPrice !== null ? Math.round(giftPrice) : "N/A",
+      changePct: giftChange !== null ? Number(giftChange.toFixed(2)) : null,
+      impact: "Overnight gap indicator for domestic opening sentiment",
+      threat: giftChange !== null && giftChange <= -1.2 ? "CRITICAL" : giftChange !== null && giftChange <= -0.6 ? "ELEVATED" : "NORMAL"
     },
     {
       name: "India VIX (Domestic Fear)",
       ticker: "^INDIAVIX",
-      price: vixPrice,
-      changePct: vixChange,
+      price: vixPrice !== null ? Number(vixPrice.toFixed(2)) : "N/A",
+      changePct: vixChange !== null ? Number(vixChange.toFixed(2)) : null,
       impact: "Domestic fear gauge. Under 14 = Calm / Bullish Tape",
-      threat: vixPrice >= 18 ? "CRITICAL" : vixPrice >= 14 ? "ELEVATED" : "CALM"
+      threat: vixPrice !== null && vixPrice >= 18 ? "CRITICAL" : vixPrice !== null && vixPrice >= 14 ? "ELEVATED" : "CALM"
     },
     {
       name: "Brent Crude Oil (War & Geopolitics)",
       ticker: "BZ=F",
-      price: brentPrice,
-      changePct: brentChange,
+      price: brentPrice !== null ? Number(brentPrice.toFixed(2)) : "N/A",
+      changePct: brentChange !== null ? Number(brentChange.toFixed(2)) : null,
       impact: "Spike drains INR & foreign liquidity",
-      threat: brentChange >= 3.0 ? "ELEVATED" : "NORMAL"
+      threat: brentChange !== null && brentChange >= 3.0 ? "ELEVATED" : "NORMAL"
     },
     {
       name: "US S&P 500 Futures",
       ticker: "ES=F",
-      price: spPrice,
-      changePct: spChange,
+      price: spPrice !== null ? Math.round(spPrice) : "N/A",
+      changePct: spChange !== null ? Number(spChange.toFixed(2)) : null,
       impact: "Global equity risk sentiment & institutional liquidity",
-      threat: spChange <= -1.0 ? "ELEVATED" : "NORMAL"
+      threat: spChange !== null && spChange <= -1.0 ? "ELEVATED" : "NORMAL"
     },
     {
       name: "US Nasdaq 100 Futures",
       ticker: "NQ=F",
-      price: nqPrice,
-      changePct: nqChange,
+      price: nqPrice !== null ? Math.round(nqPrice) : "N/A",
+      changePct: nqChange !== null ? Number(nqChange.toFixed(2)) : null,
       impact: "Direct overnight drag on Indian IT (TCS, INFY, WIPRO)",
-      threat: nqChange <= -1.0 ? "ELEVATED" : "NORMAL"
+      threat: nqChange !== null && nqChange <= -1.0 ? "ELEVATED" : "NORMAL"
     },
     {
       name: "USD / INR Currency",
       ticker: "INR=X",
-      price: inrPrice,
-      changePct: inrChange,
+      price: inrPrice !== null ? Number(inrPrice.toFixed(2)) : "N/A",
+      changePct: inrChange !== null ? Number(inrChange.toFixed(2)) : null,
       impact: "Rupee depreciation forces foreign equity dumping",
-      threat: inrChange >= 0.5 ? "ELEVATED" : "NORMAL"
+      threat: inrChange !== null && inrChange >= 0.5 ? "ELEVATED" : "NORMAL"
     }
   ];
 
-  const sign = giftChange >= 0 ? "+" : "";
+  const sign = giftChange !== null && giftChange >= 0 ? "+" : "";
+  const giftDisplay = giftPrice !== null ? `${Math.round(giftPrice)} (${sign}${Number(giftChange || 0).toFixed(2)}%)` : "UNAVAILABLE";
+  const vixDisplay = vixPrice !== null ? Number(vixPrice).toFixed(2) : "UNAVAILABLE";
+  const brentDisplay = brentPrice !== null ? `$${Number(brentPrice).toFixed(2)}` : "UNAVAILABLE";
+
   const payload = {
     dateStr: new Date().toLocaleDateString("en-IN", { timeZone: "Asia/Kolkata", weekday: "long", year: "numeric", month: "long", day: "numeric" }),
     radar: {
       severity: radar.regime || radar.severity || "NORMAL",
-      summary: `GIFT Nifty at ${giftPrice.toFixed(0)} (${sign}${giftChange.toFixed(2)}%), India VIX at ${vixPrice.toFixed(2)}. Brent crude at $${brentPrice.toFixed(2)}. Directive: ${radar.actionDirective || "STANDARD_EXECUTION"}.`
+      summary: `GIFT Nifty at ${giftDisplay}, India VIX at ${vixDisplay}. Brent crude at ${brentDisplay}. Directive: ${radar.actionDirective || "STANDARD_EXECUTION"}.`
     },
     macroAssets,
     sells,
@@ -284,11 +297,11 @@ async function run() {
       await appendMacroRadarToGoogle({
         regime: payload.radar.severity,
         actionDirective: radar.actionDirective,
-        giftNiftyGapPct: -0.10,
-        brentCrudePrice: 93.27,
-        indiaVix: 11.19,
-        usVix: 15.34,
-        us10y: 4.77,
+        giftNiftyGapPct: giftChange,
+        brentCrudePrice: brentPrice,
+        indiaVix: vixPrice,
+        usVix: null,
+        us10y: null,
         summary: payload.radar.summary
       });
       console.log("Appended daily macro radar row to K2_MACRO_RADAR Google Sheet.");
@@ -301,7 +314,10 @@ async function run() {
 }
 
 if (require.main === module) {
-  run().catch(console.error);
+  run().catch((err) => {
+    console.error("FATAL dispatch failure:", err);
+    process.exitCode = 1;
+  });
 }
 
 module.exports = { run, checkDeduplication };

@@ -93,6 +93,8 @@ function replayWeek(week, side, config) {
   const levels = ladder(anchor, side, config);
   const short = side === "short";
   const targetStep = 1 + (short ? -1 : 1) * Number(config.targetPct) / 100;
+  const stopLossPct = Number(config.stopLossPct) || null;
+  const stopLossStep = stopLossPct ? (1 - (short ? -1 : 1) * stopLossPct / 100) : null;
   const open = new Map();
   const trades = [];
 
@@ -101,10 +103,21 @@ function replayWeek(week, side, config) {
 
     for (const [level, lot] of [...open]) {
       if (lot.filledIndex === index) continue;
-      const reached = short ? session.low <= lot.target : session.high >= lot.target;
-      if (!reached) continue;
-      open.delete(level);
-      trades.push({ ...lot, exit: lot.target, exitSession: session.session, outcome: "target", sessionsHeld: index - lot.filledIndex });
+      const targetReached = short ? session.low <= lot.target : session.high >= lot.target;
+      const stopReached = lot.stopLoss ? (short ? session.high >= lot.stopLoss : session.low <= lot.stopLoss) : false;
+
+      // Conservative Ambiguity Resolution (P0-007):
+      // If both stop and target are breached in the same daily bar, assume the stop barrier was hit first.
+      if (stopReached && targetReached) {
+        open.delete(level);
+        trades.push({ ...lot, exit: lot.stopLoss, exitSession: session.session, outcome: "stop", sessionsHeld: index - lot.filledIndex });
+      } else if (stopReached) {
+        open.delete(level);
+        trades.push({ ...lot, exit: lot.stopLoss, exitSession: session.session, outcome: "stop", sessionsHeld: index - lot.filledIndex });
+      } else if (targetReached) {
+        open.delete(level);
+        trades.push({ ...lot, exit: lot.target, exitSession: session.session, outcome: "target", sessionsHeld: index - lot.filledIndex });
+      }
     }
 
     if (!last) {
@@ -116,6 +129,7 @@ function replayWeek(week, side, config) {
           level: entry.level,
           entry: entry.price,
           target: round(entry.price * targetStep, 4),
+          stopLoss: stopLossStep ? round(entry.price * stopLossStep, 4) : null,
           filledSession: session.session,
           filledIndex: index
         });
@@ -135,9 +149,13 @@ function replayWeek(week, side, config) {
     // the margin is posted against. Scoring a short as entry/exit - 1 would
     // quietly inflate every winning short and shrink every losing one.
     const gross = (short ? 1 - trade.exit / trade.entry : trade.exit / trade.entry - 1) * 100;
-    const cost = Number(config.costPct) + (trade.outcome === "friday" ? Number(config.fridaySlippagePct) : 0);
+    const cost = Number(config.costPct) + ((trade.outcome === "friday" || trade.outcome === "stop") ? Number(config.fridaySlippagePct) : 0);
     return { ...trade, grossPct: round(gross, 4), netPct: round(gross - cost, 4) };
   });
+
+  const sumNetPct = round(priced.reduce((sum, trade) => sum + trade.netPct, 0), 4);
+  const capitalSlots = Number(config.slots) || 5;
+  const capitalWeightedNetPct = round(priced.reduce((sum, trade) => sum + (trade.netPct / capitalSlots), 0), 4);
 
   return {
     weekKey: week.weekKey,
@@ -145,7 +163,9 @@ function replayWeek(week, side, config) {
     anchor: round(anchor),
     levels,
     trades: priced,
-    weekNetPct: round(priced.reduce((sum, trade) => sum + trade.netPct, 0), 4)
+    sumNetPct,
+    capitalWeightedNetPct,
+    weekNetPct: config.capitalWeighted ? capitalWeightedNetPct : sumNetPct
   };
 }
 
@@ -229,20 +249,31 @@ function sideResult(weeks, side, config, splitRatio) {
   const outOfSample = replayed.slice(cut);
   const allTrades = replayed.flatMap((week) => week.trades);
   const outTrades = outOfSample.flatMap((week) => week.trades);
-  const levels = levelBreakdown(replayed, config);
-  // One hurdle per ladder rung tested, so the best-looking rung has to clear a
-  // bar that accounts for having picked it out of `slots` candidates.
+
+  // P0-009: Strict in-sample level selection without lookahead leakage
+  const inSampleLevels = levelBreakdown(inSample, config);
   const hurdle = Math.sqrt(2 * Math.log(config.slots + 1));
-  const viableLevels = levels.filter((entry) => entry.fills >= 8 && entry.averageNetPct > 0 && Number(entry.tStat) >= hurdle && Number(entry.lowerPct) >= 50);
+  const requiredFills = Math.max(3, Math.floor(8 * splitRatio));
+  const viableInSample = inSampleLevels.filter((entry) =>
+    entry.fills >= requiredFills &&
+    entry.averageNetPct > 0 &&
+    Number(entry.tStat) >= hurdle &&
+    Number(entry.lowerPct) >= 45
+  );
+
+  const viableLevels = viableInSample.map((entry) => entry.level);
+  const outTradesViable = viableLevels.length ? outTrades.filter((t) => viableLevels.includes(t.level)) : outTrades;
+  const levels = levelBreakdown(replayed, config);
+
   return {
     side,
     ...weekStats(replayed),
     trades: tradeStats(allTrades),
-    outOfSample: { weeks: outOfSample.length, ...weekStats(outOfSample), trades: tradeStats(outTrades) },
+    outOfSample: { weeks: outOfSample.length, ...weekStats(outOfSample), trades: tradeStats(outTradesViable) },
     levels,
-    viableLevels: viableLevels.map((entry) => entry.level),
+    viableLevels,
     significanceHurdleTStat: round(hurdle, 2),
-    expectedWeeklyPct: round(viableLevels.reduce((sum, entry) => sum + entry.averageNetPct * entry.fills / Math.max(1, replayed.length), 0), 3)
+    expectedWeeklyPct: round(viableInSample.reduce((sum, entry) => sum + entry.averageNetPct * entry.fills / Math.max(1, inSample.length), 0), 3)
   };
 }
 

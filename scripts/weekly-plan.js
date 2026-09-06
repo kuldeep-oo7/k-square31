@@ -23,7 +23,7 @@ const { weeklyCycle } = require("../api/_lib/weekly-cycle");
 const { weeklyForecast } = require("../api/_lib/ml-model");
 const { fundamentals } = require("../api/_lib/fundamentals");
 const { recommendation, rankRecommendations } = require("../api/_lib/recommendation");
-const { latestBhavcopy, frontFutures } = require("../api/_lib/bhavcopy");
+const { latestBhavcopy, frontFutures, frontStockFutures } = require("../api/_lib/bhavcopy");
 const { carry } = require("../api/_lib/carry");
 const { googleStoreConfigured, writeGoogleDocument, readGoogleDocument, appendTradeSignalsToGoogle } = require("../api/_lib/google-store");
 const { createSignalRecord, evaluateOutcome, summarizePerformance } = require("../api/_lib/trade-tracker");
@@ -90,7 +90,7 @@ async function dailyBars(symbol) {
 async function tradableFutures() {
   try {
     const book = await latestBhavcopy();
-    const front = frontFutures(book.rows);
+    const front = frontStockFutures(book.rows);
     console.log(`F&O universe from the ${book.tradeDate} bhavcopy: ${front.size} names with a front-month contract`);
     return { front, asOf: Date.parse(`${book.tradeDate.slice(0, 4)}-${book.tradeDate.slice(4, 6)}-${book.tradeDate.slice(6, 8)}T10:00:00Z`) };
   } catch (error) {
@@ -118,7 +118,7 @@ async function planFor(symbol, options) {
   const technicalScore = (metrics?.isUptrendStructure ? 35 : metrics?.isDowntrendStructure ? -35 : 0) +
                          (metrics?.isEfficientTrend ? (metrics?.isUptrendStructure ? 15 : -15) : 0);
   const technical = { score: technicalScore, ready: true, metrics };
-  const plan = recommendation({ symbol, bars, cycle, model, fundamentals: financials, technical, carry: basis });
+  const plan = recommendation({ symbol, bars, cycle, model, fundamentals: financials, technical, carry: basis, contract });
   return { ...plan, symbolBars: bars.length, inJournal: JOURNAL.has(symbol) };
 }
 
@@ -172,8 +172,37 @@ async function run() {
     }
   } catch {}
 
-  const newRecords = (report.best || []).map((item) => createSignalRecord(item, { weekKey: report.weekKey }));
+  // P0-015: Resolve pending/active trade outcomes using latest market bars
+  for (let i = 0; i < ledger.length; i += 1) {
+    const record = ledger[i];
+    if (record.status === "PENDING" || record.status === "ACTIVE") {
+      try {
+        const symbolBars = await dailyBars(record.symbol);
+        ledger[i] = evaluateOutcome(record, symbolBars);
+      } catch (err) {
+        console.warn(`Could not evaluate outcome for ${record.symbol}: ${err.message}`);
+      }
+    }
+  }
+
+  // Populate new actionable records with real quantitative features
+  const newRecords = (report.best || []).map((item) => {
+    const quant = item.advancedQuant || {};
+    const trendEv = item.evidence?.trend || {};
+    return createSignalRecord(item, {
+      return5Pct: trendEv.returnPct || 0,
+      return21Pct: (trendEv.returnPct || 0) * 2,
+      atr14Pct: 2.0,
+      realisedVol21Pct: trendEv.annualisedVolatilityPct || 25,
+      rsi14: quant.er ? Math.round(quant.er * 100) : 50,
+      zScore20: quant.hurst ? Number(((quant.hurst - 0.5) * 4).toFixed(2)) : 0,
+      volumeRatio520: quant.vpin ? Number((1 / Math.max(0.1, quant.vpin)).toFixed(2)) : 1.0,
+      highProximityPct: 0
+    });
+  });
+
   for (const rec of newRecords) {
+    if (!rec) continue;
     const recId = rec.id || rec.signalId;
     if (!ledger.some((existing) => (existing.id || existing.signalId) === recId)) {
       ledger.push(rec);

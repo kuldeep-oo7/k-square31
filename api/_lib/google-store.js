@@ -86,10 +86,16 @@ async function appendMacroRadarToGoogle(radar) {
   return requestGoogle("appendMacroRadar", { radar });
 }
 
+async function appendStockFundamentalsToGoogle(fundamentals) {
+  if (!googleStoreConfigured() || !fundamentals) return { ok: false, appended: 0 };
+  return requestGoogle("appendStockFundamentals", { fundamentals });
+}
+
 module.exports = {
   GoogleStoreConflictError,
   appendMacroRadarToGoogle,
   appendPortfolioAuditToGoogle,
+  appendStockFundamentalsToGoogle,
   appendTradeSignalsToGoogle,
   decodeDocument,
   encodeDocument,

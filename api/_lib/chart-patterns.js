@@ -211,6 +211,55 @@ function detectCupAndHandle(bars, pivots, currentPrice) {
 }
 
 /**
+ * Detects Ascending & Descending Triangle Squeezes
+ */
+function detectTriangleSqueeze(pivots, currentPrice) {
+  const peaks = pivots.filter((p) => p.type === "PEAK").slice(-3);
+  const troughs = pivots.filter((p) => p.type === "TROUGH").slice(-3);
+  if (peaks.length < 2 || troughs.length < 2) return null;
+
+  const p1 = peaks[peaks.length - 2];
+  const p2 = peaks[peaks.length - 1];
+  const t1 = troughs[troughs.length - 2];
+  const t2 = troughs[troughs.length - 1];
+
+  const peakDiff = Math.abs(p1.price - p2.price) / p1.price;
+  const troughDiff = Math.abs(t1.price - t2.price) / t1.price;
+
+  // Ascending Triangle: Flat horizontal resistance (peaks within 1.8%), higher lows (t2 > t1)
+  if (peakDiff <= 0.018 && t2.price > t1.price * 1.01) {
+    const breakoutLevel = p2.price;
+    const height = p2.price - t1.price;
+    return {
+      pattern: "ASCENDING_TRIANGLE",
+      bias: "BULLISH",
+      confidence: 0.80,
+      breakoutLevel: round(breakoutLevel),
+      targetPrice: round(breakoutLevel + height),
+      invalidationPrice: round(t2.price),
+      confirmed: currentPrice >= breakoutLevel * 0.995
+    };
+  }
+
+  // Descending Triangle: Flat horizontal support (troughs within 1.8%), lower highs (p2 < p1)
+  if (troughDiff <= 0.018 && p2.price < p1.price * 0.99) {
+    const breakdownLevel = t2.price;
+    const height = p1.price - t2.price;
+    return {
+      pattern: "DESCENDING_TRIANGLE",
+      bias: "BEARISH",
+      confidence: 0.80,
+      breakdownLevel: round(breakdownLevel),
+      targetPrice: round(breakdownLevel - height),
+      invalidationPrice: round(p2.price),
+      confirmed: currentPrice <= breakdownLevel * 1.005
+    };
+  }
+
+  return null;
+}
+
+/**
  * Master scanner: evaluates all classical patterns for a symbol's bars
  */
 function scanChartPatterns(bars) {
@@ -224,8 +273,9 @@ function scanChartPatterns(bars) {
   const doublePattern = detectDoublePivots(pivots, currentPrice);
   const hsPattern = detectHeadAndShoulders(pivots, currentPrice);
   const cupPattern = detectCupAndHandle(bars, pivots, currentPrice);
+  const trianglePattern = detectTriangleSqueeze(pivots, currentPrice);
 
-  const patterns = [hsPattern, cupPattern, doublePattern].filter(Boolean);
+  const patterns = [hsPattern, cupPattern, doublePattern, trianglePattern].filter(Boolean);
 
   if (!patterns.length) {
     return { detected: false, patterns: [], primaryPattern: null, confluenceBonus: 0 };
@@ -235,10 +285,10 @@ function scanChartPatterns(bars) {
   patterns.sort((a, b) => b.confidence - a.confidence);
   const primary = patterns[0];
 
-  // Confluence bonus: +10 to +18 points added to conviction score when a confirmed structure aligns
-  const confluenceBonus = primary.bias === "BULLISH"
-    ? Math.round(primary.confidence * 18)
-    : -Math.round(primary.confidence * 18);
+  // P1-007: Confluence bonus is strictly awarded ONLY when the pattern is CONFIRMED
+  const confluenceBonus = (primary && primary.confirmed === true)
+    ? (primary.bias === "BULLISH" ? Math.round(primary.confidence * 18) : -Math.round(primary.confidence * 18))
+    : 0;
 
   return {
     detected: true,
@@ -253,6 +303,7 @@ module.exports = {
   detectCupAndHandle,
   detectDoublePivots,
   detectHeadAndShoulders,
+  detectTriangleSqueeze,
   findPivots,
   scanChartPatterns
 };
