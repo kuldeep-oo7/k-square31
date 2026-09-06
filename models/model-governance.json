@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "modelName": "K2 Weekly Upside Boosted Trees",
+  "artifactFile": "models/upside.json",
+  "version": "1.1.0",
+  "governanceDate": "2026-09-06",
+  "classification": "RESEARCH_ADVISORY_ONLY",
+  "authorities": {
+    "canGenerateStandaloneTrades": false,
+    "canVetoTrades": false,
+    "canActAsTieBreaker": true
+  },
+  "metrics": {
+    "informationCoefficient": 0.0203,
+    "naiveStandardError": 0.0068,
+    "rSquared": -0.0217,
+    "actedAveragePct": 0.566,
+    "allAveragePct": 0.159,
+    "topDecileWinPct": 52.7,
+    "foldICs": [0.0097, 0.0610, -0.0238, 0.0342],
+    "foldR2s": [-0.015, -0.008, -0.042, -0.021]
+  },
+  "auditFindings": {
+    "finding": "Out-of-sample R-squared is negative across all folds, and fold 3 exhibits negative IC (-0.0238).",
+    "hazard": "Using an unvalidated ML model as a standalone trade generator introduces model risk without proven alpha.",
+    "resolution": "Model is demoted from trade-generating authority to advisory ranking overlay and tie-breaker."
+  },
+  "promotionPrerequisites": [
+    "Retrain with point-in-time NSE futures contracts rather than cash bars",
+    "Enforce date-block resampling to account for cross-sectional stock correlation",
+    "Attain out-of-sample IC >= 0.05 across all walk-forward folds",
+    "Attain out-of-sample R^2 > 0.00 with positive Brier calibration score",
+    "Pass 4 consecutive shadow expiry cycles with positive net expectancy after 0.08% friction"
+  ]
+}

@@ -94,30 +94,57 @@ function evaluateOutcome(signal, bars = []) {
     maxHigh = Math.max(maxHigh, high);
     minLow = Math.min(minLow, low);
 
+    let intradayAmbiguity = false;
+    let worstCasePnl = null;
+    let bestCasePnl = null;
+
     if (side === "long") {
-      if (high >= target) {
-        outcome = "WIN";
-        status = "TARGET_HIT";
-        exitPrice = target;
-        break;
-      }
-      if (low <= stop) {
+      const hitTarget = high >= target;
+      const hitStop = low <= stop;
+
+      if (hitTarget && hitStop) {
+        // Conservative Ambiguity Resolution (P0-007 / P1-021):
+        // When daily high touches target AND daily low touches stop in the same bar,
+        // assume the stop-loss was triggered first to eliminate optimistic backtest bias.
         outcome = "LOSS";
         status = "STOPPED_OUT";
         exitPrice = stop;
+        intradayAmbiguity = true;
+        worstCasePnl = round(((stop - entry) / entry) * 100 - (signal.frictionPct || 0.08));
+        bestCasePnl = round(((target - entry) / entry) * 100 - (signal.frictionPct || 0.08));
+        break;
+      } else if (hitStop) {
+        outcome = "LOSS";
+        status = "STOPPED_OUT";
+        exitPrice = stop;
+        break;
+      } else if (hitTarget) {
+        outcome = "WIN";
+        status = "TARGET_HIT";
+        exitPrice = target;
         break;
       }
     } else {
-      if (low <= target) {
-        outcome = "WIN";
-        status = "TARGET_HIT";
-        exitPrice = target;
-        break;
-      }
-      if (high >= stop) {
+      const hitTarget = low <= target;
+      const hitStop = high >= stop;
+
+      if (hitTarget && hitStop) {
         outcome = "LOSS";
         status = "STOPPED_OUT";
         exitPrice = stop;
+        intradayAmbiguity = true;
+        worstCasePnl = round(((entry - stop) / entry) * 100 - (signal.frictionPct || 0.08));
+        bestCasePnl = round(((entry - target) / entry) * 100 - (signal.frictionPct || 0.08));
+        break;
+      } else if (hitStop) {
+        outcome = "LOSS";
+        status = "STOPPED_OUT";
+        exitPrice = stop;
+        break;
+      } else if (hitTarget) {
+        outcome = "WIN";
+        status = "TARGET_HIT";
+        exitPrice = target;
         break;
       }
     }
@@ -125,9 +152,11 @@ function evaluateOutcome(signal, bars = []) {
 
   const latestClose = usable.at(-1)?.close || entry;
   const currentMark = exitPrice || latestClose;
-  const pnlPct = side === "short"
+  const frictionPct = Number(signal.frictionPct || 0.08);
+  const grossPnlPct = side === "short"
     ? ((entry - currentMark) / entry) * 100
     : ((currentMark - entry) / entry) * 100;
+  const pnlPct = triggered ? (grossPnlPct - (outcome ? frictionPct : 0)) : 0;
 
   const mfePct = side === "short"
     ? ((entry - minLow) / entry) * 100
@@ -143,6 +172,7 @@ function evaluateOutcome(signal, bars = []) {
     outcome,
     exitPrice: round(exitPrice),
     pnlPct: round(pnlPct),
+    grossPnlPct: round(grossPnlPct),
     mfePct: round(Math.max(0, mfePct)),
     maePct: round(Math.max(0, maePct)),
     holdingSessions: sessions,

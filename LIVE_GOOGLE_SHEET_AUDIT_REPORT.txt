@@ -1,0 +1,17 @@
+================================================================================
+LIVE GOOGLE SHEET AUDIT REPORT (OFFLINE / ENVIRONMENT UNCONFIGURED)
+================================================================================
+Audit Timestamp: 2026-09-06T17:23:57.262Z
+Status         : SKIPPED / CREDENTIALS PENDING
+
+Notice:
+  The live Google Sheets credentials (K2_GOOGLE_SHEETS_WEB_APP_URL and
+  K2_GOOGLE_SHEETS_ARCHIVE_SECRET) are not populated in this local environment.
+  This is expected in offline development or public runner contexts.
+
+Required Action for Production Deployment:
+  1. Set K2_GOOGLE_SHEETS_WEB_APP_URL in repository secrets.
+  2. Set K2_GOOGLE_SHEETS_ARCHIVE_SECRET in repository secrets.
+  3. Deploy the latest Google Apps Script containing 'readTabRows'.
+  4. Re-run this audit in CI or authenticated operator environment.
+================================================================================

@@ -54,8 +54,8 @@ const longHistory = Array.from({ length: 1400 }, (_, index) => ({
 const historyRun = processSymbol(emptySymbolState("HISTORY"), result(longHistory, 1500, "CLOSED"), new Date("2026-07-21T10:01:00Z").getTime());
 assert.equal(historyRun.state.observations.length, 1300, "history should retain the latest five years / 1,300 sessions");
 
-// The desk carries nothing over the weekend: a leg still open on Friday is
-// booked at that close, win or lose, and no new rung is opened that session.
+// Positions carry over the weekend: a leg still open on Friday is NOT liquidated.
+// Its mark is recorded, and no new rung is opened that session.
 const fridayBar = { time: "2026-07-24T10:00:00Z", open: 490, high: 492, low: 470, close: 480 };
 const openWeek = emptySymbolState("BOOKOUT");
 openWeek.anchor = { weekKey: "2026-07-20", barDate: "2026-07-20", price: 497 };
@@ -64,25 +64,21 @@ openWeek.triggeredLevels = [true, false, false, false, false];
 openWeek.cash = 160000;
 openWeek.lots = [{ id: "week-lot", symbol: "BOOKOUT", price: 487.06, quantity: 82, amount: 39938.92, target: 496.8, boughtSession: "2026-07-21", anchorWeek: "2026-07-20", level: 1 }];
 const booked = processSymbol(openWeek, result([friday, monday, tuesday, fridayBar], 480), new Date("2026-07-24T10:01:00Z").getTime());
-assert.equal(booked.state.lots.length, 0, "Friday must close every open leg");
-const bookEvent = booked.events.find((event) => event.action === "sell");
-assert.match(bookEvent.reason, /Friday book-out/);
-assert.equal(bookEvent.price, 480, "the leg is booked at the Friday close");
-assert.ok(booked.state.realizedPnl < 0, "a losing week is booked, never carried");
+assert.equal(booked.state.lots.length, 1, "Friday must preserve open lots over the weekend");
+assert.equal(booked.events.filter((event) => event.action === "sell").length, 0, "Friday creates no exit order");
+assert.equal(booked.state.lots[0].fridayClosePrice, 480, "Friday close is marked for weekly accounting");
 assert.equal(booked.events.filter((event) => event.action === "buy").length, 0, "Friday's dip through a rung must not open a leg that closes the same session");
 
-// A leg belonging to an earlier week is booked at the last close of its own
-// week, which also covers a Friday holiday discovered only on Monday.
-const stale = emptySymbolState("CARRY");
-stale.anchor = { weekKey: "2026-07-13", barDate: "2026-07-17", price: 498 };
-stale.levels = buyLevels(498);
-stale.cash = 160000;
-stale.lots = [{ id: "old-lot", symbol: "CARRY", price: 500, quantity: 80, amount: 40000, target: 510, boughtSession: "2026-07-16", anchorWeek: "2026-07-13", level: 1 }];
-const rolled = processSymbol(stale, result([friday, monday], 472), new Date("2026-07-20T10:01:00Z").getTime());
-assert.equal(rolled.state.lots.filter((lot) => lot.anchorWeek === "2026-07-13").length, 0, "last week's leg cannot survive into the new week");
-const carryEvent = rolled.events.find((event) => /Weekly book-out/.test(event.reason || ""));
-assert.equal(carryEvent.price, 500, "booked at the last close of its own week");
-assert.equal(carryEvent.session, "2026-07-17");
+// On the next Monday, the lot is rebased to the new week's reference price without closing.
+const nextMonday = { time: "2026-07-27T04:00:00Z", open: 485, high: 488, low: 483, close: 486 };
+const mondayRun = processSymbol(booked.state, result([friday, monday, tuesday, fridayBar, nextMonday], 486), new Date("2026-07-27T10:01:00Z").getTime());
+assert.equal(mondayRun.state.lots.length, 1, "Position continues into the new week");
+assert.equal(mondayRun.state.lots[0].weeklyReferencePrice, 485, "Monday open becomes the new weekly reference price");
+assert.equal(mondayRun.state.lots[0].price, 487.06, "Original purchase price remains immutable");
+assert.equal(mondayRun.state.lots[0].weekendGapPnl, (485 - 480) * 82, "Weekend gap P&L is recorded");
+const rebaseEvent = mondayRun.events.find((event) => event.action === "rebase");
+assert.ok(rebaseEvent, "Rebase event is logged");
+assert.equal(rebaseEvent.price, 485);
 
 // Within a week the ₹2 lakh cap still binds.
 const capped = emptySymbolState("CAPTEST");

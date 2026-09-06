@@ -391,8 +391,61 @@ function weeklyForecast(bars, side = "long", overrides = {}) {
   };
 }
 
+/**
+ * Institutional Model Fitness & Abstention Evaluator.
+ * If IC < 0.05, R^2 <= 0, or any fold has negative IC, the model is strictly
+ * demoted to RESEARCH_ADVISORY_ONLY and cannot generate standalone trades.
+ */
+function evaluateModelFitness(model) {
+  if (!model) {
+    return {
+      status: "NO_MODEL",
+      canGenerateTrades: false,
+      isAdvisoryOnly: true,
+      reason: "No model provided"
+    };
+  }
+
+  const target = model.validation?.outOfSample || model.validation || model.outOfSample || model;
+  const ic = Number(target?.informationCoefficient ?? model.informationCoefficient ?? 0);
+  const r2 = Number(target?.rSquared ?? model.rSquared ?? 0);
+  const folds = Array.isArray(model.perFold || model.validation?.perFold || target?.perFold)
+    ? (model.perFold || model.validation?.perFold || target?.perFold)
+    : [];
+  const anyNegativeFold = folds.some((f) => Number(f.informationCoefficient) < 0 || Number(f.rSquared) < 0);
+
+  const passesThresholds = ic >= 0.05 && r2 > 0 && !anyNegativeFold;
+
+  if (!passesThresholds) {
+    return {
+      status: "RESEARCH_ADVISORY_ONLY",
+      canGenerateTrades: false,
+      isAdvisoryOnly: true,
+      metrics: {
+        informationCoefficient: ic,
+        rSquared: r2,
+        unstableFolds: anyNegativeFold
+      },
+      reason: `Model has weak out-of-sample skill (IC: ${ic}, R^2: ${r2}). Demoted to secondary advisory ranking filter; standalone trade generation forbidden.`
+    };
+  }
+
+  return {
+    status: "VALIDATED_PRODUCTION_READY",
+    canGenerateTrades: true,
+    isAdvisoryOnly: false,
+    metrics: {
+      informationCoefficient: ic,
+      rSquared: r2,
+      unstableFolds: false
+    },
+    reason: "Model passed statistical fitness hurdles."
+  };
+}
+
 module.exports = {
   FEATURE_NAMES,
+  evaluateModelFitness,
   features,
   predict,
   seededRandom,
@@ -401,3 +454,4 @@ module.exports = {
   weeklyForecast,
   weeklyTrainingRows
 };
+

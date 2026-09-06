@@ -91,6 +91,22 @@ async function appendStockFundamentalsToGoogle(fundamentals) {
   return requestGoogle("appendStockFundamentals", { fundamentals });
 }
 
+async function queryGoogleCapabilities() {
+  if (!process.env.K2_GOOGLE_SHEETS_WEB_APP_URL) return { ok: false, error: "URL not configured" };
+  const response = await fetch(process.env.K2_GOOGLE_SHEETS_WEB_APP_URL, {
+    method: "GET",
+    redirect: "follow",
+    signal: AbortSignal.timeout(GOOGLE_STORE_TIMEOUT_MS)
+  });
+  if (!response.ok) throw new Error(`Google Sheets capabilities query returned ${response.status}`);
+  return response.json();
+}
+
+async function readTabRowsFromGoogle({ tab, limit = 100 }) {
+  if (!googleStoreConfigured()) throw new Error("Google Sheets operational store is not configured");
+  return requestGoogle("readTabRows", { tab, limit });
+}
+
 module.exports = {
   GoogleStoreConflictError,
   appendMacroRadarToGoogle,
@@ -100,7 +116,9 @@ module.exports = {
   decodeDocument,
   encodeDocument,
   googleStoreConfigured,
+  queryGoogleCapabilities,
   readGoogleDocument,
   readGoogleDocuments,
+  readTabRowsFromGoogle,
   writeGoogleDocument
 };

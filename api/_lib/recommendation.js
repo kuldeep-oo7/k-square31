@@ -11,7 +11,7 @@
 // trade the evidence has already cleared.
 
 const { tradingWeeks, ladder, weeklyCycle, DEFAULT_CONFIG } = require("./weekly-cycle");
-const { weeklyForecast } = require("./ml-model");
+const { weeklyForecast, evaluateModelFitness } = require("./ml-model");
 const { trendAlignment, trendGate, trendMetrics } = require("./trend");
 const { carryScore } = require("./carry");
 const { upside } = require("./upside");
@@ -154,6 +154,18 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
   const trend = input.trend === undefined ? trendGate(bars, side, input.overrides || {}) : input.trend;
   if (trend?.veto) vetoes.push(trend.veto);
   if (vetoes.length) return standAside(symbol, vetoes[0], { cycle, upside: potential, trend, vetoes });
+ 
+  // Institutional Model Governance Gate:
+  // If the ML model is unvalidated, has negative R^2, or IC < 0.05, it is strictly
+  // advisory-only and CANNOT unilaterally create a standalone potential trade.
+  const modelFitness = evaluateModelFitness(input.model || potential.model || potential.forecast);
+  if (!modelFitness.canGenerateTrades) {
+    return standAside(
+      symbol,
+      `ML model unvalidated for standalone trade generation: ${modelFitness.reason}`,
+      { cycle, upside: potential, trend, vetoes, modelFitness }
+    );
+  }
 
   // Confidence is the margin over the floor against the model's typical error:
   // a 6% call with a 3% average error is a weaker claim than a 3% call with 0.5%.

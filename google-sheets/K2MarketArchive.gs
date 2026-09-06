@@ -33,7 +33,8 @@ function doGet() {
     version: '2026.09.06',
     capabilities: [
       'readDocuments', 'writeDocument', 'appendTradeSignals',
-      'appendPortfolioAudit', 'appendMacroRadar', 'appendStockFundamentals'
+      'appendPortfolioAudit', 'appendMacroRadar', 'appendStockFundamentals',
+      'readTabRows'
     ],
     writable: true
   });
@@ -78,10 +79,36 @@ function doPost(event) {
         return appendStockFundamentals_(spreadsheet, payload.fundamentals);
       }));
     }
+    if (payload.action === 'readTabRows') {
+      return json_(readTabRows_(spreadsheet, payload));
+    }
     return json_({ ok: false, error: 'Invalid action' });
   } catch (error) {
     return json_({ ok: false, error: String(error && error.message || error).slice(0, 200) });
   }
+}
+
+function readTabRows_(spreadsheet, payload) {
+  const tabName = String(payload.tab || '').trim();
+  const limit = Math.min(Math.max(1, Number(payload.limit) || 100), 500);
+  const sheet = spreadsheet.getSheetByName(tabName);
+  if (!sheet) return { ok: false, error: 'Tab not found: ' + tabName };
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  if (lastRow < 1 || lastCol < 1) return { ok: true, tab: tabName, count: 0, rows: [] };
+  const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
+  if (lastRow === 1) return { ok: true, tab: tabName, count: 0, headers: headers, rows: [] };
+  const startRow = Math.max(2, lastRow - limit + 1);
+  const numRows = lastRow - startRow + 1;
+  const data = sheet.getRange(startRow, 1, numRows, lastCol).getValues();
+  const rows = data.map(function (row) {
+    const obj = {};
+    headers.forEach(function (h, idx) {
+      obj[String(h)] = row[idx];
+    });
+    return obj;
+  });
+  return { ok: true, tab: tabName, totalRows: lastRow - 1, count: rows.length, headers: headers, rows: rows };
 }
 
 function readDocuments_(spreadsheet, payload) {

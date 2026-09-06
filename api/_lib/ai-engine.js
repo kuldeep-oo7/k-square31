@@ -191,33 +191,45 @@ function processSymbol(previous, result, nowMs = Date.now(), context = {}) {
   }
   state.lots = remainingLots;
 
-  // Weekly book-out. Every leg still open on the week's final session is closed
-  // at that close, profit or loss. A leg belonging to an earlier week is booked
-  // at the last close of its own week, which also covers a Friday holiday where
-  // the final session was only identifiable once the next week opened.
-  const bookOut = (lot, price, session, reason) => {
-    const exit = round(price);
-    const proceeds = round(lot.quantity * exit);
-    const pnl = round((exit - lot.price) * lot.quantity);
-    state.cash = round(Number(state.cash) + proceeds);
-    state.realizedPnl = round(Number(state.realizedPnl) + pnl);
-    events.push({
-      id: transactionId(lot.id, "BOOK", session), action: "sell", symbol: state.symbol,
-      price: exit, quantity: lot.quantity, amount: proceeds, pnl, reason,
-      time: nowMs, session, anchorWeek: lot.anchorWeek, level: lot.level
-    });
-  };
+  // Weekly rebase and mark instead of forced Friday liquidation.
+  // Open positions remain active over the weekend.
+  // On Friday: position is marked at close; no exit order is created.
+  // On Monday (new anchor week): weeklyReferencePrice is reset to the new anchor open price.
   const held = [];
   for (const lot of state.lots) {
     if (lot.anchorWeek && lot.anchorWeek !== reference.weekKey) {
-      const lastOfLotWeek = state.observations.filter((item) => weekKeyOf(item.session) === lot.anchorWeek).at(-1);
-      bookOut(lot, lastOfLotWeek?.close ?? bar.close, lastOfLotWeek?.session || sessionDate, "Weekly book-out at the last close of the trading week");
-      continue;
+      // New week has opened: rebase weeklyReferencePrice to Monday's anchor price
+      // Record weekend gap from Friday close to Monday open
+      const fridayClose = lot.fridayClosePrice || lot.previousSettlementPrice || lot.weeklyReferencePrice || lot.price;
+      const mondayOpen = reference.price;
+      const weekendGapPnl = round((mondayOpen - fridayClose) * lot.quantity);
+
+      lot.weekendGapPnl = round((lot.weekendGapPnl || 0) + weekendGapPnl);
+      lot.previousWeekClose = fridayClose;
+      lot.weeklyReferencePrice = mondayOpen;
+      lot.anchorWeek = reference.weekKey; // update active anchor week
+      events.push({
+        id: transactionId(lot.id, "REBASE", sessionDate),
+        action: "rebase",
+        symbol: state.symbol,
+        price: mondayOpen,
+        quantity: lot.quantity,
+        weekendGapPnl,
+        reason: "Monday weekly reference rebase; position held continuously",
+        time: nowMs,
+        session: sessionDate,
+        anchorWeek: lot.anchorWeek,
+        level: lot.level
+      });
     }
-    if (isBookOutSession(sessionDate) && lot.boughtSession !== sessionDate) {
-      bookOut(lot, bar.close, sessionDate, "Friday book-out; the desk carries nothing over the weekend");
-      continue;
+
+    if (isBookOutSession(sessionDate)) {
+      // Friday close mark: do not book out! Mark position and carry over weekend
+      lot.fridayClosePrice = bar.close;
+      lot.previousSettlementPrice = bar.close;
+      lot.unrealizedWeeklyPnl = round((bar.close - (lot.weeklyReferencePrice || lot.price)) * lot.quantity);
     }
+
     held.push(lot);
   }
   state.lots = held;
