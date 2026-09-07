@@ -4,6 +4,9 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="robots" content="noindex, nofollow">
+<meta http-equiv="Cache-Control" content="no-cache, no-store, must-revalidate">
+<meta http-equiv="Pragma" content="no-cache">
+<meta http-equiv="Expires" content="0">
 <title>K² · Range Desk</title>
 <style>
   /* Tokens lifted from the desk's own styles.css so the portal reads as the same
@@ -162,6 +165,7 @@
   .calc-badge-container { flex: 1 1 280px; min-width: 240px; display: flex; align-items: center; }
   .calc-badge { display: inline-flex; align-items: center; justify-content: center; width: 100%; padding: 11px 18px; border-radius: 12px; font-weight: 600; font-size: 13px; font-family: var(--mono); text-align: center; }
   .badge-buy { background: color-mix(in srgb, var(--mint) 40%, transparent); color: var(--mint-deep); border: 1px solid var(--mint-deep); }
+  .badge-sell { background: color-mix(in srgb, var(--coral) 26%, transparent); color: var(--coral-deep); border: 1px solid var(--coral-deep); }
   .badge-warn { background: color-mix(in srgb, var(--sun) 34%, transparent); color: #8a6b0f; border: 1px solid #d4a72c; }
   .badge-stop { background: color-mix(in srgb, var(--coral) 26%, transparent); color: var(--coral-deep); border: 1px solid var(--coral-deep); }
   .badge-info { background: var(--violet-soft); color: var(--violet); border: 1px solid var(--violet); }
@@ -190,7 +194,7 @@
     <h1 class="wordmark">K<span>²</span> Range Desk</h1>
     <div class="stamp">
       NSE futures · weekly ladder<br>
-      built 2026-09-04 02:15 UTC
+      built 2026-09-06 19:02 UTC
     </div>
   </header>
 
@@ -203,10 +207,10 @@
       <div class="radar-time" id="radar-sync-time">Live TradingView Sync (Auto-refreshing)</div>
     </div>
     <div class="radar-pills">
-      <div class="radar-pill">GIFT NIFTY: <b id="radar-gift-val" class="pos">+0.15%</b> <span id="radar-gift-price">(24050)</span></div>
-      <div class="radar-pill">INDIA VIX: <b id="radar-vix-val">11.59</b></div>
-      <div class="radar-pill">BRENT CRUDE: <b id="radar-crude-val">$96.04</b></div>
-      <div class="radar-pill">US S&P FUTURES: <b id="radar-sp-val" class="pos">+1.04%</b></div>
+      <div class="radar-pill">GIFT NIFTY: <b id="radar-gift-val" class="pos">+0.32%</b> <span id="radar-gift-price">(24010)</span></div>
+      <div class="radar-pill">INDIA VIX: <b id="radar-vix-val">10.68</b></div>
+      <div class="radar-pill">BRENT CRUDE: <b id="radar-crude-val">$96.28</b></div>
+      <div class="radar-pill">US S&P FUTURES: <b id="radar-sp-val" class="neg">-0.42%</b></div>
       <div class="radar-pill status-pill">SHIELD DIRECTIVE: <b id="radar-directive">L1/L2 Shallow Buys Active</b></div>
     </div>
   </div>
@@ -254,6 +258,7 @@
   <section>
     <h2>Qualified ladders · week of 2026-09-07</h2>
     <p class="sub">Rungs are distance from Monday's open, with the measured hit rate and the number of historical fills behind it. Prices are set from that open each week. <em>Click any row to load into the Live Decision Assistant above.</em></p>
+    
     <div class="row-tools">
       <button type="button" data-filter="all" aria-pressed="true">All 16</button>
       <button type="button" data-filter="long" aria-pressed="false">Buy 15</button>
@@ -653,26 +658,50 @@
 
     calcBadge.className = "calc-badge";
 
-    if (side === "long" && live >= target) {
-      calcBadge.className += " badge-buy";
-      calcBadge.textContent = "🏁 TARGET REACHED (+" + distEntryPct.toFixed(1) + "%) · PROFIT BOOKED";
-      calcOrderPlan.textContent = "Trade complete. Target was hit at ₹" + target.toFixed(2) + ". Do not enter now.";
-    } else if (side === "long" && live <= stop) {
-      calcBadge.className += " badge-stop";
-      calcBadge.textContent = "🛑 STOP-LOSS BREACHED (" + distEntryPct.toFixed(1) + "%) · DO NOT BUY";
-      calcOrderPlan.textContent = "Setup invalidated. Price dropped below stop-loss (₹" + stop.toFixed(2) + ").";
-    } else if (distEntryPct <= 0.8 && distEntryPct >= -1.5) {
-      calcBadge.className += " badge-buy";
-      calcBadge.textContent = "🟢 IN BUY ZONE · SAFE TO ENTER NOW";
-      calcOrderPlan.textContent = "Place " + (distEntryPct < 0 ? "Discount Buy" : "Buy") + " @ ₹" + live.toFixed(2) + " | Set GTT Target @ ₹" + target.toFixed(2) + " | Set GTT Stop-Loss @ ₹" + stop.toFixed(2);
-    } else if (distEntryPct > 0.8) {
-      calcBadge.className += " badge-warn";
-      calcBadge.textContent = "🛑 EXTENDED (+" + distEntryPct.toFixed(1) + "% above entry) · DO NOT CHASE";
-      calcOrderPlan.textContent = "Price is too high above entry. Place a Limit Buy Order @ ₹" + entry.toFixed(2) + " and wait for pullback.";
+    if (side === "long") {
+      if (live >= target) {
+        calcBadge.className += " badge-buy";
+        calcBadge.textContent = "🏁 TARGET REACHED (+" + distEntryPct.toFixed(1) + "%) · PROFIT BOOKED";
+        calcOrderPlan.textContent = "Trade complete. Target was hit at ₹" + target.toFixed(2) + ". Do not enter now.";
+      } else if (live <= stop) {
+        calcBadge.className += " badge-stop";
+        calcBadge.textContent = "🛑 STOP-LOSS BREACHED (" + distEntryPct.toFixed(1) + "%) · DO NOT BUY";
+        calcOrderPlan.textContent = "Setup invalidated. Price dropped below stop-loss (₹" + stop.toFixed(2) + ").";
+      } else if (distEntryPct <= 0.8 && distEntryPct >= -1.5) {
+        calcBadge.className += " badge-buy";
+        calcBadge.textContent = "🟢 IN BUY ZONE · SAFE TO ENTER NOW";
+        calcOrderPlan.textContent = "Place " + (distEntryPct < 0 ? "Discount Buy" : "Buy") + " @ ₹" + live.toFixed(2) + " | Set GTT Target @ ₹" + target.toFixed(2) + " | Set GTT Stop-Loss @ ₹" + stop.toFixed(2);
+      } else if (distEntryPct > 0.8) {
+        calcBadge.className += " badge-warn";
+        calcBadge.textContent = "🛑 EXTENDED (+" + distEntryPct.toFixed(1) + "% above entry) · DO NOT CHASE";
+        calcOrderPlan.textContent = "Price is too high above entry. Place a Limit Buy Order @ ₹" + entry.toFixed(2) + " and wait for pullback.";
+      } else {
+        calcBadge.className += " badge-info";
+        calcBadge.textContent = "ℹ️ BELOW ENTRY · VERIFY MOMENTUM";
+        calcOrderPlan.textContent = "Place Limit Order @ ₹" + entry.toFixed(2) + " | Target: ₹" + target.toFixed(2) + " | Stop: ₹" + stop.toFixed(2);
+      }
     } else {
-      calcBadge.className += " badge-info";
-      calcBadge.textContent = "ℹ️ BELOW ENTRY · VERIFY MOMENTUM";
-      calcOrderPlan.textContent = "Place Limit Order @ ₹" + entry.toFixed(2) + " | Target: ₹" + target.toFixed(2) + " | Stop: ₹" + stop.toFixed(2);
+      if (live <= target) {
+        calcBadge.className += " badge-buy";
+        calcBadge.textContent = "🏁 TARGET REACHED (+" + distEntryPct.toFixed(1) + "%) · PROFIT BOOKED";
+        calcOrderPlan.textContent = "Short trade complete. Target hit at ₹" + target.toFixed(2) + ". Cover position / do not short now.";
+      } else if (live >= stop) {
+        calcBadge.className += " badge-stop";
+        calcBadge.textContent = "🛑 STOP-LOSS BREACHED (−" + distEntryPct.toFixed(1) + "%) · DO NOT SHORT";
+        calcOrderPlan.textContent = "Setup invalidated. Price rallied above stop-loss (₹" + stop.toFixed(2) + ").";
+      } else if (Math.abs(live - entry) / entry <= 0.008) {
+        calcBadge.className += " badge-sell";
+        calcBadge.textContent = "🔴 IN SELL ZONE · SAFE TO SHORT NOW";
+        calcOrderPlan.textContent = "Place Short Sell @ ₹" + live.toFixed(2) + " | Set GTT Cover Target @ ₹" + target.toFixed(2) + " | Set GTT Stop-Loss @ ₹" + stop.toFixed(2);
+      } else if (live < entry * 0.992) {
+        calcBadge.className += " badge-warn";
+        calcBadge.textContent = "🛑 EXTENDED (dropped below entry) · DO NOT CHASE SHORT";
+        calcOrderPlan.textContent = "Price fell too far below entry. Place Limit Sell @ ₹" + entry.toFixed(2) + " and wait for bounce.";
+      } else {
+        calcBadge.className += " badge-info";
+        calcBadge.textContent = "ℹ️ ABOVE ENTRY (Discount Short) · VERIFY MOMENTUM";
+        calcOrderPlan.textContent = "Place Limit Sell Order @ ₹" + entry.toFixed(2) + " | Target: ₹" + target.toFixed(2) + " | Stop: ₹" + stop.toFixed(2);
+      }
     }
   }
 

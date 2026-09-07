@@ -1,0 +1,1162 @@
+INDEPENDENT FINAL COUNTER-AUDIT AND REMEDIATION DOSSIER
+Project: K-Square / Pivot31 Pure NSE Stock-Futures Trading System
+Audit date: 2026-09-07 (Asia/Kolkata)
+Code reviewed at HEAD: c63930c
+Reports challenged:
+  1. COUNTER_AUDIT_ADVERSARIAL_REVIEW.txt
+  2. SYSTEM_REMEDIATION_AND_RESOLUTION_REPORT.txt
+
+======================================================================
+0. EXECUTIVE VERDICT
+======================================================================
+
+FINAL ANSWER: NO. Everything is not fixed.
+
+The repository is materially improved from commit 153e62c, and the changes are
+not a broad functional downgrade. Several safety changes are genuine upgrades.
+However, the system is not correctly certified as Gate B active, is not ready
+for live capital, and is not yet one coherent pure stock-futures strategy.
+
+Release decision:
+  Gate A research engine:       CONDITIONAL / PARTIAL, not complete
+  Gate B shadow operations:     NO-GO; official shadow clock must not start
+  Gate C limited live capital:  BLOCKED
+  "Best available" claim:       NOT PROVABLE and currently false
+  Broad downgrade:              NO
+  New regressions / false proof:YES
+
+The largest problem is architectural, not cosmetic: research, recommendation,
+AI accounting, shadow execution, and alert holding logic implement different
+strategies and different accounting rules. Passing isolated unit tests cannot
+prove a system whose actual modules are not connected.
+
+The resolution report overstates completion. It says Gate A is 100% passed,
+Gate B is fully active, portfolio risk is active, and every P0/P1 is closed.
+Direct code-path tests contradict those claims.
+
+This is an engineering/model-risk audit, not a promise of profit. No legitimate
+auditor can certify a trading system as "most accurate" or "best" merely from a
+green test suite, a feature list, or historical fit.
+
+======================================================================
+1. EVIDENCE ACTUALLY CHECKED
+======================================================================
+
+1. Read both reports completely.
+2. Compared report claims against current code at c63930c, not only the older
+   153e62c commit named in the reports.
+3. Ran the full repository check:
+     npm run check -> PASS, exit code 0
+   Current package.json actually contains:
+     33 test programs
+     47 node --check syntax checks
+     1 CI flag verifier
+   This does not match the report's conflicting 35/42 and 32-suite claims.
+4. Ran dependency audit:
+     npm audit --omit=dev -> FAIL, 3 HIGH vulnerabilities
+   Observed advisories included fast-uri SSRF/host-confusion risk and an
+   image-size denial-of-service issue through the vinext dependency path.
+5. Ran an end-to-end shape probe using the real plan-full.json:
+     actionable is a number: 16
+     best is an array: 16 items
+     runner expression result: TypeError because it calls .filter() on 16
+6. Built an actual long order intent and sent it through the shadow broker:
+     intent has symbol: false
+     intent has side:   false
+     broker interpreted it as: SELL
+   That is a critical direction error, not a documentation concern.
+7. Searched production imports/call sites, workflows, artifacts, Google Sheet
+   evidence, contract/roll logic, portfolio-risk use, and data paths.
+8. Cross-checked current NSE, NSE Clearing, SEBI, and institutional model-risk
+   sources listed in Section 15.
+
+Important limitation:
+  A real broker session, live Google Sheet readback, and live exchange order
+  acknowledgements were not available in this local environment. The correct
+  status for these is UNVERIFIED, never PASS.
+
+======================================================================
+2. WHAT WAS GENUINELY IMPROVED (DO NOT REVERT THESE)
+======================================================================
+
+These are real upgrades, not downgrades:
+
+FIXED OR SUBSTANTIALLY IMPROVED
+  - Default 2% stop barrier now exists in weekly-cycle replay.
+  - Same-daily-bar target/stop ambiguity resolves conservatively to stop.
+  - Weekly replay defaults to capital-weighted return instead of summing every
+    rung percentage as if each rung used the whole portfolio.
+  - Missing contract lot size fails closed instead of silently using one share.
+  - Fundamentals score renormalizes weights when metrics are missing.
+  - STT schedule includes 0.05% on futures sell turnover from 2026-04-01.
+  - Exchange transaction charge was updated to the March 2026 schedule.
+  - Weak pooled ML is demoted to research/advisory use by a governance helper.
+  - Fractional-differencing return shape and several numerical boundaries were
+    made more consistent.
+  - AI-engine no longer automatically liquidates open cash-style lots Friday;
+    it contains a Monday reporting-reference rebase.
+  - Stored cash history is dividend-adjusted, reducing mechanical ex-dividend
+    dip signals in that specific research series.
+
+CORRECT INTERPRETATION OF "NOT DOWNGRADED"
+  Fewer trades after stronger vetoes are not a downgrade. Abstention is a safety
+  improvement when evidence is weak. A feature is a downgrade only if it creates
+  wrong timing, wrong accounting, wrong execution, hidden risk, or worse verified
+  out-of-sample economics. Adding more indicators does not automatically improve
+  accuracy.
+
+======================================================================
+3. CLAIM-BY-CLAIM STATUS OF THE REMEDIATION REPORT
+======================================================================
+
+Claim                                           Audit status
+----------------------------------------------  ----------------------
+Gate A 100% complete                            FALSE / overclaimed
+Gate B fully implemented and active             FALSE
+Portfolio risk engine active                    FALSE; test-only/dead
+Friday carry and Monday rebase fully proven      PARTIAL; synthetic proof
+All P0/P1 defects closed                        FALSE
+Full Indian F&O tax/slippage engine active       PARTIAL and inconsistent
+Live Google Sheet audit proven                   FALSE; credentials pending
+Outcome ledger connected correctly              FALSE; temporal corruption
+Pure NSE stock-futures scope enforced            PARTIAL; fallback violates it
+No sensitive portfolio exports in repository    FALSE
+All tests passing                               TRUE for npm run check only
+Test counts in report                            FALSE/internally inconsistent
+Dependency/security gate clean                   FALSE; audit finds 3 HIGH
+
+The report names commit 153e62c, while the reviewed HEAD is c63930c. It also
+states 35 tests plus 42 syntax checks near the start, then says 32 suites later.
+Its tax narrative still contains the superseded 0.02% STT and 0.0019% exchange
+rates in some sections. Therefore the report is not a reliable release artifact.
+
+======================================================================
+4. P0 CRITICAL DEFECT REGISTER
+======================================================================
+
+P0-01 -- ONE PRODUCT, FOUR DIFFERENT STRATEGIES
+Status: OPEN
+
+WHAT is wrong?
+  The historical engine forces all remaining positions out on Friday. The AI
+  engine carries cash-style long lots. Recommendations describe stock-futures
+  orders with dynamic stops/targets. The alert triage uses a separate hard-coded
+  -2.5% rule. These are not the same strategy.
+
+WHERE?
+  api/_lib/weekly-cycle.js:1-10, 142-146, 324
+  scripts/test-weekly-cycle.js:43-57
+  api/_lib/ai-engine.js:135-146, 177-271
+  api/_lib/recommendation.js:283, 492
+  scripts/dispatch-daily-alert.js:107-143
+
+WHY does it matter?
+  The backtest and ML labels estimate a Friday-liquidated cash-bar strategy,
+  while the stated trading policy carries futures across weeks. Its expected
+  return, drawdown, hit rate, holding time, costs, gap risk, and labels therefore
+  do not describe the intended live behavior.
+
+WHO is affected?
+  Research, ML, ranking, shadow execution, P&L reporting, risk controls, and the
+  trader relying on the recommendation.
+
+WHEN does it fail?
+  Every Friday with an open position, every Monday rebase, every contract expiry,
+  and every evaluation that uses weekly-cycle output as live evidence.
+
+HOW must it be fixed?
+  Define one versioned StrategySpec and one event-driven engine. The same engine
+  must consume historical events for research and live events for shadow/live.
+  StrategySpec must define instrument, side, entry, fill, stops, targets, sizing,
+  daily settlement, Monday attribution, holding exit, roll, costs, and vetoes.
+  Remove forced Friday exit from the canonical strategy if continuous holding is
+  the user's policy. Do not merely change the description.
+
+ACCEPTANCE TEST
+  Given the same deterministic market-event fixture, research and shadow modes
+  must produce identical orders, fills, positions, exits, fees, and P&L. Friday
+  must create zero exit event unless a real exit rule fires.
+
+-----------------------------------------------------------------------
+P0-02 -- SHADOW RUNNER CANNOT CONSUME THE PLAN
+Status: OPEN; Gate B cannot start
+
+WHAT is wrong?
+  run-shadow-session expects plan.actionable or plan.recommendations to be an
+  array. The generator returns actionable as a count and actual recommendations
+  in best. It then expects rec.orderIntent, while generated intents are nested in
+  rec.entries[].orderIntent.
+
+WHERE?
+  scripts/run-shadow-session.js:37-40, 53-68
+  scripts/weekly-plan.js:161-170
+  api/_lib/recommendation.js:250-266, 450-475, 516-529
+
+DIRECT PROOF
+  Current plan-full.json:
+    typeof actionable = number; value = 16
+    Array.isArray(best) = true; best.length = 16
+  Current runner expression:
+    TypeError: (p.actionable || p.recommendations || []).filter is not a function
+
+ADDITIONAL BREAKS
+  - The checked plan artifact has no usable orderIntent keys.
+  - Runner supplies no currentQuote, so limit orders auto-fill at their requested
+    limit without proof the market traded there.
+  - It imports closeShadowPosition, rebaseMondayPosition, and generateContractNote
+    but never calls them.
+  - It opens only; it does not mark daily, enforce target/stop, rebase, exit, roll,
+    reconcile, or create a contract note.
+  - No workflow schedules run-shadow-session or build-shadow-report.
+  - No current shadow ledger/report artifact proves recurring operations.
+
+HOW must it be fixed?
+  Iterate plan.best -> each entry -> orderIntent. Reject anything non-executable.
+  Require a fresh quote and contract master record before a fill. Wire the full
+  state machine: NEW -> ACK -> PARTIAL/FILLED -> OPEN -> DAILY_SETTLED -> REBASED
+  -> EXITED or ROLLED -> RECONCILED. Schedule it only after integration tests pass.
+
+ACCEPTANCE TEST
+  Generate a plan with the production generator, pass the untouched JSON into the
+  production runner, and verify one long and one short through quote, partial/no
+  fill, fill, daily MTM, Monday rebase, target, stop-gap, roll, fees, and contract
+  note. No hand-built replacement object is allowed in this test.
+
+-----------------------------------------------------------------------
+P0-03 -- LONG ORDER INTENT BECOMES A SELL
+Status: OPEN; immediate blocker
+
+WHAT is wrong?
+  buildOrderIntent accepts symbol and side but omits both from its returned
+  object. shadow-broker reads orderIntent.side and treats undefined as sell.
+
+WHERE?
+  api/_lib/recommendation.js:97-150
+  api/_lib/shadow-broker.js:124-128
+
+DIRECT PROOF
+  A generated long intent had no symbol and no side. The real simulator reported
+  its broker side as SELL.
+
+HOW must it be fixed?
+  Return immutable symbol, exchange token/instrument ID, side/action, contract,
+  expiry, strategy version, client order ID, rung ID, and decision timestamp.
+  Validate a strict schema at every boundary. Unknown side must throw/fail closed,
+  never default to sell.
+
+ACCEPTANCE TEST
+  Property tests over long/buy and short/sell must prove direction preservation
+  through plan -> intent -> broker -> ledger -> P&L. Missing/unknown values must
+  be rejected with no order and no ledger mutation.
+
+-----------------------------------------------------------------------
+P0-04 -- PORTFOLIO RISK ENGINE IS DEAD AND WOULD FAIL OPEN
+Status: OPEN
+
+WHAT is wrong?
+  portfolio-risk.js exists and its isolated test passes, but no production path
+  imports or calls evaluatePortfolioRisk. The report calls it ACTIVE without an
+  execution integration.
+
+WHERE?
+  api/_lib/portfolio-risk.js:29-113
+  No production caller was found outside tests/documentation.
+
+SECOND DEFECT
+  Portfolio risk checks marketRegime.regime == BLOODBATH_DEFENSIVE or shieldState
+  == LOCKDOWN. Actual evaluateGlobalMacroShock returns severity such as
+  CRITICAL_BLOODBATH plus shieldActive. The interfaces do not match.
+
+THIRD DEFECT
+  Missing macro values are coerced to normal defaults in market-regime.js:101-113,
+  so a complete feed outage can become NORMAL. Missing margin, risk, or sector in
+  portfolio-risk also becomes zero/absent and may approve.
+
+INCOMPLETE RISK MEASUREMENT
+  - Daily kill switch uses only realized P&L, not realized + intraday/unrealized.
+  - No gross/net delta-equivalent exposure or correlated-sector stress.
+  - No liquidity/ADV/OI/spread/impact/MWPL/ban checks.
+  - Single-name cap permits an undocumented 20% tolerance.
+  - killSwitchTriggered is a default object field, not demonstrated as durable,
+    immutable account state.
+
+HOW must it be fixed?
+  Make risk approval a mandatory precondition inside the sole order state machine.
+  Missing risk input must reject. Adapt to actual macro schema. Persist kill state
+  durably. Use current broker/NSE margin, current portfolio MTM, exposure, sector,
+  liquidity, and stress loss. Log input hash, rule version, decision, and reason.
+
+ACCEPTANCE TEST
+  There must be no reachable order submission path without a recorded APPROVED
+  risk decision. Mutation tests must prove that deleting any required margin,
+  quote, side, contract, sector, or macro field rejects the order.
+
+-----------------------------------------------------------------------
+P0-05 -- MONDAY REBASE PROOF IS SYNTHETIC, NOT A PRODUCTION TEST
+Status: PARTIAL / OPEN
+
+WHAT is real?
+  ai-engine has code that retains lots Friday and changes weekly reference Monday.
+  shadow-ledger has a rebase helper.
+
+WHAT is not proven?
+  scripts/test-weekly-rebase.js imports only assert and defines its own
+  simulateWeeklyRebaseEngine. It does not call ai-engine, shadow-ledger, the
+  runner, or broker. Its roll event is a manually constructed object. The test
+  proves its own example, not production.
+
+WHERE?
+  scripts/test-weekly-rebase.js:3-13, 119-139
+  api/_lib/ai-engine.js:230-271
+  scripts/test-shadow-ops.js (manual helper exercise)
+
+ACCOUNTING GAPS
+  - ai-engine is a cash-equity ledger: cash is reduced by full purchase amount and
+    only long lots exist. That is not futures margin + daily variation settlement.
+  - previousSettlementPrice is updated on Friday, not every session.
+  - No daily MTM cash movement or T+1 settlement ledger is modeled.
+  - No runtime invariant reconciles daily MTM, weekly attribution, weekend gap,
+    fees, and lifetime P&L.
+  - If Friday processing is missed, the Monday gap base can be stale.
+  - Weekend gap formula is long-only.
+
+CORRECT POLICY
+  Monday open may become the new WEEKLY REFERENCE price while the original trade
+  price, quantity, side, contract, and lifetime P&L remain unchanged. That reset
+  is reporting attribution only; it is never a new buy and never erases economic
+  P&L. For futures, daily settlement reference must also be stored separately.
+
+REQUIRED THREE-PRICE MODEL
+  1. originalExecutionPrice -- immutable lifetime/trade economics
+  2. previousDailySettlementPrice -- daily variation-margin accounting
+  3. weeklyReferencePrice -- Monday-to-current reporting attribution
+
+ACCEPTANCE INVARIANT
+  lifetime gross P&L == sum(all daily MTM) == sum(prior weekly attribution,
+  weekend gaps, current weekly attribution), subject only to explicit rounding.
+  A rebase must change no position quantity, side, contract, original execution,
+  realized P&L, account equity, or fee balance.
+
+-----------------------------------------------------------------------
+P0-06 -- OUTCOME TRACKER CAN USE BARS FROM BEFORE THE SIGNAL
+Status: OPEN; corrupts learning labels
+
+WHAT is wrong?
+  weekly-plan fetches the full five-year bar history for each pending/active
+  signal. evaluateOutcome scans every supplied bar but never filters on signal
+  timestamp/weekKey or on bars already processed.
+
+WHERE?
+  scripts/weekly-plan.js:66-95, 190-199
+  api/_lib/trade-tracker.js:58-151
+
+WHY does it matter?
+  A signal created in 2026 can be labeled WIN/LOSS using a 2020 candle. Re-running
+  can count old sessions again. The tracker can trigger entry and exit on the same
+  bar, while weekly-cycle forbids same-fill-bar exit. Labels no longer correspond
+  to executable events.
+
+ADDITIONAL LABEL DEFECTS
+  createSignalRecord tracks only the first rung and its ID is only symbol/week/
+  side, not each order/lot. Therefore multi-rung fills cannot be faithfully joined
+  to outcomes.
+
+HOW must it be fixed?
+  Store decisionAt, validFrom, orderSubmittedAt, filledAt, lastEvaluatedSession,
+  contract ID, rung/order ID, and strategy version. Only consume strictly newer
+  bars/events. Do not score target/stop before a confirmed fill. Resolve OHLC
+  ambiguity according to the canonical execution policy. Make updates idempotent.
+
+ACCEPTANCE TEST
+  Adding any number of bars before validFrom must not change state or result.
+  Re-evaluating the same bars twice must be a byte-for-byte no-op.
+
+-----------------------------------------------------------------------
+P0-07 -- ML FEATURE TIMING AND STRATEGY LABELS ARE INVALID FOR LIVE USE
+Status: OPEN
+
+WHAT is wrong?
+  weeklyTrainingRows says features are known at the previous Friday close but
+  inserts next Monday's opening gap into those features. At 08:15 IST Monday the
+  workflow runs before market open; weeklyForecast instead substitutes the most
+  recent bar's open-vs-previous-close gap, normally Friday's gap. This is a
+  train/serve timing mismatch and is look-ahead for any Friday-time forecast.
+
+WHERE?
+  api/_lib/ml-model.js:145-175, 373-387
+  .github/workflows/portal.yml:26-32, 85-91
+
+SECOND DEFECT
+  Labels come from weekly-cycle, whose trades force Friday exit and use adjusted
+  cash-stock bars. Intended execution carries NSE stock futures across weeks.
+  The model is therefore trained on a different target strategy/instrument.
+
+THIRD DEFECT
+  New outcome features are described as real quantitative features but include:
+    ATR = constant 2.0
+    return21 = return5 * 2
+    RSI = efficiency ratio * 100
+    z-score = transformation of Hurst
+    volume ratio = reciprocal of VPIN
+    52-week-high proximity = 0
+  These are proxies with incorrect economic names.
+
+WHERE?
+  scripts/weekly-plan.js:203-216
+
+CURRENT MODEL EVIDENCE
+  models/upside.json reports IC 0.0203, R-squared -0.0217, and a negative IC fold.
+  It should remain advisory/abstaining. Promoting it would be a downgrade.
+
+HOW must it be fixed?
+  Establish an as-of timestamp for every feature and label. At prediction time,
+  assert feature availability. Train on actual futures/contract events generated
+  by the canonical strategy. Replace fake proxies with correctly computed and
+  named measures. Keep final untouched out-of-time data that cannot influence
+  model, thresholds, ranking, sizing, or feature selection.
+
+ACCEPTANCE TEST
+  An automated time-travel test must fail if any feature's source timestamp is
+  later than decisionAt. Training and serving must use the identical feature
+  pipeline and identical availability contract.
+
+-----------------------------------------------------------------------
+P0-08 -- HELD-OUT RESULTS ARE USED INSIDE DECISIONS
+Status: OPEN
+
+WHAT is wrong?
+  Recommendation uses out-of-sample weekly-cycle results to veto, contribute a
+  large conviction component, and calculate expected price. That turns the held-
+  out set into a selection/tuning set rather than untouched validation evidence.
+
+WHERE?
+  api/_lib/recommendation.js:74-77, 338-341, 389-395
+
+STATISTICAL DEPENDENCE DEFECTS
+  - weekly-cycle t-stat standard error uses fills as independent observations,
+    despite multiple rungs sharing the same symbol-week shock.
+  - train-upside standard error uses stock-date row count, ignoring cross-sectional
+    and temporal dependence.
+  - Very small fill counts can pass fragile thresholds.
+  - No demonstrated probability-of-backtest-overfitting, deflated Sharpe, or
+    family-wide research-trial registry.
+
+HOW must it be fixed?
+  Tune only on training/validation. Freeze code and parameters, then score once on
+  a never-touched out-of-time test. Estimate uncertainty by date/week blocks and
+  cross-sectional clusters. Register every tried rule/feature/hyperparameter and
+  apply multiple-testing/selection-bias controls.
+
+-----------------------------------------------------------------------
+P0-09 -- EXECUTION MODEL AUTO-FILLS ORDERS WITHOUT MARKET EVIDENCE
+Status: OPEN
+
+WHAT is wrong?
+  If no quote is supplied, all LIMIT orders are filled at their limit. The shadow
+  runner supplies no quote. A touch-only comment says 50% queue probability but
+  code always fills completely. There are no partial fills, queue, volume-at-price,
+  spread, latency, or impact mechanics.
+
+WHERE?
+  scripts/run-shadow-session.js:57-61
+  api/_lib/shadow-broker.js:124-182
+
+ADDITIONAL DEFECTS
+  - Stops are priced at the stop rather than next executable price on a gap.
+  - Deterministic order ID lacks a unique client/rung/attempt identity.
+  - Contract-note identity uses runtime timing and is not fully reproducible.
+  - rankRecommendations does not require orderIntent.executable == true.
+  - If bhavcopy fails, weekly-plan measures the entire stored equity universe and
+    can publish non-F&O/non-executable names instead of failing closed.
+
+HOW must it be fixed?
+  No fill without timestamped bid/ask/trade or conservative bar evidence. Add
+  unfilled/partial/fill probabilities calibrated from shadow/live observations.
+  Model gaps, spread, latency, impact, participation, and rejected orders. Filter
+  non-executable items before counting/ranking. A missing F&O universe must stop
+  order generation, not broaden it.
+
+-----------------------------------------------------------------------
+P0-10 -- NO REAL CONTRACT ROLL OR HOLDING-DURATION ENGINE
+Status: OPEN
+
+WHAT is wrong?
+  "mandatory 3-day monthly futures expiry roll window" appears only in text. No
+  production roll implementation was found. Stock futures expire; open contracts
+  cannot be held forever.
+
+WHERE?
+  api/_lib/recommendation.js:283, 492 (description only)
+  scripts/test-weekly-rebase.js:119-129 (synthetic object only)
+
+ALERT HOLDING BUGS
+  scripts/dispatch-daily-alert.js:107-143 assumes every position is long when it
+  calculates P&L. It ignores contract, expiry, side, age, margin, basis/carry,
+  thesis state, and daily settlement. Its profitable target is mark * 1.03 each
+  run, so the target moves away as price rises.
+
+CORRECT ANSWER TO "HOW LONG SHOULD WE HOLD?"
+  Do not use a universal one-week or Friday rule. Monday reset is only reporting.
+  Holding duration must be an output of an independently validated exit policy:
+    - hard risk stop / gap-aware protective exit
+    - target or trailing exit
+    - thesis/forecast decay and regime invalidation
+    - maximum adverse excursion / volatility change
+    - liquidity, margin, MWPL/ban, corporate-event veto
+    - time stop learned only from out-of-sample hazard/edge decay
+    - mandatory close or genuine close-and-open roll before expiry
+  A candidate time stop (for example 5, 10, 15, or 20 sessions) must be selected
+  by walk-forward net performance and tail risk, not opinion. Different regimes
+  may justify different limits only after sufficient independent samples.
+
+ROLL REQUIREMENTS
+  Use authoritative instrument IDs and current/next contract quotes. Record close
+  fill, open fill, spread/basis, fees, slippage, margin change, and realized P&L.
+  No synthetic symbol string is acceptable as a broker contract identifier.
+
+-----------------------------------------------------------------------
+P0-11 -- FUTURES ACCOUNTING IS NOT NSE DAILY-SETTLEMENT ACCOUNTING
+Status: OPEN
+
+WHAT is wrong?
+  The main AI ledger pays full cash notional for long-only shares. The shadow
+  pieces estimate margin but are not wired. There is no complete variation-margin
+  ledger that resets open futures to official daily settlement every session.
+
+WHY does it matter?
+  Cash available, margin calls, daily realized variation, liquidation risk,
+  return-on-equity, drawdown, and weekend/expiry obligations will be wrong.
+
+HOW must it be fixed?
+  Implement double-entry account events for initial margin, additional margin,
+  daily variation settlement, fees/taxes, collateral haircuts, withdrawals, roll,
+  and final/physical settlement exposure. Reconcile with broker statement daily.
+
+ACCEPTANCE TEST
+  For every account day:
+    opening equity + external flows + daily P&L - charges = closing equity
+  and:
+    internal positions/quantity/margin/P&L = broker snapshot within stated
+    tolerance; otherwise freeze new orders.
+
+-----------------------------------------------------------------------
+P0-12 -- DATA FOUNDATION IS CASH SNAPSHOT DATA, NOT POINT-IN-TIME FUTURES DATA
+Status: OPEN
+
+WHAT is wrong?
+  Backtests use five years of adjusted Yahoo cash-stock daily OHLC. Live intent is
+  NSE stock futures. There is no versioned point-in-time futures contract history,
+  roll calendar, basis, OI, spread, contract survivorship, F&O eligibility history,
+  ban history, or actual intraday execution data.
+
+WHERE?
+  scripts/weekly-plan.js:66-95
+  api/_lib/bhavcopy.js (current/front snapshot, fixed tick)
+
+WHY does it matter?
+  Futures and cash differ through basis, carry, expiry, liquidity, daily settlement,
+  roll costs, contract changes, and eligibility. Current-constituent data also
+  creates survivorship/selection bias when projected into history.
+
+HOW must it be fixed?
+  Build an immutable raw data lake with vendor/exchange timestamp, receivedAt,
+  effectiveAt, version/hash, contract token, expiry, OHLCV, OI, bid/ask, settlement,
+  lot/tick/freeze limits, corporate actions, F&O membership/ban state, and source.
+  Never overwrite past raw observations. Derived data must be reproducible from a
+  manifest and code version.
+
+-----------------------------------------------------------------------
+P0-13 -- FUNDAMENTALS DO NOT MATCH THE USER'S FINANCIALS-FIRST REQUIREMENT
+Status: OPEN by stated product requirement
+
+WHAT is implemented?
+  A current Yahoo snapshot of selected ratios plus an earnings-calendar veto and
+  a five-component balanceSheetScore.
+
+WHAT is missing?
+  Point-in-time income statements, balance sheets, cash-flow statements, notes,
+  filing publication timestamps, restatements, auditor qualifications, promoter
+  pledge/shareholding, related-party transactions, contingent liabilities, working
+  capital quality, cash conversion, segment data, and sector-specific metrics.
+
+WHERE?
+  api/_lib/fundamentals.js:1-16, 102-149
+
+DIRECT REQUIREMENT CONFLICT
+  The file explicitly says a fundamentals outage must never block a price-history
+  trade. On failure it returns veto:null. The user stated that company decisions
+  should come from financials and balance-sheet evidence. Under that requirement,
+  missing required fundamentals must be a no-trade/data-unavailable result.
+
+HOW must it be fixed?
+  First write a precise policy: fundamentals as hard eligibility/risk veto versus
+  alpha signal. For a financials-first policy, use point-in-time official filings
+  or a licensed normalized dataset; retain filing versions and dates; implement
+  banking/NBFC/non-financial sector schemas; and fail closed on stale/missing core
+  fields. Do not apply generic current ratio/debt rules to financial companies.
+
+-----------------------------------------------------------------------
+P0-14 -- GOOGLE SHEET STORAGE/LEARNING IS NOT VERIFIED LIVE
+Status: OPEN / UNVERIFIED
+
+WHAT is wrong?
+  LIVE_GOOGLE_SHEET_AUDIT_REPORT.txt currently says OFFLINE / ENVIRONMENT
+  UNCONFIGURED and SKIPPED / CREDENTIALS PENDING. That cannot count as a passing
+  live integration audit.
+
+WHERE?
+  LIVE_GOOGLE_SHEET_AUDIT_REPORT.txt:2-5
+  scripts/audit-live-google-sheet.js:31-50
+  api/_lib/google-store.js:89-114
+
+ADDITIONAL GAP
+  appendStockFundamentalsToGoogle exists but no production caller was found. A
+  writer function is not evidence that data is written, durable, read back, or
+  used by training.
+
+HOW must it be fixed?
+  Run a credentialed canary: append a uniquely hashed row to each required tab,
+  read it back through the deployed endpoint/API, validate schema/value/time/hash,
+  confirm least-privilege access, then remove/expire the canary according to policy.
+  Save redacted evidence with deployment ID and timestamps. The audit must fail,
+  not skip green, when required credentials/integration are unavailable.
+
+-----------------------------------------------------------------------
+P0-15 -- EMAIL SUCCESS AND DEDUPLICATION ARE FALSE-POSITIVE PRONE
+Status: OPEN
+
+WHAT is wrong?
+  emailer does not check response.ok; any HTTP response is returned as success.
+  Webhook failure falls back to success:true/local_html_ready. Dispatcher records
+  dispatch and logs success regardless. In the workflow, published files are
+  committed before dispatch, and the new dedupe file is not committed afterward,
+  so a fresh runner can resend.
+
+WHERE?
+  api/_lib/emailer.js:437-460
+  scripts/dispatch-daily-alert.js:62-75, 288-290
+  .github/workflows/portal.yml:101-121
+
+HOW must it be fixed?
+  Require 2xx plus authenticated structured acknowledgement/message ID. A local
+  HTML file is generated, not delivered. Persist idempotency key in durable remote
+  storage with atomic compare-and-set before sending. Alert on failure and exit
+  nonzero when delivery is required.
+
+-----------------------------------------------------------------------
+P0-16 -- SENSITIVE TRADING ARTIFACTS REMAIN GIT-TRACKED
+Status: OPEN / governance blocker
+
+Tracked examples found:
+  data/trade-signals.json
+  exports/GM_Global_Complete_Portfolio_All_51_Positions.csv
+  exports/GM_Global_Portfolio_Export.csv
+  exports/GM_Portfolio_Execution_Plan.xlsx
+  exports/GM_Portfolio_Execution_Plan_Clean.csv
+  exports/daily-trade-email.html
+  exports/weekly_recommendations_*.csv
+
+WHY does it matter?
+  Deleting from the current tree would not remove history. Positions, strategies,
+  recommendations, or personal data may remain in clones and remote history.
+
+HOW must it be fixed?
+  Classify each artifact, stop tracking sensitive/runtime outputs, add safe ignore
+  rules, rotate any exposed secrets, use encrypted access-controlled storage, and
+  conduct a deliberate history-cleaning process only with owner approval and a
+  verified backup. Do not casually rewrite Git history.
+
+======================================================================
+5. P1 HIGH DEFECTS / CALCULATION ERRORS
+======================================================================
+
+P1-01 -- IPFT RATE IS 100 TIMES TOO HIGH
+  Code comment says INR 0.01 per crore but multiplies turnover by 0.0000001.
+  Correct decimal rate for INR 0.01 / INR 10,000,000 is 0.000000001 (1e-9).
+  api/_lib/shadow-broker.js:78-79
+  scripts/test-shadow-broker.js:19 incorrectly locks in INR 0.08 on INR 750,000;
+  correct IPFT at INR 0.01/crore is INR 0.00075 before currency rounding.
+  NSE's revised combined equity-futures outflow is INR 182.99 transaction charge
+  + INR 0.01 IPFT = INR 183 per crore each side. Code charges 0.00183% (INR 183)
+  plus an extra oversized IPFT, so it over/double counts relative to that split.
+
+P1-02 -- COST ENGINE IS FRAGMENTED
+  weekly-cycle = 0.08%; upside/tracker = 0.08%; strategy-lab = 0.25%; portal copy
+  still says 0.06%; shadow-broker itemizes charges. One trade can have different
+  expected net return depending on module. Build one dated, instrument-specific
+  charge service and make all research/live paths call it.
+
+P1-03 -- TICK SIZE IS WRONG FOR STOCKS BELOW INR 250
+  recommendation.js:98 and bhavcopy.js:112 hard-code 0.05. Current NSE contract
+  specification says stock futures use the underlying cash-market tick: INR 0.01
+  below INR 250 and INR 0.05 at/above INR 250. Load tick from instrument master.
+
+P1-04 -- MARGIN IS A FLAT ESTIMATE, NOT CURRENT SPAN
+  recommendation.js:119-121 uses 22%/28%. NSE Clearing margin is online,
+  intraday, portfolio-based SPAN and can include ELM, delivery margin, crystallized
+  obligations, additional volatile-stock margin, and broker add-ons. Use broker/
+  clearing current margin plus a conservative outage buffer; reject stale data.
+
+P1-05 -- EXPECTED WEEKLY RETURN REMAINS PARTLY INFLATED
+  Capital-weighted weekNetPct is improved, but weekly-cycle.js:278 calculates
+  expectedWeeklyPct by summing level average return * fills/week without the same
+  capital-slot weights. OOS average is for all rungs, not necessarily the selected
+  viable set. Expected return, ranking, sizing, and displayed economics must all
+  use one portfolio cash-flow calculation.
+
+P1-06 -- DAILY-BAR STANDARD ERRORS OVERSTATE EFFECTIVE SAMPLE SIZE
+  Multiple rungs in one week and hundreds of symbols on one date share shocks.
+  sqrt(number of rows/fills) assumes independence that does not exist. Use weekly/
+  date block bootstrap, clustered uncertainty, and regime/time stability checks.
+
+P1-07 -- VPIN IS NOT VPIN
+  advanced-quant builds a daily-bar price/volume proxy with arbitrary thresholds.
+  Institutional VPIN requires volume-bucketed order-flow estimation from suitable
+  trade data. Rename it clearly as a proxy or implement/calibrate real inputs. A
+  hard trade veto must not depend on an unvalidated mislabeled proxy.
+
+P1-08 -- META-LABEL IS HAND-CODED, NOT A VALIDATED META-MODEL
+  metaLabelConfidence is a formula with magic coefficients and an absolute veto.
+  It has no trained probability calibration, temporal validation, reliability
+  plot, Brier/log loss, threshold-cost study, or drift monitor. Rename it to rule
+  score until those proofs exist.
+
+P1-09 -- BLACK-76 PRICE FIX IS PARTIAL
+  Futures-option price/delta use discounting, but gamma and vega omit the discount
+  factor and theta/rho still follow spot-style expressions. This module is outside
+  the pure stock-futures core; either correct it with numerical finite-difference
+  tests or remove it from production claims/scope.
+
+P1-10 -- ACTIONABILITY DOES NOT REQUIRE EXECUTABILITY
+  rankRecommendations filters action != stand-aside but not executable intents.
+  Missing/invalid contract rows can be counted as actionable. Actionable must mean
+  every required rung is schema-valid, current, risk-approved, and executable.
+
+P1-11 -- BHAVCOPY FAILURE BROADENS THE UNIVERSE
+  weekly-plan.js:105-114 returns an empty futures map and then scans stored names.
+  For a pure stock-futures product, failure to prove current F&O eligibility must
+  produce NO TRADE, not a larger cash-equity universe.
+
+P1-12 -- NO LIQUIDITY/CAPACITY/F&O-BAN GATE
+  No demonstrated gate for OI, volume/ADV, spread, estimated impact, quantity
+  freeze, MWPL, ban status, contract days-to-expiry, or participation rate. These
+  are required before an order can be called executable.
+
+P1-13 -- CONTRACT SYMBOL IS SYNTHETIC
+  recommendation.js:107-108 constructs SYMBOL-expiry-FUT. Broker/exchange
+  instrument master token and exact trading symbol must be authoritative and
+  versioned. A display string cannot serve as execution identity.
+
+P1-14 -- SHORT HOLDING P&L IS WRONG IN ALERT TRIAGE
+  dispatch-daily-alert.js:114 always uses (mark-average)/average. For shorts the
+  sign must be reversed, and futures P&L must use side, multiplier, quantity,
+  settlements, fees, and current contract.
+
+P1-15 -- TEST HARNESS CAN PASS CLAIMS WITHOUT TESTING THE REAL PATH
+  The weekly-rebase test implements its own engine; shadow-ops manually mutates
+  state; verify-ci-flags searches source strings; Google audit returns a successful
+  skipped status; no test executes plan generation through production shadow
+  operations. Replace claim/grep tests with module and end-to-end invariants.
+
+P1-16 -- DEPENDENCY AUDIT IS NOT A RELEASE GATE
+  npm run check passed while npm audit --omit=dev failed with 3 HIGH findings.
+  Add dependency scanning/SBOM/lockfile review to CI with a documented exception
+  process. Do not run an automatic major-version fix without regression testing.
+
+P1-17 -- RETAIL ALGO COMPLIANCE MUST BE VERIFIED BEFORE AUTOMATION
+  SEBI's API-algo framework became applicable to all stock brokers from
+  2026-04-01. Before real order submission, verify the chosen broker/API, strategy
+  registration/tagging, static-IP/hosting, authentication, audit logs, throttles,
+  kill controls, and exchange operational modalities. This is a compliance work
+  item, not something code comments can certify.
+
+======================================================================
+6. STATUS OF COUNTER-AUDIT CORE ITEMS C1-C8
+======================================================================
+
+C1 Stop/triple-barrier consistency       PARTIAL
+  Default stop fixed, but strategy engines and holding policy differ.
+
+C2 Capital-weighted economics            PARTIAL
+  weekNetPct improved; expected/ranking/labels remain inconsistent.
+
+C3 Outcome/feedback integrity            OPEN
+  Pre-signal bars and repeat processing can corrupt outcomes.
+
+C4 Current costs/futures mechanics       PARTIAL
+  STT and transaction rate improved; IPFT, tick, margin, fills, settlement,
+  and fragmented costs remain wrong/incomplete.
+
+C5 Friday/Monday policy                  PARTIAL
+  AI helper exists; research still forces Friday exit; proof is synthetic.
+
+C6 Portfolio risk                        OPEN
+  File exists, but no production call; schema mismatch and fail-open defaults.
+
+C7 Shadow operations                     OPEN
+  Runner input mismatch, direction bug, no lifecycle, no schedule/evidence.
+
+C8 Governance/security/operations        OPEN
+  Email false success, live Sheet unverified, tracked artifacts, dependencies.
+
+Appendix research proposals A1-A12:
+  A1 adjusted cash bars                  PARTIAL/implemented, not futures solution
+  A2 point-in-time futures bars          OPEN
+  A3 market/sector residualization       OPEN
+  A4 volatility-normalized ladder grid   OPEN
+  A5 tail metrics/stress distribution    OPEN
+  A6 Monday anchor comparison            OPEN
+  A7 standalone carry research           PARTIAL, not independently validated
+  A8 liquidity/capacity constraints      OPEN
+  A9 runner/scale-out in real backtest   OPEN
+  A10 empirical regime gating            OPEN
+  A11 observability/drift/lineage         OPEN
+  A12 study-to-production feedback loop  OPEN
+
+These appendix ideas are hypotheses, not guaranteed improvements. Add each as a
+champion/challenger experiment. Promote only if it improves untouched out-of-time
+net economics and tail risk without violating execution capacity.
+
+======================================================================
+7. COMPLETE WH (WHO/WHAT/WHEN/WHERE/WHY/HOW/WHICH/WHAT-IF) AUDIT
+======================================================================
+
+OWNERSHIP / WHO
+  - Who owns the canonical StrategySpec and can approve changes?
+  - Who is independent model validator, separate from developer/promoter?
+  - Who owns data quality, execution, risk, security, compliance, and incident
+    response? Current repository does not provide a complete signed RACI.
+  - Who can trigger and reset the kill switch? Is dual authorization required?
+  - Who signs off a model/rule promotion and rollback?
+  - Who reviews every data/vendor/broker schema change?
+
+PURPOSE / WHAT
+  - What exact instrument is traded: only NSE FUTSTK, never cash/options/index?
+  - What is the one precise entry, exit, sizing, roll, and re-entry policy?
+  - What does "accuracy" mean: direction hit rate, calibrated probability, net
+    return, drawdown, expected shortfall, utility, or execution shortfall?
+  - What is the benchmark and what is the null strategy?
+  - What loss, drawdown, leverage, liquidity, and margin-call risk is acceptable?
+  - What is advisory versus order-generating versus veto-only?
+
+TIME / WHEN
+  - When is each feature known, published, received, revised, and usable?
+  - When does an order become valid and expire?
+  - When does the broker acknowledge, partially fill, reject, or cancel it?
+  - When is daily settlement applied and cash/margin reconciled?
+  - When is Monday weekly reference reset, especially after a holiday?
+  - When must a contract roll or close before the last Tuesday/holiday adjustment?
+  - When is a model retrained, frozen, revalidated, demoted, or retired?
+
+LOCATION / WHERE
+  - Where is immutable raw market/fundamental/contract data stored?
+  - Where is the schema registry and source-to-derived lineage?
+  - Where is broker truth stored versus Google Sheet reporting copies?
+  - Where is durable idempotency/kill-switch state stored?
+  - Where are secrets stored and rotated?
+  - Where are rejected orders, stale inputs, overrides, incidents, and corrections?
+
+RATIONALE / WHY
+  - Why should each signal have an edge after all current costs and impact?
+  - Why use a 2% ladder, 2% target, or any time stop in each volatility regime?
+  - Why should a cash-bar result transfer to futures? It currently cannot be
+    assumed.
+  - Why is a proxy called RSI/VPIN/z-score when it is not that calculation?
+  - Why does an OOS result influence the same recommendation it is meant to test?
+  - Why should missing macro/fundamentals/margin data be interpreted as safe?
+
+MECHANICS / HOW
+  - How are corporate actions, restatements, symbol changes, survivorship, and
+    F&O eligibility history handled point-in-time?
+  - How are partial fills, queue, spread, gaps, latency, impact, and rejections
+    modeled and calibrated?
+  - How are margin, daily MTM, fees, roll basis, and physical settlement exposure
+    reconciled with broker records?
+  - How are correlated positions, sector shocks, and regime breaks stressed?
+  - How are probabilities calibrated and monitored for drift?
+  - How are all research trials counted to control selection bias?
+
+SELECTION / WHICH
+  - Which data source is authoritative for each field?
+  - Which contract/token/expiry is selected, and why?
+  - Which features are stable after ablation and costs?
+  - Which exit policy wins across untouched periods and stress regimes?
+  - Which models are champion, challenger, advisory-only, or retired?
+
+QUANTITY / HOW MUCH
+  - How many independent weeks/regimes, not rows, support the claim?
+  - How much turnover, slippage, impact, margin, and overnight gap is assumed?
+  - How much capacity exists at the intended order size?
+  - How much performance remains after taxes, all fees, roll, rejects, latency,
+    and conservative fill uncertainty?
+  - How much model decay triggers automatic abstention?
+
+FAILURE / WHAT IF
+  - What if Yahoo, NSE, Google, broker, DNS, clock, or workflow is unavailable?
+  - What if data arrives late, duplicated, revised, or with wrong units?
+  - What if Friday or Monday processing is missed?
+  - What if both target and stop occur within one bar or price gaps through stop?
+  - What if a contract enters ban, margin jumps, or liquidity disappears?
+  - What if a short is interpreted as long or an undefined side as sell?
+  - What if an order succeeds but acknowledgement is lost?
+  - What if code deploys while orders/positions are open?
+  Every answer must be executable policy plus an automated test and runbook, not
+  only prose.
+
+======================================================================
+8. REQUIRED HOLDING AND MONDAY-RESET DESIGN
+======================================================================
+
+The user's policy is valid as an attribution choice:
+  - Do not automatically close Friday.
+  - Carry the actual position over the weekend.
+  - Use the first tradable Monday/new-week open as weeklyReferencePrice.
+  - Reset weekly displayed P&L only.
+  - Preserve original entry and total/lifetime P&L.
+  - Record Friday-to-Monday gap separately.
+
+It is not valid to call Monday open a new buying price for economic/accounting
+purposes unless there is a real new fill. Better terminology is NEW WEEKLY
+REFERENCE PRICE. Calling it "buy price" risks tax, ledger, stop, and performance
+errors.
+
+Holding horizon recommendation:
+  Do not hard-code one week. Start with a conservative maximum defined relative to
+  expiry and validated time-to-edge decay. Until there is valid futures history,
+  the system must not pretend it knows the optimal number. Research candidates
+  such as 5/10/15/20 sessions plus target/stop/trailing/thesis exits using nested
+  walk-forward testing. Always force genuine close/roll before the operational
+  expiry/physical-settlement danger window. The selected rule must be frozen and
+  prospectively shadow-tested for at least one or preferably two full expiry
+  cycles before any limited-capital proposal.
+
+======================================================================
+9. MINIMUM INSTITUTIONAL ARCHITECTURE
+======================================================================
+
+Layer 1 -- Immutable inputs
+  Exchange/broker instrument master, futures events, fundamentals/filings, macro,
+  corporate actions, received/effective timestamps, hashes, quality flags.
+
+Layer 2 -- Point-in-time feature store
+  One definition per feature, as-of enforcement, missingness, version, lineage.
+
+Layer 3 -- Canonical strategy simulator
+  One StrategySpec and event engine for research/shadow/live.
+
+Layer 4 -- Model governance
+  Inventory, purpose, owner, training manifest, independent validation, champion/
+  challenger, limitations, drift, thresholds, rollback.
+
+Layer 5 -- Pre-trade risk
+  Contract validation, freshness, portfolio exposures, current margin, liquidity,
+  event/macro vetoes, durable kill switch, approval record.
+
+Layer 6 -- Order management
+  Schema validation, idempotent client ID, acknowledgements, partial fills,
+  cancel/replace, reconciliation, no default direction.
+
+Layer 7 -- Futures accounting
+  Daily settlement/variation margin, weekly attribution, lifetime economics,
+  charges, roll, collateral, broker reconciliation.
+
+Layer 8 -- Observability and audit
+  Data freshness, drift, latency, reject/fill/slippage, reconciliation breaks,
+  alerts, immutable logs, incident/override workflow.
+
+======================================================================
+10. FIX ORDER (FASTEST SAFE REMEDIATION SEQUENCE)
+======================================================================
+
+1. Freeze Gate B/live claims and prevent all automatic order submission.
+2. Write and approve one versioned StrategySpec, including continuous holding.
+3. Replace the Friday-close research labels with the canonical continuous futures
+   event engine; preserve Monday reference as reporting only.
+4. Fix strict schemas: symbol/token, side, contract, expiry, rung, executable,
+   quote, decision time, strategy/risk version. Unknown fields fail closed.
+5. Repair plan -> runner -> risk -> broker -> ledger integration and add the real
+   end-to-end tests listed in Section 11.
+6. Implement futures daily settlement, account reconciliation, roll, expiry, and
+   gap-aware exits before any performance claim.
+7. Fix outcome temporal filtering/idempotency before collecting another ML label;
+   quarantine existing potentially corrupted trade-signal outcomes.
+8. Build point-in-time futures/contract/liquidity history and correct fundamentals
+   history according to the approved product policy.
+9. Correct IPFT, tick, current margin, unified charges, fill uncertainty, and
+   non-executable/F&O failure gates.
+10. Rebuild statistical validation with date/week blocks, untouched final test,
+    multiple-trial controls, stress/tail/capacity analysis.
+11. Prove live Google read/write/readback, durable email idempotency, dependency
+    gate, artifact classification, and regulatory/broker compliance.
+12. Start a new shadow clock only after all P0 acceptance tests pass. Run through
+    at least one full expiry/roll cycle; two is stronger. Any accounting break,
+    undefined side, missed settlement, or unreconciled order resets the clock.
+
+======================================================================
+11. NON-NEGOTIABLE RELEASE ACCEPTANCE TESTS
+======================================================================
+
+AT-01 Canonical parity
+  Same fixture -> identical research and shadow event ledger.
+
+AT-02 No Friday liquidation
+  Friday without a true exit trigger -> zero exit orders, unchanged quantity.
+
+AT-03 Monday rebase invariance
+  Rebase changes weeklyReference only; account equity and original trade do not.
+
+AT-04 Three-price reconciliation
+  Daily MTM == weekly buckets + weekend gaps == lifetime gross P&L.
+
+AT-05 Direction preservation
+  Long remains buy/long and short remains sell/short through every boundary.
+
+AT-06 Required-field fail closed
+  Missing side/token/expiry/lot/tick/quote/margin/risk/freshness -> no order.
+
+AT-07 Temporal integrity
+  No pre-signal event affects outcome; replaying events is idempotent.
+
+AT-08 Realistic execution
+  Untouched plan JSON tests unfilled, partial, fill, reject, gap stop, cancel, and
+  duplicate acknowledgement cases.
+
+AT-09 Current contract mechanics
+  Tick, lot, freeze, expiry, eligibility, MWPL/ban, margin come from dated master.
+
+AT-10 Daily broker reconciliation
+  Positions, fills, quantity, cash, charges, margin, and P&L reconcile or system
+  enters no-new-order lockdown.
+
+AT-11 Roll/expiry
+  Real close-and-open roll with both fills, basis, fees, and no double position.
+
+AT-12 Data time travel
+  Feature source/effective timestamp <= decision timestamp for every row.
+
+AT-13 Statistical independence
+  Date/week-block uncertainty and untouched final period; no selection on final.
+
+AT-14 Live integrations
+  Google canary write/readback and email authenticated acknowledgement proven.
+
+AT-15 Security/recovery
+  Dependency gate, secret scan, least privilege, backup/restore, kill switch,
+  rollback and incident drill all pass.
+
+======================================================================
+12. WHAT WOULD MAKE THE SYSTEM BETTER (AND WHAT WOULD NOT)
+======================================================================
+
+High-value improvements after the P0 foundation:
+  - Point-in-time actual futures data and contract lifecycle.
+  - Market/sector-neutral residual features and explicit beta/exposure controls.
+  - Volatility/liquidity normalized entries, but only after walk-forward ablation.
+  - Distributional forecasts and calibrated probabilities, not one point target.
+  - Tail metrics: max drawdown, expected shortfall, worst gap, time under water,
+    margin stress, turnover/capacity, and probability of ruin.
+  - Regime-specific champion/challenger models with evidence-based gates.
+  - Survival/hazard analysis for time-to-target/stop to estimate holding horizon.
+  - Execution-cost model calibrated from shadow/live fills.
+  - Independent model validation and continuous outcome/drift monitoring.
+
+Likely downgrades if added without proof:
+  - More chart patterns, candlesticks, physics metaphors, deep networks, or exotic
+    equations on only five years of daily data.
+  - Treating every technical indicator as independent confirmation.
+  - Using LSTM/transformers/deep learning before data volume, timing, labels, and
+    costs are correct.
+  - Optimizing rules on the same OOS period shown as proof.
+  - Auto-promoting a model because it sounds institutional or was recommended by
+    another model.
+
+Promotion rule for every new feature:
+  It must have a written causal/economic hypothesis, correct as-of data, ablation,
+  nested walk-forward test, untouched final test, conservative costs/fills,
+  stability across regimes, capacity assessment, and documented failure modes.
+  If it cannot improve net utility with uncertainty, keep it out.
+
+======================================================================
+13. MODEL-RISK GOVERNANCE VERDICT
+======================================================================
+
+The current system does not yet meet the spirit of current institutional model-
+risk practice. The missing elements are not "more AI"; they are clear purpose,
+conceptual consistency, input/data controls, independent effective challenge,
+real outcomes analysis, monitoring, model inventory, and accountable governance.
+
+Required inventory fields per model/rule:
+  model/rule ID and version; owner; purpose; allowed use; prohibited use; input
+  lineage; as-of contract; training dates; target definition; assumptions;
+  limitations; trials performed; validation and stress results; approval; expiry;
+  monitoring thresholds; fallback; rollback; current champion/challenger status.
+
+======================================================================
+14. FINAL RELEASE DECISION AND NON-MISLEADING WORDING
+======================================================================
+
+The following wording is supportable now:
+
+  "The code contains several remediations and its local unit/syntax suite passes.
+   The production-equivalent stock-futures shadow lifecycle, portfolio-risk
+   integration, point-in-time data, outcome integrity, daily futures settlement,
+   roll handling, and live external integrations are not yet validated. The
+   system remains research-only and must not be represented as Gate B active or
+   ready for live capital."
+
+The following wording is NOT supportable:
+  - "Everything is fixed."
+  - "Gate A is 100% complete."
+  - "Gate B is fully active."
+  - "All P0/P1 defects are closed."
+  - "The portfolio risk engine protects every order."
+  - "The ML/deep-learning system learns from verified Google Sheet outcomes."
+  - "The backtest proves the continuous futures strategy."
+  - "This is the best or most accurate trading system."
+
+======================================================================
+15. PRIMARY / AUTHORITATIVE SOURCES CHECKED
+======================================================================
+
+NSE stock-futures contract specifications (current page; updated 2026-08-11):
+https://www.nseindia.com/static/products-services/equity-derivatives-contract-specifications
+
+NSE individual-security derivatives (contract cycle/expiry/instrument files):
+https://www.nseindia.com/static/products-services/equity-derivatives-individual-securities
+
+NSE Clearing futures daily settlement and MTM reset:
+https://www.nseclearing.in/clearing-settlement/equity-derivatives/settlement-mechanism
+
+NSE Clearing SPAN and other margin components:
+https://www.nseclearing.in/risk-management/equity-derivatives/margins
+
+NSE STT circular effective 2026-04-01 (futures sale 0.05%):
+https://nsearchives.nseindia.com/content/circulars/FATAX73524.pdf
+
+NSE transaction charge/IPFT circular effective 2026-03-01:
+https://nsearchives.nseindia.com/content/circulars/FA73061.pdf
+
+NSE physical-settlement FAQ for equity derivatives:
+https://nsearchives.nseindia.com/content/circulars/INSP38433.pdf
+
+SEBI retail API algorithm framework timeline (all brokers from 2026-04-01):
+https://www.sebi.gov.in/sebi_data/attachdocs/sep-2025/1759232056254.pdf
+
+Federal Reserve/OCC/FDIC revised model-risk guidance, SR 26-2 (2026-04-17):
+https://www.federalreserve.gov/supervisionreg/srletters/SR2602.htm
+https://www.federalreserve.gov/supervisionreg/srletters/SR2602a1.pdf
+
+Primary paper on probability of backtest overfitting:
+https://papers.ssrn.com/sol3/Papers.cfm?abstract_id=2326253
+
+======================================================================
+16. AUDITOR SIGN-OFF
+======================================================================
+
+Conclusion: IMPROVED BUT NOT FIXED; NO BROAD DOWNGRADE; MATERIAL NEW/REMAINING
+INTEGRATION, ACCOUNTING, DATA, STATISTICAL, EXECUTION, SECURITY, AND GOVERNANCE
+DEFECTS. NO-GO FOR OFFICIAL SHADOW CERTIFICATION OR LIVE CAPITAL.
+
+Re-audit should occur only after the P0 fixes are implemented and the acceptance
+tests execute the real production modules end to end. A rewritten resolution
+report is not evidence of remediation; reproducible artifacts are.

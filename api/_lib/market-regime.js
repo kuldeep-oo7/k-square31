@@ -98,19 +98,30 @@ function classifyMarketRegime(indexBars = []) {
  * Pre-Market Global Macro Shock & Geopolitical Bloodbath Shield
  * Monitors GIFT NIFTY, VIX, Crude Oil spikes (War indicator), and US/Global futures.
  */
-function evaluateGlobalMacroShock({
-  giftNiftyGapPct = 0,
-  indiaVix = 14,
-  indiaVixChangePct = 0,
-  usVix = 15,
-  brentCrudeSpikePct = 0,
-  sp500FuturesGapPct = 0
-}) {
-  const gap = Number(giftNiftyGapPct) || 0;
-  const vix = Number(indiaVix) || 14;
-  const vixChange = Number(indiaVixChangePct) || 0;
-  const crudeSpike = Number(brentCrudeSpikePct) || 0;
-  const spGap = Number(sp500FuturesGapPct) || 0;
+function evaluateGlobalMacroShock(input = {}) {
+  const required = ["giftNiftyGapPct", "indiaVix", "indiaVixChangePct", "brentCrudeSpikePct", "sp500FuturesGapPct"];
+  const missing = required.filter((name) => input[name] === null || input[name] === undefined || !Number.isFinite(Number(input[name])));
+  if (missing.length) {
+    return {
+      severity: "DATA_UNAVAILABLE",
+      shieldActive: true,
+      dataComplete: false,
+      missingFields: missing,
+      allowedLongLevels: [],
+      vetoedLongLevels: [1, 2, 3, 4, 5],
+      shortMultiplier: 0,
+      longMultiplier: 0,
+      actionDirective: "NO_NEW_ORDERS_DATA_LOCKDOWN",
+      reasons: [`Required macro inputs unavailable: ${missing.join(", ")}`],
+      summary: "MACRO DATA LOCKDOWN: New orders blocked until required live inputs are restored."
+    };
+  }
+
+  const gap = Number(input.giftNiftyGapPct);
+  const vix = Number(input.indiaVix);
+  const vixChange = Number(input.indiaVixChangePct);
+  const crudeSpike = Number(input.brentCrudeSpikePct);
+  const spGap = Number(input.sp500FuturesGapPct);
 
   let shockScore = 0;
   const shockFactors = [];
@@ -153,6 +164,7 @@ function evaluateGlobalMacroShock({
     return {
       severity: "CRITICAL_BLOODBATH",
       shieldActive: true,
+      dataComplete: true,
       allowedLongLevels: [4, 5], // ONLY deep capitulation dips allowed (no shallow knife catching)
       vetoedLongLevels: [1, 2, 3],
       shortMultiplier: 1.35,     // Boost short setups to profit from the selloff
@@ -167,6 +179,7 @@ function evaluateGlobalMacroShock({
     return {
       severity: "ELEVATED_RISK",
       shieldActive: true,
+      dataComplete: true,
       allowedLongLevels: [2, 3, 4, 5], // Veto Level 1 shallow entries
       vetoedLongLevels: [1],
       shortMultiplier: 1.15,
@@ -180,6 +193,7 @@ function evaluateGlobalMacroShock({
   return {
     severity: "NORMAL",
     shieldActive: false,
+    dataComplete: true,
     allowedLongLevels: [1, 2, 3, 4, 5],
     vetoedLongLevels: [],
     shortMultiplier: 1.0,

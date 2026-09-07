@@ -10,7 +10,9 @@
 // outvoted by a strong-looking score. Conviction is only ever a way to size a
 // trade the evidence has already cleared.
 
+const crypto = require("node:crypto");
 const { tradingWeeks, ladder, weeklyCycle, DEFAULT_CONFIG } = require("./weekly-cycle");
+const { stockFutureTickSize } = require("./bhavcopy");
 const { weeklyForecast, evaluateModelFitness } = require("./ml-model");
 const { trendAlignment, trendGate, trendMetrics } = require("./trend");
 const { carryScore } = require("./carry");
@@ -94,8 +96,11 @@ function enforceHardVetoes({ symbol, metaGate, vpinData, evidence = {} }) {
   return null;
 }
 
-function buildOrderIntent({ symbol, side, entry, target, runnerTarget, stopLoss, sizeMultiplier, riskReward, contract, targetPct, stopLossPct }) {
-  const TICK_SIZE = 0.05;
+function buildOrderIntent({ symbol, side, entry, target, runnerTarget, stopLoss, sizeMultiplier, riskReward, contract, targetPct, stopLossPct, weekKey = null, level = 1, sector = null, decisionAt = null }) {
+  const normalizedSymbol = String(symbol || "").trim().toUpperCase();
+  const normalizedSide = side === "long" || side === "buy" ? "long" : side === "short" || side === "sell" ? "short" : null;
+  const TICK_SIZE = stockFutureTickSize(contract?.spot || entry, contract?.tickSize);
+  if (!(TICK_SIZE > 0)) throw new TypeError("A valid stock-futures tick size is required");
   const entryTick = round(Math.round(entry / TICK_SIZE) * TICK_SIZE, 2);
   const targetTick = round(Math.round(target / TICK_SIZE) * TICK_SIZE, 2);
   const runnerTargetTick = runnerTarget ? round(Math.round(runnerTarget / TICK_SIZE) * TICK_SIZE, 2) : null;
@@ -105,7 +110,8 @@ function buildOrderIntent({ symbol, side, entry, target, runnerTarget, stopLoss,
   const lotSize = Number(contract?.lotSize);
   const validLotSize = (Number.isFinite(lotSize) && lotSize > 0) ? lotSize : null;
   const expiry = contract?.expiry || null;
-  const contractSymbol = expiry ? `${symbol}-${expiry}-FUT` : `${symbol}-FUT`;
+  const contractSymbol = contract?.contractSymbol || (expiry ? `${normalizedSymbol}-${expiry}-FUT` : null);
+  const instrumentId = contract?.instrumentId || null;
 
   // C-6: Risk budget cap modeling: ₹25,000 baseline risk budget scaled by sizeMultiplier
   // C-6 FIX: Do NOT use Math.max(1, ...). If riskPerLot exceeds risk budget, targetLots = 0!
@@ -117,13 +123,38 @@ function buildOrderIntent({ symbol, side, entry, target, runnerTarget, stopLoss,
   const quantity = targetLots * (validLotSize || 0);
   const notional = round(quantity * entryTick, 2);
   // Real margin tier: 22% default, or higher if high volatility
-  const marginPct = Number(contract?.marginPct) || (stopLossPct > 1.5 ? 0.28 : 0.22);
-  const estMarginRequired = round(notional * marginPct, 2);
+  const currentMarginPerLot = Number(contract?.marginPerLot);
+  const currentMarginRequired = Number.isFinite(currentMarginPerLot) && currentMarginPerLot > 0
+    ? round(currentMarginPerLot * targetLots, 2)
+    : null;
+  const marginPct = currentMarginRequired && notional > 0
+    ? round(currentMarginRequired / notional, 6)
+    : Number(contract?.marginPct) || (stopLossPct > 1.5 ? 0.28 : 0.22);
+  const estMarginRequired = currentMarginRequired || round(notional * marginPct, 2);
   const maxRiskInr = round(riskPerShare * quantity, 2);
-  const executable = Boolean(validLotSize && targetLots >= 1);
+  const validationErrors = [];
+  if (!normalizedSymbol) validationErrors.push("MISSING_SYMBOL");
+  if (!normalizedSide) validationErrors.push("MISSING_OR_INVALID_SIDE");
+  if (!validLotSize) validationErrors.push("MISSING_CONTRACT_LOT_SIZE");
+  if (!expiry) validationErrors.push("MISSING_EXPIRY");
+  if (!contractSymbol) validationErrors.push("MISSING_CONTRACT_SYMBOL");
+  if (targetLots < 1) validationErrors.push("RISK_EXCEEDS_BUDGET");
+  const executable = validationErrors.length === 0;
+  const orderSeed = [normalizedSymbol, contractSymbol, expiry, weekKey || "NO_WEEK", `L${level}`, normalizedSide || "NO_SIDE"].join(":");
+  const clientOrderId = `K2_${crypto.createHash("sha256").update(orderSeed).digest("hex").slice(0, 20).toUpperCase()}`;
 
   return {
+    symbol: normalizedSymbol,
+    side: normalizedSide,
+    brokerSide: normalizedSide === "long" ? "BUY" : normalizedSide === "short" ? "SELL" : null,
+    clientOrderId,
+    strategyVersion: "continuous-futures-v2",
+    decisionAt: decisionAt || new Date().toISOString(),
+    weekKey,
+    level,
+    sector,
     contractSymbol,
+    instrumentId,
     segment: "NSE_FO",
     instrumentType: "STOCK_FUTURE",
     finInstrmTp: "STF",
@@ -132,7 +163,10 @@ function buildOrderIntent({ symbol, side, entry, target, runnerTarget, stopLoss,
     lots: targetLots,
     quantity,
     executable,
-    rejectionReason: !validLotSize ? "MISSING_CONTRACT_LOT_SIZE" : (targetLots < 1 ? "RISK_EXCEEDS_BUDGET" : null),
+    liveExecutable: Boolean(executable && instrumentId && currentMarginRequired),
+    executionMode: instrumentId && currentMarginRequired ? "LIVE_ELIGIBLE_AFTER_RISK" : "SHADOW_ONLY",
+    validationErrors,
+    rejectionReason: validationErrors[0] || null,
     tickSize: TICK_SIZE,
     entryPrice: entryTick,
     targetPrice: targetTick,
@@ -144,6 +178,7 @@ function buildOrderIntent({ symbol, side, entry, target, runnerTarget, stopLoss,
     contractNotional: notional,
     estMarginRequired,
     marginPct,
+    marginSource: currentMarginRequired ? "BROKER_OR_CLEARING_CURRENT" : "CONSERVATIVE_ESTIMATE",
     maxRiskInr,
     orderType: "LIMIT",
     timeInForce: "DAY"
@@ -235,7 +270,11 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
     riskReward,
     contract: input.contract,
     targetPct,
-    stopLossPct
+    stopLossPct,
+    weekKey: anchorInfo.weekKey,
+    level: 1,
+    sector: input.sector,
+    decisionAt: input.decisionAt
   });
 
   return {
@@ -306,6 +345,12 @@ function recommendation(input) {
   const cycle = input.cycle === undefined ? weeklyCycle(bars, input.overrides || {}) : input.cycle;
   if (!cycle) return standAside(symbol, "No weekly cycle evidence supplied");
   if (!cycle.ready) return standAside(symbol, cycle.reason, { cycle });
+  if (input.requireFundamentals && !input.fundamentals?.available) {
+    return standAside(symbol, `Required point-in-time fundamentals unavailable: ${input.fundamentals?.reason || "not supplied"}`, { cycle, fundamentals: input.fundamentals || null });
+  }
+  if (input.requireContract && !input.contract) {
+    return standAside(symbol, "No current NSE stock-futures contract was verified", { cycle });
+  }
 
   const verdict = cycle.verdict;
   // Two ways onto the list. The ladder route asks whether harvesting 2% slices
@@ -460,7 +505,11 @@ function recommendation(input) {
       riskReward,
       contract: input.contract,
       targetPct,
-      stopLossPct
+      stopLossPct,
+      weekKey: anchorInfo.weekKey,
+      level: entry.level,
+      sector: input.sector,
+      decisionAt: input.decisionAt
     })
   }));
 
@@ -511,15 +560,23 @@ function recommendation(input) {
   };
 }
 
-// The buying list: only names that cleared every veto, ranked by the expected
+// // The buying list: only names that cleared every veto, ranked by the expected
 // result of the week net of costs, with conviction breaking ties.
 function rankRecommendations(list, options = {}) {
   const limit = Number(options.limit) || 20;
+  const requireExecutable = Boolean(options.requireExecutable);
+  const isActionable = (item) => {
+    if (!item || item.action === "stand-aside") return false;
+    if (Array.isArray(item.entries)) {
+      return item.entries.some((entry) => entry.orderIntent?.executable === true);
+    }
+    return !requireExecutable;
+  };
   const actionable = (Array.isArray(list) ? list : [])
-    .filter((item) => item && item.action !== "stand-aside")
+    .filter(isActionable)
     .sort((left, right) => Number(right.expectedWeeklyPct) - Number(left.expectedWeeklyPct)
       || Number(right.convictionPct) - Number(left.convictionPct));
-  const stoodAside = (Array.isArray(list) ? list : []).filter((item) => item && item.action === "stand-aside");
+  const stoodAside = (Array.isArray(list) ? list : []).filter((item) => !isActionable(item));
   return {
     generatedFor: options.weekKey || actionable[0]?.weekKey || null,
     considered: Array.isArray(list) ? list.length : 0,
@@ -527,9 +584,12 @@ function rankRecommendations(list, options = {}) {
     buys: actionable.filter((item) => item.side === "long").slice(0, limit),
     sells: actionable.filter((item) => item.side === "short").slice(0, limit),
     best: actionable.slice(0, limit),
-    // Rejections are part of the output: knowing a name was vetoed for results
-    // risk is as useful as knowing another one qualified.
-    rejected: stoodAside.map((item) => ({ symbol: item.symbol, reason: item.reasons?.[0] || "No edge" })).slice(0, 120)
+    rejected: stoodAside.map((item) => ({
+      symbol: item.symbol,
+      reason: item.action === "stand-aside"
+        ? (item.reasons?.[0] || "No edge")
+        : (item.entries?.flatMap((entry) => entry.orderIntent?.validationErrors || [])[0] || "No executable stock-futures order")
+    })).slice(0, 120)
   };
 }
 

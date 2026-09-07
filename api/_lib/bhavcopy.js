@@ -18,6 +18,18 @@ const ARCHIVE = "https://nsearchives.nseindia.com/content/fo";
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 const FUTURES = new Set(["STF", "IDF"]);
 const STOCK_FUTURES = new Set(["STF"]);
+const SECURITY_BAN_URL = "https://archives.nseindia.com/content/fo/fo_secban.csv";
+
+// NSE stock futures inherit the cash-market tick for the underlying. The current
+// exchange schedule is INR 0.01 below INR 250 and INR 0.05 at/above INR 250.
+// Prefer an explicit positive tick from an instrument master when one is present.
+function stockFutureTickSize(underlyingPrice, suppliedTick = null) {
+  const explicit = Number(suppliedTick);
+  if (Number.isFinite(explicit) && explicit > 0) return explicit;
+  const price = Number(underlyingPrice);
+  if (!Number.isFinite(price) || price <= 0) return null;
+  return price < 250 ? 0.01 : 0.05;
+}
 
 function stamp(date) {
   return `${date.getUTCFullYear()}${String(date.getUTCMonth() + 1).padStart(2, "0")}${String(date.getUTCDate()).padStart(2, "0")}`;
@@ -105,16 +117,85 @@ function frontFutures(rows, options = {}) {
       openInterest: Number(row.OpnIntrst) || 0,
       volume: Number(row.TtlTradgVol) || 0,
       lotSize: Number(row.NewBrdLotQty) || null,
+      instrumentId: String(row.FinInstrmId || "").trim() || null,
+      contractSymbol: String(row.TradgSymbl || row.FinInstrmNm || "").trim() || `${symbol}-${row.XpryDt}-FUT`,
+      tradeDate: String(row.TradDt || row.BizDt || "").slice(0, 10) || null,
       instrument: row.FinInstrmTp,
       segment: "NSE_FO",
       instrumentType: row.FinInstrmTp === "STF" ? "STOCK_FUTURE" : "INDEX_FUTURE",
       finInstrmTp: row.FinInstrmTp,
-      tickSize: 0.05
+      tickSize: stockFutureTickSize(spot, row.TickSize || row.TckSz)
     };
     const existing = bySymbol.get(symbol);
     if (!existing || entry.expiry < existing.expiry) bySymbol.set(symbol, entry);
   }
   return bySymbol;
+}
+
+// NSE publishes this file for the next trade date. A failed download is not an
+// empty ban list; callers receive `available:false` and must block fresh risk.
+async function fetchSecurityBanList(timeoutMs = 15_000) {
+  try {
+    const response = await fetch(SECURITY_BAN_URL, {
+      headers: { "User-Agent": USER_AGENT, Accept: "text/csv,*/*" },
+      signal: AbortSignal.timeout(timeoutMs)
+    });
+    if (!response.ok) throw new Error(`HTTP ${response.status}`);
+    const text = await response.text();
+    const symbols = new Set();
+    for (const line of text.split(/\r?\n/)) {
+      const first = String(line.split(",")[0] || "").replace(/^\uFEFF/, "").replace(/^"|"$/g, "").trim().toUpperCase();
+      if (/^[A-Z0-9&-]{2,30}$/.test(first) && !["SYMBOL", "SECURITY", "SCRIP"].includes(first)) symbols.add(first);
+    }
+    return { available: true, symbols, source: SECURITY_BAN_URL, fetchedAt: new Date().toISOString() };
+  } catch (error) {
+    return { available: false, symbols: null, source: SECURITY_BAN_URL, fetchedAt: new Date().toISOString(), error: String(error?.message || error) };
+  }
+}
+
+// Keeps the complete near/mid/far contract chain. The front-only map is enough
+// for discovery, but a genuine roll requires both the expiring and next contract
+// with their own prices, volume, OI, lot size and instrument identity.
+function futuresBySymbol(rows, options = {}) {
+  const allowed = options.stockOnly === false ? FUTURES : STOCK_FUTURES;
+  const grouped = new Map();
+  for (const row of Array.isArray(rows) ? rows : []) {
+    if (!allowed.has(row.FinInstrmTp)) continue;
+    const close = Number(row.ClsPric);
+    const spot = Number(row.UndrlygPric);
+    const symbol = String(row.TckrSymb || "").toUpperCase();
+    if (!symbol || !(close > 0) || !(spot > 0) || !/^\d{4}-\d{2}-\d{2}$/.test(row.XpryDt)) continue;
+    const contract = {
+      symbol,
+      expiry: row.XpryDt,
+      futures: close,
+      spot,
+      settlement: Number(row.SttlmPric) || close,
+      dayHigh: Number(row.HghPric) || null,
+      dayLow: Number(row.LwPric) || null,
+      dayOpen: Number(row.OpnPric) || null,
+      previousClose: Number(row.PrvsClsgPric) || null,
+      openInterest: Number(row.OpnIntrst) || 0,
+      volume: Number(row.TtlTradgVol) || 0,
+      lotSize: Number(row.NewBrdLotQty) || null,
+      instrumentId: String(row.FinInstrmId || "").trim() || null,
+      contractSymbol: String(row.TradgSymbl || row.FinInstrmNm || "").trim() || `${symbol}-${row.XpryDt}-FUT`,
+      tradeDate: String(row.TradDt || row.BizDt || "").slice(0, 10) || null,
+      instrument: row.FinInstrmTp,
+      segment: "NSE_FO",
+      instrumentType: row.FinInstrmTp === "STF" ? "STOCK_FUTURE" : "INDEX_FUTURE",
+      finInstrmTp: row.FinInstrmTp,
+      tickSize: stockFutureTickSize(spot, row.TickSize || row.TckSz)
+    };
+    if (!grouped.has(symbol)) grouped.set(symbol, []);
+    grouped.get(symbol).push(contract);
+  }
+  for (const contracts of grouped.values()) contracts.sort((left, right) => left.expiry.localeCompare(right.expiry));
+  return grouped;
+}
+
+function stockFuturesBySymbol(rows) {
+  return futuresBySymbol(rows, { stockOnly: true });
 }
 
 function frontStockFutures(rows) {
@@ -123,9 +204,13 @@ function frontStockFutures(rows) {
 
 module.exports = {
   fetchBhavcopy,
+  fetchSecurityBanList,
   frontFutures,
   frontStockFutures,
+  futuresBySymbol,
   latestBhavcopy,
   parseCsv,
+  stockFuturesBySymbol,
+  stockFutureTickSize,
   unzipSingle
 };

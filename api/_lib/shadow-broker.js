@@ -22,15 +22,21 @@ function round(value, digits = 2) {
  * - Brokerage: Flat ₹20 per executed order (or 0.03% if turnover is very small)
  * - STT (Securities Transaction Tax): 0.05% on SELL side notional turnover (Finance Act rate, rounded to nearest rupee)
  *   (Dated support: 0.0125% prior to Oct 2024, 0.02% from Oct 2024 to Apr 2026, 0.05% from Apr 2026 onward)
- * - Exchange Turnover Fee (NSE): 0.00183% of turnover
+ * - Exchange Turnover Fee (NSE): 0.00183% (0.0000183 of turnover; INR 182.99/crore + INR 0.01/crore IPFT from 2026-03-01)
  * - Clearing Charges: 0.0002% of turnover
- * - IPFT (Investor Protection Fund Trust): ₹0.01 per crore (0.0000001)
- * - SEBI Turnover Charges: ₹10 per crore (0.0001% of turnover)
- * - Stamp Duty: 0.002% on BUY side notional turnover (rounded to nearest rupee)
- * - GST: 18% on (Brokerage + Exchange Charges + SEBI Charges + IPFT)
+ * - IPFT (Investor Protection Fund Trust): INR 0.01/crore from 2026-03-01
  */
-function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 20, asOfDate = null }) {
-  const isBuy = String(side).toLowerCase() === "buy" || String(side).toLowerCase() === "long";
+function normalizeOrderSide(side) {
+  const value = String(side || "").trim().toUpperCase();
+  if (value === "BUY" || value === "LONG") return "BUY";
+  if (value === "SELL" || value === "SHORT") return "SELL";
+  return null;
+}
+
+function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 20, asOfDate = null, clearingRate = 0.000002 }) {
+  const normalizedSide = normalizeOrderSide(side);
+  if (!normalizedSide) throw new TypeError(`Unsupported futures order side: ${String(side)}`);
+  const isBuy = normalizedSide === "BUY";
   const p = Number(price) || 0;
   const q = Number(quantity) || 0;
   const turnover = round(p * q, 2);
@@ -69,14 +75,16 @@ function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 2
   // STT: levied only on sell side for futures, rounded to nearest rupee per Indian tax rules
   const stt = !isBuy ? Math.round(turnover * sttRate) : 0;
 
-  // Exchange turnover fee: 0.00183%
-  const exchangeCharges = round(turnover * 0.0000183, 2);
+  // Exchange turnover fee: 0.00183% (0.0000183 of turnover)
+  const exchangeRate = 0.0000183;
+  const exchangeCharges = round(turnover * exchangeRate, 2);
 
   // Clearing charges: 0.0002%
-  const clearingCharges = round(turnover * 0.000002, 2);
+  const clearingCharges = round(turnover * (clearingRate !== undefined ? Number(clearingRate) : 0.000002), 2);
 
   // IPFT: ₹0.01 per crore = 0.0000001
-  const ipft = round(turnover * 0.0000001, 2);
+  const ipftRate = 0.0000001;
+  const ipft = round(turnover * ipftRate, 2);
 
   // SEBI charges: ₹10 per crore = 0.0001%
   const sebiCharges = round(turnover * 0.000001, 2);
@@ -105,8 +113,10 @@ function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 2
     brokerage,
     stt,
     sttRate,
+    exchangeRate,
     exchangeCharges,
     clearingCharges,
+    ipftRate,
     ipft,
     sebiCharges,
     stampDuty,
@@ -123,11 +133,23 @@ function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 2
  */
 function simulateExecutionFill({ orderIntent, currentQuote = null, liquidityTier = "HIGH", asOfDate = null }) {
   if (!orderIntent) return null;
-  const side = orderIntent.side;
-  const isBuy = side === "buy" || side === "long";
+  const side = normalizeOrderSide(orderIntent.side);
+  if (!side) {
+    return { status: "REJECTED", reason: "MISSING_OR_INVALID_SIDE", orderIntent };
+  }
+  if (orderIntent.executable === false) {
+    return { status: "REJECTED", reason: orderIntent.rejectionReason || "ORDER_NOT_EXECUTABLE", orderIntent };
+  }
+  const isBuy = side === "BUY";
   const limitPrice = Number(orderIntent.entryPrice || orderIntent.entry || 0);
   const orderType = String(orderIntent.orderType || "LIMIT").toUpperCase();
   const tickSize = Number(orderIntent.tickSize || 0.05);
+  const lotSize = Number(orderIntent.lotSize);
+  const quantity = Number(orderIntent.quantity || (orderIntent.lots || 1) * (lotSize || 100));
+
+  if (!(limitPrice > 0) || !(tickSize > 0)) {
+    return { status: "REJECTED", reason: "INVALID_PRICE_OR_TICK", orderIntent };
+  }
 
   let slippageTicks = 1;
   if (liquidityTier === "MID") slippageTicks = 2;
@@ -138,75 +160,68 @@ function simulateExecutionFill({ orderIntent, currentQuote = null, liquidityTier
   let status = "FILLED";
 
   if (currentQuote && Number.isFinite(currentQuote.low) && Number.isFinite(currentQuote.high)) {
-    if (isBuy) {
-      if (currentQuote.low > limitPrice) {
-        // Market did not touch or trade through the buy limit
-        return {
-          status: "UNFILLED",
-          reason: `Market low (${currentQuote.low}) never touched limit buy price (${limitPrice})`,
-          orderIntent
-        };
-      }
-      // If low === limitPrice (touch only, no trade through):
-      // In realistic limit books, queue position introduces fill uncertainty
-      if (currentQuote.low === limitPrice && currentQuote.open > limitPrice && currentQuote.close > limitPrice) {
-        // Touch without trade through: 50% queue fill probability or partial
-        fillPrice = limitPrice;
-      } else {
-        // Traded through: limit price guaranteed
-        fillPrice = limitPrice;
-      }
+    if (orderType === "MARKET" || orderType === "STOP_MARKET") {
+      const reference = Number(isBuy
+        ? (currentQuote.ask ?? currentQuote.current ?? currentQuote.open ?? currentQuote.close ?? currentQuote.settlement)
+        : (currentQuote.bid ?? currentQuote.current ?? currentQuote.open ?? currentQuote.close ?? currentQuote.settlement));
+      fillPrice = isBuy ? round(reference + slippagePerShare, 4) : round(reference - slippagePerShare, 4);
     } else {
-      // Sell side
-      if (currentQuote.high < limitPrice) {
-        return {
-          status: "UNFILLED",
-          reason: `Market high (${currentQuote.high}) never touched limit sell price (${limitPrice})`,
-          orderIntent
-        };
+      const low = Number(currentQuote.low);
+      const high = Number(currentQuote.high);
+      const open = Number(currentQuote.open);
+      if (isBuy) {
+        if (low > limitPrice) {
+          return { status: "UNFILLED", reason: `Market low (${low}) never touched limit buy price (${limitPrice})`, orderIntent };
+        }
+        const opensThrough = Number.isFinite(open) && open <= limitPrice;
+        fillPrice = opensThrough ? Math.min(open, limitPrice) : limitPrice;
+      } else {
+        if (high < limitPrice) {
+          return { status: "UNFILLED", reason: `Market high (${high}) never touched limit sell price (${limitPrice})`, orderIntent };
+        }
+        const opensThrough = Number.isFinite(open) && open >= limitPrice;
+        fillPrice = opensThrough ? Math.max(open, limitPrice) : limitPrice;
       }
-      fillPrice = limitPrice;
     }
   } else {
-    // If no quote provided, limit order fills at requested limitPrice (price certainty)
-    // Market orders pay slippage
-    if (orderType === "MARKET") {
-      fillPrice = isBuy
-        ? round(limitPrice + slippagePerShare, 2)
-        : round(limitPrice - slippagePerShare, 2);
+    // If no quote provided, limit orders fill at requested limitPrice (price certainty)
+    // Market orders pay adverse slippage
+    if (orderType === "MARKET" || orderType === "STOP_MARKET") {
+      fillPrice = isBuy ? round(limitPrice + slippagePerShare, 2) : round(limitPrice - slippagePerShare, 2);
     } else {
-      fillPrice = limitPrice; // Limit orders never pay adverse slippage
+      fillPrice = limitPrice;
     }
   }
 
-  const quantity = Number(orderIntent.quantity || (orderIntent.lots || 1) * (orderIntent.lotSize || 100));
   const fees = calculateNseFuturesCharges({
-    side: isBuy ? "buy" : "sell",
+    side,
     price: fillPrice,
     quantity,
     asOfDate
   });
 
   const contractSymbol = orderIntent.contractSymbol || orderIntent.symbol || "UNKNOWN";
-  // Deterministic orderId: reproducible across test and audit runs
-  const orderSeed = `${contractSymbol}:${side}:${fillPrice}:${quantity}:${orderIntent.expiry || ""}`;
+  const clientOrderId = String(orderIntent.clientOrderId || orderIntent.orderId || `ORD_${Date.now()}`);
+  const orderSeed = `${clientOrderId}:${contractSymbol}:${side}:${fillPrice}:${quantity}:${orderIntent.expiry || ""}`;
   const orderId = `ORD_${crypto.createHash("sha256").update(orderSeed).digest("hex").slice(0, 12).toUpperCase()}`;
 
   return {
     orderId,
+    clientOrderId,
     status,
     contractSymbol,
     orderType,
-    side: isBuy ? "BUY" : "SELL",
+    side,
     requestedPrice: limitPrice,
     fillPrice,
-    slippagePerShare: orderType === "MARKET" ? slippagePerShare : 0,
-    totalSlippageInr: orderType === "MARKET" ? round(slippagePerShare * quantity, 2) : 0,
+    slippagePerShare: orderType === "MARKET" || orderType === "STOP_MARKET" ? slippagePerShare : 0,
+    totalSlippageInr: orderType === "MARKET" || orderType === "STOP_MARKET" ? round(slippagePerShare * quantity, 2) : 0,
     quantity,
     lotSize: orderIntent.lotSize,
     lots: orderIntent.lots,
     fees,
-    timestamp: Date.now(),
+    timestamp: Number(currentQuote?.timestamp) || (asOfDate ? Date.parse(asOfDate) : Date.now()),
+    quoteTimestamp: Number(currentQuote?.timestamp) || null,
     exchange: "NSE",
     segment: "F&O"
   };
@@ -216,19 +231,20 @@ function simulateExecutionFill({ orderIntent, currentQuote = null, liquidityTier
  * Generates an institutional, broker-compliant contract note for an executed shadow trade.
  */
 function generateContractNote({ tradeId, entryFill, exitFill, contract, settlementDate = null }) {
-  if (!entryFill || !exitFill) return null;
+  if (!entryFill || !exitFill || entryFill.status !== "FILLED" || exitFill.status !== "FILLED") return null;
 
-  const noteNumber = `CN_${crypto.createHash("sha256").update(`${tradeId || entryFill.orderId}:${entryFill.timestamp}:${exitFill.timestamp}`).digest("hex").slice(0, 10).toUpperCase()}`;
+  const noteNumber = `CN_${crypto.createHash("sha256").update(`${tradeId || entryFill.orderId}:${entryFill.orderId}:${exitFill.orderId}`).digest("hex").slice(0, 10).toUpperCase()}`;
   const totalBrokerage = round(entryFill.fees.brokerage + exitFill.fees.brokerage, 2);
   const totalStt = round(entryFill.fees.stt + exitFill.fees.stt, 2);
   const totalExchange = round(entryFill.fees.exchangeCharges + exitFill.fees.exchangeCharges, 2);
   const totalClearing = round(entryFill.fees.clearingCharges + exitFill.fees.clearingCharges, 2);
+  const totalIpft = round(entryFill.fees.ipft + exitFill.fees.ipft, 4);
   const totalSebi = round(entryFill.fees.sebiCharges + exitFill.fees.sebiCharges, 2);
   const totalStampDuty = round(entryFill.fees.stampDuty + exitFill.fees.stampDuty, 2);
   const totalGst = round(entryFill.fees.gst + exitFill.fees.gst, 2);
 
   const totalCharges = round(
-    totalBrokerage + totalStt + totalExchange + totalClearing + totalSebi + totalStampDuty + totalGst,
+    totalBrokerage + totalStt + totalExchange + totalClearing + totalIpft + totalSebi + totalStampDuty + totalGst,
     2
   );
 
@@ -239,8 +255,9 @@ function generateContractNote({ tradeId, entryFill, exitFill, contract, settleme
 
   const netPnl = round(grossPnl - totalCharges, 2);
   const returnOnTurnoverPct = round((netPnl / entryFill.fees.turnover) * 100, 3);
-  const marginPct = Number(contract?.marginPct) || 0.22;
-  const estMarginRequired = round(entryFill.fees.turnover * marginPct, 2);
+  const estMarginRequired = Number(contract?.currentMarginRequired || contract?.estMarginRequired)
+    || round(entryFill.fees.turnover * (Number(contract?.marginPct) || 0.22), 2);
+  const marginPct = round(estMarginRequired / Math.max(1, entryFill.fees.turnover), 6);
   const returnOnMarginPct = round((netPnl / Math.max(1, estMarginRequired)) * 100, 2);
 
   return {
@@ -275,6 +292,7 @@ function generateContractNote({ tradeId, entryFill, exitFill, contract, settleme
       stt: totalStt,
       exchangeTurnoverCharges: totalExchange,
       clearingCharges: totalClearing,
+      ipft: totalIpft,
       sebiTurnoverCharges: totalSebi,
       stampDuty: totalStampDuty,
       gst: totalGst,
@@ -290,6 +308,7 @@ function generateContractNote({ tradeId, entryFill, exitFill, contract, settleme
 module.exports = {
   calculateNseFuturesCharges,
   generateContractNote,
+  normalizeOrderSide,
   round,
   simulateExecutionFill
 };
