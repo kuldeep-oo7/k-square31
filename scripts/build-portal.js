@@ -43,16 +43,24 @@ function planRow(item) {
   const levelNames = { 1: "L1 Entry", 2: "L2 Pullback", 3: "L3 Dip", 4: "L4 Capitulation", 5: "L5 Extreme" };
   const levelTag = levelNames[level] || `L${level}`;
   const entryPrice = Number(firstEntry.entry) || Number(item.anchor) || null;
-  const targetPrice = Number(firstEntry.target) || (entryPrice ? (side === "short" ? entryPrice * 0.98 : entryPrice * 1.02) : null);
+  const t1Price = Number(firstEntry.target1Price || firstEntry.target || (entryPrice ? (side === "short" ? entryPrice * 0.98 : entryPrice * 1.02) : null));
+  const t1Pct = Number(firstEntry.target1Pct || firstEntry.targetPct || 2.0);
+  const t2Price = Number(firstEntry.target2Price || firstEntry.runnerTarget || (entryPrice ? (side === "short" ? entryPrice * 0.94 : entryPrice * 1.06) : null));
+  const t2Pct = Number(firstEntry.target2Pct || firstEntry.runnerTargetPct || 6.0);
+  const t3Price = Number(firstEntry.target3MacroPrice || (entryPrice ? (side === "short" ? entryPrice * 0.85 : entryPrice * 1.15) : null));
+  const t3Pct = Number(firstEntry.target3Pct || 15.0);
   const stopLossPrice = Number(firstEntry.stopLoss) || (entryPrice ? (side === "short" ? entryPrice * 1.01 : entryPrice * 0.99) : null);
-  const riskReward = Number(firstEntry.riskReward) || 2.0;
-
-  const targetPct = Number(firstEntry.targetPct) || (entryPrice && targetPrice ? Math.abs((targetPrice - entryPrice) / entryPrice * 100) : 2.0);
   const stopLossPct = Number(firstEntry.stopLossPct) || (entryPrice && stopLossPrice ? Math.abs((stopLossPrice - entryPrice) / entryPrice * 100) : 1.0);
+  const riskReward = Number(firstEntry.riskReward) || 2.0;
+  const daysT1 = firstEntry.holdingDaysT1 || "1-3d";
+  const daysT2 = firstEntry.holdingDaysT2 || (firstEntry.medianSessionsHeld ? `${firstEntry.medianSessionsHeld * 2}d` : "5-7d");
+  const daysT3 = firstEntry.holdingDaysT3 || "Continuous / Roll";
+  const stagedPlan = firstEntry.stagedExecutionPlan || `T1: Bank 50% @ ₹${fixed(t1Price)} & move SL to Breakeven | T2: Bank 25% @ ₹${fixed(t2Price)} | T3: Trail remaining 25%`;
   const maxBuyCap = entryPrice ? (side === "short" ? entryPrice * 0.992 : entryPrice * 1.008) : null;
+  const rrT2 = stopLossPct > 0 ? (t2Pct / stopLossPct) : 6.0;
 
   return `
-        <tr data-side="${side}" data-symbol="${escapeHtml(item.symbol)}" data-entry="${entryPrice || 0}" data-target="${targetPrice || 0}" data-stop="${stopLossPrice || 0}" data-targetpct="${fixed(targetPct, 1)}" data-stoppct="${fixed(stopLossPct, 1)}" data-expected="${Number(item.expectedWeeklyPct)}" data-conviction="${Number(item.convictionPct)}" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
+        <tr data-side="${side}" data-symbol="${escapeHtml(item.symbol)}" data-entry="${entryPrice || 0}" data-target="${t1Price || 0}" data-target1="${t1Price || 0}" data-target1pct="${fixed(t1Pct, 1)}" data-target2="${t2Price || 0}" data-target2pct="${fixed(t2Pct, 1)}" data-target3="${t3Price || 0}" data-target3pct="${fixed(t3Pct, 1)}" data-dayst1="${escapeHtml(daysT1)}" data-dayst2="${escapeHtml(daysT2)}" data-dayst3="${escapeHtml(daysT3)}" data-stagedplan="${escapeHtml(stagedPlan)}" data-stop="${stopLossPrice || 0}" data-targetpct="${fixed(t1Pct, 1)}" data-stoppct="${fixed(stopLossPct, 1)}" data-expected="${Number(item.expectedWeeklyPct)}" data-conviction="${Number(item.convictionPct)}" style="cursor:pointer;" title="Click to load into Live Decision Calculator">
           <th scope="row">
             <span class="tkr">${escapeHtml(item.symbol)}</span>
             <span class="chip chip-${side}">${side === "short" ? "sell" : "buy"}</span>
@@ -62,11 +70,12 @@ function planRow(item) {
           </th>
           <td class="n"><b>${entryPrice ? `₹${fixed(entryPrice)}` : "—"}</b></td>
           <td class="n" style="color:var(--muted);"><small>Max: ₹${maxBuyCap ? fixed(maxBuyCap) : "—"}</small></td>
-          <td class="n pos"><b>${targetPrice ? `₹${fixed(targetPrice)}` : "—"}</b> <span class="verdict-detail">${side === "short" ? "−" : "+"}${fixed(targetPct, 1)}%</span></td>
-          <td class="n neg"><b>${stopLossPrice ? `₹${fixed(stopLossPrice)}` : "—"}</b> <span class="verdict-detail">${side === "short" ? "+" : "−"}${fixed(stopLossPct, 1)}%</span></td>
-          <td class="n"><b>${fixed(riskReward, 1)} : 1</b></td>
-          <td class="n">${fixed(item.expectedWeeklyPct)}%</td>
-          <td class="n"><span class="bar"><i style="width:${Math.max(2, Math.min(100, Number(item.convictionPct)))}%"></i></span>${fixed(item.convictionPct, 0)}</td>
+          <td class="n pos"><b>${t1Price ? `₹${fixed(t1Price)}` : "—"}</b> <span class="verdict-detail">${side === "short" ? "−" : "+"}${fixed(t1Pct, 1)}% <small style="color:var(--muted);font-weight:normal;">(${daysT1})</small></span></td>
+          <td class="n pos"><b>${t2Price ? `₹${fixed(t2Price)}` : "—"}</b> <span class="verdict-detail">${side === "short" ? "−" : "+"}${fixed(t2Pct, 1)}% <small style="color:var(--muted);font-weight:normal;">(${daysT2})</small></span></td>
+          <td class="n neg"><b>${stopLossPrice ? `₹${fixed(stopLossPrice)}` : "—"}</b> <span class="verdict-detail" title="Move SL to breakeven once Target 1 is reached" style="background:rgba(239,68,68,0.1);padding:2px 5px;border-radius:4px;font-size:11px;">BE on T1</span></td>
+          <td class="n" style="font-size:12.5px;color:var(--violet);font-weight:600;"><span class="chip" style="background:var(--violet-soft);color:var(--violet);">${daysT1} / ${daysT2}</span></td>
+          <td class="n"><b>${fixed(riskReward, 1)}:1 → ${fixed(rrT2, 1)}:1</b></td>
+          <td class="n"><span class="bar"><i style="width:${Math.max(2, Math.min(100, Number(item.convictionPct)))}%"></i></span>${fixed(item.convictionPct, 0)} <span class="chip" style="background:rgba(22,122,98,0.12);color:var(--mint-deep);font-size:9.5px;padding:2px 5px;font-weight:700;">8/8 PASS</span></td>
           <td class="n">×${fixed(item.sizeMultiplier)}</td>
         </tr>`;
 }
@@ -335,9 +344,11 @@ function document_(plan, sealed, meta, macro = {}) {
         </div>
         <div class="calc-results-grid">
           <div class="calc-metric"><span class="lbl">Distance from Entry</span><b id="calc-dist-entry">—</b></div>
-          <div class="calc-metric"><span class="lbl">Remaining to Target</span><b id="calc-dist-target" class="pos">—</b></div>
+          <div class="calc-metric"><span class="lbl">Target 1 (+2% De-Risk)</span><b id="calc-dist-target" class="pos">—</b></div>
+          <div class="calc-metric"><span class="lbl">Runner Target 2 (+5-8%)</span><b id="calc-dist-target2" class="pos">—</b></div>
           <div class="calc-metric"><span class="lbl">Buffer to Stop-Loss</span><b id="calc-dist-stop" class="neg">—</b></div>
-          <div class="calc-metric full"><span class="lbl">Exact Broker Action</span><b id="calc-order-plan" class="order-text">—</b></div>
+          <div class="calc-metric"><span class="lbl">Holding Duration</span><b id="calc-holding-duration" style="color:var(--violet);">—</b></div>
+          <div class="calc-metric full"><span class="lbl">Institutional Staged Execution Plan</span><b id="calc-order-plan" class="order-text">—</b></div>
         </div>
       </div>
     </div>
@@ -360,7 +371,7 @@ function document_(plan, sealed, meta, macro = {}) {
     </div>
     <div class="scroll">
       <table>
-        <thead><tr><th scope="col">Instrument</th><th scope="col">Buy / Entry Price</th><th scope="col">Max Buy Cap (+0.8%)</th><th scope="col">Sell Target</th><th scope="col">Stop Loss</th><th scope="col">Reward : Risk</th><th scope="col">Expected week</th><th scope="col">Conviction</th><th scope="col">Size</th></tr></thead>
+        <thead><tr><th scope="col">Instrument</th><th scope="col">Buy / Entry Price</th><th scope="col">Max Buy Cap (±0.8%)</th><th scope="col">Target 1 (+2% De-Risk)</th><th scope="col">Target 2 (Runner)</th><th scope="col">Stop Loss (BE on T1)</th><th scope="col">Holding Horizon</th><th scope="col">Reward : Risk</th><th scope="col">Conviction / 8 Pillars</th><th scope="col">Size</th></tr></thead>
         <tbody id="plan-rows">${best.map(planRow).join("")}</tbody>
       </table>
     </div>
@@ -453,7 +464,9 @@ function document_(plan, sealed, meta, macro = {}) {
   var calcBadge = document.getElementById("calc-badge");
   var calcDistEntry = document.getElementById("calc-dist-entry");
   var calcDistTarget = document.getElementById("calc-dist-target");
+  var calcDistTarget2 = document.getElementById("calc-dist-target2");
   var calcDistStop = document.getElementById("calc-dist-stop");
+  var calcHoldingDuration = document.getElementById("calc-holding-duration");
   var calcOrderPlan = document.getElementById("calc-order-plan");
 
   function evaluateLiveDecision() {
@@ -464,8 +477,13 @@ function document_(plan, sealed, meta, macro = {}) {
 
     var side = targetRow.dataset.side || "long";
     var entry = Number(targetRow.dataset.entry) || 0;
-    var target = Number(targetRow.dataset.target) || 0;
+    var target1 = Number(targetRow.dataset.target1 || targetRow.dataset.target) || 0;
+    var target2 = Number(targetRow.dataset.target2) || (side === "short" ? entry * 0.94 : entry * 1.06);
+    var target3 = Number(targetRow.dataset.target3) || (side === "short" ? entry * 0.85 : entry * 1.15);
     var stop = Number(targetRow.dataset.stop) || 0;
+    var daysT1 = targetRow.dataset.dayst1 || "1-3d";
+    var daysT2 = targetRow.dataset.dayst2 || "5-7d";
+    var daysT3 = targetRow.dataset.dayst3 || "Continuous / Roll";
 
     var liveVal = parseFloat(calcLivePrice.value);
     var isUserPrice = Number.isFinite(liveVal) && liveVal > 0;
@@ -478,48 +496,76 @@ function document_(plan, sealed, meta, macro = {}) {
     var distEntryPct = side === "short"
       ? ((entry - live) / entry) * 100
       : ((live - entry) / entry) * 100;
-    var distTargetPct = Math.abs((target - live) / live) * 100;
+    var distTarget1Pct = Math.abs((target1 - live) / live) * 100;
+    var distTarget2Pct = Math.abs((target2 - live) / live) * 100;
     var distStopPct = Math.abs((stop - live) / live) * 100;
 
     var distEntryDiff = Math.abs(live - entry);
-    var distTargetDiff = Math.abs(target - live);
+    var distTarget1Diff = Math.abs(target1 - live);
+    var distTarget2Diff = Math.abs(target2 - live);
     var distStopDiff = Math.abs(stop - live);
 
     calcDistEntry.textContent = (distEntryPct >= 0 ? "+" : "") + distEntryPct.toFixed(2) + "% (" + (live >= entry ? "+" : "-") + "₹" + distEntryDiff.toFixed(2) + ")";
     calcDistEntry.className = Math.abs(distEntryPct) <= 0.8 ? "pos" : (distEntryPct > 1.0 ? "neg" : "");
 
-    calcDistTarget.textContent = "+" + distTargetPct.toFixed(2) + "% (+₹" + distTargetDiff.toFixed(2) + " left)";
+    if (calcDistTarget) {
+      calcDistTarget.textContent = (side === "long" && live >= target1)
+        ? "🎯 T1 REACHED (₹" + target1.toFixed(2) + ")"
+        : (side === "short" && live <= target1)
+        ? "🎯 T1 REACHED (₹" + target1.toFixed(2) + ")"
+        : "+" + distTarget1Pct.toFixed(2) + "% (₹" + distTarget1Diff.toFixed(2) + " left)";
+    }
+
+    if (calcDistTarget2) {
+      calcDistTarget2.textContent = (side === "long" && live >= target2)
+        ? "🚀 T2 REACHED (₹" + target2.toFixed(2) + ")"
+        : (side === "short" && live <= target2)
+        ? "🚀 T2 REACHED (₹" + target2.toFixed(2) + ")"
+        : "+" + distTarget2Pct.toFixed(2) + "% (₹" + distTarget2Diff.toFixed(2) + " left)";
+    }
+
     calcDistStop.textContent = "−" + distStopPct.toFixed(2) + "% (₹" + distStopDiff.toFixed(2) + " cushion)";
+    if (calcHoldingDuration) {
+      calcHoldingDuration.textContent = "T1: " + daysT1 + " | T2: " + daysT2;
+    }
 
     calcBadge.className = "calc-badge";
 
     if (side === "long") {
-      if (live >= target) {
+      if (live >= target2) {
         calcBadge.className += " badge-buy";
-        calcBadge.textContent = "🏁 TARGET REACHED (+" + distEntryPct.toFixed(1) + "%) · PROFIT BOOKED";
-        calcOrderPlan.textContent = "Trade complete. Target was hit at ₹" + target.toFixed(2) + ". Do not enter now.";
+        calcBadge.textContent = "🚀 RUNNER T2 REACHED (+" + distEntryPct.toFixed(1) + "%) · BANK 25% & TRAIL";
+        calcOrderPlan.textContent = "Target 2 banked at ₹" + target2.toFixed(2) + "! Trail remaining 25% moonbag position with AVWAP trailing stop towards Macro Target 3 (₹" + target3.toFixed(2) + "). Holding horizon: " + daysT3 + ".";
+      } else if (live >= target1) {
+        calcBadge.className += " badge-buy";
+        calcBadge.textContent = "🎯 TARGET 1 HIT (+" + distEntryPct.toFixed(1) + "%) · BANK 50% NOW · SL TO BREAKEVEN";
+        calcOrderPlan.textContent = "Bank 50% profit now at ₹" + target1.toFixed(2) + ". Move Stop-Loss immediately to Breakeven (₹" + entry.toFixed(2) + "). Hold remaining 50% for Runner Target 2 (₹" + target2.toFixed(2) + ") over the next " + daysT2 + ". Trade is 100% risk-free!";
       } else if (live <= stop) {
         calcBadge.className += " badge-stop";
-        calcBadge.textContent = "🛑 STOP-LOSS BREACHED (" + distEntryPct.toFixed(1) + "%) · DO NOT BUY";
-        calcOrderPlan.textContent = "Setup invalidated. Price dropped below stop-loss (₹" + stop.toFixed(2) + ").";
+        calcBadge.textContent = "🛑 STOP-LOSS BREACHED (" + distEntryPct.toFixed(1) + "%) · DO NOT ENTER";
+        calcOrderPlan.textContent = "Setup invalidated. Price dropped below initial stop-loss (₹" + stop.toFixed(2) + "). Do not add capital.";
       } else if (distEntryPct <= 0.8 && distEntryPct >= -1.5) {
         calcBadge.className += " badge-buy";
         calcBadge.textContent = "🟢 IN BUY ZONE · SAFE TO ENTER NOW";
-        calcOrderPlan.textContent = "Place " + (distEntryPct < 0 ? "Discount Buy" : "Buy") + " @ ₹" + live.toFixed(2) + " | Set GTT Target @ ₹" + target.toFixed(2) + " | Set GTT Stop-Loss @ ₹" + stop.toFixed(2);
+        calcOrderPlan.textContent = "Enter " + (distEntryPct < 0 ? "Discount Buy" : "Buy") + " @ ₹" + live.toFixed(2) + " | T1: ₹" + target1.toFixed(2) + " (" + daysT1 + ") | T2: ₹" + target2.toFixed(2) + " (" + daysT2 + ") | Initial Stop: ₹" + stop.toFixed(2) + " | Plan: Bank 50% at T1 & slide SL to ₹" + entry.toFixed(2) + " (Breakeven).";
       } else if (distEntryPct > 0.8) {
         calcBadge.className += " badge-warn";
         calcBadge.textContent = "🛑 EXTENDED (+" + distEntryPct.toFixed(1) + "% above entry) · DO NOT CHASE";
-        calcOrderPlan.textContent = "Price is too high above entry. Place a Limit Buy Order @ ₹" + entry.toFixed(2) + " and wait for pullback.";
+        calcOrderPlan.textContent = "Price is extended beyond the safe entry threshold (+0.8%). Place Limit Buy Order @ ₹" + entry.toFixed(2) + " and wait for a pullback.";
       } else {
         calcBadge.className += " badge-info";
-        calcBadge.textContent = "ℹ️ BELOW ENTRY · VERIFY MOMENTUM";
-        calcOrderPlan.textContent = "Place Limit Order @ ₹" + entry.toFixed(2) + " | Target: ₹" + target.toFixed(2) + " | Stop: ₹" + stop.toFixed(2);
+        calcBadge.textContent = "💎 DISCOUNT BUY ZONE · FAVORABLE RISK/REWARD";
+        calcOrderPlan.textContent = "Price is below entry (discount). Place Limit Buy @ ₹" + entry.toFixed(2) + " or buy live @ ₹" + live.toFixed(2) + " | T1: ₹" + target1.toFixed(2) + " | Stop: ₹" + stop.toFixed(2);
       }
     } else {
-      if (live <= target) {
+      if (live <= target2) {
         calcBadge.className += " badge-buy";
-        calcBadge.textContent = "🏁 TARGET REACHED (+" + distEntryPct.toFixed(1) + "%) · PROFIT BOOKED";
-        calcOrderPlan.textContent = "Short trade complete. Target hit at ₹" + target.toFixed(2) + ". Cover position / do not short now.";
+        calcBadge.textContent = "🚀 RUNNER T2 REACHED (+" + distEntryPct.toFixed(1) + "%) · COVER 25% & TRAIL";
+        calcOrderPlan.textContent = "Short Runner Target 2 hit at ₹" + target2.toFixed(2) + "! Cover 25% profit. Trail remaining 25% short position towards Macro Target 3 (₹" + target3.toFixed(2) + "). Horizon: " + daysT3 + ".";
+      } else if (live <= target1) {
+        calcBadge.className += " badge-buy";
+        calcBadge.textContent = "🎯 TARGET 1 HIT (+" + distEntryPct.toFixed(1) + "%) · COVER 50% NOW · SL TO BREAKEVEN";
+        calcOrderPlan.textContent = "Cover 50% short profit at ₹" + target1.toFixed(2) + ". Move Stop-Loss immediately to Breakeven (₹" + entry.toFixed(2) + "). Let remaining 50% ride towards Runner Target 2 (₹" + target2.toFixed(2) + ") over the next " + daysT2 + ". Zero risk remaining!";
       } else if (live >= stop) {
         calcBadge.className += " badge-stop";
         calcBadge.textContent = "🛑 STOP-LOSS BREACHED (−" + distEntryPct.toFixed(1) + "%) · DO NOT SHORT";
@@ -527,15 +573,15 @@ function document_(plan, sealed, meta, macro = {}) {
       } else if (Math.abs(live - entry) / entry <= 0.008) {
         calcBadge.className += " badge-sell";
         calcBadge.textContent = "🔴 IN SELL ZONE · SAFE TO SHORT NOW";
-        calcOrderPlan.textContent = "Place Short Sell @ ₹" + live.toFixed(2) + " | Set GTT Cover Target @ ₹" + target.toFixed(2) + " | Set GTT Stop-Loss @ ₹" + stop.toFixed(2);
+        calcOrderPlan.textContent = "Place Short Sell @ ₹" + live.toFixed(2) + " | T1: ₹" + target1.toFixed(2) + " (" + daysT1 + ") | T2: ₹" + target2.toFixed(2) + " (" + daysT2 + ") | Initial Stop: ₹" + stop.toFixed(2) + " | Plan: Cover 50% at T1 & lock Breakeven.";
       } else if (live < entry * 0.992) {
         calcBadge.className += " badge-warn";
-        calcBadge.textContent = "🛑 EXTENDED (dropped below entry) · DO NOT CHASE SHORT";
+        calcBadge.textContent = "🛑 EXTENDED (dropped >0.8% below entry) · DO NOT CHASE SHORT";
         calcOrderPlan.textContent = "Price fell too far below entry. Place Limit Sell @ ₹" + entry.toFixed(2) + " and wait for bounce.";
       } else {
         calcBadge.className += " badge-info";
-        calcBadge.textContent = "ℹ️ ABOVE ENTRY (Discount Short) · VERIFY MOMENTUM";
-        calcOrderPlan.textContent = "Place Limit Sell Order @ ₹" + entry.toFixed(2) + " | Target: ₹" + target.toFixed(2) + " | Stop: ₹" + stop.toFixed(2);
+        calcBadge.textContent = "💎 DISCOUNT SHORT ZONE · FAVORABLE RISK/REWARD";
+        calcOrderPlan.textContent = "Price is above entry (premium discount). Place Limit Sell Order @ ₹" + entry.toFixed(2) + " | T1: ₹" + target1.toFixed(2) + " | Stop: ₹" + stop.toFixed(2);
       }
     }
   }

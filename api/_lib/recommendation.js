@@ -17,7 +17,16 @@ const { weeklyForecast, evaluateModelFitness } = require("./ml-model");
 const { trendAlignment, trendGate, trendMetrics } = require("./trend");
 const { carryScore } = require("./carry");
 const { upside } = require("./upside");
-const { calculateVpin, metaLabelConfidence, calculateKellyFraction } = require("./advanced-quant");
+const {
+  calculateVpin,
+  metaLabelConfidence,
+  calculateKellyFraction,
+  calculateOuHalfLife,
+  calculateAnchoredVwap,
+  calculateHurstExponent,
+  calculateKaufmanER
+} = require("./advanced-quant");
+const { candleStudy } = require("./strategy-lab");
 const { scanChartPatterns } = require("./chart-patterns");
 
 function round(value, digits = 2) {
@@ -96,7 +105,7 @@ function enforceHardVetoes({ symbol, metaGate, vpinData, evidence = {} }) {
   return null;
 }
 
-function buildOrderIntent({ symbol, side, entry, target, runnerTarget, stopLoss, sizeMultiplier, riskReward, contract, targetPct, stopLossPct, weekKey = null, level = 1, sector = null, decisionAt = null }) {
+function buildOrderIntent({ symbol, side, entry, target, runnerTarget, target3Macro, holdingDaysT1 = 2, holdingDaysT2 = 10, stagedExecutionPlan = null, stopLoss, sizeMultiplier, riskReward, contract, targetPct, stopLossPct, weekKey = null, level = 1, sector = null, decisionAt = null }) {
   const normalizedSymbol = String(symbol || "").trim().toUpperCase();
   const normalizedSide = side === "long" || side === "buy" ? "long" : side === "short" || side === "sell" ? "short" : null;
   const TICK_SIZE = stockFutureTickSize(contract?.spot || entry, contract?.tickSize);
@@ -399,6 +408,12 @@ function recommendation(input) {
   const targetPct = round(Math.max(Number(config.targetPct) || 2.0, stopLossPct * 2.0), 2);
   const riskReward = round(targetPct / stopLossPct, 1);
 
+  const prices = bars.map((b) => Number(b.close)).filter(Number.isFinite);
+  const ouData = calculateOuHalfLife(prices.slice(-120));
+  const ouHalfLife = ouData?.halfLifeDays || 8;
+  const avwap = calculateAnchoredVwap(bars.slice(-60));
+  const candles = candleStudy(bars, 5);
+
   const entries = verdict.levels.map((level) => {
     const rung = rungs.find((item) => item.level === level);
     const stats = cycle[side].levels.find((item) => item.level === level);
@@ -406,13 +421,31 @@ function recommendation(input) {
     const targetPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (targetPct / 100)));
     const runnerTargetPct = round(Math.max(5.0, targetPct * 2.2), 2);
     const runnerTargetPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (runnerTargetPct / 100)));
+    const target3MacroPct = round(Math.max(15.0, targetPct * 7.5), 1);
+    const target3MacroPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (target3MacroPct / 100)));
     const stopLossPrice = round(entryPrice * (1 - (side === "short" ? -1 : 1) * (stopLossPct / 100)));
+    const holdingDaysT1 = stats?.medianSessionsHeld || 2;
+    const holdingDaysT2 = Math.max(5, Math.min(25, Math.round(ouHalfLife)));
+    const stagedPlan = side === "long"
+      ? `T1: Bank 50% @ ₹${targetPrice} (1–3d), slide SL to Breakeven (₹${entryPrice}). T2: Bank 25% @ ₹${runnerTargetPrice} (${holdingDaysT2}d). T3: Trail 25% for Macro Runner @ ₹${target3MacroPrice}.`
+      : `T1: Cover 50% @ ₹${targetPrice} (1–3d), slide SL to Breakeven (₹${entryPrice}). T2: Cover 25% @ ₹${runnerTargetPrice} (${holdingDaysT2}d). T3: Trail 25% for Macro Short @ ₹${target3MacroPrice}.`;
+
     return {
       level,
       entry: entryPrice,
       target: targetPrice,
       runnerTarget: runnerTargetPrice,
       runnerTargetPct,
+      target1Price: targetPrice,
+      target1Pct: targetPct,
+      target2Price: runnerTargetPrice,
+      target2Pct: runnerTargetPct,
+      target3MacroPrice: target3MacroPrice,
+      target3Pct: target3MacroPct,
+      holdingDaysT1,
+      holdingDaysT2,
+      holdingDaysT3: "Continuous Hold (Roll at Monthly Expiry - 3d)",
+      stagedExecutionPlan: stagedPlan,
       stopLoss: stopLossPrice,
       riskReward,
       targetPct,
@@ -537,6 +570,51 @@ function recommendation(input) {
       metaDecision: metaGate.decision,
       qualityRating: metaGate.qualityRating,
       kellyFraction: kelly
+    },
+    eightPillars: {
+      pillar1_fundamentals: {
+        balanceSheetScore: fundamentals?.available ? fundamentals.balanceSheetScore : null,
+        earningsVeto: fundamentals?.veto || null,
+        status: fundamentals?.veto ? "VETOED" : "PASS"
+      },
+      pillar2_technicals: {
+        momentumReturnPct: trend?.ready ? round(Number(trend.returnPct || 0), 2) : null,
+        trendEfficiency: er,
+        atrPct,
+        status: trend?.veto ? "VETOED" : "PASS"
+      },
+      pillar3_chartPattern: {
+        pattern: patternScan.primaryPattern?.pattern || null,
+        targetPrice: patternScan.primaryPattern?.targetPrice || null,
+        confirmed: Boolean(patternScan.primaryPattern?.confirmed)
+      },
+      pillar4_candlesticks: {
+        pattern: candles?.pattern || null,
+        empiricalWinRatePct: candles?.winRatePct ?? null,
+        directionScore: candles?.directionScore ?? 0
+      },
+      pillar5_quantMath: {
+        hurst,
+        regime: hurst > 0.55 ? "Persistent Trend" : hurst < 0.45 ? "Mean-Reverting" : "Random Walk",
+        avwap: avwap?.avwap ?? null,
+        ouHalfLifeSessions: ouHalfLife
+      },
+      pillar6_statistics: {
+        wilsonLowerBoundPct: entries[0]?.hitRateLowerPct ?? null,
+        tStatistic: cycle[side]?.levels?.find((l) => l.level === verdict.levels[0])?.tStat ?? null,
+        kellyAllocationPct: kelly
+      },
+      pillar7_microstructure: {
+        vpin: vpinData.vpin,
+        toxicityTone: vpinData.toxicityTone,
+        toxicOrderFlow: vpinData.toxicOrderFlow
+      },
+      pillar8_machineLearning: {
+        boostedTreeForecastPct: model?.expectedWeeklyPct ? Number(model.expectedWeeklyPct) : null,
+        metaProbability: metaGate.metaProb,
+        metaDecision: metaGate.decision,
+        qualityRating: metaGate.qualityRating
+      }
     },
     bookOut: "Hold open legs continuously across weekends with Monday reference rebase; exit strictly on 2% target, 2% stop-loss, or mandatory 3-day monthly futures expiry roll window",
     reasons: [
