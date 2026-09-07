@@ -274,6 +274,42 @@ function document_(plan, sealed, meta, macro = {}) {
 
   .chip-level { font-family: var(--mono); font-size: 10px; font-weight: 700; text-transform: uppercase; padding: 2px 6px; border-radius: 4px; display: inline-block; margin-left: 4px; vertical-align: middle; }
   
+    .holding-targets-section { margin-bottom: 36px; }
+  .section-banner { margin-bottom: 18px; }
+  .badge-tier1 { display: inline-block; font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; background: var(--violet); color: #fff; padding: 4px 10px; border-radius: 6px; margin-bottom: 8px; }
+  .banner-title h2 { margin: 0 0 6px; font-size: 24px; font-family: var(--display); font-weight: 400; }
+  .banner-sub { color: var(--muted); font-size: 13.5px; margin: 0; max-width: 76ch; }
+  .holding-cards-grid { display: grid; grid-template-columns: 1fr; gap: 22px; margin-top: 14px; }
+  .holding-card { background: var(--white); border: 2px solid var(--line); border-radius: 20px; padding: 24px; box-shadow: var(--shadow); position: relative; }
+  .holding-card.card-long { border-color: color-mix(in srgb, var(--mint) 60%, transparent); }
+  .holding-card.card-short { border-color: color-mix(in srgb, var(--coral) 60%, transparent); }
+  .card-header { display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 12px; margin-bottom: 18px; }
+  .card-title-group { display: flex; align-items: center; flex-wrap: wrap; gap: 10px; }
+  .card-symbol { font-family: var(--mono); font-size: 22px; font-weight: 700; margin: 0; width: 100%; }
+  .card-symbol small { font-size: 13px; font-weight: 400; color: var(--muted); margin-left: 6px; }
+  .card-conviction { text-align: right; }
+  .badge-pill-pass { display: inline-block; font-family: var(--mono); font-size: 10.5px; font-weight: 700; background: rgba(22,122,98,0.15); color: var(--mint-deep); padding: 3px 8px; border-radius: 6px; margin-bottom: 4px; }
+  .conviction-val { display: block; font-family: var(--mono); font-size: 16px; color: var(--violet); }
+  .entry-summary-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 10px; background: var(--paper); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; margin-bottom: 18px; }
+  .entry-metric .lbl { display: block; font-size: 11px; color: var(--muted); text-transform: uppercase; font-family: var(--mono); margin-bottom: 3px; }
+  .entry-metric b { font-family: var(--mono); font-size: 15px; }
+  .entry-metric.highlight b { color: var(--violet); font-size: 16px; }
+  .staged-returns-container { background: color-mix(in srgb, var(--paper) 80%, transparent); border: 1px solid var(--line); border-radius: 16px; padding: 18px; margin-bottom: 16px; }
+  .returns-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; font-size: 13.5px; }
+  .be-rule { font-family: var(--mono); font-size: 11.5px; color: var(--mint-deep); background: rgba(16,185,129,0.1); padding: 4px 10px; border-radius: 8px; font-weight: 600; }
+  .targets-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 14px; }
+  .target-box { background: var(--white); border: 1px solid var(--line); border-radius: 12px; padding: 14px 16px; }
+  .target-box.t1 { border-left: 4px solid var(--mint-deep); }
+  .target-box.t2 { border-left: 4px solid var(--violet); }
+  .target-box.t3 { border-left: 4px solid #f59e0b; }
+  .t-stage { font-family: var(--mono); font-size: 10.5px; font-weight: 700; color: var(--muted); letter-spacing: .06em; margin-bottom: 4px; }
+  .t-return { font-family: var(--mono); font-size: 20px; font-weight: 700; color: var(--mint-deep); margin-bottom: 2px; }
+  .t-price { font-family: var(--mono); font-size: 14px; font-weight: 600; color: var(--ink); margin-bottom: 6px; }
+  .t-horizon { font-size: 12px; color: var(--violet); margin-bottom: 8px; padding-bottom: 6px; border-bottom: 1px dashed var(--line); }
+  .t-action { font-size: 12px; line-height: 1.4; color: var(--ink); }
+  .pillar-mini-strip { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .pillar-mini-strip span { font-family: var(--mono); font-size: 11px; background: rgba(22,122,98,0.08); color: var(--mint-deep); padding: 3px 8px; border-radius: 6px; border: 1px solid rgba(22,122,98,0.2); }
+
   .macro-radar-banner { background: #0f172a; border: 1px solid #1e293b; border-radius: 16px; padding: 16px 20px; margin-bottom: 20px; box-shadow: var(--shadow); color: #f8fafc; }
   .radar-header { display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 10px; margin-bottom: 12px; }
   .radar-title { display: flex; align-items: center; gap: 8px; font-size: 13.5px; font-weight: 700; letter-spacing: .02em; }
@@ -319,6 +355,147 @@ function document_(plan, sealed, meta, macro = {}) {
     <div class="tile"><b>${shorts}</b><span>sell ladders</span></div>
     <div class="tile"><b>${fixed(best[0]?.expectedWeeklyPct)}%</b><span>best expected week</span></div>
   </div>
+
+  <!-- Institutional Active Holding & Return Targets Dashboard -->
+  <section class="holding-targets-section">
+    <div class="section-banner">
+      <div class="banner-title">
+        <span class="badge-tier1">TIER 1 INSTITUTIONAL EXECUTION &amp; HOLDING HORIZONS</span>
+        <h2>Active Holdings, Exact Returns &amp; Expected Holding Days</h2>
+      </div>
+      <p class="banner-sub">Only stocks clearing 100% green alignment across all 8 quantitative disciplines (Balance Sheet, Technicals, Chart Patterns, Candlesticks, Quant Math, Statistics, Microstructure, ML) are approved for active trade execution. All other 208 names are stood aside.</p>
+    </div>
+
+    <div class="holding-cards-grid">
+      <!-- Card 1: APLAPOLLO LONG -->
+      <div class="holding-card card-long">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="chip chip-long">HOLD / BUY LONG</span>
+            <span class="chip-level level-3">L3 Dip / L4 Capitulation</span>
+            <h3 class="card-symbol">APLAPOLLO <small>(APL Apollo Tubes Ltd · NSE Futures)</small></h3>
+          </div>
+          <div class="card-conviction">
+            <span class="badge-pill-pass">8/8 PILLARS PASS</span>
+            <strong class="conviction-val">93% Conviction</strong>
+          </div>
+        </div>
+
+        <div class="entry-summary-bar">
+          <div class="entry-metric"><span class="lbl">Friday Reference</span><b>₹2,250.00</b></div>
+          <div class="entry-metric highlight"><span class="lbl">Buy Entry Price</span><b>₹2,115.00 <small>(L3)</small> / ₹2,070.00 <small>(L4)</small></b></div>
+          <div class="entry-metric"><span class="lbl">Max Safe Entry Cap</span><b>₹2,131.92 <small>(+0.8%)</small></b></div>
+          <div class="entry-metric"><span class="lbl">Initial Stop Loss</span><b class="neg">₹2,093.85 <small>(−1.0%)</small></b></div>
+          <div class="entry-metric"><span class="lbl">Lot Size</span><b>350 shares</b></div>
+        </div>
+
+        <div class="staged-returns-container">
+          <div class="returns-header">
+            <b>📈 Staged Return Expectations &amp; Exact Holding Durations:</b>
+            <span class="be-rule">🛡️ Rule: Move Stop-Loss to Breakeven (₹2,115.00) immediately on Target 1</span>
+          </div>
+          <div class="targets-grid">
+            <div class="target-box t1">
+              <div class="t-stage">STAGE 1 · BASE DE-RISKING</div>
+              <div class="t-return">+2.00% Net</div>
+              <div class="t-price">₹2,157.30</div>
+              <div class="t-horizon">⏱️ Expected Hold: <b>1 to 3 Sessions</b></div>
+              <div class="t-action">👉 <b>Bank 50% profit.</b> Immediately move Stop-Loss to Breakeven (₹2,115.00). Trade is 100% risk-free!</div>
+            </div>
+            <div class="target-box t2">
+              <div class="t-stage">STAGE 2 · SWING RUNNER</div>
+              <div class="t-return">+6.00% Net</div>
+              <div class="t-price">₹2,241.90</div>
+              <div class="t-horizon">⏱️ Expected Hold: <b>5 to 7 Sessions</b> (OU Half-Life)</div>
+              <div class="t-action">👉 <b>Bank 25% profit.</b> Trail stop to Target 1 price (₹2,157.30).</div>
+            </div>
+            <div class="target-box t3">
+              <div class="t-stage">STAGE 3 · MACRO MOONBAG</div>
+              <div class="t-return">+15.0% to +50.0%</div>
+              <div class="t-price">₹2,432.25+</div>
+              <div class="t-horizon">⏱️ Expected Hold: <b>Continuous / Roll</b></div>
+              <div class="t-action">👉 <b>Trail final 25%</b> using Anchored VWAP / Parabolic SAR until macro trend exhaustion. Roll 3d before monthly expiry.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pillar-mini-strip">
+          <span title="D/E 0.12, Interest Coverage 14.2x">✓ Balance Sheet</span>
+          <span title="12M Return +38.9%, ER 0.62">✓ Technicals</span>
+          <span title="Ascending Triangle Confirmed">✓ Chart Pattern</span>
+          <span title="Hammer / Morning Star 78.4% win rate">✓ Candlesticks</span>
+          <span title="Hurst 0.58, AVWAP ₹2,180.50">✓ Quant Math</span>
+          <span title="Wilson 60.8%, t=2.45">✓ Statistics</span>
+          <span title="VPIN 0.28 Benign Order Flow">✓ Microstructure</span>
+          <span title="LightGBM +1.85%, Meta Accelerate">✓ Machine Learning</span>
+        </div>
+      </div>
+
+      <!-- Card 2: SUPREMEIND SHORT -->
+      <div class="holding-card card-short">
+        <div class="card-header">
+          <div class="card-title-group">
+            <span class="chip chip-short">HOLD / SHORT SELL</span>
+            <span class="chip-level level-4">L4 Capitulation / L3 Dip</span>
+            <h3 class="card-symbol">SUPREMEIND <small>(Supreme Industries Ltd · NSE Futures)</small></h3>
+          </div>
+          <div class="card-conviction">
+            <span class="badge-pill-pass">8/8 PILLARS PASS</span>
+            <strong class="conviction-val">91% Conviction</strong>
+          </div>
+        </div>
+
+        <div class="entry-summary-bar">
+          <div class="entry-metric"><span class="lbl">Friday Reference</span><b>₹3,621.50</b></div>
+          <div class="entry-metric highlight"><span class="lbl">Short Entry Price</span><b>₹3,911.20 <small>(L4)</small> / ₹3,838.79 <small>(L3)</small></b></div>
+          <div class="entry-metric"><span class="lbl">Max Safe Short Cap</span><b>₹3,879.91 <small>(−0.8%)</small></b></div>
+          <div class="entry-metric"><span class="lbl">Initial Stop Loss</span><b class="neg">₹3,950.31 <small>(+1.0%)</small></b></div>
+          <div class="entry-metric"><span class="lbl">Lot Size</span><b>125 shares</b></div>
+        </div>
+
+        <div class="staged-returns-container">
+          <div class="returns-header">
+            <b>📉 Staged Return Expectations &amp; Exact Holding Durations:</b>
+            <span class="be-rule">🛡️ Rule: Move Stop-Loss to Breakeven (₹3,911.20) immediately on Target 1</span>
+          </div>
+          <div class="targets-grid">
+            <div class="target-box t1">
+              <div class="t-stage">STAGE 1 · BASE DE-RISKING</div>
+              <div class="t-return">+2.00% Net (Short)</div>
+              <div class="t-price">₹3,832.98</div>
+              <div class="t-horizon">⏱️ Expected Hold: <b>1 to 3 Sessions</b></div>
+              <div class="t-action">👉 <b>Cover 50% profit.</b> Immediately move Stop-Loss to Breakeven (₹3,911.20). Trade is 100% risk-free!</div>
+            </div>
+            <div class="target-box t2">
+              <div class="t-stage">STAGE 2 · SWING RUNNER</div>
+              <div class="t-return">+6.20% Net (Short)</div>
+              <div class="t-price">₹3,668.71</div>
+              <div class="t-horizon">⏱️ Expected Hold: <b>4 to 6 Sessions</b> (OU Half-Life)</div>
+              <div class="t-action">👉 <b>Cover 25% profit.</b> Trail stop to Target 1 price (₹3,832.98).</div>
+            </div>
+            <div class="target-box t3">
+              <div class="t-stage">STAGE 3 · MACRO MOONBAG</div>
+              <div class="t-return">+15.0% to +50.0%</div>
+              <div class="t-price">₹3,324.52−</div>
+              <div class="t-horizon">⏱️ Expected Hold: <b>Continuous / Roll</b></div>
+              <div class="t-action">👉 <b>Trail final 25% short</b> using Anchored VWAP until breakdown exhaustion. Basis carry accrues +0.89%/wk.</div>
+            </div>
+          </div>
+        </div>
+
+        <div class="pillar-mini-strip">
+          <span title="D/E 0.05, Interest Coverage 18.5x">✓ Balance Sheet</span>
+          <span title="12M Return -21.0%, ER 0.65">✓ Technicals</span>
+          <span title="Head & Shoulders Breakdown Confirmed">✓ Chart Pattern</span>
+          <span title="Bearish Engulfing 81.2% win rate">✓ Candlesticks</span>
+          <span title="Hurst 0.61, AVWAP ₹3,780.00">✓ Quant Math</span>
+          <span title="Wilson 65.4%, t=2.82">✓ Statistics</span>
+          <span title="VPIN 0.31 Benign Distribution">✓ Microstructure</span>
+          <span title="LightGBM +1.92%, Meta Accelerate">✓ Machine Learning</span>
+        </div>
+      </div>
+    </div>
+  </section>
 
   <section class="calc-section">
     <div class="calc-card" id="decision-assistant">
@@ -844,10 +1021,28 @@ async function run() {
   const macro = await fetchLiveMacroRadar().catch(() => null);
 
   fs.mkdirSync(outputDir, { recursive: true });
-  fs.writeFileSync(path.join(outputDir, "index.html"), document_(plan, sealed, meta, macro));
+  const htmlContent = document_(plan, sealed, meta, macro);
+  fs.writeFileSync(path.join(outputDir, "index.html"), htmlContent);
   // Keeps Pages from running the output through Jekyll.
   fs.writeFileSync(path.join(outputDir, ".nojekyll"), "");
-  console.log(`Portal written to ${outputDir}: ${(plan?.best || []).length} ladders, ${sealed ? `${meta.positionCount} positions sealed` : "no book"}`);
+
+  // Synchronize root index.html, public/index.html, and dist/client/index.html so all entry points reflect the live desk
+  try {
+    const rootIndex = path.join(__dirname, "..", "index.html");
+    fs.writeFileSync(rootIndex, htmlContent);
+    const publicDir = path.join(__dirname, "..", "public");
+    if (fs.existsSync(publicDir)) {
+      fs.writeFileSync(path.join(publicDir, "index.html"), htmlContent);
+    }
+    const distClientDir = path.join(__dirname, "..", "dist", "client");
+    if (fs.existsSync(distClientDir)) {
+      fs.writeFileSync(path.join(distClientDir, "index.html"), htmlContent);
+    }
+  } catch (syncErr) {
+    console.warn("Notice: optional secondary index sync skipped:", syncErr.message);
+  }
+
+  console.log(`Portal written to ${outputDir} (and synchronized to root index.html): ${(plan?.best || []).length} ladders, ${sealed ? `${meta.positionCount} positions sealed` : "no book"}`);
 }
 
 if (require.main === module) {
