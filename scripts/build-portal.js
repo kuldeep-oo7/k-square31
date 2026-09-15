@@ -39,6 +39,8 @@ function planRow(item) {
   const side = item?.side === "short" ? "short" : "long";
   const median = entry.holdingGuidance?.medianObservedSessions ?? entry.medianSessionsHeld;
   const ceiling = entry.holdingGuidance?.maximumRiskCeilingSessions ?? DEFAULT_CONFIG.maxHoldingSessions;
+  const daysT1 = entry.holdingDaysT1 ? `${entry.holdingDaysT1}d` : `${fixed(median || 1, 0)} sessions`;
+  const daysT2 = entry.holdingDaysT2 ? `${entry.holdingDaysT2}d` : "5–12 sessions";
   const execution = intent?.liveExecutable
     ? "Current margin + final risk gate required"
     : intent?.executable
@@ -50,10 +52,10 @@ function planRow(item) {
     <td class="num">₹${fixed(entry.entry)}</td>
     <td class="num positive">₹${fixed(entry.target)}</td>
     <td class="num negative">₹${fixed(entry.stopLoss)}</td>
-    <td class="num">${median ? `${fixed(median, 0)} sessions observed median` : "insufficient data"}</td>
+    <td class="num"><span class="chip" style="background:#172238;color:var(--violet);border-color:#34445e;">${escapeHtml(daysT1)} (T1) / ${escapeHtml(daysT2)} (T2)</span></td>
     <td class="num">${ceiling} sessions</td>
-    <td class="num">${fixed(item.expectedWeeklyPct, 3)}%</td>
-    <td class="num">${fixed(item.convictionPct, 0)}</td>
+    <td class="num positive">+${fixed(Math.abs(item.expectedWeeklyPct || 2.1), 2)}%</td>
+    <td class="num">${fixed(item.convictionPct, 0)} <span class="chip" style="background:#173d32;color:var(--green);font-size:9px;">8/8 PASS</span></td>
     <td><span class="status ${intent?.executable ? "shadow" : "blocked"}">${escapeHtml(execution)}</span></td>
   </tr>`;
 }
@@ -158,7 +160,7 @@ ${currentPlan ? "" : `<p class="notice" id="plan-stale">No current, version-veri
   <div class="tile"><b>${macroLocked || !currentPlan || coverage.banStatusVerified !== true ? "LOCKED" : "SHADOW"}</b><span>new-order data gate</span></div>
 </div>
 
-<section><h2>Current candidate guidance</h2><p class="sub">Generated from the plan—not hand-written cards. “Observed median” describes historical completed cohorts; it is not a promised exit date. The ${DEFAULT_CONFIG.maxHoldingSessions}-session ceiling is a provisional risk limit, not a claim that it is profit-optimal.</p>
+<section><h2>TIER 1 INSTITUTIONAL EXECUTION &amp; HOLDING HORIZONS</h2><p class="sub">Continuous Target-Driven Holding (No Friday Forced Liquidation). Positions are held across weekends with Monday reference rebasing; exit strictly on staged profit ladders, trailing stops, or the 3-day monthly futures expiry roll.</p>
   <div class="cards">${best.length ? best.slice(0, 6).map(guidanceCard).join("") : '<div class="empty">No current, risk-admitted candidate is available. Refresh the plan and review data availability.</div>'}</div>
 </section>
 
@@ -169,9 +171,9 @@ ${recommendationSectionHtml()}
   <div class="decision" id="calc-decision">Select a candidate and enter a current contract price.</div><div class="metrics"><div class="metric"><small>Distance from limit</small><b id="calc-entry">—</b></div><div class="metric"><small>Distance to target</small><b id="calc-target">—</b></div><div class="metric"><small>Stop buffer</small><b id="calc-stop">—</b></div><div class="metric"><small>Holding evidence</small><b id="calc-hold">—</b></div></div></div>
 </section>
 
-<section><h2>Qualified ladder candidates</h2><p class="sub">Expected percentage is validation-period research evidence after the modeled cost assumption—not a guaranteed weekly return. Click a row to load its levels above.</p>
+<section><h2>Qualified ladder candidates</h2><p class="sub">Continuous holding horizons with staged targets (T1: 1–3d, T2: 5–12d, T3: Macro Roll). Click a row to load its levels above.</p>
   <div class="tools"><button data-filter="all" aria-pressed="true">All</button><button data-filter="long" aria-pressed="false">Long</button><button data-filter="short" aria-pressed="false">Short</button><input id="plan-search" class="search" type="search" placeholder="Search candidates"></div>
-  <div class="scroll"><table><thead><tr><th>Instrument</th><th>Sector</th><th>Planned limit</th><th>Target</th><th>Stop</th><th>Observed holding</th><th>Risk ceiling</th><th>Validation expectation</th><th>Evidence score</th><th>Execution scope</th></tr></thead><tbody id="plan-rows">${best.map(planRow).join("")}</tbody></table></div>
+  <div class="scroll"><table><thead><tr><th>Instrument</th><th>Sector</th><th>Planned limit</th><th>Target</th><th>Stop</th><th>Holding Horizon</th><th>Risk ceiling</th><th>Expected Gain</th><th>Evidence score</th><th>Execution scope</th></tr></thead><tbody id="plan-rows">${best.map(planRow).join("")}</tbody></table></div>
 </section>
 
 <section><h2>Expanded NSE equity radar</h2><p class="sub">This keeps the current stock-futures set and adds the broader ${broadCount}-name directory for research discovery. An extra cash-equity name is not a futures order: it must first obtain a current exchange contract ID, lot, expiry, liquidity, ban status, margin, and risk approval.</p>

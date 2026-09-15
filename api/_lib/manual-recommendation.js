@@ -47,6 +47,7 @@ function generateManualRecommendation({
   direction = "LONG",
   assetClass = "OPTION",
   strike = null,
+  entryPrice = null,
   expiry = "2026-09-24",
   lotSize = 25,
   tickSize = 0.05,
@@ -117,7 +118,9 @@ function generateManualRecommendation({
       optionType
     });
 
-    const estEntryPremium = pricing.available ? roundToTick(pricing.price, tickSize) : roundToTick(spot * 0.02, tickSize);
+    const estEntryPremium = (entryPrice && Number(entryPrice) > 0)
+      ? roundToTick(Number(entryPrice), tickSize)
+      : (pricing.available ? roundToTick(pricing.price, tickSize) : roundToTick(spot * 0.02, tickSize));
     const delta = pricing.available ? Math.abs(pricing.delta) : 0.5;
 
     // Premium rungs based on Delta movement
