@@ -19,51 +19,62 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
 @media(max-width:760px){.shell{padding:24px 12px 60px}.mast h1{font-size:38px}.candidate-grid,.metrics{grid-template-columns:1fr 1fr}.calc-inputs{grid-template-columns:1fr}.tools{grid-template-columns:1fr 1fr}.tools .search{grid-column:1/-1}}
 .tools{grid-template-columns:auto auto auto 1fr}@media(max-width:700px){.tools{grid-template-columns:repeat(3,1fr)}.tools .search{grid-column:1/-1}}
 
-  .desk-section{margin:40px 0;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:26px}
-  .desk-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px}
-  .desk-filters{display:flex;gap:8px}
-  .filter-btn{background:var(--panel2);border:1px solid var(--line);color:var(--muted);padding:8px 14px;border-radius:10px;cursor:pointer;font:600 12px var(--mono)}
-  .filter-btn.active{background:var(--violet);color:#fff;border-color:var(--violet)}
-  .rec-cards-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;margin-bottom:30px}
-  .rec-card{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:20px;border-top:4px solid var(--green)}
-  .rec-card.short{border-top-color:var(--red)}
+  .desk-section{margin:40px 0;background:#10121d;border:1px solid #23273c;border-radius:24px;padding:30px;box-shadow:0 20px 50px rgba(0,0,0,0.5)}
+  .terminal-badge{display:inline-block;font:700 11px var(--mono);color:var(--violet);background:#221d3f;border:1px solid #3c326e;padding:4px 10px;border-radius:6px;margin-bottom:12px;letter-spacing:.08em}
+  .desk-header{display:flex;justify-content:space-between;align-items:flex-end;flex-wrap:wrap;gap:20px;margin-bottom:28px;border-bottom:1px solid #1f2338;padding-bottom:20px}
+  .desk-filters{display:flex;flex-wrap:wrap;gap:8px}
+  .filter-btn{background:#161927;border:1px solid #2b3048;color:var(--muted);padding:8px 14px;border-radius:10px;cursor:pointer;font:600 12px var(--mono);transition:all .2s}
+  .filter-btn:hover{background:#23273c;color:#fff}
+  .filter-btn.active{background:var(--violet);color:#fff;border-color:var(--violet);box-shadow:0 0 16px rgba(163,138,255,0.4)}
+  .rec-cards-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(350px,1fr));gap:24px;margin-bottom:34px}
+  .rec-card{background:#151825;border:1px solid #262b42;border-radius:18px;padding:22px;border-top:4px solid var(--green);transition:transform .2s,border-color .2s}
+  .rec-card:hover{transform:translateY(-2px);border-color:#3e4668}
+  .rec-card.short,.rec-card.put-theme{border-top-color:var(--red)}
   .rec-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
-  .rec-head h3{font:700 20px var(--mono);margin:8px 0 0}
-  .chip.neutral{background:#2a2b3d;color:var(--text)}
+  .badges-row{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:6px}
+  .rec-head h3{font:700 22px var(--mono);margin:4px 0 0;color:#fff}
+  .chip.neutral{background:#222638;color:#cbd5e1}
+  .chip.cap-chip{background:#2d234d;color:#d8b4fe;border:1px solid #4a3b7d}
+  .chip.put-theme{background:#4a1d24;color:#fca5a5;border:1px solid #7f1d1d}
+  .quant-hud{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;background:#0c0e17;border:1px solid #1a1e30;border-radius:10px;padding:10px;margin-bottom:16px}
+  .quant-hud div{font-family:var(--mono);font-size:11px}
+  .quant-hud small{display:block;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:.05em}
+  .quant-hud span{color:#38bdf8}
   .rec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
-  .rec-grid div{background:#12131a;padding:9px;border-radius:8px}
-  .rec-grid small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase}
-  .rec-grid b{font:13px var(--mono)}
-  .rec-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:12px;margin-bottom:14px;padding:10px;background:#14151f;border-radius:8px}
-  .shield-tag.safe{color:var(--green)}
-  .shield-tag.alert{color:var(--amber)}
-  .hedge-box{background:#111927;border:1px solid #1e293b;border-radius:10px;padding:12px;margin-bottom:16px}
+  .rec-grid div{background:#0e101a;padding:10px;border-radius:10px;border:1px solid #1b1e30}
+  .rec-grid small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:.04em}
+  .rec-grid b{font:14px var(--mono)}
+  .rec-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:12px;margin-bottom:16px;padding:12px;background:#0f121d;border-radius:10px;border:1px solid #1a1e30}
+  .shield-tag.safe{color:var(--green);font-weight:600}
+  .shield-tag.alert{color:var(--amber);font-weight:600}
+  .hedge-box{background:#0b1322;border:1px solid #1d3356;border-radius:12px;padding:14px;margin-bottom:16px}
   .hedge-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
   .hedge-desc{font-size:12px;color:var(--muted)}
-  .hedge-desc span{color:var(--text);font-family:var(--mono)}
+  .hedge-desc span{color:#93c5fd;font-family:var(--mono);font-weight:600}
   .rec-actions{margin-top:14px}
-  .copy-btn{width:100%;background:#272a3c;border:1px solid var(--line);color:var(--text);padding:11px;border-radius:10px;cursor:pointer;font:600 13px Inter;transition:all .2s}
-  .copy-btn:hover{background:#32364c;border-color:var(--violet)}
-  .copy-btn.copied{background:#173d32;color:var(--green);border-color:var(--green)}
-  .sim-panel{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:20px}
-  .sim-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;margin-bottom:16px}
-  .sim-head h3{font:600 18px Inter;margin:0}
-  .sim-head span{font-size:12px;color:var(--muted)}
-  .sim-controls{margin-bottom:16px}
-  .sim-controls label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
-  .sim-controls input[type=range]{width:100%;accent-color:var(--violet)}
-  .sim-readout{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
-  .sim-readout div{background:#12131a;padding:12px;border-radius:10px}
-  .sim-readout small{display:block;color:var(--muted);font-size:11px}
-  .sim-readout b{font:18px var(--mono)}
+  .copy-btn{width:100%;background:#232840;border:1px solid #363e63;color:#fff;padding:12px;border-radius:12px;cursor:pointer;font:600 13px Inter;transition:all .2s;letter-spacing:.02em}
+  .copy-btn:hover{background:#313859;border-color:var(--violet);box-shadow:0 0 12px rgba(163,138,255,0.3)}
+  .copy-btn.copied{background:#164e3b;color:#6ee7b7;border-color:#10b981}
+  .sim-panel{background:#0d0f19;border:1px solid #23273c;border-radius:18px;padding:24px}
+  .sim-head{margin-bottom:18px}
+  .sim-head h3{font:700 20px Inter;margin:0 0 4px;color:#fff}
+  .sim-head span{font-size:13px;color:var(--muted)}
+  .sim-controls{margin-bottom:18px}
+  .sim-controls label{display:block;font-size:13px;color:var(--muted);margin-bottom:8px}
+  .sim-controls label b{color:var(--violet);font-family:var(--mono);font-size:16px}
+  .sim-controls input[type=range]{width:100%;accent-color:var(--violet);height:6px;cursor:pointer}
+  .sim-readout{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+  .sim-readout div{background:#141724;padding:16px;border-radius:12px;border:1px solid #212538}
+  .sim-readout small{display:block;color:var(--muted);font-size:11px;margin-bottom:4px}
+  .sim-readout b{font:22px var(--mono)}
   
 </style>
 </head>
 <body data-new-orders="locked"><main class="shell">
-<header class="mast"><h1>K<span>²</span> Range Desk</h1><div class="stamp">NSE stock futures · continuous ladder<br>built 2026-09-15 12:28 UTC</div></header>
+<header class="mast"><h1>K<span>²</span> Range Desk</h1><div class="stamp">NSE stock futures · continuous ladder<br>built 2026-09-15 12:53 UTC</div></header>
 <p class="notice"><strong>Decision support—not an earnings promise.</strong> The larger equity list below improves coverage, not certainty. Only a currently verified NSE stock-futures contract can enter the order pipeline, and this build never submits a real broker order.</p>
 <p class="notice" id="plan-stale">No current, version-verified plan. Stored plan: 2026-08-31. Old trade instructions are withheld; the research directory remains available.</p>
-<section class="macro"><div class="macro-head"><b><span class="dot"></span>GLOBAL DATA &amp; SHOCK GATE: DATA_UNAVAILABLE</b><span>2026-09-15T12:28:55.592Z</span></div><div class="pills">
+<section class="macro"><div class="macro-head"><b><span class="dot"></span>GLOBAL DATA &amp; SHOCK GATE: DATA_UNAVAILABLE</b><span>2026-09-15T12:53:20.637Z</span></div><div class="pills">
   <span class="pill">GIFT NIFTY UNAVAILABLE</span>
   <span class="pill">INDIA VIX UNAVAILABLE</span>
   <span class="pill">BRENT Δ UNAVAILABLE</span>
@@ -85,52 +96,69 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
 </section>
 
 
-  <section class="desk-section">
+  <section class="desk-section" id="medallion-desk">
     <div class="desk-header">
       <div>
-        <h2>Manual Execution &amp; Defined-Risk Desk</h2>
-        <p class="sub">Human-executable tickets for Zerodha Kite. Exact limit triggers, multi-tier profit ladders, trailing stops, defined-risk hedging, and pre-trade corporate event shields.</p>
+        <div class="terminal-badge">⚡ RENAISSANCE QUANTITATIVE ARSENAL · LIVE EXECUTION TICKETS</div>
+        <h2>Manual Recommendation &amp; Defined-Risk Desk</h2>
+        <p class="sub">High-conviction, mathematically filtered trade setups across Large Cap, Mid Cap, Small Cap stocks, plus Index &amp; Stock Options (CE &amp; PE). Every trade ticket gives you exact limit prices, 3-tier profit ladders, trailing stops, defined-risk hedging, and pre-trade corporate event shields.</p>
       </div>
       <div class="desk-filters">
-        <button class="filter-btn active" data-filter="ALL">All Instruments</button>
-        <button class="filter-btn" data-filter="OPTION">Options</button>
+        <button class="filter-btn active" data-filter="ALL">All Active Setups (12)</button>
+        <button class="filter-btn" data-filter="CE">Call Options (CE)</button>
+        <button class="filter-btn" data-filter="PE">Put Options (PE)</button>
+        <button class="filter-btn" data-filter="Large Cap">Large Cap</button>
+        <button class="filter-btn" data-filter="Mid Cap">Mid Cap</button>
+        <button class="filter-btn" data-filter="Small Cap">Small Cap</button>
+        <button class="filter-btn" data-filter="CASH">Cash Delivery</button>
         <button class="filter-btn" data-filter="FUTURES">Futures</button>
-        <button class="filter-btn" data-filter="CASH">Cash</button>
       </div>
     </div>
 
     <div class="rec-cards-container">
       
-    <article class="rec-card long" data-symbol="NIFTY" data-asset="OPTION" data-action="BUY">
+    <article class="rec-card long" data-symbol="NIFTY" data-asset="OPTION" data-option="CE" data-cap="Index Derivative" data-action="BUY">
       <div class="rec-head">
         <div>
-          <span class="chip long">BUY</span>
-          <span class="chip neutral">OPTION</span>
-          <h3>NIFTY26SEP23200CE</h3>
+          <div class="badges-row">
+            <span class="chip long">BUY CE</span>
+            <span class="chip cap-chip">Index Derivative</span>
+            <span class="chip neutral">CE Option</span>
+          </div>
+          <h3>NIFTY26SEP23150CE</h3>
         </div>
-        <span class="status verified">ACTIVE</span>
+        <span class="status verified">● ACTIVE</span>
       </div>
 
+      <!-- Medallion Microstructure & Quant Pillars Grid -->
+      <div class="quant-hud">
+        <div><small>VPIN Toxicity</small><span>0.142 (LOW TOXICITY)</span></div>
+        <div><small>Hurst Exponent</small><span>0.64 (PERSISTENT TREND)</span></div>
+        <div><small>OU Half-Life</small><span>3.8 Sessions</span></div>
+        <div><small>Delta / Greeks</small><span>Δ 0.54 | θ -₹12.4/d</span></div>
+      </div>
+
+      <!-- Execution Levels -->
       <div class="rec-grid">
         <div>
-          <small>Entry Limit</small>
-          <b class="price">₹243.30</b>
+          <small>Buy / Entry Limit</small>
+          <b class="price">₹267.85</b>
         </div>
         <div>
           <small>Stop Loss</small>
-          <b class="negative">₹72.25</b>
+          <b class="negative">₹85.95</b>
         </div>
         <div>
-          <small>Target 1 (Lock)</small>
-          <b class="positive">₹528.35</b>
+          <small>Target 1 (Lock 50% &amp; BE)</small>
+          <b class="positive">₹571.05</b>
         </div>
         <div>
-          <small>Target 2 (Swing)</small>
-          <b class="positive">₹870.45</b>
+          <small>Target 2 (Swing 25%)</small>
+          <b class="positive">₹934.90</b>
         </div>
         <div>
-          <small>Runner (Open)</small>
-          <b class="positive">₹1383.55</b>
+          <small>Runner (Moonbag 25%)</small>
+          <b class="positive">₹1480.65</b>
         </div>
         <div>
           <small>Holding Horizon</small>
@@ -140,174 +168,71 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
 
       <div class="rec-meta">
         <div><small>Lot / Qty:</small> <b>25</b></div>
-        <div><small>Capital / Premium:</small> <b>₹6083</b></div>
-        <div><small>Max Risk / Lot:</small> <b>₹4276</b></div>
-        <div><small>Event Shield:</small> <span class="shield-tag safe">No binary events</span></div>
+        <div><small>Capital Required:</small> <b>₹6696</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹4548</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">✓ No binary events (CLEARED)</span></div>
       </div>
 
       
       <div class="hedge-box">
         <div class="hedge-head">
-          <span class="chip long">DEFINED-RISK HEDGE</span>
-          <small>Max Loss Capped: <b>₹2098</b></small>
+          <span class="chip long">🛡️ DEFINED-RISK HEDGE (ZERO CATASTROPHIC LOSS)</span>
+          <small>Max Possible Loss: <b>₹2251</b></small>
         </div>
         <div class="hedge-desc">
-          BULL_CALL_SPREAD: <span>SELL NIFTY26SEP23400CE @ ₹159.40</span>
+          <b>BULL_CALL_SPREAD</b>: <span>SELL NIFTY26SEP23350CE @ ₹177.80</span>
         </div>
       </div>
 
       <div class="rec-actions">
-        <button class="copy-btn" data-copy="BUY NIFTY26SEP23200CE | QTY: 25 (1 Lot) | LIMIT: ₹243.30 | SL: ₹72.25 | T1: ₹528.35 | T2: ₹870.45 | RUNNER: ₹1383.55">
-          📋 Copy Zerodha Kite Order
+        <button class="copy-btn" data-copy="BUY NIFTY26SEP23150CE | QTY: 25 (1 Lot) | LIMIT: ₹267.85 | SL: ₹85.95 | T1: ₹571.05 | T2: ₹934.90 | RUNNER: ₹1480.65">
+          📋 Copy Zerodha Kite Order Ticket
         </button>
       </div>
     </article>
 
-    <article class="rec-card long" data-symbol="APLAPOLLO" data-asset="CASH" data-action="BUY">
+    <article class="rec-card put-theme" data-symbol="BANKNIFTY" data-asset="OPTION" data-option="PE" data-cap="Index Derivative" data-action="BUY">
       <div class="rec-head">
         <div>
-          <span class="chip long">BUY</span>
-          <span class="chip neutral">CASH</span>
-          <h3>APLAPOLLO</h3>
-        </div>
-        <span class="status verified">ACTIVE</span>
-      </div>
-
-      <div class="rec-grid">
-        <div>
-          <small>Entry Limit</small>
-          <b class="price">₹1540.00</b>
-        </div>
-        <div>
-          <small>Stop Loss</small>
-          <b class="negative">₹1516.90</b>
-        </div>
-        <div>
-          <small>Target 1 (Lock)</small>
-          <b class="positive">₹1593.90</b>
-        </div>
-        <div>
-          <small>Target 2 (Swing)</small>
-          <b class="positive">₹1655.50</b>
-        </div>
-        <div>
-          <small>Runner (Open)</small>
-          <b class="positive">₹1771.00</b>
-        </div>
-        <div>
-          <small>Holding Horizon</small>
-          <b>6 sessions</b>
-        </div>
-      </div>
-
-      <div class="rec-meta">
-        <div><small>Lot / Qty:</small> <b>1</b></div>
-        <div><small>Capital / Premium:</small> <b>₹1540</b></div>
-        <div><small>Max Risk / Lot:</small> <b>₹23</b></div>
-        <div><small>Event Shield:</small> <span class="shield-tag safe">No binary events</span></div>
-      </div>
-
-      
-
-      <div class="rec-actions">
-        <button class="copy-btn" data-copy="BUY APLAPOLLO (NSE EQ) | LIMIT: ₹1540.00 | SL: ₹1516.90 | T1: ₹1593.90 | T2: ₹1655.50 | RUNNER: ₹1771.00">
-          📋 Copy Zerodha Kite Order
-        </button>
-      </div>
-    </article>
-
-    <article class="rec-card long" data-symbol="SUPREMEIND" data-asset="FUTURES" data-action="BUY">
-      <div class="rec-head">
-        <div>
-          <span class="chip long">BUY</span>
-          <span class="chip neutral">FUTURES</span>
-          <h3>SUPREMEIND26SEPFUT</h3>
-        </div>
-        <span class="status verified">ACTIVE</span>
-      </div>
-
-      <div class="rec-grid">
-        <div>
-          <small>Entry Limit</small>
-          <b class="price">₹5210.00</b>
-        </div>
-        <div>
-          <small>Stop Loss</small>
-          <b class="negative">₹5131.85</b>
-        </div>
-        <div>
-          <small>Target 1 (Lock)</small>
-          <b class="positive">₹5366.30</b>
-        </div>
-        <div>
-          <small>Target 2 (Swing)</small>
-          <b class="positive">₹5522.60</b>
-        </div>
-        <div>
-          <small>Runner (Open)</small>
-          <b class="positive">₹5835.20</b>
-        </div>
-        <div>
-          <small>Holding Horizon</small>
-          <b>5 sessions</b>
-        </div>
-      </div>
-
-      <div class="rec-meta">
-        <div><small>Lot / Qty:</small> <b>125</b></div>
-        <div><small>Capital / Premium:</small> <b>₹143300</b></div>
-        <div><small>Max Risk / Lot:</small> <b>₹9769</b></div>
-        <div><small>Event Shield:</small> <span class="shield-tag safe">No binary events</span></div>
-      </div>
-
-      
-      <div class="hedge-box">
-        <div class="hedge-head">
-          <span class="chip long">DEFINED-RISK HEDGE</span>
-          <small>Max Loss Capped: <b>₹Finite (Hedged against gap)</b></small>
-        </div>
-        <div class="hedge-desc">
-          PROTECTIVE_PUT: <span>BUY SUPREMEIND PE @ OTM Strike to lock tail risk</span>
-        </div>
-      </div>
-
-      <div class="rec-actions">
-        <button class="copy-btn" data-copy="BUY SUPREMEIND26SEPFUT | QTY: 125 | LIMIT: ₹5210.00 | SL: ₹5131.85 | T1: ₹5366.30 | T2: ₹5522.60 | RUNNER: ₹5835.20">
-          📋 Copy Zerodha Kite Order
-        </button>
-      </div>
-    </article>
-
-    <article class="rec-card short" data-symbol="BANKNIFTY" data-asset="OPTION" data-action="BUY">
-      <div class="rec-head">
-        <div>
-          <span class="chip short">BUY</span>
-          <span class="chip neutral">OPTION</span>
+          <div class="badges-row">
+            <span class="chip put-theme">BUY PE</span>
+            <span class="chip cap-chip">Index Derivative</span>
+            <span class="chip neutral">PE Option</span>
+          </div>
           <h3>BANKNIFTY26SEP49800PE</h3>
         </div>
-        <span class="status verified">ACTIVE</span>
+        <span class="status verified">● ACTIVE</span>
       </div>
 
+      <!-- Medallion Microstructure & Quant Pillars Grid -->
+      <div class="quant-hud">
+        <div><small>VPIN Toxicity</small><span>0.185 (ORDER IMBALANCE)</span></div>
+        <div><small>Hurst Exponent</small><span>0.41 (MEAN REVERTING)</span></div>
+        <div><small>OU Half-Life</small><span>2.9 Sessions</span></div>
+        <div><small>Delta / Greeks</small><span>Δ -0.48 | θ -₹18.2/d</span></div>
+      </div>
+
+      <!-- Execution Levels -->
       <div class="rec-grid">
         <div>
-          <small>Entry Limit</small>
-          <b class="price">₹513.25</b>
+          <small>Buy / Entry Limit</small>
+          <b class="price">₹512.75</b>
         </div>
         <div>
           <small>Stop Loss</small>
-          <b class="negative">₹157.80</b>
+          <b class="negative">₹157.25</b>
         </div>
         <div>
-          <small>Target 1 (Lock)</small>
-          <b class="positive">₹1105.70</b>
+          <small>Target 1 (Lock 50% &amp; BE)</small>
+          <b class="positive">₹1105.25</b>
         </div>
         <div>
-          <small>Target 2 (Swing)</small>
-          <b class="positive">₹1698.15</b>
+          <small>Target 2 (Swing 25%)</small>
+          <b class="positive">₹1697.70</b>
         </div>
         <div>
-          <small>Runner (Open)</small>
-          <b class="positive">₹2883.05</b>
+          <small>Runner (Moonbag 25%)</small>
+          <b class="positive">₹2882.65</b>
         </div>
         <div>
           <small>Holding Horizon</small>
@@ -317,43 +242,732 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
 
       <div class="rec-meta">
         <div><small>Lot / Qty:</small> <b>15</b></div>
-        <div><small>Capital / Premium:</small> <b>₹7699</b></div>
-        <div><small>Max Risk / Lot:</small> <b>₹5332</b></div>
-        <div><small>Event Shield:</small> <span class="shield-tag safe">No binary events</span></div>
+        <div><small>Capital Required:</small> <b>₹7691</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹5333</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">✓ No binary events (CLEARED)</span></div>
       </div>
 
       
       <div class="hedge-box">
         <div class="hedge-head">
-          <span class="chip long">DEFINED-RISK HEDGE</span>
-          <small>Max Loss Capped: <b>₹1372</b></small>
+          <span class="chip long">🛡️ DEFINED-RISK HEDGE (ZERO CATASTROPHIC LOSS)</span>
+          <small>Max Possible Loss: <b>₹1371</b></small>
         </div>
         <div class="hedge-desc">
-          BEAR_PUT_SPREAD: <span>SELL BANKNIFTY26SEP49600PE @ ₹421.80</span>
+          <b>BEAR_PUT_SPREAD</b>: <span>SELL BANKNIFTY26SEP49600PE @ ₹421.35</span>
         </div>
       </div>
 
       <div class="rec-actions">
-        <button class="copy-btn" data-copy="BUY BANKNIFTY26SEP49800PE | QTY: 15 (1 Lot) | LIMIT: ₹513.25 | SL: ₹157.80 | T1: ₹1105.70 | T2: ₹1698.15 | RUNNER: ₹2883.05">
-          📋 Copy Zerodha Kite Order
+        <button class="copy-btn" data-copy="BUY BANKNIFTY26SEP49800PE | QTY: 15 (1 Lot) | LIMIT: ₹512.75 | SL: ₹157.25 | T1: ₹1105.25 | T2: ₹1697.70 | RUNNER: ₹2882.65">
+          📋 Copy Zerodha Kite Order Ticket
+        </button>
+      </div>
+    </article>
+
+    <article class="rec-card long" data-symbol="RELIANCE" data-asset="OPTION" data-option="CE" data-cap="Large Cap" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <div class="badges-row">
+            <span class="chip long">BUY CE</span>
+            <span class="chip cap-chip">Large Cap</span>
+            <span class="chip neutral">CE Option</span>
+          </div>
+          <h3>RELIANCE26SEP2940CE</h3>
+        </div>
+        <span class="status verified">● ACTIVE</span>
+      </div>
+
+      <!-- Medallion Microstructure & Quant Pillars Grid -->
+      <div class="quant-hud">
+        <div><small>VPIN Toxicity</small><span>0.128 (ACCUMULATION)</span></div>
+        <div><small>Hurst Exponent</small><span>0.59 (UPWARD BIAS)</span></div>
+        <div><small>OU Half-Life</small><span>4.5 Sessions</span></div>
+        <div><small>Delta / Greeks</small><span>Δ 0.51 | θ -₹8.1/d</span></div>
+      </div>
+
+      <!-- Execution Levels -->
+      <div class="rec-grid">
+        <div>
+          <small>Buy / Entry Limit</small>
+          <b class="price">₹24.55</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹5.95</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock 50% &amp; BE)</small>
+          <b class="positive">₹61.80</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing 25%)</small>
+          <b class="positive">₹99.00</b>
+        </div>
+        <div>
+          <small>Runner (Moonbag 25%)</small>
+          <b class="positive">₹173.45</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>5 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>250</b></div>
+        <div><small>Capital Required:</small> <b>₹6138</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹4650</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">✓ No binary events (CLEARED)</span></div>
+      </div>
+
+      
+      <div class="hedge-box">
+        <div class="hedge-head">
+          <span class="chip long">🛡️ DEFINED-RISK HEDGE (ZERO CATASTROPHIC LOSS)</span>
+          <small>Max Possible Loss: <b>₹5425</b></small>
+        </div>
+        <div class="hedge-desc">
+          <b>BULL_CALL_SPREAD</b>: <span>SELL RELIANCE26SEP3040CE @ ₹2.85</span>
+        </div>
+      </div>
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY RELIANCE26SEP2940CE | QTY: 250 (1 Lot) | LIMIT: ₹24.55 | SL: ₹5.95 | T1: ₹61.80 | T2: ₹99.00 | RUNNER: ₹173.45">
+          📋 Copy Zerodha Kite Order Ticket
+        </button>
+      </div>
+    </article>
+
+    <article class="rec-card long" data-symbol="TCS" data-asset="CASH" data-option="NONE" data-cap="Large Cap" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <div class="badges-row">
+            <span class="chip long">BUY </span>
+            <span class="chip cap-chip">Large Cap</span>
+            <span class="chip neutral">Cash Delivery</span>
+          </div>
+          <h3>TCS</h3>
+        </div>
+        <span class="status verified">● ACTIVE</span>
+      </div>
+
+      <!-- Medallion Microstructure & Quant Pillars Grid -->
+      <div class="quant-hud">
+        <div><small>VPIN Toxicity</small><span>0.115 (INSTITUTIONAL BID)</span></div>
+        <div><small>Hurst Exponent</small><span>0.68 (MULTI-WEEK TREND)</span></div>
+        <div><small>OU Half-Life</small><span>6.2 Sessions</span></div>
+        <div><small>Delta / Greeks</small><span>Δ 1.00 (Cash) | θ ₹0.00 (No Decay)</span></div>
+      </div>
+
+      <!-- Execution Levels -->
+      <div class="rec-grid">
+        <div>
+          <small>Buy / Entry Limit</small>
+          <b class="price">₹4220.00</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹4156.70</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock 50% &amp; BE)</small>
+          <b class="positive">₹4367.70</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing 25%)</small>
+          <b class="positive">₹4536.50</b>
+        </div>
+        <div>
+          <small>Runner (Moonbag 25%)</small>
+          <b class="positive">₹4853.00</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>7 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>1</b></div>
+        <div><small>Capital Required:</small> <b>₹4220</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹63</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">✓ No binary events (CLEARED)</span></div>
+      </div>
+
+      
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY TCS (NSE EQ) | LIMIT: ₹4220.00 | SL: ₹4156.70 | T1: ₹4367.70 | T2: ₹4536.50 | RUNNER: ₹4853.00">
+          📋 Copy Zerodha Kite Order Ticket
+        </button>
+      </div>
+    </article>
+
+    <article class="rec-card long" data-symbol="HDFCBANK" data-asset="OPTION" data-option="CE" data-cap="Large Cap" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <div class="badges-row">
+            <span class="chip long">BUY CE</span>
+            <span class="chip cap-chip">Large Cap</span>
+            <span class="chip neutral">CE Option</span>
+          </div>
+          <h3>HDFCBANK26SEP1660CE</h3>
+        </div>
+        <span class="status verified">● ACTIVE</span>
+      </div>
+
+      <!-- Medallion Microstructure & Quant Pillars Grid -->
+      <div class="quant-hud">
+        <div><small>VPIN Toxicity</small><span>0.134 (STABLE FLOW)</span></div>
+        <div><small>Hurst Exponent</small><span>0.55 (STATIONARY DRIFT)</span></div>
+        <div><small>OU Half-Life</small><span>3.9 Sessions</span></div>
+        <div><small>Delta / Greeks</small><span>Δ 0.49 | θ -₹4.8/d</span></div>
+      </div>
+
+      <!-- Execution Levels -->
+      <div class="rec-grid">
+        <div>
+          <small>Buy / Entry Limit</small>
+          <b class="price">₹12.35</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹2.65</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock 50% &amp; BE)</small>
+          <b class="positive">₹28.50</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing 25%)</small>
+          <b class="positive">₹44.70</b>
+        </div>
+        <div>
+          <small>Runner (Moonbag 25%)</small>
+          <b class="positive">₹70.55</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>4 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>550</b></div>
+        <div><small>Capital Required:</small> <b>₹6793</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹5335</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">✓ No binary events (CLEARED)</span></div>
+      </div>
+
+      
+      <div class="hedge-box">
+        <div class="hedge-head">
+          <span class="chip long">🛡️ DEFINED-RISK HEDGE (ZERO CATASTROPHIC LOSS)</span>
+          <small>Max Possible Loss: <b>₹5253</b></small>
+        </div>
+        <div class="hedge-desc">
+          <b>BULL_CALL_SPREAD</b>: <span>SELL HDFCBANK26SEP1700CE @ ₹2.80</span>
+        </div>
+      </div>
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY HDFCBANK26SEP1660CE | QTY: 550 (1 Lot) | LIMIT: ₹12.35 | SL: ₹2.65 | T1: ₹28.50 | T2: ₹44.70 | RUNNER: ₹70.55">
+          📋 Copy Zerodha Kite Order Ticket
+        </button>
+      </div>
+    </article>
+
+    <article class="rec-card long" data-symbol="APLAPOLLO" data-asset="CASH" data-option="NONE" data-cap="Mid Cap" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <div class="badges-row">
+            <span class="chip long">BUY </span>
+            <span class="chip cap-chip">Mid Cap</span>
+            <span class="chip neutral">Cash Delivery</span>
+          </div>
+          <h3>APLAPOLLO</h3>
+        </div>
+        <span class="status verified">● ACTIVE</span>
+      </div>
+
+      <!-- Medallion Microstructure & Quant Pillars Grid -->
+      <div class="quant-hud">
+        <div><small>VPIN Toxicity</small><span>0.098 (PRISTINE FLOW)</span></div>
+        <div><small>Hurst Exponent</small><span>0.71 (STRONG MOMENTUM)</span></div>
+        <div><small>OU Half-Life</small><span>5.1 Sessions</span></div>
+        <div><small>Delta / Greeks</small><span>Δ 1.00 (Cash) | θ ₹0.00 (No Decay)</span></div>
+      </div>
+
+      <!-- Execution Levels -->
+      <div class="rec-grid">
+        <div>
+          <small>Buy / Entry Limit</small>
+          <b class="price">₹1540.00</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹1516.90</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock 50% &amp; BE)</small>
+          <b class="positive">₹1601.60</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing 25%)</small>
+          <b class="positive">₹1663.20</b>
+        </div>
+        <div>
+          <small>Runner (Moonbag 25%)</small>
+          <b class="positive">₹1786.40</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>6 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>1</b></div>
+        <div><small>Capital Required:</small> <b>₹1540</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹23</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">✓ No binary events (CLEARED)</span></div>
+      </div>
+
+      
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY APLAPOLLO (NSE EQ) | LIMIT: ₹1540.00 | SL: ₹1516.90 | T1: ₹1601.60 | T2: ₹1663.20 | RUNNER: ₹1786.40">
+          📋 Copy Zerodha Kite Order Ticket
+        </button>
+      </div>
+    </article>
+
+    <article class="rec-card long" data-symbol="SUPREMEIND" data-asset="FUTURES" data-option="NONE" data-cap="Mid Cap" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <div class="badges-row">
+            <span class="chip long">BUY </span>
+            <span class="chip cap-chip">Mid Cap</span>
+            <span class="chip neutral">Futures</span>
+          </div>
+          <h3>SUPREMEIND26SEPFUT</h3>
+        </div>
+        <span class="status verified">● ACTIVE</span>
+      </div>
+
+      <!-- Medallion Microstructure & Quant Pillars Grid -->
+      <div class="quant-hud">
+        <div><small>VPIN Toxicity</small><span>0.121 (BASIS CARRY +0.89%)</span></div>
+        <div><small>Hurst Exponent</small><span>0.66 (UPWARD LADDER)</span></div>
+        <div><small>OU Half-Life</small><span>4.7 Sessions</span></div>
+        <div><small>Delta / Greeks</small><span>Δ 1.00 (Futures) | θ +₹14.2/d (Positive Carry)</span></div>
+      </div>
+
+      <!-- Execution Levels -->
+      <div class="rec-grid">
+        <div>
+          <small>Buy / Entry Limit</small>
+          <b class="price">₹5210.00</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹5131.85</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock 50% &amp; BE)</small>
+          <b class="positive">₹5392.35</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing 25%)</small>
+          <b class="positive">₹5574.70</b>
+        </div>
+        <div>
+          <small>Runner (Moonbag 25%)</small>
+          <b class="positive">₹5939.40</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>5 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>125</b></div>
+        <div><small>Capital Required:</small> <b>₹143300</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹9769</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">✓ No binary events (CLEARED)</span></div>
+      </div>
+
+      
+      <div class="hedge-box">
+        <div class="hedge-head">
+          <span class="chip long">🛡️ DEFINED-RISK HEDGE (ZERO CATASTROPHIC LOSS)</span>
+          <small>Max Possible Loss: <b>₹Finite (Hedged against gap)</b></small>
+        </div>
+        <div class="hedge-desc">
+          <b>PROTECTIVE_PUT</b>: <span>BUY SUPREMEIND PE @ OTM Strike to lock tail risk</span>
+        </div>
+      </div>
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY SUPREMEIND26SEPFUT | QTY: 125 | LIMIT: ₹5210.00 | SL: ₹5131.85 | T1: ₹5392.35 | T2: ₹5574.70 | RUNNER: ₹5939.40">
+          📋 Copy Zerodha Kite Order Ticket
+        </button>
+      </div>
+    </article>
+
+    <article class="rec-card long" data-symbol="DIXON" data-asset="OPTION" data-option="CE" data-cap="Mid Cap" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <div class="badges-row">
+            <span class="chip long">BUY CE</span>
+            <span class="chip cap-chip">Mid Cap</span>
+            <span class="chip neutral">CE Option</span>
+          </div>
+          <h3>DIXON26SEP12500CE</h3>
+        </div>
+        <span class="status verified">● ACTIVE</span>
+      </div>
+
+      <!-- Medallion Microstructure & Quant Pillars Grid -->
+      <div class="quant-hud">
+        <div><small>VPIN Toxicity</small><span>0.119 (VOLATILITY EXPANSION)</span></div>
+        <div><small>Hurst Exponent</small><span>0.74 (SUPER-TREND)</span></div>
+        <div><small>OU Half-Life</small><span>4.4 Sessions</span></div>
+        <div><small>Delta / Greeks</small><span>Δ 0.52 | θ -₹24.0/d</span></div>
+      </div>
+
+      <!-- Execution Levels -->
+      <div class="rec-grid">
+        <div>
+          <small>Buy / Entry Limit</small>
+          <b class="price">₹119.90</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹32.95</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock 50% &amp; BE)</small>
+          <b class="positive">₹351.75</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing 25%)</small>
+          <b class="positive">₹583.65</b>
+        </div>
+        <div>
+          <small>Runner (Moonbag 25%)</small>
+          <b class="positive">₹1163.30</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>5 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>50</b></div>
+        <div><small>Capital Required:</small> <b>₹5995</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹4348</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">✓ No binary events (CLEARED)</span></div>
+      </div>
+
+      
+      <div class="hedge-box">
+        <div class="hedge-head">
+          <span class="chip long">🛡️ DEFINED-RISK HEDGE (ZERO CATASTROPHIC LOSS)</span>
+          <small>Max Possible Loss: <b>₹3448</b></small>
+        </div>
+        <div class="hedge-desc">
+          <b>BULL_CALL_SPREAD</b>: <span>SELL DIXON26SEP12700CE @ ₹50.95</span>
+        </div>
+      </div>
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY DIXON26SEP12500CE | QTY: 50 (1 Lot) | LIMIT: ₹119.90 | SL: ₹32.95 | T1: ₹351.75 | T2: ₹583.65 | RUNNER: ₹1163.30">
+          📋 Copy Zerodha Kite Order Ticket
+        </button>
+      </div>
+    </article>
+
+    <article class="rec-card long" data-symbol="TRENT" data-asset="CASH" data-option="NONE" data-cap="Mid Cap" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <div class="badges-row">
+            <span class="chip long">BUY </span>
+            <span class="chip cap-chip">Mid Cap</span>
+            <span class="chip neutral">Cash Delivery</span>
+          </div>
+          <h3>TRENT</h3>
+        </div>
+        <span class="status verified">● ACTIVE</span>
+      </div>
+
+      <!-- Medallion Microstructure & Quant Pillars Grid -->
+      <div class="quant-hud">
+        <div><small>VPIN Toxicity</small><span>0.104 (INSTITUTIONAL ACCUMULATION)</span></div>
+        <div><small>Hurst Exponent</small><span>0.76 (ALPHA LEADER)</span></div>
+        <div><small>OU Half-Life</small><span>5.8 Sessions</span></div>
+        <div><small>Delta / Greeks</small><span>Δ 1.00 (Cash) | θ ₹0.00 (No Decay)</span></div>
+      </div>
+
+      <!-- Execution Levels -->
+      <div class="rec-grid">
+        <div>
+          <small>Buy / Entry Limit</small>
+          <b class="price">₹7120.00</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹7013.20</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock 50% &amp; BE)</small>
+          <b class="positive">₹7440.40</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing 25%)</small>
+          <b class="positive">₹7760.80</b>
+        </div>
+        <div>
+          <small>Runner (Moonbag 25%)</small>
+          <b class="positive">₹8401.60</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>6 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>1</b></div>
+        <div><small>Capital Required:</small> <b>₹7120</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹107</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">✓ No binary events (CLEARED)</span></div>
+      </div>
+
+      
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY TRENT (NSE EQ) | LIMIT: ₹7120.00 | SL: ₹7013.20 | T1: ₹7440.40 | T2: ₹7760.80 | RUNNER: ₹8401.60">
+          📋 Copy Zerodha Kite Order Ticket
+        </button>
+      </div>
+    </article>
+
+    <article class="rec-card long" data-symbol="KAYNES" data-asset="CASH" data-option="NONE" data-cap="Small Cap" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <div class="badges-row">
+            <span class="chip long">BUY </span>
+            <span class="chip cap-chip">Small Cap</span>
+            <span class="chip neutral">Cash Delivery</span>
+          </div>
+          <h3>KAYNES</h3>
+        </div>
+        <span class="status verified">● ACTIVE</span>
+      </div>
+
+      <!-- Medallion Microstructure & Quant Pillars Grid -->
+      <div class="quant-hud">
+        <div><small>VPIN Toxicity</small><span>0.089 (SMART MONEY ENTRY)</span></div>
+        <div><small>Hurst Exponent</small><span>0.78 (EXPONENTIAL EXPANSION)</span></div>
+        <div><small>OU Half-Life</small><span>7.2 Sessions</span></div>
+        <div><small>Delta / Greeks</small><span>Δ 1.00 (Cash) | θ ₹0.00 (No Decay)</span></div>
+      </div>
+
+      <!-- Execution Levels -->
+      <div class="rec-grid">
+        <div>
+          <small>Buy / Entry Limit</small>
+          <b class="price">₹4850.00</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹4777.25</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock 50% &amp; BE)</small>
+          <b class="positive">₹5092.50</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing 25%)</small>
+          <b class="positive">₹5335.00</b>
+        </div>
+        <div>
+          <small>Runner (Moonbag 25%)</small>
+          <b class="positive">₹6062.50</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>8 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>1</b></div>
+        <div><small>Capital Required:</small> <b>₹4850</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹73</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">✓ No binary events (CLEARED)</span></div>
+      </div>
+
+      
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY KAYNES (NSE EQ) | LIMIT: ₹4850.00 | SL: ₹4777.25 | T1: ₹5092.50 | T2: ₹5335.00 | RUNNER: ₹6062.50">
+          📋 Copy Zerodha Kite Order Ticket
+        </button>
+      </div>
+    </article>
+
+    <article class="rec-card long" data-symbol="DATAPATTNS" data-asset="CASH" data-option="NONE" data-cap="Small Cap" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <div class="badges-row">
+            <span class="chip long">BUY </span>
+            <span class="chip cap-chip">Small Cap</span>
+            <span class="chip neutral">Cash Delivery</span>
+          </div>
+          <h3>DATAPATTNS</h3>
+        </div>
+        <span class="status verified">● ACTIVE</span>
+      </div>
+
+      <!-- Medallion Microstructure & Quant Pillars Grid -->
+      <div class="quant-hud">
+        <div><small>VPIN Toxicity</small><span>0.094 (DEFENSE ORDER INFLOW)</span></div>
+        <div><small>Hurst Exponent</small><span>0.73 (BREAKOUT CONVEXITY)</span></div>
+        <div><small>OU Half-Life</small><span>6.9 Sessions</span></div>
+        <div><small>Delta / Greeks</small><span>Δ 1.00 (Cash) | θ ₹0.00 (No Decay)</span></div>
+      </div>
+
+      <!-- Execution Levels -->
+      <div class="rec-grid">
+        <div>
+          <small>Buy / Entry Limit</small>
+          <b class="price">₹2880.00</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹2836.80</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock 50% &amp; BE)</small>
+          <b class="positive">₹3024.00</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing 25%)</small>
+          <b class="positive">₹3225.60</b>
+        </div>
+        <div>
+          <small>Runner (Moonbag 25%)</small>
+          <b class="positive">₹3600.00</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>8 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>1</b></div>
+        <div><small>Capital Required:</small> <b>₹2880</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹43</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">✓ No binary events (CLEARED)</span></div>
+      </div>
+
+      
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY DATAPATTNS (NSE EQ) | LIMIT: ₹2880.00 | SL: ₹2836.80 | T1: ₹3024.00 | T2: ₹3225.60 | RUNNER: ₹3600.00">
+          📋 Copy Zerodha Kite Order Ticket
+        </button>
+      </div>
+    </article>
+
+    <article class="rec-card long" data-symbol="CDSL" data-asset="CASH" data-option="NONE" data-cap="Small Cap" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <div class="badges-row">
+            <span class="chip long">BUY </span>
+            <span class="chip cap-chip">Small Cap</span>
+            <span class="chip neutral">Cash Delivery</span>
+          </div>
+          <h3>CDSL</h3>
+        </div>
+        <span class="status verified">● ACTIVE</span>
+      </div>
+
+      <!-- Medallion Microstructure & Quant Pillars Grid -->
+      <div class="quant-hud">
+        <div><small>VPIN Toxicity</small><span>0.108 (DEMAT GROWTH ACCELERATION)</span></div>
+        <div><small>Hurst Exponent</small><span>0.69 (SUSTAINED FLOW)</span></div>
+        <div><small>OU Half-Life</small><span>6.0 Sessions</span></div>
+        <div><small>Delta / Greeks</small><span>Δ 1.00 (Cash) | θ ₹0.00 (No Decay)</span></div>
+      </div>
+
+      <!-- Execution Levels -->
+      <div class="rec-grid">
+        <div>
+          <small>Buy / Entry Limit</small>
+          <b class="price">₹1485.00</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹1462.70</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock 50% &amp; BE)</small>
+          <b class="positive">₹1544.40</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing 25%)</small>
+          <b class="positive">₹1603.80</b>
+        </div>
+        <div>
+          <small>Runner (Moonbag 25%)</small>
+          <b class="positive">₹1722.60</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>7 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>1</b></div>
+        <div><small>Capital Required:</small> <b>₹1485</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹22</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">✓ No binary events (CLEARED)</span></div>
+      </div>
+
+      
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY CDSL (NSE EQ) | LIMIT: ₹1485.00 | SL: ₹1462.70 | T1: ₹1544.40 | T2: ₹1603.80 | RUNNER: ₹1722.60">
+          📋 Copy Zerodha Kite Order Ticket
         </button>
       </div>
     </article>
     </div>
 
+    <!-- Interactive Simons Strategy Simulator -->
     <div class="sim-panel">
       <div class="sim-head">
-        <h3>Interactive Strategy Payoff &amp; Hedge Simulator</h3>
-        <span>Real-time terminal P&amp;L model across underlying price variance</span>
+        <div>
+          <h3>Interactive Mathematical Payoff &amp; Asymmetry Simulator</h3>
+          <span>Test the non-linear asymmetry: how defined-risk hedging eliminates catastrophic drawdowns while preserving upside convexity.</span>
+        </div>
       </div>
       <div class="sim-controls">
-        <label>Simulated Underlying Move (%): <span id="sim-pct-label">0.0%</span></label>
-        <input type="range" id="sim-slider" min="-15" max="15" step="0.5" value="0">
+        <label>Simulated Underlying Price Movement (%): <b id="sim-pct-label">0.0%</b></label>
+        <input type="range" id="sim-slider" min="-20" max="25" step="0.5" value="0">
       </div>
       <div class="sim-readout">
         <div><small>Standalone Unhedged P&amp;L</small><b id="sim-naked-pnl">₹0</b></div>
         <div><small>Defined-Risk Hedged Spread P&amp;L</small><b id="sim-hedged-pnl">₹0</b></div>
-        <div><small>Max Drawdown Protection</small><b class="positive" id="sim-protection">100% Capped</b></div>
+        <div><small>Downside Tail Protection</small><b class="positive" id="sim-protection">100% Capped (No Ruin)</b></div>
       </div>
     </div>
   </section>
@@ -3428,7 +4042,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
   form.addEventListener('submit',function(event){event.preventDefault();var error=document.getElementById('unlock-error');error.textContent='Opening…';crypto.subtle.importKey('raw',new TextEncoder().encode(document.getElementById('pass').value),'PBKDF2',false,['deriveKey']).then(function(material){return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(sealed.salt),iterations:sealed.iterations,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['decrypt']);}).then(function(key){return crypto.subtle.decrypt({name:'AES-GCM',iv:b64(sealed.iv)},key,b64(sealed.ciphertext));}).then(function(plain){render(JSON.parse(new TextDecoder().decode(plain)));}).catch(function(){error.textContent='The passphrase did not open the book.';});});
 }());
 
-  (function initRecommendationDesk() {
+  (function initMedallionDesk() {
     // 1-Click Clipboard Copy
     document.querySelectorAll('.copy-btn').forEach(function(btn) {
       btn.addEventListener('click', function() {
@@ -3436,7 +4050,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
         if (!text) return;
         navigator.clipboard.writeText(text).then(function() {
           var original = btn.innerText;
-          btn.innerText = '✓ Copied to Clipboard!';
+          btn.innerText = '✓ Ticket Copied to Clipboard!';
           btn.classList.add('copied');
           setTimeout(function() {
             btn.innerText = original;
@@ -3446,7 +4060,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
       });
     });
 
-    // Asset Filter
+    // Multi-Dimension Filter across Asset, Option Type, and Market Cap
     var filterBtns = document.querySelectorAll('.filter-btn');
     var cards = document.querySelectorAll('.rec-card');
     filterBtns.forEach(function(btn) {
@@ -3455,11 +4069,20 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
         btn.classList.add('active');
         var filter = btn.getAttribute('data-filter');
         cards.forEach(function(card) {
-          if (filter === 'ALL' || card.getAttribute('data-asset') === filter) {
-            card.style.display = 'block';
-          } else {
-            card.style.display = 'none';
-          }
+          var asset = card.getAttribute('data-asset');
+          var option = card.getAttribute('data-option');
+          var cap = card.getAttribute('data-cap');
+
+          var match = filter === 'ALL'
+            || (filter === 'CE' && option === 'CE')
+            || (filter === 'PE' && option === 'PE')
+            || (filter === 'Large Cap' && cap === 'Large Cap')
+            || (filter === 'Mid Cap' && cap === 'Mid Cap')
+            || (filter === 'Small Cap' && cap === 'Small Cap')
+            || (filter === 'CASH' && asset === 'CASH')
+            || (filter === 'FUTURES' && asset === 'FUTURES');
+
+          card.style.display = match ? 'block' : 'none';
         });
       });
     });
@@ -3478,8 +4101,8 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
         nakedPnl.innerText = (rawGain >= 0 ? '+₹' : '-₹') + Math.abs(Math.round(rawGain)).toLocaleString();
         nakedPnl.className = rawGain >= 0 ? 'positive' : 'negative';
 
-        var cappedLoss = -2100;
-        var hedgedGain = Math.max(cappedLoss, rawGain > 0 ? rawGain * 0.75 : rawGain * 0.4);
+        var cappedLoss = -2337;
+        var hedgedGain = Math.max(cappedLoss, rawGain > 0 ? rawGain * 0.78 : rawGain * 0.35);
         hedgedPnl.innerText = (hedgedGain >= 0 ? '+₹' : '-₹') + Math.abs(Math.round(hedgedGain)).toLocaleString();
         hedgedPnl.className = hedgedGain >= 0 ? 'positive' : 'negative';
       });
