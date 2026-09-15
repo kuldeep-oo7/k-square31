@@ -1,6 +1,6 @@
 {
-  "generatedAt": "2026-08-31T16:12:12.002Z",
-  "weekKey": "2026-08-31",
+  "generatedAt": "2026-09-15T13:44:17.019Z",
+  "weekKey": "2026-09-14",
   "universe": 216,
   "failed": 6,
   "generatedFor": "2026-08-31",
@@ -379,7 +379,7 @@
       "symbol": "APLAPOLLO",
       "action": "buy-ladder",
       "side": "long",
-      "weekKey": "2026-08-31",
+      "weekKey": "2026-09-14",
       "anchor": 2250,
       "sessionsElapsed": 1,
       "levels": [
@@ -422,7 +422,13 @@
             "target3MacroPrice": 2432.25,
             "stopLossPrice": 2093.85,
             "executable": true,
-            "stagedPlan": "Bank 50% at T1 (+2%), slide SL to ₹2,115 (BE). Hold 50% for T2 (+6%) over 5-7d. Trail final lot."
+            "stagedPlan": "Bank 50% at T1 (+2%), slide SL to ₹2,115 (BE). Hold 50% for T2 (+6%) over 5-7d. Trail final lot.",
+            "strategyVersion": "continuous-futures-v2",
+            "entryPrice": 2115,
+            "targetPrice": 2157.3
+          },
+          "portfolioRisk": {
+            "admitted": true
           }
         },
         {
@@ -460,7 +466,13 @@
             "target3MacroPrice": 2380.5,
             "stopLossPrice": 2049.3,
             "executable": true,
-            "stagedPlan": "Bank 50% at T1 (+2%), slide SL to ₹2,070 (BE). Hold 50% for T2 (+6%) over 5-7d. Trail final lot."
+            "stagedPlan": "Bank 50% at T1 (+2%), slide SL to ₹2,070 (BE). Hold 50% for T2 (+6%) over 5-7d. Trail final lot.",
+            "strategyVersion": "continuous-futures-v2",
+            "entryPrice": 2070,
+            "targetPrice": 2111.4
+          },
+          "portfolioRisk": {
+            "admitted": true
           }
         }
       ],
@@ -561,7 +573,7 @@
       "symbol": "SUPREMEIND",
       "action": "sell-ladder",
       "side": "short",
-      "weekKey": "2026-08-31",
+      "weekKey": "2026-09-14",
       "anchor": 3621.5,
       "sessionsElapsed": 1,
       "levels": [
@@ -604,7 +616,13 @@
             "target3MacroPrice": 3324.52,
             "stopLossPrice": 3950.31,
             "executable": true,
-            "stagedPlan": "Cover 50% at T1 (-2%), slide SL to ₹3,911.20 (BE). Hold 50% for T2 (-6.2%) over 4-6d. Trail final short lot."
+            "stagedPlan": "Cover 50% at T1 (-2%), slide SL to ₹3,911.20 (BE). Hold 50% for T2 (-6.2%) over 4-6d. Trail final short lot.",
+            "strategyVersion": "continuous-futures-v2",
+            "entryPrice": 3911.2,
+            "targetPrice": 3832.98
+          },
+          "portfolioRisk": {
+            "admitted": true
           }
         },
         {
@@ -642,7 +660,13 @@
             "target3MacroPrice": 3262.97,
             "stopLossPrice": 3877.18,
             "executable": true,
-            "stagedPlan": "Cover 50% at T1 (-2%), slide SL to ₹3,838.79 (BE). Hold 50% for T2 (-6.2%) over 4-6d. Trail final short lot."
+            "stagedPlan": "Cover 50% at T1 (-2%), slide SL to ₹3,838.79 (BE). Hold 50% for T2 (-6.2%) over 4-6d. Trail final short lot.",
+            "strategyVersion": "continuous-futures-v2",
+            "entryPrice": 3838.79,
+            "targetPrice": 3762.01
+          },
+          "portfolioRisk": {
+            "admitted": true
           }
         }
       ],
@@ -1296,5 +1320,12 @@
     "ready": false,
     "reason": "Need at least 5 resolved trades to compute adaptive factor learning",
     "adjustments": {}
+  },
+  "strategyVersion": "continuous-futures-v2",
+  "marketCoverage": {
+    "derivativesVerified": true,
+    "orderGeneratingStockFutures": 216,
+    "broadUniverse": 502,
+    "banStatusVerified": true
   }
 }

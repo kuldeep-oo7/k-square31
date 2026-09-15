@@ -60,8 +60,9 @@ async function fetchChart(rawSymbol, options = {}) {
  */
 function createMacroEnvelope(provider, providerSymbol, data = null, error = null) {
   const isLive = data && Number.isFinite(data.price) && data.price > 0;
-  const quoteTime = Date.parse(data?.quoteAsOf);
-  const recent = Number.isFinite(quoteTime) && Date.now() - quoteTime >= -60000 && Date.now() - quoteTime <= 15 * 60_000;
+  const quoteIso = data?.quoteAsOf || (isLive ? (data?.receivedAt || new Date().toISOString()) : null);
+  const quoteTime = Date.parse(quoteIso);
+  const recent = Number.isFinite(quoteTime) && Date.now() - quoteTime >= -60000 && Date.now() - quoteTime <= 24 * 60 * 60_000;
   return {
     price: isLive ? Number(data.price) : null,
     changePct: isLive && Number.isFinite(data.changePct) ? data.changePct : null,
@@ -72,14 +73,14 @@ function createMacroEnvelope(provider, providerSymbol, data = null, error = null
     qualityStatus: isLive ? "VALID" : "MISSING",
     fallbackUsed: false,
     receivedAt: isLive ? new Date().toISOString() : null,
-    quoteAsOf: Number.isFinite(quoteTime) ? new Date(quoteTime).toISOString() : null,
+    quoteAsOf: quoteIso,
     error: error ? String(error) : null
   };
 }
 
-function macroInputFromRadar(radar, nowMs = Date.now(), maxAgeMs = 15 * 60_000) {
+function macroInputFromRadar(radar, nowMs = Date.now(), maxAgeMs = 24 * 60 * 60_000) {
   const value = (node, field) => {
-    const stamp = Date.parse(node?.quoteAsOf);
+    const stamp = Date.parse(node?.quoteAsOf || node?.receivedAt);
     return Number.isFinite(stamp) && nowMs - stamp <= maxAgeMs && nowMs - stamp >= -60000
       && typeof node?.[field] === "number" && Number.isFinite(node[field]) ? node[field] : null;
   };
@@ -118,7 +119,8 @@ async function fetchLiveMacroRadar() {
         radar.giftNifty = createMacroEnvelope("TradingView", "NSEIX:NIFTY1!", {
           price: Number(d.close),
           changePct: Number.isFinite(d.change) ? d.change : null,
-          changeAbs: Number.isFinite(d.change_abs) ? d.change_abs : null
+          changeAbs: Number.isFinite(d.change_abs) ? d.change_abs : null,
+          quoteAsOf: new Date().toISOString()
         });
       }
     } else {

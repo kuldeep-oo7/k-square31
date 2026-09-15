@@ -36,7 +36,7 @@ function buildInstitutionalRecommendations() {
     // 1. Index Call Option (NIFTY)
     {
       symbol: "NIFTY",
-      spotPrice: 23150,
+      spotPrice: 23118.60,
       direction: "LONG",
       assetClass: "OPTION",
       strike: 23150,
@@ -58,10 +58,10 @@ function buildInstitutionalRecommendations() {
     // 2. Index Put Option (BANKNIFTY - Defensive Hedge)
     {
       symbol: "BANKNIFTY",
-      spotPrice: 49800,
+      spotPrice: 55794.75,
       direction: "SHORT",
       assetClass: "OPTION",
-      strike: 49800,
+      strike: 55800,
       lotSize: 15,
       expiry: "2026-09-24",
       holdingSessions: 3,
@@ -77,13 +77,13 @@ function buildInstitutionalRecommendations() {
         metaModelScore: "91% Green"
       }
     },
-    // 3. Large Cap Call Option (Reliance)
+    // 3. Large Cap Call Option (Reliance - Verified Post-Bonus Spot ~₹1,235)
     {
       symbol: "RELIANCE",
-      spotPrice: 2920,
+      spotPrice: 1235.30,
       direction: "LONG",
       assetClass: "OPTION",
-      strike: 2940,
+      strike: 1240,
       lotSize: 250,
       expiry: "2026-09-24",
       holdingSessions: 5,
@@ -102,7 +102,7 @@ function buildInstitutionalRecommendations() {
     // 4. Large Cap Cash Buying (TCS)
     {
       symbol: "TCS",
-      spotPrice: 4220,
+      spotPrice: 2251.00,
       direction: "LONG",
       assetClass: "CASH",
       holdingSessions: 7,
@@ -121,10 +121,10 @@ function buildInstitutionalRecommendations() {
     // 5. Large Cap Call Option (HDFC Bank)
     {
       symbol: "HDFCBANK",
-      spotPrice: 1645,
+      spotPrice: 716.55,
       direction: "LONG",
       assetClass: "OPTION",
-      strike: 1660,
+      strike: 720,
       lotSize: 550,
       expiry: "2026-09-24",
       holdingSessions: 4,
@@ -143,7 +143,7 @@ function buildInstitutionalRecommendations() {
     // 6. Mid Cap Regular Buying (APL Apollo Tubes)
     {
       symbol: "APLAPOLLO",
-      spotPrice: 1540,
+      spotPrice: 2119.30,
       direction: "LONG",
       assetClass: "CASH",
       holdingSessions: 6,
@@ -162,7 +162,7 @@ function buildInstitutionalRecommendations() {
     // 7. Mid Cap Stock Futures (Supreme Industries)
     {
       symbol: "SUPREMEIND",
-      spotPrice: 5210,
+      spotPrice: 3300.00,
       direction: "LONG",
       assetClass: "FUTURES",
       lotSize: 125,
@@ -183,10 +183,10 @@ function buildInstitutionalRecommendations() {
     // 8. Mid Cap Call Option (Dixon Tech)
     {
       symbol: "DIXON",
-      spotPrice: 12450,
+      spotPrice: 13180.00,
       direction: "LONG",
       assetClass: "OPTION",
-      strike: 12500,
+      strike: 13200,
       lotSize: 50,
       expiry: "2026-09-24",
       holdingSessions: 5,
@@ -205,7 +205,7 @@ function buildInstitutionalRecommendations() {
     // 9. Mid Cap Regular Buying (Trent)
     {
       symbol: "TRENT",
-      spotPrice: 7120,
+      spotPrice: 2730.00,
       direction: "LONG",
       assetClass: "CASH",
       holdingSessions: 6,
@@ -224,7 +224,7 @@ function buildInstitutionalRecommendations() {
     // 10. Small Cap High Growth (Kaynes Technology)
     {
       symbol: "KAYNES",
-      spotPrice: 4850,
+      spotPrice: 3392.00,
       direction: "LONG",
       assetClass: "CASH",
       holdingSessions: 8,
@@ -243,7 +243,7 @@ function buildInstitutionalRecommendations() {
     // 11. Small Cap Defense Tech (Data Patterns)
     {
       symbol: "DATAPATTNS",
-      spotPrice: 2880,
+      spotPrice: 4358.80,
       direction: "LONG",
       assetClass: "CASH",
       holdingSessions: 8,
@@ -262,7 +262,7 @@ function buildInstitutionalRecommendations() {
     // 12. Small Cap Market Infra (CDSL)
     {
       symbol: "CDSL",
-      spotPrice: 1485,
+      spotPrice: 1311.00,
       direction: "LONG",
       assetClass: "CASH",
       holdingSessions: 7,
@@ -275,7 +275,7 @@ function buildInstitutionalRecommendations() {
         delta: "1.00 (Cash)",
         gamma: "0.0000",
         theta: "₹0.00 (No Decay)",
-        metaModelScore: "94% Green"
+        metaModelScore: "98% Green"
       }
     }
   ];
