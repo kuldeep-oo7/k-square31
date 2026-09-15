@@ -1,0 +1,234 @@
+================================================================================
+ROUND 3 — PANEL STUDY: DOES THE WEEKLY LADDER WORK AT ALL?
+Companion to COUNTER_AUDIT_ADVERSARIAL_REVIEW.txt
+Date: 2026-09-15   Commit base: 86467f8
+================================================================================
+
+WHAT I SET OUT TO DO AND WHAT ACTUALLY HAPPENED
+
+The plan for this session was: restore the tail-based rung gate, re-validate the
+1% stop / 3% target geometry, measure participation, then build either the
+volatility-normalised grid (A-4) or the cross-sectional residual ladder (A-3).
+
+I re-validated the geometry first. It collapsed. Everything below follows from
+that, and the build I shipped is not the build I planned.
+
+--------------------------------------------------------------------------------
+1. THE THREE CONTROLS THE REPO DID NOT HAVE
+--------------------------------------------------------------------------------
+
+weekly-cycle.js judges ONE SYMBOL AT A TIME. That is correct for a trading
+decision and useless for the question "does this rule work". Three things were
+therefore unmeasurable, and I built them:
+
+  (a) A POOLED PANEL cut on shared calendar dates. Per-symbol splits let one
+      name's label density move another name's test window.
+
+  (b) A BUY-AND-HOLD CONTROL over the identical names and identical windows.
+      Without it a rule measured in a bull market reports the market's drift as
+      its own edge. The repo had no benchmark anywhere.
+
+  (c) A SELECTION HURDLE SCORED ON THE TRIALS ACTUALLY RUN. The per-symbol gate
+      uses sqrt(2*ln(slots+1)) = 1.89, correct for a 6-trial search. Run that
+      same gate across 97 names on 2 sides and you have run a 194-trial search,
+      where the bar is 2.76. Counting only the trials one function can see is
+      how a universe-wide sweep passes on noise while every individual test
+      looks disciplined.
+
+Shipped as api/_lib/panel.js + scripts/panel-study.js + scripts/test-panel.js,
+wired into `npm run check`. Nothing in the trading path changed.
+
+--------------------------------------------------------------------------------
+2. THE FINDING
+--------------------------------------------------------------------------------
+
+97 NSE large caps, 5 years (2021-09-15 .. 2026-09-15), long side, current
+continuous engine (20-session time stop, 5 concurrent, cohort censoring,
+gap-aware exits), 24 stop/target geometries.
+
+  Reproduce with:  node scripts/panel-study.js --fetch
+                   node scripts/panel-study.js
+
+THE CONTROL — equal-weighted buy-and-hold of the same 97 names:
+
+    development   730 sessions   +153.0% per name
+    validation    248 sessions     +4.3% per name
+    final test    248 sessions     +2.0% per name
+
+THE GRID — 0 of 24 configurations survive validation. ALL 24 VALIDATION CELLS
+ARE NEGATIVE.
+
+    shipped 2% stop / 2% target :  dev +0.0674%   val -0.1529% (t -1.14)
+    best on development 3% / 4% :  dev +0.2808%   val -0.1742% (t -0.68)
+                                   (t 2.18)
+
+Read the development column against the control. The ladder looks best exactly
+where the market rose 153%, and goes negative where the market went flat. On
+this evidence the long ladder is a LEVERED LONG BETA EXPRESSION, not an edge: it
+pays when the index runs and does not pay otherwise. That is a timing bet on
+direction, dressed as a mechanical entry rule.
+
+THE CONDITIONERS — 0 of 6 survive. I profiled 12-1 momentum, 5-day reversal,
+21-day relative strength vs the cross-section, distance from the 52-week high,
+ATR%, and volume ratio. Every one flips sign between development and validation.
+The two strongest in development are the two that flip hardest. That is the
+textbook signature of overfitting, and it means ranking does not rescue the rule.
+
+--------------------------------------------------------------------------------
+3. THINGS I SAID EARLIER THAT ARE WRONG. I AM RETRACTING THEM.
+--------------------------------------------------------------------------------
+
+RETRACTION 1 — "1% stop / 3% target: +0.1894% per fill, cluster-robust t = 3.14,
+4/4 folds positive."
+
+  Does not replicate. On the current engine 1%/3% gives dev +0.0114%,
+  validation -0.1504% (t -1.65), final +0.0345%. The original number came from
+  the old friday-flat engine with unbounded holds. I carried it across an engine
+  change without re-deriving it. That was my error.
+
+RETRACTION 2 — Appendix B-0: "hit rate and P&L move in OPPOSITE directions,
+monotonically, across every single cell."
+
+  Not true on the current engine. With a 20-session time stop the two move in
+  the SAME direction: wider stops raise both hit rate (27% -> 64%) and per-fill
+  P&L. The inversion was an artifact of forced Friday liquidation, which booked
+  losers before mean reversion could act.
+
+CONSEQUENCE — I DID NOT RESTORE THE TAIL GATE, and it should not be restored.
+Its thresholds (maxRungCvar95Pct 6.0, minWinToWorstLossRatio 0.30) were
+calibrated against the friday-flat distribution. Re-deriving them on the current
+engine, as I set out to do, shows the premise they rested on no longer holds.
+Restoring them would have shipped two more magic numbers with veto power into a
+codebase whose central defect is exactly that. I was wrong to have it queued as
+the top priority.
+
+ALSO CORRECTED — I wrote in panel.js that sqrt(2*ln N) "under-penalises" small
+grids. Backwards. It sits ABOVE the exact expected maximum at every practical N
+(at N=6: 1.8930 vs 1.3001), so the existing hurdle errs strict. Fixed in the
+source before commit.
+
+--------------------------------------------------------------------------------
+4. A-4 SHOULD NOT BE BUILT
+--------------------------------------------------------------------------------
+
+Fill rate by trailing-ATR decile, shipped config:
+
+    decile 1 (ATR 0.86-1.69%)   7.9% of rungs filled   avg cohort net +0.0037%
+    decile 5 (ATR 2.28-2.47%)  14.8%                          -0.0047%
+    decile 10 (ATR 3.92%+)     29.5%                          -0.0016%
+
+    overall: 0.812 fills per cohort of 5 rungs
+
+Volatility-normalising the grid WOULD equalise participation — the fill-rate
+slope is steep and monotone. But the P&L column is flat noise across all ten
+deciles, and the highest-participation decile is negative. A-4 buys more fills
+in a rule whose per-fill expectancy is zero. More fills x zero edge = zero, plus
+more cost and more tail. Do not build it.
+
+--------------------------------------------------------------------------------
+5. WHAT THE SHIPPED SYSTEM GETS RIGHT
+--------------------------------------------------------------------------------
+
+STAGED EXITS WERE DELETED, NOT FLAGGED OFF. Commit 86467f8 removed
+STAGED_EXIT_3_TIER, depthProfile, exitPolicy and comparePolicies outright, and
+scripts/verify-ci-flags.js now asserts their absence: "unvalidated staged exits
+and promised holding horizons are absent". A shipped, user-visible feature was
+removed because it was not measured. That is rarer than any fix in this repo and
+it is the discipline the first counter-audit asked for.
+
+THE GATE IS GENUINELY CONSERVATIVE. Across 97 names x 2 sides it approves 3.
+
+    SBILIFE    long L1   validation 23 fills +0.087%   final 21 fills +0.557%
+    TORNTPHARM long L1   validation 25 fills +0.793%   final 18 fills +0.166%
+    TVSMOTOR   long L2   validation 11 fills +0.102%   final  5 fills -1.284%
+
+    approved: 3 of 194 (1.5%). Pure chance at a 5% per-test rate gives ~10.
+
+The gate rejects MORE than chance would. Its default behaviour is "do not
+trade", which is the correct behaviour for a rule with no measured edge. This is
+a real strength and it is why the absence of edge has not cost money.
+
+But n=3 is not a portfolio, and those 3 clear a 6-trial hurdle (1.89) when the
+search that produced them was 194 trials (bar 2.76). Their mean on the untouched
+final test is -0.187% per fill, carried by TVSMOTOR's 5 fills. Three names is a
+statistical accident either way.
+
+OTHER GENUINE UPGRADES IN 86467f8, verified: three-way dev/validation/final-test
+split with purged boundary cohorts; splits computed on input dates rather than
+future-dependent label counts; maxHoldingSessions 20; maxConcurrentPositions 5;
+cohort censoring via the `complete` flag; gap-aware exits (target-gap, STOP_GAP);
+block SE honestly labelled a research approximation.
+
+Note on the lowerPct >= 45 gate: I earlier called this a regression. It is not.
+My tail-gate version never left my own working tree, so this was never removed
+from the shipped line of development. It is a parallel-development divergence,
+and the divergence is now moot given section 3.
+
+--------------------------------------------------------------------------------
+6. ONE DEFECT FOUND AND FIXED IN NEW CODE
+--------------------------------------------------------------------------------
+
+deflatedTStat(null, N) returned -2.14 instead of null, because Number(null) is 0
+and Number.isFinite(0) is true. clusterRobustMean legitimately returns a null
+t-statistic whenever a sample holds fewer than two clusters, so the path is
+reached in normal use — it would have fabricated a confident "no edge" from
+absent data. Caught by its own test, fixed before commit.
+
+Also tightened: quintileProfile originally called a conditioner sign-stable when
+its spreads merely shared a sign. Spreads of -0.020, -0.200 and -0.011 share a
+sign and say nothing. Stability now additionally requires each window's spread
+to exceed that window's own cluster-robust sampling error. Under the old rule
+5-day reversal reported stable; it now correctly reports unstable.
+
+--------------------------------------------------------------------------------
+7. WHAT IS STILL OPEN, AND WHAT IS YOURS TO DECIDE
+--------------------------------------------------------------------------------
+
+MINE, NOT DONE YET:
+  - Short side never run through the panel (node scripts/panel-study.js --side short).
+  - A-3 (cross-sectional residual ladder + beta hedge) is now the ONLY untested
+    structural idea left. Section 2 is the argument for it: if the ladder is
+    levered beta, then removing beta is the one change that could expose whether
+    anything idiosyncratic is underneath. It needs benchmark data in the research
+    path, which does not exist yet.
+  - Live ATR-derived stops (1.42%, 1.55% observed on the portal) still diverge
+    from the flat 2.0% the backtest measures. The panel measures a rule nobody
+    trades.
+  - Backtest runs on cash bars for a futures strategy. No ADV/OI/spread filter,
+    no capacity curve.
+  - metaLabelConfidence still holds hard veto power while untrained.
+
+YOURS, NOT MINE:
+  - stopLossPct stays at 2.0. I did not change it. No geometry in the grid has a
+    confirmed edge, so there is no measured basis to move it, and the trading
+    rule is yours.
+  - Whether the plan should refuse to emit at all while the panel reports
+    NO_CONFIRMED_EDGE. I have deliberately NOT wired panelVerdict into the live
+    path. It is computed and reported only. Wiring it in would be the single
+    largest behaviour change in the system's history — it would likely stop all
+    trading — and adding it switched-off by default would be exactly the
+    fake-fix pattern this audit exists to catch. So it is a decision, and it is
+    yours.
+
+--------------------------------------------------------------------------------
+8. THE BLUNT VERSION
+--------------------------------------------------------------------------------
+
+The fixed-percentage weekly ladder has no measurable out-of-sample edge on a
+97-name NSE large-cap panel over 5 years: not at any of 24 geometries, not
+conditioned on any of 6 standard cross-sectional factors. Its development-period
+performance tracks a 153% bull market.
+
+The system around it is honest — the gate refuses 98.5% of candidates, the
+unvalidated features were deleted rather than flagged off, the splits are purged,
+the costs are real and dated. The machinery is sound. The engine is sound.
+
+What is missing is a reason to be long this name, this week. Fundamentals,
+cross-sectional ranking, regime, and residualisation are all still absent from
+the decision, and the price-mechanical rule alone does not carry the weight.
+That is the gap between what this is and what you asked for, and no amount of
+tuning the ladder closes it.
+
+The measurement apparatus to tell the difference now exists and runs in CI. That
+is what this round delivered.
+================================================================================
