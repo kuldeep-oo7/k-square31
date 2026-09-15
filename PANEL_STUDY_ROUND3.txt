@@ -49,11 +49,20 @@ gap-aware exits), 24 stop/target geometries.
   Reproduce with:  node scripts/panel-study.js --fetch
                    node scripts/panel-study.js
 
-THE CONTROL — equal-weighted buy-and-hold of the same 97 names:
+THE CONTROL — buy-and-hold of the same 97 names, each compounded on its own
+series, against the Nifty 500 over the identical windows:
 
-    development   730 sessions   +153.0% per name
-    validation    248 sessions     +4.3% per name
-    final test    248 sessions     +2.0% per name
+                    mean per name   median per name   NIFTY 500 (^CRSLDX)
+    development         +169.9%          +105.9%            +59.1%
+    validation            +1.7%            -1.1%             -1.7%
+    final test            +0.4%            -2.5%             -3.4%
+
+Two things to read here. First, the MEDIAN tracks the index closely in the two
+later windows (-1.1% vs -1.7%, -2.5% vs -3.4%), which cross-validates the
+control; the mean is pulled up by a few very large winners. Second, the
+development window does NOT track the index — +105.9% median against +59.1% —
+and the reason is a defect in the universe, not in the measurement. See the
+survivorship note below.
 
 THE GRID — 0 of 24 configurations survive validation. ALL 24 VALIDATION CELLS
 ARE NEGATIVE.
@@ -62,11 +71,27 @@ ARE NEGATIVE.
     best on development 3% / 4% :  dev +0.2808%   val -0.1742% (t -0.68)
                                    (t 2.18)
 
-Read the development column against the control. The ladder looks best exactly
-where the market rose 153%, and goes negative where the market went flat. On
-this evidence the long ladder is a LEVERED LONG BETA EXPRESSION, not an edge: it
-pays when the index runs and does not pay otherwise. That is a timing bet on
-direction, dressed as a mechanical entry rule.
+What this does and does not say. The ladder is positive in a window where the
+index rose 59% and negative in a window where the index fell 1.7%. That is
+consistent with the rule being a long-direction expression rather than an edge.
+But it is NOT the case that the market rose while the strategy lost: validation
+and final test were both slightly DOWN markets. In the final test the index fell
+3.4% while the shipped geometry returned +0.12% per fill, which is the single
+most favourable data point the strategy has, and it is not significant (t 1.03).
+
+So the correct statement is the weaker and more durable one: NO GEOMETRY SHOWS A
+CONFIRMED EDGE, and the only window where the rule looks good is the one whose
+market return is both the largest and the least trustworthy.
+
+SURVIVORSHIP BIAS — A DEFECT THAT AFFECTS EVERY BACKTEST IN THIS REPO, NOT JUST
+THIS ONE. The universe comes from `universe()`, which is TODAY's Nifty 500
+constituent list. Applying today's membership backwards over five years selects
+names for having already succeeded. That is why the development window reads
++105.9% median against the index's +59.1%: the names that were not large caps in
+2026 are simply absent. Every historical statistic this repo produces —
+weeklyCycle, rule-study, the ML training labels — is computed on that same
+forward-looking universe and is optimistic by an amount nobody has measured.
+Fixing it needs point-in-time constituent history, which the repo does not have.
 
 THE CONDITIONERS — 0 of 6 survive. I profiled 12-1 momentum, 5-day reversal,
 21-day relative strength vs the cross-section, distance from the 52-week high,
@@ -176,11 +201,20 @@ THE GATE IS GENUINELY CONSERVATIVE. Across 97 names x 2 sides it approves 3.
     TORNTPHARM long L1   validation 25 fills +0.793%   final 18 fills +0.166%
     TVSMOTOR   long L2   validation 11 fills +0.102%   final  5 fills -1.284%
 
-    approved: 3 of 194 (1.5%). Pure chance at a 5% per-test rate gives ~10.
+    approved: 3 of 194 (1.5%).
 
-The gate rejects MORE than chance would. Its default behaviour is "do not
-trade", which is the correct behaviour for a rule with no measured edge. This is
-a real strength and it is why the absence of edge has not cost money.
+CORRECTION TO MY OWN ARITHMETIC: an earlier draft of this document said chance
+at a 5% per-test rate would approve about 10, and concluded the gate "rejects
+more than chance would". That is wrong and it was tilted in my favour. The gate
+is not one 5% test — it is a conjunction of four conditions plus a separate
+validation confirmation, so its joint false-positive rate under the null is
+nearer 1-2% and the expected number of chance approvals is roughly 2 to 4.
+Observing 3 is EXACTLY what chance predicts, not better than it.
+
+The gate is still conservative in the sense that matters — its default behaviour
+is "do not trade", which is correct for a rule with no measured edge, and that
+is why the absence of edge has not cost money. But it has not demonstrated skill
+at picking names, and I should not have implied it had.
 
 But n=3 is not a portfolio, and those 3 clear a 6-trial hurdle (1.89) when the
 search that produced them was 194 trials (bar 2.76). Their mean on the untouched
@@ -217,6 +251,24 @@ to exceed that window's own cluster-robust sampling error. Under the old rule
 --------------------------------------------------------------------------------
 7. WHAT IS STILL OPEN, AND WHAT IS YOURS TO DECIDE
 --------------------------------------------------------------------------------
+
+MEASUREMENT CAVEATS, STATED SO THEY ARE NOT LATER READ AS ERRORS:
+  - The conditioner sample is much smaller than the grid sample (6,669 dev fills
+    vs ~12,300). Conditioners need 260 sessions of history before a cohort can
+    be scored, and cohorts whose Monday is a holiday have no bar at the week key
+    and are dropped. The conditioner panel therefore skews later in history than
+    the grid panel.
+  - assignSplit purges labels that straddle the development/validation and
+    validation/final boundaries, but nothing straddles the far end of the final
+    test, so development and validation are very slightly optimistic relative to
+    the final test. Since the finding is that validation is NEGATIVE, this cuts
+    against the finding rather than for it.
+  - The benchmark compounds each name separately and averages. An earlier
+    version compounded the pooled arithmetic mean, which is not a return anyone
+    could earn; it understated development by 14.5pp and overstated validation
+    and final test by 2.6pp and 1.6pp. Fixed, with a regression test that plants
+    an alternating +10/-10 series whose arithmetic mean is zero and whose true
+    compounded return is -3.94%.
 
 MINE, NOT DONE YET:
   - A-3 (cross-sectional residual ladder + beta hedge) is now the ONLY untested
@@ -255,8 +307,10 @@ YOURS, NOT MINE:
 
 The fixed-percentage weekly ladder has no measurable out-of-sample edge on a
 97-name NSE large-cap panel over 5 years: not at any of 24 geometries, not
-conditioned on any of 6 standard cross-sectional factors. Its development-period
-performance tracks a 153% bull market.
+conditioned on any of 6 standard cross-sectional factors. The short side is
+worse than that — it has a measured NEGATIVE expectancy at overwhelming
+significance. The only window where the long side looks good is a bull market
+whose measured size is itself inflated by a survivorship-biased universe.
 
 The system around it is honest — the gate refuses 98.5% of candidates, the
 unvalidated features were deleted rather than flagged off, the splits are purged,

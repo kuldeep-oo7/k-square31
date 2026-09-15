@@ -103,11 +103,38 @@ const returns = [];
 for (const [session, value] of [["2024-01-10", 1], ["2024-01-11", 1], ["2024-03-05", -2], ["2024-04-01", 0.5]]) {
   for (let name = 0; name < 4; name += 1) returns.push({ session, returnPct: value });
 }
-const benchmark = benchmarkBySplit(returns, { ...bounds, symbolCount: 4 });
+const benchmark = benchmarkBySplit(returns.map((row, index) => ({ ...row, symbol: `S${index % 4}` })), { ...bounds, symbolCount: 4 });
 assert.equal(benchmark.development.sessions, 2, "two sessions per name fall in the development window");
+assert.equal(benchmark.development.symbols, 4);
 near(benchmark.development.meanDailyPct, 1, 1e-9, "development mean daily return");
 near(benchmark.development.compoundedPctPerName, 2.01, 0.01, "two 1% sessions compound to 2.01%");
 assert.ok(benchmark.validation.meanDailyPct < 0, "the validation window carries the negative session");
+
+// Dispersion case. A name that alternates +10% and -10% has an arithmetic mean
+// of exactly zero and a TRUE compounded return of -3.94%. Compounding the mean
+// would report 0% and quietly turn a loss into a flat line, so the benchmark
+// has to compound each name on its own series.
+const choppy = [];
+for (let index = 0; index < 8; index += 1) {
+  choppy.push({ symbol: "CHOP", session: `2024-01-${String(index + 1).padStart(2, "0")}`, returnPct: index % 2 === 0 ? 10 : -10 });
+}
+const choppyBenchmark = benchmarkBySplit(choppy, { validationFrom: "2090-01-01", finalTestFrom: "2099-01-01" });
+near(choppyBenchmark.development.meanDailyPct, 0, 1e-9, "alternating +10/-10 has a zero arithmetic mean");
+near(choppyBenchmark.development.compoundedPctPerName, -3.94, 0.01, "and a genuinely negative compounded return");
+assert.ok(
+  choppyBenchmark.development.compoundedPctPerName < 0,
+  "volatility drag must survive the benchmark, or a flat mean reads as a flat market"
+);
+
+// Names must compound separately before being averaged: a +100% name and a
+// -50% name average to +25%, not to whatever their pooled daily mean compounds to.
+const twoNames = [
+  { symbol: "UP", session: "2024-01-02", returnPct: 100 },
+  { symbol: "DOWN", session: "2024-01-02", returnPct: -50 }
+];
+const pair = benchmarkBySplit(twoNames, { validationFrom: "2090-01-01", finalTestFrom: "2099-01-01" });
+near(pair.development.compoundedPctPerName, 25, 1e-6, "terminal returns are averaged across names");
+assert.equal(pair.development.symbols, 2);
 
 // --- conditioner stability ---------------------------------------------------
 // A feature that ranks correctly in every split is stable; one that ranks

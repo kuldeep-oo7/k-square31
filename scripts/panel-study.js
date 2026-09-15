@@ -171,7 +171,7 @@ function main() {
 
     for (let index = 1; index < bars.length; index += 1) {
       const change = (bars[index].close / bars[index - 1].close - 1) * 100;
-      if (Number.isFinite(change)) benchmarkRows.push({ session: isoOf(bars[index].timestamp), returnPct: change });
+      if (Number.isFinite(change)) benchmarkRows.push({ symbol, session: isoOf(bars[index].timestamp), returnPct: change });
     }
 
     for (const stopLossPct of STOPS) {
@@ -281,11 +281,17 @@ function main() {
   line(`splits: development < ${bounds.validationFrom} <= validation < ${bounds.finalTestFrom} <= final test`);
   line();
   line("CONTROL -- equal-weighted buy-and-hold of the identical universe over the identical windows");
-  line("split          sessions  meanDaily%  compounded% per name");
+  line("Each name is compounded on its own series and the terminal returns averaged.");
+  line("split          sessions  meanDaily%   mean comp%  median comp%");
   for (const split of SPLITS) {
     const row = benchmark[split];
-    line(`${split.padEnd(14)} ${String(row.sessions).padStart(8)}  ${fixed(row.meanDailyPct).padStart(10)}  ${fixed(row.compoundedPctPerName, 1).padStart(20)}`);
+    line(`${split.padEnd(14)} ${String(row.sessions).padStart(8)}  ${fixed(row.meanDailyPct).padStart(10)}  ${fixed(row.compoundedPctPerName, 1).padStart(11)}  ${fixed(row.medianCompoundedPctPerName, 1).padStart(12)}`);
   }
+  line("SURVIVORSHIP WARNING: this universe is TODAY's large-cap constituent list");
+  line("applied backwards over five years. Names are here because they are large now,");
+  line("so the earliest window is biased upward and this control is optimistic. Over");
+  line("2021-09-15..2024-09-18 it reads far above the Nifty 500's own +59.1%. Compare");
+  line("any development-window figure against a real index, never against this column.");
   line();
   line(`GEOMETRY GRID -- ${trials} configurations, selection hurdle t >= ${expectedMaxTStat(trials)}`);
   line("stop  target |    dev net%    t |    val net%    t  deflated |  final net%    t | verdict");

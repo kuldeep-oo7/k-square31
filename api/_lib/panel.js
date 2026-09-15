@@ -186,25 +186,43 @@ function clusterRobustMean(observations) {
  * Equal-weighted buy-and-hold of the identical universe over the identical
  * splits. Without this control a rule measured only in a rising market reports
  * the market's drift as its own edge.
+ *
+ * Each name is compounded on its own and the terminal returns are then averaged
+ * across names. Compounding a pooled arithmetic mean instead would not be a
+ * return anybody could have earned: by the AM-GM inequality it drifts away from
+ * the realised figure by roughly half the variance per period, in either
+ * direction once cross-sectional dispersion is present. `meanDailyPct` is kept
+ * alongside because it is the right scale for comparing against a per-fill
+ * number, but it is explicitly not the holding return.
  */
 function benchmarkBySplit(dailyReturns, bounds) {
-  const buckets = { development: [], validation: [], finalTest: [] };
+  const splits = ["development", "validation", "finalTest"];
+  const pooled = { development: [], validation: [], finalTest: [] };
+  const wealth = { development: new Map(), validation: new Map(), finalTest: new Map() };
   for (const row of Array.isArray(dailyReturns) ? dailyReturns : []) {
     const value = Number(row?.returnPct);
     const session = String(row?.session ?? "");
     if (!Number.isFinite(value) || !session || !bounds) continue;
     const split = session < bounds.validationFrom ? "development" : session < bounds.finalTestFrom ? "validation" : "finalTest";
-    buckets[split].push(value);
+    pooled[split].push(value);
+    const symbol = String(row?.symbol ?? "__POOLED__");
+    const held = wealth[split].get(symbol) || { product: 1, sessions: 0 };
+    held.product *= 1 + value / 100;
+    held.sessions += 1;
+    wealth[split].set(symbol, held);
   }
-  const names = Number(bounds?.symbolCount) > 0 ? Number(bounds.symbolCount) : 1;
   const summary = {};
-  for (const [split, values] of Object.entries(buckets)) {
-    const sessions = values.length / names;
-    const average = mean(values);
+  for (const split of splits) {
+    const names = [...wealth[split].values()].filter((held) => held.sessions > 0);
+    const compounded = names.map((held) => (held.product - 1) * 100);
     summary[split] = {
-      sessions: Math.round(sessions),
-      meanDailyPct: round(average, 4),
-      compoundedPctPerName: sessions > 0 ? round((Math.pow(1 + average / 100, sessions) - 1) * 100, 2) : null
+      sessions: names.length ? Math.round(mean(names.map((held) => held.sessions))) : 0,
+      symbols: names.length,
+      meanDailyPct: round(mean(pooled[split]), 4),
+      compoundedPctPerName: compounded.length ? round(mean(compounded), 2) : null,
+      medianCompoundedPctPerName: compounded.length
+        ? round([...compounded].sort((a, b) => a - b)[Math.floor(compounded.length / 2)], 2)
+        : null
     };
   }
   return summary;
