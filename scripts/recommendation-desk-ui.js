@@ -33,14 +33,15 @@ function fixed(val, decimals = 2) {
  */
 function buildInstitutionalRecommendations() {
   const dataset = [
-    // 1. Index Call Option (NIFTY)
+    // 1. Index Call Option (NIFTY - NSE Lot Size 65)
     {
       symbol: "NIFTY",
       spotPrice: 23118.60,
       direction: "LONG",
       assetClass: "OPTION",
       strike: 23150,
-      lotSize: 25,
+      lotSize: 65,
+      entryPrice: 273.30,
       expiry: "2026-09-24",
       holdingSessions: 4,
       targetPcts: [1.025, 1.055, 1.10],
@@ -55,14 +56,15 @@ function buildInstitutionalRecommendations() {
         metaModelScore: "94% Green"
       }
     },
-    // 2. Index Put Option (BANKNIFTY - Defensive Hedge)
+    // 2. Index Put Option (BANKNIFTY - Defensive Hedge - NSE Lot Size 30)
     {
       symbol: "BANKNIFTY",
       spotPrice: 55794.75,
       direction: "SHORT",
       assetClass: "OPTION",
       strike: 55800,
-      lotSize: 15,
+      lotSize: 30,
+      entryPrice: 559.95,
       expiry: "2026-09-24",
       holdingSessions: 3,
       targetPcts: [0.975, 0.950, 0.900],
@@ -127,6 +129,7 @@ function buildInstitutionalRecommendations() {
       assetClass: "OPTION",
       strike: 720,
       lotSize: 650,
+      entryPrice: 11.85,
       expiry: "2026-09-24",
       holdingSessions: 4,
       targetPcts: [1.025, 1.05, 1.09],
@@ -141,47 +144,7 @@ function buildInstitutionalRecommendations() {
         metaModelScore: "92% Green"
       }
     },
-    // 6. Mid Cap Regular Buying (APL Apollo Tubes - NSE Lot Size 350)
-    {
-      symbol: "APLAPOLLO",
-      spotPrice: 2119.30,
-      direction: "LONG",
-      assetClass: "CASH",
-      holdingSessions: 6,
-      targetPcts: [1.04, 1.08, 1.16],
-      marketCapCategory: "Mid Cap",
-      quantPillars: {
-        vpin: "0.098 (PRISTINE FLOW)",
-        hurst: "0.71 (STRONG MOMENTUM)",
-        ouHalfLife: "5.1 Sessions",
-        delta: "1.00 (Cash)",
-        gamma: "0.0000",
-        theta: "₹0.00 (No Decay)",
-        metaModelScore: "98% Green"
-      }
-    },
-    // 7. Mid Cap Stock Futures (Supreme Industries - NSE Lot Size 175)
-    {
-      symbol: "SUPREMEIND",
-      spotPrice: 3300.00,
-      direction: "LONG",
-      assetClass: "FUTURES",
-      lotSize: 175,
-      expiry: "2026-09-24",
-      holdingSessions: 5,
-      targetPcts: [1.035, 1.07, 1.14],
-      marketCapCategory: "Mid Cap",
-      quantPillars: {
-        vpin: "0.121 (BASIS CARRY +0.89%)",
-        hurst: "0.66 (UPWARD LADDER)",
-        ouHalfLife: "4.7 Sessions",
-        delta: "1.00 (Futures)",
-        gamma: "0.0000",
-        theta: "+₹14.2/d (Positive Carry)",
-        metaModelScore: "95% Green"
-      }
-    },
-    // 7b. Large Cap Defense / PSU (BEL - Bharat Electronics - NSE Lot Size 1425)
+    // 6. Large Cap Defense / PSU (BEL - Bharat Electronics - NSE Lot Size 1425)
     {
       symbol: "BEL",
       spotPrice: 382.74,
@@ -244,14 +207,15 @@ function buildInstitutionalRecommendations() {
         metaModelScore: "94% Green"
       }
     },
-    // 8. Mid Cap Call Option (Dixon Tech)
+    // 8. Mid Cap Call Option (Dixon Tech - NSE Lot Size 50)
     {
       symbol: "DIXON",
       spotPrice: 13180.00,
       direction: "LONG",
       assetClass: "OPTION",
-      strike: 13200,
+      strike: 13250,
       lotSize: 50,
+      entryPrice: 310.00,
       expiry: "2026-09-24",
       holdingSessions: 5,
       targetPcts: [1.04, 1.08, 1.18],
