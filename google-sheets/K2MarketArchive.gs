@@ -34,7 +34,7 @@ function doGet() {
     capabilities: [
       'readDocuments', 'writeDocument', 'appendTradeSignals',
       'appendPortfolioAudit', 'appendMacroRadar', 'appendStockFundamentals',
-      'readTabRows'
+      'readTabRows', 'appendDailyRecommendations', 'appendRecommendationAudit'
     ],
     writable: true
   });
@@ -77,6 +77,16 @@ function doPost(event) {
     if (payload.action === 'appendStockFundamentals') {
       return json_(withWriteLock_(function () {
         return appendStockFundamentals_(spreadsheet, payload.fundamentals);
+      }));
+    }
+    if (payload.action === 'appendDailyRecommendations') {
+      return json_(withWriteLock_(function () {
+        return appendDailyRecommendations_(spreadsheet, payload.recommendations);
+      }));
+    }
+    if (payload.action === 'appendRecommendationAudit') {
+      return json_(withWriteLock_(function () {
+        return appendRecommendationAudit_(spreadsheet, payload.audit);
       }));
     }
     if (payload.action === 'readTabRows') {
@@ -282,6 +292,19 @@ const K2_MACRO_RADAR_HEADERS = [
   'Brent Crude ($)', 'India VIX', 'US VIX', 'US 10Y Yield', 'Macro Summary'
 ];
 
+const K2_DAILY_RECOMMENDATIONS_HEADERS = [
+  'Timestamp', 'Symbol', 'Asset Class', 'Action', 'Trading Symbol',
+  'Strike', 'Expiry', 'Lot Size', 'Entry Limit', 'Stop Loss',
+  'Target 1', 'Target 2', 'Runner Target', 'Capital Required INR',
+  'Max Risk INR', 'Hedge Strategy', 'Status', 'Reason', 'Zerodha Fast Copy'
+];
+
+const K2_RECOMMENDATION_AUDIT_HEADERS = [
+  'Audited At', 'Session', 'Status', 'Recommendation Count',
+  'Accepted Outcomes', 'Excluded Count', 'Win Rate %', 'Net PnL INR',
+  'Average Trade INR', 'Proposal'
+];
+
 function getOrCreateSheet_(spreadsheet, sheetName, headers) {
   var sheet = spreadsheet.getSheetByName(sheetName);
   if (!sheet) {
@@ -409,3 +432,59 @@ function appendStockFundamentals_(spreadsheet, fundamentals) {
   SpreadsheetApp.flush();
   return { ok: true, appended: rows.length, sheet: 'K2_FUNDAMENTALS_BALANCE_SHEET' };
 }
+
+function appendDailyRecommendations_(spreadsheet, recommendations) {
+  if (!Array.isArray(recommendations) || !recommendations.length) return { ok: true, appended: 0 };
+  var sheet = getOrCreateSheet_(spreadsheet, 'K2_DAILY_RECOMMENDATIONS', K2_DAILY_RECOMMENDATIONS_HEADERS);
+  var now = new Date();
+  var rows = recommendations.map(function (r) {
+    var hedge = r.definedRiskHedge ? (r.definedRiskHedge.strategyType || 'HEDGED') : 'NONE';
+    return [
+      now,
+      r.symbol || '',
+      r.assetClass || 'OPTION',
+      r.action || 'BUY',
+      r.tradingSymbol || '',
+      Number(r.strike || 0),
+      r.expiry || '',
+      Number(r.lotSize || 1),
+      Number(r.entryTrigger || 0),
+      Number(r.stopLoss || 0),
+      Number(r.targetRung1 || 0),
+      Number(r.targetRung2 || 0),
+      Number(r.runnerTarget || 0),
+      Number(r.capitalRequiredInr || 0),
+      Number(r.maxRiskInr || 0),
+      hedge,
+      r.status || 'ACTIVE',
+      r.reason || '',
+      r.zerodhaFastCopy || ''
+    ];
+  });
+  sheet.getRange(sheet.getLastRow() + 1, 1, rows.length, K2_DAILY_RECOMMENDATIONS_HEADERS.length).setValues(rows);
+  SpreadsheetApp.flush();
+  return { ok: true, appended: rows.length, sheet: 'K2_DAILY_RECOMMENDATIONS' };
+}
+
+function appendRecommendationAudit_(spreadsheet, audit) {
+  if (!audit) return { ok: true, appended: 0 };
+  var sheet = getOrCreateSheet_(spreadsheet, 'K2_RECOMMENDATION_AUDIT', K2_RECOMMENDATION_AUDIT_HEADERS);
+  var userGroup = (audit.groups && audit.groups.USER_CONFIRMED) || {};
+  var proposal = (audit.proposals && audit.proposals[0] && audit.proposals[0].id) || 'MAINTAIN';
+  var row = [
+    audit.auditedAt || new Date().toISOString(),
+    audit.session || '',
+    audit.status || 'REVIEW',
+    Number(audit.recommendationCount || 0),
+    Number(audit.acceptedOutcomes || 0),
+    Number(audit.excludedOutcomes && audit.excludedOutcomes.length || 0),
+    Number(userGroup.winRatePct || 0),
+    Number(userGroup.netPnlInr || 0),
+    Number(userGroup.averageNetPnlPerTradeInr || 0),
+    proposal
+  ];
+  sheet.getRange(sheet.getLastRow() + 1, 1, 1, K2_RECOMMENDATION_AUDIT_HEADERS.length).setValues([row]);
+  SpreadsheetApp.flush();
+  return { ok: true, appended: 1, sheet: 'K2_RECOMMENDATION_AUDIT' };
+}
+

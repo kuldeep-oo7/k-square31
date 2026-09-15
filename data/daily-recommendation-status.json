@@ -1,0 +1,20 @@
+{
+  "schemaVersion": "daily-recommendation-audit-v1",
+  "auditedAt": "2026-09-15T11:26:07.987Z",
+  "session": "2026-09-15",
+  "source": "NO_EVIDENCE_FILE",
+  "status": "NO_MATURE_VERIFIED_OUTCOMES",
+  "recommendationCount": 0,
+  "acceptedOutcomes": 0,
+  "excludedOutcomeCount": 0,
+  "proposals": [
+    {
+      "id": "COLLECT_CONFIRMED_OUTCOMES",
+      "why": "No mature verified outcomes to learn from",
+      "nextTest": "Join issued signal to both fills and reconciled fees; do not guess execution from price touch"
+    }
+  ],
+  "automaticModelPromotion": false,
+  "unchangedInputs": false,
+  "googleConfigured": false
+}

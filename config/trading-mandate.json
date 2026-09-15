@@ -1,0 +1,13 @@
+{
+  "version": "zerodha-research-v1",
+  "broker": "ZERODHA",
+  "mode": "RESEARCH_ONLY",
+  "liveOrdersEnabled": false,
+  "capitalInr": null,
+  "maxDailyLossInr": 0,
+  "maxTradeLossInr": 0,
+  "userRiskStatement": "There should be no loss",
+  "interpretation": "Zero authorized new live risk. Not a guarantee of loss-free trading.",
+  "approvalRequired": ["positive finite capital and risk budgets", "validated strategy", "current broker data and margin", "reconciliation", "broker and regulatory requirements"],
+  "holdingPolicy": "No automatic Friday exit. Monday reference reset is reporting only; lifetime P&L and weekend gaps are preserved."
+}

@@ -11,6 +11,7 @@ const { evaluateGlobalMacroShock } = require("../api/_lib/market-regime");
 const { DEFAULT_CONFIG } = require("../api/_lib/weekly-cycle");
 const { universe, universeMetadata } = require("../api/_lib/universe");
 const { planIsCurrent } = require("./plan-is-current");
+const { recommendationSectionHtml, recommendationCss, recommendationClientJs } = require("./recommendation-desk-ui");
 
 const escapeHtml = (value) => String(value ?? "")
   .replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
@@ -133,6 +134,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
 .lock{background:var(--panel);border:1px solid var(--line);padding:18px;border-radius:14px}.lock form{display:flex;gap:8px}.lock input{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:10px;border-radius:8px}.lock button{background:var(--violet);border:0;padding:10px 18px;border-radius:8px}footer{border-top:1px solid var(--line);color:var(--muted);padding-top:20px;font-size:12px}.empty{background:var(--panel);border:1px solid var(--line);padding:18px;border-radius:14px;color:var(--muted)}
 @media(max-width:760px){.shell{padding:24px 12px 60px}.mast h1{font-size:38px}.candidate-grid,.metrics{grid-template-columns:1fr 1fr}.calc-inputs{grid-template-columns:1fr}.tools{grid-template-columns:1fr 1fr}.tools .search{grid-column:1/-1}}
 .tools{grid-template-columns:auto auto auto 1fr}@media(max-width:700px){.tools{grid-template-columns:repeat(3,1fr)}.tools .search{grid-column:1/-1}}
+${recommendationCss()}
 </style>
 </head>
 <body data-new-orders="${macroLocked || !currentPlan ? "locked" : "shadow-only"}"><main class="shell">
@@ -159,6 +161,8 @@ ${currentPlan ? "" : `<p class="notice" id="plan-stale">No current, version-veri
 <section><h2>Current candidate guidance</h2><p class="sub">Generated from the plan—not hand-written cards. “Observed median” describes historical completed cohorts; it is not a promised exit date. The ${DEFAULT_CONFIG.maxHoldingSessions}-session ceiling is a provisional risk limit, not a claim that it is profit-optimal.</p>
   <div class="cards">${best.length ? best.slice(0, 6).map(guidanceCard).join("") : '<div class="empty">No current, risk-admitted candidate is available. Refresh the plan and review data availability.</div>'}</div>
 </section>
+
+${recommendationSectionHtml()}
 
 <section><h2>Price-distance assistant</h2><p class="sub">This compares a manually entered broker price with the stored plan. It cannot see spread, live margin, ban changes, order queue, or your broker acknowledgement; therefore it never labels a trade “safe.”</p>
   <div class="calculator"><div class="calc-inputs"><div class="field"><label for="calc-symbol">Candidate</label><select id="calc-symbol">${best.map((item) => `<option value="${escapeHtml(item.symbol)}:${item.side}">${escapeHtml(item.symbol)} (${escapeHtml(item.side)})</option>`).join("")}</select></div><div class="field"><label for="calc-price">Current broker price ₹</label><input id="calc-price" type="number" step="any" placeholder="Enter current contract price"></div></div>
@@ -217,6 +221,7 @@ ${currentPlan ? "" : `<p class="notice" id="plan-stale">No current, version-veri
   function render(book){var html='<div class="scroll"><table><thead><tr><th>Instrument</th><th>Side</th><th>Quantity</th><th>Average</th><th>Mark</th><th>Broker MTM</th></tr></thead><tbody>'+book.positions.map(function(p){return '<tr><th class="ticker">'+esc(p.symbol)+'</th><td>'+esc(p.position)+'</td><td class="num">'+esc(p.quantity)+'</td><td class="num">'+money(p.average)+'</td><td class="num">'+money(p.mark)+'</td><td class="num '+(Number(p.unrealised)<0?'negative':'positive')+'">'+money(p.unrealised)+'</td></tr>';}).join('')+'</tbody></table></div>';document.getElementById('book').innerHTML=html;document.getElementById('book').hidden=false;document.getElementById('lock').hidden=true;}
   form.addEventListener('submit',function(event){event.preventDefault();var error=document.getElementById('unlock-error');error.textContent='Opening…';crypto.subtle.importKey('raw',new TextEncoder().encode(document.getElementById('pass').value),'PBKDF2',false,['deriveKey']).then(function(material){return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(sealed.salt),iterations:sealed.iterations,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['decrypt']);}).then(function(key){return crypto.subtle.decrypt({name:'AES-GCM',iv:b64(sealed.iv)},key,b64(sealed.ciphertext));}).then(function(plain){render(JSON.parse(new TextDecoder().decode(plain)));}).catch(function(){error.textContent='The passphrase did not open the book.';});});
 }());
+${recommendationClientJs()}
 </script></body></html>`;
 }
 

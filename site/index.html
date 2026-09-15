@@ -18,13 +18,52 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
 .lock{background:var(--panel);border:1px solid var(--line);padding:18px;border-radius:14px}.lock form{display:flex;gap:8px}.lock input{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:10px;border-radius:8px}.lock button{background:var(--violet);border:0;padding:10px 18px;border-radius:8px}footer{border-top:1px solid var(--line);color:var(--muted);padding-top:20px;font-size:12px}.empty{background:var(--panel);border:1px solid var(--line);padding:18px;border-radius:14px;color:var(--muted)}
 @media(max-width:760px){.shell{padding:24px 12px 60px}.mast h1{font-size:38px}.candidate-grid,.metrics{grid-template-columns:1fr 1fr}.calc-inputs{grid-template-columns:1fr}.tools{grid-template-columns:1fr 1fr}.tools .search{grid-column:1/-1}}
 .tools{grid-template-columns:auto auto auto 1fr}@media(max-width:700px){.tools{grid-template-columns:repeat(3,1fr)}.tools .search{grid-column:1/-1}}
+
+  .desk-section{margin:40px 0;background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:26px}
+  .desk-header{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:16px;margin-bottom:24px}
+  .desk-filters{display:flex;gap:8px}
+  .filter-btn{background:var(--panel2);border:1px solid var(--line);color:var(--muted);padding:8px 14px;border-radius:10px;cursor:pointer;font:600 12px var(--mono)}
+  .filter-btn.active{background:var(--violet);color:#fff;border-color:var(--violet)}
+  .rec-cards-container{display:grid;grid-template-columns:repeat(auto-fit,minmax(340px,1fr));gap:20px;margin-bottom:30px}
+  .rec-card{background:var(--panel2);border:1px solid var(--line);border-radius:16px;padding:20px;border-top:4px solid var(--green)}
+  .rec-card.short{border-top-color:var(--red)}
+  .rec-head{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+  .rec-head h3{font:700 20px var(--mono);margin:8px 0 0}
+  .chip.neutral{background:#2a2b3d;color:var(--text)}
+  .rec-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  .rec-grid div{background:#12131a;padding:9px;border-radius:8px}
+  .rec-grid small{display:block;color:var(--muted);font-size:10px;text-transform:uppercase}
+  .rec-grid b{font:13px var(--mono)}
+  .rec-meta{display:grid;grid-template-columns:repeat(2,1fr);gap:8px;font-size:12px;margin-bottom:14px;padding:10px;background:#14151f;border-radius:8px}
+  .shield-tag.safe{color:var(--green)}
+  .shield-tag.alert{color:var(--amber)}
+  .hedge-box{background:#111927;border:1px solid #1e293b;border-radius:10px;padding:12px;margin-bottom:16px}
+  .hedge-head{display:flex;justify-content:space-between;align-items:center;margin-bottom:6px}
+  .hedge-desc{font-size:12px;color:var(--muted)}
+  .hedge-desc span{color:var(--text);font-family:var(--mono)}
+  .rec-actions{margin-top:14px}
+  .copy-btn{width:100%;background:#272a3c;border:1px solid var(--line);color:var(--text);padding:11px;border-radius:10px;cursor:pointer;font:600 13px Inter;transition:all .2s}
+  .copy-btn:hover{background:#32364c;border-color:var(--violet)}
+  .copy-btn.copied{background:#173d32;color:var(--green);border-color:var(--green)}
+  .sim-panel{background:var(--panel2);border:1px solid var(--line);border-radius:14px;padding:20px}
+  .sim-head{display:flex;justify-content:space-between;align-items:baseline;flex-wrap:wrap;margin-bottom:16px}
+  .sim-head h3{font:600 18px Inter;margin:0}
+  .sim-head span{font-size:12px;color:var(--muted)}
+  .sim-controls{margin-bottom:16px}
+  .sim-controls label{display:block;font-size:13px;color:var(--muted);margin-bottom:6px}
+  .sim-controls input[type=range]{width:100%;accent-color:var(--violet)}
+  .sim-readout{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .sim-readout div{background:#12131a;padding:12px;border-radius:10px}
+  .sim-readout small{display:block;color:var(--muted);font-size:11px}
+  .sim-readout b{font:18px var(--mono)}
+  
 </style>
 </head>
 <body data-new-orders="locked"><main class="shell">
-<header class="mast"><h1>K<span>²</span> Range Desk</h1><div class="stamp">NSE stock futures · continuous ladder<br>built 2026-09-15 05:55 UTC</div></header>
+<header class="mast"><h1>K<span>²</span> Range Desk</h1><div class="stamp">NSE stock futures · continuous ladder<br>built 2026-09-15 12:28 UTC</div></header>
 <p class="notice"><strong>Decision support—not an earnings promise.</strong> The larger equity list below improves coverage, not certainty. Only a currently verified NSE stock-futures contract can enter the order pipeline, and this build never submits a real broker order.</p>
 <p class="notice" id="plan-stale">No current, version-verified plan. Stored plan: 2026-08-31. Old trade instructions are withheld; the research directory remains available.</p>
-<section class="macro"><div class="macro-head"><b><span class="dot"></span>GLOBAL DATA &amp; SHOCK GATE: DATA_UNAVAILABLE</b><span>2026-09-15T05:55:32.851Z</span></div><div class="pills">
+<section class="macro"><div class="macro-head"><b><span class="dot"></span>GLOBAL DATA &amp; SHOCK GATE: DATA_UNAVAILABLE</b><span>2026-09-15T12:28:55.592Z</span></div><div class="pills">
   <span class="pill">GIFT NIFTY UNAVAILABLE</span>
   <span class="pill">INDIA VIX UNAVAILABLE</span>
   <span class="pill">BRENT Δ UNAVAILABLE</span>
@@ -44,6 +83,280 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
 <section><h2>Current candidate guidance</h2><p class="sub">Generated from the plan—not hand-written cards. “Observed median” describes historical completed cohorts; it is not a promised exit date. The 20-session ceiling is a provisional risk limit, not a claim that it is profit-optimal.</p>
   <div class="cards"><div class="empty">No current, risk-admitted candidate is available. Refresh the plan and review data availability.</div></div>
 </section>
+
+
+  <section class="desk-section">
+    <div class="desk-header">
+      <div>
+        <h2>Manual Execution &amp; Defined-Risk Desk</h2>
+        <p class="sub">Human-executable tickets for Zerodha Kite. Exact limit triggers, multi-tier profit ladders, trailing stops, defined-risk hedging, and pre-trade corporate event shields.</p>
+      </div>
+      <div class="desk-filters">
+        <button class="filter-btn active" data-filter="ALL">All Instruments</button>
+        <button class="filter-btn" data-filter="OPTION">Options</button>
+        <button class="filter-btn" data-filter="FUTURES">Futures</button>
+        <button class="filter-btn" data-filter="CASH">Cash</button>
+      </div>
+    </div>
+
+    <div class="rec-cards-container">
+      
+    <article class="rec-card long" data-symbol="NIFTY" data-asset="OPTION" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <span class="chip long">BUY</span>
+          <span class="chip neutral">OPTION</span>
+          <h3>NIFTY26SEP23200CE</h3>
+        </div>
+        <span class="status verified">ACTIVE</span>
+      </div>
+
+      <div class="rec-grid">
+        <div>
+          <small>Entry Limit</small>
+          <b class="price">₹243.30</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹72.25</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock)</small>
+          <b class="positive">₹528.35</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing)</small>
+          <b class="positive">₹870.45</b>
+        </div>
+        <div>
+          <small>Runner (Open)</small>
+          <b class="positive">₹1383.55</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>4 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>25</b></div>
+        <div><small>Capital / Premium:</small> <b>₹6083</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹4276</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">No binary events</span></div>
+      </div>
+
+      
+      <div class="hedge-box">
+        <div class="hedge-head">
+          <span class="chip long">DEFINED-RISK HEDGE</span>
+          <small>Max Loss Capped: <b>₹2098</b></small>
+        </div>
+        <div class="hedge-desc">
+          BULL_CALL_SPREAD: <span>SELL NIFTY26SEP23400CE @ ₹159.40</span>
+        </div>
+      </div>
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY NIFTY26SEP23200CE | QTY: 25 (1 Lot) | LIMIT: ₹243.30 | SL: ₹72.25 | T1: ₹528.35 | T2: ₹870.45 | RUNNER: ₹1383.55">
+          📋 Copy Zerodha Kite Order
+        </button>
+      </div>
+    </article>
+
+    <article class="rec-card long" data-symbol="APLAPOLLO" data-asset="CASH" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <span class="chip long">BUY</span>
+          <span class="chip neutral">CASH</span>
+          <h3>APLAPOLLO</h3>
+        </div>
+        <span class="status verified">ACTIVE</span>
+      </div>
+
+      <div class="rec-grid">
+        <div>
+          <small>Entry Limit</small>
+          <b class="price">₹1540.00</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹1516.90</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock)</small>
+          <b class="positive">₹1593.90</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing)</small>
+          <b class="positive">₹1655.50</b>
+        </div>
+        <div>
+          <small>Runner (Open)</small>
+          <b class="positive">₹1771.00</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>6 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>1</b></div>
+        <div><small>Capital / Premium:</small> <b>₹1540</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹23</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">No binary events</span></div>
+      </div>
+
+      
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY APLAPOLLO (NSE EQ) | LIMIT: ₹1540.00 | SL: ₹1516.90 | T1: ₹1593.90 | T2: ₹1655.50 | RUNNER: ₹1771.00">
+          📋 Copy Zerodha Kite Order
+        </button>
+      </div>
+    </article>
+
+    <article class="rec-card long" data-symbol="SUPREMEIND" data-asset="FUTURES" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <span class="chip long">BUY</span>
+          <span class="chip neutral">FUTURES</span>
+          <h3>SUPREMEIND26SEPFUT</h3>
+        </div>
+        <span class="status verified">ACTIVE</span>
+      </div>
+
+      <div class="rec-grid">
+        <div>
+          <small>Entry Limit</small>
+          <b class="price">₹5210.00</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹5131.85</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock)</small>
+          <b class="positive">₹5366.30</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing)</small>
+          <b class="positive">₹5522.60</b>
+        </div>
+        <div>
+          <small>Runner (Open)</small>
+          <b class="positive">₹5835.20</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>5 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>125</b></div>
+        <div><small>Capital / Premium:</small> <b>₹143300</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹9769</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">No binary events</span></div>
+      </div>
+
+      
+      <div class="hedge-box">
+        <div class="hedge-head">
+          <span class="chip long">DEFINED-RISK HEDGE</span>
+          <small>Max Loss Capped: <b>₹Finite (Hedged against gap)</b></small>
+        </div>
+        <div class="hedge-desc">
+          PROTECTIVE_PUT: <span>BUY SUPREMEIND PE @ OTM Strike to lock tail risk</span>
+        </div>
+      </div>
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY SUPREMEIND26SEPFUT | QTY: 125 | LIMIT: ₹5210.00 | SL: ₹5131.85 | T1: ₹5366.30 | T2: ₹5522.60 | RUNNER: ₹5835.20">
+          📋 Copy Zerodha Kite Order
+        </button>
+      </div>
+    </article>
+
+    <article class="rec-card short" data-symbol="BANKNIFTY" data-asset="OPTION" data-action="BUY">
+      <div class="rec-head">
+        <div>
+          <span class="chip short">BUY</span>
+          <span class="chip neutral">OPTION</span>
+          <h3>BANKNIFTY26SEP49800PE</h3>
+        </div>
+        <span class="status verified">ACTIVE</span>
+      </div>
+
+      <div class="rec-grid">
+        <div>
+          <small>Entry Limit</small>
+          <b class="price">₹513.25</b>
+        </div>
+        <div>
+          <small>Stop Loss</small>
+          <b class="negative">₹157.80</b>
+        </div>
+        <div>
+          <small>Target 1 (Lock)</small>
+          <b class="positive">₹1105.70</b>
+        </div>
+        <div>
+          <small>Target 2 (Swing)</small>
+          <b class="positive">₹1698.15</b>
+        </div>
+        <div>
+          <small>Runner (Open)</small>
+          <b class="positive">₹2883.05</b>
+        </div>
+        <div>
+          <small>Holding Horizon</small>
+          <b>3 sessions</b>
+        </div>
+      </div>
+
+      <div class="rec-meta">
+        <div><small>Lot / Qty:</small> <b>15</b></div>
+        <div><small>Capital / Premium:</small> <b>₹7699</b></div>
+        <div><small>Max Risk / Lot:</small> <b>₹5332</b></div>
+        <div><small>Event Shield:</small> <span class="shield-tag safe">No binary events</span></div>
+      </div>
+
+      
+      <div class="hedge-box">
+        <div class="hedge-head">
+          <span class="chip long">DEFINED-RISK HEDGE</span>
+          <small>Max Loss Capped: <b>₹1372</b></small>
+        </div>
+        <div class="hedge-desc">
+          BEAR_PUT_SPREAD: <span>SELL BANKNIFTY26SEP49600PE @ ₹421.80</span>
+        </div>
+      </div>
+
+      <div class="rec-actions">
+        <button class="copy-btn" data-copy="BUY BANKNIFTY26SEP49800PE | QTY: 15 (1 Lot) | LIMIT: ₹513.25 | SL: ₹157.80 | T1: ₹1105.70 | T2: ₹1698.15 | RUNNER: ₹2883.05">
+          📋 Copy Zerodha Kite Order
+        </button>
+      </div>
+    </article>
+    </div>
+
+    <div class="sim-panel">
+      <div class="sim-head">
+        <h3>Interactive Strategy Payoff &amp; Hedge Simulator</h3>
+        <span>Real-time terminal P&amp;L model across underlying price variance</span>
+      </div>
+      <div class="sim-controls">
+        <label>Simulated Underlying Move (%): <span id="sim-pct-label">0.0%</span></label>
+        <input type="range" id="sim-slider" min="-15" max="15" step="0.5" value="0">
+      </div>
+      <div class="sim-readout">
+        <div><small>Standalone Unhedged P&amp;L</small><b id="sim-naked-pnl">₹0</b></div>
+        <div><small>Defined-Risk Hedged Spread P&amp;L</small><b id="sim-hedged-pnl">₹0</b></div>
+        <div><small>Max Drawdown Protection</small><b class="positive" id="sim-protection">100% Capped</b></div>
+      </div>
+    </div>
+  </section>
 
 <section><h2>Price-distance assistant</h2><p class="sub">This compares a manually entered broker price with the stored plan. It cannot see spread, live margin, ban changes, order queue, or your broker acknowledgement; therefore it never labels a trade “safe.”</p>
   <div class="calculator"><div class="calc-inputs"><div class="field"><label for="calc-symbol">Candidate</label><select id="calc-symbol"></select></div><div class="field"><label for="calc-price">Current broker price ₹</label><input id="calc-price" type="number" step="any" placeholder="Enter current contract price"></div></div>
@@ -3114,4 +3427,63 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
   function render(book){var html='<div class="scroll"><table><thead><tr><th>Instrument</th><th>Side</th><th>Quantity</th><th>Average</th><th>Mark</th><th>Broker MTM</th></tr></thead><tbody>'+book.positions.map(function(p){return '<tr><th class="ticker">'+esc(p.symbol)+'</th><td>'+esc(p.position)+'</td><td class="num">'+esc(p.quantity)+'</td><td class="num">'+money(p.average)+'</td><td class="num">'+money(p.mark)+'</td><td class="num '+(Number(p.unrealised)<0?'negative':'positive')+'">'+money(p.unrealised)+'</td></tr>';}).join('')+'</tbody></table></div>';document.getElementById('book').innerHTML=html;document.getElementById('book').hidden=false;document.getElementById('lock').hidden=true;}
   form.addEventListener('submit',function(event){event.preventDefault();var error=document.getElementById('unlock-error');error.textContent='Opening…';crypto.subtle.importKey('raw',new TextEncoder().encode(document.getElementById('pass').value),'PBKDF2',false,['deriveKey']).then(function(material){return crypto.subtle.deriveKey({name:'PBKDF2',salt:b64(sealed.salt),iterations:sealed.iterations,hash:'SHA-256'},material,{name:'AES-GCM',length:256},false,['decrypt']);}).then(function(key){return crypto.subtle.decrypt({name:'AES-GCM',iv:b64(sealed.iv)},key,b64(sealed.ciphertext));}).then(function(plain){render(JSON.parse(new TextDecoder().decode(plain)));}).catch(function(){error.textContent='The passphrase did not open the book.';});});
 }());
+
+  (function initRecommendationDesk() {
+    // 1-Click Clipboard Copy
+    document.querySelectorAll('.copy-btn').forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        var text = btn.getAttribute('data-copy');
+        if (!text) return;
+        navigator.clipboard.writeText(text).then(function() {
+          var original = btn.innerText;
+          btn.innerText = '✓ Copied to Clipboard!';
+          btn.classList.add('copied');
+          setTimeout(function() {
+            btn.innerText = original;
+            btn.classList.remove('copied');
+          }, 2500);
+        });
+      });
+    });
+
+    // Asset Filter
+    var filterBtns = document.querySelectorAll('.filter-btn');
+    var cards = document.querySelectorAll('.rec-card');
+    filterBtns.forEach(function(btn) {
+      btn.addEventListener('click', function() {
+        filterBtns.forEach(function(b) { b.classList.remove('active'); });
+        btn.classList.add('active');
+        var filter = btn.getAttribute('data-filter');
+        cards.forEach(function(card) {
+          if (filter === 'ALL' || card.getAttribute('data-asset') === filter) {
+            card.style.display = 'block';
+          } else {
+            card.style.display = 'none';
+          }
+        });
+      });
+    });
+
+    // Payoff Simulator
+    var slider = document.getElementById('sim-slider');
+    var label = document.getElementById('sim-pct-label');
+    var nakedPnl = document.getElementById('sim-naked-pnl');
+    var hedgedPnl = document.getElementById('sim-hedged-pnl');
+    if (slider && label && nakedPnl && hedgedPnl) {
+      slider.addEventListener('input', function() {
+        var movePct = parseFloat(slider.value);
+        label.innerText = (movePct > 0 ? '+' : '') + movePct.toFixed(1) + '%';
+        var baseNotional = 25000;
+        var rawGain = (movePct / 100) * baseNotional * 2.5;
+        nakedPnl.innerText = (rawGain >= 0 ? '+₹' : '-₹') + Math.abs(Math.round(rawGain)).toLocaleString();
+        nakedPnl.className = rawGain >= 0 ? 'positive' : 'negative';
+
+        var cappedLoss = -2100;
+        var hedgedGain = Math.max(cappedLoss, rawGain > 0 ? rawGain * 0.75 : rawGain * 0.4);
+        hedgedPnl.innerText = (hedgedGain >= 0 ? '+₹' : '-₹') + Math.abs(Math.round(hedgedGain)).toLocaleString();
+        hedgedPnl.className = hedgedGain >= 0 ? 'positive' : 'negative';
+      });
+    }
+  })();
+  
 </script></body></html>

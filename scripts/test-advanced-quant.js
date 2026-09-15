@@ -116,9 +116,10 @@ assert.equal(bsmExpiredCall.price, 10.0, "ITM call at expiry must equal intrinsi
 assert.equal(bsmExpiredCall.delta, 1.0);
 assert.equal(bsmExpiredCall.gamma, 0);
 
-const bsmExpiredPut = blackScholesMerton({ spot: 95, strike: 100, timeToExpiryYears: -0.1, isCall: false });
+const bsmExpiredPut = blackScholesMerton({ spot: 95, strike: 100, timeToExpiryYears: 0, isCall: false });
 assert.equal(bsmExpiredPut.price, 5.0, "ITM put at expiry must equal intrinsic value (K - S)");
 assert.equal(bsmExpiredPut.delta, -1.0);
+assert.equal(blackScholesMerton({ spot: 95, strike: 100, timeToExpiryYears: -0.1 }).available, false, "negative time is invalid, not a current expiry price");
 
 // Regression test for P1-013: Kelly fraction should not floor small positive values to 0.05
 const tinyKelly = calculateKellyFraction({ winRate: 0.51, rewardToRiskRatio: 1.0, fractionMultiplier: 0.5 });

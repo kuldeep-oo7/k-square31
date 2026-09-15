@@ -36,88 +36,13 @@ function stdNormPdf(x) {
   return Math.exp(-0.5 * x * x) / Math.sqrt(2 * Math.PI);
 }
 
-/**
-/**
- * The Trillion Dollar Equation (Black-Scholes-Merton Model & 5 Greeks)
- * Calculates theoretical option price, Delta, Gamma, Vega, Theta, and Rho.
- */
-function blackScholesMerton({ spot, strike, timeToExpiryYears, riskFreeRate = 0.065, volatility, isCall = true, isFutures = false }) {
-  const S = Number(spot);
-  const K = Number(strike);
-  const rawT = Number(timeToExpiryYears);
-  const r = Number.isFinite(Number(riskFreeRate)) ? Number(riskFreeRate) : 0.065;
-  const rawVol = Number(volatility);
-
-  if (!Number.isFinite(S) || !Number.isFinite(K) || S <= 0 || K <= 0) {
-    return { price: 0, delta: 0, gamma: 0, vega: 0, theta: 0, rho: 0, iv: 0 };
-  }
-
-  // P1-014: Boundary gating at expiry (T <= 0): Option value collapses strictly to intrinsic value
-  if (!Number.isFinite(rawT) || rawT <= 0) {
-    const intrinsic = isCall ? Math.max(0, S - K) : Math.max(0, K - S);
-    const delta = isCall ? (S > K ? 1.0 : 0.0) : (S < K ? -1.0 : 0.0);
-    return {
-      price: Number(intrinsic.toFixed(2)),
-      delta,
-      gamma: 0,
-      vega: 0,
-      theta: 0,
-      rho: 0,
-      d1: 0,
-      d2: 0,
-      iv: Number.isFinite(rawVol) ? rawVol : 0
-    };
-  }
-
-  const T = Math.max(0.0001, rawT);
-  const sigma = Number.isFinite(rawVol) && rawVol > 0 ? rawVol : 0.20;
-  const isFuturesOption = Boolean(isFutures);
-
-  const sqrtT = Math.sqrt(T);
-  const discount = Math.exp(-r * T);
-
-  // Black-76 for futures options vs Black-Scholes-Merton for spot options
-  const d1 = isFuturesOption
-    ? (Math.log(S / K) + (0.5 * sigma * sigma) * T) / (sigma * sqrtT)
-    : (Math.log(S / K) + (r + 0.5 * sigma * sigma) * T) / (sigma * sqrtT);
-  const d2 = d1 - sigma * sqrtT;
-
-  const Nd1 = stdNormCdf(d1);
-  const Nd2 = stdNormCdf(d2);
-  const N_neg_d1 = stdNormCdf(-d1);
-  const N_neg_d2 = stdNormCdf(-d2);
-  const pdf_d1 = stdNormPdf(d1);
-
-  let price = 0;
-  let delta = 0;
-  let theta = 0;
-
-  if (isCall) {
-    price = isFuturesOption ? discount * (S * Nd1 - K * Nd2) : (S * Nd1 - K * discount * Nd2);
-    delta = isFuturesOption ? discount * Nd1 : Nd1;
-    theta = -(S * pdf_d1 * sigma) / (2 * sqrtT) - r * K * discount * Nd2;
-  } else {
-    price = isFuturesOption ? discount * (K * N_neg_d2 - S * N_neg_d1) : (K * discount * N_neg_d2 - S * N_neg_d1);
-    delta = isFuturesOption ? -discount * N_neg_d1 : (Nd1 - 1.0);
-    theta = -(S * pdf_d1 * sigma) / (2 * sqrtT) + r * K * discount * N_neg_d2;
-  }
-
-  const gamma = pdf_d1 / (S * sigma * sqrtT);
-  const vega = S * sqrtT * pdf_d1;
-  const rho = isCall
-    ? (K * T * discount * Nd2) / 100
-    : (-K * T * discount * N_neg_d2) / 100;
-
-  return {
-    price: Math.max(0, Number(price.toFixed(2))),
-    delta: Number(delta.toFixed(4)),
-    gamma: Number(gamma.toFixed(6)),
-    vega: Number((vega / 100).toFixed(4)),
-    theta: Number((theta / 365).toFixed(4)),
-    rho: Number(rho.toFixed(4)),
-    d1: Number(d1.toFixed(4)),
-    d2: Number(d2.toFixed(4))
-  };
+// Compatibility entry point. Zero dividends remain an explicit legacy assumption;
+// new callers use option-pricing.js and must supply their dividend assumption.
+function blackScholesMerton({ spot, strike, timeToExpiryYears, riskFreeRate, dividendYield = 0, volatility, isCall = true, isFutures = false } = {}) {
+  const { europeanOption } = require("./option-pricing");
+  return europeanOption({ model: isFutures === true ? "BLACK76" : "BSM", underlyingPrice: spot,
+    strike, timeToExpiryYears, riskFreeRate, dividendYield, volatility,
+    optionType: isCall === true ? "CE" : isCall === false ? "PE" : null });
 }
 
 /**

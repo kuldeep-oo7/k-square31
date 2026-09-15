@@ -1,0 +1,253 @@
+K2 / PIVOT31 - IMPLEMENTATION AND INDEPENDENT RE-AUDIT
+Date: 2026-09-15 IST
+Status: WORK IN PROGRESS. THIS IS NOT A LIVE-TRADING CERTIFICATE.
+
+1. USER MANDATE AND NON-NEGOTIABLE INTERPRETATION
+Broker: Zerodha (confirmed by user).
+Trading capital: NOT PROVIDED.
+User's requested maximum loss: zero / "there should be no loss".
+Interpretation: ZERO AUTHORIZED NEW LIVE RISK. Never substitute a guessed risk
+budget, minimum one lot, unlimited loss limit, or an assumed account balance.
+No speculative trading system can guarantee no loss. A stop is not a guaranteed
+fill price. A hedge costs money and can leave basis, liquidity, timing, settlement,
+counterparty and operational risk. A defined terminal payoff is not a guarantee
+of the intraday account drawdown or available margin.
+No actual broker orders are authorized or submitted in this work.
+
+Scope expansion requested: preserve original stock-futures/watchlist coverage;
+add NSE/BSE cash discovery and separately verified futures/calls/puts; hedge and
+daily risk guidance. Older dossiers' "stock futures only forever" scope is
+superseded by this request, NOT their requirement for separate validation.
+Friday is not an automatic exit. Monday first-session opening reference is ONLY
+weekly reporting attribution. Original execution, lifetime P&L, holding age and
+weekend gap remain intact. Zeroing weekly display does not erase a real loss.
+
+2. DOCUMENTS READ AND CLAIMS CHALLENGED
+Read all nine TXT documents in the project root, including Claude's latest:
+  SYSTEM_AUDIT_DOSSIER.txt
+  MASTER_SYSTEM_AUDIT_AND_RESOLUTION_DOSSIER.txt
+  SYSTEM_REMEDIATION_AND_RESOLUTION_REPORT.txt
+  COUNTER_AUDIT_ADVERSARIAL_REVIEW.txt (including Appendices A and B)
+  INDEPENDENT_DEEP_REAUDIT_AND_REMEDIATION_DOSSIER.txt
+  INDEPENDENT_FINAL_COUNTER_AUDIT_2026-09-07.txt
+  K2_MASTER_STATE_OF_SYSTEM.txt
+  PANEL_STUDY_ROUND3.txt
+  LIVE_GOOGLE_SHEET_AUDIT_REPORT.txt
+The first two are byte-identical (SHA-256 checked), not independent corroboration.
+These historical documents are preserved. Their line numbers and PASS statements
+apply to their named snapshots, not automatically to today's code.
+
+Observed HEAD after Claude's concurrent work: b711a44. Earlier local changes were
+committed by another actor in 86467f8; origin/main locally points to that commit.
+This agent has not committed, pushed, deployed, sent emails, or placed orders.
+A local remote-tracking ref does NOT prove which website revision is serving.
+
+Important contradictions / corrections:
+  - The older resolution report says all defects closed and research complete.
+    That claim is contradicted by remaining data, research and integration gaps.
+  - Latest panel report finds all 24 long geometries negative in validation, and
+    all 24 short geometries negative in every reported split. This is evidence
+    AGAINST promoting this tested ladder, not a challenge to add leverage.
+  - Earlier positive 40-name tight-stop result is not equivalent to the current
+    97-name, changed-execution, changed-split experiment. Do not mix their metrics.
+  - Neither negative panel nor positive historical panel proves what every
+    possible strategy will do. Both use survivor-selected adjusted cash proxies.
+  - A difference between benchmark and constituent returns does not quantify
+    survivorship bias. Weighting, sector and sample differences also matter.
+  - Per-fill return is not portfolio CAGR, return on account equity, or income.
+  - The latest prose says untrained meta has veto power and OI/capacity gates are
+    absent. Current recommendation/risk/runner code must be checked; prior local
+    fixes already restricted meta veto to validated evidence and added OI/volume.
+  - Expected maximum Gaussian t under many trials is a search-bias diagnostic,
+    NOT a calibrated 5% significance threshold or a complete Deflated Sharpe Ratio.
+  - A final-test window already inspected for choosing features is not an
+    untouched final test for the NEXT version. Use new prospective data.
+  - Passing unit/syntax/browser tests establishes those tested invariants, not
+    a profitable edge, live Sheet contents, deployed version, or broker readiness.
+
+3. PRE-EXPANSION IMPLEMENTATION VERIFIED EARLIER IN THIS WORK
+These changes must be preserved; verify integration again after new changes.
+File/function anchors are stable even when line numbers move.
+
+api/_lib/weekly-cycle.js - DEFAULT_CONFIG, replayContinuous, sideResult:
+  Continuous holding; real stop barrier; conservative ambiguous OHLC treatment;
+  trade-through limit assumptions; gap-aware losses; weighted rung statistics;
+  purged calendar development/validation/final splits; finite holding ceiling.
+  2%/2% and 20 sessions are PROVISIONAL research parameters, not optimal promises.
+  Remaining: adjusted cash proxy is NOT actual futures portfolio replay.
+
+api/_lib/recommendation.js - buildOrderIntent, recommendation, potentialCall:
+  Explicit direction, actual contract identifiers, lots/ticks; no one-lot floor
+  above risk budget; canonical target/stop; unvalidated potential route disabled;
+  no guaranteed carry credit; no unmeasured staged-runner instructions.
+  Remaining: cash-to-futures signal/basis transfer not independently validated.
+
+api/_lib/shadow-broker.js - simulateExecutionFill, calculateNseFuturesCharges:
+  Unknown side rejected; no quote means no fill; limit cannot fill worse than
+  limit; deterministic identity; dated futures STT; corrected IPFT 1e-9 turnover;
+  futures turnover is not cash debit/proceeds; charges explicitly estimated.
+  Remaining: depth/queue/partial-fill calibration, full historical fee schedules,
+  and actual Zerodha contract-note/margin reconciliation.
+
+api/_lib/shadow-ledger.js - normalizeLedger, settle/rebase/open/close helpers:
+  Daily variation accounting; entry/exit fees; no synthetic balancing plug;
+  runtime reconciliation and persistent kill state; Monday attribution retains
+  actual cost basis, daily settlement and weekend gap; roll age carried forward.
+  Remaining: transactional single-writer storage, crash recovery and broker truth.
+
+scripts/run-shadow-session.js - runShadowSession, exactContract, entry refresh:
+  Reads plan.best[].entries[].orderIntent; risk approval required; exact contract
+  match; dated ban gate; duplicate/out-of-order sessions rejected; target/stop/
+  gap/holding/roll lifecycle; entry-day settlement and fee-aware account checks.
+  Remaining: licensed intraday fills, missed-session replay, atomic roll/recovery.
+
+api/_lib/portfolio-risk.js - evaluatePortfolioRisk:
+  Strict required fields, sector/macro/schema defaults, ticks/lots/notional,
+  margin/gross exposure/position/sector caps, OI/volume/participation, expiry/ban.
+  Remaining: aggregate same-name stop risk, current broker portfolio/margin,
+  factor/correlation/option Greeks, price-band and quantity-freeze records.
+
+api/_lib/ml-model.js - training rows, walk-forward validation, model fitness:
+  Future Monday gap removed; labels purged at time boundaries; weak models cannot
+  generate trades; VALIDATED_RESEARCH_FILTER is not production certification.
+  Remaining: actual futures labels, reproducible PIT data and block uncertainty.
+
+api/_lib/trade-tracker.js - signal IDs, confirmed fills, evaluateOutcome:
+  Rung-specific identities; no historical pre-signal fill guessing; confirmed
+  fills only; repeat-bar protection; conservative stops and ambiguity.
+  Remaining: production shadow/broker fill events not yet joined end-to-end into
+  the learning ledger; signal defaults/feature timestamp handling need hardening.
+
+api/_lib/market-feed.js - macro envelope and macroInputFromRadar:
+  No fabricated prices; receivedAt distinct from provider quoteAsOf; unavailable
+  or unverified timestamps cannot masquerade as live. Current free feeds do not
+  establish execution-grade fresh macro state. Missing is not zero or normal.
+
+scripts/dispatch-daily-alert.js; api/_lib/emailer.js:
+  Correct short/long exits and missing marks; no fake option fallback; stale plans
+  withheld; remote idempotency reservation; authenticated delivery acknowledgement
+  required; local HTML is NOT email delivery. Ambiguous sends not blindly retried.
+  Remaining: deployed webhook protocol/credentials and actual delivery unverified;
+  HTML escaping review still required for source-provided text.
+
+scripts/build-portal.js; scripts/verify-portal.js; scripts/qa-portal.js:
+  502-name research directory retained original watchlist; stale August plan
+  withheld; directional calculator, empty-input reset, correct raw contract levels;
+  no "safe to short", guaranteed return, fake 8/8 or fake live quote claims.
+  Real desktop/mobile browser checks and no-book/script verification passed.
+
+Build/dependencies:
+  ESM config renamed vite.config.mts; finalizer accepts index.mjs; compatible
+  dependency fixes applied, no forced-major audit fix. Earlier production build
+  passed and npm audit reported zero vulnerabilities including dev dependencies.
+
+4. EXTERNAL EVIDENCE / BLOCKERS (DO NOT TURN THESE INTO PASS)
+Google Sheets:
+  LIVE_GOOGLE_SHEET_AUDIT_REPORT.txt is BLOCKED: missing credentials.
+  This audit has NOT read every live Sheet cell. Node computes; Sheets is a
+  selected state/report projection, not a proven immutable tick/financials lake.
+  Canary read-back tooling exists; a mock test or handshake is not cell verification.
+  Required: explicit credentialed test environment, version/capability check,
+  append/read exact nonce/hash, complete tab export and historical reconciliation.
+
+NSE daily contract archive:
+  Current refresh returned HTTP 404 for 2026-09-15 and 2026-09-14 bhavcopies.
+  Existing snapshot preserved; 216 is an OLD count, not verified today's count.
+  Public ban list did return a dated 2026-09-15 response with five names.
+  Ban availability alone does not prove a current usable contract or quote.
+
+Zerodha catalogue read-only probe:
+  Public /instruments/NSE, BSE, NFO and BFO returned HTTP 200.
+  These lists contain multiple security types, not just ordinary company shares.
+  A downloaded instrument master is NOT a live quote, a liquidity test, current
+  margin approval, F&O ban clearance, or a profitable signal. Numeric tokens may
+  be reused after expiry; preserve exchange + trading symbol + dated metadata.
+
+Live site:
+  Direct browser/search-tool retrieval was unavailable in the current check.
+  Do not claim the newest changes are live without HTTP/content/version evidence.
+
+5. NEW EXPANSION WORK AND ACCEPTANCE REQUIREMENTS
+E01 Options mathematics: correct discounted Black-76 gamma/vega/theta/rho;
+  add dividend-aware BSM, explicit units and missing-input failures, IV bounds,
+  put-call parity, numerical Greek checks. No invented volatility on missing data.
+E02 Zerodha instrument registry: retain exact exchange, token, symbol, expiry,
+  strike, CE/PE/FUT type, lot/tick, source time/hash. Cash discovery separate from
+  derivative contracts. Unknown classification is UNKNOWN, not "small cap".
+E03 Read-only broker adapter: authenticated GET quotes/positions/funds and margin
+  calculation only. No order submit/modify/cancel, no credentials in HTML/Git/logs.
+E04 Defined-risk research: long calls/puts, debit/credit verticals, protective put
+  and protective call with exact matching underlying/expiry/quantities; premiums,
+  all-leg costs, payoff slopes, max terminal loss, breakevens and stress scenarios.
+  Reject uncovered unlimited-loss exposure in beginner guidance. Never confuse
+  theoretical hedge payoff with executed/atomic legs or guaranteed daily loss.
+E05 Daily brief: WHAT candidate/contract, WHY evidence, WHEN quote and expiry,
+  HOW MANY permitted lots, HOW MUCH premium/margin/normal and stress loss,
+  WHICH hedge and failure modes, WHO approves. Missing capital or positive
+  permitted loss -> zero authorized live orders, not an assumed one-lot ticket.
+E06 Research promotion: independent data/label manifests, trial register, block
+  inference, calibration, ablation, after-cost capacity and prospective broker
+  reconciliation. NO_CONFIRMED_EDGE cannot become "institutional advantage".
+
+6. WH QUESTIONS: CURRENT ANSWERS, OWNERS AND REQUIRED EVIDENCE
+WHAT is being built? A personal Zerodha trading research/risk desk, not a profit guarantee.
+WHAT markets? NSE/BSE discovery; separately identified NFO/BFO derivatives.
+WHAT is excluded? Unsupported exchanges/types, invented contracts and live orders.
+WHAT is accurate? Tested arithmetic/control invariants; future profitability UNKNOWN.
+WHY no loss promise? Real market, hedge and execution risks cannot be coded away.
+WHY no automatic buy daily? A missing edge, risk budget or quote must mean no trade.
+WHY more symbols? Broader discovery; this also increases false-discovery/liquidity risk.
+WHY not all stocks in F&O? Only exchange-listed contracts exist; cash listing is insufficient.
+WHY no deep-learning promotion? More complexity must beat simpler after-cost baselines.
+WHERE are raw prices? Existing cache/provider files, not a verified full immutable lake.
+WHERE are statements? Yahoo ratio snapshots; full PIT financial statements NOT COMPLETE.
+WHERE are trades? Shadow JSON/local signal artifacts; broker reconciled event DB NOT COMPLETE.
+WHERE is Google truth? Unverified without live credentials and complete tab read-back.
+WHERE are broker credentials? Must be server-side/private; none requested in chat.
+WHEN are catalogues current? Provider snapshot metadata and retrieval time must be shown.
+WHEN are quotes current? Exchange quote time, not download time; stale data blocks action.
+WHEN do holdings exit? Tested strategy barriers/expiry controls; not an arbitrary Friday.
+WHEN does Monday reset happen? First tradable session; reference only, real P&L retained.
+WHEN can live start? Only after positive risk consent, capital, broker/compliance and evidence.
+WHO chose broker? User: Zerodha.
+WHO chooses loss budget? User; zero currently means no new authorized live risk.
+WHO validates? Independent review still required; the coding agent cannot self-certify alpha.
+WHO may override a gate? No automatic override; explicit approved and audited change only.
+WHOM are outputs for? This user's research/paper account, not public investment advice.
+WHOSE data rights? Exchange/broker/vendor entitlements must permit intended use and publication.
+WHICH identifier? Exchange/trading symbol with dated expiry/strike/type; not token alone.
+WHICH price? Buy at available ask, sell at bid for conservative scenarios; LTP not fill proof.
+WHICH option model? Explicit spot BSM with dividends or Black-76 for futures underlying;
+  do not assume NSE stock/index options are options on futures because both are "F&O".
+HOW are Greeks checked? Analytical formulas against independent finite differences/parity.
+HOW is hedge cost measured? Every premium, fee and execution cost across all legs.
+HOW are limits checked? Portfolio-level risk independent of signal score; no one-lot floor.
+HOW are daily and lifetime losses measured? Continuous account equity, never weekly reset alone.
+HOW MUCH capital? Unknown; do not reuse the old INR 2m paper default as user authority.
+HOW MUCH loss is approved? Zero currently; executable live size must be zero.
+HOW MANY real profitable observations? Verified prospective futures/options evidence incomplete.
+WHAT IF hedge fills but other leg does not? New exposure/margin remains; multi-leg is not atomic.
+WHAT IF price gaps through stop? Loss may exceed planned stop; use stress and risk ceilings.
+WHAT IF margin rises? Freeze new risk and alert; current margin service required.
+WHAT IF stock option is held to expiry? Physical-delivery obligations must be checked explicitly.
+WHAT IF a quote/token is stale? Reject; never substitute another expiry silently.
+WHAT IF providers fail? Preserve last archive labelled stale; do not create current trade signals.
+WHAT IF no configuration passes validation? No promotion; report the negative result.
+WHAT IF a new test passes? It closes only its named invariant, not the entire project.
+
+7. PRIMARY REFERENCES CONSULTED
+https://kite.trade/docs/connect/v3/market-quotes/
+https://kite.trade/docs/connect/v3/margins/
+https://kite.trade/docs/connect/v3/orders/
+https://zerodha.com/z-connect/trending/freak-trades-in-fo-removal-of-execution-range-the-importance-of-limit-orders-and-more
+https://www.nseindia.com/static/products-services/equity-derivatives-contract-specifications
+https://www.nseclearing.in/clearing-settlement/equity-derivatives/settlement-mechanism
+https://www.nseclearing.in/risk-management/equity-derivatives/margins
+https://nsearchives.nseindia.com/content/circulars/FATAX73524.pdf
+https://nsearchives.nseindia.com/content/circulars/FA73061.pdf
+https://nsearchives.nseindia.com/content/circulars/INSP38433.pdf
+https://www.sebi.gov.in/sebi_data/attachdocs/sep-2025/1759232056254.pdf
+https://github.com/lballabio/QuantLib/blob/master/ql/pricingengines/blackcalculator.cpp
+
+8. FINAL VERIFICATION LOG
+Pending expansion implementation and final rerun. Never read this placeholder as PASS.
