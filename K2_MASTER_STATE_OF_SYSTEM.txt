@@ -1,0 +1,488 @@
+================================================================================
+K2 — MASTER STATE OF THE SYSTEM
+Single authoritative document. Written 2026-09-15 at commit 86fd63e.
+================================================================================
+
+WHY THIS DOCUMENT EXISTS
+
+There are eight audit documents in this folder totalling roughly half a megabyte:
+
+    Audit_Dossier_Chat_Export.md                     129 KB
+    INDEPENDENT_DEEP_REAUDIT_AND_REMEDIATION_DOSSIER  95 KB
+    COUNTER_AUDIT_ADVERSARIAL_REVIEW.txt              90 KB
+    INDEPENDENT_FINAL_COUNTER_AUDIT_2026-09-07.txt    57 KB
+    MASTER_SYSTEM_AUDIT_AND_RESOLUTION_DOSSIER.txt    37 KB
+    SYSTEM_AUDIT_DOSSIER.txt                          37 KB
+    SYSTEM_REMEDIATION_AND_RESOLUTION_REPORT.txt      35 KB
+    PANEL_STUDY_ROUND3.txt                            18 KB
+
+They overlap, they contradict each other, and several of their claims — including
+several of mine — have since been measured and found wrong. This document is the
+one to read. Where it disagrees with any of the above, this one wins, because
+every number in it was re-verified against the code and the data on 2026-09-15.
+
+HOW TO READ IT. Every claim carries a confidence marker:
+
+    [MEASURED]  Reproduced from data this session. A command is given.
+    [VERIFIED]  Read directly from the code this session.
+    [OPEN]      Known gap. Not measured, not fixed.
+    [RETRACTED] Something previously asserted that is now known to be false.
+
+Nothing in this document is asserted from memory or from an earlier report.
+
+================================================================================
+SECTION 1 — WHAT THE SYSTEM IS
+================================================================================
+
+[VERIFIED] 34 modules in api/_lib/, 36 test scripts wired into `npm run check`.
+Full suite passes, exit 0.
+
+[VERIFIED] The strategy, as the code actually defines it today:
+
+    strategyId              K2_CONTINUOUS_NSE_STOCK_FUTURES
+    strategyVersion         2.0.0
+    stepPct                 2       ladder rungs 2% apart, compounding
+    slots                   5       five rungs per weekly cohort
+    targetPct               2
+    stopLossPct             2
+    maxHoldingSessions      20      finite risk ceiling
+    maxConcurrentPositions  5
+    fridayLiquidation       false   <-- positions CARRY across weeks
+    fillRequiresTradeThrough true
+    costPct                 0.08    round-trip, all-in
+    adverseExitSlippagePct  0.02
+    developmentRatio        0.60
+    validationRatio         0.20
+
+The mechanic: Monday open is the anchor. Five buy rungs are placed at 2%
+compounding steps below it (above, for shorts). A filled rung exits on a 2%
+target, a 2% stop, or a 20-session time stop, whichever comes first. Positions
+carry across weeks; each Monday open rebases the weekly reference price for
+P&L attribution.
+
+[VERIFIED] Statutory costs are real and DATED, not a guess. Round-trip charges on
+a Rs 7.5 lakh notional, computed from the actual schedule:
+
+    2024-05-15   STT 0.013%    Rs 195.73   = 0.0261% of notional
+    2025-01-15   STT 0.020%    Rs 252.73   = 0.0337%
+    2026-09-08   STT 0.050%    Rs 482.73   = 0.0644%
+
+    reproduce: node scripts/test-shadow-broker.js
+
+The backtest assumption of costPct 0.08% is therefore CONSERVATIVE at every date
+in the sample. This is one of the genuinely strong parts of the build — most
+retail backtests use a flat guess and most of them are too low.
+
+[VERIFIED] Portfolio risk enforcement — and a correction to an earlier finding.
+`portfolio-risk.js` now defaults these to TRUE:
+
+    requireCompleteMacro     true
+    requireSector            true
+    strictOrderValidation    true
+
+An earlier audit of mine recorded these as shipping false-by-default. That was
+true then and is NOT true now; commit 86467f8 flipped them. Flagged here because
+the old finding is still sitting in three of the documents listed above.
+
+================================================================================
+SECTION 2 — WHAT IS MEASURED AND TRUE
+================================================================================
+
+All of Section 2 comes from one study, reproducible end to end:
+
+    node scripts/panel-study.js --fetch     (populates a 5-year bar cache)
+    node scripts/panel-study.js             (long side)
+    node scripts/panel-study.js --side short
+
+97 NSE large caps, 2021-09-15 to 2026-09-15, current continuous engine, splits
+cut on shared calendar dates with labels straddling a boundary purged.
+
+--------------------------------------------------------------------------------
+2.1  THE LONG LADDER HAS NO CONFIRMED EDGE AT ANY GEOMETRY
+--------------------------------------------------------------------------------
+
+[MEASURED] 24 stop/target geometries tested. ZERO survive validation. ALL 24
+validation cells are negative.
+
+    shipped 2.0% stop / 2.0% target :  dev +0.0674%   validation -0.1529% (t -1.14)
+    best on development 3% / 4%     :  dev +0.2808%   validation -0.1742% (t -0.68)
+                                       (t 2.18)
+
+The development surface is smooth and monotone — wider stops look better — which
+is exactly what makes it seductive. It does not survive contact with unseen data.
+
+--------------------------------------------------------------------------------
+2.2  THE SHORT LADDER HAS A MEASURED NEGATIVE EXPECTANCY
+--------------------------------------------------------------------------------
+
+[MEASURED] This is the single most statistically unambiguous result in five years
+of this data, and it is bad news. All 24 short geometries lose in ALL THREE
+splits:
+
+    stop/target   development           validation          final test
+    0.75 / 1.5    -0.2281%  t -11.12    -0.2165%  t -4.26   -0.1564%  t -3.15
+    1.00 / 1.5    -0.2631%  t -10.28    -0.2192%  t -3.45   -0.1501%  t -2.46
+    2.00 / 2.0    -0.3560%  t  -7.73    -0.2632%  t -2.12   -0.0932%  t -0.80
+    3.00 / 4.0    -0.5558%  t  -5.58    -0.2303%  t -0.88   -0.0718%  t -0.31
+
+The BEST short configuration on development still loses at t -9.79. A t of -11 is
+not noise.
+
+The cause is structural, not a tuning problem: the short ladder sells rallies
+into a market with positive long-run drift. Widening the stop makes it worse
+(-0.23% at 0.75% stop, -0.56% at 3% stop), because a wider stop simply holds the
+losing short longer.
+
+Note the asymmetry against the long side: long geometries improve as the stop
+widens, short geometries deteriorate. Same drift term, opposite signs. That is
+strong evidence the ladder is measuring market direction, not any property of
+the entry rule.
+
+--------------------------------------------------------------------------------
+2.3  NO CROSS-SECTIONAL CONDITIONER RESCUES IT
+--------------------------------------------------------------------------------
+
+[MEASURED] Six standard factors profiled by quintile, both sides. ZERO are stable.
+
+    12-1 momentum, 5-day reversal, 21-day relative strength vs the cross-section,
+    distance from the 52-week high, ATR%, 5d/60d volume ratio
+
+Every one flips sign between development and validation. The two strongest on
+development (5-day reversal t 3.21, distance-from-high t 3.42) are the two that
+flip hardest. That is the textbook signature of overfitting: in a search over
+correlated features, the biggest in-sample number is the most overfit one.
+
+Ranking the names does not fix a rule with no expectancy.
+
+--------------------------------------------------------------------------------
+2.4  THE UNIVERSE IS SURVIVORSHIP-BIASED — AND SO IS EVERY BACKTEST IN THIS REPO
+--------------------------------------------------------------------------------
+
+[MEASURED] This is the most consequential finding in the document, because it is
+not about the ladder. It is about every historical number the system produces.
+
+Buy-and-hold control, each name compounded on its own series, against the real
+index over identical windows:
+
+                      mean/name   median/name   NIFTY 500 (^CRSLDX)
+    development        +169.9%      +105.9%          +59.1%
+    validation           +1.7%        -1.1%           -1.7%
+    final test           +0.4%        -2.5%           -3.4%
+
+The medians track the index closely in the two later windows. Development does
+not: +105.9% against +59.1%.
+
+The reason is that `universe()` returns TODAY'S Nifty 500 constituent list, and
+the backtest applies it backwards across five years. Names are in the sample
+because they are large caps in 2026. The ones that fell out are simply absent.
+
+That bias is present in weeklyCycle, in rule-study, in the ML training labels,
+and in every dossier listed at the top of this file. Nobody has measured its
+size. Fixing it needs point-in-time constituent history, which the repo does not
+have and which is not free to obtain.
+
+WHAT THIS MEANS PRACTICALLY: treat every development-window figure in every
+document in this folder as optimistic by an unmeasured amount. Compare against a
+real index, never against the internal universe.
+
+--------------------------------------------------------------------------------
+2.5  PARTICIPATION RISES WITH VOLATILITY; P&L DOES NOT
+--------------------------------------------------------------------------------
+
+[MEASURED] Fill rate by trailing-ATR decile, shipped config:
+
+    decile  1  (ATR 0.86-1.69%)    7.9% of rungs filled   avg cohort net +0.0037%
+    decile  5  (ATR 2.28-2.47%)   14.8%                          -0.0047%
+    decile 10  (ATR 3.92%+)       29.5%                          -0.0016%
+
+    overall 0.812 fills per cohort of 5 rungs
+
+The fill-rate slope is steep and monotone. The P&L column is flat noise, and the
+highest-participation decile is negative.
+
+================================================================================
+SECTION 3 — WHAT IS MEASURED AND FALSE (DEAD ENDS, DO NOT REVISIT)
+================================================================================
+
+[MEASURED] TUNING THE LADDER GEOMETRY. The surface is measured across 24 cells on
+both sides. It is dead. Do not sweep it again.
+
+[MEASURED] VOLATILITY-NORMALISED ENTRY GRID (previously queued as "A-4"). It would
+work mechanically — it would flatten the 7.9%-to-29.5% participation slope in
+2.5. But it buys more fills in a rule whose per-fill expectancy is zero. More
+fills x zero edge = zero, plus more cost and more tail exposure. Do not build it.
+
+[MEASURED] THE CVaR / WIN-TO-WORST-LOSS RUNG GATE (previously queued as the single
+highest-value fix). Its thresholds were calibrated against a friday-flat engine
+that no longer exists. Re-derived on the current engine, the premise it rested on
+is false — see RETRACTION 2 below. Not restored, and should not be.
+
+[MEASURED] CROSS-SECTIONAL RANKING ON THE SIX STANDARD FACTORS. See 2.3.
+
+================================================================================
+SECTION 4 — WHAT THIS BUILD GETS GENUINELY RIGHT
+================================================================================
+
+This section matters. The strategy has no measured edge, but the machinery
+around it is better than most of what retail and a fair amount of what
+institutions run. These are real and they should not be lost in a rewrite.
+
+[VERIFIED] UNVALIDATED FEATURES WERE DELETED, NOT FLAGGED OFF. Commit 86467f8
+removed STAGED_EXIT_3_TIER, depthProfile, exitPolicy and comparePolicies
+outright, and scripts/verify-ci-flags.js now ASSERTS their absence:
+
+    "Strategy-parity test passed: unvalidated staged exits and promised holding
+     horizons are absent; continuous shadow-only policy remains canonical"
+
+A shipped, user-visible feature was removed because it was not measured. In three
+rounds of auditing this repo, that is the single rarest and best thing in it.
+The general principle it embodies — every real fix changes a default, every fake
+fix adds a flag — is the one to keep.
+
+[VERIFIED] DATED STATUTORY COSTS. See Section 1. Conservative at every date.
+
+[VERIFIED] PURGED THREE-WAY SPLITS. Development / validation / final test, cut on
+input dates rather than on future-dependent label counts, with boundary-
+straddling cohorts purged. The final test is explicitly marked "never used by
+verdict, ranking, sizing or thresholds".
+
+[VERIFIED] HONEST UNCERTAINTY LABELLING. The block standard error is named
+NON_OVERLAPPING_FIVE_WEEK_BLOCK_MEANS_RESEARCH_APPROXIMATION rather than being
+passed off as exact. `annualisedSharpe` is set to null with
+`annualisationValid: false` and a comment explaining that overlapping cohort
+labels make sqrt(52) a lie. Systems that fake this are the norm.
+
+[VERIFIED] A FINITE RISK CEILING. maxHoldingSessions 20 and
+maxConcurrentPositions 5 replaced an engine that could carry a losing position
+indefinitely.
+
+[VERIFIED] THE LIVE RULE AND THE MEASURED RULE NOW AGREE. An earlier audit of
+mine found the portal deriving stops from ATR (observed 1.42%, 1.55%) while the
+backtest measured a flat 2.0% — meaning every published statistic described a
+different strategy from the one being traded. That divergence is CLOSED.
+recommendation.js:260-262 and :443-445 now both read stopLossPct and targetPct
+straight from config; atrPct is still computed but its only remaining use is
+line 594, where it is passed through for display. No live path overrides the
+config stops. This was the highest-ranked defect in the previous audit and it
+has been fixed.
+
+[VERIFIED] GAP-AWARE EXITS. Separate handling for stop-gap, target-gap and the
+STOP_FIRST_DAILY_AMBIGUITY case where a daily bar touches both barriers — and it
+resolves that ambiguity conservatively, against the strategy.
+
+[MEASURED] THE SELECTION GATE REFUSES ALMOST EVERYTHING. Across 97 names x 2
+sides it approves 3:
+
+    SBILIFE    long L1   validation 23 fills +0.087%   final 21 fills +0.557%
+    TORNTPHARM long L1   validation 25 fills +0.793%   final 18 fills +0.166%
+    TVSMOTOR   long L2   validation 11 fills +0.102%   final  5 fills -1.284%
+
+    ZERO short ladders approved.
+
+Its default behaviour is "do not trade". For a rule with no measured edge that is
+the correct behaviour, and it is the reason the absence of edge has not cost
+money. Be clear about what this does and does not show: 3 approvals out of 194 is
+roughly what chance predicts for a four-condition conjunction, so the gate has
+NOT demonstrated skill at picking names. It has demonstrated appropriate
+reluctance, which is worth more than it sounds.
+
+================================================================================
+SECTION 5 — WHAT IS STILL BROKEN, RANKED
+================================================================================
+
+RANK 1 [OPEN] SURVIVORSHIP BIAS IN THE UNIVERSE. Section 2.4. It affects every
+    historical number this repo has ever produced, including every figure in
+    every dossier listed at the top of this document. Nothing else on this list
+    contaminates as much.
+
+RANK 2 [OPEN] AN UNTRAINED FORMULA HOLDS A HARD VETO.
+    metaLabelConfidence (advanced-quant.js:448) is a hand-written function of
+    hurst, Kaufman ER, VPIN and trend state. Lopez de Prado's meta-labelling is a
+    TRAINED SECONDARY CLASSIFIER fitted on primary-model outcomes. This is not
+    that. It is a guess with veto power: recommendation.js:280 feeds it into
+    enforceHardVetoes and returns early on a veto. An unfitted formula is
+    currently able to kill any trade for reasons nobody has validated.
+
+RANK 3 [OPEN] CASH BARS FOR A FUTURES STRATEGY. The research path prices on
+    equity cash bars; the strategy trades single-stock futures. Basis, roll cost
+    and the expiry calendar are absent from every backtest number.
+
+RANK 4 [OPEN] NO LIQUIDITY OR CAPACITY MODEL. No ADV filter, no open-interest
+    filter, no spread filter, no capacity curve. There is no answer to "how much
+    size can this take before it stops working", which is the first question any
+    desk asks.
+
+RANK 5 [OPEN] KELLY IS COMPUTED AND THROWN AWAY. recommendation.js:289 computes
+    calculateKellyFraction, then line 295 sizes off convictionPct instead:
+    finalSizeMultiplier = clamp(0.20 + 0.20*clamp(conviction/70), 0.10, 0.40).
+    Either use it or delete it; a computed-and-ignored number is how a system
+    starts believing things it has not done.
+
+RANK 6 [OPEN] THE 8-PILLAR SCORE IS DISPLAY-ONLY. It is rendered and it does not
+    enter any decision.
+
+RANK 7 [OPEN] VPIN IS NOT NORMALISED. Bulk-volume classification should normalise
+    by the standard deviation of price change and be read as a percentile against
+    its own history. It currently is not, so its absolute level is not meaningful
+    across names or regimes — and it feeds the Rank 3 veto.
+
+================================================================================
+SECTION 6 — RETRACTIONS OF MY OWN EARLIER CLAIMS
+================================================================================
+
+These appear as findings in COUNTER_AUDIT_ADVERSARIAL_REVIEW.txt and are wrong.
+
+[RETRACTED] "1% stop / 3% target: +0.1894% per fill, cluster-robust t = 3.14,
+    4/4 folds positive."
+    Does not replicate. On the current engine 1%/3% gives development +0.0114%,
+    validation -0.1504% (t -1.65), final test +0.0345%. The original came from
+    the old friday-flat engine with unbounded holds. I carried a number across
+    an engine change without re-deriving it.
+
+[RETRACTED] "Hit rate and P&L move in OPPOSITE directions, monotonically, across
+    every cell." (Appendix B-0.)
+    False on the current engine. With a 20-session time stop they move in the
+    SAME direction: wider stops raise both hit rate (27% -> 64%) and per-fill
+    P&L. The inversion was an artifact of forced Friday liquidation, which booked
+    losers before mean reversion could act. This retraction is what killed the
+    CVaR rung gate.
+
+[RETRACTED] "lowerPct >= 45 is a regression introduced in 86467f8."
+    It is not. My tail-gate version never left my own working tree, so nothing
+    was removed from the shipped line of development. This was parallel
+    development, not a regression. Moot now in any case.
+
+[RETRACTED] "portfolio-risk.js ships three safety flags defaulting false."
+    True when written, false now. 86467f8 flipped all three to true.
+
+[RETRACTED] "The live site derives stops from ATR while the backtest measures a
+    flat 2.0% — the backtest describes a strategy nobody trades."
+    True when observed, false now. Both code paths read the config values; the
+    ATR-derived clamp formula no longer exists. I had this queued as the top
+    open defect in this very document until I checked the source rather than
+    trusting my own earlier finding. If the deployed portal still shows
+    ATR-derived stops, that is a stale build, not a code divergence.
+
+[RETRACTED] "The market rose and the strategy still lost."
+    Validation and final test were slightly DOWN markets (-1.7%, -3.4% on the
+    Nifty 500). The durable claim is the weaker one: no geometry shows a
+    confirmed edge.
+
+[RETRACTED] "Chance would approve about 10 of 194; the gate rejects more than
+    chance." Wrong arithmetic, and tilted in my favour. The gate is a four-
+    condition conjunction plus a validation confirmation, so its joint false-
+    positive rate is nearer 1-2% and expected chance approvals are 2 to 4.
+    Observing 3 is exactly chance.
+
+Two defects were also found in code I wrote this session and fixed before commit:
+deflatedTStat(null, N) returned -2.14 because Number(null) is 0; and
+quintileProfile called a conditioner stable when its spreads merely shared a
+sign, which let spreads of -0.020 and -0.011 read as a finding.
+
+================================================================================
+SECTION 7 — THE GAP BETWEEN THIS AND THE GOAL
+================================================================================
+
+The stated goal is a system built on: company fundamentals first, then deep
+technical analysis, then mathematics and statistics, then quant finance, then
+data science, machine learning and deep learning — working on any market, for
+pure trading.
+
+Here is the honest position against that.
+
+WHAT EXISTS AND WORKS: the execution and accounting layer. Dated statutory costs,
+a shadow broker with contract notes, a ledger that reconciles, portfolio risk
+with sector caps and a kill switch, purged splits, honest uncertainty labelling,
+and now a panel harness that can detect its own failure. This is the plumbing,
+and it is good plumbing.
+
+WHAT EXISTS BUT IS NOT LOAD-BEARING: fundamentals (fetched, displayed, not in the
+decision), the 8-pillar score (display-only), Kelly (computed, discarded), chart
+patterns and the ML upside model (present, but the gate that matters is a
+hand-written formula).
+
+WHAT IS MISSING, AND IS THE ACTUAL GAP: a reason to be long THIS name, THIS week.
+The system currently has a price-mechanical entry rule and no view. Fundamentals,
+cross-sectional ranking, regime conditioning and residualisation are all absent
+from the decision. Section 2 is the proof that the mechanical rule cannot carry
+the weight on its own, and Section 2.3 is the proof that bolting standard factors
+onto it does not fix that either.
+
+THE ONE UNTESTED STRUCTURAL IDEA LEFT: cross-sectional residualisation with a
+beta hedge. Strip the market factor out of each name, ladder the residual, hedge
+the beta with an index future. The argument for it is Section 2.2 — long and
+short geometries move in opposite directions with the drift term, which says the
+drift is what the rule is measuring. Remove the drift and you find out whether
+anything idiosyncratic is underneath. It requires benchmark data in the research
+path, which does not exist yet. It may well also fail. But it is the only
+remaining idea that changes the structure rather than the parameters, and
+parameters are measured dead.
+
+A REALISTIC SEQUENCE FROM HERE:
+    1. Quantify the survivorship bias. Even a rough correction tells you how
+       much of the entire historical record to discount, and it gates the
+       credibility of steps 2 and 3.
+    2. Either train the meta-label properly or strip its veto. An unfitted
+       formula holding kill authority is the most dangerous single line in the
+       decision path.
+    3. Build the residual + beta-hedge variant and run it through panel-study.
+       Accept the answer either way.
+    4. If it fails: the ladder is not the vehicle, and the right move is to keep
+       the execution layer and replace the signal entirely — which is where
+       fundamentals and ML belong, and where they have never actually been tried.
+
+================================================================================
+SECTION 8 — DECISIONS THAT ARE YOURS, NOT MINE
+================================================================================
+
+I have not made any of these. Each changes the trading rule, and the trading rule
+is yours.
+
+    1. DISABLE THE SHORT SIDE. Strongest recommendation here and the only one
+       backed by significance rather than by absence of it (Section 2.2). The
+       gate currently rejects every short candidate so nothing is bleeding, but
+       weeklyCycle still evaluates the side and verdict() will select it if one
+       ever passes.
+
+    2. WHETHER THE PLAN SHOULD REFUSE TO EMIT while the panel reports
+       NO_CONFIRMED_EDGE. I deliberately did NOT wire panelVerdict into the live
+       path — it is computed and reported only. Wiring it in would probably stop
+       all trading, and adding it switched-off-by-default would be exactly the
+       fake-fix pattern this whole audit exists to catch. So it is a decision,
+       not a default.
+
+    3. stopLossPct. Stays at 2.0. No geometry has a confirmed edge, so there is
+       no measured basis to move it in any direction.
+
+================================================================================
+APPENDIX — REPRODUCING EVERYTHING
+================================================================================
+
+    npm run check                              full suite, 36 test scripts
+    node scripts/panel-study.js --fetch        populate 5-year bar cache
+    node scripts/panel-study.js                long-side panel study
+    node scripts/panel-study.js --side short   short-side panel study
+    node scripts/panel-study.js --json         machine-readable output
+    node scripts/test-panel.js                 panel maths, against published constants
+    node scripts/test-shadow-broker.js         dated statutory fee schedule
+    node scripts/verify-ci-flags.js            behavioural flag and parity assertions
+
+FILES THAT MATTER MOST
+
+    api/_lib/weekly-cycle.js    the chokepoint: defines the strategy, measures it,
+                                AND produces the ML labels. 507 lines. Read this
+                                one first.
+    api/_lib/panel.js           pooled panel statistics; the only place that can
+                                tell you the rule does not work
+    api/_lib/recommendation.js  live tier formulas, the meta-label veto, Kelly
+    api/_lib/portfolio-risk.js  sector caps, margin, kill switch
+    api/_lib/shadow-broker.js   dated charges, fills, contract notes
+    scripts/panel-study.js      the study runner
+    scripts/verify-ci-flags.js  behavioural assertions, not string matching
+
+DOCUMENT STATUS. Every figure above was reproduced or read from source on
+2026-09-15. Where an earlier dossier disagrees, this document is correct and the
+earlier one is stale. When you next change the engine, re-run panel-study before
+believing any number in here — that is the mistake this document records me
+making twice.
+================================================================================
