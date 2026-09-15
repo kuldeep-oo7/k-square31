@@ -7,6 +7,9 @@ name: K2 portal
 # position. The ladder plan carries no holdings and stays in the clear.
 
 on:
+  push:
+    branches:
+      - main
   workflow_dispatch:
     inputs:
       limit:
