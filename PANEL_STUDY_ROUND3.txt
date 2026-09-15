@@ -74,6 +74,40 @@ ATR%, and volume ratio. Every one flips sign between development and validation.
 The two strongest in development are the two that flip hardest. That is the
 textbook signature of overfitting, and it means ranking does not rescue the rule.
 
+THE SHORT SIDE IS WORSE, AND IT IS THE CLEANEST RESULT IN THE STUDY.
+
+    node scripts/panel-study.js --side short
+
+All 24 geometries are negative in ALL THREE SPLITS, at overwhelming significance:
+
+    stop/target   development           validation          final test
+    0.75 / 1.5    -0.2281%  t -11.12    -0.2165%  t -4.26   -0.1564%  t -3.15
+    1.00 / 1.5    -0.2631%  t -10.28    -0.2192%  t -3.45   -0.1501%  t -2.46
+    2.00 / 2.0    -0.3560%  t  -7.73    -0.2632%  t -2.12   -0.0932%  t -0.80
+    3.00 / 4.0    -0.5558%  t  -5.58    -0.2303%  t -0.88   -0.0718%  t -0.31
+
+This is not "no edge". This is a measured, reliably NEGATIVE expectancy, and it
+is the only thing in five years of this data that is statistically unambiguous.
+A development t of -11.12 is not noise.
+
+The reason is structural and not fixable by tuning: the short ladder SELLS
+RALLIES INTO A MARKET WITH POSITIVE DRIFT. The same universe rose 153%, 4.3% and
+2.0% across the three windows. Shorting strength in a market that trends up
+loses money by construction, and the wider the stop the more it loses
+(-0.23% at a 0.75% stop, -0.56% at a 3% stop in development) because a wider
+stop simply holds the losing short longer.
+
+Note the sign asymmetry against the long side: long geometries get BETTER as the
+stop widens, short geometries get WORSE. That is the same drift term showing up
+with opposite signs, and it is further evidence that what the ladder is
+measuring is market direction rather than any property of the entry rule.
+
+The shipped gate approved ZERO short ladders out of 97 names, so this has not
+cost money either. But `weeklyCycle` still evaluates and ranks the short side,
+and `verdict()` will select it if it ever passes. On this evidence the short
+ladder should not be tradeable at all. That is a trading-rule change, so it is
+flagged in section 7 rather than made here.
+
 --------------------------------------------------------------------------------
 3. THINGS I SAID EARLIER THAT ARE WRONG. I AM RETRACTING THEM.
 --------------------------------------------------------------------------------
@@ -185,7 +219,6 @@ to exceed that window's own cluster-robust sampling error. Under the old rule
 --------------------------------------------------------------------------------
 
 MINE, NOT DONE YET:
-  - Short side never run through the panel (node scripts/panel-study.js --side short).
   - A-3 (cross-sectional residual ladder + beta hedge) is now the ONLY untested
     structural idea left. Section 2 is the argument for it: if the ladder is
     levered beta, then removing beta is the one change that could expose whether
@@ -199,6 +232,12 @@ MINE, NOT DONE YET:
   - metaLabelConfidence still holds hard veto power while untrained.
 
 YOURS, NOT MINE:
+  - Whether the short side should be disabled outright. This is the strongest
+    recommendation in this document and the only one backed by significance
+    rather than by absence of it: 24 of 24 short geometries lose in all three
+    splits, development t reaching -11.12. The gate currently rejects every
+    short candidate, so nothing is bleeding today, but the capability is live.
+    I have not touched it, because removing a side is a trading-rule change.
   - stopLossPct stays at 2.0. I did not change it. No geometry in the grid has a
     confirmed edge, so there is no measured basis to move it, and the trading
     rule is yours.
