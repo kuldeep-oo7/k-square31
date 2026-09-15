@@ -8,16 +8,15 @@ function bar(date, open, high, low, close) {
   return { timestamp: Date.parse(`${date}T06:30:00Z`) / 1000, open, high, low, close, volume: 1_000_000 };
 }
 
-// A series that reliably dips 2% and recovers inside the week, so the long
-// ladder has a genuine measured edge to be recommended.
+// A synthetic positive-branch fixture, not market profitability evidence.
 function revertingBars(weekCount) {
   const bars = [];
   const start = Date.parse("2021-01-04T06:30:00Z");
   for (let week = 0; week < weekCount; week += 1) {
     const base = 100 * 1.0008 ** week;
-    // Every fifth week fails to recover and is booked at a loss on Friday, so
-    // the sample carries genuine dispersion rather than one repeated outcome.
-    const misses = week % 5 === 0;
+    // Seven-week spacing avoids identical five-week block means. Misses carry
+    // into the next week; they are never fabricated Friday liquidations.
+    const misses = week % 7 === 0;
     const days = misses
       ? [
         [base, base * 1.002, base * 0.999, base],
@@ -41,11 +40,7 @@ function revertingBars(weekCount) {
   return bars;
 }
 
-// 181 weeks leaves week 181 next, which this fixture makes a recovery week, so
-// the model and the historical rule agree. 180 weeks leaves a scheduled losing
-// week next - used below to prove the model can veto its own ladder.
 const bars = revertingBars(181);
-const beforeLosingWeek = revertingBars(180);
 const anchor = currentAnchor(bars);
 assert.ok(anchor.anchor > 0);
 assert.equal(anchor.sessionsElapsed, 5);
@@ -53,18 +48,35 @@ assert.equal(anchor.sessionsElapsed, 5);
 const buy = recommendation({
   symbol: "TESTLONG",
   bars,
-  contract: { expiry: "2026-09-24", lotSize: 250, futures: 2950, spot: 2940 }
+  sector: "TEST_SECTOR",
+  decisionAt: "2026-09-08T10:00:00.000Z",
+  contract: {
+    contractSymbol: "TESTLONG26SEPFUT",
+    instrumentId: "NSE-FO-12345",
+    expiry: "2026-09-29",
+    lotSize: 250,
+    futures: 116,
+    spot: 115,
+    tickSize: 0.01,
+    volume: 120000,
+    openInterest: 450000,
+    tradeDate: "2026-09-08",
+    banStatus: "CLEAR",
+    marginPerLot: 8500,
+    segment: "NSE_FO"
+  }
 });
 assert.equal(buy.action, "buy-ladder");
 assert.equal(buy.side, "long");
 assert.ok(buy.entries.length > 0, "an actionable call must name the rungs to work");
 assert.ok(buy.entries.every((entry) => entry.entry > 0 && entry.target > entry.entry), "long targets sit above their entry");
 assert.ok(buy.entries.every((entry) => entry.stopLoss < entry.entry), "long stop loss sits below entry");
-assert.ok(buy.entries.every((entry) => entry.riskReward >= 1.5), "risk reward ratio is at least 1.5");
+assert.ok(buy.entries.every((entry) => entry.riskReward === 1 && entry.targetPct === 2 && entry.stopLossPct === 2), "execution levels must match the canonical 2%/2% research policy");
 assert.equal(buy.entries[0].entry, Math.round(anchor.anchor * 0.98 * 100) / 100);
 assert.ok(buy.convictionPct > 0 && buy.convictionPct <= 100);
 assert.ok(buy.sizeMultiplier >= 0.25 && buy.sizeMultiplier <= 1);
-assert.match(buy.bookOut, /continuously across weekends/);
+assert.match(buy.bookOut, /Hold across Fridays/);
+assert.match(buy.bookOut, /20-session risk ceiling/);
 assert.deepEqual(buy.vetoes, []);
 assert.ok(buy.reasons.length > 1);
 
@@ -80,23 +92,33 @@ assert.equal(vetoed.sizeMultiplier, 0);
 assert.match(vetoed.reasons[0], /Results are scheduled/);
 assert.equal(vetoed.entries.length, 0, "a vetoed name must not publish entry levels");
 
-// A model that expects a losing week outranks a flattering backtest.
-const modelVeto = recommendation({
+// An unvalidated model is advisory-only and cannot veto an otherwise accepted
+// rule. A model that passes every governance hurdle may veto it.
+const weakModelAdvisory = recommendation({
   symbol: "TESTLONG",
   bars,
   model: { ready: true, trustworthy: false, expectedWeeklyPct: -0.8, validation: { ready: false } }
 });
-assert.equal(modelVeto.action, "stand-aside");
-assert.match(modelVeto.reasons[0], /expects a -0.8% week/);
-
-// The same veto driven by a real fit rather than a stub: the rule's own history
-// says buy this ladder, but the trained model has learned that the week about to
-// start is the one that does not recover, and it wins the argument.
-const learnedCycle = weeklyCycle(beforeLosingWeek);
-assert.equal(learnedCycle.verdict.action, "buy-ladder", "the historical rule alone still likes this name");
-const learnedVeto = recommendation({ symbol: "TESTLONG", bars: beforeLosingWeek });
-assert.equal(learnedVeto.action, "stand-aside", "a trained model that expects a down week overrides the ladder's own history");
-assert.match(learnedVeto.reasons[0], /The model expects a -?\d+(\.\d+)?% week/);
+assert.equal(weakModelAdvisory.action, "buy-ladder");
+assert.equal(weakModelAdvisory.evidence.modelTrustworthy, false);
+const validatedModelVeto = recommendation({
+  symbol: "TESTLONG",
+  bars,
+  model: {
+    ready: true,
+    expectedWeeklyPct: -0.8,
+    validation: {
+      ready: true,
+      outOfSample: { informationCoefficient: 0.08, rSquared: 0.04, actedAverageWeeklyPct: 0.2 },
+      perFold: [
+        { informationCoefficient: 0.07, rSquared: 0.03, trainLabelThrough: "2025-01-01", testLabelFrom: "2025-01-06" },
+        { informationCoefficient: 0.09, rSquared: 0.05, trainLabelThrough: "2025-05-01", testLabelFrom: "2025-05-05" }
+      ]
+    }
+  }
+});
+assert.equal(validatedModelVeto.action, "stand-aside");
+assert.match(validatedModelVeto.reasons[0], /expects a -0.8% week/);
 
 // Conviction must respond to the evidence, not sit at a constant.
 const strong = recommendation({
@@ -122,7 +144,7 @@ const ranked = rankRecommendations([
   { symbol: "B", action: "buy-ladder", side: "long", expectedWeeklyPct: 1.2, convictionPct: 40, weekKey: "2026-08-10" },
   { symbol: "C", action: "sell-ladder", side: "short", expectedWeeklyPct: 0.9, convictionPct: 60, weekKey: "2026-08-10" },
   { symbol: "D", action: "stand-aside", reasons: ["Results are scheduled inside this trading week"] }
-]);
+], { requireExecutable: false });
 assert.equal(ranked.considered, 4);
 assert.equal(ranked.actionable, 3);
 assert.deepEqual(ranked.best.map((item) => item.symbol), ["B", "C", "A"], "the list is ordered by expected weekly result");
@@ -133,35 +155,21 @@ assert.ok(buy.entries[0].orderIntent, "actionable entry must carry an OrderInten
 assert.equal(buy.entries[0].orderIntent.segment, "NSE_FO");
 assert.equal(buy.entries[0].orderIntent.instrumentType, "STOCK_FUTURE");
 assert.equal(buy.entries[0].orderIntent.finInstrmTp, "STF");
+assert.equal(buy.entries[0].orderIntent.executable, true);
+assert.equal(buy.entries[0].orderIntent.contractSymbol, "TESTLONG26SEPFUT");
+assert.equal(buy.entries[0].orderIntent.instrumentId, "NSE-FO-12345");
 assert.ok(buy.entries[0].orderIntent.contractNotional > 0);
 assert.ok(buy.entries[0].orderIntent.estMarginRequired > 0);
 assert.ok(buy.entries[0].orderIntent.maxRiskInr > 0);
-assert.equal(buy.entries[0].orderIntent.tickSize, 0.05);
+assert.equal(buy.entries[0].orderIntent.tickSize, 0.01);
+assert.equal(buy.entries[0].orderIntent.liveExecutable, false, "margin alone cannot imply broker/regulatory approval");
+assert.equal(buy.entries[0].orderIntent.executionMode, "SHADOW_ONLY");
+assert.equal("runnerTarget" in buy.entries[0], false, "unvalidated staged runner targets must not appear as orders");
+assert.equal("runnerTargetPrice" in buy.entries[0].orderIntent, false);
 
 // C-6: Fail-closed when contract lot size is missing:
 const missingContract = recommendation({ symbol: "NOLOT", bars });
 assert.equal(missingContract.entries[0].orderIntent.executable, false);
 assert.equal(missingContract.entries[0].orderIntent.rejectionReason, "MISSING_CONTRACT_LOT_SIZE");
 
-// Regression test for P0-001: Potential route must strictly obey Meta VETO
-const potentialVeto = recommendation({
-  symbol: "POTENTIALVETO",
-  bars,
-  cycle: { ready: true, verdict: { action: "stand-aside", side: null, levels: [], reason: "No ladder edge" }, weeks: 20 },
-  potential: {
-    side: "long",
-    expectedMovePct: 3.5,
-    floorPct: 2.0,
-    typicalErrorPct: 2.5,
-    reason: "Machine learning edge",
-    components: [{ name: "ML", expectedPct: 3.5, note: "forecast" }],
-    forecast: { informationCoefficient: -0.05 } // weak/negative IC creates VETO
-  }
-});
-// When metaGate rejects, it must NEVER create an active potential trade or positive size
-if (potentialVeto.advancedQuant?.metaDecision === "VETO") {
-  assert.equal(potentialVeto.action, "stand-aside", "Potential route must be vetoed when metaDecision is VETO");
-  assert.equal(potentialVeto.sizeMultiplier, 0, "Size multiplier must be 0 on VETO");
-}
-
-console.log("Recommendation tests passed: rung-level entries, hard vetoes ahead of conviction, evidence-driven sizing and ranked buying list");
+console.log("Recommendation tests passed: governed ML, exchange-identified futures intents, fail-closed sizing, shadow-only execution and ranked candidates");

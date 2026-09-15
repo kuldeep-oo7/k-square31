@@ -20,13 +20,8 @@ const { upside } = require("./upside");
 const {
   calculateVpin,
   metaLabelConfidence,
-  calculateKellyFraction,
-  calculateOuHalfLife,
-  calculateAnchoredVwap,
-  calculateHurstExponent,
-  calculateKaufmanER
+  calculateKellyFraction
 } = require("./advanced-quant");
-const { candleStudy } = require("./strategy-lab");
 const { scanChartPatterns } = require("./chart-patterns");
 
 function round(value, digits = 2) {
@@ -61,7 +56,14 @@ function currentAnchor(bars) {
   const weeks = tradingWeeks(bars, { minimumSessions: 1 });
   const week = weeks.at(-1);
   if (!week) return null;
-  return { weekKey: week.weekKey, anchor: week.sessions[0].open, sessionsElapsed: week.sessions.length };
+  return {
+    weekKey: week.weekKey,
+    anchor: week.sessions[0].open,
+    // Raw/adjusted divergence for the anchor session. Order prices must be raw;
+    // see the note on `adjFactor` in weekly-cycle.js tradingWeeks().
+    anchorAdjFactor: Number(week.sessions[0].adjFactor) > 0 ? Number(week.sessions[0].adjFactor) : 1,
+    sessionsElapsed: week.sessions.length
+  };
 }
 
 function convictionOf({ cycle, model, technical, fundamentals, trend, carry, side, config }) {
@@ -86,7 +88,7 @@ function convictionOf({ cycle, model, technical, fundamentals, trend, carry, sid
     ["Target hit reliability", 16, clamp((Number(bestLevel?.lowerPct) - 50) / 30), `rung ${bestLevel?.level} hits its ${target}% target at least ${bestLevel?.lowerPct}% of the time with 95% confidence`],
     ["Trend alignment", 15, trendAlignment(trend, side), trend?.ready ? `12-month move ${trend.returnPct}%, ${round(trend.scaled, 2)} per unit of risk` : "not enough history to measure the trend"],
     ["Model expectation", 16, model?.trustworthy ? clamp(Number(model.expectedWeeklyPct) / target) : 0, model?.trustworthy ? `boosted trees expect ${model.expectedWeeklyPct}% this week` : "model did not clear its out-of-sample gate"],
-    ["Model skill", 7, model?.validation?.ready ? clamp(Number(model.validation.outOfSample.informationCoefficient) / 0.1) : 0, model?.validation?.ready ? `out-of-sample information coefficient ${model.validation.outOfSample.informationCoefficient}` : "no validated model"],
+    ["Model skill", 7, model?.trustworthy ? clamp(Number(model.validation.outOfSample.informationCoefficient) / 0.1) : 0, model?.trustworthy ? `out-of-sample information coefficient ${model.validation.outOfSample.informationCoefficient}` : "model is advisory-only"],
     ["Technical alignment", 6, technicalAlignment, Number.isFinite(technicalScore) ? `composite score ${round(technicalScore)} versus a ${side} ladder` : "no technical composite supplied"],
     ["Carry", 12, carryScore(carryForSide, target), carryForSide ? `futures at a ${carryForSide.state} of ${carryForSide.basisPct}%, worth ${carryForSide.weeklyPct}% to this side over the week` : "no contract price for this name"],
     ["Balance-sheet asymmetry", 6, clamp((side === "short" ? -balanceSheet : balanceSheet) + 0.5, 0, 1), fundamentals?.available ? `balance-sheet score ${balanceSheet}` : "fundamentals unavailable"]
@@ -96,6 +98,10 @@ function convictionOf({ cycle, model, technical, fundamentals, trend, carry, sid
 }
 
 function enforceHardVetoes({ symbol, metaGate, vpinData, evidence = {} }) {
+  // The present daily-bar flow score and hand-written meta formula are research
+  // proxies, not calibrated VPIN/meta-models. They may annotate a setup but must
+  // not veto executable risk unless a future model is explicitly validated.
+  if (metaGate?.validated !== true) return null;
   if (metaGate?.decision === "VETO" || (metaGate?.metaMultiplier !== undefined && metaGate.metaMultiplier <= 0)) {
     const vetoReason = `Meta-Labeling VETO: Low win probability (${metaGate?.metaProb ?? 0}) or high flow toxicity (VPIN: ${vpinData?.vpin ?? 0})`;
     if (!evidence.vetoes) evidence.vetoes = [];
@@ -105,27 +111,40 @@ function enforceHardVetoes({ symbol, metaGate, vpinData, evidence = {} }) {
   return null;
 }
 
-function buildOrderIntent({ symbol, side, entry, target, runnerTarget, target3Macro, holdingDaysT1 = 2, holdingDaysT2 = 10, stagedExecutionPlan = null, stopLoss, sizeMultiplier, riskReward, contract, targetPct, stopLossPct, weekKey = null, level = 1, sector = null, decisionAt = null }) {
+function buildOrderIntent({ symbol, side, entry, target, stopLoss, sizeMultiplier, riskReward, contract, targetPct, stopLossPct, weekKey = null, level = 1, sector = null, decisionAt = null, adjFactor = 1 }) {
   const normalizedSymbol = String(symbol || "").trim().toUpperCase();
   const normalizedSide = side === "long" || side === "buy" ? "long" : side === "short" || side === "sell" ? "short" : null;
-  const TICK_SIZE = stockFutureTickSize(contract?.spot || entry, contract?.tickSize);
+  // A-1 follow-on: the bar series is dividend back-adjusted so that signals and
+  // statistics are not corrupted by ex-date gaps. Those adjusted prices are NOT
+  // what the exchange quotes. An order has to be priced in raw terms, and
+  // raw = adjusted / factor. The factor is 1.0 for every bar after the most
+  // recent ex-date, so this is a no-op except when a dividend went ex inside the
+  // anchor week -- precisely the case that would otherwise misprice every rung
+  // by the dividend amount.
+  const factor = Number(adjFactor) > 0 ? Number(adjFactor) : 1;
+  const toRaw = (value) => (Number.isFinite(Number(value)) ? Number(value) / factor : value);
+  const rawEntry = toRaw(entry);
+  const rawTarget = toRaw(target);
+  const rawStop = toRaw(stopLoss);
+
+  const TICK_SIZE = stockFutureTickSize(contract?.spot || rawEntry, contract?.tickSize);
   if (!(TICK_SIZE > 0)) throw new TypeError("A valid stock-futures tick size is required");
-  const entryTick = round(Math.round(entry / TICK_SIZE) * TICK_SIZE, 2);
-  const targetTick = round(Math.round(target / TICK_SIZE) * TICK_SIZE, 2);
-  const runnerTargetTick = runnerTarget ? round(Math.round(runnerTarget / TICK_SIZE) * TICK_SIZE, 2) : null;
-  const stopLossTick = round(Math.round(stopLoss / TICK_SIZE) * TICK_SIZE, 2);
+  const entryTick = round(Math.round(rawEntry / TICK_SIZE) * TICK_SIZE, 2);
+  const targetTick = round(Math.round(rawTarget / TICK_SIZE) * TICK_SIZE, 2);
+  const stopLossTick = round(Math.round(rawStop / TICK_SIZE) * TICK_SIZE, 2);
 
   // C-6: Fail closed if contract lot size is missing - never default to 1 share for stock futures
   const lotSize = Number(contract?.lotSize);
   const validLotSize = (Number.isFinite(lotSize) && lotSize > 0) ? lotSize : null;
   const expiry = contract?.expiry || null;
-  const contractSymbol = contract?.contractSymbol || (expiry ? `${normalizedSymbol}-${expiry}-FUT` : null);
+  const contractSymbol = contract?.contractSymbol || null;
   const instrumentId = contract?.instrumentId || null;
 
   // C-6: Risk budget cap modeling: ₹25,000 baseline risk budget scaled by sizeMultiplier
   // C-6 FIX: Do NOT use Math.max(1, ...). If riskPerLot exceeds risk budget, targetLots = 0!
   const BASE_RISK_BUDGET = 25000;
-  const effectiveRiskBudget = BASE_RISK_BUDGET * (sizeMultiplier || 1.0);
+  const sizingMultiplier = Number.isFinite(Number(sizeMultiplier)) ? Math.max(0, Number(sizeMultiplier)) : 0;
+  const effectiveRiskBudget = BASE_RISK_BUDGET * sizingMultiplier;
   const riskPerShare = Math.max(0.05, Math.abs(entryTick - stopLossTick));
   const riskPerLot = validLotSize ? riskPerShare * validLotSize : riskPerShare;
   const targetLots = validLotSize ? Math.floor(effectiveRiskBudget / Math.max(1, riskPerLot)) : 0;
@@ -147,8 +166,14 @@ function buildOrderIntent({ symbol, side, entry, target, runnerTarget, target3Ma
   if (!validLotSize) validationErrors.push("MISSING_CONTRACT_LOT_SIZE");
   if (!expiry) validationErrors.push("MISSING_EXPIRY");
   if (!contractSymbol) validationErrors.push("MISSING_CONTRACT_SYMBOL");
+  if (!instrumentId) validationErrors.push("MISSING_INSTRUMENT_ID");
+  if (!(Number(contract?.volume) > 0)) validationErrors.push("MISSING_CONTRACT_VOLUME");
+  if (!(Number(contract?.openInterest) > 0)) validationErrors.push("MISSING_OPEN_INTEREST");
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(String(contract?.tradeDate || ""))) validationErrors.push("MISSING_CONTRACT_AS_OF_DATE");
+  if (contract?.banStatus !== "CLEAR") validationErrors.push(contract?.banStatus === "BANNED" ? "SECURITY_IN_FO_BAN" : "FO_BAN_STATUS_UNAVAILABLE");
   if (targetLots < 1) validationErrors.push("RISK_EXCEEDS_BUDGET");
   const executable = validationErrors.length === 0;
+  const independentlyLiveApproved = contract?.liveBrokerVerified === true && contract?.regulatoryApproved === true;
   const orderSeed = [normalizedSymbol, contractSymbol, expiry, weekKey || "NO_WEEK", `L${level}`, normalizedSide || "NO_SIDE"].join(":");
   const clientOrderId = `K2_${crypto.createHash("sha256").update(orderSeed).digest("hex").slice(0, 20).toUpperCase()}`;
 
@@ -172,14 +197,13 @@ function buildOrderIntent({ symbol, side, entry, target, runnerTarget, target3Ma
     lots: targetLots,
     quantity,
     executable,
-    liveExecutable: Boolean(executable && instrumentId && currentMarginRequired),
-    executionMode: instrumentId && currentMarginRequired ? "LIVE_ELIGIBLE_AFTER_RISK" : "SHADOW_ONLY",
+    liveExecutable: Boolean(executable && currentMarginRequired && independentlyLiveApproved),
+    executionMode: executable && currentMarginRequired && independentlyLiveApproved ? "LIVE_ELIGIBLE_AFTER_RISK" : "SHADOW_ONLY",
     validationErrors,
     rejectionReason: validationErrors[0] || null,
     tickSize: TICK_SIZE,
     entryPrice: entryTick,
     targetPrice: targetTick,
-    runnerTargetPrice: runnerTargetTick,
     stopLossPrice: stopLossTick,
     riskReward,
     targetPct,
@@ -188,6 +212,11 @@ function buildOrderIntent({ symbol, side, entry, target, runnerTarget, target3Ma
     estMarginRequired,
     marginPct,
     marginSource: currentMarginRequired ? "BROKER_OR_CLEARING_CURRENT" : "CONSERVATIVE_ESTIMATE",
+    sessionVolume: Number(contract?.volume) || null,
+    openInterest: Number(contract?.openInterest) || null,
+    dataAsOf: contract?.tradeDate || null,
+    dataSource: contract?.segment || null,
+    banStatus: contract?.banStatus || "UNAVAILABLE",
     maxRiskInr,
     orderType: "LIMIT",
     timeInForce: "DAY"
@@ -229,13 +258,11 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
 
   const metrics = trendMetrics(bars);
   const atrPct = metrics?.ready ? Number(metrics.atrPct) || 2.0 : 2.0;
-  const stopLossPct = round(Math.max(0.8, Math.min(2.0, atrPct * 0.6)), 2);
-  const targetPct = round(Math.max(Number(config.targetPct) || 2.0, stopLossPct * 2.0), 2);
-  const runnerTargetPct = round(Math.max(5.0, targetPct * 2.2), 2);
+  const stopLossPct = Number(config.stopLossPct);
+  const targetPct = Number(config.targetPct);
   const riskReward = round(targetPct / stopLossPct, 1);
   const entryPrice = round(rungs[0].price);
   const targetPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (targetPct / 100)));
-  const runnerTargetPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (runnerTargetPct / 100)));
   const stopLossPrice = round(entryPrice * (1 - (side === "short" ? -1 : 1) * (stopLossPct / 100)));
 
   const hurst = metrics?.hurstExponent || 0.50;
@@ -264,16 +291,13 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
     rewardToRiskRatio: riskReward
   });
 
-  const finalSizeMultiplier = metaGate.metaMultiplier > 0
-    ? round(clamp((0.25 + 0.5 * clamp(convictionPct / 70)) * Math.min(1.0, metaGate.metaMultiplier), 0.10, 0.75), 3)
-    : 0;
+  const finalSizeMultiplier = round(clamp(0.20 + 0.20 * clamp(convictionPct / 70), 0.10, 0.40), 3);
 
   const orderIntent = buildOrderIntent({
     symbol,
     side,
     entry: entryPrice,
     target: targetPrice,
-    runnerTarget: runnerTargetPrice,
     stopLoss: stopLossPrice,
     sizeMultiplier: finalSizeMultiplier,
     riskReward,
@@ -283,8 +307,15 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
     weekKey: anchorInfo.weekKey,
     level: 1,
     sector: input.sector,
-    decisionAt: input.decisionAt
+    decisionAt: input.decisionAt,
+    adjFactor: anchorInfo.anchorAdjFactor
   });
+  // This alternate forecast route has no matching exit-policy validation.
+  orderIntent.executable = false;
+  orderIntent.liveExecutable = false;
+  orderIntent.executionMode = "RESEARCH_ONLY";
+  orderIntent.rejectionReason = "POTENTIAL_ROUTE_NOT_VALIDATED";
+  orderIntent.validationErrors.push("POTENTIAL_ROUTE_NOT_VALIDATED");
 
   return {
     symbol,
@@ -299,8 +330,12 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
       level: 1,
       entry: entryPrice,
       target: targetPrice,
-      runnerTarget: runnerTargetPrice,
-      runnerTargetPct,
+      holdingGuidance: {
+        medianObservedSessions: null,
+        maximumRiskCeilingSessions: Number(config.maxHoldingSessions),
+        fridayExit: false,
+        status: "NO_ROUTE_SPECIFIC_HOLDING_ESTIMATE"
+      },
       stopLoss: stopLossPrice,
       riskReward,
       targetPct,
@@ -328,7 +363,7 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
       qualityRating: metaGate.qualityRating,
       kellyFraction: kelly
     },
-    bookOut: "Hold open legs continuously across weekends with Monday reference rebase; exit strictly on 2% target, 2% stop-loss, or mandatory 3-day monthly futures expiry roll window",
+    bookOut: `Hold across Fridays; Monday resets reporting reference only. Exit on target, stop, ${config.maxHoldingSessions}-session risk ceiling, or genuine close-and-open roll ${config.rollWindowCalendarDays} calendar days before expiry.`,
     reasons: [potential.reason, ...potential.components.filter((item) => Number(item.expectedPct) > 0).map((item) => `${item.name}: ${item.note}`)],
     vetoes: [],
     components: potential.components.map((item) => ({ name: item.name, weight: null, score: null, contribution: item.expectedPct, note: item.note })),
@@ -380,6 +415,8 @@ function recommendation(input) {
 
   const side = verdict.side;
   const model = input.model === undefined ? weeklyForecast(bars, side, input.overrides || {}) : input.model;
+  const modelFitness = evaluateModelFitness(model);
+  const governedModel = modelFitness.canGenerateTrades ? { ...model, trustworthy: true } : { ...model, trustworthy: false };
   const fundamentals = input.fundamentals || null;
   const technical = input.technical || null;
 
@@ -389,13 +426,13 @@ function recommendation(input) {
   const vetoes = [];
   if (trend?.veto) vetoes.push(trend.veto);
   if (fundamentals?.veto) vetoes.push(fundamentals.veto);
-  if (model?.ready && Number(model.expectedWeeklyPct) < 0) {
+  if (modelFitness.canGenerateTrades && Number(model?.expectedWeeklyPct) < 0) {
     vetoes.push(`The model expects a ${model.expectedWeeklyPct}% week against this ladder`);
   }
   if (Number(cycle[side].outOfSample.averageWeeklyPct) <= 0) {
     vetoes.push("The rule did not make money on this name out of sample");
   }
-  const evidence = { cycle, model, fundamentals, technical, trend, vetoes };
+  const evidence = { cycle, model, modelFitness, fundamentals, technical, trend, vetoes };
   if (vetoes.length) return standAside(symbol, vetoes[0], evidence);
 
   const anchorInfo = currentAnchor(bars);
@@ -404,48 +441,27 @@ function recommendation(input) {
   const rungs = ladder(anchorInfo.anchor, side, config);
   const metrics = trendMetrics(bars);
   const atrPct = metrics?.ready ? Number(metrics.atrPct) || 2.0 : 2.0;
-  const stopLossPct = round(Math.max(0.8, Math.min(2.0, atrPct * 0.6)), 2);
-  const targetPct = round(Math.max(Number(config.targetPct) || 2.0, stopLossPct * 2.0), 2);
+  const stopLossPct = Number(config.stopLossPct);
+  const targetPct = Number(config.targetPct);
   const riskReward = round(targetPct / stopLossPct, 1);
-
-  const prices = bars.map((b) => Number(b.close)).filter(Number.isFinite);
-  const ouData = calculateOuHalfLife(prices.slice(-120));
-  const ouHalfLife = ouData?.halfLifeDays || 8;
-  const avwap = calculateAnchoredVwap(bars.slice(-60));
-  const candles = candleStudy(bars, 5);
 
   const entries = verdict.levels.map((level) => {
     const rung = rungs.find((item) => item.level === level);
     const stats = cycle[side].levels.find((item) => item.level === level);
     const entryPrice = round(rung.price);
     const targetPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (targetPct / 100)));
-    const runnerTargetPct = round(Math.max(5.0, targetPct * 2.2), 2);
-    const runnerTargetPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (runnerTargetPct / 100)));
-    const target3MacroPct = round(Math.max(15.0, targetPct * 7.5), 1);
-    const target3MacroPrice = round(entryPrice * (1 + (side === "short" ? -1 : 1) * (target3MacroPct / 100)));
     const stopLossPrice = round(entryPrice * (1 - (side === "short" ? -1 : 1) * (stopLossPct / 100)));
-    const holdingDaysT1 = stats?.medianSessionsHeld || 2;
-    const holdingDaysT2 = Math.max(5, Math.min(25, Math.round(ouHalfLife)));
-    const stagedPlan = side === "long"
-      ? `T1: Bank 50% @ ₹${targetPrice} (1–3d), slide SL to Breakeven (₹${entryPrice}). T2: Bank 25% @ ₹${runnerTargetPrice} (${holdingDaysT2}d). T3: Trail 25% for Macro Runner @ ₹${target3MacroPrice}.`
-      : `T1: Cover 50% @ ₹${targetPrice} (1–3d), slide SL to Breakeven (₹${entryPrice}). T2: Cover 25% @ ₹${runnerTargetPrice} (${holdingDaysT2}d). T3: Trail 25% for Macro Short @ ₹${target3MacroPrice}.`;
 
     return {
       level,
       entry: entryPrice,
       target: targetPrice,
-      runnerTarget: runnerTargetPrice,
-      runnerTargetPct,
-      target1Price: targetPrice,
-      target1Pct: targetPct,
-      target2Price: runnerTargetPrice,
-      target2Pct: runnerTargetPct,
-      target3MacroPrice: target3MacroPrice,
-      target3Pct: target3MacroPct,
-      holdingDaysT1,
-      holdingDaysT2,
-      holdingDaysT3: "Continuous Hold (Roll at Monthly Expiry - 3d)",
-      stagedExecutionPlan: stagedPlan,
+      holdingGuidance: {
+        medianObservedSessions: stats?.medianSessionsHeld ?? null,
+        maximumRiskCeilingSessions: Number(config.maxHoldingSessions),
+        fridayExit: false,
+        status: "EMPIRICAL_MEDIAN_NOT_A_PROMISE"
+      },
       stopLoss: stopLossPrice,
       riskReward,
       targetPct,
@@ -459,18 +475,13 @@ function recommendation(input) {
     };
   });
 
-  const { convictionPct, components } = convictionOf({ cycle, model, technical, fundamentals, trend, carry: input.carry || null, side, config });
-  // Carry is added rather than averaged in: it is not another opinion about the
-  // week, it is a credit or cost that accrues whatever the price does. Leaving it
-  // out ranked a name earning 1.3% a week from basis alone below one earning
-  // nothing.
-  const priceExpectation = model?.trustworthy && Number.isFinite(Number(model.expectedWeeklyPct))
-    ? (Number(model.expectedWeeklyPct) + Number(cycle[side].outOfSample.averageWeeklyPct)) / 2
-    : Number(cycle[side].outOfSample.averageWeeklyPct);
-  const carryContribution = input.carry?.ready
-    ? (side === "short" ? -Number(input.carry.weeklyPct) : Number(input.carry.weeklyPct))
-    : 0;
-  const expectedWeeklyPct = round(priceExpectation + carryContribution, 3);
+  const { convictionPct, components } = convictionOf({ cycle, model: governedModel, technical, fundamentals, trend, carry: input.carry || null, side, config });
+  // Cash-proxy cohort returns and current futures basis have different units,
+  // horizons and exposure. Do not add basis as a guaranteed weekly credit, or
+  // blend a separately fitted forecast into validation evidence.
+  const priceExpectation = Number(cycle[side].outOfSample.averageWeeklyPct);
+  const carryContribution = 0;
+  const expectedWeeklyPct = round(priceExpectation, 3);
 
   // A ladder whose carry costs more than the price edge is expected to earn is
   // not a trade, however well the rule has scored historically. This is checked
@@ -486,13 +497,14 @@ function recommendation(input) {
   const vpinData = calculateVpin(bars, 20);
   const patternScan = scanChartPatterns(bars);
 
-  let adjustedConviction = convictionPct;
+  // Pattern recognition is displayed as advisory evidence. It is not allowed to
+  // inflate sizing until its own point-in-time validation has passed.
+  const adjustedConviction = convictionPct;
   let patternReason = null;
   if (patternScan.detected && patternScan.primaryPattern && patternScan.primaryPattern.confirmed === true) {
     const isAligned = (side === "long" && patternScan.primaryPattern.bias === "BULLISH") ||
                       (side === "short" && patternScan.primaryPattern.bias === "BEARISH");
     if (isAligned) {
-      adjustedConviction = Math.min(95, Math.round(convictionPct + Math.abs(patternScan.confluenceBonus || 12)));
       patternReason = `Geometric Pattern: ${patternScan.primaryPattern.pattern} confirmed (Target: ₹${patternScan.primaryPattern.targetPrice})`;
     }
   }
@@ -519,11 +531,10 @@ function recommendation(input) {
   });
   if (hardVeto) return hardVeto;
 
-  // Base sizing scaled strictly by conviction and meta-labeling multiplier
-  const baseSize = 0.25 + 0.75 * clamp(adjustedConviction / 70);
-  const finalSizeMultiplier = metaGate.metaMultiplier > 0
-    ? round(clamp(baseSize * metaGate.metaMultiplier, 0.10, 1.0), 3)
-    : 0;
+  // The hand-written meta score and Kelly input are not calibrated
+  // probabilities, so neither is permitted to size capital. Risk remains capped
+  // by the order-level rupee stop budget and portfolio engine.
+  const finalSizeMultiplier = round(clamp(0.25 + 0.25 * clamp(adjustedConviction / 70), 0.10, 0.50), 3);
 
   const entriesWithIntent = entries.map((entry) => ({
     ...entry,
@@ -532,7 +543,6 @@ function recommendation(input) {
       side,
       entry: entry.entry,
       target: entry.target,
-      runnerTarget: entry.runnerTarget,
       stopLoss: entry.stopLoss,
       sizeMultiplier: finalSizeMultiplier,
       riskReward,
@@ -542,7 +552,8 @@ function recommendation(input) {
       weekKey: anchorInfo.weekKey,
       level: entry.level,
       sector: input.sector,
-      decisionAt: input.decisionAt
+      decisionAt: input.decisionAt,
+      adjFactor: anchorInfo.anchorAdjFactor
     })
   }));
 
@@ -571,33 +582,28 @@ function recommendation(input) {
       qualityRating: metaGate.qualityRating,
       kellyFraction: kelly
     },
-    eightPillars: {
+    evidencePillars: {
       pillar1_fundamentals: {
         balanceSheetScore: fundamentals?.available ? fundamentals.balanceSheetScore : null,
         earningsVeto: fundamentals?.veto || null,
-        status: fundamentals?.veto ? "VETOED" : "PASS"
+        status: fundamentals?.available ? (fundamentals?.veto ? "VETOED" : "AVAILABLE") : "UNAVAILABLE"
       },
       pillar2_technicals: {
         momentumReturnPct: trend?.ready ? round(Number(trend.returnPct || 0), 2) : null,
         trendEfficiency: er,
         atrPct,
-        status: trend?.veto ? "VETOED" : "PASS"
+        status: trend?.ready ? (trend?.veto ? "VETOED" : "AVAILABLE") : "UNAVAILABLE"
       },
       pillar3_chartPattern: {
         pattern: patternScan.primaryPattern?.pattern || null,
         targetPrice: patternScan.primaryPattern?.targetPrice || null,
         confirmed: Boolean(patternScan.primaryPattern?.confirmed)
       },
-      pillar4_candlesticks: {
-        pattern: candles?.pattern || null,
-        empiricalWinRatePct: candles?.winRatePct ?? null,
-        directionScore: candles?.directionScore ?? 0
-      },
+      pillar4_candlesticks: { status: "RESEARCH_ONLY_NOT_AN_EXECUTION_GATE" },
       pillar5_quantMath: {
         hurst,
         regime: hurst > 0.55 ? "Persistent Trend" : hurst < 0.45 ? "Mean-Reverting" : "Random Walk",
-        avwap: avwap?.avwap ?? null,
-        ouHalfLifeSessions: ouHalfLife
+        role: "RESEARCH_ADVISORY_ONLY"
       },
       pillar6_statistics: {
         wilsonLowerBoundPct: entries[0]?.hitRateLowerPct ?? null,
@@ -605,18 +611,19 @@ function recommendation(input) {
         kellyAllocationPct: kelly
       },
       pillar7_microstructure: {
-        vpin: vpinData.vpin,
+        dailyBarFlowToxicityProxy: vpinData.vpin,
         toxicityTone: vpinData.toxicityTone,
-        toxicOrderFlow: vpinData.toxicOrderFlow
+        status: "NOT_TRUE_VPIN_RESEARCH_ONLY"
       },
       pillar8_machineLearning: {
         boostedTreeForecastPct: model?.expectedWeeklyPct ? Number(model.expectedWeeklyPct) : null,
-        metaProbability: metaGate.metaProb,
+        ruleScoreNotCalibratedProbability: metaGate.metaProb,
         metaDecision: metaGate.decision,
-        qualityRating: metaGate.qualityRating
+        qualityRating: metaGate.qualityRating,
+        status: "ADVISORY_ONLY_UNLESS_INDEPENDENTLY_VALIDATED"
       }
     },
-    bookOut: "Hold open legs continuously across weekends with Monday reference rebase; exit strictly on 2% target, 2% stop-loss, or mandatory 3-day monthly futures expiry roll window",
+    bookOut: `Hold across Fridays; Monday resets reporting reference only. Exit on target, stop, ${config.maxHoldingSessions}-session risk ceiling, or genuine close-and-open roll ${config.rollWindowCalendarDays} calendar days before expiry.`,
     reasons: [
       verdict.reason,
       ...(patternReason ? [patternReason] : []),
@@ -628,7 +635,8 @@ function recommendation(input) {
       cycleWeeks: cycle.weeks,
       cycleOutOfSampleFrom: cycle.outOfSampleFrom,
       modelValidation: model?.validation?.ready ? model.validation.outOfSample : null,
-      modelTrustworthy: Boolean(model?.trustworthy),
+      modelTrustworthy: modelFitness.canGenerateTrades,
+      modelGovernance: modelFitness,
       trend: trend?.ready ? { returnPct: trend.returnPct, scaled: trend.scaled, annualisedVolatilityPct: trend.annualisedVolatilityPct } : null,
       topFeatures: model?.importance || [],
       fundamentals: fundamentals?.available
@@ -642,7 +650,7 @@ function recommendation(input) {
 // result of the week net of costs, with conviction breaking ties.
 function rankRecommendations(list, options = {}) {
   const limit = Number(options.limit) || 20;
-  const requireExecutable = Boolean(options.requireExecutable);
+  const requireExecutable = options.requireExecutable !== false;
   const isActionable = (item) => {
     if (!item || item.action === "stand-aside") return false;
     if (Array.isArray(item.entries)) {

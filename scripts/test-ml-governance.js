@@ -30,25 +30,28 @@ function testModelFitnessEvaluator() {
   assert.strictEqual(fitness.isAdvisoryOnly, true);
   assert(fitness.reason.includes("Demoted to secondary advisory"));
 
-  // 2. Test verified institutional model (IC > 0.05, R^2 > 0, no negative folds)
+  // 2. Synthetic positive branch of research governance, not institutional evidence.
   const strongModel = {
     ready: true,
     validation: {
+      ready: true,
       outOfSample: {
         informationCoefficient: 0.085,
-        rSquared: 0.032
+        rSquared: 0.032,
+        actedAverageWeeklyPct: 0.1
       },
       perFold: [
-        { fold: 1, informationCoefficient: 0.072, rSquared: 0.025 },
-        { fold: 2, informationCoefficient: 0.091, rSquared: 0.041 }
+        { fold: 1, informationCoefficient: 0.072, rSquared: 0.025, trainLabelThrough: "2025-01-01", testLabelFrom: "2025-01-06" },
+        { fold: 2, informationCoefficient: 0.091, rSquared: 0.041, trainLabelThrough: "2025-05-01", testLabelFrom: "2025-05-05" }
       ]
     }
   };
 
   const strongFitness = evaluateModelFitness(strongModel);
-  assert.strictEqual(strongFitness.status, "VALIDATED_PRODUCTION_READY");
+  assert.strictEqual(strongFitness.status, "VALIDATED_RESEARCH_FILTER");
   assert.strictEqual(strongFitness.canGenerateTrades, true);
   assert.strictEqual(strongFitness.isAdvisoryOnly, false);
+  assert.strictEqual(evaluateModelFitness({ ...strongModel, validation: { ...strongModel.validation, perFold: [] } }).canGenerateTrades, false);
 }
 
 function testPotentialRouteAbstentionOnWeakModel() {

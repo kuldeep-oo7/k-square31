@@ -64,3 +64,10 @@ assert.ok(stfOnly.has("RELIANCE"));
 assert.equal(stfOnly.has("NIFTY"), false, "IDF index futures must be excluded from stock futures");
 
 console.log("Bhavcopy tests passed: front-contract selection, options excluded, unusable rows dropped and single-entry unzip");
+const { parseSecurityBanList, banStateForSession } = require("../api/_lib/bhavcopy");
+const parsedBan = parseSecurityBanList("Securities in Ban For Trade Date 15-SEP-2026:\n1,BANDHANBNK\n2,INOXWIND\n");
+require("node:assert/strict").deepEqual([...parsedBan.symbols], ["BANDHANBNK", "INOXWIND"]);
+require("node:assert/strict").equal(parsedBan.tradeDate, "2026-09-15");
+require("node:assert/strict").throws(() => parseSecurityBanList("<html>Access denied</html>"));
+require("node:assert/strict").throws(() => parseSecurityBanList("Securities in Ban For Trade Date 15-SEP-2026:\nRELIANCE"));
+require("node:assert/strict").equal(banStateForSession({ available: true, ...parsedBan }, "2026-09-14"), false);

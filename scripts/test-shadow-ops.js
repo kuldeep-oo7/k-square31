@@ -2,112 +2,110 @@
 
 const assert = require("node:assert/strict");
 const {
-  openShadowPosition,
+  accountReconciliation,
   closeShadowPosition,
-  rebaseMondayPosition
+  emptyShadowLedger,
+  normalizeLedger,
+  openShadowPosition,
+  positionReconciliation,
+  rebaseMondayPosition,
+  recordFridaySettlement,
+  settleShadowPosition
 } = require("../api/_lib/shadow-ledger");
-const {
-  simulateExecutionFill,
-  generateContractNote
-} = require("../api/_lib/shadow-broker");
+const { generateContractNote, simulateExecutionFill } = require("../api/_lib/shadow-broker");
 
-function testShadowOperationsLifecycle() {
-  const ledger = {
-    version: "1.0.0",
-    accountEquity: 1000000.0,
-    availableMargin: 1000000.0,
-    positions: [],
-    closedTrades: [],
-    contractNotes: []
-  };
+const ledger = emptyShadowLedger(1_000_000);
+const orderIntent = {
+  executable: true,
+  clientOrderId: "K2_TATASTEEL_L1",
+  strategyVersion: "continuous-futures-v2",
+  symbol: "TATASTEEL",
+  sector: "METALS",
+  contractSymbol: "TATASTEEL26SEPFUT",
+  instrumentId: "NSE-FO-TATASTEEL-SEP",
+  expiry: "2026-09-29",
+  side: "long",
+  orderType: "LIMIT",
+  entryPrice: 150,
+  targetPrice: 153,
+  stopLossPrice: 147,
+  lotSize: 5500,
+  lots: 1,
+  quantity: 5500,
+  tickSize: 0.01,
+  estMarginRequired: 181500,
+  marginSource: "CONSERVATIVE_ESTIMATE"
+};
 
-  const orderIntent = {
-    symbol: "TATASTEEL",
-    contractSymbol: "TATASTEEL26SEPFUT",
-    side: "long",
-    entryPrice: 150.0,
-    targetPrice: 153.0,
-    stopLossPrice: 147.0,
-    lotSize: 5500,
-    lots: 1,
-    quantity: 5500,
-    tickSize: 0.05,
-    estMarginRequired: 181500 // 22% of 8,25,000
-  };
+const entryFill = simulateExecutionFill({
+  orderIntent,
+  currentQuote: {
+    timestamp: Date.parse("2026-08-24T10:00:00Z"),
+    open: 150.5, high: 151, low: 149.99, close: 150.2
+  },
+  asOfDate: "2026-08-24"
+});
+assert.equal(entryFill.status, "FILLED");
+assert.equal(entryFill.fillPrice, 150);
+const opened = openShadowPosition(ledger, { orderIntent, fillDetails: entryFill, weekKey: "2026-08-24", level: 1 });
+assert.equal(opened.opened, true);
+assert.equal(openShadowPosition(ledger, { orderIntent, fillDetails: entryFill, weekKey: "2026-08-24", level: 1 }).opened, false);
 
-  // 1. Monday Open Fill
-  const fillDetails = simulateExecutionFill({ orderIntent, liquidityTier: "HIGH" });
-  assert.equal(fillDetails.fillPrice, 150.00, "Limit orders fill at limit price, zero adverse slippage");
+const position = opened.position;
+assert.equal(settleShadowPosition(ledger, { tradeId: position.tradeId, settlementPrice: 151, session: "2026-08-25" }).variationPnl, 5500);
+assert.equal(settleShadowPosition(ledger, { tradeId: position.tradeId, settlementPrice: 151, session: "2026-08-25" }).idempotent, true);
+assert.equal(settleShadowPosition(ledger, { tradeId: position.tradeId, settlementPrice: 151.5, session: "2026-08-28" }).variationPnl, 2750);
+recordFridaySettlement(position, 151.5, "2026-08-28");
 
-  const openRes = openShadowPosition(ledger, {
-    orderIntent,
-    fillDetails,
-    weekKey: "2026-08-24",
-    level: 1
-  });
+const beforeRebase = {
+  equity: ledger.accountEquity,
+  original: position.originalEntryPrice,
+  quantity: position.quantity,
+  side: position.side,
+  contract: position.contractSymbol,
+  variation: position.cumulativeVariationPnl
+};
+const rebased = rebaseMondayPosition(position, 152, "2026-08-31");
+assert.equal(rebased.rebased, true);
+assert.equal(position.weeklyReferencePrice, 152);
+assert.equal(position.weekendGapPnl, 2750);
+assert.deepEqual({
+  equity: ledger.accountEquity,
+  original: position.originalEntryPrice,
+  quantity: position.quantity,
+  side: position.side,
+  contract: position.contractSymbol,
+  variation: position.cumulativeVariationPnl
+}, beforeRebase, "Monday reference reset must not alter economic/accounting state");
+assert.equal(positionReconciliation(position, 152).reconciled, true);
 
-  assert.equal(openRes.opened, true);
-  assert.equal(ledger.positions.length, 1);
-  assert.equal(ledger.availableMargin, 1000000 - 181500);
+assert.equal(settleShadowPosition(ledger, { tradeId: position.tradeId, settlementPrice: 152, session: "2026-08-31" }).variationPnl, 2750);
+const exitFill = simulateExecutionFill({
+  orderIntent: { ...orderIntent, clientOrderId: "K2_TATASTEEL_EXIT", side: "sell", orderType: "MARKET", entryPrice: 153 },
+  currentQuote: { timestamp: Date.parse("2026-09-01T10:00:00Z"), bid: 153, ask: 153.01 },
+  asOfDate: "2026-09-01"
+});
+const note = generateContractNote({
+  tradeId: position.tradeId,
+  entryFill,
+  exitFill,
+  contract: { expiry: orderIntent.expiry, estMarginRequired: orderIntent.estMarginRequired },
+  settlementDate: "2026-09-01"
+});
+const closed = closeShadowPosition(ledger, { tradeId: position.tradeId, exitFill, contractNote: note, reason: "TARGET_HIT" });
+assert.equal(closed.closed, true);
+assert.equal(ledger.positions.length, 0);
+assert.equal(ledger.closedTrades.length, 1);
+assert.equal(ledger.contractNotes.length, 1);
+assert.equal(accountReconciliation(ledger).reconciled, true);
+assert.equal(closed.closedRecord.positionReconciliation.reconciled, true);
+assert.equal(closed.closedRecord.contractNoteDifference, 0);
+assert.equal(ledger.availableMargin, ledger.accountEquity);
+const corrupted = structuredClone(ledger);
+corrupted.accountEquity += 5000;
+const loaded = normalizeLedger(corrupted);
+assert.equal(loaded.killSwitch.triggered, true, "Loading a discrepancy must lock new risk");
+assert.equal(loaded.accounting.migrationAdjustment, 0, "No balancing plug may erase the discrepancy");
+assert.equal(accountReconciliation(loaded).reconciled, false);
 
-  // 2. Idempotency test: duplicate open must be rejected
-  const dupRes = openShadowPosition(ledger, {
-    orderIntent,
-    fillDetails,
-    weekKey: "2026-08-24",
-    level: 1
-  });
-  assert.equal(dupRes.opened, false);
-  assert.equal(dupRes.reason, "Position already exists in ledger");
-
-  // 3. Friday Close (Holding Over Weekend)
-  // On Friday: position remains OPEN! No exit order.
-  const pos = ledger.positions[0];
-  pos.previousSettlementPrice = 151.50; // Friday close mark
-  pos.holdingSessions += 4; // hold through Friday
-
-  assert.equal(ledger.positions.length, 1, "Friday must not liquidate open position");
-
-  // 4. Monday Morning Rebase
-  const mondayOpen = 152.0; // gap up +0.50 over weekend
-  const rebaseRes = rebaseMondayPosition(pos, mondayOpen, "2026-08-31");
-  assert.equal(rebaseRes.rebased, true);
-  assert.equal(pos.weeklyReferencePrice, 152.0);
-  assert.equal(pos.originalEntryPrice, 150.00, "Original entry price stays immutable");
-  assert.equal(pos.weekendGapPnl, (152.0 - 151.50) * 5500); // 2750
-
-  // 5. Target Hit on Tuesday @ 153.0
-  const exitFill = simulateExecutionFill({
-    orderIntent: { ...orderIntent, side: "sell", entryPrice: 153.0 },
-    liquidityTier: "HIGH"
-  });
-
-  const contractNote = generateContractNote({
-    tradeId: pos.tradeId,
-    entryFill: fillDetails,
-    exitFill,
-    contract: { expiry: "2026-09-24" }
-  });
-
-  const closeRes = closeShadowPosition(ledger, {
-    tradeId: pos.tradeId,
-    exitFill,
-    contractNote,
-    reason: "Target 2% reached"
-  });
-
-  assert.equal(closeRes.closed, true);
-  assert.equal(ledger.positions.length, 0);
-  assert.equal(ledger.closedTrades.length, 1);
-  assert.equal(ledger.contractNotes.length, 1);
-  assert.equal(ledger.availableMargin, 1000000, "Margin fully unblocked");
-  assert.ok(ledger.accountEquity > 1000000, "Profit added to account equity");
-  assert.ok(contractNote.breakdown.totalTaxesAndCharges > 200, "Taxes and fees accurately deducted");
-}
-
-function run() {
-  testShadowOperationsLifecycle();
-  console.log("Shadow operations & lifecycle simulation tests passed successfully!");
-}
-
-run();
+console.log("Shadow-operations tests passed: real production ledger open, daily variation settlement, Friday carry, Monday invariance, close, fees and reconciliation");

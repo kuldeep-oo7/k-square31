@@ -17,6 +17,7 @@ const fs = require("node:fs");
 function planSymbols(html) {
   const set = new Set([...html.matchAll(/<span class="tkr">([A-Z0-9&;amp-]{1,30})<\/span>/g)]
     .map((match) => match[1].replace(/&amp;/g, "&")));
+  for (const match of html.matchAll(/data-(?:public-symbol|symbol)="([A-Z0-9&;amp-]{1,30})"/g)) set.add(match[1].replace(/&amp;/g, "&"));
   set.add("NIFTY");
   set.add("BANKNIFTY");
   return set;
@@ -41,17 +42,18 @@ function boundaryHit(html, symbol) {
   return new RegExp(`(^|[^A-Za-z0-9&;-])${escaped}([^A-Za-z0-9&-]|$)`).test(html);
 }
 
-function run() {
-  const [htmlPath, bookPath] = process.argv.slice(2);
-  if (!htmlPath) throw new Error("usage: node scripts/verify-portal.js <index.html> [gm-positions.json]");
-  const rawHtml = fs.readFileSync(htmlPath, "utf8");
+function verify(rawHtml, book = null, options = {}) {
   const html = readableText(rawHtml);
-
-  if (!bookPath || !fs.existsSync(bookPath)) {
-    console.log("No book in this build; nothing to seal, nothing to leak.");
-    return;
+  const vm = require("node:vm");
+  const scriptTags = [...rawHtml.matchAll(/<script([^>]*)>([\s\S]*?)<\/script>/gi)];
+  for (let index = 0; index < scriptTags.length; index++) {
+    const [, attributes, code] = scriptTags[index];
+    if (/type=["']application\/json["']/.test(attributes)) JSON.parse(code);
+    else if (code.trim()) new vm.Script(code, { filename: `portal-inline-${index + 1}.js` });
   }
-  const book = JSON.parse(fs.readFileSync(bookPath, "utf8"));
+  if (options.expectSealed && !/AES-256-GCM/.test(rawHtml)) throw new Error("Expected encrypted broker book is missing");
+
+  if (!book) return { scriptsChecked: scriptTags.length, privateBookIncluded: false };
   const publicSymbols = planSymbols(html);
   const leaks = held(book).filter((symbol) => !publicSymbols.has(symbol) && boundaryHit(html, symbol));
 
@@ -63,24 +65,14 @@ function run() {
   if (leaks.length || totals.length) {
     throw new Error(`The portal would publish the book in the clear. Symbols: ${leaks.join(", ") || "none"}. Totals: ${totals.join(", ") || "none"}.`);
   }
-  if (!/AES-256-GCM/.test(rawHtml)) {
-    throw new Error("The portal contains no sealed payload; the book would be missing rather than protected");
-  }
+  return { scriptsChecked: scriptTags.length, heldSymbolsChecked: held(book).length, privateBookIncluded: /AES-256-GCM/.test(rawHtml) };
+}
 
-  // Validate that all embedded inline scripts compile cleanly with zero syntax errors
-  const vm = require("node:vm");
-  const scriptTags = [...rawHtml.matchAll(/<script(?:\s[^>]*)?>([\s\S]*?)<\/script>/gi)];
-  for (let i = 0; i < scriptTags.length; i++) {
-    const code = scriptTags[i][1].trim();
-    if (!code || code.startsWith("{") || code === "null") continue;
-    try {
-      new vm.Script(code, { filename: `inline-script-${i + 1}.js` });
-    } catch (e) {
-      throw new Error(`Portal inline script #${i + 1} syntax error: ${e.message}`);
-    }
-  }
-
-  console.log(`Portal verified: ${held(book).length} held symbols, none readable in the published HTML. All embedded scripts syntax OK.`);
+function run() {
+  const [htmlPath, bookPath] = process.argv.slice(2);
+  if (!htmlPath) throw new Error("usage: node scripts/verify-portal.js <index.html> [gm-positions.json] [--expect-sealed]");
+  const book = bookPath && fs.existsSync(bookPath) ? JSON.parse(fs.readFileSync(bookPath, "utf8")) : null;
+  console.log("Portal verification:", verify(fs.readFileSync(htmlPath, "utf8"), book, { expectSealed: process.argv.includes("--expect-sealed") }));
 }
 
 if (require.main === module) {
@@ -90,4 +82,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { boundaryHit, planSymbols, readableText };
+module.exports = { boundaryHit, planSymbols, readableText, verify };

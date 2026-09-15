@@ -118,7 +118,9 @@ function frontFutures(rows, options = {}) {
       volume: Number(row.TtlTradgVol) || 0,
       lotSize: Number(row.NewBrdLotQty) || null,
       instrumentId: String(row.FinInstrmId || "").trim() || null,
-      contractSymbol: String(row.TradgSymbl || row.FinInstrmNm || "").trim() || `${symbol}-${row.XpryDt}-FUT`,
+      // Never synthesize a broker identifier. Missing exchange identity makes
+      // the row usable for research/carry only, not for an order.
+      contractSymbol: String(row.TradgSymbl || row.FinInstrmNm || "").trim() || null,
       tradeDate: String(row.TradDt || row.BizDt || "").slice(0, 10) || null,
       instrument: row.FinInstrmTp,
       segment: "NSE_FO",
@@ -134,6 +136,27 @@ function frontFutures(rows, options = {}) {
 
 // NSE publishes this file for the next trade date. A failed download is not an
 // empty ban list; callers receive `available:false` and must block fresh risk.
+function parseSecurityBanList(text) {
+  const lines = String(text).replace(/^\uFEFF/, "").split(/\r?\n/).map((line) => line.trim()).filter(Boolean);
+  const header = /^Securities in Ban For Trade Date (\d{2})-([A-Z]{3})-(\d{4}):$/i.exec(lines[0] || "");
+  if (!header) throw new Error("UNRECOGNIZED_DATED_BAN_HEADER");
+  const months = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+  const month = months.indexOf(header[2].toUpperCase()) + 1;
+  const tradeDate = `${header[3]}-${String(month).padStart(2, "0")}-${header[1]}`;
+  if (!month || !Number.isFinite(Date.parse(tradeDate)) || new Date(tradeDate).toISOString().slice(0, 10) !== tradeDate) throw new Error("INVALID_BAN_TRADE_DATE");
+  const symbols = new Set();
+  for (const [index, line] of lines.slice(1).entries()) {
+    const row = /^(\d+),([A-Z0-9&-]{1,30})$/.exec(line);
+    if (!row || Number(row[1]) !== index + 1 || symbols.has(row[2])) throw new Error("MALFORMED_BAN_SYMBOL_ROW");
+    symbols.add(row[2]);
+  }
+  return { tradeDate, symbols };
+}
+
+function banStateForSession(state, session) {
+  return state?.available === true && state.symbols instanceof Set && state.tradeDate === session;
+}
+
 async function fetchSecurityBanList(timeoutMs = 15_000) {
   try {
     const response = await fetch(SECURITY_BAN_URL, {
@@ -142,12 +165,8 @@ async function fetchSecurityBanList(timeoutMs = 15_000) {
     });
     if (!response.ok) throw new Error(`HTTP ${response.status}`);
     const text = await response.text();
-    const symbols = new Set();
-    for (const line of text.split(/\r?\n/)) {
-      const first = String(line.split(",")[0] || "").replace(/^\uFEFF/, "").replace(/^"|"$/g, "").trim().toUpperCase();
-      if (/^[A-Z0-9&-]{2,30}$/.test(first) && !["SYMBOL", "SECURITY", "SCRIP"].includes(first)) symbols.add(first);
-    }
-    return { available: true, symbols, source: SECURITY_BAN_URL, fetchedAt: new Date().toISOString() };
+    const { symbols, tradeDate } = parseSecurityBanList(text);
+    return { available: true, symbols, tradeDate, source: SECURITY_BAN_URL, fetchedAt: new Date().toISOString() };
   } catch (error) {
     return { available: false, symbols: null, source: SECURITY_BAN_URL, fetchedAt: new Date().toISOString(), error: String(error?.message || error) };
   }
@@ -179,7 +198,7 @@ function futuresBySymbol(rows, options = {}) {
       volume: Number(row.TtlTradgVol) || 0,
       lotSize: Number(row.NewBrdLotQty) || null,
       instrumentId: String(row.FinInstrmId || "").trim() || null,
-      contractSymbol: String(row.TradgSymbl || row.FinInstrmNm || "").trim() || `${symbol}-${row.XpryDt}-FUT`,
+      contractSymbol: String(row.TradgSymbl || row.FinInstrmNm || "").trim() || null,
       tradeDate: String(row.TradDt || row.BizDt || "").slice(0, 10) || null,
       instrument: row.FinInstrmTp,
       segment: "NSE_FO",
@@ -203,6 +222,8 @@ function frontStockFutures(rows) {
 }
 
 module.exports = {
+  banStateForSession,
+  parseSecurityBanList,
   fetchBhavcopy,
   fetchSecurityBanList,
   frontFutures,

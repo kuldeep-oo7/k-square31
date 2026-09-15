@@ -1,77 +1,109 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const { evaluatePortfolioRisk, DEFAULT_PORTFOLIO_LIMITS } = require("../api/_lib/portfolio-risk");
+const { evaluatePortfolioRisk, invalidOrderReason, DEFAULT_PORTFOLIO_LIMITS } = require("../api/_lib/portfolio-risk");
 
-function run() {
-  const sampleOrder = {
-    contractSymbol: "RELIANCE26SEPFUT",
-    sector: "ENERGY",
-    estMarginRequired: 160000,
-    maxRiskInr: 15000
-  };
+const normalMacro = {
+  dataComplete: true,
+  severity: "NORMAL",
+  actionDirective: "NORMAL_OPERATION",
+  missingFields: []
+};
 
-  // 1. Clean order with empty book -> APPROVED
-  const cleanRes = evaluatePortfolioRisk({ proposedOrder: sampleOrder, activePositions: [] });
-  assert.equal(cleanRes.approved, true);
-  assert.equal(cleanRes.reason, "APPROVED_BY_PORTFOLIO_RISK_ENGINE");
+const sampleOrder = {
+  executable: true,
+  symbol: "RELIANCE",
+  side: "long",
+  clientOrderId: "K2_RISK_TEST_1",
+  contractSymbol: "RELIANCE26OCTFUT",
+  instrumentId: "NSE-FO-RELIANCE-OCT",
+  expiry: "2026-10-27",
+  tickSize: 0.05,
+  lotSize: 500,
+  lots: 1,
+  quantity: 500,
+  entryPrice: 1000,
+  targetPrice: 1020,
+  stopLossPrice: 970,
+  estMarginRequired: 160000,
+  marginSource: "CONSERVATIVE_ESTIMATE",
+  maxRiskInr: 15000,
+  contractNotional: 500000,
+  sector: "ENERGY",
+  banStatus: "CLEAR",
+  dataAsOf: "2026-09-08",
+  sessionVolume: 100000,
+  openInterest: 800000,
+  level: 1
+};
 
-  // 2. Daily Loss Kill Switch -> REJECTED
-  const killSwitchRes = evaluatePortfolioRisk({
+function evaluate(overrides = {}) {
+  return evaluatePortfolioRisk({
     proposedOrder: sampleOrder,
     activePositions: [],
-    dailyRealizedPnl: -55000 // Exceeds ₹50,000 daily loss limit
+    accountEquity: 2_000_000,
+    marketRegime: normalMacro,
+    ...overrides
   });
-  assert.equal(killSwitchRes.approved, false);
-  assert.equal(killSwitchRes.killSwitch, true);
-  assert.ok(killSwitchRes.reason.includes("KILL_SWITCH_ACTIVE"));
-
-  // 3. Macro Shock Shield Lockdown -> REJECTED
-  const macroRes = evaluatePortfolioRisk({
-    proposedOrder: sampleOrder,
-    activePositions: [],
-    marketRegime: { regime: "BLOODBATH_DEFENSIVE", shieldState: "LOCKDOWN", shockReason: "Global market crash" }
-  });
-  assert.equal(macroRes.approved, false);
-  assert.ok(macroRes.reason.includes("MACRO_SHOCK_SHIELD"));
-
-  // 4. Maximum Open Positions Cap (5 max) -> REJECTED on 6th
-  const activeFive = [
-    { contractSymbol: "A", sector: "IT", estMarginRequired: 100000 },
-    { contractSymbol: "B", sector: "BANK", estMarginRequired: 100000 },
-    { contractSymbol: "C", sector: "AUTO", estMarginRequired: 100000 },
-    { contractSymbol: "D", sector: "METALS", estMarginRequired: 100000 },
-    { contractSymbol: "E", sector: "PHARMA", estMarginRequired: 100000 }
-  ];
-  const capRes = evaluatePortfolioRisk({ proposedOrder: sampleOrder, activePositions: activeFive });
-  assert.equal(capRes.approved, false);
-  assert.ok(capRes.reason.includes("PORTFOLIO_CONCENTRATION"));
-
-  // 5. Sector Concentration Cap (2 max per sector) -> REJECTED on 3rd energy
-  const activeSector = [
-    { contractSymbol: "ONGC26SEPFUT", sector: "ENERGY", estMarginRequired: 100000 },
-    { contractSymbol: "BPCL26SEPFUT", sector: "ENERGY", estMarginRequired: 100000 }
-  ];
-  const sectorRes = evaluatePortfolioRisk({ proposedOrder: sampleOrder, activePositions: activeSector });
-  assert.equal(sectorRes.approved, false);
-  assert.ok(sectorRes.reason.includes("SECTOR_CONCENTRATION"));
-
-  // 6. Aggregate Margin Exceeded -> REJECTED
-  const heavyPositions = [
-    { contractSymbol: "A", sector: "IT", estMarginRequired: 700000 },
-    { contractSymbol: "B", sector: "BANK", estMarginRequired: 650000 }
-  ]; // Total = 1,350,000; Adding 160,000 = 1,510,000 > maxAllowed 1,400,000
-  const marginRes = evaluatePortfolioRisk({ proposedOrder: sampleOrder, activePositions: heavyPositions });
-  assert.equal(marginRes.approved, false);
-  assert.ok(marginRes.reason.includes("MARGIN_EXCEEDED"));
-
-  // 7. Single Name Risk Cap Exceeded -> REJECTED
-  const oversizedOrder = { ...sampleOrder, maxRiskInr: 35000 }; // Exceeds ₹25,000 cap
-  const riskRes = evaluatePortfolioRisk({ proposedOrder: oversizedOrder, activePositions: [] });
-  assert.equal(riskRes.approved, false);
-  assert.ok(riskRes.reason.includes("SINGLE_NAME_RISK_EXCEEDED"));
-
-  console.log("Portfolio risk engine tests passed: aggregate margin, sector caps, position limits and kill switch verified!");
 }
 
-run();
+assert.equal(evaluate().approved, true);
+assert.equal(evaluate().reason, "APPROVED_BY_PORTFOLIO_RISK_ENGINE");
+
+assert.equal(invalidOrderReason({ ...sampleOrder, instrumentId: null }, DEFAULT_PORTFOLIO_LIMITS), "MISSING_INSTRUMENT_ID");
+assert.equal(evaluate({ proposedOrder: { ...sampleOrder, banStatus: "UNAVAILABLE" } }).reason, "FO_BAN_STATUS_UNAVAILABLE");
+assert.equal(evaluate({ proposedOrder: { ...sampleOrder, banStatus: "BANNED" } }).reason, "SECURITY_IN_FO_BAN");
+assert.match(evaluate({ marketRegime: null }).reason, /^MACRO_DATA_UNAVAILABLE/);
+assert.match(evaluate({ proposedOrder: { ...sampleOrder, expiry: "2026-09-10" } }).reason, /^EXPIRY_WINDOW_BLOCK/);
+assert.match(evaluate({ proposedOrder: { ...sampleOrder, sessionVolume: 20 } }).reason, /^LIQUIDITY_CAPACITY_EXCEEDED/);
+
+const kill = evaluate({ dailyRealizedPnl: -30000, dailyUnrealizedPnl: -25000 });
+assert.equal(kill.approved, false);
+assert.equal(kill.killSwitch, true);
+assert.match(kill.reason, /^KILL_SWITCH_ACTIVE/);
+
+const macroLock = evaluate({
+  marketRegime: { dataComplete: true, severity: "CRITICAL_BLOODBATH", actionDirective: "FULL_DEFENSE" }
+});
+assert.equal(macroLock.approved, false);
+assert.match(macroLock.reason, /^MACRO_SHOCK_SHIELD/);
+
+const activeFive = Array.from({ length: 5 }, (_, index) => ({
+  clientOrderId: `ACTIVE_${index}`,
+  symbol: `SYM${index}`,
+  sector: `SECTOR${index}`,
+  marginBlocked: 100000,
+  contractNotional: 200000
+}));
+assert.match(evaluate({ activePositions: activeFive }).reason, /^PORTFOLIO_CONCENTRATION/);
+
+const activeSector = [
+  { clientOrderId: "A", symbol: "ONGC", sector: "ENERGY", marginBlocked: 100000, contractNotional: 200000 },
+  { clientOrderId: "B", symbol: "BPCL", sector: "ENERGY", marginBlocked: 100000, contractNotional: 200000 }
+];
+assert.match(evaluate({ activePositions: activeSector }).reason, /^SECTOR_CONCENTRATION/);
+
+const heavyMargin = [
+  { clientOrderId: "A", symbol: "A", sector: "IT", marginBlocked: 700000, contractNotional: 200000 },
+  { clientOrderId: "B", symbol: "B", sector: "BANK", marginBlocked: 650000, contractNotional: 200000 }
+];
+assert.match(evaluate({ activePositions: heavyMargin }).reason, /^MARGIN_EXCEEDED/);
+assert.match(evaluate({ proposedOrder: { ...sampleOrder, maxRiskInr: 35000 } }).reason, /^SINGLE_NAME_RISK_EXCEEDED/);
+
+const leveraged = evaluate({ proposedOrder: { ...sampleOrder, entryPrice: 13000, targetPrice: 13260, stopLossPrice: 12970, contractNotional: 6_500_000 } });
+assert.match(leveraged.reason, /^(GROSS_NOTIONAL_EXCEEDED|PORTFOLIO_STRESS_EXCEEDED)/);
+
+const stressLimits = {
+  ...DEFAULT_PORTFOLIO_LIMITS,
+  maxGrossNotionalMultiple: 10,
+  maxStressLossPctOfEquity: 0.01
+};
+assert.match(evaluate({ limits: stressLimits }).reason, /^PORTFOLIO_STRESS_EXCEEDED/);
+
+console.log("Portfolio-risk tests passed: complete order schema, ban/macro freshness, capacity, expiry, concentration, leverage, stress and net-loss kill switch");
+assert.equal(evaluate({ accountEquity: null }).reason, "ACCOUNT_EQUITY_UNAVAILABLE");
+assert.equal(evaluate({ dailyUnrealizedPnl: NaN }).reason, "DAILY_PNL_UNAVAILABLE");
+assert.equal(evaluate({ proposedOrder: { ...sampleOrder, targetPrice: 990 } }).reason, "INVALID_TARGET_STOP_DIRECTION");
+assert.equal(evaluate({ proposedOrder: { ...sampleOrder, lots: 0.5 } }).reason, "LOT_QUANTITY_MISMATCH");
+assert.equal(evaluate({ proposedOrder: { ...sampleOrder, contractNotional: 1 } }).reason, "NOTIONAL_RECONCILIATION_MISMATCH");
+assert.equal(evaluate({ proposedOrder: { ...sampleOrder, maxRiskInr: 1 } }).reason, "STOP_RISK_UNDERSTATED");

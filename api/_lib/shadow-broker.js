@@ -3,8 +3,8 @@
 /**
  * K-Square Range Desk - Shadow Broker Simulation & Contract Note Engine
  *
- * Models authentic NSE Equity Futures execution, tick slippage, and exact
- * regulatory charges as published by SEBI, NSE, and leading Indian brokers (Zerodha/Groww).
+ * Models conservative NSE equity-futures execution and dated estimated charges.
+ * It is not a broker acknowledgement and deliberately refuses to invent fills.
  */
 
 const crypto = require("node:crypto");
@@ -16,7 +16,8 @@ function round(value, digits = 2) {
 }
 
 /**
- * Computes exact NSE F&O regulatory fees and broker charges for individual stock futures.
+ * Estimates itemized stock-futures charges. STT is date-aware; other rates and
+ * brokerage/clearing assumptions require verification against the actual tariff.
  *
  * Current Statutory Rates (as of 2026):
  * - Brokerage: Flat ₹20 per executed order (or 0.03% if turnover is very small)
@@ -75,16 +76,22 @@ function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 2
   // STT: levied only on sell side for futures, rounded to nearest rupee per Indian tax rules
   const stt = !isBuy ? Math.round(turnover * sttRate) : 0;
 
-  // Exchange turnover fee: 0.00183% (0.0000183 of turnover)
-  const exchangeRate = 0.0000183;
+  // Exchange turnover fee. NSE's published equity-futures outflow is
+  // INR 182.99 per crore, with IPFT charged separately at INR 0.01 per crore --
+  // INR 183.00 per crore in total. Charging a flat INR 183 here AND an IPFT line
+  // on top double-counts the IPFT component, so the transaction charge carries
+  // only its own 182.99 and IPFT is billed once, below.
+  const exchangeRate = 0.000018299; // INR 182.99 / crore = 0.0018299%
   const exchangeCharges = round(turnover * exchangeRate, 2);
 
   // Clearing charges: 0.0002%
   const clearingCharges = round(turnover * (clearingRate !== undefined ? Number(clearingRate) : 0.000002), 2);
 
-  // IPFT: ₹0.01 per crore = 0.0000001
-  const ipftRate = 0.0000001;
-  const ipft = round(turnover * ipftRate, 2);
+  // IPFT: INR 0.01 per crore. One crore is 1e7, so the decimal rate is
+  // 0.01 / 1e7 = 1e-9. The previous 1e-7 was a hundredfold overstatement.
+  // This is INR 0.00074 (0.074 paise) on INR 7.4 lakh of turnover.
+  const ipftRate = 0.000000001;
+  const ipft = round(turnover * ipftRate, 4);
 
   // SEBI charges: ₹10 per crore = 0.0001%
   const sebiCharges = round(turnover * 0.000001, 2);
@@ -101,12 +108,9 @@ function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 2
     2
   );
 
-  // Net cash flow:
-  // For BUY: you pay (turnover + totalCharges)
-  // For SELL: you receive (turnover - totalCharges)
-  const netAmount = isBuy
-    ? round(turnover + totalCharges, 2)
-    : round(turnover - totalCharges, 2);
+  // Futures do not exchange full notional cash. This is the fee debit only;
+  // collateral and variation margin are separate ledger movements.
+  const netAmount = -totalCharges;
 
   return {
     turnover,
@@ -122,7 +126,8 @@ function calculateNseFuturesCharges({ side, price, quantity, customBrokerage = 2
     stampDuty,
     gst,
     totalCharges,
-    netAmount
+    netAmount,
+    chargeStatus: "ESTIMATE_REQUIRES_BROKER_TARIFF_RECONCILIATION"
   };
 }
 
@@ -145,10 +150,34 @@ function simulateExecutionFill({ orderIntent, currentQuote = null, liquidityTier
   const orderType = String(orderIntent.orderType || "LIMIT").toUpperCase();
   const tickSize = Number(orderIntent.tickSize || 0.05);
   const lotSize = Number(orderIntent.lotSize);
-  const quantity = Number(orderIntent.quantity || (orderIntent.lots || 1) * (lotSize || 100));
+  const quantity = Number(orderIntent.quantity);
 
+  if (!String(orderIntent.clientOrderId || "").trim()) {
+    return { status: "REJECTED", reason: "MISSING_CLIENT_ORDER_ID", orderIntent };
+  }
+  if (!String(orderIntent.contractSymbol || "").trim()) {
+    return { status: "REJECTED", reason: "MISSING_CONTRACT_SYMBOL", orderIntent };
+  }
   if (!(limitPrice > 0) || !(tickSize > 0)) {
     return { status: "REJECTED", reason: "INVALID_PRICE_OR_TICK", orderIntent };
+  }
+  if (!(lotSize > 0) || !(quantity > 0) || quantity % lotSize !== 0) {
+    return { status: "REJECTED", reason: "INVALID_WHOLE_LOT_QUANTITY", orderIntent };
+  }
+  if (!currentQuote || typeof currentQuote !== "object") {
+    return { status: "UNFILLED", reason: "TIMESTAMPED_MARKET_EVIDENCE_REQUIRED", orderIntent };
+  }
+  let quoteTimestamp = Number(currentQuote.timestamp);
+  if (quoteTimestamp > 0 && quoteTimestamp < 10_000_000_000) quoteTimestamp *= 1000;
+  if (!Number.isFinite(quoteTimestamp) || quoteTimestamp <= 0) {
+    return { status: "UNFILLED", reason: "QUOTE_TIMESTAMP_REQUIRED", orderIntent };
+  }
+  if (asOfDate) {
+    const expectedSession = new Date(asOfDate).toISOString().slice(0, 10);
+    const quoteSession = new Date(quoteTimestamp).toISOString().slice(0, 10);
+    if (quoteSession !== expectedSession) {
+      return { status: "UNFILLED", reason: `STALE_QUOTE_SESSION:${quoteSession};EXPECTED:${expectedSession}`, orderIntent };
+    }
   }
 
   let slippageTicks = 1;
@@ -159,37 +188,31 @@ function simulateExecutionFill({ orderIntent, currentQuote = null, liquidityTier
   let fillPrice = limitPrice;
   let status = "FILLED";
 
-  if (currentQuote && Number.isFinite(currentQuote.low) && Number.isFinite(currentQuote.high)) {
-    if (orderType === "MARKET" || orderType === "STOP_MARKET") {
-      const reference = Number(isBuy
-        ? (currentQuote.ask ?? currentQuote.current ?? currentQuote.open ?? currentQuote.close ?? currentQuote.settlement)
-        : (currentQuote.bid ?? currentQuote.current ?? currentQuote.open ?? currentQuote.close ?? currentQuote.settlement));
-      fillPrice = isBuy ? round(reference + slippagePerShare, 4) : round(reference - slippagePerShare, 4);
-    } else {
-      const low = Number(currentQuote.low);
-      const high = Number(currentQuote.high);
-      const open = Number(currentQuote.open);
-      if (isBuy) {
-        if (low > limitPrice) {
-          return { status: "UNFILLED", reason: `Market low (${low}) never touched limit buy price (${limitPrice})`, orderIntent };
-        }
-        const opensThrough = Number.isFinite(open) && open <= limitPrice;
-        fillPrice = opensThrough ? Math.min(open, limitPrice) : limitPrice;
-      } else {
-        if (high < limitPrice) {
-          return { status: "UNFILLED", reason: `Market high (${high}) never touched limit sell price (${limitPrice})`, orderIntent };
-        }
-        const opensThrough = Number.isFinite(open) && open >= limitPrice;
-        fillPrice = opensThrough ? Math.max(open, limitPrice) : limitPrice;
-      }
-    }
+  if (orderType === "MARKET" || orderType === "STOP_MARKET") {
+    const reference = Number(isBuy
+      ? (currentQuote.ask ?? currentQuote.current ?? currentQuote.open ?? currentQuote.close ?? currentQuote.settlement)
+      : (currentQuote.bid ?? currentQuote.current ?? currentQuote.open ?? currentQuote.close ?? currentQuote.settlement));
+    if (!(reference > 0)) return { status: "UNFILLED", reason: "EXECUTABLE_MARKET_REFERENCE_REQUIRED", orderIntent };
+    fillPrice = isBuy ? round(reference + slippagePerShare, 4) : round(reference - slippagePerShare, 4);
   } else {
-    // If no quote provided, limit orders fill at requested limitPrice (price certainty)
-    // Market orders pay adverse slippage
-    if (orderType === "MARKET" || orderType === "STOP_MARKET") {
-      fillPrice = isBuy ? round(limitPrice + slippagePerShare, 2) : round(limitPrice - slippagePerShare, 2);
+    const low = Number(currentQuote.low);
+    const high = Number(currentQuote.high);
+    const open = Number(currentQuote.open);
+    if (![low, high].every(Number.isFinite)) {
+      return { status: "UNFILLED", reason: "LIMIT_ORDER_RANGE_EVIDENCE_REQUIRED", orderIntent };
+    }
+    if (isBuy) {
+      const opensThrough = Number.isFinite(open) && open <= limitPrice;
+      if (!opensThrough && !(low < limitPrice)) {
+        return { status: "UNFILLED", reason: low === limitPrice ? "LIMIT_TOUCHED_QUEUE_UNPROVEN" : `MARKET_LOW_ABOVE_BUY_LIMIT:${low}`, orderIntent };
+      }
+      fillPrice = opensThrough ? Math.min(open, limitPrice) : limitPrice;
     } else {
-      fillPrice = limitPrice;
+      const opensThrough = Number.isFinite(open) && open >= limitPrice;
+      if (!opensThrough && !(high > limitPrice)) {
+        return { status: "UNFILLED", reason: high === limitPrice ? "LIMIT_TOUCHED_QUEUE_UNPROVEN" : `MARKET_HIGH_BELOW_SELL_LIMIT:${high}`, orderIntent };
+      }
+      fillPrice = opensThrough ? Math.max(open, limitPrice) : limitPrice;
     }
   }
 
@@ -200,8 +223,8 @@ function simulateExecutionFill({ orderIntent, currentQuote = null, liquidityTier
     asOfDate
   });
 
-  const contractSymbol = orderIntent.contractSymbol || orderIntent.symbol || "UNKNOWN";
-  const clientOrderId = String(orderIntent.clientOrderId || orderIntent.orderId || `ORD_${Date.now()}`);
+  const contractSymbol = orderIntent.contractSymbol;
+  const clientOrderId = String(orderIntent.clientOrderId);
   const orderSeed = `${clientOrderId}:${contractSymbol}:${side}:${fillPrice}:${quantity}:${orderIntent.expiry || ""}`;
   const orderId = `ORD_${crypto.createHash("sha256").update(orderSeed).digest("hex").slice(0, 12).toUpperCase()}`;
 
@@ -220,8 +243,8 @@ function simulateExecutionFill({ orderIntent, currentQuote = null, liquidityTier
     lotSize: orderIntent.lotSize,
     lots: orderIntent.lots,
     fees,
-    timestamp: Number(currentQuote?.timestamp) || (asOfDate ? Date.parse(asOfDate) : Date.now()),
-    quoteTimestamp: Number(currentQuote?.timestamp) || null,
+    timestamp: quoteTimestamp,
+    quoteTimestamp,
     exchange: "NSE",
     segment: "F&O"
   };

@@ -2,9 +2,20 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const crypto = require("node:crypto");
 const { sendDailyTradeEmail, DEFAULT_RECIPIENT } = require("../api/_lib/emailer");
+const { normalizeOrderSide } = require("../api/_lib/shadow-broker");
 const { evaluateGlobalMacroShock } = require("../api/_lib/market-regime");
-const { googleStoreConfigured, appendPortfolioAuditToGoogle, appendMacroRadarToGoogle } = require("../api/_lib/google-store");
+const { macroInputFromRadar } = require("../api/_lib/market-feed");
+const { planIsCurrent } = require("./plan-is-current");
+const {
+  GoogleStoreConflictError,
+  googleStoreConfigured,
+  appendPortfolioAuditToGoogle,
+  appendMacroRadarToGoogle,
+  readGoogleDocument,
+  writeGoogleDocument
+} = require("../api/_lib/google-store");
 const { fetchLiveMacroRadar } = require("../api/_lib/market-feed");
 
 function getDedupePaths() {
@@ -18,17 +29,18 @@ function getDedupePaths() {
  * Checks if current time is within trading window and handles persistent deduplication.
  */
 function checkDeduplication(force = false) {
-  if (force) return { allow: true, reason: "Forced execution" };
-
   const now = new Date();
-  // Convert to IST
-  const istString = now.toLocaleString("en-US", { timeZone: "Asia/Kolkata" });
-  const istDate = new Date(istString);
-  const hours = istDate.getHours();
-  const day = istDate.getDay(); // 0 = Sun, 6 = Sat
+  const parts = Object.fromEntries(new Intl.DateTimeFormat("en-US", {
+    timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit",
+    hour: "2-digit", hourCycle: "h23", weekday: "short"
+  }).formatToParts(now).map((part) => [part.type, part.value]));
+  const hours = Number(parts.hour);
+  const day = parts.weekday;
+  const todayStr = `${parts.year}-${parts.month}-${parts.day}`;
+  if (force) return { allow: true, reason: "Forced execution", slot: "MANUAL", dateStr: todayStr };
 
   // Weekend guard
-  if (day === 0 || day === 6) {
+  if (day === "Sat" || day === "Sun") {
     return { allow: false, reason: "Market is closed on weekends." };
   }
 
@@ -41,8 +53,6 @@ function checkDeduplication(force = false) {
   if (!slot) {
     return { allow: false, reason: `Outside scheduled briefing windows (Current IST hour: ${hours}). Skipping cron run.` };
   }
-
-  const todayStr = istDate.toISOString().slice(0, 10);
 
   // Check all persistent dispatch locations
   for (const statePath of getDedupePaths()) {
@@ -57,6 +67,121 @@ function checkDeduplication(force = false) {
   }
 
   return { allow: true, slot, dateStr: todayStr };
+}
+
+function dispatchKey(slot, dateStr) {
+  return `K2_EMAIL_${crypto.createHash("sha256").update(`${dateStr}:${slot}`).digest("hex").slice(0, 24).toUpperCase()}`;
+}
+
+async function acquireDispatchLease(slot, dateStr, now = new Date()) {
+  if (!googleStoreConfigured()) throw new Error("Durable Google operational store is required for email idempotency");
+  const idempotencyKey = dispatchKey(slot, dateStr);
+  const pathname = `operations/email-dispatch/${idempotencyKey}.json`;
+  const current = await readGoogleDocument(pathname, null);
+  const state = current?.data;
+  const nowMs = now.getTime();
+  if (state?.status === "SENT") return { acquired: false, reason: `Remote dispatch ${idempotencyKey} is already SENT`, state };
+  if (state?.status === "DELIVERY_UNCERTAIN") {
+    return { acquired: false, reason: `Remote dispatch ${idempotencyKey} has uncertain delivery and requires manual reconciliation`, state };
+  }
+  if (state?.status === "DISPATCHING") {
+    return { acquired: false, reason: `Remote dispatch ${idempotencyKey} is leased or delivery is uncertain; manual reconciliation required`, state };
+  }
+  const lease = {
+    idempotencyKey,
+    date: dateStr,
+    slot,
+    status: "DISPATCHING",
+    leaseAcquiredAt: now.toISOString(),
+    leaseExpiresAt: new Date(nowMs + 60 * 60 * 1000).toISOString(),
+    attempt: Number(state?.attempt || 0) + 1
+  };
+  try {
+    const written = await writeGoogleDocument(pathname, lease, current?.etag || null);
+    return { acquired: true, pathname, etag: written.etag, lease };
+  } catch (error) {
+    if (error instanceof GoogleStoreConflictError || error?.status === 409) {
+      return { acquired: false, reason: `Remote dispatch ${idempotencyKey} was claimed concurrently` };
+    }
+    throw error;
+  }
+}
+
+async function finalizeDispatchLease(acquired, status, details = {}) {
+  if (!acquired?.acquired) return null;
+  const record = {
+    ...acquired.lease,
+    ...details,
+    status,
+    finalizedAt: new Date().toISOString()
+  };
+  const written = await writeGoogleDocument(acquired.pathname, record, acquired.etag);
+  return { ...record, etag: written.etag };
+}
+
+function triageFuturesPositions(positions, asOfDate = new Date()) {
+  const exits = [];
+  const holds = [];
+  const unverified = [];
+  for (const position of Array.isArray(positions) ? positions : []) {
+    const symbol = String(position?.symbol || "").toUpperCase();
+    const side = normalizeOrderSide(position?.side);
+    const contractSymbol = String(position?.contractSymbol || "").trim();
+    const expiry = String(position?.expiry || "").slice(0, 10);
+    const quantity = Number(position?.quantity);
+    const mark = Number(position?.markPrice ?? position?.currentPrice ?? position?.lastPrice ?? position?.previousSettlementPrice);
+    const entry = Number(position?.originalEntryPrice ?? position?.averagePrice ?? position?.buyAverage);
+    const target = Number(position?.targetPrice);
+    const stop = Number(position?.stopLossPrice);
+    const markTime = Date.parse(position.quoteAsOf || position.capturedAt || (position.lastSettledSession ? `${position.lastSettledSession}T10:00:00Z` : ""));
+    const fresh = Number.isFinite(markTime) && asOfDate.getTime() - markTime >= -60000 && asOfDate.getTime() - markTime <= 24 * 60 * 60_000;
+    const complete = fresh && symbol && side && contractSymbol && /^\d{4}-\d{2}-\d{2}$/.test(expiry)
+      && [quantity, mark, entry, target, stop].every((value) => Number.isFinite(value) && value > 0);
+    if (!complete) {
+      unverified.push({
+        symbol: symbol || "UNKNOWN",
+        status: "DATA UNAVAILABLE — NO AUTOMATED ACTION",
+        current: mark > 0 ? mark : null,
+        trailingStop: null,
+        target: null,
+        pnlPct: null,
+        reason: "Side, exact futures contract, expiry, quantity, timestamped mark, entry, target and stop are all required"
+      });
+      continue;
+    }
+    const sign = side === "BUY" ? 1 : -1;
+    const pnlPct = Number(((mark / entry - 1) * 100 * sign).toFixed(4));
+    const stopBreached = side === "BUY" ? mark <= stop : mark >= stop;
+    const targetReached = side === "BUY" ? mark >= target : mark <= target;
+    const daysToExpiry = Math.ceil((Date.parse(`${expiry}T00:00:00Z`) - asOfDate.getTime()) / 86_400_000);
+    if (stopBreached || targetReached || daysToExpiry <= 3) {
+      const exitReason = stopBreached
+        ? `Fixed stop breached at ${stop.toFixed(2)}`
+        : targetReached
+          ? `Fixed target reached at ${target.toFixed(2)}`
+          : `Expiry/roll review required: ${daysToExpiry} calendar days remain`;
+      exits.push({
+        symbol,
+        contractSymbol,
+        action: side === "BUY" ? "SELL TO CLOSE" : "BUY TO COVER",
+        price: mark,
+        pnlPct,
+        reason: `${exitReason}; require a fresh executable quote and broker acknowledgement`
+      });
+      continue;
+    }
+    holds.push({
+      symbol,
+      contractSymbol,
+      status: "HOLD — FIXED EXIT LEVELS ACTIVE",
+      current: mark,
+      trailingStop: stop,
+      target,
+      pnlPct,
+      daysToExpiry
+    });
+  }
+  return { exits, holds, unverified };
 }
 
 function recordDispatch(slot, dateStr) {
@@ -89,6 +214,7 @@ async function run() {
   let sells = [];
   let holds = [];
   const positionsCandidates = [
+    path.resolve(__dirname, "../data/shadow-ledger.json"),
     path.resolve(__dirname, "../gm-positions.json"),
     path.resolve(__dirname, "../gm-dump-result/gm-positions.json")
   ];
@@ -98,49 +224,17 @@ async function run() {
     if (fs.existsSync(posPath)) {
       try {
         const raw = JSON.parse(fs.readFileSync(posPath, "utf8"));
-        loadedPositions = raw.positions || [];
+        loadedPositions = (raw.positions || []).map((position) => ({ ...position, capturedAt: position.capturedAt || raw.capturedAt }));
         if (loadedPositions.length) break;
       } catch {}
     }
   }
 
   if (loadedPositions.length) {
-    console.log(`Auditing ${loadedPositions.length} active portfolio holdings from broker snapshot...`);
-    loadedPositions.forEach(p => {
-      const mark = Number(p.markPrice || p.currentPrice || p.lastPrice || p.averagePrice || p.buyAverage);
-      const avg = Number(p.buyAverage || p.averagePrice || p.markPrice);
-      if (!mark || !avg || avg <= 0) return;
-
-      const pnlPct = ((mark - avg) / avg) * 100;
-      const symbol = String(p.symbol || "").toUpperCase();
-
-      // Rule: If drawdown exceeds -2.5%, immediate stop loss exit
-      if (pnlPct <= -2.5) {
-        sells.push({
-          symbol,
-          price: mark,
-          reason: `Breached stop loss at ${pnlPct.toFixed(2)}% from entry (cost ₹${avg.toFixed(2)}). Cut at open.`
-        });
-      } else if (pnlPct < 0) {
-        // Caution buffer
-        holds.push({
-          symbol,
-          status: "CAUTION BUFFER",
-          current: mark,
-          trailingStop: avg * 0.975, // -2.5% max risk
-          target: avg * 1.025
-        });
-      } else {
-        // In profit or at cost
-        holds.push({
-          symbol,
-          status: pnlPct >= 1.5 ? "HOLD STRONG" : "HOLD AT COST",
-          current: mark,
-          trailingStop: Math.max(avg, mark * 0.98), // Trailing stop locks in cost or trails by 2%
-          target: mark * 1.03
-        });
-      }
-    });
+    console.log(`Auditing ${loadedPositions.length} active futures positions...`);
+    const triage = triageFuturesPositions(loadedPositions);
+    sells = triage.exits;
+    holds = [...triage.holds, ...triage.unverified];
   }
 
   // 2. Dynamic Top Buy Setups from plan-full.json
@@ -150,34 +244,34 @@ async function run() {
   if (fs.existsSync(planPath)) {
     try {
       const plan = JSON.parse(fs.readFileSync(planPath, "utf8"));
-      const best = plan.best || [];
+      const best = planIsCurrent(plan) ? plan.best || [] : [];
       const buySetups = best.filter(b => b.side === "long" && b.action !== "stand-aside");
       buySetups.slice(0, 4).forEach(b => {
-        const first = (b.entries && b.entries[0]) || {};
-        const entry = Number(first.entry || b.anchor);
-        if (entry > 0) {
+        const first = (b.entries || []).find((entry) => entry?.portfolioRisk?.admitted === true && entry?.orderIntent?.executable === true) || {};
+        const entry = Number(first.orderIntent?.entryPrice);
+        if (entry > 0 && first.orderIntent?.executable === true) {
           buys.push({
             symbol: b.symbol,
             level: Number(first.level || 1),
             entry,
-            maxCap: entry * 1.008,
-            target: Number(first.target || entry * 1.02),
-            stop: Number(first.stopLoss || entry * 0.99)
+            maxCap: entry,
+            target: Number(first.orderIntent.targetPrice),
+            stop: Number(first.orderIntent.stopLossPrice)
           });
         }
       });
 
       const shortSetups = best.filter(b => b.side === "short" && b.action !== "stand-aside");
       shortSetups.slice(0, 2).forEach(s => {
-        const first = (s.entries && s.entries[0]) || {};
-        const entry = Number(first.entry || s.anchor);
-        if (entry > 0) {
+        const first = (s.entries || []).find((entry) => entry?.portfolioRisk?.admitted === true && entry?.orderIntent?.executable === true) || {};
+        const entry = Number(first.orderIntent?.entryPrice);
+        if (entry > 0 && first.orderIntent?.executable === true) {
           shortsAndPuts.push({
-            name: `${s.symbol} (Equity Short)`,
-            action: "SHORT LADDER",
+            name: `${s.symbol} (Stock Future)`,
+            action: "SHORT CANDIDATE",
             entry,
-            target: Number(first.target || entry * 0.98),
-            stop: Number(first.stopLoss || entry * 1.01)
+            target: Number(first.orderIntent.targetPrice),
+            stop: Number(first.orderIntent.stopLossPrice)
           });
         }
       });
@@ -208,13 +302,9 @@ async function run() {
   const inrPrice = liveMacro?.usdInr?.price ?? null;
   const inrChange = liveMacro?.usdInr?.changePct ?? null;
 
-  const radar = evaluateGlobalMacroShock({
-    giftNiftyGapPct: giftChange,
-    indiaVix: vixPrice,
-    indiaVixChangePct: vixChange,
-    brentCrudeSpikePct: brentChange,
-    sp500FuturesGapPct: spChange
-  });
+  const radar = evaluateGlobalMacroShock(macroInputFromRadar(liveMacro));
+  if (!radar.dataComplete || radar.actionDirective === "FULL_DEFENSE") { buys = []; shortsAndPuts = []; }
+  else buys = buys.filter((row) => radar.allowedLongLevels.includes(row.level));
 
   const macroAssets = [
     {
@@ -285,13 +375,39 @@ async function run() {
     holds: holds.slice(0, 10) // Top monitored holdings
   };
 
-  const result = await sendDailyTradeEmail(payload);
-  recordDispatch(check.slot, check.dateStr);
-  console.log("Dispatch completed successfully to:", DEFAULT_RECIPIENT);
+  if (!process.env.K2_EMAIL_WEBHOOK_URL || !process.env.K2_EMAIL_WEBHOOK_SECRET) {
+    throw new Error("Authenticated email delivery is not configured (K2_EMAIL_WEBHOOK_URL and K2_EMAIL_WEBHOOK_SECRET are required)");
+  }
+  const lease = await acquireDispatchLease(check.slot, check.dateStr);
+  if (!lease.acquired) {
+    console.log(`[REMOTE DEDUPLICATION] ${lease.reason}`);
+    return { skipped: true, reason: lease.reason };
+  }
+
+  let result;
+  try {
+    result = await sendDailyTradeEmail(payload, { idempotencyKey: lease.lease.idempotencyKey });
+    if (result?.success !== true || result?.delivered !== true || !result?.messageId) {
+      throw new Error(result?.reason || "Delivery was not acknowledged");
+    }
+    await finalizeDispatchLease(lease, "SENT", {
+      deliveredAt: new Date().toISOString(),
+      messageId: result.messageId,
+      recipient: DEFAULT_RECIPIENT
+    });
+    recordDispatch(check.slot, check.dateStr);
+    console.log("Dispatch acknowledged successfully to:", DEFAULT_RECIPIENT);
+  } catch (error) {
+    await finalizeDispatchLease(lease, "DELIVERY_UNCERTAIN", {
+      failureAt: new Date().toISOString(),
+      error: String(error?.message || error).slice(0, 300)
+    }).catch((leaseError) => console.error("Could not persist delivery uncertainty:", leaseError.message));
+    throw error;
+  }
 
   if (googleStoreConfigured()) {
     try {
-      const allAudited = [...sells.map(s => ({ symbol: s.symbol, action: "SELL AT OPEN", riskRationale: s.reason, markPrice: s.price })), ...holds];
+      const allAudited = [...sells.map(s => ({ symbol: s.symbol, status: s.action, reason: s.reason, current: s.price })), ...holds];
       await appendPortfolioAuditToGoogle(allAudited);
       console.log(`Appended ${allAudited.length} portfolio audit rows to K2_PORTFOLIO_AUDIT Google Sheet.`);
       await appendMacroRadarToGoogle({
@@ -320,4 +436,11 @@ if (require.main === module) {
   });
 }
 
-module.exports = { run, checkDeduplication };
+module.exports = {
+  acquireDispatchLease,
+  checkDeduplication,
+  dispatchKey,
+  finalizeDispatchLease,
+  run,
+  triageFuturesPositions
+};

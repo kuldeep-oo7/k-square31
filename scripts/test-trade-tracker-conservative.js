@@ -1,7 +1,7 @@
 "use strict";
 
 const assert = require("node:assert/strict");
-const { createSignalRecord, evaluateOutcome } = require("../api/_lib/trade-tracker");
+const { evaluateOutcome } = require("../api/_lib/trade-tracker");
 const { resolveIntradayExecution } = require("../api/_lib/intraday-feed");
 
 function testConservativeSameBarAmbiguity() {
@@ -11,13 +11,17 @@ function testConservativeSameBarAmbiguity() {
     entryPrice: 800.0,
     targetPrice: 816.0,
     stopLossPrice: 792.0,
-    status: "PENDING"
+    status: "ACTIVE",
+    validFrom: Date.parse("2026-08-03T09:15:00Z"),
+    filledAt: Date.parse("2026-08-03T09:16:00Z"),
+    fillSession: "2026-08-03",
+    fillOrderId: "FILL_SB_1"
   };
 
   // Scenario: Bar 1 triggers entry. Bar 2 spans BOTH target (818) and stop (790) in the same daily candle!
   const ambiguousBars = [
-    { high: 805, low: 798, close: 802 }, // triggers entry
-    { high: 818, low: 790, close: 800 }  // both target 816 and stop 792 touched!
+    { timestamp: Date.parse("2026-08-03T10:00:00Z"), open: 800, high: 805, low: 798, close: 802 },
+    { timestamp: Date.parse("2026-08-04T10:00:00Z"), open: 802, high: 818, low: 790, close: 800 }
   ];
 
   const outcome = evaluateOutcome(signal, ambiguousBars);

@@ -59,19 +59,33 @@ async function fetchChart(rawSymbol, options = {}) {
  * - India VIX, Brent Crude, US S&P Futures, US Nasdaq Futures from Yahoo Finance
  */
 function createMacroEnvelope(provider, providerSymbol, data = null, error = null) {
-  const isLive = data && Number.isFinite(data.price);
+  const isLive = data && Number.isFinite(data.price) && data.price > 0;
+  const quoteTime = Date.parse(data?.quoteAsOf);
+  const recent = Number.isFinite(quoteTime) && Date.now() - quoteTime >= -60000 && Date.now() - quoteTime <= 15 * 60_000;
   return {
     price: isLive ? Number(data.price) : null,
-    changePct: isLive ? Number(data.changePct || 0) : null,
+    changePct: isLive && Number.isFinite(data.changePct) ? data.changePct : null,
     changeAbs: isLive && Number.isFinite(data.changeAbs) ? Number(data.changeAbs) : null,
     provider,
     providerSymbol,
-    freshnessStatus: isLive ? "LIVE" : "UNAVAILABLE",
+    freshnessStatus: !isLive ? "UNAVAILABLE" : recent ? "RECENT_PROVIDER_SNAPSHOT" : Number.isFinite(quoteTime) ? "STALE" : "TIMESTAMP_UNVERIFIED",
     qualityStatus: isLive ? "VALID" : "MISSING",
     fallbackUsed: false,
     receivedAt: isLive ? new Date().toISOString() : null,
+    quoteAsOf: Number.isFinite(quoteTime) ? new Date(quoteTime).toISOString() : null,
     error: error ? String(error) : null
   };
+}
+
+function macroInputFromRadar(radar, nowMs = Date.now(), maxAgeMs = 15 * 60_000) {
+  const value = (node, field) => {
+    const stamp = Date.parse(node?.quoteAsOf);
+    return Number.isFinite(stamp) && nowMs - stamp <= maxAgeMs && nowMs - stamp >= -60000
+      && typeof node?.[field] === "number" && Number.isFinite(node[field]) ? node[field] : null;
+  };
+  return { giftNiftyGapPct: value(radar?.giftNifty, "changePct"), indiaVix: value(radar?.indiaVix, "price"),
+    indiaVixChangePct: value(radar?.indiaVix, "changePct"), brentCrudeSpikePct: value(radar?.brentCrude, "changePct"),
+    sp500FuturesGapPct: value(radar?.sp500Futures, "changePct") };
 }
 
 /**
@@ -103,8 +117,8 @@ async function fetchLiveMacroRadar() {
       if (Number.isFinite(d.close)) {
         radar.giftNifty = createMacroEnvelope("TradingView", "NSEIX:NIFTY1!", {
           price: Number(d.close),
-          changePct: Number(d.change || 0),
-          changeAbs: Number(d.change_abs || 0)
+          changePct: Number.isFinite(d.change) ? d.change : null,
+          changeAbs: Number.isFinite(d.change_abs) ? d.change_abs : null
         });
       }
     } else {
@@ -121,16 +135,19 @@ async function fetchLiveMacroRadar() {
       const res = await fetch(url, { headers: { "User-Agent": "Mozilla/5.0" }, signal: AbortSignal.timeout(6000) });
       if (!res.ok) return { data: null, error: `HTTP ${res.status}` };
       const d = await res.json();
-      const quote = d.chart?.result?.[0]?.indicators?.quote?.[0];
+      const result = d.chart?.result?.[0];
+      const quote = result?.indicators?.quote?.[0];
       if (!quote || !quote.close) return { data: null, error: "Empty quote indicator" };
-      const closes = quote.close.filter(Number.isFinite);
+      const closes = quote.close.map((price, index) => ({ price, timestamp: result.timestamp?.[index] })).filter((row) => Number.isFinite(row.price) && row.price > 0);
       if (closes.length < 2) return { data: null, error: "Insufficient closes" };
-      const last = closes.at(-1);
-      const prev = closes.at(-2);
+      const last = closes.at(-1).price;
+      const prev = closes.at(-2).price;
       return {
         data: {
           price: Number(last),
-          changePct: Number(((last - prev) / prev) * 100)
+          changePct: Number(((last - prev) / prev) * 100),
+          // These are daily bars, not an asserted live last-trade feed.
+          quoteAsOf: Number.isFinite(closes.at(-1).timestamp) ? new Date(closes.at(-1).timestamp * 1000).toISOString() : null
         },
         error: null
       };
@@ -160,11 +177,11 @@ async function fetchLiveMacroRadar() {
   const liveCount = [
     radar.giftNifty, radar.indiaVix, radar.brentCrude,
     radar.sp500Futures, radar.nasdaqFutures, radar.usdInr
-  ].filter(item => item.freshnessStatus === "LIVE").length;
+  ].filter(item => item.freshnessStatus === "RECENT_PROVIDER_SNAPSHOT").length;
 
-  radar.qualitySummary = liveCount >= 4 ? "LIVE_VERIFIED" : liveCount > 0 ? "PARTIAL_DEGRADED" : "DATA_UNAVAILABLE";
+  radar.qualitySummary = liveCount >= 4 ? "PARTIAL_TIMESTAMPED_SNAPSHOTS" : liveCount > 0 ? "PARTIAL_DEGRADED" : "FRESHNESS_UNVERIFIED";
 
   return radar;
 }
 
-module.exports = { fetchChart, fetchLiveMacroRadar, formatSymbol, resultBars };
+module.exports = { createMacroEnvelope, macroInputFromRadar, fetchChart, fetchLiveMacroRadar, formatSymbol, resultBars };

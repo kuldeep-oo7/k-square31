@@ -13,7 +13,7 @@
 // Every number reported here is out-of-sample: training never sees a week that
 // closed after the week being predicted.
 
-const { tradingWeeks, replayWeek, DEFAULT_CONFIG } = require("./weekly-cycle");
+const { tradingWeeks, replayContinuous, DEFAULT_CONFIG } = require("./weekly-cycle");
 
 const FEATURE_NAMES = Object.freeze([
   "return5Pct", "return21Pct", "return63Pct",
@@ -137,7 +137,11 @@ function features(bars, end) {
     volumeRatio520: volume20 ? volume5 / volume20 : 1,
     closeLocation: (close - low) / barRange,
     bodyRatio: Math.abs(close - open) / barRange,
-    gapFromWeekOpenPct: 0
+    // Despite the legacy field name, this is the gap of the decision session,
+    // known when that bar closes. It is never replaced with next Monday's open.
+    gapFromWeekOpenPct: end > 0 && Number(bars[end - 1]?.close) > 0
+      ? (open / Number(bars[end - 1].close) - 1) * 100
+      : 0
   };
   return FEATURE_NAMES.every((name) => Number.isFinite(row[name])) ? row : null;
 }
@@ -147,6 +151,8 @@ function features(bars, end) {
 function weeklyTrainingRows(bars, side = "long", overrides = {}) {
   const config = { ...DEFAULT_CONFIG, ...overrides };
   const weeks = tradingWeeks(bars);
+  const replay = replayContinuous(weeks, side, config);
+  const cohortByWeek = new Map(replay.cohorts.map((cohort) => [cohort.weekKey, cohort]));
   const indexBySession = new Map(bars.map((bar, index) => [
     new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date(Number(bar.timestamp) * 1000)),
     index
@@ -160,18 +166,21 @@ function weeklyTrainingRows(bars, side = "long", overrides = {}) {
     if (!Number.isInteger(decisionIndex)) return;
     const row = features(bars, decisionIndex);
     if (!row) return;
-    const replay = replayWeek(week, side, config);
-    if (!replay) return;
-    const anchorGap = previous.sessions.at(-1).close > 0
-      ? (replay.anchor / previous.sessions.at(-1).close - 1) * 100
-      : 0;
+    const cohort = cohortByWeek.get(week.weekKey);
+    if (!cohort?.complete) return; // right-censored outcomes are not labels
     rows.push({
       weekKey: week.weekKey,
       decisionSession,
-      features: { ...row, gapFromWeekOpenPct: anchorGap },
-      label: Number(replay.weekNetPct),
-      fills: replay.trades.length,
-      targetHits: replay.trades.filter((trade) => trade.outcome === "target").length
+      featureAsOf: decisionSession,
+      labelFrom: week.sessions[0].session,
+      labelThrough: cohort.trades.length
+        ? cohort.trades.map((trade) => trade.exitSession).sort().at(-1)
+        : week.sessions.at(-1).session,
+      features: row,
+      label: Number(cohort.cohortNetPct),
+      fills: cohort.trades.length,
+      targetHits: cohort.trades.filter((trade) => trade.outcome === "target" || trade.outcome === "target-gap").length,
+      strategyVersion: config.strategyVersion
     });
   });
   return rows;
@@ -305,6 +314,18 @@ function scoreFold(model, rows) {
   };
 }
 
+function nonOverlappingRows(rows, minimumStride = 1) {
+  const spaced = minimumStride > 1 ? rows.filter((_, index) => index % minimumStride === 0) : rows;
+  const selected = [];
+  let lastLabelThrough = null;
+  for (const row of spaced) {
+    if (lastLabelThrough && String(row.labelFrom) <= lastLabelThrough) continue;
+    selected.push(row);
+    lastLabelThrough = String(row.labelThrough || row.labelFrom);
+  }
+  return selected;
+}
+
 // Expanding-window walk-forward: fit on everything up to a cut, score the block
 // that follows, roll the cut forward. No fold ever trains on its own future.
 //
@@ -316,14 +337,15 @@ function scoreFold(model, rows) {
 function walkForward(rows, overrides = {}) {
   const minimumTrain = Number(overrides.minimumTrain) || 80;
   const folds = Math.max(2, Number(overrides.folds) || 4);
-  const embargo = Math.max(0, Number(overrides.embargo) || 0);
+  const dependentHorizonWeeks = Math.max(1, Math.ceil(Number(overrides.maxHoldingSessions || DEFAULT_CONFIG.maxHoldingSessions) / 5));
+  const embargo = Math.max(0, overrides.embargo === undefined ? dependentHorizonWeeks : Number(overrides.embargo) || 0);
   // Overlapping labels also inflate the score itself, not just the split. With a
   // five-session forward return sampled daily, neighbouring test rows share four
   // fifths of their label and their errors are serially correlated, which lifted a
   // random walk's information coefficient to 0.14 while a shuffled-label control
   // over the same pipeline sat at -0.02. Scoring every stride-th test row instead
   // removes the overlap from the measurement.
-  const scoreStride = Math.max(1, Number(overrides.scoreStride) || 1);
+  const scoreStride = Math.max(1, overrides.scoreStride === undefined ? dependentHorizonWeeks : Number(overrides.scoreStride) || 1);
   if (rows.length < minimumTrain + folds * 8) {
     return { ready: false, rows: rows.length, reason: `Need at least ${minimumTrain + folds * 8} labelled weeks for ${folds} walk-forward folds` };
   }
@@ -333,12 +355,26 @@ function walkForward(rows, overrides = {}) {
     const trainTo = minimumTrain + fold * blockSize;
     const testRows = rows.slice(trainTo, fold === folds - 1 ? rows.length : trainTo + blockSize);
     if (!testRows.length) continue;
-    const trainRows = rows.slice(0, Math.max(1, trainTo - embargo));
+    const testStart = String(testRows[0].labelFrom || testRows[0].weekKey);
+    const trainCandidates = rows.slice(0, Math.max(1, trainTo - embargo));
+    // Purging by the observed label boundary is stronger than assuming that a
+    // fixed number of calendar rows always covers a 20-session holding period.
+    const trainRows = trainCandidates.filter((row) => String(row.labelThrough || row.weekKey) < testStart);
     const model = trainBoostedTrees(trainRows, overrides);
     if (!model.ready) continue;
-    const scored = scoreStride > 1 ? testRows.filter((_, index) => index % scoreStride === 0) : testRows;
+    const scored = nonOverlappingRows(testRows, scoreStride);
     const score = scoreFold(model, scored);
-    if (score) results.push({ fold: fold + 1, trainWeeks: trainRows.length, embargoed: embargo, from: testRows[0].weekKey, to: testRows.at(-1).weekKey, ...score });
+    if (score) results.push({
+      fold: fold + 1,
+      trainWeeks: trainRows.length,
+      trainThrough: trainRows.at(-1)?.weekKey || null,
+      trainLabelThrough: trainRows.map((row) => row.labelThrough).filter(Boolean).sort().at(-1) || null,
+      embargoed: trainTo - trainRows.length,
+      from: testRows[0].weekKey,
+      testLabelFrom: testStart,
+      to: testRows.at(-1).weekKey,
+      ...score
+    });
   }
   if (!results.length) return { ready: false, rows: rows.length, reason: "No walk-forward fold produced a usable model" };
   const acted = results.flatMap((item) => Array(item.actedWeeks).fill(item.actedAverageWeeklyPct)).filter(Number.isFinite);
@@ -376,16 +412,12 @@ function weeklyForecast(bars, side = "long", overrides = {}) {
   const model = trainBoostedTrees(rows, overrides);
   const latestIndex = bars.length - 1;
   const latest = features(bars, latestIndex);
-  const latestBar = bars[latestIndex];
-  const previousBar = bars[latestIndex - 1];
-  let liveGap = 0;
-  if (latestBar && previousBar && Number(overrides.anchorPrice)) {
-    liveGap = round((Number(overrides.anchorPrice) - previousBar.close) / previousBar.close * 100, 3) || 0;
-  } else if (latestBar && previousBar && Number(latestBar.open)) {
-    liveGap = round((latestBar.open - previousBar.close) / previousBar.close * 100, 3) || 0;
-  }
-  const expectedWeeklyPct = latest && model.ready ? predict(model, { ...latest, gapFromWeekOpenPct: liveGap }) : null;
+  const expectedWeeklyPct = latest && model.ready ? predict(model, latest) : null;
   const edge = validation.ready ? Number(validation.outOfSample.informationCoefficient) : null;
+  const rSquared = validation.ready ? Number(validation.outOfSample.rSquared) : null;
+  const unstableFold = validation.ready && validation.perFold.some((fold) =>
+    !(Number(fold.informationCoefficient) >= 0) || !(Number(fold.rSquared) >= 0)
+  );
   return {
     ready: Boolean(model.ready && validation.ready),
     side,
@@ -393,9 +425,19 @@ function weeklyForecast(bars, side = "long", overrides = {}) {
     expectedWeeklyPct,
     // A model whose out-of-sample information coefficient is not positive is
     // reported, but must not be allowed to justify a trade.
-    trustworthy: Boolean(validation.ready && edge > 0.02 && Number(validation.outOfSample.actedAverageWeeklyPct) > 0),
+    trustworthy: Boolean(
+      validation.ready
+      && edge >= 0.05
+      && rSquared > 0
+      && !unstableFold
+      && Number(validation.outOfSample.actedAverageWeeklyPct) > 0
+    ),
     validation,
     importance: model.ready ? model.importance.slice(0, 8) : [],
+    featureAsOf: bars[latestIndex]?.timestamp
+      ? new Date(Number(bars[latestIndex].timestamp) * 1000).toISOString()
+      : null,
+    timingContract: "Every feature is derived at or before featureAsOf; no next-session opening value is used",
     reason: model.ready ? null : model.reason
   };
 }
@@ -421,9 +463,13 @@ function evaluateModelFitness(model) {
   const folds = Array.isArray(model.perFold || model.validation?.perFold || target?.perFold)
     ? (model.perFold || model.validation?.perFold || target?.perFold)
     : [];
-  const anyNegativeFold = folds.some((f) => Number(f.informationCoefficient) < 0 || Number(f.rSquared) < 0);
+  const anyNegativeFold = folds.some((f) => ![f.informationCoefficient, f.rSquared].every((value) => typeof value === "number" && Number.isFinite(value) && value >= 0));
+  const timingVerified = folds.length >= 2 && folds.every((fold) => /^\d{4}-\d{2}-\d{2}$/.test(fold.trainLabelThrough || "")
+    && /^\d{4}-\d{2}-\d{2}$/.test(fold.testLabelFrom || "") && fold.trainLabelThrough < fold.testLabelFrom);
 
-  const passesThresholds = ic >= 0.05 && r2 > 0 && !anyNegativeFold;
+  const passesThresholds = model.ready === true && model.validation?.ready === true && timingVerified
+    && Number.isFinite(ic) && Number.isFinite(r2) && ic >= 0.05 && r2 > 0 && !anyNegativeFold
+    && Number(target.actedAverageWeeklyPct) > 0;
 
   if (!passesThresholds) {
     return {
@@ -440,7 +486,7 @@ function evaluateModelFitness(model) {
   }
 
   return {
-    status: "VALIDATED_PRODUCTION_READY",
+    status: "VALIDATED_RESEARCH_FILTER",
     canGenerateTrades: true,
     isAdvisoryOnly: false,
     metrics: {
@@ -448,7 +494,7 @@ function evaluateModelFitness(model) {
       rSquared: r2,
       unstableFolds: false
     },
-    reason: "Model passed statistical fitness hurdles."
+    reason: "Model passed these research fitness and chronology checks; this is not live approval or profitability validation."
   };
 }
 

@@ -1,223 +1,237 @@
 "use strict";
 
+const crypto = require("node:crypto");
+
 function round(value, digits = 2) {
+  if (value === null || value === undefined || value === "") return null;
   if (!Number.isFinite(Number(value))) return null;
   const factor = 10 ** digits;
   return Math.round((Number(value) + Number.EPSILON) * factor) / factor;
 }
 
-function createSignalRecord(rec, features = {}) {
+function millis(value) {
+  if (value === null || value === undefined) return null;
+  const numeric = Number(value);
+  if (Number.isFinite(numeric)) return numeric < 10_000_000_000 ? numeric * 1000 : numeric;
+  const parsed = Date.parse(String(value));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function barTimestamp(bar) {
+  return millis(bar?.timestamp ?? bar?.time ?? bar?.date ?? bar?.session);
+}
+
+function sessionOf(timestamp) {
+  return Number.isFinite(timestamp) ? new Date(timestamp).toISOString().slice(0, 10) : null;
+}
+
+function createSignalRecord(rec, features = {}, entryOverride = null) {
   if (!rec || !rec.symbol) return null;
   const side = rec.side === "short" ? "short" : "long";
-  const firstEntry = (rec.entries && rec.entries[0]) || {};
-  const entryPrice = Number(firstEntry.entry) || Number(rec.anchor) || 0;
+  const entry = entryOverride || (rec.entries && rec.entries[0]) || {};
+  const intent = entry.orderIntent || {};
+  const entryPrice = Number(entry.entry ?? intent.entryPrice) || Number(rec.anchor) || 0;
   if (!(entryPrice > 0)) return null;
 
-  const targetPrice = Number(firstEntry.target) || round(entryPrice * (1 + (side === "short" ? -1 : 1) * 0.02));
-  const stopLossPrice = Number(firstEntry.stopLoss) || round(entryPrice * (1 - (side === "short" ? -1 : 1) * 0.01));
-  const riskReward = Number(firstEntry.riskReward) || 2.0;
+  const targetPrice = Number(entry.target ?? intent.targetPrice) || round(entryPrice * (1 + (side === "short" ? -1 : 1) * 0.02));
+  const stopLossPrice = Number(entry.stopLoss ?? intent.stopLossPrice) || round(entryPrice * (1 - (side === "short" ? -1 : 1) * 0.01));
+  const decisionAt = millis(intent.decisionAt || rec.decisionAt || rec.generatedAt) || Date.now();
+  const validFrom = millis(intent.validFrom || rec.validFrom) || decisionAt;
+  const suppliedFeatureAsOf = millis(features?.featureAsOf);
+  const featureAsOf = suppliedFeatureAsOf && suppliedFeatureAsOf <= decisionAt ? suppliedFeatureAsOf : decisionAt;
+  const level = Number(entry.level ?? intent.level) || 1;
+  const identity = intent.clientOrderId || [rec.symbol, rec.weekKey || sessionOf(decisionAt), side, `L${level}`, intent.contractSymbol || "NO_CONTRACT"].join(":");
+  const signalId = `sig_${crypto.createHash("sha256").update(identity).digest("hex").slice(0, 20)}`;
 
-  const signalId = `sig_${rec.symbol}_${rec.weekKey || new Date().toISOString().slice(0, 10)}_${side}`;
   return {
     id: signalId,
     signalId,
+    clientOrderId: intent.clientOrderId || null,
+    strategyVersion: intent.strategyVersion || rec.strategyVersion || "UNKNOWN",
     symbol: String(rec.symbol).toUpperCase(),
     side,
-    action: rec.action || "buy-momentum",
-    weekKey: rec.weekKey || new Date().toISOString().slice(0, 10),
-    timestamp: Date.now(),
+    level,
+    action: rec.action || "research-signal",
+    weekKey: rec.weekKey || sessionOf(decisionAt),
+    decisionAt,
+    validFrom,
+    orderSubmittedAt: millis(intent.orderSubmittedAt),
+    filledAt: null,
+    fillOrderId: null,
+    fillSession: null,
+    contractSymbol: intent.contractSymbol || null,
+    instrumentId: intent.instrumentId || null,
+    expiry: intent.expiry || null,
     entryPrice: round(entryPrice),
     targetPrice: round(targetPrice),
     stopLossPrice: round(stopLossPrice),
-    riskReward: round(riskReward, 1),
-    convictionPct: Number(rec.convictionPct) || 50,
-    expectedWeeklyPct: Number(rec.expectedWeeklyPct) || 2.0,
-    sizeMultiplier: Number(rec.sizeMultiplier) || 1.0,
+    riskReward: round(Number(entry.riskReward ?? intent.riskReward) || 2, 1),
+    convictionPct: Number(rec.convictionPct) || 0,
+    expectedWeeklyPct: Number(rec.expectedWeeklyPct) || 0,
+    sizeMultiplier: Number(rec.sizeMultiplier) || 0,
     reasons: Array.isArray(rec.reasons) ? rec.reasons : [],
-    features: {
-      return5Pct: Number(features.return5Pct) || 0,
-      return21Pct: Number(features.return21Pct) || 0,
-      atr14Pct: Number(features.atr14Pct) || 0,
-      realisedVol21Pct: Number(features.realisedVol21Pct) || 0,
-      rsi14: Number(features.rsi14) || 50,
-      zScore20: Number(features.zScore20) || 0,
-      volumeRatio520: Number(features.volumeRatio520) || 1.0,
-      highProximityPct: Number(features.highProximityPct) || 0
-    },
+    features: { ...features },
+    featureAsOf,
     status: "PENDING",
     outcome: null,
     exitPrice: null,
     pnlPct: null,
+    grossPnlPct: null,
     mfePct: null,
     maePct: null,
+    maxHighSinceFill: null,
+    minLowSinceFill: null,
     holdingSessions: 0,
-    resolvedAt: null
+    lastEvaluatedTimestamp: null,
+    lastEvaluatedSession: null,
+    resolvedAt: null,
+    temporalIntegrity: "AWAITING_CONFIRMED_FILL"
   };
 }
 
+function createSignalRecords(rec, features = {}) {
+  const entries = Array.isArray(rec?.entries) ? rec.entries : [];
+  return entries.map((entry) => createSignalRecord(rec, features, entry)).filter(Boolean);
+}
+
+function recordConfirmedFill(signal, fill) {
+  if (!signal || fill?.status !== "FILLED") return { updated: false, reason: "CONFIRMED_FILL_REQUIRED", signal };
+  if (!String(fill.orderId || "").trim()) return { updated: false, reason: "FILL_ORDER_ID_REQUIRED", signal };
+  if (!(Number(fill.fillPrice) > 0)) return { updated: false, reason: "VALID_FILL_PRICE_REQUIRED", signal };
+  if (signal.clientOrderId && fill.clientOrderId !== signal.clientOrderId) return { updated: false, reason: "CLIENT_ORDER_ID_MISMATCH", signal };
+  if (signal.contractSymbol && fill.contractSymbol !== signal.contractSymbol) return { updated: false, reason: "CONTRACT_MISMATCH", signal };
+  if (signal.fillOrderId === fill.orderId) return { updated: false, reason: "ALREADY_RECORDED", idempotent: true, signal };
+  if (signal.fillOrderId) return { updated: false, reason: "DIFFERENT_FILL_ALREADY_RECORDED", signal };
+  const filledAt = millis(fill.timestamp);
+  if (!filledAt) return { updated: false, reason: "FILL_TIMESTAMP_REQUIRED", signal };
+  const earliestFill = Math.max(Number(signal.validFrom || 0), Number(signal.decisionAt || 0), Number(signal.orderSubmittedAt || 0));
+  if (filledAt < earliestFill) return { updated: false, reason: "FILL_PRECEDES_VALID_FROM", signal };
+  const updated = {
+    ...signal,
+    status: "ACTIVE",
+    filledAt,
+    fillSession: sessionOf(filledAt),
+    fillOrderId: fill.orderId,
+    entryPrice: round(Number(fill.fillPrice)),
+    temporalIntegrity: "CONFIRMED_FILL"
+  };
+  return { updated: true, signal: updated };
+}
+
 function evaluateOutcome(signal, bars = []) {
-  if (!signal || !signal.entryPrice) return signal;
-  const usable = Array.isArray(bars) ? bars.filter((b) => Number.isFinite(b.high) && Number.isFinite(b.low)) : [];
+  if (!signal || !(Number(signal.entryPrice) > 0)) return signal;
+  if (signal.outcome === "WIN" || signal.outcome === "LOSS") return signal;
+  if (!signal.filledAt || !signal.fillOrderId || signal.status === "PENDING") {
+    // Plans are not trades. Without a broker/shadow fill there is no outcome to
+    // learn from and therefore no candle is consumed.
+    return { ...signal, temporalIntegrity: "AWAITING_CONFIRMED_FILL" };
+  }
+
+  const lowerBound = Math.max(Number(signal.validFrom || 0), Number(signal.filledAt || 0), Number(signal.lastEvaluatedTimestamp || 0));
+  const fillSession = signal.fillSession || sessionOf(Number(signal.filledAt));
+  const usable = (Array.isArray(bars) ? bars : [])
+    .map((bar) => ({ ...bar, _timestamp: barTimestamp(bar) }))
+    .filter((bar) => Number.isFinite(bar._timestamp) && bar._timestamp > lowerBound)
+    .filter((bar) => sessionOf(bar._timestamp) !== fillSession)
+    .filter((bar) => [bar.open ?? bar.close, bar.high, bar.low, bar.close].every((value) => Number.isFinite(Number(value))))
+    .sort((left, right) => left._timestamp - right._timestamp);
   if (!usable.length) return signal;
 
   const side = signal.side === "short" ? "short" : "long";
   const entry = Number(signal.entryPrice);
   const target = Number(signal.targetPrice);
   const stop = Number(signal.stopLossPrice);
-
-  let triggered = signal.status !== "PENDING";
-  let maxHigh = entry;
-  let minLow = entry;
+  let maxHigh = Number(signal.maxHighSinceFill) || entry;
+  let minLow = Number(signal.minLowSinceFill) || entry;
   let exitPrice = null;
   let outcome = null;
-  let status = signal.status;
-  let sessions = signal.holdingSessions || 0;
+  let status = "ACTIVE";
+  let reason = null;
+  let sessions = Number(signal.holdingSessions || 0);
+  let resolvedTimestamp = null;
 
-  for (let i = 0; i < usable.length; i += 1) {
-    const bar = usable[i];
+  for (const bar of usable) {
+    const open = Number(bar.open ?? bar.close);
     const high = Number(bar.high);
     const low = Number(bar.low);
-
-    if (!triggered) {
-      if (side === "long" && low <= entry * 1.005) {
-        triggered = true;
-        status = "ACTIVE";
-      } else if (side === "short" && high >= entry * 0.995) {
-        triggered = true;
-        status = "ACTIVE";
-      } else {
-        continue;
-      }
-    }
-
     sessions += 1;
     maxHigh = Math.max(maxHigh, high);
     minLow = Math.min(minLow, low);
 
-    let intradayAmbiguity = false;
-    let worstCasePnl = null;
-    let bestCasePnl = null;
-
     if (side === "long") {
-      const hitTarget = high >= target;
-      const hitStop = low <= stop;
-
-      if (hitTarget && hitStop) {
-        // Conservative Ambiguity Resolution (P0-007 / P1-021):
-        // When daily high touches target AND daily low touches stop in the same bar,
-        // assume the stop-loss was triggered first to eliminate optimistic backtest bias.
-        outcome = "LOSS";
-        status = "STOPPED_OUT";
-        exitPrice = stop;
-        intradayAmbiguity = true;
-        worstCasePnl = round(((stop - entry) / entry) * 100 - (signal.frictionPct || 0.08));
-        bestCasePnl = round(((target - entry) / entry) * 100 - (signal.frictionPct || 0.08));
-        break;
-      } else if (hitStop) {
-        outcome = "LOSS";
-        status = "STOPPED_OUT";
-        exitPrice = stop;
-        break;
-      } else if (hitTarget) {
-        outcome = "WIN";
-        status = "TARGET_HIT";
-        exitPrice = target;
-        break;
-      }
+      if (open <= stop) { outcome = "LOSS"; status = "STOPPED_OUT"; exitPrice = open; reason = "STOP_GAP"; }
+      else if (open >= target) { outcome = "WIN"; status = "TARGET_HIT"; exitPrice = open; reason = "TARGET_GAP"; }
+      else if (low <= stop) { outcome = "LOSS"; status = "STOPPED_OUT"; exitPrice = stop; reason = high >= target ? "STOP_FIRST_DAILY_AMBIGUITY" : "STOP_LOSS"; }
+      else if (high >= target) { outcome = "WIN"; status = "TARGET_HIT"; exitPrice = target; reason = "TARGET_HIT"; }
     } else {
-      const hitTarget = low <= target;
-      const hitStop = high >= stop;
-
-      if (hitTarget && hitStop) {
-        outcome = "LOSS";
-        status = "STOPPED_OUT";
-        exitPrice = stop;
-        intradayAmbiguity = true;
-        worstCasePnl = round(((entry - stop) / entry) * 100 - (signal.frictionPct || 0.08));
-        bestCasePnl = round(((entry - target) / entry) * 100 - (signal.frictionPct || 0.08));
-        break;
-      } else if (hitStop) {
-        outcome = "LOSS";
-        status = "STOPPED_OUT";
-        exitPrice = stop;
-        break;
-      } else if (hitTarget) {
-        outcome = "WIN";
-        status = "TARGET_HIT";
-        exitPrice = target;
-        break;
-      }
+      if (open >= stop) { outcome = "LOSS"; status = "STOPPED_OUT"; exitPrice = open; reason = "STOP_GAP"; }
+      else if (open <= target) { outcome = "WIN"; status = "TARGET_HIT"; exitPrice = open; reason = "TARGET_GAP"; }
+      else if (high >= stop) { outcome = "LOSS"; status = "STOPPED_OUT"; exitPrice = stop; reason = low <= target ? "STOP_FIRST_DAILY_AMBIGUITY" : "STOP_LOSS"; }
+      else if (low <= target) { outcome = "WIN"; status = "TARGET_HIT"; exitPrice = target; reason = "TARGET_HIT"; }
     }
+    if (outcome) { resolvedTimestamp = bar._timestamp; break; }
   }
 
-  const latestClose = usable.at(-1)?.close || entry;
-  const currentMark = exitPrice || latestClose;
-  const frictionPct = Number(signal.frictionPct || 0.08);
-  const grossPnlPct = side === "short"
-    ? ((entry - currentMark) / entry) * 100
-    : ((currentMark - entry) / entry) * 100;
-  const pnlPct = triggered ? (grossPnlPct - (outcome ? frictionPct : 0)) : 0;
-
-  const mfePct = side === "short"
-    ? ((entry - minLow) / entry) * 100
-    : ((maxHigh - entry) / entry) * 100;
-
-  const maePct = side === "short"
-    ? ((maxHigh - entry) / entry) * 100
-    : ((entry - minLow) / entry) * 100;
+  const lastConsumed = outcome ? resolvedTimestamp : usable.at(-1)._timestamp;
+  const currentMark = exitPrice || Number(usable.at(-1).close);
+  const frictionPct = outcome ? Number(signal.frictionPct || signal.roundTripCostPct || 0.08) : 0;
+  const grossPnlPct = side === "short" ? (entry - currentMark) / entry * 100 : (currentMark - entry) / entry * 100;
+  const mfePct = side === "short" ? (entry - minLow) / entry * 100 : (maxHigh - entry) / entry * 100;
+  const maePct = side === "short" ? (maxHigh - entry) / entry * 100 : (entry - minLow) / entry * 100;
 
   return {
     ...signal,
-    status: triggered ? (status || "ACTIVE") : "PENDING",
+    status,
     outcome,
     exitPrice: round(exitPrice),
-    pnlPct: round(pnlPct),
+    exitReason: reason,
+    pnlPct: round(grossPnlPct - frictionPct),
     grossPnlPct: round(grossPnlPct),
     mfePct: round(Math.max(0, mfePct)),
     maePct: round(Math.max(0, maePct)),
+    maxHighSinceFill: round(maxHigh, 4),
+    minLowSinceFill: round(minLow, 4),
     holdingSessions: sessions,
-    resolvedAt: outcome ? Date.now() : null
+    lastEvaluatedTimestamp: lastConsumed,
+    lastEvaluatedSession: sessionOf(lastConsumed),
+    resolvedAt: outcome ? resolvedTimestamp : null,
+    temporalIntegrity: "POST_FILL_EVENTS_ONLY"
   };
 }
 
 function summarizePerformance(signals = []) {
   const items = Array.isArray(signals) ? signals.filter(Boolean) : [];
-  const resolved = items.filter((s) => s.outcome === "WIN" || s.outcome === "LOSS");
-  const wins = resolved.filter((s) => s.outcome === "WIN");
-  const losses = resolved.filter((s) => s.outcome === "LOSS");
-
-  const winCount = wins.length;
-  const lossCount = losses.length;
-  const totalResolved = resolved.length;
-  const winRatePct = totalResolved ? (winCount / totalResolved) * 100 : 0;
-
-  const totalWinPnl = wins.reduce((sum, s) => sum + Math.max(0, Number(s.pnlPct) || 0), 0);
-  const totalLossPnl = losses.reduce((sum, s) => sum + Math.abs(Math.min(0, Number(s.pnlPct) || 0)), 0);
-
-  const profitFactor = totalLossPnl > 0 ? totalWinPnl / totalLossPnl : totalWinPnl > 0 ? 99.0 : 1.0;
-  const averageWinPct = winCount ? totalWinPnl / winCount : 0;
-  const averageLossPct = lossCount ? totalLossPnl / lossCount : 0;
-  const expectancyPct = totalResolved ? (winRatePct / 100 * averageWinPct) - ((100 - winRatePct) / 100 * averageLossPct) : 0;
+  const resolved = items.filter((signal) => signal.outcome === "WIN" || signal.outcome === "LOSS");
+  const wins = resolved.filter((signal) => signal.outcome === "WIN");
+  const losses = resolved.filter((signal) => signal.outcome === "LOSS");
+  const totalWinPnl = wins.reduce((sum, signal) => sum + Math.max(0, Number(signal.pnlPct) || 0), 0);
+  const totalLossPnl = losses.reduce((sum, signal) => sum + Math.abs(Math.min(0, Number(signal.pnlPct) || 0)), 0);
+  const winRate = resolved.length ? wins.length / resolved.length : 0;
+  const averageWin = wins.length ? totalWinPnl / wins.length : 0;
+  const averageLoss = losses.length ? totalLossPnl / losses.length : 0;
 
   return {
     totalSignals: items.length,
-    activeSignals: items.filter((s) => s.status === "ACTIVE").length,
-    pendingSignals: items.filter((s) => s.status === "PENDING").length,
-    resolvedSignals: totalResolved,
-    winCount,
-    lossCount,
-    winRatePct: round(winRatePct, 1),
-    profitFactor: round(profitFactor, 2),
-    averageWinPct: round(averageWinPct, 2),
-    averageLossPct: round(averageLossPct, 2),
-    expectancyPct: round(expectancyPct, 2),
-    totalSimulatedPnlPct: round(totalWinPnl - totalLossPnl, 2)
+    activeSignals: items.filter((signal) => signal.status === "ACTIVE").length,
+    pendingSignals: items.filter((signal) => signal.status === "PENDING").length,
+    resolvedSignals: resolved.length,
+    winCount: wins.length,
+    lossCount: losses.length,
+    winRatePct: round(winRate * 100, 1),
+    profitFactor: round(totalLossPnl > 0 ? totalWinPnl / totalLossPnl : totalWinPnl > 0 ? 99 : 1, 2),
+    averageWinPct: round(averageWin, 2),
+    averageLossPct: round(averageLoss, 2),
+    expectancyPct: round(winRate * averageWin - (1 - winRate) * averageLoss, 2),
+    totalSimulatedPnlPct: round(totalWinPnl - totalLossPnl, 2),
+    unconfirmedSignalsExcluded: items.filter((signal) => !signal.fillOrderId).length
   };
 }
 
 module.exports = {
   createSignalRecord,
+  createSignalRecords,
   evaluateOutcome,
+  recordConfirmedFill,
   round,
   summarizePerformance
 };

@@ -29,15 +29,15 @@ const {
   round,
   simulateExecutionFill
 } = require("../api/_lib/shadow-broker");
-const { latestBhavcopy, stockFuturesBySymbol } = require("../api/_lib/bhavcopy");
+const { banStateForSession, fetchSecurityBanList, latestBhavcopy, stockFuturesBySymbol } = require("../api/_lib/bhavcopy");
 const { evaluatePortfolioRisk, DEFAULT_PORTFOLIO_LIMITS } = require("../api/_lib/portfolio-risk");
 const { evaluateGlobalMacroShock } = require("../api/_lib/market-regime");
-const { fetchLiveMacroRadar } = require("../api/_lib/market-feed");
-const { weekKeyOf } = require("../api/_lib/weekly-cycle");
+const { fetchLiveMacroRadar, macroInputFromRadar } = require("../api/_lib/market-feed");
+const { DEFAULT_CONFIG: STRATEGY_SPEC, weekKeyOf } = require("../api/_lib/weekly-cycle");
 
 const RUNNER_VERSION = "shadow-session-v2.0.0";
 const MAX_BOOK_AGE_DAYS = 4;
-const ROLL_WINDOW_CALENDAR_DAYS = 3;
+const ROLL_WINDOW_CALENDAR_DAYS = STRATEGY_SPEC.rollWindowCalendarDays;
 
 function argument(name, fallback = null) {
   const index = process.argv.indexOf(`--${name}`);
@@ -88,6 +88,8 @@ function flattenPlanIntents(plan) {
         ? [{ level: recommendation.level || 1, orderIntent: recommendation.orderIntent }]
         : [];
     for (const entry of entries) {
+      // Missing portfolio admission is a block, never implicit permission.
+      if (entry?.portfolioRisk?.admitted !== true) continue;
       rows.push({ recommendation, entry, intent: entry?.orderIntent || null });
     }
   }
@@ -95,13 +97,7 @@ function flattenPlanIntents(plan) {
 }
 
 function macroInput(radar) {
-  return {
-    giftNiftyGapPct: radar?.giftNifty?.changePct,
-    indiaVix: radar?.indiaVix?.price,
-    indiaVixChangePct: radar?.indiaVix?.changePct,
-    brentCrudeSpikePct: radar?.brentCrude?.changePct,
-    sp500FuturesGapPct: radar?.sp500Futures?.changePct
-  };
+  return macroInputFromRadar(radar);
 }
 
 function contractQuote(contract, session) {
@@ -119,11 +115,10 @@ function contractQuote(contract, session) {
 
 function exactContract(positionOrIntent, chains) {
   const contracts = chains.get(String(positionOrIntent?.symbol || "").toUpperCase()) || [];
-  return contracts.find((contract) =>
-    (positionOrIntent.instrumentId && contract.instrumentId === positionOrIntent.instrumentId)
-    || (positionOrIntent.contractSymbol && contract.contractSymbol === positionOrIntent.contractSymbol)
-    || (positionOrIntent.expiry && contract.expiry === positionOrIntent.expiry)
-  ) || null;
+  if (!positionOrIntent?.instrumentId || !positionOrIntent?.contractSymbol || !positionOrIntent?.expiry) return null;
+  return contracts.find((contract) => String(contract.instrumentId) === String(positionOrIntent.instrumentId)
+    && contract.contractSymbol === positionOrIntent.contractSymbol
+    && contract.expiry === positionOrIntent.expiry) || null;
 }
 
 function nextContract(current, chains) {
@@ -140,7 +135,8 @@ function exitDecision(position, quote) {
   const low = Number(quote?.low);
   const target = Number(position?.targetPrice);
   const stop = Number(position?.stopLossPrice);
-  if (!side || ![open, high, low, target, stop].every(Number.isFinite)) {
+  if (!side || ![open, high, low, target, stop].every((value) => Number.isFinite(value) && value > 0)
+      || high < Math.max(open, low) || low > open) {
     return { exit: false, reason: "EXIT_INPUT_UNAVAILABLE" };
   }
 
@@ -180,7 +176,7 @@ function exitIntent(position, decision, session, suffix = "EXIT") {
   };
 }
 
-function refreshEntryIntent(row, contract, session) {
+function refreshEntryIntent(row, contract, session, banState = null) {
   const original = row.intent || {};
   const quantity = Number(original.quantity);
   const lotSize = Number(contract?.lotSize);
@@ -188,15 +184,24 @@ function refreshEntryIntent(row, contract, session) {
   const validationErrors = [];
   if (original.executable !== true) validationErrors.push(original.rejectionReason || "PLAN_INTENT_NOT_EXECUTABLE");
   if (!contract) validationErrors.push("CURRENT_CONTRACT_NOT_FOUND");
+  if (contract && (String(original.instrumentId) !== String(contract.instrumentId)
+      || original.contractSymbol !== contract.contractSymbol || original.expiry !== contract.expiry)) validationErrors.push("PLANNED_CONTRACT_IDENTITY_MISMATCH");
+  if (original.strategyVersion !== "continuous-futures-v2") validationErrors.push("UNSUPPORTED_STRATEGY_VERSION");
+  const decisionTime = Date.parse(original.decisionAt);
+  if (!Number.isFinite(decisionTime) || decisionTime > Date.parse(`${session}T03:45:00Z`)) validationErrors.push("DECISION_NOT_BEFORE_DAILY_BAR");
   if (!contract?.instrumentId) validationErrors.push("MISSING_INSTRUMENT_ID");
   if (!(lotSize > 0)) validationErrors.push("MISSING_CURRENT_LOT_SIZE");
   if (!(lots > 0) || !Number.isInteger(lots)) validationErrors.push("INVALID_LOTS");
   if (!(quantity > 0) || quantity !== lotSize * lots) validationErrors.push("STALE_LOT_SIZE_OR_QUANTITY");
   if (!(Number(contract?.volume) > 0) || !(Number(contract?.openInterest) > 0)) validationErrors.push("NO_CURRENT_LIQUIDITY_EVIDENCE");
+  const symbol = String(row.recommendation?.symbol || original.symbol || "").toUpperCase();
+  const banAvailable = banStateForSession(banState, session);
+  if (!banAvailable) validationErrors.push("FO_BAN_STATUS_UNAVAILABLE");
+  else if (banState.symbols.has(symbol)) validationErrors.push("SECURITY_IN_FO_BAN");
 
   return {
     ...original,
-    symbol: String(row.recommendation?.symbol || original.symbol || "").toUpperCase(),
+    symbol,
     side: original.side || row.recommendation?.side,
     sector: original.sector || row.recommendation?.sector || row.recommendation?.evidence?.fundamentals?.sector || null,
     level: Number(row.entry?.level || original.level || 1),
@@ -212,7 +217,8 @@ function refreshEntryIntent(row, contract, session) {
     openInterest: Number(contract?.openInterest) || null,
     dataAsOf: session,
     dataSource: "NSE_FO_BHAVCOPY",
-    banStatus: original.banStatus || "NOT_VERIFIED",
+    banStatus: banAvailable ? (banState.symbols.has(symbol) ? "BANNED" : "CLEAR") : "UNAVAILABLE",
+    banStatusAsOf: banState?.fetchedAt || null,
     executable: validationErrors.length === 0,
     validationErrors,
     rejectionReason: validationErrors[0] || null,
@@ -222,7 +228,14 @@ function refreshEntryIntent(row, contract, session) {
 }
 
 function riskDecision(ledger, intent, macro, session, dailyNetPnl, limits = DEFAULT_PORTFOLIO_LIMITS) {
-  const effectiveLimits = { ...limits, killSwitchTriggered: Boolean(ledger.killSwitch?.triggered) };
+  const effectiveLimits = {
+    ...limits,
+    strictOrderValidation: true,
+    requireSector: true,
+    requireCompleteMacro: true,
+    requireBanClear: true,
+    killSwitchTriggered: Boolean(ledger.killSwitch?.triggered)
+  };
   const result = evaluatePortfolioRisk({
     proposedOrder: intent,
     activePositions: ledger.positions,
@@ -264,17 +277,19 @@ function closePositionAtDecision(ledger, position, contract, quote, decision, se
   return { ...closeShadowPosition(ledger, { tradeId: position.tradeId, exitFill: fill, contractNote: note, reason: decision.reason }), fill, note };
 }
 
-function openRolledPosition(ledger, oldPosition, next, macro, session, dailyNetPnl, limits) {
+function openRolledPosition(ledger, oldPosition, next, macro, banState, session, dailyNetPnl, limits) {
   const quote = contractQuote(next, session);
   const side = normalizeOrderSide(oldPosition.side) === "BUY" ? "long" : "short";
   const sign = side === "long" ? 1 : -1;
-  const entryReference = Number(next.dayOpen || next.settlement || next.futures);
+  const entryReference = Number(next.settlement || next.futures);
   const remainingTargetDistance = Math.max(Number(next.tickSize || 0.05), (Number(oldPosition.targetPrice) - Number(oldPosition.previousSettlementPrice)) * sign);
   const stopDistance = Math.max(Number(next.tickSize || 0.05), (Number(oldPosition.previousSettlementPrice) - Number(oldPosition.stopLossPrice)) * sign);
   const quantity = Number(oldPosition.quantity);
   const lots = quantity / Number(next.lotSize);
+  const banAvailable = banStateForSession(banState, session);
   const intent = {
-    executable: Number.isInteger(lots) && lots > 0 && Boolean(next.instrumentId),
+    executable: Number.isInteger(lots) && lots > 0 && Boolean(next.instrumentId)
+      && banAvailable && !banState.symbols.has(oldPosition.symbol),
     symbol: oldPosition.symbol,
     sector: oldPosition.sector,
     side,
@@ -297,7 +312,7 @@ function openRolledPosition(ledger, oldPosition, next, macro, session, dailyNetP
     openInterest: Number(next.openInterest),
     dataAsOf: session,
     dataSource: "NSE_FO_BHAVCOPY",
-    banStatus: "NOT_VERIFIED",
+    banStatus: banAvailable ? (banState.symbols.has(oldPosition.symbol) ? "BANNED" : "CLEAR") : "UNAVAILABLE",
     level: oldPosition.level,
     weekKey: weekKeyOf(session),
     strategyVersion: oldPosition.strategyVersion,
@@ -317,19 +332,45 @@ async function resolveInputs(options) {
   const session = isoTradeDate(options.session || book.tradeDate);
   if (!session) throw new Error("NSE bhavcopy has no valid trade date");
   const nowDate = isoTradeDate((options.now || new Date()).toISOString());
+  if (nowDate && session > nowDate) throw new Error("FUTURE_BHAVCOPY_SESSION");
   if (!options.allowHistoricalBook && nowDate && calendarDaysBetween(session, nowDate) > (options.maxBookAgeDays || MAX_BOOK_AGE_DAYS)) {
     throw new Error(`STALE_BHAVCOPY: ${session} is older than ${options.maxBookAgeDays || MAX_BOOK_AGE_DAYS} calendar days`);
   }
   const radar = options.radar === undefined ? await fetchLiveMacroRadar().catch(() => null) : options.radar;
   const macro = options.macro || evaluateGlobalMacroShock(macroInput(radar));
-  return { book, chains, session, macro };
+  const banState = options.banState || await fetchSecurityBanList();
+  return { book, chains, session, macro, banState };
 }
+
+// EXECUTION-TIME risk limits. portfolio-risk.js ships three strictness flags
+// defaulted to false -- strictOrderValidation, requireSector and
+// requireCompleteMacro -- so the engine that owns the firm's risk controls was
+// running with its order schema validation, its sector requirement and its
+// macro-freshness gate all switched off. This is the path that actually places
+// orders, so all three are on here and missing data fails closed.
+//
+// The weekly plan deliberately runs with requireCompleteMacro off, because it
+// builds candidates before the open rather than placing orders; see the comment
+// in scripts/weekly-plan.js.
+const EXECUTION_LIMITS = Object.freeze({
+  ...DEFAULT_PORTFOLIO_LIMITS,
+  strictOrderValidation: true,
+  requireSector: true,
+  requireCompleteMacro: true
+});
 
 async function runShadowSession(options = {}) {
   const planPath = path.resolve(options.planPath || options.plan || argument("plan", "plan-full.json"));
   const plan = options.planObject || loadPlan(planPath);
   const ledger = options.ledger || loadShadowLedger(options.ledgerPath);
-  const { chains, session, macro } = await resolveInputs(options);
+  // Callers may still override for tests or replays, but the default is strict.
+  options = { ...options, limits: options.limits || EXECUTION_LIMITS };
+  const { chains, session, macro, banState } = await resolveInputs(options);
+  ledger.processedSessions ||= {};
+  if (ledger.processedSessions[session]) return { ...ledger.processedSessions[session], idempotent: true, ledger };
+  const priorSessions = Object.keys(ledger.processedSessions).sort();
+  if (priorSessions.length && priorSessions.at(-1) > session) throw new Error("OUT_OF_ORDER_SHADOW_SESSION");
+  const startingEquity = Number(ledger.accountEquity);
   const startingAuditIndex = ledger.auditEvents?.length || 0;
   const results = { opened: [], closed: [], settled: [], rebased: [], rolled: [], rejected: [], warnings: [] };
   let dailyNetPnl = 0;
@@ -340,6 +381,7 @@ async function runShadowSession(options = {}) {
     if (!contract) {
       results.warnings.push({ tradeId: position.tradeId, reason: "EXACT_OPEN_CONTRACT_NOT_FOUND" });
       appendAuditEvent(ledger, { type: "POSITION_DATA_LOCKDOWN", tradeId: position.tradeId, session, reason: "EXACT_OPEN_CONTRACT_NOT_FOUND" });
+      triggerKillSwitch(ledger, `EXACT_OPEN_CONTRACT_NOT_FOUND:${position.tradeId}`);
       continue;
     }
     const quote = contractQuote(contract, session);
@@ -357,7 +399,20 @@ async function runShadowSession(options = {}) {
       }
     }
 
-    const decision = exitDecision(position, quote);
+    let decision = exitDecision(position, quote);
+    if (decision.reason === "EXIT_INPUT_UNAVAILABLE") {
+      triggerKillSwitch(ledger, `INVALID_OPEN_POSITION_QUOTE:${position.tradeId}`);
+      results.warnings.push({ tradeId: position.tradeId, reason: decision.reason });
+      continue;
+    }
+    if (!decision.exit && Number(position.holdingSessions || 0) + 1 >= Number(STRATEGY_SPEC.maxHoldingSessions)) {
+      decision = {
+        exit: true,
+        reason: "MAX_HOLDING_RISK_CEILING",
+        referencePrice: Number(contract.settlement || contract.futures),
+        orderType: "MARKET"
+      };
+    }
     if (decision.exit) {
       const closed = closePositionAtDecision(ledger, position, contract, quote, decision, session);
       if (closed.closed) {
@@ -385,7 +440,9 @@ async function runShadowSession(options = {}) {
       results.closed.push(closed.closedRecord);
       dailyNetPnl += Number(closed.closedRecord.cumulativeVariationPnl || 0) - Number(position.cumulativeVariationPnl || 0) - Number(closed.closedRecord.exitFeesPaid || 0);
       if (next) {
-        const opened = openRolledPosition(ledger, position, next, macro, session, dailyNetPnl, options.limits || DEFAULT_PORTFOLIO_LIMITS);
+        position.previousSettlementPrice = Number(closed.fill.fillPrice);
+        dailyNetPnl = Number(ledger.accountEquity) - startingEquity;
+        const opened = openRolledPosition(ledger, position, next, macro, banState, session, dailyNetPnl, options.limits || DEFAULT_PORTFOLIO_LIMITS);
         const rollEvent = {
           type: "CONTRACT_ROLL",
           session,
@@ -403,6 +460,8 @@ async function runShadowSession(options = {}) {
         };
         if (opened.opened) {
           opened.position.rootTradeId = position.rootTradeId || position.tradeId;
+          opened.position.holdingSessions = Number(position.holdingSessions || 0);
+          opened.position.rootEnteredAt = position.rootEnteredAt || position.enteredAt;
           results.opened.push(opened.position);
         } else results.warnings.push({ tradeId: position.tradeId, reason: `ROLL_OPEN_FAILED:${opened.reason}` });
         results.rolled.push(rollEvent);
@@ -419,6 +478,7 @@ async function runShadowSession(options = {}) {
     if (new Date(`${session}T12:00:00Z`).getUTCDay() === 5) recordFridaySettlement(position, contract.settlement, session);
   }
 
+  dailyNetPnl = Number(ledger.accountEquity) - startingEquity;
   if (dailyNetPnl <= -(options.limits?.dailyLossLimitInr || DEFAULT_PORTFOLIO_LIMITS.dailyLossLimitInr)) {
     triggerKillSwitch(ledger, `DAILY_NET_LOSS_LIMIT:${dailyNetPnl}`);
   }
@@ -426,17 +486,26 @@ async function runShadowSession(options = {}) {
   // Only a current, schema-valid plan can add exposure. A stale plan is not
   // silently reused into a new week.
   const currentWeek = weekKeyOf(session);
-  if (plan.weekKey !== currentWeek && plan.generatedFor !== currentWeek) {
+  if (new Date(`${session}T12:00:00Z`).getUTCDay() === 5) {
+    results.rejected.push({ reason: "NO_NEW_FRIDAY_EXPOSURE" });
+  } else if (plan.weekKey !== currentWeek && plan.generatedFor !== currentWeek) {
     results.rejected.push({ reason: `STALE_PLAN_WEEK:${plan.weekKey || plan.generatedFor || "UNKNOWN"};CURRENT:${currentWeek}` });
   } else {
     for (const row of flattenPlanIntents(plan)) {
       const plannedSymbol = String(row.recommendation?.symbol || row.intent?.symbol || "").toUpperCase();
-      const front = (chains.get(plannedSymbol) || [])[0] || null;
-      const intent = refreshEntryIntent(row, front, session);
+      const front = exactContract(row.intent, chains);
+      const intent = refreshEntryIntent(row, front, session, banState);
       if (!intent.executable) {
         results.rejected.push({ symbol: plannedSymbol, clientOrderId: intent.clientOrderId || null, reason: intent.rejectionReason });
         continue;
       }
+      const entryQuote = contractQuote(front, session);
+      const isLong = normalizeOrderSide(intent.side) === "BUY";
+      if (!(entryQuote.open > 0) || (isLong ? entryQuote.open <= Number(intent.stopLossPrice) : entryQuote.open >= Number(intent.stopLossPrice))) {
+        results.rejected.push({ symbol: plannedSymbol, reason: "ENTRY_GAP_INVALIDATES_STOP" });
+        continue;
+      }
+      dailyNetPnl = Number(ledger.accountEquity) - startingEquity;
       const risk = riskDecision(ledger, intent, macro, session, dailyNetPnl, options.limits || DEFAULT_PORTFOLIO_LIMITS);
       if (!risk.approved) {
         results.rejected.push({ symbol: plannedSymbol, clientOrderId: intent.clientOrderId, reason: risk.reason });
@@ -458,11 +527,32 @@ async function runShadowSession(options = {}) {
         weekKey: currentWeek,
         level: intent.level
       });
-      if (opened.opened) results.opened.push(opened.position);
+      if (opened.opened) {
+        results.opened.push(opened.position);
+        // A trade-through entry followed by a stop breach is charged on this
+        // bar. A target-only high/low may have preceded entry, so is not assumed.
+        const stopped = isLong ? entryQuote.low <= Number(intent.stopLossPrice) : entryQuote.high >= Number(intent.stopLossPrice);
+        if (stopped) {
+          const closed = closePositionAtDecision(ledger, opened.position, front, entryQuote,
+            { reason: "ENTRY_SESSION_STOP_CONSERVATIVE", referencePrice: Number(intent.stopLossPrice), orderType: "STOP_MARKET" }, session);
+          if (closed.closed) results.closed.push(closed.closedRecord);
+          else triggerKillSwitch(ledger, "ENTRY_SESSION_STOP_FAILED");
+        }
+      }
       else results.rejected.push({ symbol: plannedSymbol, clientOrderId: intent.clientOrderId, reason: opened.reason });
     }
   }
 
+  // Entries and rolls also receive the official entry-session settlement.
+  for (const position of ledger.positions) {
+    if (position.lastSettledSession === session) continue;
+    const contract = exactContract(position, chains);
+    const settled = settleShadowPosition(ledger, { tradeId: position.tradeId, settlementPrice: contract?.settlement, session });
+    if (settled.settled) results.settled.push(settled);
+    else triggerKillSwitch(ledger, `MISSING_DAILY_SETTLEMENT:${position.tradeId}`);
+  }
+  dailyNetPnl = Number(ledger.accountEquity) - startingEquity;
+  if (dailyNetPnl <= -(options.limits?.dailyLossLimitInr || DEFAULT_PORTFOLIO_LIMITS.dailyLossLimitInr)) triggerKillSwitch(ledger, `DAILY_NET_LOSS_LIMIT:${dailyNetPnl}`);
   const sessionEvents = ledger.auditEvents.slice(startingAuditIndex);
   const report = {
     ok: !ledger.killSwitch?.triggered,
@@ -472,6 +562,7 @@ async function runShadowSession(options = {}) {
     session,
     planWeek: plan.weekKey || plan.generatedFor || null,
     macro,
+    banStatus: { available: banState?.available === true, count: banState?.symbols instanceof Set ? banState.symbols.size : null, source: banState?.source || null },
     openedCount: results.opened.length,
     closedCount: results.closed.length,
     settledCount: results.settled.length,
@@ -488,6 +579,7 @@ async function runShadowSession(options = {}) {
   };
 
   appendAuditEvent(ledger, { type: "SESSION_COMPLETED", ...report, results: undefined });
+  ledger.processedSessions[session] = { ...report, results: undefined };
   if (options.save !== false) saveShadowLedger(ledger, options.ledgerPath);
   return { ...report, ledger };
 }

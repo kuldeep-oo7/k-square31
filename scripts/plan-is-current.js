@@ -21,12 +21,20 @@ function run() {
   const source = process.argv[2] || "plan.json";
   const plan = JSON.parse(fs.readFileSync(source, "utf8"));
   const current = weekKeyOf(istToday());
-  if (plan.weekKey !== current) {
+  if (!planIsCurrent(plan)) {
     console.log(`Plan is for week ${plan.weekKey}; this week is ${current}. Re-measuring.`);
     process.exitCode = 1;
     return;
   }
   console.log(`Plan already covers week ${current}. Reusing it.`);
+}
+
+function planIsCurrent(plan, nowMs = Date.now()) {
+  const current = weekKeyOf(istToday(nowMs));
+  const generated = Date.parse(plan?.generatedAt);
+  return plan?.weekKey === current && plan?.strategyVersion === "continuous-futures-v2"
+    && Number.isFinite(generated) && generated <= nowMs && nowMs - generated <= 7 * 86400000
+    && plan?.marketCoverage?.derivativesVerified === true;
 }
 
 if (require.main === module) {
@@ -36,4 +44,4 @@ if (require.main === module) {
   }
 }
 
-module.exports = { istToday };
+module.exports = { istToday, planIsCurrent };

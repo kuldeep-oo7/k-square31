@@ -53,7 +53,10 @@ jobs:
       - run: npm ci
 
       - name: Run test suite & quantitative integrity check
-        run: npm run check
+        run: npm run check && npm run test:integrity
+
+      - name: Block high-severity production dependency vulnerabilities
+        run: npm audit --omit=dev --audit-level=high
 
       - name: Open the site repository
         env:
@@ -90,6 +93,9 @@ jobs:
           K2_GOOGLE_SHEETS_ARCHIVE_SECRET: ${{ secrets.K2_GOOGLE_SHEETS_ARCHIVE_SECRET }}
         run: node scripts/weekly-plan.js --top 60 --out plan-full.json
 
+      - name: Refresh public exchange coverage
+        run: node scripts/refresh-market-coverage.js
+
       - name: Seal the book and build the portal
         env:
           K2_PORTAL_PASSPHRASE: ${{ secrets.K2_PORTAL_PASSPHRASE }}
@@ -116,6 +122,7 @@ jobs:
         if: ${{ github.event_name == 'workflow_dispatch' || github.event.schedule == '45 2 * * 1-5' || github.event.schedule == '15 10 * * 1-5' }}
         env:
           K2_EMAIL_WEBHOOK_URL: ${{ secrets.K2_EMAIL_WEBHOOK_URL }}
+          K2_EMAIL_WEBHOOK_SECRET: ${{ secrets.K2_EMAIL_WEBHOOK_SECRET }}
           K2_GOOGLE_SHEETS_WEB_APP_URL: ${{ secrets.K2_GOOGLE_SHEETS_WEB_APP_URL }}
           K2_GOOGLE_SHEETS_ARCHIVE_SECRET: ${{ secrets.K2_GOOGLE_SHEETS_ARCHIVE_SECRET }}
         run: node scripts/dispatch-daily-alert.js

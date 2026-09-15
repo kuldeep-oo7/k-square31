@@ -1,123 +1,105 @@
 "use strict";
 
-const assert = require("node:assert");
-const { calculateNseFuturesCharges, simulateExecutionFill, generateContractNote } = require("../api/_lib/shadow-broker");
+const assert = require("node:assert/strict");
+const {
+  calculateNseFuturesCharges,
+  generateContractNote,
+  simulateExecutionFill
+} = require("../api/_lib/shadow-broker");
 
-function testNseFuturesCharges() {
-  // Test Case 1: Buy 250 shares @ 3000 -> Turnover = 7,50,000
-  const buyCharges = calculateNseFuturesCharges({
-    side: "BUY",
-    price: 3000,
-    quantity: 250
-  });
+const SESSION = "2026-09-08";
+const QUOTE_TS = Date.parse(`${SESSION}T10:00:00.000Z`);
 
-  assert.strictEqual(buyCharges.turnover, 750000);
-  assert.strictEqual(buyCharges.brokerage, 20); // Flat 20
-  assert.strictEqual(buyCharges.stt, 0); // No STT on buy side for futures
-  assert.strictEqual(buyCharges.stampDuty, 15); // 0.002% on 7,50,000 = 15
-  assert.strictEqual(buyCharges.exchangeCharges, 13.73); // 0.00183% = 13.73
-  assert.strictEqual(buyCharges.ipft, 0.08); // IPFT Rs 0.01/crore = 0.08
-  assert(buyCharges.gst >= 6.2 && buyCharges.gst <= 6.3); // 18% of (20 + 13.73 + 0.75 + 0.08) = 6.22
-  assert(buyCharges.totalCharges > 55 && buyCharges.totalCharges < 60);
+const buyCharges = calculateNseFuturesCharges({ side: "BUY", price: 3000, quantity: 250, asOfDate: SESSION });
+assert.equal(buyCharges.turnover, 750000);
+assert.equal(buyCharges.brokerage, 20);
+assert.equal(buyCharges.stt, 0);
+assert.equal(buyCharges.stampDuty, 15);
+assert.equal(buyCharges.exchangeCharges, 13.72);
+assert.equal(buyCharges.ipft, 0.0008);
 
-  // Test Case 2: Sell 250 shares @ 3060 -> Turnover = 7,65,000 with current 0.05% STT rate
-  const sellCharges = calculateNseFuturesCharges({
-    side: "SELL",
-    price: 3060,
-    quantity: 250
-  });
+const sellCharges = calculateNseFuturesCharges({ side: "SELL", price: 3060, quantity: 250, asOfDate: SESSION });
+assert.equal(sellCharges.turnover, 765000);
+assert.equal(sellCharges.stt, 383);
+assert.equal(sellCharges.stampDuty, 0);
+assert.equal(calculateNseFuturesCharges({ side: "SELL", price: 3060, quantity: 250, asOfDate: "2024-05-15" }).stt, 96);
+assert.equal(calculateNseFuturesCharges({ side: "SELL", price: 3060, quantity: 250, asOfDate: "2025-01-15" }).stt, 153);
+assert.throws(() => calculateNseFuturesCharges({ side: "unknown", price: 1, quantity: 1 }), /Unsupported/);
 
-  assert.strictEqual(sellCharges.turnover, 765000);
-  assert.strictEqual(sellCharges.brokerage, 20);
-  assert.strictEqual(sellCharges.stt, 383); // 0.05% of 7,65,000 = 382.5 -> 383
-  assert.strictEqual(sellCharges.stampDuty, 0); // No stamp duty on sell side
-  assert(sellCharges.totalCharges > 420 && sellCharges.totalCharges < 430);
+const orderIntent = {
+  executable: true,
+  symbol: "TCS",
+  contractSymbol: "TCS26SEPFUT",
+  clientOrderId: "K2_TCS_L1",
+  side: "long",
+  orderType: "LIMIT",
+  entryPrice: 4200,
+  lotSize: 175,
+  lots: 1,
+  quantity: 175,
+  tickSize: 0.05,
+  expiry: "2026-09-29"
+};
 
-  // Test Case 3: Dated STT support across historical rate revisions
-  const preOct2024 = calculateNseFuturesCharges({ side: "SELL", price: 3060, quantity: 250, asOfDate: "2024-05-15" });
-  assert.strictEqual(preOct2024.stt, 96); // 0.0125% = 95.6 -> 96
+assert.equal(simulateExecutionFill({ orderIntent, asOfDate: SESSION }).reason, "TIMESTAMPED_MARKET_EVIDENCE_REQUIRED");
+assert.equal(simulateExecutionFill({
+  orderIntent,
+  asOfDate: SESSION,
+  currentQuote: { timestamp: QUOTE_TS, open: 4210, high: 4220, low: 4200, close: 4205 }
+}).reason, "LIMIT_TOUCHED_QUEUE_UNPROVEN");
+assert.equal(simulateExecutionFill({
+  orderIntent,
+  asOfDate: SESSION,
+  currentQuote: { timestamp: QUOTE_TS, open: 4210, high: 4220, low: 4199.95, close: 4205 }
+}).fillPrice, 4200);
+assert.equal(simulateExecutionFill({
+  orderIntent,
+  asOfDate: SESSION,
+  currentQuote: { timestamp: QUOTE_TS, open: 4190, high: 4210, low: 4180, close: 4200 }
+}).fillPrice, 4190, "a buy limit opening through its price receives the better open");
 
-  const oct2024ToMar2026 = calculateNseFuturesCharges({ side: "SELL", price: 3060, quantity: 250, asOfDate: "2025-01-15" });
-  assert.strictEqual(oct2024ToMar2026.stt, 153); // 0.02% = 153
-}
+const marketFill = simulateExecutionFill({
+  orderIntent: { ...orderIntent, orderType: "MARKET" },
+  liquidityTier: "HIGH",
+  asOfDate: SESSION,
+  currentQuote: { timestamp: QUOTE_TS, ask: 4200, bid: 4199.95 }
+});
+assert.equal(marketFill.status, "FILLED");
+assert.equal(marketFill.side, "BUY");
+assert.equal(marketFill.fillPrice, 4200.05);
+assert.equal(marketFill.totalSlippageInr, 8.75);
+assert.equal(simulateExecutionFill({
+  orderIntent: { ...orderIntent, side: "invalid" },
+  currentQuote: { timestamp: QUOTE_TS, low: 4100, high: 4300 },
+  asOfDate: SESSION
+}).reason, "MISSING_OR_INVALID_SIDE");
+assert.match(simulateExecutionFill({
+  orderIntent,
+  currentQuote: { timestamp: Date.parse("2026-09-07T10:00:00Z"), low: 4100, high: 4300 },
+  asOfDate: SESSION
+}).reason, /^STALE_QUOTE_SESSION/);
 
-function testExecutionSlippage() {
-  const orderIntent = {
-    symbol: "TCS",
-    contractSymbol: "TCS26SEPFUT",
-    side: "long",
-    orderType: "LIMIT",
-    entryPrice: 4200.00,
-    lotSize: 175,
-    lots: 1,
-    quantity: 175,
-    tickSize: 0.05
-  };
+const entry = simulateExecutionFill({
+  orderIntent: { ...orderIntent, symbol: "INFY", contractSymbol: "INFY26SEPFUT", clientOrderId: "K2_INFY_ENTRY", entryPrice: 1800, lotSize: 400, quantity: 400 },
+  currentQuote: { timestamp: QUOTE_TS, open: 1801, high: 1805, low: 1799.95, close: 1802 },
+  asOfDate: SESSION
+});
+const exit = simulateExecutionFill({
+  orderIntent: { ...orderIntent, symbol: "INFY", contractSymbol: "INFY26SEPFUT", clientOrderId: "K2_INFY_EXIT", side: "sell", orderType: "MARKET", entryPrice: 1836, lotSize: 400, quantity: 400 },
+  currentQuote: { timestamp: QUOTE_TS, bid: 1836, ask: 1836.05 },
+  asOfDate: SESSION
+});
+const note = generateContractNote({
+  tradeId: "TRD_INFY_001",
+  entryFill: entry,
+  exitFill: exit,
+  contract: { expiry: "2026-09-29", marginPct: 0.22 },
+  settlementDate: SESSION
+});
+assert.ok(note.contractNoteNumber.startsWith("CN_"));
+assert.equal(note.settlementDate, SESSION);
+assert.equal(note.contractSymbol, "INFY26SEPFUT");
+assert.equal(note.breakdown.grossPnl, Math.round((exit.fillPrice - entry.fillPrice) * 400 * 100) / 100);
+assert.equal(note.breakdown.netRealizedPnl, Math.round((note.breakdown.grossPnl - note.breakdown.totalTaxesAndCharges) * 100) / 100);
 
-  // Limit orders guarantee price certainty: never fill worse than limit price
-  const fillLimit = simulateExecutionFill({ orderIntent, liquidityTier: "HIGH" });
-  assert.strictEqual(fillLimit.side, "BUY");
-  assert.strictEqual(fillLimit.fillPrice, 4200.00, "Limit orders must fill at requested limit price or better, never worse");
-  assert.strictEqual(fillLimit.slippagePerShare, 0);
-
-  // Market orders accept price uncertainty and pay adverse slippage
-  const marketIntent = { ...orderIntent, orderType: "MARKET" };
-  const fillMarket = simulateExecutionFill({ orderIntent: marketIntent, liquidityTier: "HIGH" });
-  assert.strictEqual(fillMarket.fillPrice, 4200.05, "Market buy order pays 1 tick adverse slippage");
-  assert.strictEqual(fillMarket.totalSlippageInr, 8.75);
-
-  // Quote-aware fill logic: unfilled if market never traded down to limit
-  const unfilled = simulateExecutionFill({
-    orderIntent,
-    currentQuote: { open: 4250, high: 4260, low: 4210, close: 4220 }
-  });
-  assert.strictEqual(unfilled.status, "UNFILLED", "Order must not fill if session low is above limit price");
-}
-
-function testContractNoteGeneration() {
-  const mockIntent = {
-    contractSymbol: "INFY26SEPFUT",
-    side: "long",
-    orderType: "LIMIT",
-    entryPrice: 1800.00,
-    lotSize: 400,
-    lots: 1,
-    quantity: 400,
-    tickSize: 0.05
-  };
-
-  const entry = simulateExecutionFill({ orderIntent: mockIntent, liquidityTier: "HIGH" });
-  const exit = simulateExecutionFill({
-    orderIntent: { ...mockIntent, side: "sell", entryPrice: 1836.00 },
-    liquidityTier: "HIGH"
-  });
-
-  const note = generateContractNote({
-    tradeId: "TRD_INFY_001",
-    entryFill: entry,
-    exitFill: exit,
-    contract: { expiry: "2026-09-24", marginPct: 0.22 }
-  });
-
-  assert(note.contractNoteNumber.startsWith("CN_"));
-  assert.strictEqual(note.contractSymbol, "INFY26SEPFUT");
-  // Gross P&L: (1836 - 1800) * 400 = 14400
-  assert.strictEqual(note.breakdown.grossPnl, 14400);
-  assert(note.breakdown.totalTaxesAndCharges > 400 && note.breakdown.totalTaxesAndCharges < 500);
-  assert.strictEqual(
-    note.breakdown.netRealizedPnl,
-    Math.round((note.breakdown.grossPnl - note.breakdown.totalTaxesAndCharges) * 100) / 100
-  );
-  // Verify return on margin is reported
-  assert(Number.isFinite(note.breakdown.returnOnMarginPct));
-  assert(note.breakdown.returnOnMarginPct > 0);
-}
-
-function run() {
-  testNseFuturesCharges();
-  testExecutionSlippage();
-  testContractNoteGeneration();
-  console.log("Shadow broker simulation & contract note tests passed: authentic NSE tax calculations, slippage and contract notes verified!");
-}
-
-run();
+console.log("Shadow-broker tests passed: dated fee schedule, strict identity, no quote/no fill, trade-through, gap price improvement and adverse market slippage");

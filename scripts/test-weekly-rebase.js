@@ -1,144 +1,161 @@
 "use strict";
 
 const assert = require("node:assert/strict");
+const { accountReconciliation, emptyShadowLedger, positionReconciliation } = require("../api/_lib/shadow-ledger");
+const { runShadowSession } = require("./run-shadow-session");
+const { buildOrderIntent } = require("../api/_lib/recommendation");
+const { evaluatePortfolioRisk } = require("../api/_lib/portfolio-risk");
 
-/**
- * Audit Test Suite: Weekly Performance Rebase & Continuous Position Holding
- *
- * Proves that Friday is NOT an economic exit, positions carry over weekends,
- * and Monday rebase resets weekly reporting reference without altering lifetime P&L,
- * original entry price, or contract quantity.
- */
+const macro = { dataComplete: true, severity: "NORMAL", actionDirective: "NORMAL_OPERATION", missingFields: [] };
+const banState = { available: true, symbols: new Set(), source: "TEST_FIXTURE", fetchedAt: "2026-08-24T06:00:00Z" };
 
-function simulateWeeklyRebaseEngine() {
-  // Test Scenario:
-  // Original purchase on Thursday @ 100, lot size 100 shares.
-  // Friday settlement close: 104.
-  // Monday market open: 103 (1 point negative weekend gap).
-  // Current Monday price: 106.
-
-  const position = {
-    lotId: "LOT_001",
-    symbol: "RELIANCE",
-    contractSymbol: "RELIANCE26SEPFUT",
-    originalEntryPrice: 100.0,
-    entryTimestamp: Date.parse("2026-07-23T10:00:00Z"),
-    quantity: 100,
-    holdingSessions: 2, // Thursday, Friday
-    feesPaid: 45.0,
-    peakLifetimePrice: 104.0
+function contract(symbol, session, quote, overrides = {}) {
+  return {
+    symbol,
+    contractSymbol: `${symbol}26OCTFUT`,
+    instrumentId: `NSE-FO-${symbol}-OCT`,
+    expiry: "2026-10-27",
+    lotSize: 100,
+    tickSize: 0.01,
+    volume: 100000,
+    openInterest: 500000,
+    tradeDate: session,
+    segment: "NSE_FO",
+    spot: quote.settlement,
+    futures: quote.settlement,
+    dayOpen: quote.open,
+    dayHigh: quote.high,
+    dayLow: quote.low,
+    settlement: quote.settlement,
+    ...overrides
   };
-
-  // 1. Friday Processing
-  const fridaySettlementPrice = 104.0;
-  const fridayExitOrders = []; // System must NOT generate an exit order
-
-  // Friday mark-to-market
-  position.previousSettlementPrice = fridaySettlementPrice;
-  position.fridaySettlementPrice = fridaySettlementPrice;
-  position.holdingSessions += 1;
-
-  // Test 1: Friday processing creates no exit order
-  assert.equal(fridayExitOrders.length, 0, "Test 1: Friday processing creates no exit order");
-
-  // Test 2: Friday processing does not reduce position quantity
-  assert.equal(position.quantity, 100, "Test 2: Friday processing does not reduce position quantity");
-
-  // 2. Monday Morning Reference Reset (First tradable session of new week)
-  const mondayOpenPrice = 103.0;
-  const mondayFills = []; // System must NOT generate an artificial buy fill
-
-  // Create WeeklyReferenceSnapshot using Monday open
-  const weeklyReferenceSnapshot = {
-    weeklyReferencePrice: mondayOpenPrice,
-    previousFridayClose: position.fridaySettlementPrice,
-    weekendPriceGap: mondayOpenPrice - position.fridaySettlementPrice, // 103 - 104 = -1
-    rebasedAt: Date.parse("2026-07-27T09:15:00Z")
-  };
-
-  // Record weekend gap P&L
-  const weekendGapPnl = weeklyReferenceSnapshot.weekendPriceGap * position.quantity; // -1 * 100 = -100
-
-  // Update position references without touching original execution
-  position.weeklyReferencePrice = mondayOpenPrice;
-  position.weekendGapPnl = weekendGapPnl;
-  position.holdingSessions += 1; // holding continues across Monday
-
-  // Test 3: Monday reference reset creates no artificial fill
-  assert.equal(mondayFills.length, 0, "Test 3: Monday reference reset creates no artificial fill");
-
-  // Test 4: Existing lots retain original entry prices and timestamps
-  assert.equal(position.originalEntryPrice, 100.0, "Test 4: Original entry price must remain immutable");
-  assert.equal(position.entryTimestamp, Date.parse("2026-07-23T10:00:00Z"), "Test 4: Original timestamp retained");
-
-  // Test 5: The weekend price gap is retained
-  assert.equal(position.weekendGapPnl, -100.0, "Test 5: Weekend gap P&L (-100) must be explicitly retained");
-
-  // 3. Current Monday Intraday Evaluation @ 106.0
-  const currentPrice = 106.0;
-
-  // Weekly P&L resets to measure from Monday opening reference price:
-  // Weekly P&L = (Current price - Weekly reference price) * quantity
-  const weeklyPnl = (currentPrice - position.weeklyReferencePrice) * position.quantity; // (106 - 103) * 100 = +300
-
-  // Lifetime Gross P&L is based on original entry price:
-  // Lifetime P&L = (Current price - Original entry price) * quantity
-  const lifetimeGrossPnl = (currentPrice - position.originalEntryPrice) * position.quantity; // (106 - 100) * 100 = +600
-
-  // Prior week P&L before weekend:
-  const priorWeekPnl = (position.fridaySettlementPrice - position.originalEntryPrice) * position.quantity; // (104 - 100) * 100 = +400
-
-  // Test 6: Weekly P&L resets only as a reporting measure
-  assert.equal(weeklyPnl, 300.0, "Test 6: Weekly P&L resets to 300 from Monday open reference");
-
-  // Test 7: Cumulative P&L reflects total economic move from original entry
-  assert.equal(lifetimeGrossPnl, 600.0, "Test 7: Lifetime gross P&L must equal 600");
-
-  // Test 8: Position holding age continues across Monday
-  assert.equal(position.holdingSessions, 4, "Test 8: Holding sessions must accumulate continuously across Monday");
-
-  // Test 9: Maximum drawdown continues across weekly boundaries
-  const maxPriceSeen = Math.max(position.peakLifetimePrice, currentPrice);
-  const maxDrawdownSeen = Math.min(0, (currentPrice - maxPriceSeen) * position.quantity);
-  assert.equal(maxDrawdownSeen, 0, "Test 9: Drawdown tracks peak lifetime price across boundaries");
-
-  // Test 10: New Monday purchases become separate real lots
-  const newMondayPurchase = {
-    lotId: "LOT_002",
-    symbol: "RELIANCE",
-    originalEntryPrice: 103.50, // executed on Monday afternoon
-    weeklyReferencePrice: mondayOpenPrice,
-    quantity: 100,
-    entryTimestamp: Date.parse("2026-07-27T11:30:00Z")
-  };
-  const allLots = [position, newMondayPurchase];
-  assert.equal(allLots.length, 2, "Test 10: New Monday purchases become separate real lots");
-  assert.notEqual(allLots[0].lotId, allLots[1].lotId);
-  assert.equal(allLots[1].originalEntryPrice, 103.50);
-
-  // Test 11: Roll transactions are genuine close-and-open events
-  const rollEvent = {
-    type: "CONTRACT_ROLL",
-    oldContract: "RELIANCE26SEPFUT",
-    newContract: "RELIANCE26OCTFUT",
-    closedOldPrice: 106.0,
-    openedNewPrice: 106.40, // 0.40 basis difference
-    spreadCost: 40.0,
-    realizedRollPnl: 600.0 - 45.0 // closed out old contract with fees deducted
-  };
-  assert.equal(rollEvent.type, "CONTRACT_ROLL", "Test 11: Roll is an explicit close and open event");
-  assert.equal(rollEvent.openedNewPrice, 106.40);
-
-  // Test 12: Sum of weekly attribution reconciles with lifetime account P&L
-  // Lifetime P&L = Prior Week P&L (+400) + Weekend Gap P&L (-100) + Current Week P&L (+300) = +600
-  const reconciledGrossPnl = priorWeekPnl + weekendGapPnl + weeklyPnl;
-  assert.equal(
-    reconciledGrossPnl,
-    lifetimeGrossPnl,
-    "Test 12: Sum of weekly attribution (400 - 100 + 300) reconciles exactly with lifetime P&L (600)"
-  );
-
-  console.log("ALL 12 Weekly Rebase & Continuous Position Holding tests passed successfully!");
 }
 
-simulateWeeklyRebaseEngine();
+function plan(symbol, side, weekKey, values) {
+  const long = side === "long";
+  const intent = buildOrderIntent({ symbol, side, weekKey, level: 1, sector: "TEST_SECTOR",
+    entry: values.entry, target: values.target, stopLoss: values.stop,
+    targetPct: 2, stopLossPct: 2, riskReward: 1,
+    sizeMultiplier: (Math.abs(values.entry - values.stop) * 100 + 1) / 25000,
+    decisionAt: `${weekKey}T03:45:00Z`,
+    contract: contract(symbol, weekKey, { open: values.entry, high: values.entry, low: values.entry, settlement: values.entry }, { banStatus: "CLEAR" })
+  });
+  const admission = evaluatePortfolioRisk({ proposedOrder: intent, accountEquity: 1_000_000, marketRegime: macro });
+  assert.equal(admission.approved, true, admission.reason);
+  return {
+    generatedAt: `${weekKey}T03:45:00.000Z`,
+    weekKey,
+    best: [{
+      symbol,
+      side,
+      sector: "TEST_SECTOR",
+      action: long ? "buy-ladder" : "sell-ladder",
+      entries: [{
+        level: 1,
+        entry: values.entry,
+        target: values.target,
+        stopLoss: values.stop,
+        portfolioRisk: { admitted: admission.approved, reason: admission.reason },
+        orderIntent: intent
+      }]
+    }]
+  };
+}
+
+function options(session, planObject, ledger, chain) {
+  return {
+    planObject,
+    ledger,
+    book: { tradeDate: session.replaceAll("-", ""), rows: [] },
+    chains: new Map([[chain.symbol, [chain]]]),
+    macro,
+    banState: { ...banState, tradeDate: session },
+    now: new Date(`${session}T12:00:00.000Z`),
+    allowHistoricalBook: true,
+    save: false
+  };
+}
+
+async function testLongLifecycle() {
+  const ledger = emptyShadowLedger(1_000_000);
+  const weeklyPlan = plan("TESTLONG", "long", "2026-08-24", { entry: 100, target: 102, stop: 98 });
+
+  const monday = await runShadowSession(options(
+    "2026-08-24", weeklyPlan, ledger,
+    contract("TESTLONG", "2026-08-24", { open: 100.5, high: 101, low: 99.99, settlement: 100.2 })
+  ));
+  assert.equal(monday.openedCount, 1, "the untouched production plan shape must reach the runner");
+  assert.equal(monday.ledger.positions[0].side, "BUY");
+  assert.equal(monday.ledger.positions[0].originalEntryPrice, 100);
+  const approvedAudit = monday.ledger.auditEvents.find((event) => event.type === "RISK_DECISION" && event.approved === true);
+  assert.ok(approvedAudit, "no order may open without a hashed approved risk decision");
+  assert.equal(monday.settledCount, 1, "An entry must be settled on its first session");
+  const equity = ledger.accountEquity;
+  const repeated = await runShadowSession(options("2026-08-24", weeklyPlan, ledger,
+    contract("TESTLONG", "2026-08-24", { open: 100.5, high: 110, low: 90, settlement: 100.2 })));
+  assert.equal(repeated.idempotent, true, "A second run cannot reinterpret the already processed daily range");
+  assert.equal(ledger.accountEquity, equity);
+
+  const friday = await runShadowSession(options(
+    "2026-08-28", weeklyPlan, ledger,
+    contract("TESTLONG", "2026-08-28", { open: 100.4, high: 101.2, low: 99.5, settlement: 100.8 })
+  ));
+  assert.equal(friday.closedCount, 0, "Friday is not an exit event");
+  assert.equal(friday.ledger.positions.length, 1);
+  assert.equal(friday.ledger.positions[0].previousFridaySettlementPrice, 100.8);
+  const fridayQuantity = friday.ledger.positions[0].quantity;
+  const fridayEquity = friday.ledger.accountEquity;
+
+  const nextMonday = await runShadowSession(options(
+    "2026-08-31", weeklyPlan, ledger,
+    contract("TESTLONG", "2026-08-31", { open: 101.2, high: 101.6, low: 100.7, settlement: 101.3 })
+  ));
+  assert.equal(nextMonday.rebasedCount, 1);
+  assert.equal(nextMonday.ledger.positions[0].originalEntryPrice, 100);
+  assert.equal(nextMonday.ledger.positions[0].weeklyReferencePrice, 101.2);
+  assert.equal(nextMonday.ledger.positions[0].quantity, fridayQuantity);
+  assert.ok(nextMonday.ledger.accountEquity > fridayEquity, "Monday variation margin records the gap; the rebase itself does not erase it");
+  assert.equal(positionReconciliation(nextMonday.ledger.positions[0], 101.3).reconciled, true);
+
+  const tuesday = await runShadowSession(options(
+    "2026-09-01", weeklyPlan, ledger,
+    contract("TESTLONG", "2026-09-01", { open: 102.5, high: 103, low: 102.2, settlement: 102.7 })
+  ));
+  assert.equal(tuesday.closedCount, 1);
+  assert.equal(tuesday.ledger.positions.length, 0);
+  assert.equal(tuesday.ledger.closedTrades[0].exitReason, "TARGET_GAP");
+  assert.equal(tuesday.ledger.closedTrades[0].exitPrice, 102.49, "market exit pays adverse one-tick slippage");
+  assert.equal(accountReconciliation(tuesday.ledger).reconciled, true);
+  assert.equal(tuesday.liveOrderSubmissionEnabled, false);
+}
+
+async function testShortDirection() {
+  const ledger = emptyShadowLedger(1_000_000);
+  const shortPlan = plan("TESTSHORT", "short", "2026-09-07", { entry: 102, target: 99.96, stop: 104.04 });
+  const opened = await runShadowSession(options(
+    "2026-09-07", shortPlan, ledger,
+    contract("TESTSHORT", "2026-09-07", { open: 101, high: 102.01, low: 100.8, settlement: 101.2 })
+  ));
+  assert.equal(opened.openedCount, 1);
+  assert.equal(opened.ledger.positions[0].side, "SELL", "short direction must survive plan, broker and ledger boundaries");
+  const closed = await runShadowSession(options(
+    "2026-09-08", shortPlan, ledger,
+    contract("TESTSHORT", "2026-09-08", { open: 99, high: 99.4, low: 98.8, settlement: 99.1 })
+  ));
+  assert.equal(closed.closedCount, 1);
+  assert.equal(closed.ledger.closedTrades[0].exitReason, "TARGET_GAP");
+  assert.equal(closed.ledger.contractNotes[0].exit.side, "BUY");
+  assert.ok(closed.ledger.closedTrades[0].grossPnl > 0);
+  assert.equal(accountReconciliation(closed.ledger).reconciled, true);
+}
+
+async function run() {
+  await testLongLifecycle();
+  await testShortDirection();
+  console.log("Production-path lifecycle tests passed: untouched plan shape, mandatory risk audit, quote fill, Friday carry, Monday rebase, long/short direction, gap target and reconciliation");
+}
+
+run().catch((error) => {
+  console.error(error.stack || error);
+  process.exitCode = 1;
+});

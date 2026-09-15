@@ -20,15 +20,17 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { weeklyCycle } = require("../api/_lib/weekly-cycle");
-const { weeklyForecast } = require("../api/_lib/ml-model");
+const { features: modelFeatures, weeklyForecast } = require("../api/_lib/ml-model");
 const { fundamentals } = require("../api/_lib/fundamentals");
 const { recommendation, rankRecommendations } = require("../api/_lib/recommendation");
-const { latestBhavcopy, frontFutures, frontStockFutures } = require("../api/_lib/bhavcopy");
+const { banStateForSession, fetchSecurityBanList, latestBhavcopy, frontStockFutures } = require("../api/_lib/bhavcopy");
 const { carry } = require("../api/_lib/carry");
 const { googleStoreConfigured, writeGoogleDocument, readGoogleDocument, appendTradeSignalsToGoogle } = require("../api/_lib/google-store");
-const { createSignalRecord, evaluateOutcome, summarizePerformance } = require("../api/_lib/trade-tracker");
+const { createSignalRecords, evaluateOutcome, summarizePerformance } = require("../api/_lib/trade-tracker");
 const { analyzeOutcomeSignatures } = require("../api/_lib/adaptive-learning");
 const { trendMetrics } = require("../api/_lib/trend");
+const { sectorFor } = require("../api/_lib/sectors");
+const { evaluatePortfolioRisk, DEFAULT_PORTFOLIO_LIMITS } = require("../api/_lib/portfolio-risk");
 
 // Names the desk has traded before, marked on every recommendation. Deliberately
 // not a filter: a name being absent is not evidence it cannot be traded, and 28
@@ -48,19 +50,19 @@ function argument(name, fallback = null) {
 
 // The tradable set is every NSE name with a futures contract. Taking the Nifty
 // 500 list and keeping the intersection missed names that have futures but sit
-// outside that index, so the F&O list itself is the universe and the index file
-// is only a fallback for when the exchange archive cannot be reached.
+// outside that index, so the F&O list itself is the only order-generating
+// universe. The broad index is displayed separately as research-only.
 function universe(front) {
   const explicit = argument("symbols");
-  if (explicit) return explicit.split(",").map((value) => value.trim().toUpperCase()).filter(Boolean);
+  if (explicit && front?.size) {
+    return explicit.split(",").map((value) => value.trim().toUpperCase()).filter((symbol) => front.has(symbol));
+  }
   const limit = Number(argument("limit", "0"));
   if (front?.size) {
     const symbols = [...front.keys()].sort();
     return limit > 0 ? symbols.slice(0, limit) : symbols;
   }
-  const data = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "ai-universe-data.json"), "utf8"));
-  const symbols = (data.stocks || []).map((stock) => String(stock.symbol || "").toUpperCase()).filter(Boolean);
-  return limit > 0 ? symbols.slice(0, limit) : symbols;
+  return [];
 }
 
 async function dailyBars(symbol) {
@@ -104,13 +106,22 @@ async function dailyBars(symbol) {
 // recommendations it cannot act on.
 async function tradableFutures() {
   try {
-    const book = await latestBhavcopy();
+    const [book, banState] = await Promise.all([latestBhavcopy(), fetchSecurityBanList()]);
     const front = frontStockFutures(book.rows);
+    const tradeDate = `${book.tradeDate.slice(0, 4)}-${book.tradeDate.slice(4, 6)}-${book.tradeDate.slice(6, 8)}`;
+    const today = new Intl.DateTimeFormat("en-CA", { timeZone: "Asia/Kolkata", year: "numeric", month: "2-digit", day: "2-digit" }).format(new Date());
+    const banCurrent = banStateForSession(banState, today);
+    for (const contract of front.values()) {
+      contract.tradeDate = /^\d{4}-\d{2}-\d{2}$/.test(String(contract.tradeDate || "")) ? contract.tradeDate : tradeDate;
+      contract.banStatus = banCurrent ? (banState.symbols.has(contract.symbol) ? "BANNED" : "CLEAR") : "UNAVAILABLE";
+      contract.banStatusAsOf = banState.fetchedAt;
+    }
     console.log(`F&O universe from the ${book.tradeDate} bhavcopy: ${front.size} names with a front-month contract`);
-    return { front, asOf: Date.parse(`${book.tradeDate.slice(0, 4)}-${book.tradeDate.slice(4, 6)}-${book.tradeDate.slice(6, 8)}T10:00:00Z`) };
+    if (!banState.available) console.warn(`F&O ban file unavailable; every fresh order will fail closed (${banState.error || "unknown error"}).`);
+    return { front, asOf: Date.parse(`${tradeDate}T10:00:00Z`), tradeDate, banState: { ...banState, available: banCurrent }, verified: true };
   } catch (error) {
-    console.warn(`Could not read the bhavcopy (${String(error?.message || error).slice(0, 90)}); measuring every name without carry.`);
-    return { front: new Map(), asOf: Date.now() };
+    console.warn(`Could not verify the current F&O universe (${String(error?.message || error).slice(0, 120)}); no order-generating symbols will be measured.`);
+    return { front: new Map(), asOf: Date.now(), tradeDate: null, banState: { available: false }, verified: false, error: String(error?.message || error) };
   }
 }
 
@@ -133,15 +144,34 @@ async function planFor(symbol, options) {
   const technicalScore = (metrics?.isUptrendStructure ? 35 : metrics?.isDowntrendStructure ? -35 : 0) +
                          (metrics?.isEfficientTrend ? (metrics?.isUptrendStructure ? 15 : -15) : 0);
   const technical = { score: technicalScore, ready: true, metrics };
-  const plan = recommendation({ symbol, bars, cycle, model, fundamentals: financials, technical, carry: basis, contract });
-  return { ...plan, symbolBars: bars.length, inJournal: JOURNAL.has(symbol) };
+  // Sector must reach the order intent, or portfolio-risk.js cannot enforce its
+  // concentration cap — its check is guarded by `if (proposedOrder.sector)`, so
+  // an absent sector silently exempts the name from the limit entirely.
+  const plan = recommendation({
+    symbol, bars, cycle, model, fundamentals: financials, technical,
+    carry: basis, contract, sector: sectorFor(symbol),
+    requireContract: true,
+    requireFundamentals: !options.skipFundamentals,
+    decisionAt: new Date().toISOString()
+  });
+  const latestIndex = bars.length - 1;
+  const featureRow = modelFeatures(bars, latestIndex);
+  const featureAsOf = bars[latestIndex]?.timestamp ? Number(bars[latestIndex].timestamp) * 1000 : null;
+  return {
+    ...plan,
+    symbolBars: bars.length,
+    sector: sectorFor(symbol),
+    inJournal: JOURNAL.has(symbol),
+    signalFeatures: featureRow,
+    featureAsOf
+  };
 }
 
 async function run() {
   const skipFundamentals = process.argv.includes("--no-fundamentals");
-  const { front, asOf } = await tradableFutures();
+  const { front, asOf, tradeDate, banState, verified, error: universeError } = await tradableFutures();
   const symbols = universe(front);
-  console.log(`Measuring ${symbols.length} name${symbols.length === 1 ? "" : "s"}${front.size ? " — every NSE stock with a futures contract" : " from the stored index"}.
+  console.log(`Measuring ${symbols.length} name${symbols.length === 1 ? "" : "s"}${front.size ? " — current NSE stock-futures contracts" : " — F&O data unavailable; no-trade report"}.
 `);
   const plans = [];
   let failed = 0;
@@ -159,11 +189,89 @@ async function run() {
   }
 
   const ranked = rankRecommendations(plans, { limit: Number(argument("top", "25")) });
+
+  // Portfolio-risk admission. Previously the plan listed every name that cleared
+  // its own vetoes, while portfolio-risk.js -- the module that owns the
+  // concentration, margin and leverage caps -- was consulted only inside
+  // run-shadow-session.js. The plan could therefore recommend twenty names the
+  // risk engine would never have allowed, and the reason a name was impossible
+  // never reached the person reading the plan.
+  //
+  // WHY MACRO GATING IS NOT APPLIED HERE, deliberately: requireCompleteMacro is
+  // a check on data freshness AT ORDER PLACEMENT. The weekly plan is built
+  // before Monday's open and is a candidate list, not an order; the macro state
+  // now is not the macro state at fill time. Gating research on a macro blip
+  // would discard the whole week's work. Execution-time macro and kill-switch
+  // gating lives in run-shadow-session.js, which enforces all three flags.
+  const PLAN_LIMITS = {
+    ...DEFAULT_PORTFOLIO_LIMITS,
+    strictOrderValidation: true,
+    requireSector: true,
+    requireCompleteMacro: false
+  };
+  const admitted = [];
+  for (const item of ranked.best || []) {
+    const entryDecisions = [];
+    for (const entry of Array.isArray(item.entries) ? item.entries : []) {
+      const intent = entry?.orderIntent;
+      const proposed = intent
+        ? { ...intent, symbol: item.symbol, side: item.side, sector: item.sector, level: entry.level }
+        : null;
+      const decision = evaluatePortfolioRisk({
+        proposedOrder: proposed,
+        activePositions: admitted,
+        accountEquity: PLAN_LIMITS.maxTotalCapital,
+        limits: PLAN_LIMITS
+      });
+      entry.portfolioRisk = { admitted: decision.approved, reason: decision.reason };
+      entryDecisions.push(entry.portfolioRisk);
+      if (decision.approved) {
+        admitted.push({
+          clientOrderId: proposed.clientOrderId,
+          symbol: item.symbol,
+          side: item.side,
+          sector: item.sector,
+          marginBlocked: Number(proposed.estMarginRequired),
+          contractNotional: Number(proposed.contractNotional)
+        });
+      }
+    }
+    const approvedCount = entryDecisions.filter((decision) => decision.admitted).length;
+    item.portfolioRisk = {
+      admitted: approvedCount > 0,
+      approvedRungs: approvedCount,
+      consideredRungs: entryDecisions.length,
+      reason: approvedCount > 0
+        ? `APPROVED_${approvedCount}_OF_${entryDecisions.length}_RUNGS`
+        : entryDecisions[0]?.reason || "NO_ORDER_INTENT"
+    };
+  }
+
   const report = {
     generatedAt: new Date().toISOString(),
+    strategyVersion: "continuous-futures-v2",
     weekKey: ranked.generatedFor,
     universe: symbols.length,
+    marketCoverage: (() => {
+      const broad = JSON.parse(fs.readFileSync(path.join(__dirname, "..", "ai-universe-data.json"), "utf8"));
+      const broadSymbols = (broad.stocks || []).map((stock) => String(stock.symbol || "").toUpperCase()).filter(Boolean);
+      const derivatives = new Set(front.keys());
+      return {
+        orderGeneratingStockFutures: front.size,
+        futuresSymbols: [...derivatives].sort(),
+        broadEquitiesTracked: broadSymbols.length,
+        researchOnlyEquities: broadSymbols.filter((symbol) => !derivatives.has(symbol)).length,
+        derivativesAsOf: tradeDate,
+        derivativesVerified: verified,
+        banStatusVerified: banState?.available === true,
+        universeError: universeError || null,
+        broadUniverseSource: broad.source || null,
+        broadUniverseGeneratedAt: broad.generatedAt || null
+      };
+    })(),
     failed,
+    portfolioAdmitted: admitted.length,
+    portfolioLimits: PLAN_LIMITS,
     ...ranked
   };
 
@@ -172,10 +280,13 @@ async function run() {
     const familiar = report.best.filter((item) => item.inJournal).length;
     console.log(`${familiar} of the top ${report.best.length} are names from the trading journal.`);
   }
+  console.log(`Portfolio risk admits ${report.portfolioAdmitted} of ${report.best.length} ranked names (max ${PLAN_LIMITS.maxOpenPositions} positions, max ${PLAN_LIMITS.maxSectorPositions} per sector).\n`);
   report.best.forEach((item, position) => {
     const rungs = item.entries.map((entry) => `L${entry.level} @ ${entry.entry}→${entry.target}`).join("  ");
-    console.log(`${String(position + 1).padStart(2)}. ${item.symbol.padEnd(12)} ${item.side.padEnd(5)} expected ${String(item.expectedWeeklyPct).padStart(6)}%  conviction ${String(item.convictionPct).padStart(5)}  size ×${item.sizeMultiplier}`);
+    const gate = item.portfolioRisk?.admitted ? "TAKE  " : "BLOCKED";
+    console.log(`${String(position + 1).padStart(2)}. ${gate} ${item.symbol.padEnd(12)} ${item.side.padEnd(5)} ${String(item.sector || "-").padEnd(28)} expected ${String(item.expectedWeeklyPct).padStart(6)}%  conviction ${String(item.convictionPct).padStart(5)}  size ×${item.sizeMultiplier}`);
     console.log(`    ${rungs}`);
+    if (!item.portfolioRisk?.admitted) console.log(`    ^ ${item.portfolioRisk?.reason}`);
   });
 
   // Persist & Audit Trade Signals in Ledger
@@ -187,7 +298,22 @@ async function run() {
     }
   } catch {}
 
-  // P0-015: Resolve pending/active trade outcomes using latest market bars
+  // Legacy outcomes were produced before post-signal filtering and fill joins
+  // existed. Preserve them for audit, but never train or report on them.
+  ledger = ledger.map((record) => {
+    if ((record.outcome === "WIN" || record.outcome === "LOSS") && !record.fillOrderId) {
+      return {
+        ...record,
+        quarantinedOutcome: record.outcome,
+        quarantineReason: "LEGACY_OUTCOME_WITHOUT_CONFIRMED_FILL_OR_TEMPORAL_BOUNDARY",
+        outcome: null,
+        status: "QUARANTINED"
+      };
+    }
+    return record;
+  });
+
+  // Resolve only confirmed fills and only with strictly newer market events.
   for (let i = 0; i < ledger.length; i += 1) {
     const record = ledger[i];
     if (record.status === "PENDING" || record.status === "ACTIVE") {
@@ -200,21 +326,13 @@ async function run() {
     }
   }
 
-  // Populate new actionable records with real quantitative features
-  const newRecords = (report.best || []).map((item) => {
-    const quant = item.advancedQuant || {};
-    const trendEv = item.evidence?.trend || {};
-    return createSignalRecord(item, {
-      return5Pct: trendEv.returnPct || 0,
-      return21Pct: (trendEv.returnPct || 0) * 2,
-      atr14Pct: 2.0,
-      realisedVol21Pct: trendEv.annualisedVolatilityPct || 25,
-      rsi14: quant.er ? Math.round(quant.er * 100) : 50,
-      zScore20: quant.hurst ? Number(((quant.hurst - 0.5) * 4).toFixed(2)) : 0,
-      volumeRatio520: quant.vpin ? Number((1 / Math.max(0.1, quant.vpin)).toFixed(2)) : 1.0,
-      highProximityPct: 0
-    });
-  });
+  // One record per rung/order. Feature names and calculations are the exact ML
+  // serving pipeline, not renamed proxies or constants.
+  const newRecords = (report.best || []).flatMap((item) => createSignalRecords(item, {
+    ...(item.signalFeatures || {}),
+    featureAsOf: item.featureAsOf || null,
+    source: "ml-model.features/v1"
+  }));
 
   for (const rec of newRecords) {
     if (!rec) continue;
@@ -232,7 +350,9 @@ async function run() {
 
   try {
     fs.mkdirSync(path.dirname(ledgerPath), { recursive: true });
-    fs.writeFileSync(ledgerPath, JSON.stringify(ledger, null, 2), "utf8");
+    const tempLedgerPath = `${ledgerPath}.tmp`;
+    fs.writeFileSync(tempLedgerPath, JSON.stringify(ledger, null, 2), "utf8");
+    fs.renameSync(tempLedgerPath, ledgerPath);
   } catch {}
 
   const out = argument("out");

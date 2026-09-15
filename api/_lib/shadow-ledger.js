@@ -51,8 +51,15 @@ function normalizeLedger(raw) {
     + Number(ledger.accounting.externalFlows || 0)
     + Number(ledger.accounting.cumulativeVariationPnl || 0)
     - Number(ledger.accounting.cumulativeChargesPaid || 0);
-  if (Math.abs(expectedWithoutMigration + Number(ledger.accounting.migrationAdjustment || 0) - Number(ledger.accountEquity)) > 0.011) {
-    ledger.accounting.migrationAdjustment = round(Number(ledger.accountEquity) - expectedWithoutMigration, 2);
+  const invalidNumbers = [ledger.initialEquity, ledger.accountEquity, ...Object.values(ledger.accounting)]
+    .some((value) => value === null || value === "" || !Number.isFinite(Number(value)));
+  const invalidCollections = ["positions", "closedTrades", "contractNotes", "settlements", "auditEvents"]
+    .some((key) => raw && raw[key] !== undefined && !Array.isArray(raw[key]));
+  // Never invent a balancing adjustment to hide a damaged or legacy ledger.
+  if (invalidNumbers || invalidCollections || (raw && raw.version !== "2.0.0")
+      || Number(ledger.accounting.migrationAdjustment) !== 0
+      || Math.abs(expectedWithoutMigration - Number(ledger.accountEquity)) > 0.011) {
+    triggerKillSwitch(ledger, "LEDGER_RECONCILIATION_OR_MIGRATION_REVIEW_REQUIRED");
   }
   ledger.version = "2.0.0";
   recomputeAvailableMargin(ledger);
@@ -82,7 +89,7 @@ function saveShadowLedger(ledger, filePath = LEDGER_PATH) {
 function appendAuditEvent(ledger, event) {
   ledger.auditEvents ||= [];
   ledger.auditEvents.push({ ...event, recordedAt: event.recordedAt || new Date().toISOString() });
-  if (ledger.auditEvents.length > 10_000) ledger.auditEvents = ledger.auditEvents.slice(-10_000);
+  // Retain the full audit trail; archival/compaction requires explicit handling.
 }
 
 function ensureAccounting(ledger) {
@@ -138,11 +145,18 @@ function positionSign(position) {
 
 function openShadowPosition(ledger, { orderIntent, fillDetails, weekKey, level = 1 }) {
   ensureAccounting(ledger);
+  if (ledger.killSwitch?.triggered) return { opened: false, reason: "LEDGER_KILL_SWITCH_ACTIVE" };
   if (orderIntent?.executable === false) return { opened: false, reason: orderIntent?.rejectionReason || "ORDER_NOT_EXECUTABLE" };
   if (!fillDetails || fillDetails.status !== "FILLED") return { opened: false, reason: fillDetails?.reason || "NO_CONFIRMED_FILL" };
   const intentSide = normalizeOrderSide(orderIntent.side);
   if (!intentSide || fillDetails.side !== intentSide) return { opened: false, reason: "INTENT_FILL_SIDE_MISMATCH" };
   if (String(orderIntent.contractSymbol) !== String(fillDetails.contractSymbol)) return { opened: false, reason: "INTENT_FILL_CONTRACT_MISMATCH" };
+  if (!(Number(fillDetails.fillPrice) > 0) || !Number.isFinite(Number(fillDetails.fillPrice))
+      || Number(fillDetails.quantity) !== Number(orderIntent.quantity)
+      || Number(fillDetails.lotSize) !== Number(orderIntent.lotSize)
+      || Number(fillDetails.quantity) !== Number(fillDetails.lots) * Number(fillDetails.lotSize)) {
+    return { opened: false, reason: "INTENT_FILL_PRICE_OR_QUANTITY_MISMATCH" };
+  }
 
   const tradeId = computeTradeId(
     orderIntent.symbol,
@@ -158,8 +172,8 @@ function openShadowPosition(ledger, { orderIntent, fillDetails, weekKey, level =
 
   const marginRequired = Number(orderIntent.estMarginRequired) || round(fillDetails.fillPrice * fillDetails.quantity * 0.22);
   const entryCharges = Number(fillDetails.fees?.totalCharges || 0);
-  if (!(marginRequired > 0)) return { opened: false, tradeId, reason: "MARGIN_OR_ENTRY_FEES_UNAVAILABLE" };
-  if (ledger.availableMargin < marginRequired) return { opened: false, tradeId, reason: "Insufficient paper margin" };
+  if (!(marginRequired > 0) || !Number.isFinite(marginRequired) || !Number.isFinite(entryCharges) || entryCharges < 0) return { opened: false, tradeId, reason: "MARGIN_OR_ENTRY_FEES_UNAVAILABLE" };
+  if (ledger.availableMargin < marginRequired + entryCharges) return { opened: false, tradeId, reason: "Insufficient paper margin" };
 
   const position = {
     tradeId,
@@ -183,7 +197,6 @@ function openShadowPosition(ledger, { orderIntent, fillDetails, weekKey, level =
     previousSettlementPrice: fillDetails.fillPrice,
     previousFridaySettlementPrice: null,
     targetPrice: Number(orderIntent.targetPrice || orderIntent.target),
-    runnerTargetPrice: Number(orderIntent.runnerTargetPrice) || null,
     stopLossPrice: Number(orderIntent.stopLossPrice || orderIntent.stopLoss),
     marginBlocked: marginRequired,
     marginSource: orderIntent.marginSource || "UNKNOWN",
@@ -207,7 +220,9 @@ function openShadowPosition(ledger, { orderIntent, fillDetails, weekKey, level =
   };
 
   ledger.positions.push(position);
-  ledger.availableMargin = round(ledger.availableMargin - marginRequired, 2);
+  ledger.accountEquity = round(Number(ledger.accountEquity) - entryCharges, 2);
+  ledger.accounting.cumulativeChargesPaid = round(Number(ledger.accounting.cumulativeChargesPaid || 0) + entryCharges, 2);
+  recomputeAvailableMargin(ledger);
   appendAuditEvent(ledger, {
     type: "POSITION_OPENED",
     tradeId,
@@ -226,7 +241,7 @@ function settleShadowPosition(ledger, { tradeId, settlementPrice, session, sourc
   const position = ledger.positions.find((item) => item.tradeId === tradeId);
   if (!position) return { settled: false, reason: "Position not found" };
   const price = Number(settlementPrice);
-  if (!(price > 0) || !/^\d{4}-\d{2}-\d{2}$/.test(String(session || ""))) return { settled: false, reason: "INVALID_SETTLEMENT" };
+  if (!(price > 0) || !Number.isFinite(price) || !/^\d{4}-\d{2}-\d{2}$/.test(String(session || ""))) return { settled: false, reason: "INVALID_SETTLEMENT" };
   if (position.lastSettledSession === session) return { settled: false, reason: "ALREADY_SETTLED", idempotent: true };
   if (position.lastSettledSession && position.lastSettledSession > session) return { settled: false, reason: "OUT_OF_ORDER_SETTLEMENT" };
 
@@ -238,7 +253,8 @@ function settleShadowPosition(ledger, { tradeId, settlementPrice, session, sourc
   position.lastSettledSession = session;
   position.holdingSessions = Number(position.holdingSessions || 0) + 1;
   position.lifetimeGrossPnl = round((price - position.originalEntryPrice) * position.quantity * sign, 2);
-  position.currentUnrealizedPnl = position.lifetimeGrossPnl;
+  // Variation margin has just been posted to equity; do not count it again.
+  position.currentUnrealizedPnl = 0;
   position.weeklyPnl = round((price - position.weeklyReferencePrice) * position.quantity * sign, 2);
   position.lifetimeNetPnl = round(position.lifetimeGrossPnl - Number(position.entryFeesPaid || 0), 2);
   ledger.accountEquity = round(Number(ledger.accountEquity) + variationPnl, 2);
@@ -260,7 +276,8 @@ function rebaseMondayPosition(position, mondayOpenPrice, newWeekKey) {
   const price = Number(mondayOpenPrice);
   if (!(price > 0) || !newWeekKey) return { rebased: false, reason: "INVALID_MONDAY_REFERENCE" };
   if (position.anchorWeek === newWeekKey) return { rebased: false, reason: "ALREADY_REBASED", idempotent: true };
-  const fridayClose = Number(position.previousFridaySettlementPrice || position.previousSettlementPrice || position.weeklyReferencePrice || position.originalEntryPrice);
+  if (position.anchorWeek > newWeekKey) return { rebased: false, reason: "OUT_OF_ORDER_WEEK" };
+  const fridayClose = Number(position.previousSettlementPrice || position.weeklyReferencePrice || position.originalEntryPrice);
   const completedWeek = round((fridayClose - Number(position.weeklyReferencePrice)) * Number(position.quantity) * positionSign(position), 2);
   position.completedWeeklyPnl = round(Number(position.completedWeeklyPnl || 0) + completedWeek, 2);
   const weekendGap = round((price - fridayClose) * position.quantity * positionSign(position), 2);
@@ -287,7 +304,11 @@ function closeShadowPosition(ledger, { tradeId, exitFill, contractNote, reason }
   if (idx === -1) return { closed: false, reason: "Position not found" };
   const position = ledger.positions[idx];
   if (!exitFill || exitFill.status !== "FILLED" || !contractNote) return { closed: false, reason: "CONFIRMED_EXIT_FILL_AND_CONTRACT_NOTE_REQUIRED" };
-  if (exitFill.side === position.side) return { closed: false, reason: "EXIT_SIDE_MUST_OFFSET_POSITION" };
+  if (normalizeOrderSide(exitFill.side) !== (normalizeOrderSide(position.side) === "BUY" ? "SELL" : "BUY")) return { closed: false, reason: "EXIT_SIDE_MUST_OFFSET_POSITION" };
+  if (exitFill.contractSymbol !== position.contractSymbol || Number(exitFill.quantity) !== Number(position.quantity)
+      || !(Number(exitFill.fillPrice) > 0) || !Number.isFinite(Number(exitFill.fillPrice))) {
+    return { closed: false, reason: "EXIT_CONTRACT_PRICE_OR_QUANTITY_MISMATCH" };
+  }
 
   const sign = positionSign(position);
   const finalVariationPnl = round((exitFill.fillPrice - Number(position.previousSettlementPrice)) * position.quantity * sign, 2);
@@ -296,14 +317,14 @@ function closeShadowPosition(ledger, { tradeId, exitFill, contractNote, reason }
   const totalFees = round(Number(position.entryFeesPaid || 0) + exitFees, 2);
   const netPnl = round(lifetimeGrossPnl - totalFees, 2);
 
-  ledger.availableMargin = round(ledger.availableMargin + position.marginBlocked, 2);
   const alreadySettled = Number(position.cumulativeVariationPnl || 0);
-  const remainingEquityChange = round(netPnl - alreadySettled, 2);
+  const remainingEquityChange = round(lifetimeGrossPnl - alreadySettled - exitFees, 2);
   ledger.accountEquity = round(Number(ledger.accountEquity) + remainingEquityChange, 2);
   const variationPnlToAdd = round(lifetimeGrossPnl - alreadySettled, 2);
   ledger.accounting.cumulativeVariationPnl = round(Number(ledger.accounting.cumulativeVariationPnl || 0) + variationPnlToAdd, 2);
-  ledger.accounting.cumulativeChargesPaid = round(Number(ledger.accounting.cumulativeChargesPaid || 0) + totalFees, 2);
+  ledger.accounting.cumulativeChargesPaid = round(Number(ledger.accounting.cumulativeChargesPaid || 0) + exitFees, 2);
   ledger.positions.splice(idx, 1);
+  recomputeAvailableMargin(ledger);
 
   const closedRecord = {
     ...position,
@@ -343,6 +364,7 @@ function closeShadowPosition(ledger, { tradeId, exitFill, contractNote, reason }
 }
 
 function triggerKillSwitch(ledger, reason) {
+  if (ledger.killSwitch?.triggered) return ledger.killSwitch;
   ledger.killSwitch = { triggered: true, reason: String(reason || "MANUAL"), triggeredAt: new Date().toISOString() };
   appendAuditEvent(ledger, { type: "KILL_SWITCH_TRIGGERED", reason: ledger.killSwitch.reason });
   return ledger.killSwitch;

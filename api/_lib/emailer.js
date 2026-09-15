@@ -4,6 +4,9 @@ const fs = require("node:fs");
 const path = require("node:path");
 
 const DEFAULT_RECIPIENT = "kuldeepsavaliya70@gmail.com";
+const numeric = (value) => typeof value === "number" && Number.isFinite(value);
+const formatted = (value) => numeric(value) ? value.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) : "—";
+const percentage = (value) => numeric(value) ? `${value >= 0 ? "+" : ""}${value.toFixed(2)}%` : "—";
 
 // Auto-load .env.local if present
 const envLocal = path.resolve(__dirname, "../../.env.local");
@@ -29,11 +32,12 @@ function buildEmailHtml({
 }) {
   const isBloodbath = radar.severity === "CRITICAL_BLOODBATH";
   const isElevated = radar.severity === "ELEVATED_RISK";
+  const unavailable = !radar.severity || radar.severity === "DATA_UNAVAILABLE";
 
   const radarBorder = isBloodbath ? "#dc2626" : isElevated ? "#d97706" : "#059669";
   const radarBg = isBloodbath ? "#fef2f2" : isElevated ? "#fffbeb" : "#ecfdf5";
   const radarTitleColor = isBloodbath ? "#991b1b" : isElevated ? "#92400e" : "#065f46";
-  const radarBadgeText = isBloodbath ? "CRITICAL BLOOD BATH SHIELD ACTIVE" : isElevated ? "ELEVATED RISK SHIELD ACTIVE" : "GLOBAL MARKET REGIME: STABLE";
+  const radarBadgeText = unavailable ? "MACRO DATA UNVERIFIED — NEW ORDERS BLOCKED" : isBloodbath ? "CRITICAL SHOCK — NEW ORDERS BLOCKED" : isElevated ? "ELEVATED RISK SHIELD ACTIVE" : "GLOBAL MARKET REGIME: STABLE";
 
   return `<!doctype html>
 <html lang="en">
@@ -266,17 +270,17 @@ function buildEmailHtml({
     <!-- Macro Radar Header -->
     <div class="radar-card">
       <div class="radar-title">🛡️ ${radarBadgeText}</div>
-      <p class="radar-desc">${radar.summary || "Global macro drivers are within operating boundaries. Normal risk management rules apply."}</p>
+      <p class="radar-desc">${radar.summary || "Required macro data is unavailable. No new-order conclusion can be made."}</p>
     </div>
 
     <!-- Section 1: Exits & Sells -->
     ${sells.length ? `
-    <div class="section-header sh-red">🚨 1. IMMEDIATE EXITS & SELLS (ACTION AT 9:15 AM OPEN)</div>
+    <div class="section-header sh-red">🚨 1. EXIT CONDITIONS REQUIRING FRESH-QUOTE REVIEW</div>
     ${sells.map(s => `
       <div class="stock-card card-exit">
         <div class="card-top">
           <span class="ticker">${s.symbol}</span>
-          <span class="badge badge-sell">SELL AT OPEN</span>
+          <span class="badge badge-sell">${s.action || "EXIT REVIEW"}</span>
         </div>
         <div class="data-grid">
           <div class="data-item">
@@ -284,8 +288,8 @@ function buildEmailHtml({
             <span class="data-val val-red">₹${s.price ? s.price.toFixed(2) : "—"}</span>
           </div>
           <div class="data-item">
-            <span class="data-label">Action</span>
-            <span class="data-val val-red">CUT / PROTECT</span>
+            <span class="data-label">Status</span>
+            <span class="data-val val-red">BROKER ACK REQUIRED</span>
           </div>
         </div>
         <div class="reason-box">⚠️ <b>Risk Rationale:</b> ${s.reason}</div>
@@ -295,7 +299,7 @@ function buildEmailHtml({
 
     <!-- Section 2: Buy Setups -->
     ${buys.length ? `
-    <div class="section-header sh-green">🎯 2. QUALIFIED BUY SETUPS (TODAY'S LADDERS)</div>
+    <div class="section-header sh-green">🎯 2. RISK-ADMITTED LONG CANDIDATES (LIMIT ORDERS ONLY)</div>
     ${buys.map(b => `
       <div class="stock-card card-buy">
         <div class="card-top">
@@ -308,11 +312,11 @@ function buildEmailHtml({
             <span class="data-val">₹${b.entry ? b.entry.toFixed(2) : "—"}</span>
           </div>
           <div class="data-item">
-            <span class="data-label">Max Buy Cap (+0.8%)</span>
+            <span class="data-label">Do-not-chase limit</span>
             <span class="data-val">₹${b.maxCap ? b.maxCap.toFixed(2) : "—"}</span>
           </div>
           <div class="data-item">
-            <span class="data-label">Sell Target 1</span>
+            <span class="data-label">Fixed target</span>
             <span class="data-val val-green">₹${b.target ? b.target.toFixed(2) : "—"}</span>
           </div>
           <div class="data-item">
@@ -326,7 +330,7 @@ function buildEmailHtml({
 
     <!-- Section 3: Shorts & Hedges -->
     ${shortsAndPuts.length ? `
-    <div class="section-header sh-blue">📉 3. SHORT LADDERS & INDEX PUT HEDGES (PE)</div>
+    <div class="section-header sh-blue">📉 3. RISK-ADMITTED STOCK-FUTURES SHORT CANDIDATES</div>
     ${shortsAndPuts.map(p => `
       <div class="stock-card card-short">
         <div class="card-top">
@@ -335,7 +339,7 @@ function buildEmailHtml({
         </div>
         <div class="data-grid">
           <div class="data-item">
-            <span class="data-label">Strike / Entry</span>
+            <span class="data-label">Limit entry</span>
             <span class="data-val">₹${p.entry ? p.entry.toFixed(2) : "—"}</span>
           </div>
           <div class="data-item">
@@ -353,7 +357,7 @@ function buildEmailHtml({
 
     <!-- Section 4: Existing Open Holdings -->
     ${holds.length ? `
-    <div class="section-header sh-amber">🛡️ 4. OPEN HOLDINGS & TRAILING STOPS</div>
+    <div class="section-header sh-amber">🛡️ 4. OPEN FUTURES & FIXED EXIT LEVELS</div>
     ${holds.map(h => `
       <div class="stock-card card-hold">
         <div class="card-top">
@@ -366,16 +370,16 @@ function buildEmailHtml({
             <span class="data-val">₹${h.current ? h.current.toFixed(2) : "—"}</span>
           </div>
           <div class="data-item">
-            <span class="data-label">Trailing Stop</span>
+            <span class="data-label">Fixed stop</span>
             <span class="data-val val-amber">₹${h.trailingStop ? h.trailingStop.toFixed(2) : "—"}</span>
           </div>
           <div class="data-item">
-            <span class="data-label">Target 1</span>
+            <span class="data-label">Fixed target</span>
             <span class="data-val val-green">₹${h.target ? h.target.toFixed(2) : "—"}</span>
           </div>
           <div class="data-item">
             <span class="data-label">P&L Status</span>
-            <span class="data-val ${h.pnlPct >= 0 ? 'val-green' : 'val-red'}">${h.pnlPct ? (h.pnlPct >= 0 ? '+' : '') + h.pnlPct.toFixed(2) + '%' : '0.00%'}</span>
+            <span class="data-val ${h.pnlPct >= 0 ? 'val-green' : 'val-red'}">${percentage(h.pnlPct)}</span>
           </div>
         </div>
       </div>
@@ -402,8 +406,8 @@ function buildEmailHtml({
             <tr>
               <td><b>${m.name}</b></td>
               <td><code>${m.ticker}</code></td>
-              <td class="n">${m.price ? (m.price >= 1000 ? m.price.toLocaleString('en-IN', { maximumFractionDigits: 2 }) : m.price.toFixed(2)) : "—"}</td>
-              <td class="n"><span style="font-weight:700;color:${m.threat === 'ELEVATED' || m.threat === 'CRITICAL' ? '#b91c1c' : '#047857'}">${m.changePct ? (m.changePct >= 0 ? '+' : '') + m.changePct.toFixed(2) + '%' : '0.00%'}</span></td>
+              <td class="n">${formatted(m.price)}</td>
+              <td class="n"><span style="font-weight:700;color:${m.threat === 'ELEVATED' || m.threat === 'CRITICAL' ? '#b91c1c' : '#047857'}">${percentage(m.changePct)}</span></td>
               <td style="font-size:12px;color:#475569;">${m.impact}</td>
               <td><span class="badge ${m.threat === 'CRITICAL' ? 'badge-sell' : m.threat === 'ELEVATED' ? 'badge-hold' : 'badge-buy'}">${m.threat || 'NORMAL'}</span></td>
             </tr>
@@ -416,7 +420,7 @@ function buildEmailHtml({
 
   <div class="footer">
     Sent by <b>K² Range Desk Quantitative Decision Engine</b> to <b>${DEFAULT_RECIPIENT}</b>.<br>
-    Mathematical safeguards active: Black-Scholes-Merton PDE, Hurst Fractal Dimension ($H$), VPIN Flow Toxicity, and Classical Structure Recognition.
+    Research/shadow output only. A candidate is not a fill; current quote, risk approval, broker acknowledgement and reconciliation remain mandatory.
   </div>
 </div>
 </body>
@@ -426,38 +430,65 @@ function buildEmailHtml({
 /**
  * Saves report locally and dispatches email via Google Apps Script Webhook.
  */
-async function sendDailyTradeEmail(payload) {
+async function sendDailyTradeEmail(payload, options = {}) {
   const html = buildEmailHtml(payload);
   const outDir = path.resolve(__dirname, "../../exports");
-  if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
   const outPath = path.join(outDir, "daily-trade-email.html");
-  fs.writeFileSync(outPath, html, "utf8");
-  console.log(`\nDaily trade email report generated: file:///${outPath.replace(/\\\\/g, "/")}`);
-
-  const webhookUrl = process.env.K2_EMAIL_WEBHOOK_URL;
-  if (webhookUrl) {
-    try {
-      console.log(`Sending mobile-optimized executive briefing to ${DEFAULT_RECIPIENT} via Webhook...`);
-      const response = await fetch(webhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          to: DEFAULT_RECIPIENT,
-          subject: `⚡ K² Desk Briefing: ${payload.dateStr || "Today"} (${payload.radar?.severity || "NORMAL"})`,
-          html
-        })
-      });
-      const text = await response.text();
-      console.log(`Google Webhook response: ${text.slice(0, 150)}`);
-      return { success: true, method: "google_apps_script", recipient: DEFAULT_RECIPIENT };
-    } catch (e) {
-      console.warn("Google Apps Script Webhook dispatch failed:", e.message);
-    }
-  } else {
-    console.log("Tip: Set K2_EMAIL_WEBHOOK_URL in environment or GitHub Secrets to enable automatic Gmail delivery.");
+  if (options.writeLocal !== false) {
+    if (!fs.existsSync(outDir)) fs.mkdirSync(outDir, { recursive: true });
+    fs.writeFileSync(outPath, html, "utf8");
+    console.log(`\nDaily trade email report generated: file:///${outPath.replace(/\\\\/g, "/")}`);
   }
 
-  return { success: true, method: "local_html_ready", file: outPath, recipient: DEFAULT_RECIPIENT };
+  const webhookUrl = process.env.K2_EMAIL_WEBHOOK_URL;
+  const webhookSecret = process.env.K2_EMAIL_WEBHOOK_SECRET;
+  const idempotencyKey = String(options.idempotencyKey || "").trim();
+  if (webhookUrl) {
+    if (!webhookSecret) throw new Error("K2_EMAIL_WEBHOOK_SECRET is required for authenticated delivery acknowledgement");
+    if (!idempotencyKey) throw new Error("A durable idempotency key is required for email delivery");
+    console.log(`Sending mobile-optimized executive briefing to ${DEFAULT_RECIPIENT} via Webhook...`);
+    const response = await fetch(webhookUrl, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        dispatchSecret: webhookSecret,
+        idempotencyKey,
+        to: DEFAULT_RECIPIENT,
+        subject: `⚡ K² Desk Briefing: ${payload.dateStr || "Today"} (${payload.radar?.severity || "DATA_UNAVAILABLE"})`,
+        html
+      }),
+      signal: AbortSignal.timeout(30_000)
+    });
+    const text = await response.text();
+    if (!response.ok) throw new Error(`Email webhook returned HTTP ${response.status}: ${text.slice(0, 120)}`);
+    let acknowledgement;
+    try { acknowledgement = JSON.parse(text); }
+    catch { throw new Error("Email webhook did not return a structured JSON acknowledgement"); }
+    const messageId = String(acknowledgement?.messageId || acknowledgement?.id || "").trim();
+    if (acknowledgement?.ok !== true || acknowledgement?.delivered !== true || !messageId) {
+      throw new Error(`Email webhook did not confirm delivery: ${text.slice(0, 120)}`);
+    }
+    if (String(acknowledgement.idempotencyKey || "") !== idempotencyKey) {
+      throw new Error("Email acknowledgement idempotency key mismatch");
+    }
+    return {
+      success: true,
+      delivered: true,
+      method: "google_apps_script",
+      recipient: DEFAULT_RECIPIENT,
+      messageId,
+      idempotencyKey
+    };
+  }
+
+  return {
+    success: false,
+    delivered: false,
+    method: "local_html_only",
+    file: outPath,
+    recipient: DEFAULT_RECIPIENT,
+    reason: "K2_EMAIL_WEBHOOK_URL is not configured"
+  };
 }
 
 module.exports = {

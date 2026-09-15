@@ -1246,3 +1246,373 @@ VERIFICATION LOG FOR APPENDIX A
 ================================================================================
 END OF APPENDIX A
 ================================================================================
+
+
+================================================================================
+APPENDIX B -- ROUND 2: RE-AUDIT OF THE REMEDIATION, AND WHAT THE CORRECTED
+               MEASUREMENT LAYER ACTUALLY SHOWS
+Date: 2026-09-08   Reviewed: a29c4c1 (7 commits after the audited 153e62c)
+================================================================================
+
+--------------------------------------------------------------------------------
+B-0  HEADLINE: WITH THE MEASUREMENT LAYER FIXED, THE SHIPPED GEOMETRY HAS NO EDGE
+     -- AND HIT RATE IS INVERSELY RELATED TO PROFIT
+--------------------------------------------------------------------------------
+Pooled across 40 liquid NSE names, 5 years of dividend-adjusted daily bars,
+0.08% round-trip cost, trade-through fills, capital-weighted returns, stop
+enabled, t-statistics cluster-robust on the DATE (all names in a week share one
+market factor, so they are not independent observations).
+
+LONG LADDER, 2% step, stop x target sweep (14 cells, deflated t-hurdle 2.30):
+
+  stop%  tgt2 avgNet%      t   hit%   w/l   |  tgt3 avgNet%      t
+  -----  ------------  -----  -----  -----  |  ------------  -----
+     1        +0.1124   2.87   42.1  1.565  |      +0.2104   4.23   <== both clear
+     2        -0.0060  -0.11   51.1  0.801  |      +0.0888   1.31
+     3        -0.0635  -0.90   54.8  0.539  |      +0.0241   0.29
+     4        -0.0932  -1.17   56.6  0.406  |      -0.0097  -0.11
+     6        -0.1383  -1.52   57.4  0.273  |      -0.0556  -0.53
+     8        -0.1545  -1.62   57.7  0.206  |      -0.0715  -0.65
+  none        -0.1665  -1.50   58.0  0.027  |      -0.0834  -0.65
+
+READ THE HIT-RATE COLUMN AGAINST THE P&L COLUMN. They move in OPPOSITE
+directions, monotonically, across every single cell:
+
+    stop widens  ->  hit rate RISES 42.1% -> 58.0%
+    stop widens  ->  P&L      FALLS +0.11% -> -0.17% per fill
+    stop widens  ->  avg win / worst loss COLLAPSES 1.565 -> 0.027
+
+This is the cleanest empirical proof available that the rung-selection gate this
+system shipped was choosing the worst configuration on purpose. The old filter
+admitted a rung on `Number(entry.lowerPct) >= 45` -- the Wilson lower bound on
+HIT RATE. Optimise that column and you land on the no-stop cell: the best hit
+rate in the table (58.0%), the worst expectancy (-0.1665%), and a worst single
+trade of -61.84%. Gate on the tail instead (the w/l and CVaR columns, which is
+what this round changed) and you land on the tight-stop cell that actually pays.
+
+THE SHIPPED CONFIGURATION -- 2% step, 2% target, 2% stop -- IS THE BREAKEVEN
+CELL. avgNet -0.0060% per fill, t = -0.11. Not a small edge. No edge.
+
+The short side reproduces the identical structure with the opposite sign
+(stop 1% -> 4%: hit rate 37.1% -> 51.8%, avgNet -0.0575% -> -0.3296%, all
+significantly negative). Two independent sides, same monotonic inversion, is a
+strong internal consistency check on the finding.
+
+WHY THE TIGHT STOP WORKS, structurally
+  Anchor 100, 2% step. Rung 1 fills at 98.00; a 1% stop sits at 97.02. Rung 2
+  fills at 96.04. So rung 1 is stopped out BEFORE rung 2 fills. The tight stop
+  dismantles the martingale: instead of averaging down into a falling name, the
+  desk takes a sequence of independent 1%-risk / 2-3%-reward bets at a ~40% hit
+  rate, which is positive expectancy. The 2-8% stops preserve the martingale,
+  and the martingale is what was losing the money.
+
+CAVEAT, stated plainly: the table above is in-sample over the full five years.
+t = 4.23 against a hurdle deflated for 14 cells is strong, but a sweep result is
+not evidence until it survives out of sample. See B-6.
+
+
+--------------------------------------------------------------------------------
+B-1  WHAT THE REMEDIATION GENUINELY FIXED -- verified, not taken on trust
+--------------------------------------------------------------------------------
+C-1  stopLossPct: 2.0 now in DEFAULT_CONFIG (weekly-cycle.js:12-23).  CLOSED
+C-2  capitalWeighted: true, and weekNetPct defaults to the capital-weighted
+     figure.  CLOSED
+C-4  STT now carries a DATED rate schedule -- 0.0125% pre-Oct-2024, 0.02% to
+     Mar-2026, 0.05% after (shadow-broker.js:63-73). This is BETTER than the
+     counter-audit asked for: a flat corrected rate would have mis-costed every
+     historical backtest. Exchange charge corrected to 0.00183%. IPFT added.
+     CLOSED
+A-1  Dividend adjustment implemented in BOTH paths (weekly-plan.js:66-100,
+     market-feed.js:1-30), applying the adjClose/rawClose factor to open, high
+     and low rather than only to the close. Correct.  CLOSED
+C-6  portfolio-risk.js is a real engine: kill switch, aggregate margin cap,
+     position cap, sector cap, gross-notional cap, single-name risk cap, macro
+     shield gating, order schema validation.  SUBSTANTIALLY CLOSED (see B-2)
+M-1  verdict() now selects the side on IN-SAMPLE expectedWeeklyPct instead of
+     peeking at the held-out block (weekly-cycle.js verdict()).  CLOSED
+     scripts/verify-ci-flags.js exists and runs inside `npm run check`.  CLOSED
+
+ALREADY CLOSED BEFORE THE NEW DOSSIER WAS WRITTEN -- do not spend a cycle on
+these; INDEPENDENT_FINAL_COUNTER_AUDIT_2026-09-07.txt is STALE relative to HEAD:
+  Its P0-03 "long order intent becomes a SELL": normalizeOrderSide() returns
+    null for anything unrecognised and calculateNseFuturesCharges throws on it
+    (shadow-broker.js:29-34, 38). Fails closed. Already fixed.
+  Its P1-03 "tick size wrong below INR 250": stockFutureTickSize() returns 0.01
+    below 250 and 0.05 at or above (bhavcopy.js:26-32), and buildOrderIntent
+    throws without a valid tick. Already fixed.
+That document is worth reading for its P0-01, P0-08, P0-09 and P0-12, which this
+counter-audit independently confirms. Verify each item against HEAD before
+acting on it.
+
+
+--------------------------------------------------------------------------------
+B-2  THE PATTERN RETURNED IN THE NEW WORK -- three new features, same shape
+--------------------------------------------------------------------------------
+The thesis of the original counter-audit was: a control that is written, tested
+for presence, and not actually wired is not a control. All three features added
+in commits b50f6ef / d2d3df0 / a29c4c1 reproduced it.
+
+(a) THE RISK ENGINE SHIPPED WITH THREE SAFETY FLAGS DEFAULTED OFF
+    portfolio-risk.js:24-27
+      requireCompleteMacro:   false
+      requireSector:          false
+      strictOrderValidation:  false
+    run-shadow-session.js consumed DEFAULT_PORTFOLIO_LIMITS without overriding
+    any of them, so the path that places orders ran with its order-schema
+    validation, its sector requirement and its macro-freshness gate all
+    disabled. A default-off safety control is the same defect class as a fix
+    behind a test-only flag.
+    FIXED THIS ROUND: run-shadow-session.js now defines EXECUTION_LIMITS with
+    all three true, and verify-ci-flags.js fails the build if any is not.
+
+(b) THE SECTOR CONCENTRATION CAP WAS STRUCTURALLY DEAD
+    portfolio-risk.js guards its cap with `if (proposedOrder.sector)`. Nothing
+    in the repository ever populated it -- weekly-plan.js never passed a sector
+    -- so the branch was unreachable and five simultaneous Metals & Mining
+    positions would have passed every risk check in the system.
+    The classification was already on disk, unread, in the `Industry` column of
+    data/nifty500-constituents.csv: 500 rows, 20 sectors, 499 of 500 matching
+    the traded universe.
+    FIXED THIS ROUND: api/_lib/sectors.js resolves it, weekly-plan.js passes it
+    into recommendation(), and an unknown symbol resolves to UNCLASSIFIED rather
+    than null -- a real bucket that counts against the same cap -- so a stale CSV
+    constrains the name instead of exempting it.
+
+(c) THE RANKED PLAN WAS NEVER PORTFOLIO-RISK GATED
+    evaluatePortfolioRisk was called only from run-shadow-session.js. The weekly
+    plan -- the document a person reads and acts on -- listed every name that
+    cleared its own vetoes, including names the risk engine would have refused,
+    and never showed why one was impossible.
+    FIXED THIS ROUND: weekly-plan.js walks the ranked list through the risk
+    engine in order, marks each name TAKE or BLOCKED with the reason, and reports
+    how many of the ranked names are actually admissible.
+    Deliberate split, documented in both files: the plan enforces the STRUCTURAL
+    caps but not requireCompleteMacro, because the plan is built before Monday's
+    open and macro state then is not macro state at fill time; gating research on
+    a macro blip would discard the week's work. Execution enforces all of it.
+
+(d) THE 3-TIER STAGED EXIT WAS INSTRUCTED BUT NOT MEASURED
+    recommendation.js writes a staged plan into the payload -- "bank 50% at T1,
+    slide the stop to breakeven, bank 25% at T2, trail 25% to T3" -- and the
+    portal shows it to the desk. replayWeek() exited 100% at a single target.
+    So the expectancy printed next to that instruction described a different
+    strategy from the one being instructed.
+    FIXED THIS ROUND: replayWeek/replayContinuous model tranches natively, and
+    STAGED_EXIT_3_TIER mirrors the payload EXACTLY -- including the floors
+    `max(5.0, targetPct*2.2)` and `max(15.0, targetPct*7.5)`. Those floors
+    matter: at the shipped 2% target, tier 2 is 5.0%, not 4.4%. A plain 2.2x
+    multiple would have measured a ladder nobody was told to trade.
+
+(e) THE 8-PILLAR SCORE IS A DISPLAY AGGREGATION, NOT A DECISION ENGINE
+    STILL OPEN, and reported rather than changed because it is a design choice.
+    `eightPillars` collects values that already exist into a JSON block for the
+    portal. It computes no composite, gates nothing, and vetoes nothing. Its
+    tests assert only that the keys are present:
+      scripts/test-multi-target-holding.js:150-155
+        assert.ok(rec.eightPillars.pillar1_fundamentals !== undefined, ...)
+    A test that a key exists is not a test that a number is right. Naming a
+    presentation layer after a decision framework invites the reader to believe
+    eight independent checks were passed.
+
+
+--------------------------------------------------------------------------------
+B-3  WHAT I FIXED IN THE MEASUREMENT LAYER, AND WHAT IT WAS WORTH
+--------------------------------------------------------------------------------
+All of the following are in api/_lib/weekly-cycle.js, on by default, and asserted
+BEHAVIOURALLY by scripts/verify-ci-flags.js.
+
+C-7  CLUSTER-ROBUST STANDARD ERRORS (clusterStandardError)
+     Was: sigma / sqrt(fills), treating five rungs of one week as five
+     independent observations. Now: the sandwich estimator clustering on the
+     week, with the finite-cluster correction, and both figures reported next to
+     an explicit standardErrorInflationFactor.
+     HONEST MAGNITUDE: smaller than I predicted. Per-name inflation ran 1.00x to
+     1.30x, not the ~3x I asserted -- because the ladder rarely goes deep. On
+     RELIANCE, 64.8% of weeks fill zero rungs and 24.5% fill exactly one, so
+     there is usually nothing to cluster. The correction is right in principle
+     and modest in practice. I over-claimed its size in the first report.
+
+C-8  TRADE-THROUGH FILLS (fillRequiresTradeThrough, default true)
+     A resting limit order now requires the market to trade THROUGH the price,
+     not merely touch it, on entries and on profit targets. Stops remain
+     deliberately asymmetric and trigger on touch.
+     HONEST MAGNITUDE: on real continuous prices this is very nearly a no-op,
+     because exact equality between a computed rung price and a market low
+     essentially never occurs. It is correct, it closes a real hole in synthetic
+     tests, and it is NOT where fill realism actually bites. The real exposure is
+     queue position and partial fills at a price the market did trade through
+     briefly -- unmodelled, and the honest next step on execution realism.
+
+A-5  TAIL-BASED RUNG SELECTION -- the change that mattered
+     Was: fills >= 5 AND averageNet > 0 AND t >= hurdle AND lowerPct >= 45.
+     Now: independent WEEKS >= requiredClusters AND averageNet > 0 AND
+     cluster-robust t >= hurdle AND CVaR95 <= maxRungCvar95Pct AND
+     avgWin/worstLoss >= minWinToWorstLossRatio.
+     Hit rate is still reported; it no longer admits anything. Per B-0 this is
+     the difference between selecting a profitable configuration and selecting
+     the one with a -61.84% worst trade. Rejections are now itemised per rung in
+     `rungRejections` so a stand-aside says which test failed.
+
+EXIT POLICY MADE EXPLICIT AND MEASURABLE (exitPolicy, replayContinuous)
+     "friday-flat" books every open leg at the Friday close. "continuous" carries
+     legs across weekends, re-anchoring only NEW entries each Monday, and
+     attributes weekly return as realised P&L plus the change in unrealised P&L
+     so the weekly series still reconciles to lifetime P&L. See B-4.
+
+ALSO: a real Sharpe ratio now nets a 6.5% risk-free rate; the prior figure did
+not, so it was a return/vol ratio wearing a Sharpe label. Both are reported.
+Under "continuous", annualisationValid is set false with the reason attached,
+because carrying legs across weekends makes the weekly series serially
+correlated and sqrt(52) then understates variance.
+ADDED: maxDrawdownPct, timeUnderWaterPct, ulcerIndex, cvar95WeeklyPct, and
+depthProfile() -- the distribution of how deep the ladder went, which is the
+loss mode nothing in the repo had ever estimated.
+
+
+--------------------------------------------------------------------------------
+B-4  THE EXIT-POLICY CONFLICT IS REAL AND IT IS YOURS TO SETTLE
+--------------------------------------------------------------------------------
+Three artefacts in this system state three different rules for the same
+parameter, and it is the parameter that determines what every statistic means:
+
+  YOUR STATED DESK RULE   "everything booked at the Friday close"
+  THE PAYLOAD             recommendation.js sets bookOut to "Hold open legs
+                          continuously across weekends with Monday reference
+                          rebase; exit strictly on target, stop, or the
+                          mandatory 3-day expiry roll"
+  THE BACKTEST            replayWeek() books outcome "friday" at the close
+
+I have NOT picked a default. Both policies are now measurable on identical data
+via comparePolicies(bars), and DEFAULT_CONFIG.exitPolicy stays "friday-flat"
+because that is your stated rule, not because the evidence chose it.
+
+On RELIANCE the two policies earned almost the same average week (-0.026% vs
+-0.025%) while continuous holding produced a worse tail across the board:
+worst week -1.473% vs -1.260%, weekly CVaR95 0.928% vs 0.785%, max drawdown
+8.712% vs 8.426%, and a longest hold of 15 sessions against 4. On that single
+name, carrying risk over the weekend bought no return and added tail. Confirm on
+the pooled panel before deciding.
+
+verify-ci-flags.js now fails the build if any production module sets exitPolicy
+or stagedExit locally, so research and live cannot drift apart on either again.
+
+
+--------------------------------------------------------------------------------
+B-5  STILL OPEN, IN PRIORITY ORDER
+--------------------------------------------------------------------------------
+1. THE LIVE STOP AND THE MEASURED STOP ARE DIFFERENT NUMBERS.  [now the top item]
+   recommendation.js:253 -- stopLossPct = clamp(atrPct * 0.6, 0.8, 2.0), derived
+   from ATR per name. weekly-cycle.js measures a FLAT config stop of 2.0%.
+   Given B-0 shows stop width is the single decisive variable -- 1% profitable,
+   2% breakeven, 3% loss-making -- measuring one stop rule and trading a
+   different one is now the most consequential divergence left in the system.
+   Unify them before Gate B. This is a strategy-definition decision, so I have
+   reported it rather than changed it.
+
+2. THE BACKTEST STILL RUNS ON CASH BARS FOR A FUTURES STRATEGY.
+   weekly-plan.js:103-104 -- dailyBars(symbol) is the Yahoo CASH series. The
+   futures contract's own dayHigh/dayLow/dayOpen are already captured every day
+   at bhavcopy.js:99-106, under a comment saying they are "the honest daily high
+   and low for a futures position", and then not used for measurement. Roll gaps
+   and basis convergence remain invisible.
+
+3. metaLabelConfidence STILL HOLDS HARD VETO POWER WITH UNTRAINED COEFFICIENTS.
+   advanced-quant.js:449-475, unchanged this round: `z += 0.5`, `z -= 1.8`, and
+   so on, none of it fitted to anything, gating every trade in both routes. VPIN
+   still normalises by mean absolute change rather than sigma and still uses an
+   absolute 0.65 threshold rather than a percentile of its own history.
+
+4. NO ADV / OPEN-INTEREST / SPREAD FILTER, AND NO CAPACITY CURVE.
+   openInterest is parsed twice (bhavcopy.js:117, :178) and used as a filter
+   nowhere. On a 2% target, crossing a 0.15% spread is 15% of the gross move.
+
+5. 8-pillar scoring is display-only (B-2e). Kelly is still computed and never
+   used for sizing. Cross-sectional residual laddering and volatility-normalised
+   grid geometry remain the two highest-value unbuilt ideas (Appendix A-3, A-4).
+
+
+--------------------------------------------------------------------------------
+B-6  WALK-FORWARD VALIDATION -- THE TIGHT-STOP RESULT SURVIVES OUT OF SAMPLE
+--------------------------------------------------------------------------------
+Protocol: pooled expanding-window walk-forward by calendar block over the same
+40-name panel. In each fold the geometry is chosen using ONLY weeks before the
+cut, then scored on the block that follows with no further adjustment. THE
+SELECTION IS INSIDE THE TEST, which is the only honest way to evaluate a
+parameter that came out of a sweep. Grid of 10 geometries (stops 1/2/3/4/none x
+targets 2/3). t-statistics cluster-robust on the week.
+
+LONG LADDER -- 260 distinct trading weeks
+
+  fold  train wks  picked  in-sample t  TEST wks  TEST avgNet%  TEST t  TEST w/l
+  ----  ---------  ------  -----------  --------  ------------  ------  --------
+     1        104   1%/3%         2.84        39       +0.1871    1.81     1.988
+     2        143   1%/3%         3.36        39       +0.1308    0.95     2.015
+     3        182   1%/3%         3.35        39       +0.1307    1.07     1.780
+     4        221   1%/3%         3.51        39       +0.2972    3.06     1.919
+
+  POOLED OUT-OF-SAMPLE: 3775 fills over 156 weeks
+                        avgNet +0.1894% per fill
+                        cluster-robust t = 3.14
+
+  Four folds, four positive blocks, the same geometry selected every time, and a
+  pooled t of 3.14 on 156 independent week-clusters. The win-to-worst-loss ratio
+  holds near 1.8-2.0 out of sample, which is the tail behaviour the new selection
+  gate was built to require. This is the first statistically defensible edge
+  anywhere in this repository.
+
+SHORT LADDER -- 261 distinct trading weeks
+
+  fold  train wks  picked  in-sample t  TEST wks  TEST avgNet%  TEST t
+  ----  ---------  ------  -----------  --------  ------------  ------
+     1        104   1%/3%        -0.40        39       -0.1432   -1.89
+     2        143   1%/3%        -1.11        39       -0.0045   -0.05
+     3        182   1%/3%        -1.03        39       -0.0200   -0.19
+     4        221   1%/3%        -0.99        40       +0.1689    1.47
+
+  POOLED OUT-OF-SAMPLE: 4216 fills over 157 weeks
+                        avgNet +0.0111% per fill, t = 0.22
+
+  Every fold's in-sample t was NEGATIVE, so the selector was choosing the least
+  bad cell rather than a good one, and the pooled result is indistinguishable
+  from zero. Trade the long ladder. The short ladder has no demonstrated edge.
+
+WHAT THIS IS WORTH IN MONEY -- do not skip this part
+  +0.1894% per fill is the per-TRADE figure, and participation is low: roughly
+  0.62 fills per name-week across the panel. Capital-weighted at 1/5 per rung,
+  the pooled sweep put the 1%/3% cell at about +0.0258% per name-week, which is
+  near 1.3% per year on the notional allocated to a name, or roughly 6% per year
+  on margin posted at ~22%. Statistically real. Economically modest.
+
+  The binding constraint is therefore NOT the signal any more -- it is
+  participation and capital efficiency. That reorders the improvement list in
+  Appendix A: volatility-normalised grid geometry (A-4) now matters most, because
+  a fixed 2% step is exactly what suppresses fill frequency on low-volatility
+  names, and cross-sectional residual laddering (A-3) matters next, because it
+  raises the number of genuinely independent bets rather than the size of each.
+
+FIVE CAVEATS, stated because the result is good enough to be dangerous
+  1. RESEARCHER BIAS IN THE GRID. I chose the 10-cell grid after looking at the
+     28-cell in-sample sweep. The FOLD SELECTION is honestly out of sample, but
+     the grid boundaries were informed by prior looking. A fully clean test
+     specifies the grid before seeing any result.
+  2. ONE REGIME. Five years of a broadly rising Indian large-cap market. A
+     mean-reversion ladder with a tight stop has never been tested here through a
+     sustained bear market or a liquidity event.
+  3. EXECUTION IS STILL OPTIMISTIC. Costs are a modelled 0.08%. Queue position,
+     partial fills and impact are unmodelled, and at a 3% target on a 1% stop the
+     edge is roughly 2 ticks per trade wide on a mid-cap. See B-3 (C-8).
+  4. CASH BARS, NOT FUTURES BARS. Still measuring the wrong instrument (B-5.2).
+  5. 40 LARGE CAPS. Not the 214-name F&O universe, and survivorship is not
+     controlled -- these are names that are liquid TODAY.
+
+WHAT I DID NOT DO, deliberately
+  I did not change DEFAULT_CONFIG.stopLossPct from 2.0 to 1.0. That is a change
+  to the trading rule, and the trading rule is yours. Your stated desk rule fixes
+  the target at 2-3% and says nothing about the stop, so a 1% stop with a 3%
+  target sits inside your stated rule -- but making it the default is your call to
+  make, not a defect for me to repair. The evidence is above; the switch is one
+  line in api/_lib/weekly-cycle.js.
+
+================================================================================
+END OF APPENDIX B
+================================================================================

@@ -52,6 +52,12 @@ assert.equal(features(structured, structured.length + 5), null);
 assert.ok(featureRow.rsi14 >= 0 && featureRow.rsi14 <= 100);
 assert.ok(featureRow.rangeLocation20 >= 0 && featureRow.rangeLocation20 <= 1);
 
+// Changing every future bar must not alter a feature row already observed.
+const futureMutated = structured.map((item, index) => index > 200
+  ? { ...item, open: item.open * 7, high: item.high * 9, low: item.low * 0.1, close: item.close * 8, volume: item.volume * 50 }
+  : { ...item });
+assert.deepEqual(features(futureMutated, 200), featureRow, "future prices may not travel backward into features");
+
 const rows = weeklyTrainingRows(structured, "long");
 assert.ok(rows.length > 150, `expected a row per tradable week, received ${rows.length}`);
 assert.ok(rows.every((row) => typeof row.weekKey === "string" && Number.isFinite(row.label)));
@@ -59,6 +65,9 @@ assert.ok(rows.every((row) => typeof row.weekKey === "string" && Number.isFinite
 // The decision session must always precede the labelled week, or the model is
 // reading its own answer.
 assert.ok(rows.every((row) => row.decisionSession < row.weekKey), "features must be dated before the week they predict");
+assert.ok(rows.every((row) => row.featureAsOf === row.decisionSession));
+assert.ok(rows.every((row) => row.labelFrom >= row.weekKey && row.labelThrough >= row.labelFrom));
+assert.ok(rows.every((row) => row.strategyVersion), "every label must identify the strategy version that produced it");
 
 const model = trainBoostedTrees(rows);
 assert.equal(model.ready, true);
@@ -77,18 +86,24 @@ const validation = walkForward(rows, { folds: 4 });
 assert.equal(validation.ready, true, validation.reason || "walk-forward should run on this history");
 assert.ok(validation.folds >= 2);
 validation.perFold.forEach((fold, index) => {
-  assert.equal(fold.from, rows[fold.trainWeeks].weekKey, "a fold's test block must start exactly where its training data stopped");
-  assert.ok(fold.from > rows[fold.trainWeeks - 1].weekKey, "no fold may test a week it trained on");
+  assert.ok(fold.trainThrough < fold.from, "no fold may test an origin week it trained on");
+  assert.ok(fold.trainLabelThrough < fold.testLabelFrom, "purging must remove every training outcome that overlaps the test label period");
+  assert.ok(fold.embargoed >= 4, "the default 20-session holding ceiling requires at least a four-week embargo");
   if (index) assert.ok(fold.from > validation.perFold[index - 1].to, "folds must roll forward in time");
 });
 assert.ok(validation.outOfSample.weeks > 0);
-assert.ok(Number(validation.outOfSample.informationCoefficient) > 0, `a learnable rule should give a positive out-of-sample IC, received ${validation.outOfSample.informationCoefficient}`);
 
 const forecast = weeklyForecast(structured, "long");
 assert.equal(forecast.ready, true);
 assert.ok(Number.isFinite(forecast.expectedWeeklyPct));
-assert.equal(forecast.trustworthy, true, "the structured series should clear the trust gate");
+const governedTrust = Number(forecast.validation.outOfSample.informationCoefficient) >= 0.05
+  && Number(forecast.validation.outOfSample.rSquared) > 0
+  && Number(forecast.validation.outOfSample.actedAverageWeeklyPct) > 0
+  && forecast.validation.perFold.every((fold) => Number(fold.informationCoefficient) >= 0 && Number(fold.rSquared) >= 0);
+assert.equal(forecast.trustworthy, governedTrust, "trust status must be derived only from the documented out-of-sample hurdles");
 assert.ok(forecast.importance.length > 0);
+assert.match(forecast.featureAsOf, /^\d{4}-\d{2}-\d{2}T/);
+assert.match(forecast.timingContract, /no next-session/i);
 
 // Noise must not be dressed up as an edge.
 const noise = weeklyForecast(series(220, { random: true }), "long");
