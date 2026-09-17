@@ -24,8 +24,10 @@ const {
 } = require("../api/_lib/panel");
 const { calculateNseFuturesCharges } = require("../api/_lib/shadow-broker");
 
-const CACHE = path.resolve(path.join(__dirname, "..", ".cache", "panel-bars"));
-const REPORT_FILE = path.resolve(path.join(__dirname, "..", "K2_APEX_PANEL_STUDY_REPORT_2026-09-17.txt"));
+// Overridable so the identical signal can be pointed at a held-out sample
+// without editing a single parameter of the rule itself.
+const CACHE = path.resolve(process.env.K2_PANEL_CACHE || path.join(__dirname, "..", ".cache", "panel-bars"));
+const REPORT_FILE = path.resolve(process.env.K2_PANEL_REPORT || path.join(__dirname, "..", "K2_APEX_PANEL_STUDY_REPORT_2026-09-17.txt"));
 
 const TARGET_PCT = 2.5;
 const STOP_LOSS_PCT = 1.5;

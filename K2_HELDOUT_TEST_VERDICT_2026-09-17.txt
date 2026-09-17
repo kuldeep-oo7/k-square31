@@ -1,0 +1,141 @@
+================================================================================
+RESULT OF THE PRE-REGISTERED OUT-OF-SAMPLE TEST
+Protocol committed at 72b33f4, BEFORE this test was run.
+Result written 2026-09-17.
+================================================================================
+
+VERDICT: FAIL
+
+The signal does not clear the bar that was set for it before the data was seen.
+It should not be traded in its current form.
+
+--------------------------------------------------------------------------------
+1. THE NUMBERS
+--------------------------------------------------------------------------------
+
+Held-out sample: 112 of the 113 NSE F&O names never previously fetched,
+simulated or reported. One symbol failed to download. The signal was run
+unchanged: entry on 5-session return above 1% and 20-session return above 2%
+with volume above 1.1x its 20-day average, exit at +2.5%, -1.5%, or 5 sessions,
+net of real dated statutory costs.
+
+POOLED ACROSS THE ENTIRE HELD-OUT SAMPLE -- the primary statistic, because it is
+the one number that cannot be chosen after the fact:
+
+    fills                        8,893
+    mean net return per fill    +0.0422%
+    cluster-robust SE            0.0338   (clustered on entry month)
+    t-statistic                  1.25
+    p-value                      0.211
+    selection hurdle             1.6648   (expected max of 12 trials)
+    deflated t                  -0.4148
+
+    Decision rule, fixed in advance:
+      mean > 0                   PASS   (+0.0422%)
+      t >= 1.6648                FAIL   (1.25)
+      at least 200 fills         PASS   (8,893)
+
+    Two of three conditions met is a FAIL. That was written down in advance
+    precisely so this moment would not require a judgement call.
+
+--------------------------------------------------------------------------------
+2. THE PART THAT MATTERS MORE THAN THE VERDICT
+--------------------------------------------------------------------------------
+
+By entry year, on names the rule had never seen:
+
+    2021    n=  217    +0.0023%    t  0.03
+    2022    n=1,612    +0.0757%    t  1.24
+    2023    n=2,147    +0.1358%    t  1.74     <- peak
+    2024    n=2,105    +0.0433%    t  0.73
+    2025    n=1,643    +0.0454%    t  0.53
+    2026    n=1,169    -0.1752%    t -2.10     <- significantly negative
+
+This is not a flat line with noise around it. It rises to 2023, decays, and
+turns significantly negative in 2026. A t of -2.10 is past the conventional 5%
+two-sided threshold in the WRONG direction: the rule is not merely unprofitable
+in 2026, it is losing money at a rate unlikely to be chance.
+
+And it independently replicates the earlier failure. The original 97-symbol
+study showed +0.0613% at t 0.747 in its final window. These 112 entirely
+different names show -0.0108% at t -0.15 over the same calendar window. Two
+disjoint samples, same answer: whatever worked earlier is gone now.
+
+That agreement is what makes this a finding rather than an unlucky draw.
+
+--------------------------------------------------------------------------------
+3. WHAT I DID NOT DO
+--------------------------------------------------------------------------------
+
+The held-out sample DOES contain a window that passes. Split by the same
+calendar boundaries as the earlier study, the middle window on these fresh names
+returns +0.3283% per fill at t 4.32, deflated 2.66 -- comfortably through the
+hurdle. Reporting that as the headline would have been a clean-looking pass.
+
+It would also have been exactly the manoeuvre the protocol forbade: "splitting
+the 113 into sub-groups until one of them passes". The pooled figure is the
+honest statistic because it is the only one that was not selected after seeing
+the alternatives. I am recording the passing window here so that nobody
+discovers it later and wonders why it went unmentioned.
+
+No parameter was changed. No symbol was dropped. No variant was run and
+discarded. The sample is now spent: it has been looked at, so it can never serve
+as a held-out test again.
+
+--------------------------------------------------------------------------------
+4. THE PREDICTION
+--------------------------------------------------------------------------------
+
+The protocol said, before the run:
+
+  "My expectation is therefore that this test FAILS: a small positive or
+   slightly negative mean, a t-statistic below the 1.6648 hurdle, and no
+   confirmed edge."
+
+Observed: +0.0422%, t 1.25, below the hurdle, no confirmed edge. The prediction
+was correct, which is worth exactly nothing as a defence of the signal and
+something as a defence of the method.
+
+--------------------------------------------------------------------------------
+5. WHAT THIS DOES AND DOES NOT ESTABLISH
+--------------------------------------------------------------------------------
+
+ESTABLISHED
+  - The momentum-breakout rule does not generalise to unseen names at a level
+    that survives its own selection hurdle.
+  - Its performance decays over time and is significantly negative in 2026 on
+    fresh names.
+  - The earlier final-test failure was not sampling noise; it reproduces.
+
+NOT ESTABLISHED
+  - This is a fresh CROSS-SECTION, not a fresh calendar period, because no
+    future data exists. Regime overlaps with windows already seen. A common
+    factor could affect both, and the 2026 result in particular rests on a
+    single partial year.
+  - The 113 held-out names skew mid-cap against the original large-cap 97.
+    Mid-caps are more volatile and costlier to trade. No adjustment was made,
+    which was stated in advance, but it means the comparison is not perfectly
+    clean.
+  - THE DEPLOYED ENGINE WAS NOT TESTED. What failed here is the momentum rule in
+    scripts/apex-panel-study.js. The percentile-ranked engine actually serving
+    k-square31.onrender.com has still never been backtested at all. It is not
+    exonerated by this result and it is not condemned by it. It is untested.
+
+--------------------------------------------------------------------------------
+6. WHAT FOLLOWS
+--------------------------------------------------------------------------------
+
+The rule as specified should not be traded. Not "should be monitored", not
+"needs more data" -- it had 8,893 fills across 112 names and five years, which is
+not a small-sample problem.
+
+If the rule is to be revised, the revision cannot be tested on this sample or on
+the original 97. Both are spent. It must be tested on forward data collected
+after the change is made, which means writing the new rule down, stamping it,
+and waiting.
+
+The more useful next step is the one this test exposed: the engine that is
+actually deployed has never been measured. That is the gap to close, and it
+should be closed with a pre-registered protocol like this one, written before
+the run rather than after.
+================================================================================

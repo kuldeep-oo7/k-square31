@@ -1,0 +1,61 @@
+================================================================================
+K2 APEX ENGINE — POOLED PANEL STUDY & SURVIVORSHIP-ADJUSTED BACKTEST
+Document Reference: K2-APEX-PANEL-STUDY-2026-09-17
+Execution Date: 2026-09-17T15:05:00.085Z
+Symbols Tested: 112 NSE Large-Cap Equities
+Geometry Tested: Target +2.5%, Stop -1.5%, Horizon 5 Sessions
+Cost Model: Real Dated Statutory Costs via shadow-broker.js (STT, NSE, SEBI, GST)
+================================================================================
+
+1. CALENDAR SPLIT DEFINITIONS
+-----------------------------
+Development Period: 2021-09-17 .. 2024-09-23 (In-Sample Exploration)
+Validation Period:  2024-09-23 .. 2025-09-22 (Out-of-Sample Validation)
+Final Test Period:   2025-09-22 .. 2026-09-17 (Untouched Forward Out-of-Sample)
+
+2. SURVIVORSHIP BIAS QUANTIFICATION (P1-2)
+------------------------------------------
+WARNING: The 97-symbol test pool reflects TODAY's constituent list applied backwards.
+Over 5 years, survivorship bias inflates internal sample returns.
+Comparison over Identical Historical Windows:
+
+  Window         Universe B&H Compounded    Nifty 500 Index Benchmark    Survivorship Gap
+  ---------------------------------------------------------------------------------------
+  Development             +105.9%                    +61%                  +44.9%
+  Validation               +1.7%                    -3.7%                  +5.4%
+  Final Test               +0.4%                     -3.1%                   +3.5%
+
+Benchmark source: NIFTY_500_CRSLDX fetched 2026-09-17T15:04:59.824Z
+Conclusion: read the Survivorship Gap column above. The universe outran the index
+by roughly 47 points in development, which is constituent survivorship and not skill.
+Benchmark every figure against the index, never against the sample's own return.
+
+3. APEX SIGNAL PANEL RESULTS AFTER TRANSACTION COSTS (P1-1)
+------------------------------------------------------------
+Metric                   Development (IS)     Validation (OOS)     Final Test (Untouched)
+-----------------------------------------------------------------------------------------
+Total Executed Fills     5642                 1619                 1572
+Net Mean Return / Fill   0.4699%            0.3283%            -0.0108%
+Cluster-Robust SE        0.0355              0.0760              0.0724
+t-Statistic              13.24                4.32                -0.15
+Deflated t-Stat          --                   2.66                --
+Two-Sided p-Value        0                 0.000016                 0.881529
+
+4. STATISTICAL VERDICT & REPRODUCIBILITY
+----------------------------------------
+Selection Hurdle: t >= 1.6648 (expected maximum of 12 configurations, Bailey/Lopez de Prado)
+Final Panel Verdict: EDGE_SURVIVES_VALIDATION
+Edge Confirmed: YES
+Analysis:
+  Validation (out-of-sample): t 4.321, deflated 2.66 against a 1.6648 hurdle. Clears it.
+  Final test (untouched):     t -0.149, p 0.881529. DOES NOT clear it.
+
+  The verdict above speaks about VALIDATION ONLY, which is what panelVerdict is
+  documented to do. It is not a statement about the final test. Per-fill return
+  decays across the three windows (0.4699%, 0.3283%, -0.0108%) and the
+  forward window is not statistically distinguishable from zero. Read this as a
+  signal that passed one out-of-sample gate and has not yet passed a second.
+
+================================================================================
+END OF REPORT — K2 APEX PANEL STUDY
+================================================================================
