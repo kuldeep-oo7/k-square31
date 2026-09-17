@@ -280,6 +280,13 @@ class RealtimeMarketEngine {
 
       if (recorded || marks.closed) {
         console.log(`[K² Ledger] recorded ${recorded}, marked ${marks.marked}, closed ${marks.closed}`);
+        // Mirror only when something actually changed. The ephemeral disk means
+        // an unmirrored close is a closed trade that disappears on next deploy.
+        ledger.syncToRemote({ store }).then((sync) => {
+          if (!sync.ok && sync.reason !== "GOOGLE_STORE_NOT_CONFIGURED") {
+            console.error("Ledger mirror failed:", sync.reason);
+          }
+        }).catch(() => {});
       }
       return { ok: true, recorded, refused, ...marks };
     } catch (error) {
@@ -304,6 +311,11 @@ class RealtimeMarketEngine {
       // all 210 would take minutes under broker rate limits and the first quotes
       // would be stale before the last arrived, so this follows the picks.
       await this.refreshLiveQuotes();
+      // Pull the durable ledger back. Render's free disk is wiped on every
+      // deploy, so without this the track record restarts from nothing each
+      // time the code changes -- which is not a track record.
+      const restored = await require("./signal-record").restoreFromRemote();
+      if (restored.ok) console.log(`[K² Ledger] restored ${restored.positions} positions from the durable store`);
     } catch (error) {
       // A failed bootstrap leaves the desk on exchange settled prices, which is
       // a labelled and honest state, so it must never take the server down.

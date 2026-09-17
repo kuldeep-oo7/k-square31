@@ -41,6 +41,8 @@ const crypto = require("node:crypto");
 
 const STORE_DIR = path.resolve(path.join(__dirname, "..", "..", ".private", "ledger"));
 const STORE_FILE = path.join(STORE_DIR, "signal-record.json");
+// Path inside the durable Apps Script store.
+const REMOTE_PATH = "k2/signal-record.json";
 
 // A record issued more than this far from now is a back-date and is refused.
 const MAX_BACKDATE_MS = 10 * 60 * 1000;
@@ -248,6 +250,72 @@ function trackRecord({ store = null } = {}) {
  * rate of 0% and "nothing has closed yet" are different facts, and rendering
  * them identically is how a desk with no history came to advertise 71.4%.
  */
+/**
+ * Durable storage, because the local file is not.
+ *
+ * Render's free tier gives an ephemeral disk: the ledger survives a restart but
+ * is wiped on every deploy. A track record that resets whenever the code
+ * changes is not a track record -- and the whole point of this module is a
+ * history long enough to answer whether the desk makes money. So the ledger
+ * mirrors to the Google Apps Script store, which outlives the container.
+ *
+ * The merge is UNION BY ID and it is deliberately one-directional about facts:
+ * a position already present locally is never overwritten by the remote copy,
+ * and a CLOSED position is never reopened. Two containers both writing would
+ * otherwise let a later, emptier snapshot erase real closed trades -- the same
+ * class of loss as overwriting an entry price, just distributed.
+ */
+async function syncToRemote({ store = null } = {}) {
+  const google = require("./google-store");
+  if (!google.googleStoreConfigured()) {
+    return { ok: false, reason: "GOOGLE_STORE_NOT_CONFIGURED" };
+  }
+  store = store || load();
+  try {
+    const remote = await google.readGoogleDocument(REMOTE_PATH, null);
+    const merged = mergeStores(remote?.data || null, store);
+    await google.writeGoogleDocument(REMOTE_PATH, merged, remote?.etag);
+    save(merged);
+    return { ok: true, positions: Object.keys(merged.positions).length };
+  } catch (error) {
+    // A failed sync must never lose the local ledger.
+    return { ok: false, reason: error.message };
+  }
+}
+
+/** Pull the durable copy back after a deploy has wiped the disk. */
+async function restoreFromRemote() {
+  const google = require("./google-store");
+  if (!google.googleStoreConfigured()) return { ok: false, reason: "GOOGLE_STORE_NOT_CONFIGURED" };
+  try {
+    const remote = await google.readGoogleDocument(REMOTE_PATH, null);
+    if (!remote?.data?.positions) return { ok: false, reason: "NOTHING_STORED_REMOTELY" };
+    const merged = mergeStores(remote.data, load());
+    save(merged);
+    return { ok: true, positions: Object.keys(merged.positions).length };
+  } catch (error) {
+    return { ok: false, reason: error.message };
+  }
+}
+
+/**
+ * Union by id. Local wins on conflict, and a closed position stays closed
+ * whichever side holds it.
+ */
+function mergeStores(remote, local) {
+  const merged = { ...(remote || emptyStore()), ...local };
+  merged.positions = { ...((remote && remote.positions) || {}) };
+  for (const [id, position] of Object.entries(local?.positions || {})) {
+    const existing = merged.positions[id];
+    // A close is a fact. Never let an open snapshot undo one.
+    merged.positions[id] = existing?.status === "CLOSED" && position.status !== "CLOSED"
+      ? existing
+      : position;
+  }
+  merged.rejected = Math.max(Number(remote?.rejected) || 0, Number(local?.rejected) || 0);
+  return merged;
+}
+
 function accuracyView({ store = null } = {}) {
   store = store || load();
   const summary = trackRecord({ store });
@@ -292,7 +360,11 @@ function accuracyView({ store = null } = {}) {
 }
 
 module.exports = {
+  REMOTE_PATH,
   accuracyView,
+  mergeStores,
+  restoreFromRemote,
+  syncToRemote,
   MAX_BACKDATE_MS, STORE_FILE,
   emptyStore, load, markToMarket, record, save, signalId, trackRecord
 };

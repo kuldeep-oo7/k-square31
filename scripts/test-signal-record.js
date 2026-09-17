@@ -172,4 +172,25 @@ const fresh = () => record.emptyStore();
   console.log("  ✓ A caller-supplied store is never persisted, so tests cannot seed the live ledger");
 }
 
+// --- 8. The durable mirror must never lose a closed trade -------------------
+// Two containers can both hold the ledger, and a deploy wipes the local disk.
+// The merge is union-by-id with local winning, EXCEPT that a close is a fact:
+// an open snapshot must never undo one, or a real closed trade vanishes.
+{
+  const remote = { positions: { a: { id: "a", status: "CLOSED", pnlRupees: 4200 } }, rejected: 3 };
+  const local = { positions: { a: { id: "a", status: "OPEN" }, b: { id: "b", status: "OPEN" } }, rejected: 1 };
+  const merged = record.mergeStores(remote, local);
+
+  assert.equal(merged.positions.a.status, "CLOSED", "a closed position must not be reopened by a stale snapshot");
+  assert.equal(merged.positions.a.pnlRupees, 4200, "and it keeps its realised result");
+  assert.ok(merged.positions.b, "positions seen only locally survive the merge");
+  assert.equal(Object.keys(merged.positions).length, 2, "the merge is a union, not a replacement");
+  assert.equal(merged.rejected, 3, "refusal counts take the larger of the two");
+
+  // An empty remote (first ever sync) must not wipe the local ledger.
+  const fromNothing = record.mergeStores(null, local);
+  assert.equal(Object.keys(fromNothing.positions).length, 2);
+  console.log("  ✓ The durable merge is a union that never reopens a closed trade or drops a local one");
+}
+
 console.log("Signal-record tests passed: immutable entries, refused back-dating, provenance required, observed-price marks and closes, and a win rate that counts only what actually closed");

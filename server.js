@@ -72,6 +72,22 @@ const server = http.createServer((req, res) => {
           // answer is readable from a phone instead of needing a script run
           // on the machine that happens to hold the credentials.
           const feedCheck = require("./api/_lib/live-quotes").diagnose();
+          // What is configured on THIS host, so a deploy can be checked from a
+          // phone instead of guessed at. Names only -- never the values.
+          const persistence = (() => {
+            const missing = ["ANGELONE_API_KEY", "ANGELONE_CLIENT_CODE", "ANGELONE_MPIN", "ANGELONE_TOTP_SECRET",
+              "K2_GOOGLE_SHEETS_WEB_APP_URL", "K2_GOOGLE_SHEETS_ARCHIVE_SECRET"]
+              .filter((name) => !process.env[name]);
+            let durable = false;
+            try { durable = require("./api/_lib/google-store").googleStoreConfigured(); } catch (error) { durable = false; }
+            return {
+              ledgerDurable: durable,
+              ledgerNote: durable
+                ? "Ledger mirrors to the Apps Script store and survives redeploys."
+                : "Ledger is on an ephemeral disk and is WIPED on every deploy.",
+              missingEnvVars: missing
+            };
+          })();
           return {
             anyReady: brokers.anyReady || dhan.ready,
             activeProvider: brokers.activeProvider || (dhan.ready ? "dhan" : null),
@@ -79,6 +95,7 @@ const server = http.createServer((req, res) => {
             sessions,
             quotes,
             feedCheck,
+            persistence,
             howToConfigure: { ...brokers.howToConfigure, dhan: dhan.howToConfigure }
           };
         } catch (error) { return { anyReady: false, activeProvider: null, reason: "FEED_MODULE_UNAVAILABLE" }; }
