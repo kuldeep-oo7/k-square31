@@ -84,7 +84,16 @@ const server = http.createServer((req, res) => {
         } catch (error) { return { anyReady: false, activeProvider: null, reason: "FEED_MODULE_UNAVAILABLE" }; }
       })(),
       summary: engine.ledger.getSummary(),
-      accuracy: engine.ledger.getSignalsAccuracy ? engine.ledger.getSignalsAccuracy() : null,
+      // The paper ledger is the desk's real track record: signals recorded at
+      // the price shown and marked against observed prices only. The older DB
+      // scorecard is used only while the paper ledger has nothing closed.
+      accuracy: (() => {
+        try {
+          const paper = require("./api/_lib/signal-record").accuracyView();
+          if (paper.hasTrackRecord || paper.openPositions > 0) return paper;
+        } catch (error) { /* fall through to the DB scorecard */ }
+        return engine.ledger.getSignalsAccuracy ? engine.ledger.getSignalsAccuracy() : null;
+      })(),
       candidates: engine.getEnrichedCandidates(),
       universe: engine.getUniverse(),
       options: engine.getOptionsUniverse(),

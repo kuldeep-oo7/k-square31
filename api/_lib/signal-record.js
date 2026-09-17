@@ -87,7 +87,12 @@ function signalId({ symbol, strike, right, expiry, day }) {
  * Record a signal at the price it was shown at. Returns what happened, so a
  * caller can never mistake "already recorded" for "recorded again".
  */
-function record(signal, { now = Date.now(), store = load() } = {}) {
+function record(signal, { now = Date.now(), store = null, persist = store === null } = {}) {
+  // A caller that supplies its own store owns it. Persisting a passed-in store
+  // is how a test wrote MOTHERSON at 100% and Rs 9,840 into the live ledger --
+  // the seeded-track-record failure, arriving again through the back door.
+  store = store || load();
+  const commit = (value) => (persist ? save(value) : value);
   const symbol = String(signal?.symbol || "").toUpperCase();
   const right = String(signal?.right || "").toUpperCase();
   const strike = num(signal?.strike);
@@ -105,7 +110,7 @@ function record(signal, { now = Date.now(), store = load() } = {}) {
   const issued = signal.issuedAt ? Date.parse(signal.issuedAt) : now;
   if (!Number.isFinite(issued) || Math.abs(now - issued) > MAX_BACKDATE_MS) {
     store.rejected = (store.rejected || 0) + 1;
-    save(store);
+    commit(store);
     return { ok: false, reason: "BACKDATED_OR_FUTURE_SIGNAL_REFUSED" };
   }
 
@@ -130,7 +135,7 @@ function record(signal, { now = Date.now(), store = load() } = {}) {
     lastMarkAt: null,
     closedAt: null, closePrice: null, closeReason: null, closePriceSource: null
   };
-  save(store);
+  commit(store);
   return { ok: true, status: "RECORDED", id };
 }
 
@@ -143,7 +148,9 @@ function record(signal, { now = Date.now(), store = load() } = {}) {
  * fabricated result into the one place on this desk that is supposed to hold
  * only outcomes.
  */
-function markToMarket(quoteFor, { now = Date.now(), store = load() } = {}) {
+function markToMarket(quoteFor, { now = Date.now(), store = null, persist = store === null } = {}) {
+  store = store || load();
+  const commit = (value) => (persist ? save(value) : value);
   let marked = 0, closed = 0;
   for (const position of Object.values(store.positions)) {
     if (position.status !== "OPEN") continue;
@@ -175,7 +182,7 @@ function markToMarket(quoteFor, { now = Date.now(), store = load() } = {}) {
       closed += 1;
     }
   }
-  save(store);
+  commit(store);
   return { marked, closed };
 }
 
@@ -184,7 +191,8 @@ function markToMarket(quoteFor, { now = Date.now(), store = load() } = {}) {
  * observed -- an open position has no result yet, and counting an unrealised
  * mark as a win is the oldest way to make a losing book look profitable.
  */
-function trackRecord({ store = load() } = {}) {
+function trackRecord({ store = null } = {}) {
+  store = store || load();
   const all = Object.values(store.positions || {});
   const closed = all.filter((p) => p.status === "CLOSED" && p.closePrice !== null && p.entryPrice > 0);
   const open = all.filter((p) => p.status === "OPEN");
@@ -233,7 +241,58 @@ function trackRecord({ store = load() } = {}) {
   };
 }
 
+/**
+ * The ledger in the shape the desk's scorecard already reads.
+ *
+ * Deliberately returns nulls rather than zeros when nothing has closed. A win
+ * rate of 0% and "nothing has closed yet" are different facts, and rendering
+ * them identically is how a desk with no history came to advertise 71.4%.
+ */
+function accuracyView({ store = null } = {}) {
+  store = store || load();
+  const summary = trackRecord({ store });
+  const closed = Object.values(store.positions || {})
+    .filter((p) => p.status === "CLOSED" && p.closePrice !== null);
+
+  const days = closed
+    .map((p) => (Date.parse(p.closedAt) - Date.parse(p.openedAt)) / 86400000)
+    .filter((d) => Number.isFinite(d) && d >= 0);
+
+  return {
+    hasTrackRecord: summary.available,
+    totalSignals: summary.closed || 0,
+    winCount: summary.wins || 0,
+    lossCount: summary.losses || 0,
+    winRatePct: summary.winRatePct,
+    totalFollowPnl: summary.totalPnlRupees,
+    profitFactor: summary.profitFactor,
+    avgDaysOnScreen: days.length ? Math.round((days.reduce((a, b) => a + b, 0) / days.length) * 10) / 10 : null,
+    openPositions: summary.open || 0,
+    recordedTotal: summary.recorded || 0,
+    backdatedRejections: summary.backdatedRejections || 0,
+    source: "SIGNAL_PAPER_LEDGER",
+    basis: summary.basis || "OBSERVED_PRICES_ONLY",
+    archived: closed
+      .sort((a, b) => String(b.closedAt).localeCompare(String(a.closedAt)))
+      .slice(0, 100)
+      .map((p) => ({
+        signal_id: p.id,
+        trading_symbol: `${p.symbol}${p.strike}${p.right}`,
+        instrument_type: p.right,
+        lot_size: p.lotSize,
+        issued_at: p.openedAt,
+        entry_price: p.entryPrice,
+        exit_price: p.closePrice,
+        status: p.closeReason,
+        pnl_rupees: p.pnlRupees,
+        entry_source: p.entryPriceSource,
+        exit_source: p.closePriceSource
+      }))
+  };
+}
+
 module.exports = {
+  accuracyView,
   MAX_BACKDATE_MS, STORE_FILE,
   emptyStore, load, markToMarket, record, save, signalId, trackRecord
 };

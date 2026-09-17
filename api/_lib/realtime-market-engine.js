@@ -222,6 +222,72 @@ class RealtimeMarketEngine {
     }
   }
 
+  /**
+   * Record what the desk is recommending, and mark what it already recorded.
+   *
+   * This is the paper-trading loop: every actionable option card is written
+   * down at the price it was shown at, then marked against observed prices
+   * until it hits its target, its stop, or expiry. After a month it answers the
+   * only question that matters -- did following this desk make money?
+   *
+   * It records ONLY while the market is open, because a signal issued against a
+   * closing book is not a signal anyone could have acted on, and a track record
+   * built from prices nobody could trade at is the same fiction as a seeded one.
+   */
+  recordSignals() {
+    try {
+      const ledger = require("./signal-record");
+      const live = require("./live-quotes");
+      const phase = live.marketPhase();
+      if (!phase.open) return { ok: false, reason: "MARKET_CLOSED_NOT_RECORDING" };
+
+      const cards = fnoUniverseEngine.getOptionsUniverse(this.macroState) || [];
+      const store = ledger.load();
+      let recorded = 0, refused = 0;
+
+      for (const card of cards) {
+        if (!(card.action === "BUY" || card.action === "ACCUMULATE")) continue;
+        if (card.available === false) continue;
+        // A modelled premium must never open a paper position: the record would
+        // then be measuring the model against itself.
+        if (!card.priceSource || String(card.priceSource).startsWith("THEORETICAL")) continue;
+        const exits = card.legExits;
+        if (!exits?.available) continue;
+
+        const result = ledger.record({
+          symbol: card.symbol, strike: card.strike, right: card.type || card.optionType,
+          expiry: card.expiry, entryPrice: card.entryPrice, lotSize: card.lotSize,
+          priceSource: card.priceSource, executable: card.executable,
+          targetPrice: exits.profitTarget?.premium, stopPrice: exits.stop?.premium,
+          probabilityOfProfitPct: card.odds?.probabilityOfProfitPct,
+          volatilityVerdict: card.odds?.volatility?.verdict
+        }, { store });
+        if (result.ok && result.status === "RECORDED") recorded += 1;
+        else if (!result.ok) refused += 1;
+      }
+
+      // Mark the open book against whatever the desk can currently observe.
+      const priceFor = (position) => {
+        const quote = live.liveQuote(position.symbol, position.expiry, position.strike, position.right);
+        if (quote && quote.bid > 0 && quote.ask > 0) {
+          return { price: (quote.bid + quote.ask) / 2, source: `BROKER_${quote.freshness}` };
+        }
+        const reference = require("./fno-reference");
+        const settled = reference.tradedQuote(position.symbol, position.strike, position.right, position.expiry);
+        return settled?.price > 0 ? { price: settled.price, source: "EXCHANGE_SETTLED_PRICE" } : null;
+      };
+      const marks = ledger.markToMarket(priceFor, { store });
+
+      if (recorded || marks.closed) {
+        console.log(`[K² Ledger] recorded ${recorded}, marked ${marks.marked}, closed ${marks.closed}`);
+      }
+      return { ok: true, recorded, refused, ...marks };
+    } catch (error) {
+      console.error("Signal recording failed:", error.message);
+      return { ok: false, reason: error.message };
+    }
+  }
+
   /** Cold-start sequence: each step needs the one before it. */
   async bootstrap() {
     try {
@@ -286,6 +352,9 @@ class RealtimeMarketEngine {
     // failure that was really just ordering.
     this.bootstrap();
     this.quoteTimer = setInterval(() => this.refreshLiveQuotes(), 90 * 1000);
+    // Paper-trade the desk's own signals, on the same cadence as the quotes
+    // that mark them.
+    this.ledgerTimer = setInterval(() => this.recordSignals(), 90 * 1000);
     this.sessionTimer = setInterval(() => this.maintainBrokerSessions(), 60 * 60 * 1000);
     this.referenceTimer = setInterval(() => this.refreshContractReference(), 6 * 60 * 60 * 1000);
     this.pollTickCycle();
@@ -298,6 +367,7 @@ class RealtimeMarketEngine {
     if (this.referenceTimer) clearInterval(this.referenceTimer);
     if (this.sessionTimer) clearInterval(this.sessionTimer);
     if (this.quoteTimer) clearInterval(this.quoteTimer);
+    if (this.ledgerTimer) clearInterval(this.ledgerTimer);
     for (const client of this.clients) {
       try { client.end(); } catch {}
     }
