@@ -77,6 +77,19 @@ if (deskUi) {
 // --- 3. Published surfaces must not carry known-fabricated figures -----------
 // These exact values were published once. They are the disputed profit table,
 // the seeded ledger and the restored portal cards.
+// A COUNT is a measurement. The desk shipped with "46", "423", "210" and "9"
+// written directly into the tab labels, so the page advertised 46 recommended
+// buys and 9 purchased trades over an empty grid and an empty ledger. The
+// screenshot that caught this showed a stale count above a blank page.
+const HARDCODED_COUNT = /id="(count-[a-z]+|header-purchased-count)">\s*[0-9]+\s*</g;
+for (const file of ["site/live-desk.html", "site/index.html", "index.html"]) {
+  const markup = read(file);
+  if (markup === null) continue;
+  const hits = markup.match(HARDCODED_COUNT) || [];
+  assert.equal(hits.length, 0,
+    `${file} writes counts into the markup instead of measuring them: ${hits.slice(0, 5).join(", ")}`);
+}
+
 const FINGERPRINTS = [
   { value: "71.4%", what: "a win rate computed from seven seeded ledger rows" },
   { value: "51,492", what: "cumulative profit summed from seeded ledger rows" },

@@ -213,7 +213,7 @@
     </div>
     <div class="header-actions">
       <button class="btn-header" id="hdr-btn-purchased" data-tab-jump="purchased">
-        📦 My Purchased Trades (<span id="header-purchased-count">9</span>)
+        📦 My Purchased Trades (<span id="header-purchased-count">&mdash;</span>)
       </button>
       <button class="btn-header" id="hdr-btn-settings" data-tab-jump="accuracy">
         ⚙️ Settings &amp; Track Record (<span id="header-winrate">&mdash;</span>)
@@ -267,10 +267,10 @@
 
   <!-- Main Navigation Tabs -->
   <div class="tabs-nav">
-    <button class="tab-btn active" data-tab="actionable">⭐ Recommended Buys (<span id="count-actionable">46</span>)</button>
-    <button class="tab-btn" data-tab="options">📞 Calls &amp; Puts (<span id="count-options">423</span>)</button>
-    <button class="tab-btn" data-tab="universe">🌐 All 210 F&amp;O Radar (<span id="count-univ">210</span>)</button>
-    <button class="tab-btn" data-tab="purchased" style="background: rgba(41, 121, 255, 0.15); border-color: rgba(41, 121, 255, 0.4); color: #90caf9;">📦 Purchased Trades (<span id="count-purchased">9</span>)</button>
+    <button class="tab-btn active" data-tab="actionable">⭐ Recommended Buys (<span id="count-actionable">&mdash;</span>)</button>
+    <button class="tab-btn" data-tab="options">📞 Calls &amp; Puts (<span id="count-options">&mdash;</span>)</button>
+    <button class="tab-btn" data-tab="universe">🌐 All 210 F&amp;O Radar (<span id="count-univ">&mdash;</span>)</button>
+    <button class="tab-btn" data-tab="purchased" style="background: rgba(41, 121, 255, 0.15); border-color: rgba(41, 121, 255, 0.4); color: #90caf9;">📦 Purchased Trades (<span id="count-purchased">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="accuracy" style="background: rgba(0, 230, 118, 0.15); border-color: rgba(0, 230, 118, 0.4); color: #a7f3d0;">⚙️ Settings &amp; Track Record (<span id="count-accuracy">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="ledger">📜 Closed Ledger</button>
     <button class="tab-btn" data-tab="k2lang">⚡ K²-Lang Sandbox</button>
@@ -476,6 +476,7 @@
   var activeCandidatesCache = [];
   var universeCache = [];
   var optionsCache = [];
+  var purchasedCache = [];
   var accuracyCache = null;
   var completedCache = [];
 
@@ -1086,12 +1087,16 @@
       sourceList = activeCandidatesCache.filter(function(x) { return x.action === 'BUY' || x.action === 'ACCUMULATE'; });
     }
     var filtered = filterItems(sourceList);
-    cardsContainer.innerHTML = filtered.map(renderCardHtml).join('');
+    cardsContainer.innerHTML = filtered.length
+      ? filtered.map(renderCardHtml).join('')
+      : '<p style="padding:20px;opacity:.75;font-size:13px;grid-column:1/-1">No names clear the conviction hurdle right now, or the live feed has not delivered data yet. Check the connection badge above — a blank grid with a stale count is not a recommendation.</p>';
   }
 
   function updateCounts(data) {
     if (data && Array.isArray(data.candidates)) activeCandidatesCache = data.candidates;
-    if (data && Array.isArray(data.activePositions)) activeCandidatesCache = data.activePositions;
+    // activePositions is the purchased book, not the candidate list. Assigning it
+    // to activeCandidatesCache erased the candidates the recommendation tab reads.
+    if (data && Array.isArray(data.activePositions)) purchasedCache = data.activePositions;
     if (data && Array.isArray(data.universe)) universeCache = data.universe;
     if (data && Array.isArray(data.options)) optionsCache = data.options;
     if (data && data.accuracy) renderAccuracy(data.accuracy);
