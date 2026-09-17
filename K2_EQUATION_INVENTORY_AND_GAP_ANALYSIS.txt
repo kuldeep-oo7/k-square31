@@ -1,0 +1,268 @@
+================================================================================
+THE EQUATIONS OF FINANCE — WHAT THIS SYSTEM ACTUALLY USES
+Audited against the source tree on 2026-09-17, commit 5147a51.
+Nothing below is asserted from memory; every line was grepped and read.
+================================================================================
+
+PART 0 — YOUR BLACK-SCHOLES EXAMPLE, VERIFIED AGAINST OUR CODE
+
+    S=100  K=100  r=5%  sigma=20%  T=1
+
+    quantity        you            api/_lib/option-pricing.js
+    d1              0.35           0.3500
+    d2              0.15           0.1500
+    K*e^(-rT)       95.123         95.123
+    CALL            10.45          10.4506
+    PUT             5.57           5.5735
+    C - P           4.88           4.8771
+    S - K*e^(-rT)   4.88           4.8771
+
+Exact to every digit you gave. Put-call parity holds to 1e-15 here and to a
+worst relative residual of 2.27e-16 across 400 strike/maturity/vol combinations
+in scripts/test-option-pricing-integrity.js. Greeks at that point: delta 0.6368
+(your N(d1)), gamma 0.018762, vega 0.3752 per vol point, rho 0.5323.
+
+Your PDE note is also exactly why the module is built the way it is: substitute
+x = ln S, tau = T - t and Black-Scholes becomes the heat equation. That is the
+same diffusion Einstein wrote down for Brownian motion in 1905, which is why
+risk grows with sqrt(t) and why an option on a 4-week horizon is not twice the
+option on a 2-week one.
+
+================================================================================
+PART 1 — THE HONEST STATUS OF EVERY EQUATION ON YOUR LIST
+================================================================================
+
+There are THREE statuses, and the difference between the second and the first is
+the whole answer to your question.
+
+  [GATING]   computed AND it changes a decision
+  [COMPUTED] implemented and correct, but nothing acts on it
+  [ABSENT]   not in the codebase at all
+
+--------------------------------------------------------------------------------
+1.1  DERIVATIVES AND STOCHASTIC FINANCE
+--------------------------------------------------------------------------------
+  [GATING]   Black-Scholes-Merton          option-pricing.js
+  [GATING]   Black-76 on the future        option-pricing.js, iv-surface.js
+  [GATING]   Implied volatility solver     bisection, inverts to 1e-5
+  [GATING]   Full IV smile + term structure iv-surface.js (built today)
+  [GATING]   Greeks: delta/gamma/vega/theta/rho
+  [GATING]   Put-call parity               enforced as a test, not just a formula
+  [COMPUTED] GBM / Ito drift decomposition institutional-calculus.js
+  [COMPUTED] GARCH(1,1), variance-targeted institutional-calculus.js
+  [COMPUTED] Ornstein-Uhlenbeck half-life  advanced-quant.js
+  [COMPUTED] Kalman filter dynamic beta    institutional-calculus.js
+  [COMPUTED] Forward/futures price F=S*e^((r-q)T)  as measured basis, today
+  [ABSENT]   Binomial / Cox-Ross-Rubinstein    -- matters: Indian stock options
+                                                  are AMERICAN and we price them
+                                                  European
+  [ABSENT]   Merton jump-diffusion
+  [ABSENT]   Heston stochastic volatility
+  [ABSENT]   Dupire local volatility, SABR
+  [ABSENT]   Girsanov / explicit measure change
+  [ABSENT]   Feynman-Kac / Monte Carlo pricing
+  [ABSENT]   Fourier / Carr-Madan pricing
+  [ABSENT]   Vasicek, CIR, Heath-Jarrow-Morton  (no rates book, so no loss)
+  [ABSENT]   Gaussian copula                   (no CDO book, and good riddance)
+
+--------------------------------------------------------------------------------
+1.2  PROBABILITY, RISK AND DECISIONS
+--------------------------------------------------------------------------------
+  [GATING]   Cluster-robust (sandwich) SE   panel.js -- this is what keeps 8,893
+                                            correlated fills from reporting the
+                                            error of 8,893 independent ones
+  [GATING]   Expected maximum of N draws    panel.js, Bailey/Lopez de Prado.
+                                            The deflated-Sharpe idea, applied as
+                                            the selection hurdle
+  [GATING]   Normal CDF / inverse CDF       Acklam + Chebyshev erfc
+  [COMPUTED] Cornish-Fisher VaR and CVaR    institutional-calculus.js
+  [COMPUTED] Expected shortfall             weekly-cycle.js
+  [COMPUTED] Kelly criterion                advanced-quant.js -- COMPUTED THEN
+                                            DISCARDED. recommendation.js:289
+                                            calls it and line 294 sizes off
+                                            conviction instead
+  [COMPUTED] Wilson score interval          weekly-cycle.js
+  [ABSENT]   Bayes in any explicit form
+  [ABSENT]   Expected utility / log wealth
+  [ABSENT]   Shannon entropy
+  Sharpe ratio is DELIBERATELY DISABLED: weekly-cycle.js sets
+  annualisedSharpe: null with annualisationValid: false, because overlapping
+  cohort labels make the sqrt(52) scaling a lie. That is a correct refusal, not
+  a gap.
+
+--------------------------------------------------------------------------------
+1.3  MARKET MICROSTRUCTURE AND LIQUIDITY
+--------------------------------------------------------------------------------
+  [GATING]   Real open interest, turnover   fno-liquidity.js (built today)
+  [GATING]   Capacity in whole lots         10% participation of futures ADV
+  [GATING]   Basis, annualised              median 10.64% across 210 names
+  [COMPUTED] Amihud illiquidity ratio
+  [COMPUTED] Price impact per lakh shares   honestly NOT called Kyle's lambda;
+                                            true Kyle needs trade-level data
+  [COMPUTED] VPIN order-flow toxicity       and it is NOT normalised by sigma,
+                                            nor read as a percentile, so its
+                                            absolute level is not comparable
+                                            across names
+
+--------------------------------------------------------------------------------
+1.4  PORTFOLIO AND CORPORATE FINANCE  -- THE LARGEST HOLE
+--------------------------------------------------------------------------------
+  [ABSENT]   CAPM and beta
+  [ABSENT]   Markowitz mean-variance optimiser, efficient frontier
+  [ABSENT]   Fama-French / any factor model
+  [ABSENT]   Arbitrage pricing theory
+  [ABSENT]   Modigliani-Miller, WACC
+  [ABSENT]   NPV, DCF, IRR
+  [ABSENT]   Gordon growth / dividend discount
+  [ABSENT]   DuPont decomposition
+  [ABSENT]   Duration, convexity
+
+  Position sizing is: clamp(0.20 + 0.20 * clamp(conviction/70), 0.10, 0.40).
+  That is not portfolio theory. There is no covariance matrix anywhere in this
+  codebase, so the desk cannot tell whether its 31 actionable names are 31 bets
+  or 1 bet held 31 times.
+
+--------------------------------------------------------------------------------
+1.5  ECONOMETRICS
+--------------------------------------------------------------------------------
+  [COMPUTED] GARCH(1,1)
+  [COMPUTED] Kalman state-space
+  [COMPUTED] Fractional differencing        advanced-quant.js
+  [COMPUTED] Log returns                    everywhere, correctly
+  [ABSENT]   OLS regression as a named tool
+  [ABSENT]   AR(p) / ARIMA
+  [ABSENT]   Cointegration and pairs trading -- the phrase appears in ONE COMMENT
+                                                in institutional-calculus.js:11
+                                                and is not implemented
+  [ABSENT]   Maximum likelihood estimation   -- GARCH parameters are fixed at
+                                                alpha 0.08, beta 0.88, never fitted
+
+--------------------------------------------------------------------------------
+1.6  ANCIENT AND CLASSICAL
+--------------------------------------------------------------------------------
+  [GATING]   Continuous compounding e^(rt)  in every discount factor
+  [GATING]   Log returns, additive in time
+  [ABSENT]   Everything else on your ancient-to-classical list: simple and
+             compound interest as instruments, Pacioli's identity, present
+             value, annuity, perpetuity, bond pricing, Fisher, MV=PQ.
+  This is honest rather than damning: a futures and options desk that holds for
+  five sessions does not discount a 10-year cash flow. But it is exactly why
+  there is no valuation anywhere in the system.
+
+================================================================================
+PART 2 — THE FINDING THAT MATTERS MORE THAN THE INVENTORY
+================================================================================
+
+You asked whether we are USING all of this. Here is the single decision that
+every recommendation on the live desk passes through, verbatim from
+api/_lib/unified-quant-scanner.js:147 --
+
+    compScore = neuralAlphaScore                              * 0.35
+              + candleResult.score * 100                      * 0.15
+              + (chartResult.dominantPattern ? 80 : 50)       * 0.10
+              + (hurst > 0.55 ? 85 : 50)                      * 0.15
+              + (vpin.vpin < 0.25 ? 85 : 50)                  * 0.10
+              + (garch.volatilityRegime === "MODERATE" ? 85 : 50) * 0.15
+
+Read the last four terms. The Hurst exponent is estimated to four decimals and
+then collapsed to EIGHTY-FIVE OR FIFTY. A name with Hurst 0.551 and a name with
+Hurst 0.950 score identically. VPIN, the chart-pattern detector and the entire
+GARCH volatility model are all reduced the same way, to a two-valued switch.
+
+So the answer to "are we using all this maths" is: we COMPUTE it and then throw
+almost all of it away at the moment of decision. Six inputs reach the gate, four
+of them carrying one bit of information each. Cornish-Fisher VaR, CVaR, the
+Kalman beta, Kelly, Amihud, the basis and the capacity model reach the gate not
+at all -- they are displayed, and the decision is made without them.
+
+That is the gap between having the equations and having a system.
+
+================================================================================
+PART 3 — TECHNICAL ANALYSIS, CANDLESTICKS AND CHART PATTERNS
+================================================================================
+
+You asked specifically whether we use these the way the big funds do.
+
+WHAT WE HAVE. candlestick-engine.js and chart-patterns.js are real, are wired
+into the scanner, and together carry 25% of the composite score -- the largest
+single block after the neural term. Candlesticks enter as a continuous score;
+chart patterns enter as the binary 80-or-50 described above.
+
+WHAT THE LARGE FUNDS ACTUALLY DO WITH THEM, AND WHERE WE DIFFER
+
+  1. They do not trust a pattern because it has a name. They measure it. For
+     every "morning star" ever printed they compute the forward return
+     distribution against a matched control, and they keep the pattern only if
+     the difference survives out of sample. WE HAVE NEVER MEASURED A SINGLE
+     PATTERN'S FORWARD RETURN. Ours are detected and scored on the assumption
+     that the textbook is right.
+
+  2. They use patterns as CONDITIONERS, not signals. A pattern that fires in a
+     high-volatility regime, at a volume-profile value area, in a name with
+     rising short interest, is a different object from the same shape in a dead
+     tape. We apply one threshold to all 210 names in all conditions.
+
+  3. They run multi-timeframe confirmation. A daily pattern disagreeing with the
+     weekly is usually noise. We look at one timeframe.
+
+  4. They anchor to volume-at-price -- VWAP, value areas, volume profile --
+     because that is where real execution lives. We use volume only as a raw
+     series and a 20-day ratio.
+
+  5. Renaissance-style shops do not use candlesticks at all in the retail sense.
+     They search enormous feature spaces for statistical regularities, and a
+     "pattern" survives only as a fitted, out-of-sample-validated feature. The
+     shape is incidental; the evidence is everything.
+
+  6. They measure decay. Every published pattern is arbitraged over time. Our
+     own pre-registered test just showed that behaviour precisely: the momentum
+     rule returned +0.1358% per fill in 2023 and -0.1752% at t -2.10 in 2026.
+     That is a public edge being competed away, which is what happens to any
+     rule simple enough to name.
+
+So: we HAVE technical analysis. We do not have the thing that makes it work at
+a large fund, which is not better patterns -- it is the measurement apparatus
+that tells you which patterns are real and when they stop being real.
+
+================================================================================
+PART 4 — WHAT I WOULD BUILD, IN ORDER
+================================================================================
+
+1. A COVARIANCE MATRIX. The single largest hole. Without it there is no CAPM, no
+   beta, no factor model, no portfolio optimisation, no correlation-aware sizing,
+   and no way to know whether 31 positions are 31 bets or 1. Everything in 1.4
+   unlocks from this one object.
+
+2. STOP COLLAPSING CONTINUOUS MATHS TO BINARY SWITCHES. Rank Hurst, VPIN and
+   GARCH cross-sectionally the way neuralScore and compositeScore already are,
+   so a four-decimal estimate contributes four decimals of information.
+
+3. MEASURE EVERY CANDLESTICK AND CHART PATTERN. Forward return distribution per
+   pattern against a matched control, out of sample. Keep what survives, delete
+   what does not. This is a week of work and it is the highest-value week
+   available, because it converts an assumption into evidence.
+
+4. FIT THE GARCH PARAMETERS BY MAXIMUM LIKELIHOOD instead of holding alpha 0.08
+   and beta 0.88 fixed for every instrument in the universe.
+
+5. AMERICAN OPTION PRICING via a binomial tree. Indian single-stock options are
+   American and we price them European; the error is concentrated in exactly the
+   deep in-the-money puts where early exercise has value.
+
+6. USE KELLY OR DELETE IT. A computed-and-ignored number is how a system starts
+   believing things it has not done.
+
+7. NORMALISE VPIN by sigma and read it as a percentile against its own history,
+   so its level means the same thing in RELIANCE and in a mid-cap.
+
+================================================================================
+PART 5 — THE ONE SENTENCE
+================================================================================
+
+We have more of the canon implemented than most retail systems and most of it is
+correct, verified against textbook constants and no-arbitrage identities. What we
+do not have is the part that turns equations into a desk: a covariance matrix, a
+decision that uses the precision it computes, and evidence that any of the
+patterns predict anything. The equations are the vocabulary. The measurement is
+the argument, and the argument is what has been missing.
+================================================================================
