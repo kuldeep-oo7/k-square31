@@ -1,0 +1,304 @@
+================================================================================
+K2 — WORK ORDER
+Open defects, missing capability, and how each one will be verified.
+Written 2026-09-17 by the auditing agent, at commit 5327abb.
+================================================================================
+
+WHO THIS IS FOR
+This is a build specification for the implementing agent (Antigravity). Every
+item below states the defect, the fix, and an ACCEPTANCE TEST. I will re-audit
+against those acceptance tests and against the live host, so please read them as
+the definition of done rather than as suggestions.
+
+HOW I WILL RE-AUDIT
+  1. `git fetch` and confirm origin/main matches local, so "committed" means
+     "pushed".
+  2. `npm run check` must exit 0 with no test weakened or deleted.
+  3. Probe https://k-square31.onrender.com directly, not the source tree. A fix
+     that is not deployed is not a fix.
+  4. Compare the desk's numbers against an independent source (NSE via Yahoo,
+     the Nifty 500 index, textbook constants).
+  5. Read the diff for anything that satisfies a test without satisfying the
+     requirement.
+
+WHAT IS ALREADY RIGHT — PLEASE DO NOT BREAK THESE
+  - Static files serve only from site/ with a resolved-path containment check,
+    dotfiles refused, malformed URLs answered 400. Verified live: 404 on
+    /.private/k2-trading.db.
+  - Unmatched /api/ routes return JSON 404 rather than the SPA with HTTP 200.
+  - The ledger starts empty and reports null until something real closes.
+  - All 210 symbols carry priceSource NSE_YAHOO_BARS and match NSE to the paisa.
+  - Options price through Black-Scholes and fail closed without volatility.
+  - Fundamentals now gate via earningsVeto and balanceScore.
+  - option-pricing.js, panel.js, test-foundation-audit.js, shadow-broker.js
+    dated statutory costs. All correct. Reuse them rather than rewriting.
+
+================================================================================
+P0 — THE DESK RECOMMENDS BUYING ALMOST THE ENTIRE MARKET
+================================================================================
+
+P0-1  THE CONVICTION HURDLE ADMITS 97% OF THE UNIVERSE
+  Measured now, at commit 5327abb:
+      BUY or ACCUMULATE : 204 of 210
+      status            : 190 APEX_BUY_SIGNAL, 14 ACCUMULATE,
+                          5 SEBI_FO_BAN, 1 STAND_ASIDE
+      neuralScore       : min 65, median 98, max 98, 117 of 210 at the ceiling
+      compositeScore    : min 54, median 76, max 87, hurdle is 68
+
+  The architecture guide promised "11 BUY, 35 ACCUMULATE, 164 STAND_ASIDE". The
+  desk delivers 204 actionable. A screen that says buy everything is not a
+  screen, and it is worse than no screen because it looks like one.
+
+  Two separate causes, both need fixing:
+
+  (a) neuralScore is still saturated. The sigmoid pins at 1 for more than half
+      the universe. I fixed one cause -- volume entered the convolution around
+      1.0 while returns sat in [-0.2,0.2], adding a constant of roughly +4.2 to
+      every logit -- and centring it moved the ceiling count from 205 to 117.
+      The rest is not a scaling bug, it is that the logit terms were chosen by
+      hand and never calibrated.
+
+  (b) compositeScore has a median of 76 against a hurdle of 68, so the hurdle
+      sits below the middle of its own distribution.
+
+  FIX. Make both scores CROSS-SECTIONAL rather than absolute. On each refresh,
+  rank every name against the universe that day and express the score as a
+  percentile. A hurdle then has a defined meaning: "top 15% of the F&O universe
+  today" is a statement; "score above 68" is not, because nothing ties 68 to
+  anything. This is standard practice and it is not hand-tuning, because the
+  transformation carries no free parameters.
+
+  DO NOT fix this by editing the kernel weights or the logit coefficients until
+  the histogram looks nicer. That is manufacturing discrimination rather than
+  measuring it, and I will reject it.
+
+  ACCEPTANCE TEST
+    - No more than 25% of the universe is BUY or ACCUMULATE on a normal day.
+    - neuralScore has at least 30 distinct values across 210 names and no more
+      than 20% at the maximum.
+    - The published hurdle is stated as a percentile, and the code comment says
+      what fraction of the universe it is designed to admit.
+    - scripts/test-no-fabricated-values.js section 6 still passes unmodified.
+
+P0-2  THE UNTRAINED FORMULA THAT CAN KILL ANY TRADE
+  api/_lib/advanced-quant.js:448 metaLabelConfidence is a hand-written function
+  of hurst, Kaufman ER, VPIN and trend state. recommendation.js feeds it into
+  enforceHardVetoes and returns early on a veto, so it holds absolute kill
+  authority over every candidate.
+
+  Lopez de Prado's meta-labelling is a TRAINED SECONDARY CLASSIFIER fitted on
+  the primary model's own outcomes. This is not that. It is a guess with veto
+  power, and nobody has measured whether its vetoes are right.
+
+  FIX. Either fit it on realised outcomes with a purged, embargoed split and
+  report its out-of-sample precision and recall, or strip the veto and let it be
+  a displayed diagnostic. Both are acceptable. Leaving an unfitted formula with
+  kill authority is not.
+
+  ACCEPTANCE TEST
+    - Either a training script exists, is run in CI, and reports out-of-sample
+      metrics on data the fit never saw; or enforceHardVetoes no longer consults
+      metaLabelConfidence and the UI labels it "diagnostic, not a gate".
+
+P0-3  THE 1D-CNN IS NOT TRAINED AND IS DESCRIBED AS IF IT WERE
+  neural-quant-engine.js calls its four kernels "Pre-trained Conv1D Kernels".
+  They are hand-written round numbers with intent comments. There is no training
+  data, loss function, gradient step or validation anywhere in the file.
+
+  FIX. Pick one and be honest about it:
+    (a) Actually train them. Label bars with forward returns, fit the kernels,
+        hold out a period the fit never saw, report the out-of-sample result.
+    (b) Rename them. "Four hand-designed matched filters" is accurate and is a
+        legitimate technique. Remove "pre-trained", "deep learning" and "neural"
+        from the user-facing copy if nothing was learned.
+
+  ACCEPTANCE TEST
+    - Either a fit procedure with an out-of-sample score, or no occurrence of
+      "trained", "deep learning" or "neural network" in code comments or UI copy
+      describing these kernels.
+
+================================================================================
+P1 — CORRECTNESS
+================================================================================
+
+P1-1  NOTHING HAS EVER BEEN BACKTESTED
+  The composite score, the conviction hurdle, the 2.5% target and the 1.5% stop
+  have never been tested against anything. There is no walk-forward, no
+  out-of-sample split, no benchmark and no transaction costs on the Apex path.
+
+  You already have the apparatus and it is good: api/_lib/panel.js and
+  scripts/panel-study.js do purged calendar splits, cluster-robust standard
+  errors, an equal-weighted buy-and-hold control and a selection-adjusted hurdle
+  (Bailey and Lopez de Prado expected maximum). It has never been pointed at the
+  Apex engine.
+
+  Be warned what it found when pointed at the older weekly ladder: zero of 24
+  geometries survived validation and all 24 validation cells were negative. The
+  Apex scores have not yet had to meet that standard. Expect the possibility
+  that they do not, and report it if so.
+
+  FIX. Run the Apex signal through panel-study. Report per-fill net return after
+  the real dated statutory costs already in shadow-broker.js, against the
+  buy-and-hold control, on a split the parameters never saw.
+
+  ACCEPTANCE TEST
+    - A committed report with development / validation / final-test columns, the
+      benchmark beside them, and the verdict field from panelVerdict.
+    - Wired into npm scripts so it can be re-run.
+
+P1-2  SURVIVORSHIP BIAS IN THE UNIVERSE
+  The 210-name list is today's F&O membership applied backwards. Names are in
+  the sample because they qualify NOW, so every historical statistic is
+  optimistic by an unmeasured amount. Measured earlier on the Nifty 500 panel:
+  the internal universe showed +105.9% median over a window where the index
+  returned +59.1%.
+
+  FIX. Point-in-time constituent history, or at minimum quantify the bias by
+  comparing the universe's own return to the index over the same window and
+  publishing the gap alongside every backtest number.
+
+  ACCEPTANCE TEST
+    - Any backtest output carries the index return for the same window beside it.
+
+P1-3  CASH BARS FOR A FUTURES AND OPTIONS DESK
+  Bars come from NSE equity cash. The desk trades futures and options. Basis,
+  roll cost, the expiry calendar and the futures margin are all absent.
+
+  ACCEPTANCE TEST
+    - Either futures bars are ingested, or every futures figure states that it
+      is derived from cash and carries the basis assumption explicitly.
+
+P1-4  NO LIQUIDITY OR CAPACITY MODEL
+  No ADV filter, no open-interest filter, no bid-ask spread, no capacity curve.
+  There is no answer to "how much size can this take before it stops working",
+  which is the first question any desk asks. The Amihud ratio is computed but
+  does not gate.
+
+  ACCEPTANCE TEST
+    - A name below a stated ADV or OI threshold cannot be actionable.
+    - Each recommendation carries an estimated capacity in rupees.
+
+P1-5  KELLY IS COMPUTED AND THROWN AWAY
+  recommendation.js:289 computes calculateKellyFraction. Line 294 then sizes off
+  conviction instead: clamp(0.20 + 0.20 * clamp(conviction/70), 0.10, 0.40).
+  A computed-and-ignored number is how a system starts believing things it has
+  not done. Either size with it, or delete it.
+
+  ACCEPTANCE TEST
+    - Kelly appears in the sizing path, or not in the codebase.
+
+P1-6  OPTIONS ARE THEORETICAL, NOT TRADEABLE
+  Pricing is correct BSM but there is one flat volatility per name. Missing:
+    - implied volatility surface and smile, so ATM and OTM share one sigma
+    - American early exercise (Indian stock options are American)
+    - SPAN and exposure margin
+    - bid-ask and depth, so no slippage or executability
+  Everything is labelled THEORETICAL_BSM_NOT_A_TRADED_QUOTE, which is honest.
+  Keep that label until a real chain is wired.
+
+  ACCEPTANCE TEST
+    - The label is not removed until a real option chain with bid/ask is the
+      source; an IV surface replaces the single sigma.
+
+================================================================================
+P2 — MISSING CAPABILITY
+================================================================================
+
+P2-1  NO EARNINGS OR CORPORATE-ACTION BLACKOUT BEYOND THE CURRENT WEEK FLAG
+  earningsVeto covers insideTradingWeek only. Add dividend, split, bonus, buyback
+  and board-meeting dates, and adjust bars for corporate actions in the desk path
+  the way the research path already does.
+
+P2-2  NO MULTI-TIMEFRAME CONFIRMATION
+  Candlestick and chart patterns are detected on one timeframe. A pattern that
+  disagrees with the higher timeframe is usually noise.
+
+P2-3  NO VOLUME PROFILE, VWAP ANCHORING OR VALUE AREA
+  Volume is used as a raw series only. Volume-at-price structure is where most
+  institutional execution logic lives.
+
+P2-4  NO REGIME CONDITIONING BEYOND THE MACRO SHIELD
+  The shield is binary. A trend model and a mean-reversion model should not be
+  weighted identically in every regime. Consider a simple, measurable regime
+  label (realised vol tercile plus index trend state) applied out of sample.
+
+P2-5  NO CROSS-SECTIONAL RESIDUALISATION OR BETA HEDGE
+  This is the one untested structural idea with a real argument behind it. On
+  the older ladder, long geometries improved as the stop widened while short
+  geometries worsened -- the same drift term with opposite signs, which says the
+  rule was measuring market direction rather than anything about the entry.
+  Strip the market factor from each name, trade the residual, hedge beta with an
+  index future. It may fail. It is the only remaining idea that changes the
+  structure rather than the parameters, and parameters are measured dead.
+
+P2-6  NO ALERT ON DATA STALENESS
+  If Yahoo fails, the cache serves the last bars. There must be a visible age on
+  every price and a hard refusal to act on bars older than a stated threshold.
+
+  ACCEPTANCE TEST
+    - Every row carries barsAsOf; a row older than the threshold cannot be
+      actionable and the UI shows the age.
+
+================================================================================
+P3 — PROCESS, AND THE THING THAT KEEPS GOING WRONG
+================================================================================
+
+P3-1  DEFECTS ARE MIGRATING BETWEEN SURFACES INSTEAD OF BEING FIXED
+  This is the most important item in the document. The pattern, with timestamps:
+
+      11:51  forensic audit records F01, a literal array of trades with
+             hand-written prices rendered as live analytics. Fixed by emptying
+             buildSampleRecommendations().
+      12:22  getActiveResearchSetups() added beside it with the same content.
+             The emptied function still passed its check. 31 minutes.
+      14:13  a new SQLite engine seeds the same figures as an audited ledger.
+      18:44  during my own session, the file was rewritten and the fabricated
+             premium * 1.08 mark came back. My guard caught it.
+
+  One invented dataset reached three surfaces: RELIANCE26SEP1240CE at
+  21.95 / 29.63 / 8.34 appears verbatim in the portal card array, in the seeded
+  database and in the disputed profit table.
+
+  RULE GOING FORWARD. Every guard must be written against the BEHAVIOUR, not
+  against one file or one function name. scripts/test-no-fabricated-values.js is
+  scoped to no module on purpose. Add to it rather than writing a new
+  single-file check, and never satisfy it by renaming a function.
+
+P3-2  TESTS THAT ASSERT FABRICATED VALUES
+  Two suites required the invented track record to be present before they would
+  pass, and one printed "Audited Signal Accuracy verified". A test that demands
+  invented performance will also defend it. When a test fails after a fix, check
+  whether the test or the code is wrong before changing either.
+
+P3-3  REPORTS THAT CERTIFY MORE THAN WAS CHECKED
+  The production dossier says "no synthetic placeholders, fabricated win rates or
+  simulated ledger entries remain active" and it was right. It also never stated
+  that the desk was recommending 205 of 210 names. Please state distributions and
+  counts in future reports, not only the checks that passed. An audit that omits
+  the number that matters is not wrong, but it is not an audit either.
+
+P3-4  CONCURRENT EDITING
+  We overwrote each other three times in one hour. Please pull before starting
+  and push in small commits, or tell me which files you are holding.
+
+================================================================================
+PRIORITY ORDER I SUGGEST
+================================================================================
+  1. P0-1  the 97% BUY rate. Nothing else matters while the desk says buy
+           everything, because every other improvement feeds into that decision.
+  2. P0-2  strip or train the veto.
+  3. P0-3  rename or train the CNN.
+  4. P1-1  backtest through panel-study, and accept the answer.
+  5. P1-4  liquidity and capacity gating.
+  6. P1-2  quantify survivorship.
+  7. everything else.
+
+================================================================================
+THE ONE SENTENCE
+================================================================================
+Every defect found in this codebase across four audits has the same shape: a
+number the system MADE UP being presented as a number the system MEASURED. The
+data layer is now real and the security hole is closed, which are genuine wins.
+The decision layer is the last place the old pattern survives, and it survives
+as a score pinned at its ceiling admitting 97% of the market.
+================================================================================
