@@ -390,6 +390,80 @@ PART 7 — WHAT TO DO NEXT, IN ORDER
    strike arithmetic, not trades.
 
 ================================================================================
+PART 7B — ADDENDUM: I HAD NOT READ FOUR OF YOUR AUDITS. NOW I HAVE.
+================================================================================
+
+When you pointed me at K2_APEX_ENGINE_PRODUCTION_AUDIT_REPORT I read only that
+file instead of re-listing the folder, and missed four documents:
+
+    K2_COMPLETE_SYSTEM_MANUAL_AND_ARCHITECTURE_2026.txt     (17 Sep 11:51)
+    K2_FORENSIC_DATA_AND_PROFIT_AUDIT_2026-09-17.txt        (17 Sep 11:51)
+    K2_INSTITUTIONAL_SYSTEM_ARCHITECTURE_AND_ALPHA_GUIDE.txt(17 Sep 14:48)
+    IMPLEMENTATION_AND_REAUDIT_REPORT_2026-09-15.txt        (15 Sep 18:05)
+
+The first two are the same document: the "complete system manual" is the
+forensic audit with three lines prepended, beginning "The previous profit
+certification is withdrawn." Its own manual no longer exists.
+
+THAT FORENSIC AUDIT IS EXCELLENT AND I AGREE WITH IT. It withdrew the Rs 50,031
+profit claim, showed 61.54% is arithmetically 8 of 13 hypothetical positions,
+caught half-lot exits (ABB booking 62.5 of a 125-unit lot), an undocumented
+BankNifty hedge substituted for a Rs -9,233.40 marked loss, option marks off the
+0.05 tick, a stop moved after the outcome was known, and Thursday expiries where
+NSE uses Tuesday and the September monthly contracts expire the 29th. Its
+findings F03, F04, F05 are guarded by test-foundation-audit.js and those fixes
+ARE still in place -- I verified them.
+
+BUT HERE IS WHAT READING IT TOGETHER WITH THE GIT LOG SHOWS, AND IT MATTERS MORE
+THAN ANY SINGLE DEFECT IN THIS DOCUMENT:
+
+    11:05  b97f9fb  system manual committed
+    11:21  d1dffd5  profit total corrected 50,031 -> 29,078
+    11:51           forensic audit written. F01 = literal array of trades with
+                    hand-written prices and quant scores shown as live
+                    analytics. Fixed: buildSampleRecommendations() emptied.
+    12:22  075ccb8  "restore live candidates (BEL, ABB, BANKBARODA)".
+                    getActiveResearchSetups() added beside the emptied
+                    function, holding the same fabricated content. 31 minutes.
+    13:32  f13a501  new SSE server -- a second surface
+    14:04  22b8eef  Apex engine: 1D-CNN, candlestick, calculus
+    14:13  e87d746  SQLite engine, arriving with seedDefaultData()
+    18:03           Apex report: "49/49 GREEN", "Zero Secret Leaks",
+                    "71.4% Win Rate, +Rs 51,492.50 audited"
+
+THE DEFECTS ARE NOT BEING FIXED. THEY ARE MIGRATING.
+
+Each audit fixes the surface in front of it. A new surface is then built that
+reproduces the same defect in a new module, and every guard was written against
+one file, so nothing catches it. The proof is that one invented dataset reached
+three places independently: RELIANCE26SEP1240CE at 21.95 / 29.63 / 8.34 appears
+verbatim in the portal card array, in the seeded SQLite ledger, and in the
+disputed profit table. Hardcoded VPIN 0.128, hurst 0.59 and "4.5 sessions" were
+still being published by site/index.html today, six hours after F01 declared
+them removed, because the fix emptied one function and the replacement was a
+different function.
+
+[FIXED — commit d8c5f9c] getActiveResearchSetups now renders the
+recommendations it is handed, with an empty state. recommendationSectionHtml had
+been discarding its recommendations parameter entirely. Portal rebuilt: zero
+VPIN blocks in index.html and site/index.html, 0 risk-admitted candidates. The
+last seeded figure in site/live-desk.html (+Rs 29,078.10 shown as "Realized Net
+Profit") is cleared.
+
+And the thing that was actually missing: scripts/test-no-fabricated-values.js,
+which is deliberately scoped to NO module. It checks for literal analytics in
+any generator, a built-in list of tradeable names, known-published fingerprints
+in any served HTML, a self-seeding ledger, and missing provenance flags. It
+caught the live-desk figure on its first run. test-portal-browser-audit.js --
+which the forensic audit wrote and which was never added to CI, part of why its
+fixes did not hold -- is now wired in too.
+
+One correction to my own Part 5.4 above: I wrote that there is no backtest
+apparatus. The forensic audit's section 6 roadmap and IMPLEMENTATION_AND_REAUDIT
+already set out acceptance criteria along the same lines. The apparatus gap is
+real but the thinking was already on record, and I should have read it first.
+
+================================================================================
 PART 8 — THE BLUNT SUMMARY
 ================================================================================
 
