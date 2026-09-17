@@ -3,6 +3,8 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "start:desk": "node server.js",
+    "tunnel": "npx cloudflared tunnel --url http://localhost:4173",
     "dev": "node dev-server.js",
     "build": "node scripts/prepare-public.cjs && vinext build && node scripts/finalize-dist.cjs",
     "build:next": "next build",

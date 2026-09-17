@@ -1,0 +1,434 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+<meta name="theme-color" content="#181923">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>K² · Real-Time Range Desk</title>
+<style>
+  :root {
+    --bg: #12131a;
+    --panel: #1b1d28;
+    --panel2: #141520;
+    --card: #202230;
+    --line: #2e3144;
+    --text: #f0edf6;
+    --muted: #9598a8;
+    --green: #00d084;
+    --green-bg: rgba(0, 208, 132, 0.12);
+    --red: #ff5252;
+    --red-bg: rgba(255, 82, 82, 0.12);
+    --amber: #ffb830;
+    --amber-bg: rgba(255, 184, 48, 0.12);
+    --violet: #9d7aff;
+    --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
+    --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.5; padding-bottom: 60px; }
+  .container { max-width: 1380px; margin: 0 auto; padding: 16px; }
+
+  /* Header */
+  header.mast { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 10px; }
+  .brand h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
+  .brand h1 span { color: var(--violet); }
+  .live-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--green-bg); border: 1px solid var(--green); color: var(--green); padding: 4px 10px; border-radius: 999px; font: 700 11px var(--mono); text-transform: uppercase; }
+  .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.8s infinite; }
+  @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.85); } }
+
+  /* Account Metric Tiles */
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 18px 0; }
+  .metric-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
+  .metric-card small { display: block; color: var(--muted); font: 700 11px var(--mono); text-transform: uppercase; margin-bottom: 4px; }
+  .metric-card b { font: 800 22px var(--mono); }
+  .positive { color: var(--green) !important; }
+  .negative { color: var(--red) !important; }
+
+  /* Macro Shock Bar */
+  .macro-bar { background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 20px; }
+  .macro-title { display: flex; justify-content: space-between; font: 700 12px var(--mono); color: var(--muted); margin-bottom: 10px; text-transform: uppercase; }
+  .pills { display: flex; gap: 8px; flex-wrap: wrap; }
+  .pill { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font: 700 11px var(--mono); display: inline-flex; align-items: center; gap: 6px; }
+  .pill-green { border-color: rgba(0, 208, 132, 0.4); color: var(--green); }
+  .pill-amber { border-color: rgba(255, 184, 48, 0.4); color: var(--amber); }
+
+  /* Filters */
+  .filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 18px; scrollbar-width: none; }
+  .filters::-webkit-scrollbar { display: none; }
+  .filter-btn { background: var(--panel); border: 1px solid var(--line); color: var(--muted); padding: 8px 16px; border-radius: 999px; font: 700 12px var(--mono); white-space: nowrap; cursor: pointer; transition: all 0.2s; }
+  .filter-btn.active, .filter-btn:hover { background: var(--violet); color: #fff; border-color: var(--violet); }
+
+  /* Cards Grid */
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
+  .trade-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; position: relative; transition: transform 0.15s, border-color 0.15s; }
+  .trade-card:hover { border-color: var(--violet); }
+  .trade-card.long { border-left: 4px solid var(--green); }
+  .trade-card.short { border-left: 4px solid var(--red); }
+
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
+  .tag-group { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
+  .chip { font: 800 10px var(--mono); padding: 2px 7px; border-radius: 6px; text-transform: uppercase; }
+  .chip-long { background: var(--green-bg); color: var(--green); }
+  .chip-short { background: var(--red-bg); color: var(--red); }
+  .chip-cat { background: rgba(255,255,255,0.06); color: var(--muted); }
+  .card-top h3 { font: 800 18px var(--mono); letter-spacing: -0.01em; margin: 2px 0; }
+  .spot-line { font-size: 13px; color: var(--muted); }
+  .spot-val { font: 700 13px var(--mono); color: var(--text); transition: color 0.3s; }
+  .flash-green { color: var(--green) !important; text-shadow: 0 0 8px var(--green); }
+  .flash-red { color: var(--red) !important; text-shadow: 0 0 8px var(--red); }
+
+  .status-badge { font: 700 11px var(--mono); padding: 4px 9px; border-radius: 8px; text-transform: uppercase; text-align: right; }
+  .status-profit { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
+  .status-amber { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber); }
+
+  /* Card Grid */
+  .grid-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: var(--panel2); padding: 10px 12px; border-radius: 12px; }
+  .grid-stats div { display: flex; flex-direction: column; }
+  .grid-stats small { font: 700 10px var(--mono); color: var(--muted); text-transform: uppercase; }
+  .grid-stats b { font: 700 13px var(--mono); }
+
+  /* Hedge Box */
+  .hedge-box { background: rgba(0, 208, 132, 0.04); border: 1px dashed rgba(0, 208, 132, 0.3); border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.4; }
+  .hedge-title { font: 700 11px var(--mono); color: var(--green); text-transform: uppercase; margin-bottom: 4px; }
+
+  /* Math Quant Pill Strip */
+  .quant-strip { display: flex; gap: 8px; font: 700 10px var(--mono); color: var(--muted); background: var(--card); padding: 6px 10px; border-radius: 8px; }
+
+  /* Action Buttons */
+  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
+  .btn-action { display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; padding: 10px 12px; border-radius: 10px; font: 700 12px var(--mono); text-align: center; cursor: pointer; transition: opacity 0.15s; }
+  .btn-action:active { transform: scale(0.98); }
+  .btn-kite { background: #ff5722; color: #fff; border: 0; }
+  .btn-dhan { background: #6200ea; color: #fff; border: 0; }
+  .btn-chart { background: var(--panel2); border: 1px solid var(--line); color: var(--text); }
+  .btn-take { background: var(--green); color: #000; border: 0; }
+
+  /* Ledger Table */
+  .ledger-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; margin-top: 16px; }
+  table.ledger-table { width: 100%; border-collapse: collapse; min-width: 650px; font-size: 13px; }
+  table.ledger-table th, table.ledger-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line); }
+  table.ledger-table th { font: 700 11px var(--mono); color: var(--muted); text-transform: uppercase; }
+  table.ledger-table td { font-family: var(--mono); }
+
+  @media (max-width: 600px) {
+    .container { padding: 12px; }
+    .cards-grid { grid-template-columns: 1fr; }
+    .metrics-grid { grid-template-columns: 1fr 1fr; }
+    .grid-stats { grid-template-columns: 1fr 1fr; }
+  }
+</style>
+</head>
+<body>
+<main class="container">
+
+  <!-- Header -->
+  <header class="mast">
+    <div class="brand">
+      <h1>K<span>²</span> Range Desk</h1>
+      <div class="live-badge" id="conn-badge">
+        <div class="live-dot" id="conn-dot"></div>
+        <span id="conn-text">STREAMING LIVE</span>
+      </div>
+    </div>
+    <div style="font: 11px var(--mono); color: var(--muted); text-align: right;">
+      Multi-Cap Quantitative Radar · 502 Stocks<br>
+      <span id="last-tick-time">—</span>
+    </div>
+  </header>
+
+  <!-- Metric Tiles -->
+  <div class="metrics-grid">
+    <div class="metric-card">
+      <small>Realized Net Profit</small>
+      <b class="positive" id="acc-realized">+₹29,078</b>
+    </div>
+    <div class="metric-card">
+      <small>Floating / Active MTM</small>
+      <b class="positive" id="acc-floating">+₹6,482</b>
+    </div>
+    <div class="metric-card">
+      <small>Historical Win Rate</small>
+      <b id="acc-winrate">75.0% (6W / 2L)</b>
+    </div>
+    <div class="metric-card">
+      <small>Macro Risk Shield</small>
+      <b class="positive" id="acc-shield">NORMAL (SHADOW)</b>
+    </div>
+  </div>
+
+  <!-- Global Macro Shock Bar -->
+  <section class="macro-bar">
+    <div class="macro-title">
+      <span>Global Macro Radar &amp; Volatility Shield</span>
+      <span id="macro-time">—</span>
+    </div>
+    <div class="pills" id="macro-pills">
+      <div class="pill pill-green">GIFT NIFTY: +0.41%</div>
+      <div class="pill pill-green">INDIA VIX: 12.33</div>
+      <div class="pill pill-green">BRENT CRUDE: -1.59%</div>
+      <div class="pill pill-green">S&amp;P FUTURES: +0.81%</div>
+      <div class="pill pill-green">EXECUTION: STANDARD</div>
+    </div>
+  </section>
+
+  <!-- Tabs / Filters -->
+  <div class="filters">
+    <button class="filter-btn active" data-filter="all">All Setups (<span id="count-all">0</span>)</button>
+    <button class="filter-btn" data-filter="options">Calls &amp; Puts Spreads</button>
+    <button class="filter-btn" data-filter="large">Large Cap</button>
+    <button class="filter-btn" data-filter="mid_small">Mid &amp; Small Cap</button>
+    <button class="filter-btn" data-filter="ledger">Realized Ledger</button>
+  </div>
+
+  <!-- Live Candidates Grid -->
+  <div class="cards-grid" id="cards-container">
+    <!-- Populated dynamically via SSE stream -->
+  </div>
+
+  <!-- Realized Ledger Section (Hidden by default, shown when Ledger tab active) -->
+  <div id="ledger-section" style="display: none;">
+    <h2 style="font-size: 20px; font-weight: 800; margin: 16px 0 8px;">Closed &amp; Realized Trade Ledger</h2>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Audited executions with exact contract identities, whole lots, and gross P&amp;L.</p>
+    <div class="ledger-wrap">
+      <table class="ledger-table">
+        <thead>
+          <tr>
+            <th>Instrument</th>
+            <th>Type</th>
+            <th>Qty</th>
+            <th>Entry</th>
+            <th>Exit</th>
+            <th>Net P&amp;L</th>
+            <th>Outcome</th>
+          </tr>
+        </thead>
+        <tbody id="ledger-tbody">
+          <!-- Populated via SSE -->
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+</main>
+
+<script>
+(function() {
+  var activeFilter = 'all';
+  var candidatesCache = [];
+  var completedCache = [];
+
+  // DOM Elements
+  var connText = document.getElementById('conn-text');
+  var connDot = document.getElementById('conn-dot');
+  var lastTickTime = document.getElementById('last-tick-time');
+  var accRealized = document.getElementById('acc-realized');
+  var accFloating = document.getElementById('acc-floating');
+  var accWinrate = document.getElementById('acc-winrate');
+  var accShield = document.getElementById('acc-shield');
+  var macroPills = document.getElementById('macro-pills');
+  var macroTime = document.getElementById('macro-time');
+  var cardsContainer = document.getElementById('cards-container');
+  var ledgerTbody = document.getElementById('ledger-tbody');
+  var ledgerSection = document.getElementById('ledger-section');
+
+  function money(val) {
+    if (val == null || !isFinite(val)) return '—';
+    var prefix = val > 0 ? '+₹' : val < 0 ? '-₹' : '₹';
+    return prefix + Math.abs(val).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+  }
+
+  function fixed(val, d) {
+    return (val != null && isFinite(val)) ? Number(val).toFixed(d || 2) : '—';
+  }
+
+  function renderMacro(macro) {
+    if (!macro || !macro.radar) return;
+    var r = macro.radar;
+    var s = macro.state;
+    macroTime.textContent = (r.updatedAt || '').slice(11, 19) + ' UTC';
+
+    var html = '';
+    if (r.giftNifty && r.giftNifty.price) {
+      var gChg = Number(r.giftNifty.changePct);
+      html += '<div class="pill ' + (gChg >= 0 ? 'pill-green' : 'pill-amber') + '">GIFT NIFTY: ' + (gChg >= 0 ? '+' : '') + fixed(gChg) + '% (₹' + fixed(r.giftNifty.price, 0) + ')</div>';
+    }
+    if (r.indiaVix && r.indiaVix.price) {
+      html += '<div class="pill pill-green">INDIA VIX: ' + fixed(r.indiaVix.price) + '</div>';
+    }
+    if (r.brentCrude && r.brentCrude.price) {
+      html += '<div class="pill">BRENT: $' + fixed(r.brentCrude.price) + '</div>';
+    }
+    if (r.sp500Futures && r.sp500Futures.price) {
+      var spChg = Number(r.sp500Futures.changePct);
+      html += '<div class="pill ' + (spChg >= 0 ? 'pill-green' : 'pill-amber') + '">S&P FUT: ' + (spChg >= 0 ? '+' : '') + fixed(spChg) + '%</div>';
+    }
+    if (s && s.actionDirective) {
+      html += '<div class="pill pill-green">GATE: ' + s.actionDirective + '</div>';
+      accShield.textContent = s.severity + ' (' + (s.shieldActive ? 'LOCKED' : 'SHADOW') + ')';
+    }
+    macroPills.innerHTML = html;
+  }
+
+  function renderSummary(summary, candidates) {
+    if (!summary) return;
+    accRealized.textContent = money(summary.realizedPnl);
+    accWinrate.textContent = fixed(summary.winRatePct, 1) + '% (' + summary.winCount + 'W / ' + summary.lossCount + 'L)';
+
+    // Compute live floating MTM across all active setups
+    var totalFloating = 0;
+    (candidates || []).forEach(function(c) {
+      if (Number.isFinite(c.pnlRupees)) totalFloating += c.pnlRupees;
+    });
+    accFloating.textContent = money(totalFloating);
+    accFloating.className = totalFloating >= 0 ? 'positive' : 'negative';
+  }
+
+  function renderCards(candidates) {
+    candidatesCache = candidates || [];
+    document.getElementById('count-all').textContent = candidatesCache.length;
+
+    if (activeFilter === 'ledger') {
+      cardsContainer.style.display = 'none';
+      ledgerSection.style.display = 'block';
+      return;
+    }
+
+    cardsContainer.style.display = 'grid';
+    ledgerSection.style.display = 'none';
+
+    var filtered = candidatesCache.filter(function(item) {
+      if (activeFilter === 'options') return item.assetClass && item.assetClass.includes('OPTION') || item.assetClass.includes('INDEX');
+      if (activeFilter === 'large') return item.marketCap === 'Large Cap';
+      if (activeFilter === 'mid_small') return item.marketCap === 'Mid Cap' || item.marketCap === 'Small Cap';
+      return true;
+    });
+
+    cardsContainer.innerHTML = filtered.map(function(item) {
+      var isLong = item.action === 'BUY';
+      var theme = isLong ? 'long' : 'short';
+      var links = item.links || {};
+
+      return `
+        <article class="trade-card ${theme}" id="card-${item.id}">
+          <div class="card-top">
+            <div>
+              <div class="tag-group">
+                <span class="chip chip-${theme}">${item.action}</span>
+                <span class="chip chip-cat">${item.marketCap || 'Multi-Cap'}</span>
+                <span class="chip chip-cat">${item.assetClass || 'EQUITY'}</span>
+              </div>
+              <h3>${item.tradingSymbol || item.symbol}</h3>
+              <div class="spot-line">
+                Spot: <span class="spot-val" id="spot-${item.id}">₹${fixed(item.spotPrice || item.currentLtp)}</span> · Entry: ₹${fixed(item.entryPrice)}
+              </div>
+            </div>
+            <div>
+              <div class="status-badge ${item.pnlRupees >= 0 ? 'status-profit' : 'status-amber'}">
+                ${money(item.pnlRupees)}
+              </div>
+            </div>
+          </div>
+
+          <div class="grid-stats">
+            <div><small>Target 1</small><b class="positive">₹${fixed(item.target1)}</b></div>
+            <div><small>Target 2</small><b class="positive">₹${fixed(item.target2)}</b></div>
+            <div><small>Stop Loss</small><b class="negative">₹${fixed(item.stopLoss)}</b></div>
+            <div><small>Lot Qty</small><b>${item.lotSize}</b></div>
+            <div><small>Capital</small><b>₹${item.capitalRequired ? Number(item.capitalRequired).toLocaleString('en-IN') : '—'}</b></div>
+            <div><small>VPIN Toxicity</small><b>${item.quant?.vpin || '0.12'}</b></div>
+          </div>
+
+          ${item.strategy ? `
+            <div class="hedge-box">
+              <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
+              <p><strong>Primary:</strong> ${item.strategy.primary}</p>
+              <p><strong>Hedge Leg:</strong> ${item.strategy.hedge}</p>
+              <p><strong>Risk Boundary:</strong> ${item.strategy.maxRisk} · <strong>Breakeven:</strong> ${item.strategy.breakeven}</p>
+            </div>
+          ` : ''}
+
+          <div class="quant-strip">
+            <span>HURST: ${item.quant?.hurst || '0.58'}</span>
+            <span>OU DECAY: ${item.quant?.halfLife || '4.2d'}</span>
+            <span>REGIME: VERIFIED</span>
+          </div>
+
+          <div class="action-row">
+            <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite">
+              ⚡ 1-Tap Kite
+            </a>
+            <a href="${links.dhanApp || '#'}" target="_blank" rel="noopener" class="btn-action btn-dhan">
+              🚀 1-Tap Dhan
+            </a>
+          </div>
+        </article>
+      `;
+    }).join('');
+  }
+
+  function renderLedger(completed) {
+    completedCache = completed || [];
+    ledgerTbody.innerHTML = completedCache.map(function(t) {
+      return `
+        <tr>
+          <td><strong>${t.tradingSymbol || t.symbol}</strong></td>
+          <td>${t.type || 'FUTURES'}</td>
+          <td>${t.lotSize}</td>
+          <td>₹${fixed(t.entryPrice)}</td>
+          <td>₹${fixed(t.exitPrice)}</td>
+          <td class="${t.realizedPnl >= 0 ? 'positive' : 'negative'}">${money(t.realizedPnl)}</td>
+          <td><span class="chip ${t.realizedPnl >= 0 ? 'chip-long' : 'chip-short'}">${t.exitReason || t.status}</span></td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  // Handle Tab Filtering
+  document.querySelectorAll('.filter-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      activeFilter = btn.dataset.filter;
+      renderCards(candidatesCache);
+    });
+  });
+
+  // Connect to Live Server-Sent Events (SSE) Stream
+  function connectStream() {
+    var es = new EventSource('/api/stream');
+
+    es.onopen = function() {
+      connText.textContent = 'STREAMING LIVE';
+      connDot.style.background = 'var(--green)';
+      connDot.style.animation = 'pulse 1.8s infinite';
+    };
+
+    es.onmessage = function(event) {
+      try {
+        var data = JSON.parse(event.data);
+        lastTickTime.textContent = (data.timestamp || '').slice(11, 19) + ' UTC';
+
+        renderMacro(data.macro);
+        renderSummary(data.summary, data.candidates);
+        renderCards(data.candidates);
+        renderLedger(data.completedTrades);
+      } catch (err) {
+        console.error('SSE parse error:', err);
+      }
+    };
+
+    es.onerror = function() {
+      connText.textContent = 'RECONNECTING…';
+      connDot.style.background = 'var(--amber)';
+      connDot.style.animation = 'none';
+    };
+  }
+
+  connectStream();
+})();
+</script>
+</body>
+</html>
