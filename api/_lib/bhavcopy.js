@@ -28,7 +28,8 @@ function stockFutureTickSize(underlyingPrice, suppliedTick = null) {
   if (Number.isFinite(explicit) && explicit > 0) return explicit;
   const price = Number(underlyingPrice);
   if (!Number.isFinite(price) || price <= 0) return null;
-  return price < 250 ? 0.01 : 0.05;
+  // NSE/FAOP/67134. Exact daily contract metadata still takes precedence.
+  return price < 250 ? 0.01 : price <= 1000 ? 0.05 : price <= 5000 ? 0.10 : price <= 10000 ? 0.50 : price <= 20000 ? 1 : 5;
 }
 
 function stamp(date) {

@@ -30,11 +30,11 @@ function doGet() {
   return json_({
     ok: true,
     service: 'K2 Google Sheets database',
-    version: '2026.09.06',
+    version: '2026.09.17-audit',
     capabilities: [
       'readDocuments', 'writeDocument', 'appendTradeSignals',
       'appendPortfolioAudit', 'appendMacroRadar', 'appendStockFundamentals',
-      'readTabRows', 'appendDailyRecommendations', 'appendRecommendationAudit'
+      'readTabRows', 'listTabs', 'appendDailyRecommendations', 'appendRecommendationAudit'
     ],
     writable: true
   });
@@ -50,6 +50,9 @@ function doPost(event) {
     const spreadsheetId = properties.getProperty('K2_SPREADSHEET_ID');
     if (!spreadsheetId) return json_({ ok: false, error: 'Database is not configured' });
     const spreadsheet = SpreadsheetApp.openById(spreadsheetId);
+    if (payload.action === 'listTabs') return json_({ ok: true, tabs: spreadsheet.getSheets().map(function (s) {
+      return { name: s.getName(), totalRows: Math.max(0, s.getLastRow() - 1), columns: s.getLastColumn() };
+    }) });
     if (payload.action === 'readDocuments') {
       return json_(readDocuments_(spreadsheet, payload));
     }
@@ -108,8 +111,11 @@ function readTabRows_(spreadsheet, payload) {
   if (lastRow < 1 || lastCol < 1) return { ok: true, tab: tabName, count: 0, rows: [] };
   const headers = sheet.getRange(1, 1, 1, lastCol).getValues()[0];
   if (lastRow === 1) return { ok: true, tab: tabName, count: 0, headers: headers, rows: [] };
-  const startRow = Math.max(2, lastRow - limit + 1);
-  const numRows = lastRow - startRow + 1;
+  const offset = payload.offset;
+  if (offset !== undefined && (!Number.isInteger(offset) || offset < 0)) return { ok: false, error: 'Invalid offset' };
+  const startRow = offset === undefined ? Math.max(2, lastRow - limit + 1) : 2 + offset;
+  const numRows = Math.max(0, Math.min(limit, lastRow - startRow + 1));
+  if (!numRows) return { ok: true, tab: tabName, totalRows: lastRow - 1, count: 0, headers: headers, rows: [], nextOffset: null };
   const data = sheet.getRange(startRow, 1, numRows, lastCol).getValues();
   const rows = data.map(function (row) {
     const obj = {};
@@ -118,7 +124,8 @@ function readTabRows_(spreadsheet, payload) {
     });
     return obj;
   });
-  return { ok: true, tab: tabName, totalRows: lastRow - 1, count: rows.length, headers: headers, rows: rows };
+  return { ok: true, tab: tabName, totalRows: lastRow - 1, count: rows.length, headers: headers, rows: rows,
+    nextOffset: offset === undefined || startRow + numRows > lastRow ? null : offset + numRows };
 }
 
 function readDocuments_(spreadsheet, payload) {
@@ -170,9 +177,8 @@ function writeDocument_(spreadsheet, payload) {
   sheet.getRange(sheet.getLastRow() + 1, 1, additions.length, K2_STATE_HEADERS.length).setValues(additions);
   SpreadsheetApp.flush();
 
-  // The replacement becomes readable before the previous version is removed.
-  // Deleting bottom-up keeps row references stable and avoids a blank window.
-  deleteRows_(sheet, existingRows.map(function (row) { return row.row; }));
+  // Preserve prior versions for audit/recovery. Retention/migration is a separate,
+  // explicitly approved maintenance job, never an ordinary write side effect.
   return { ok: true, path: path, version: nextVersion, chunks: chunks.length };
 }
 
@@ -256,12 +262,8 @@ function withWriteLock_(callback) {
 }
 
 function ensureStateOnlyStorage_(spreadsheet) {
-  const properties = PropertiesService.getScriptProperties();
-  if (properties.getProperty('K2_STATE_ONLY_V2') === 'ready') return;
-  spreadsheet.getSheets().forEach(function (sheet) {
-    if (/^OHLCV_\d+$/.test(sheet.getName())) spreadsheet.deleteSheet(sheet);
-  });
-  properties.setProperty('K2_STATE_ONLY_V2', 'ready');
+  // Historical OHLCV tabs belong to the user. Never delete them implicitly.
+  getStateSheet_(spreadsheet);
 }
 
 function constantTimeEqual_(left, right) {

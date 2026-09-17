@@ -163,6 +163,10 @@ function processSymbol(previous, result, nowMs = Date.now(), context = {}) {
     observationMap.set(session, {
       session,
       open: round(item.open ?? item.close), high: round(item.high), low: round(item.low), close: round(item.close),
+      rawOpen: item.rawOpen ?? null, rawHigh: item.rawHigh ?? null, rawLow: item.rawLow ?? null, rawClose: item.rawClose ?? null,
+      dividendAdjFactor: item.dividendAdjFactor ?? null, priceBasis: item.priceBasis || "UNKNOWN",
+      source: item.source || "UNKNOWN", sourceBarTimestamp: item.timestamp,
+      observedAt: new Date(nowMs).toISOString(),
       volume: Number.isFinite(item.volume) ? Math.round(item.volume) : null
     });
   });

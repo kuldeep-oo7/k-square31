@@ -215,7 +215,7 @@ function calculateKellyFraction({ winRate, rewardToRiskRatio, fractionMultiplier
  * Ornstein-Uhlenbeck (OU) Mean-Reversion Half-Life
  */
 function calculateOuHalfLife(prices) {
-  if (!Array.isArray(prices) || prices.length < 20) return { halfLifeDays: null, meanReverting: false };
+  if (!Array.isArray(prices) || prices.length < 20 || !prices.every(Number.isFinite)) return { halfLifeDays: null, meanReverting: false };
 
   const x = [];
   const y = [];
@@ -235,15 +235,19 @@ function calculateOuHalfLife(prices) {
 
   const lambda = (n * sumXY - sumX * sumY) / denominator;
 
-  if (lambda >= 0) {
-    return { halfLifeDays: Infinity, meanReverting: false, lambda: Number(lambda.toFixed(4)) };
+  const phi = 1 + lambda;
+  if (!(phi > 0 && phi < 1)) {
+    return { halfLifeDays: null, meanReverting: false, phi, reason: "NOT_A_POSITIVE_STATIONARY_AR1" };
   }
 
-  const theta = -lambda;
+  // Exact discrete AR(1) mapping with unit sampling interval, not Euler -lambda.
+  const theta = -Math.log(phi);
   const halfLife = Math.log(2) / theta;
 
   return {
-    halfLifeDays: Number(Math.max(0.5, Math.min(250, halfLife)).toFixed(1)),
+    halfLifeDays: Number(halfLife.toFixed(4)),
+    halfLifePeriods: halfLife,
+    samplingWarning: "Days only if observations are equally spaced daily samples; not an optimal holding period",
     meanReverting: halfLife < 30,
     theta: Number(theta.toFixed(4))
   };
@@ -255,11 +259,14 @@ function calculateOuHalfLife(prices) {
  * d typically in range [0.35, 0.50].
  */
 function calculateFractionalDiff(prices, d = 0.45, threshold = 1e-4) {
+  if (!Number.isFinite(d) || d < 0 || d > 1 || !Number.isFinite(threshold) || threshold <= 0
+      || !Array.isArray(prices) || !prices.every(Number.isFinite)) return { fractionalSeries: [], d, memoryRetentionPct: null, weightsLength: 0, stationarityVerified: false };
   if (!Array.isArray(prices) || prices.length < 20) {
     return {
-      fractionalSeries: Array.isArray(prices) ? prices : [],
+      fractionalSeries: prices.map(() => null),
       d,
-      memoryRetentionPct: Number(((1.0 - d) * 100).toFixed(1)),
+      memoryRetentionPct: null,
+      stationarityVerified: false,
       weightsLength: 0
     };
   }
@@ -276,7 +283,7 @@ function calculateFractionalDiff(prices, d = 0.45, threshold = 1e-4) {
   const result = [];
   for (let i = 0; i < prices.length; i++) {
     if (i < weights.length - 1) {
-      result.push(0);
+      result.push(null);
       continue;
     }
     let val = 0;
@@ -289,7 +296,8 @@ function calculateFractionalDiff(prices, d = 0.45, threshold = 1e-4) {
   return {
     fractionalSeries: result,
     d,
-    memoryRetentionPct: Number(((1.0 - d) * 100).toFixed(1)),
+    memoryRetentionPct: null,
+    stationarityVerified: false,
     weightsLength: weights.length
   };
 }
@@ -300,11 +308,12 @@ function calculateFractionalDiff(prices, d = 0.45, threshold = 1e-4) {
  * Slices volume into equal-sized buckets to measure order flow toxicity.
  */
 function calculateVpin(bars, numBuckets = 30) {
-  if (!Array.isArray(bars) || bars.length < 10) {
-    return { vpin: 0.35, toxicOrderFlow: false, toxicityTone: "LOW" };
+  if (!Array.isArray(bars) || bars.length < 10 || !Number.isInteger(numBuckets) || numBuckets < 1 || numBuckets > 1000
+      || !bars.every(b => Number.isFinite(b.close) && b.close > 0 && Number.isFinite(b.volume) && b.volume > 0)) {
+    return { vpin: null, toxicOrderFlow: null, toxicityTone: "UNKNOWN", method: "BAR_VOLUME_PROXY_NOT_TRADE_CLASSIFIED_VPIN" };
   }
 
-  const totalVolume = bars.reduce((sum, b) => sum + (Number(b.volume) || 1000), 0);
+  const totalVolume = bars.reduce((sum, b) => sum + b.volume, 0);
   const bucketSize = Math.max(100, Math.floor(totalVolume / numBuckets));
 
   let currentBucketVol = 0;
@@ -326,7 +335,7 @@ function calculateVpin(bars, numBuckets = 30) {
     // Standardized direction metric
     const zScore = diff / avgChange;
     const buyFrac = Math.max(0.02, Math.min(0.98, stdNormCdf(zScore * 1.5)));
-    const vol = Number(bar.volume) || 1000;
+    const vol = bar.volume;
 
     let remainingVol = vol;
     while (remainingVol > 0) {
@@ -348,7 +357,7 @@ function calculateVpin(bars, numBuckets = 30) {
   }
 
   if (!imbalances.length) {
-    return { vpin: 0.35, toxicOrderFlow: false, toxicityTone: "LOW" };
+    return { vpin: null, toxicOrderFlow: null, toxicityTone: "UNKNOWN" };
   }
 
   const sumImbalance = imbalances.reduce((a, b) => a + b, 0);
@@ -360,6 +369,8 @@ function calculateVpin(bars, numBuckets = 30) {
 
   return {
     vpin: normalizedVpin,
+    method: "BAR_VOLUME_PROXY_NOT_TRADE_CLASSIFIED_VPIN",
+    predictiveValidation: "UNVALIDATED",
     toxicOrderFlow,
     toxicityTone,
     bucketsEvaluated: imbalances.length
@@ -393,7 +404,7 @@ function metaLabelConfidence({ primarySide = "long", primaryScore = 50, hurst = 
 
   // VPIN: Order flow toxicity is universally dangerous
   if (vpin >= 0.65) z -= 1.8;
-  else if (vpin <= 0.35) z += 0.4;
+  else if (Number.isFinite(vpin) && vpin <= 0.35) z += 0.4;
 
   // Long trend structure alignment
   if (primarySide === "long" && isUptrend) z += 0.4;
@@ -410,6 +421,9 @@ function metaLabelConfidence({ primarySide = "long", primaryScore = 50, hurst = 
 
   return {
     metaProb,
+    calibratedProbability: null,
+    validated: false,
+    modelType: "HAND_WEIGHTED_HEURISTIC_NOT_TRAINED_META_MODEL",
     decision,
     metaMultiplier,
     qualityRating: metaProb >= 0.75 ? "PRIME" : metaProb >= 0.60 ? "HIGH_CONVICTION" : metaProb >= 0.50 ? "ACCEPTABLE" : "REJECTED"

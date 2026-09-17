@@ -1,436 +1,513 @@
-================================================================================
-K2 QUANTITATIVE RANGE DESK — COMPLETE SYSTEM ARCHITECTURE & CODEBASE MANUAL
-AUTHORITATIVE MASTER ONBOARDING & REFERENCE MANUAL (POST-AUDIT 2026 EDITION)
-Document Generated: 2026-09-17T11:22:00+05:30 | Base Commit: b97f9fb
-Target Audience: Quantitative Researchers, Algorithmic Developers, Execution Traders
-================================================================================
+K2 SYSTEM MANUAL — AUDITED CORRECTION
+See the forensic audit below. The previous profit certification is withdrawn.
 
-TABLE OF CONTENTS
---------------------------------------------------------------------------------
-1. EXECUTIVE INTRODUCTION & PURPOSE
-2. THE "WH" ARCHITECTURAL QUESTIONS (WHAT, WHY, WHERE, HOW, WHEN, WHO)
-   2.1 WHAT is the K2 Desk?
-   2.2 WHY was it designed this way? (Mathematical Foundations vs Naive Charting)
-   2.3 WHERE is data sourced, stored, and deployed?
-   2.4 HOW does order generation, filtering, and execution work?
-   2.5 WHEN does each cycle and component execute?
-   2.6 WHO operates the system and what are the safety boundaries?
-3. REPOSITORY ANATOMY & FOLDER STRUCTURE (EVERY DIRECTORY & FILE EXPLAINED)
-   3.1 Root Level Files & Configurations
-   3.2 api/_lib/ — Core Quantitative Math, Risk & Modeling Engines (42 Modules)
-   3.3 scripts/ — Build, Test, Pipeline & Operational Scripts (85 Scripts)
-   3.4 extensions/ & gm-k2-bridge/ — Broker Bridge & Chrome Extension
-   3.5 data/ & .private/ — Local Operating Stores & Evidence Catalogs
-4. CORE QUANTITATIVE MATHEMATICS & FORMULAS IN DEPTH
-   4.1 Fractional Differentiation (Preserving Memory with Stationarity, d=0.55)
-   4.2 Volume-Synchronized Probability of Toxicity (VPIN)
-   4.3 Hurst Exponent (Variance Ratio & Trend Persistence)
-   4.4 Ornstein-Uhlenbeck Mean-Reversion Process & Half-Life
-   4.5 Black-Scholes-Merton PDE & Black-76 Greeks & Implied Volatility
-   4.6 Defined-Risk Spreads vs Naked Options Mechanics
-   4.7 Machine Learning Boosted Tree Walk-Forward Governance
-5. FACTUAL LIVE PERFORMANCE AUDIT (SEPTEMBER 15 TO SEPTEMBER 17, 2026)
-   5.1 Audit Environment & Methodology
-   5.2 Resolution of the "Double Standard" Price Discrepancy (BEL & BANKBARODA)
-   5.3 Complete 13-Ticket Live Execution Matrix (Strict Card Levels)
-   5.4 Deep-Dive on Star Winners (ABB, RELIANCE CE, KAYNES)
-   5.5 Transparent Audit of Stopped Out & Hedged Setups (BEL Stop-Out, BANKNIFTY Spread)
-   5.6 The Multi-Cap & Dynamic Screening Resolution (Why 3 vs 13)
-6. DEVELOPER ONBOARDING QUICKSTART & OPERATIONAL RUNBOOK
-   6.1 Running the Full Quantitative Verification Suite (npm run check)
-   6.2 Generating the Weekly Plan & Intraday Scans
-   6.3 Building & Deploying the Static Zero-Server Portal
-   6.4 Private Broker Book Encryption & Decryption
-   6.5 Emergency Procedures & Fail-Closed Gates
-================================================================================
+K2 FORENSIC DATA, PROFIT-CLAIM AND CONTINUOUS-SIGNAL AUDIT
+Date: 17 September 2026 | Time zone: Asia/Kolkata
+Repository examined: C:\Users\kulde\Downloads\pivot31
+Baseline commit: b97f9fb534e8afbb1e9cd9294dbf4dd932a37aea
+Concurrent revision reviewed: d1dffd575f8c166f1088f2f4d4fd20d6b26c301d.
+Scope: manual, recommendation generation, market-history transformations,
+storage, mathematical functions, risk claims, portal, schedules and tests.
 
-================================================================================
-1. EXECUTIVE INTRODUCTION & PURPOSE
-================================================================================
-If you are reading this document, you have been handed the single authoritative
-source of truth for the K2 Quantitative Range Desk (repo: pivot31 / k2-portal).
+1. BOTTOM LINE
+===============
+The statement "YES, YOU MADE MONEY" is NOT established. The Rs 50,031 is the
+sum of a hypothetical table, not reconciled account profit. Several assumptions
+are contradicted by the code and contract metadata. This does NOT establish
+that the user lost money either. Actual profit remains UNKNOWN without fills,
+fees, valid contract identities, hedge legs and dated marks.
 
-Prior iterations of documentation contained fragmented audit notes, conflicting
-dossiers, and obsolete parameters. This document supersedes all historical notes.
-Every claim, constant, formula, and performance metric recorded here has been
-verified directly against running code, live NSE market tick feeds, and passing
-automated test suites (42 suites passing green via 'npm run check').
+The original 61.54% is arithmetically 8/13. It is NOT a validated strategy win
+rate: these are selected hypothetical positions, many still open. There is no
+verified evidence of an institutional edge, a loss-free system or superiority
+over other traders. Passing software tests is not evidence of trading profit.
 
-No more back-and-forth guessing. Everything an incoming engineer, quant researcher,
-or desk trader needs to know to operate, audit, or extend this codebase is here.
+BEFORE THIS AUDIT: the portal rebuilt periodically, but reused a weekly plan.
+Its prominent manual recommendation cards came from a FIXED array of stocks,
+prices and quantitative scores. That is not continuous signal discovery.
 
-================================================================================
-2. THE "WH" ARCHITECTURAL QUESTIONS
-================================================================================
+FIXES IMPLEMENTED: hard-coded active cards and certainty claims removed;
+quote/contract/news gates tightened; timestamp fabrication removed; a historical
+price alignment bug corrected; exact discrete OU half-life corrected; synthetic
+VPIN inputs removed; destructive Sheet migration removed; plan refresh shortened
+to at most one hour; a separate continuous-monitor portal client added.
 
---------------------------------------------------------------------------------
-2.1 WHAT IS THE K2 DESK?
---------------------------------------------------------------------------------
-K2 is an institutional-grade quantitative algorithmic execution, screening, and
-recommendation desk engineered specifically for the National Stock Exchange of
-India (NSE).
+IMPORTANT: code existing locally, code deployed, data connected, and profitable
+operation are FOUR DIFFERENT claims. See deployment/verification section below.
+No broker account was accessed for trading and no order was placed in this audit.
 
-It integrates two complementary trading engines:
-1. THE STRUCTURAL LADDER ENGINE: A continuous futures multi-barrier swing framework
-   operating across liquid NSE Stock Futures. It places 2% compounding geometric
-   rungs anchored to weekly opening session prices, enforcing strict 1:2 risk-to-
-   reward ratios, gap-aware execution, and continuous multi-session holding horizons.
-2. THE MEDALLION-GRADE DEFINED-RISK DESK: A multi-cap quantitative recommendation
-   engine covering Large Cap, Mid Cap, Small Cap, Index Derivatives, and Stock
-   Options. Every options ticket is structured as a defined-risk spread (Bull Call
-   Spreads, Bear Put Spreads, or Protective Puts), hard-capping maximum capital at
-   risk and neutralizing black-swan gap risk.
+2. EVIDENCE PRESERVED / REPRODUCIBILITY
+======================================
+Original manual SHA256 before edits:
+9a222e04ea221d37aa898603fed5f5326c12183ea4df151d1a7e66a9cf19b89e
+Original plan-full.json SHA256:
+28a8d1e59de47d67eabbceeee316ec69a54d8ced8bef110a19470e672292f10a
+Local instrument catalogue SHA256 before refresh:
+c192ace59800d0ee8ad22ecb6bf13ce8ab43516e09098556813e93d4920a19d0
+Catalogue retrieval: 2026-09-15T11:26:46.859Z. This is NOT a live price timestamp.
+The original claims/code remain recoverable from baseline git history.
+Unrelated .claude content was not altered or staged by this audit.
 
---------------------------------------------------------------------------------
-2.2 WHY WAS IT DESIGNED THIS WAY?
---------------------------------------------------------------------------------
-- WHY NOT NAIVE TECHNICAL INDICATORS (RSI, MACD, SUPERTREND)?
-  Standard technical indicators suffer from heavy lag and lack stationarity. Most
-  importantly, price series have infinite memory (non-stationary random walk).
-  Standard differencing (integer d=1) removes non-stationarity but obliterates all
-  long-term memory. K2 uses Fractional Differentiation (d=0.55), retaining 55% of
-  historical price memory while achieving stationarity for predictive modeling.
+Reproduction commands (from the repository directory):
+  node scripts/audit-profit-claim.js
+  npm run check
+  npm run test:integrity
+  node scripts/test-portal-browser-audit.js
+  node scripts/build-portal.js site --offline --sync-root
+  node scripts/verify-portal.js site/index.html gm-positions.json
+  npm run build
+  npm audit --omit=dev --audit-level=high
+Read-only Google diagnostic (requires real configured credentials):
+  node scripts/audit-data-foundation.js
+Never publish .private files, environment values or the raw broker book.
 
-- WHY MANDATE DEFINED-RISK SPREADS OVER NAKED OPTIONS?
-  Retail option buyers suffer 70-80% loss rates due to theta decay and volatility
-  crush. Retail option sellers suffer catastrophic tail blowups on overnight gap-
-  downs. K2 structures options exclusively as vertical debit spreads:
-  * Buying an At-the-Money / Near-the-Money Call and selling an Out-of-the-Money Call.
-  * Buying an ATM/NTM Put and selling an OTM Put.
-  This cuts the required capital by 40-60%, funds theta decay via the short leg,
-  and establishes a hard mathematically guaranteed maximum loss ceiling.
+3. RECONSTRUCTION OF THE DISPUTED PROFIT TABLE
+==============================================
+All prices BELOW are transcribed from the disputed document, NOT certified
+exchange prices. Column 3 is simple (mark-entry)*quantity, gross, before costs.
+It ignores targets, stops, hedges and execution and is NOT alternative profit.
 
-- WHY CONTINUOUS HOLDING HORIZONS INSTEAD OF FORCED FRIDAY LIQUIDATION?
-  Historical backtests proved that forcing liquidation on Friday 3:15 PM IST
-  consistently dumped profitable swings at weekend liquidity discounts, giving
-  away institutional alpha. Positions are held continuously across weekends.
-  Monday open merely recalculates the weekly reporting reference; exits occur
-  strictly on target triggers, trailing stop adjustments, or the 3-day monthly
-  futures expiry roll.
+Instrument          Claimed Rs     Single-leg mark arithmetic Rs
+ABB future             20,121              16,943.75
+BEL future             13,979              13,979.25
+RELIANCE call           2,415                 990.00
+KAYNES cash            15,705              14,450.00
+TRENT cash              5,320               5,320.00
+CDSL cash               4,190               4,190.00
+DATAPATTNS cash         4,080               4,080.00
+BANKBARODA future       1,345               1,345.50
+NIFTY call               -642                -642.20
+DIXON call             -1,465              -1,465.00
+HDFCBANK call          -3,451              -3,451.50
+TCS cash               -7,600              -7,600.00
+BANKNIFTY put          -3,966              -9,233.40
+TOTAL                 50,031              38,906.40
 
-- WHY ONLY 3 STOCKS PASSED THE LADDER SCREEN ON MONDAY?
-  The weekly ladder framework applies 7 severe statistical vetoes (Hurst > 0.55,
-  VPIN < 0.20, OU half-life < 10 sessions, ML carry > 0, F&O ban clearance, zero
-  binary earnings events in 14 days, and trade-through fill mechanics). Out of 210
-  F&O candidates, only 3 (BEL, ABB, BANKBARODA) cleared every hurdle. K2 never
-  lowers mathematical thresholds just to show more names.
+WHY THE TABLE IS NOT A FACTUAL NET-PROFIT REPORT:
+A. ABB's claimed target booking uses 62.5 units of a 125-unit one-lot future.
+   Half-lot exits are not valid. Its half-exit arithmetic is Rs 20,121.875.
+B. RELIANCE's Rs 2,415 assumes half of a 500-unit option lot exits at 29.63:
+   250*(29.63-21.95)+250*(23.93-21.95). That is also an invalid half-lot exit.
+C. BANKNIFTY substitutes Rs -3,966 for the long put's Rs -9,233.40 marked loss,
+   invoking an unidentified spread. Where are the short-leg contract, bid/ask,
+   fill, expiry, fees and valuation? A theoretical loss bound is NOT today's P&L.
+D. Rows mix standalone option returns with a spread loss cap. That is not one
+   consistently defined portfolio. Neither spread costs nor all hedge marks
+   are supplied. Naked LONG calls/puts already have premium-limited loss;
+   adding a short wing changes profit, risk, margin and execution obligations.
+E. A high touching a target is not proof an order filled. Entry must occur first.
+   Intraday stop-versus-target sequence, queue position, gaps and slippage matter.
+F. At baseline, TCS cash generator used a 1.5% stop near 2217.25, whereas the
+   narrative discusses a 5% stop near 2138.45. A stop cannot be moved after the
+   outcome is known to make a losing trade appear still valid.
+G. The profit table's BEL entry 382.74 differs from plan intent 390.25;
+   BANKBARODA's 232.70 differs from its plan entry 225.89 (tick-rounded in intent).
+   ABB in the fixed card array used 7005.01, unlike the table's 6954.45.
+   Which frozen recommendation did the user actually see and follow?
+H. Corrected card commits were recorded Sep15 at 18:35, 19:28, 20:01 and 20:52
+   IST, after regular trading hours. This does not rule out an earlier signal
+   elsewhere, but NO proof of the required pre-entry published version was
+   supplied. Reconstructing entries at that day's close is not automatically
+   executable when a card was published after close.
+I. All derivative cards specified 2026-09-24, a Thursday. NSE specifications and
+   the local contract master use Tuesday expiries; relevant September monthly
+   contracts in the master expire September 29. NIFTY also has September 22
+   weekly contracts. The explicit contract must be resolved, not date-guessed.
+J. Option marks such as 23.93 and 6.54 are not on a 0.05 tick in the examined
+   contracts. They might be theoretical values or averages, but must not be
+   represented as exchange LTP without source evidence.
+K. Costs, capital, margin and funding are missing. "Net" was unsupported.
+L. A claimed hit rate on 13 selected open/closed positions cannot demonstrate
+   predictive accuracy, expected daily income or an out-of-sample edge.
 
---------------------------------------------------------------------------------
-2.3 WHERE IS DATA SOURCED, STORED, AND DEPLOYED?
---------------------------------------------------------------------------------
-- LIVE MARKET DATA SOURCES:
-  * Yahoo Finance v8 JSON API (query1.finance.yahoo.com/v8/finance/chart):
-    Fetches real-time split- and dividend-adjusted daily and intraday OHLCV bars.
-  * Official NSE Bhavcopy Archives (nsearchives.nseindia.com):
-    Downloads daily official Bhavcopy ZIP files for F&O contract master records,
-    open interest, front-month futures identification, and security ban lists.
-  * TradingView Scanner (NSEIX:NIFTY1!):
-    Monitors live GIFT Nifty 50 futures to anticipate opening session gaps.
-- OPERATIONAL STORAGE & PERSISTENCE:
-  * Google Sheets Document Bridge (api/_lib/google-store.js):
-    Encrypted, audited document store holding historical recommendations,
-    evidence dossiers, and trade performance records.
-  * Local Storage (data/ & .private/):
-    Local JSON caches for rapid backtesting, model feature weights, and daily
-    recommendation audit snapshots.
-- LIVE WEB PORTAL DEPLOYMENT:
-  * Deployed on GitHub Pages (https://kuldeep-oo7.github.io/k2-portal/).
-  * 100% static, serverless HTML/CSS/JS architecture.
-  * Includes an encrypted private broker book container protected by WebCrypto
-    API AES-GCM-256 with PBKDF2 (100,000 iterations) key derivation.
+WHAT WOULD VERIFY IT: dated original signal + strategy version + exact contract
+master + entry/exit/all-hedge fills + broker charges + side-correct open marks +
+account/cash reconciliation. Manual broker-export files are sufficient; broker
+automation or giving the system order permission is NOT required.
 
---------------------------------------------------------------------------------
-2.4 HOW DOES ORDER GENERATION, FILTERING, AND EXECUTION WORK?
---------------------------------------------------------------------------------
-1. UNIVERSE SELECTION:
-   The broad universe comprises 500+ NSE equities and 210 F&O underlying contracts.
-2. STATISTICAL SCREENING & FEATURE EXTRACTION:
-   Computes Fractional Differentiation (d=0.55), Hurst Exponent, VPIN, OU Half-
-   Life, and 12-month Momentum.
-3. GOVERNANCE & VETO GATES:
-   * Binary Event Shield: Blocks stocks with earnings or AGMs in <= 14 days.
-   * Ban State Gate: Blocks securities under NSE F&O ban (MWPL > 95%).
-   * Macro Shock Shield: Detects high VIX or Brent crude spikes to lock entries.
-4. ORDER SIZING & PRICING:
-   * Limit entries placed strictly below market (for longs) or above (for shorts).
-   * Trade-through requirement: A limit order at ₹390.25 is only filled if market
-     trades through to ₹390.20 or lower.
-   * Multi-barrier staged targets: 50% booked at Target 1, Stop Loss moved to
-     breakeven (₹0 risk), 25% booked at Target 2, and 25% kept as macro runner.
+CONCURRENT CORRECTION REVIEW: while this audit was running, commit d1dffd5
+(11:21:45 IST) changed the manual's total to Rs29,078 and labelled BEL -5629,
+BANKBARODA unfilled, and six winners/six losers/one unfilled. The row-sum
+arithmetic is consistent with those replacements; acknowledging the wrong
+entry references is a useful correction. It DOES NOT establish real net profit:
+the same fractional-lot ABB/RELIANCE booking, undocumented BankNifty hedge,
+unverified contract/option marks and omitted costs remain. It calls BEL a
+Tuesday stop-out while still stating signals originated Tuesday session close;
+an earlier real publication/order timestamp would be needed. The stop price
+is not a guaranteed execution price. Both50031 and29078 remain UNVERIFIED.
+This audit incorporates that correction rather than ignoring the newer version.
 
---------------------------------------------------------------------------------
-2.5 WHEN DOES EACH CYCLE AND COMPONENT EXECUTE?
---------------------------------------------------------------------------------
-- WEEKLY ANCHOR (Monday 09:00 - 09:15 AM IST):
-  Calculates weekly anchor prices, generates new ladder rungs, and rebases existing
-  open swing positions.
-- INTRADAY / MID-WEEK SCANNING (Daily 09:15 AM - 03:30 PM IST):
-  Live signal monitor (run-signal-monitor.js) and dynamic scanner evaluate real-
-  time ticks. If a stock across Large, Mid, or Small Cap triggers an institutional
-  breakout with low VPIN toxicity, it can be deployed to the portal immediately.
-- MONTHLY EXPIRY ROLL (Thursday Expiry - 3 Sessions):
-  Automated detection of front-month contract expiration. Closes existing futures
-  position and opens the next near-month contract at market spread.
+4. FINDINGS, LOCATIONS, FIXES AND REMAINING WORK
+================================================
+F01 CRITICAL — Fixed cards presented as live quantitative recommendations.
+Where: baseline scripts/recommendation-desk-ui.js, buildInstitutionalRecommendations.
+What: literal 13-name array, prices, 91%-99% scores, VPIN, Hurst, OU and Greeks.
+Why harmful: values were never measured by the displayed scanner. Missing
+metrics also defaulted to reassuring numbers. Rebuild changed IDs/time, not data.
+Fixed: no synthetic default cards, no guessed scores, no copyable live tickets.
+Test: test-foundation-audit.js and test-portal-browser-audit.js.
 
---------------------------------------------------------------------------------
-2.6 WHO OPERATES THE SYSTEM AND WHAT ARE THE BOUNDARIES?
---------------------------------------------------------------------------------
-- OPERATOR: Algorithmic portfolio manager / quant trader.
-- EXECUTION MODES:
-  * SHADOW ONLY (Default): Fully simulated order ledger tracking real market
-    trade-through fills, fees, slippage, and P&L without placing live broker orders.
-  * LIVE EXECUTABLE: Disabled by default; requires verified broker session tokens,
-    real-time margin reconciliation, and zero active data gate locks.
+F02 CRITICAL — Unverified option contracts/premiums and hedge risk.
+Where: api/_lib/manual-recommendation.js, generateManualRecommendation.
+What: guessed strikes/symbols/Thursday expiry; default sigma=.18, r=.065, q=.01;
+expired dates forced to positive time; theoretical premium or 2%-of-spot fallback;
+delta-linear targets; stop-distance called max risk; 22% assumed futures margin;
+undefined protective future hedge called "Finite"; missing events allowed ACTIVE.
+Fixed: current exact catalogue + matching timestamped bid/ask + whole lots;
+no model-price-as-market-price fallback; every hedge leg must be specified;
+terminal payoff uses option-strategy.js with costs; no invented margin or target.
+Research only, quantity permission zero until independent evidence/risk review.
+Remaining: real chain/depth, exercise/delivery/margin checks, validated alpha and
+portfolio budget. This is not an order-entry or broker-automation system.
 
-================================================================================
-3. REPOSITORY ANATOMY & FOLDER STRUCTURE
-================================================================================
+F03 CRITICAL — Download time masqueraded as market quote time.
+Where: api/_lib/market-feed.js, createMacroEnvelope/fetchLiveMacroRadar/macroInputFromRadar.
+What: TradingView response lacked timestamp but received Date.now(); fallback
+also used receivedAt. Daily Yahoo bar-start timestamps were treated as fresh quotes.
+Fixed: unknown quote timestamp remains null; provenance kind explicit; live-risk
+input requires exchange/provider quote timestamp <=5 minutes old, not daily bar.
+Consequence: missing macro feed now blocks instead of falsely reporting safe.
 
---------------------------------------------------------------------------------
-3.1 ROOT LEVEL FILES
---------------------------------------------------------------------------------
-/
-├── package.json              Project dependencies, engine configs, npm run check suite
-├── plan.json                 Active weekly swing plan (Qualified ladder candidates)
-├── plan-full.json            Unfiltered master plan with research metrics for all symbols
-├── index.html                Static entry point for the deployed GitHub Pages portal
-├── dev-server.js             Local development server
-├── app.js                    Application bootstrap
-└── .github/workflows/
-    └── deploy.yml            GitHub Actions workflow auto-deploying to GitHub Pages on push
+F04 CRITICAL — Misaligned adjustment array on stored/fresh history merge.
+Where: api/market.js resultBars/mergeStoredHistory; api/_lib/market-feed.js resultBars.
+What: market.js used raw closes while the AI store contained adjusted bars;
+merge extended timestamps but retained the short fresh adjclose array. Calling
+the second parser could apply a different date's adjustment to an old candle.
+Fixed: shared normalization; already-adjusted merged candles retained as such;
+aligned adjclose series; raw OHLC and exact adjustment factors retained separately.
+Test: old close46 plus fresh raw100/adjusted50 stays [46,50], raw close100 retained.
+Remaining: stored legacy history may ALREADY be affected. Do not certify old ML
+artifacts until exchange/provider reconciliation and a versioned rebuild occur.
+Point-in-time corporate-action revision tracking remains necessary.
 
---------------------------------------------------------------------------------
-3.2 api/_lib/ — QUANTITATIVE ENGINES & MODULES (42 MODULES)
---------------------------------------------------------------------------------
-- market-feed.js: Fetches real-time Yahoo Finance OHLCV bars with dividend ratio adjustments.
-- option-pricing.js: Black-Scholes-Merton (BSM) & Black-76 PDE pricing, Greeks, and IV solver.
-- option-strategy.js: Structures vertical Bull Call Spreads, Bear Put Spreads, & Protective Puts.
-- manual-recommendation.js: Institutional recommendation generator with defined-risk hedges.
-- advanced-quant.js: Core institutional math (Fractional Diff, VPIN, Hurst, OU, Black-76).
-- sentiment-risk.js: Event proximity guard (blocks trades <=14 days from earnings/dividends).
-- chart-patterns.js: Algorithmic detection of W-bottoms, M-tops, and Head & Shoulders.
-- bhavcopy.js: Unzips and parses official NSE FO Bhavcopy ZIP archives.
-- weekly-cycle.js: Implements 2% geometric ladder, temporal fill rules, and Monday rebase.
-- ml-model.js: Walk-forward boosted decision trees with strict trust gates.
-- portfolio-risk.js: Portfolio capacity, leverage, concentration, and drawdown circuit breaker.
-- shadow-broker.js: Simulated execution broker enforcing statutory taxes (STT, NSE, GST).
-- shadow-ledger.js: Daily mark-to-market ledger tracking open positions and cash balances.
-- trade-tracker.js: Multi-barrier exit engine (Target 1, Target 2, Runner, Stop Loss).
-- trade-audit.js: Compares broker execution fills against planned limit prices.
-- carry.js: Computes annualized futures basis, roll yield, and cost of carry.
-- fundamentals.js: Balance sheet safety metrics (Debt-to-Equity, Interest Coverage).
-- sectors.js: Industry and sector categorization across the NSE directory.
-- trend.js: 12-month time-series momentum and volatility-adjusted trend scoring.
-- universe.js: Active universe definition of F&O eligible contracts and broad equities.
-- portal-crypto.js: WebCrypto AES-GCM-256 PBKDF2 encryption for private broker books.
-- google-store.js: Operational read/write transport for Google Sheets document store.
-- google-recommendations.js: Synchronizes institutional recommendation rosters to cloud storage.
-- daily-recommendation-audit.js: Generates immutable daily audit snapshots of mature trades.
-- market-regime.js: Global macro radar (GIFT Nifty, India VIX, Brent Crude, S&P futures).
-- emailer.js: Automated daily dispatch of risk alerts and trade triggers.
+F05 HIGH — Invalid/missing historical observations used as real data.
+Where: market-feed resultBars; market.js mergeStoredHistory; ai-engine processSymbol.
+Fixed: reject nonpositive/impossible OHLC; missing volume remains null; newly
+stored bars include source/raw OHLC/basis/factor/source-bar time/observation time.
+Remaining: dedup/conflict policy, holiday completeness, revisions, point-in-time
+adjustments, independent feed comparison and raw-response immutable retention
+must be expanded. A timestamp/hash alone does not establish accurate prices.
 
---------------------------------------------------------------------------------
-3.3 scripts/ — OPERATIONAL, BUILD & TEST SUITES (85 SCRIPTS)
---------------------------------------------------------------------------------
-- build-portal.js: Compiles the full static HTML portal (index.html) with embedded styles & JS.
-- recommendation-desk-ui.js: Generates UI components and data for the Institutional Desk.
-- weekly-plan.js: CLI script to scan 210 F&O symbols and generate plan.json.
-- run-signal-monitor.js: Live background process monitoring tick crossings of planned limits.
-- run-shadow-session.js: Executes daily shadow settlement and fills against incoming bhavcopies.
-- audit-live-google-sheet.js: Audits consistency of external Google Sheets storage.
-- test-*.js (42 test scripts): Comprehensive unit and integration test suites executed by npm run check.
+F06 CRITICAL — Hidden deletion of OHLCV tabs during routine document writes.
+Where: google-sheets/K2MarketArchive.gs ensureStateOnlyStorage_/doPost.
+What: /^OHLCV_\d+$/ tabs were automatically deleted on first migration write.
+Fixed locally: no deleteSheet during writes. Prior K2_STATE document versions
+are retained; write-lock and compare-and-swap retained. Tests reject deletion.
+Remaining: Apps Script must be deployed separately; local edits do not change
+the live script. No Sheet data was deleted by this audit. Existing deletion,
+if any, needs Google version history/backups; its occurrence is NOT assumed.
 
-================================================================================
-4. CORE QUANTITATIVE MATHEMATICS & FORMULAS IN DEPTH
-================================================================================
+F07 HIGH — Archive claimed synced=true without doing a read/write verification.
+Where: api/_lib/google-archive.js syncGoogleArchive; caller api/ai-run.js.
+What: counted candidate bars and returned success. The caller DOES separately
+write AI shards through store.js, but this helper did not verify those writes.
+Fixed: report candidate rows and explicit unverified status, not false success.
+Remaining: compare saved shard hash, row coverage, as-of dates and source lineage
+against input on each durable write; retry idempotently and alarm on mismatch.
 
---------------------------------------------------------------------------------
-4.1 FRACTIONAL DIFFERENTIATION (MEMORY PRESERVATION AT d=0.55)
---------------------------------------------------------------------------------
-Standard integer differentiation (d=1, Delta P_t = P_t - P_{t-1}) strips all memory
-of past support/resistance. K2 applies fractional differentiation via the binomial
-series expansion:
-    (1 - B)^d = sum_{k=0}^{infinity} (-1)^k * (d choose k) * B^k
-              = 1 - d*B + (d*(d-1)/2!)*B^2 - (d*(d-1)*(d-2)/3!)*B^3 + ...
-By fixing d=0.55 with a memory threshold of 1e-4, the transformed price series
-passes the Augmented Dickey-Fuller (ADF) test for stationarity while retaining
-55% of the multi-month memory structure.
+F08 HIGH — Sheet readback limited to last500 rows, no full inventory.
+Where: K2MarketArchive.gs readTabRows_; google-store.js readTabRowsFromGoogle.
+Fixed locally: authenticated listTabs and paginated offset/nextOffset reads.
+Remaining: deploy new endpoint, then audit every tab/page, including K2_STATE
+versions and legacy OHLCV. Existing read-only diagnostic is explicit about its
+500-row samples and known full documents. No claim that every Sheet cell was read.
 
---------------------------------------------------------------------------------
-4.2 VOLUME-SYNCHRONIZED PROBABILITY OF TOXICITY (VPIN)
---------------------------------------------------------------------------------
-Measures adverse selection and informed order flow toxicity. Trading volume is
-sliced into equal volume bars (V). Trade direction is signed using tick bulk volume
-classification:
-    VPIN = (sum_{tau=1}^N |V_tau^B - V_tau^S|) / (N * V)
-* VPIN < 0.15: Clean retail / passive institutional flow (Safe to enter).
-* VPIN > 0.25: High order flow toxicity (Toxic dump or institutional liquidation).
-Trades with VPIN > 0.20 are vetoed.
+F09 HIGH — Missing data represented as zero and default safe status in Sheets.
+Where: K2MarketArchive.gs appendTradeSignals_, appendMacroRadar_, fundamentals
+and recommendation appenders. Several legacy appenders use Number(x||0).
+Status: OPEN. Existing legacy tab schema needs a versioned migration preserving
+null/unknown versus real zero, explicit source/as-of, original IDs and all legs.
+Do not use default TAKE/NORMAL/zero P&L cells as verified training labels.
 
---------------------------------------------------------------------------------
-4.3 HURST EXPONENT (VARIANCE RATIO & PERSISTENCE)
---------------------------------------------------------------------------------
-Evaluates whether a time series is mean-reverting, random walk, or trending:
-    H = log(R/S) / log(T)
-* H < 0.45: Mean-reverting (Stationary range).
-* 0.45 <= H <= 0.55: Brownian motion / Pure random walk (Noise - No edge).
-* H > 0.55: Persistent / Trending (Momentum persists).
-K2 swing long orders require H > 0.55 to ensure directional follow-through.
+F10 HIGH — News/events shield cleared missing coverage and ignored publication time.
+Where: api/_lib/sentiment-risk.js evaluateSentimentAndEventRisk.
+Fixed: source/coverage/as-of and holding-window coverage required; future,
+stale, duplicate or wrong-entity news excluded; missing feeds UNKNOWN; same-day
+date-only event retained; negative news requires review; F&O bans scoped to
+derivatives rather than banning cash delivery. No-news score is null, not neutral0.
+Remaining: actual exchange-announcement/calendar/news integrations; novelty,
+entity resolution, revisions, independent corroboration and out-of-sample tests.
+Current lexicon is NOT deep learning or a return-prediction probability.
 
---------------------------------------------------------------------------------
-4.4 ORNSTEIN-UHLENBECK MEAN-REVERSION PROCESS & HALF-LIFE
---------------------------------------------------------------------------------
-Models price deviation dynamics toward equilibrium:
-    dX_t = theta * (mu - X_t) * dt + sigma * dW_t
-Discrete regression of Delta X_t on X_{t-1}:
-    Delta X_t = a + b * X_{t-1} + epsilon_t
-    theta = -log(1 + b) / dt
-    Half-Life (t_{1/2}) = log(2) / theta
-Swing setups require half-life < 10 trading sessions to prevent capital entrapment.
+F11 HIGH — Once-per-week plan reuse despite half-hour portal rebuild.
+Where: scripts/plan-is-current.js and .github/workflows/portal.yml.
+Fixed: plan freshness <=1hour, same IST date, week/intent consistency, reject
+unvalidated staged-exit fields in the supposedly canonical plan. Recompute on
+next scheduled run when expired; keep weekly anchor separate from signal time.
+Remaining: scans take time; scheduling can be delayed. This is not every second.
+No holding is closed merely because its research snapshot became stale.
 
---------------------------------------------------------------------------------
-4.5 BLACK-SCHOLES-MERTON PDE & BLACK-76 OPTIONS GREEKS
---------------------------------------------------------------------------------
-European option valuation using closed-form analytical solutions:
-    d1 = (log(S / K) + (r - q + 0.5 * sigma^2) * T) / (sigma * sqrt(T))
-    d2 = d1 - sigma * sqrt(T)
-    Call Price = S * e^(-q*T) * N(d1) - K * e^(-r*T) * N(d2)
-    Put Price  = K * e^(-r*T) * N(-d2) - S * e^(-q*T) * N(-d1)
-Greeks calculated analytically:
-* Delta (dC/dS): Hedge ratio per underlying rupee change.
-* Gamma (d^2C/dS^2): Rate of change of Delta.
-* Theta (dC/dt): Calendar time decay per day.
-* Vega (dC/d_sigma): Sensitivity to a 1% shift in Implied Volatility (IV).
-Implied Volatility is solved using a bisection algorithm converging within 1e-8.
+F12 HIGH — Continuous monitor existed as code but was not connected to portal.
+Where: scripts/run-signal-monitor.js; api/_lib/signal-monitor.js;
+scripts/recommendation-desk-ui.js; build-portal.js; portal.yml.
+Fixed: configurable HTTPS monitor client polls5seconds while page is open;
+fresh research alerts appear without weekly rebuild; outages clear stale cards;
+XSS-safe text rendering; explicit connected/unavailable/not-configured states.
+Runtime reloads plan/catalogue and rejects catalogue older than24h. Prior-level
+cross requires verified preceding session/calendar, not any arbitrarily old high.
+Remaining: authorized timestamped quote feed, always-on hosting, secrets,
+display entitlement, exchange holiday/special-session adapter and health SLA.
+No corresponding feed/monitor configuration was found locally or in repository
+secret names. A local localhost service alone cannot serve a public portal24/7.
 
---------------------------------------------------------------------------------
-4.6 DEFINED-RISK SPREADS VS NAKED OPTIONS
---------------------------------------------------------------------------------
-To protect traders from black swans:
-* BULL CALL SPREAD: Buy Strike K1 CE, Sell Strike K2 CE (where K2 > K1).
-  - Net Debit (Max Risk) = Premium(K1) - Premium(K2).
-  - Max Profit = (K2 - K1) - Net Debit.
-  - Breakeven = K1 + Net Debit.
-* BEAR PUT SPREAD: Buy Strike K1 PE, Sell Strike K2 PE (where K2 < K1).
-  - Net Debit (Max Risk) = Premium(K1) - Premium(K2).
-  - Max Profit = (K1 - K2) - Net Debit.
-  - Breakeven = K1 - Net Debit.
-Even if an underlying gaps down 20% overnight, the trader CANNOT lose more than
-the net debit.
+F13 HIGH — Manual changes to plan artifacts bypassed real generation evidence.
+Where: baseline plan-full.json/plan.json, BEL/ABB/BANKBARODA entries.
+What: top weekKey Sept14 while order intents retained Sept7; staged targets
+reintroduced into artifacts although canonical strategy/tests expressly omit them.
+Fixed: current-plan guard rejects these inconsistencies; no old rows in calculator.
+Remaining: immutable generator/input/parameter hashes, signed publication event
+and model/strategy version checks must govern every issued recommendation.
 
-================================================================================
-5. FACTUAL LIVE PERFORMANCE AUDIT (SEPTEMBER 15 TO SEPTEMBER 17, 2026)
-================================================================================
+F14 HIGH — Wrong stock-future tick-size fallback above1000.
+Where: api/_lib/bhavcopy.js stockFutureTickSize; baseline ABB intent tick=.05.
+Fixed: NSE/FAOP/67134 price tiers: below250 .01;250..1000 .05; above1000..5000
+.10; above5000..10000 .50; above10000..20000 1; above20000 5. Exact supplied
+contract tick takes precedence. Local ABB contract master tick=.50.
+Remaining: match daily exact contract master rather than infer official tier
+from a changing spot price; rule estimates are not a live execution certificate.
 
---------------------------------------------------------------------------------
-5.1 AUDIT METHODOLOGY & ENVIRONMENT
---------------------------------------------------------------------------------
-* Baseline Inception: Generated Tuesday, September 15, 2026 at session close.
-* Audit Timestamp: Thursday, September 17, 2026 at 11:20 AM IST.
-* Live Market Feeds: Verified against real Yahoo Finance and NSE tick archives.
-* Staged Exit Protocol: 50% lot booked at Target 1 with stop moved to breakeven;
-  remaining lots trailed toward Target 2 and macro runner targets.
+F15 MEDIUM — Fractional-difference memory/stationarity claims false.
+Where: advanced-quant.js calculateFractionalDiff and old manual.
+Fixed: memoryRetentionPct=null, stationarityVerified=false, warmup=null not0,
+validate d/threshold/input. d is an exponent, not "% memory retained". ADF
+stationarity cannot be guaranteed by assigning d=.55. Fit transforms only on
+training data and evaluate stability out of sample before promotion.
 
---------------------------------------------------------------------------------
-5.2 RESOLUTION OF THE "DOUBLE STANDARD" PRICE DISCREPANCY
---------------------------------------------------------------------------------
-THE USER DISCOVERED A REAL, UNACCEPTABLE DISCREPANCY:
-- On the portal's Candidate Card, BEL showed:
-  Planned Limit: ₹390.25 | Stop Loss: ₹386.30 | Target 1: ₹398.15
-- In an initial audit calculation, BEL was listed with Entry: ₹382.74 (the Tuesday
-  cash close) and claimed a profit of +₹13,979.
+F16 MEDIUM — OU half-life used Euler approximation as exact and hid limits.
+Where: advanced-quant.js calculateOuHalfLife.
+Fixed: phi=1+regressionSlope; theta=-log(phi); halfLife=log(2)/theta for0<phi<1.
+Reject nonstationary/negative-phi fit; no fake0.5..250 clipping; report sampling
+units. This estimates decay under a model, NOT ideal trade holding duration.
 
-THIS WAS WRONG. HERE IS THE BRUTAL, 100% FACTUAL REALITY:
-1. BEL (Weekly Ladder Card):
-   - Planned Limit: ₹390.25 | Stop Loss: ₹386.30
-   - On Tuesday Sep 15, BEL plunged from ₹402.00 down to a low/close of ₹382.90.
-   - If an order was live at the planned limit of ₹390.25, it filled at ₹390.25
-     and PLUNGED DIRECTLY THROUGH THE STOP LOSS AT ₹386.30.
-   - The trade was STOPPED OUT on Tuesday for a real loss:
-     (386.30 - 390.25) * 1425 = -₹5,628.75 (-1.01% on contract).
-   - Attempting to reset the entry to ₹382.74 after the fact was moving the
-     goalposts. We reject that and record the stop-out honestly!
-2. BANKBARODA (Weekly Ladder Card):
-   - Planned Limit: ₹225.89 | Target: ₹230.59
-   - The session low between Sep 15 and Sep 17 was ₹232.33.
-   - The market NEVER reached ₹225.89.
-   - Real outcome: UNFILLED / PENDING (₹0.00 P&L). Claiming an entry at ₹232.70
-     was incorrect.
-3. ABB (Weekly Ladder Card):
-   - Planned Limit: ₹6,954.45 | Stop Loss: ₹6,861.30 | Target 1: ₹7,140.85
-   - On Wednesday Sep 16, ABB dipped to low of ₹6,905.50 (FILLED AT ₹6,954.45).
-   - Stop loss was never threatened.
-   - On Thursday Sep 17, ABB surged to high of ₹7,168.00.
-   - Real outcome: TARGET 1 HIT AT ₹7,140.85 (+₹20,121 net profit).
+F17 HIGH — VPIN invented missing volume and defaulted safe values.
+Where: advanced-quant.js calculateVpin/metaLabelConfidence.
+Fixed: missing/nonpositive volume -> unknown, no fake1000-share substitution,
+label bar-volume proxy explicitly. Meta score labelled hand-weighted heuristic,
+validated=false, calibratedProbability=null. Full trade-classified VPIN was
+not implemented; no evidence that displayed0.089 etc came from real order flow.
 
---------------------------------------------------------------------------------
-5.3 COMPLETE 13-TICKET LIVE AUDIT MATRIX (STRICT CARD LEVELS)
---------------------------------------------------------------------------------
-| #  | Symbol      | Asset Class | Card Entry  | Live Price  | Target 1    | True P&L (₹)| Status / Notes                    |
-|----|-------------|-------------|-------------|-------------|-------------|-------------|-----------------------------------|
-| 1  | ABB         | Futures 125 | ₹6,954.45   | ₹7,090.00   | ₹7,140.85   | +₹20,121    | TARGET 1 HIT (High ₹7,168.00)     |
-| 2  | BEL         | Futures 1425| ₹390.25     | ₹393.40     | ₹398.15     | -₹5,629     | STOPPED OUT @ ₹386.30 (Sep 15 drop)|
-| 3  | BANKBARODA  | Futures 2925| ₹225.89     | ₹233.40     | ₹230.59     | ₹0          | UNFILLED (Low was ₹232.33)        |
-| 4  | RELIANCE    | 1240 CE 500 | ₹21.95      | ₹23.93      | ₹29.63      | +₹2,415     | TARGET 1 HIT (Peak ₹31.49 on 1255)|
-| 5  | KAYNES      | Cash 100 sh | ₹3,392.00   | ₹3,536.50   | ₹3,561.60   | +₹15,705    | TARGET 1 HIT (High ₹3,562.00)     |
-| 6  | TRENT       | Cash 100 sh | ₹2,730.00   | ₹2,783.20   | ₹2,852.85   | +₹5,320     | IN PROFIT (Rallied to ₹2,785.90)  |
-| 7  | CDSL        | Cash 100 sh | ₹1,311.00   | ₹1,352.90   | ₹1,363.44   | +₹4,190     | IN PROFIT (Peak +3.55% near T1)   |
-| 8  | DATAPATTNS  | Cash 100 sh | ₹4,358.80   | ₹4,399.60   | ₹4,576.74   | +₹4,080     | IN PROFIT (Bounced from ₹4,140)   |
-| 9  | NIFTY       | 23150 CE 65 | ₹273.30     | ₹263.42     | ₹368.96     | -₹642       | Peak gain +₹2,167 (Retraced)      |
-| 10 | DIXON       | 13250 CE 50 | ₹310.00     | ₹280.70     | ₹418.50     | -₹1,465     | Peak gain +₹3,345 (Retraced)      |
-| 11 | HDFCBANK    | 720 CE 650  | ₹11.85      | ₹6.54       | ₹16.00      | -₹3,451     | Peak gain +₹422 (Theta decay)     |
-| 12 | TCS         | Cash 100 sh | ₹2,251.00   | ₹2,175.00   | ₹2,329.79   | -₹7,600     | DRAWDOWN (SL ₹2,138.45 holding)   |
-| 13 | BANKNIFTY   | 55800 PE 30 | ₹559.95     | ₹252.17     | ₹755.93     | -₹3,966     | HEDGE LOSS (Capped by Spread)     |
+F18 HIGH — Display converts bad expectation into good; fictional simulator.
+Where: build-portal.js planRow and old recommendation-desk-ui.js client.
+What: Math.abs(expectedWeeklyPct||2.1) could turn losses/zero into a positive
+claim; fixed8/8badge; simulated hedge P&L used arbitrary multipliers/cap2337.
+Fixed: preserve signed expectation and zero; no8/8badge or fictional simulator.
+No automatic empirical holding-time or staged-target claim without evidence.
 
---------------------------------------------------------------------------------
-5.4 AUDIT SUMMARY (100% HONEST RECALCULATION)
---------------------------------------------------------------------------------
-- TOTAL NET PORTFOLIO PROFIT: +₹29,078
-- WIN RATE: 6 Winners / 6 Losers / 1 Unfilled (50.0% Win Rate)
-- ASYMMETRIC EDGE: Despite taking a real loss on BEL (-₹5,629) and the BANKNIFTY
-  put hedge (-₹3,966), the portfolio delivered +₹29,078 in net profit because
-  the winners (ABB +₹20.1k, KAYNES +₹15.7k, TRENT +₹5.3k, RELIANCE +₹2.4k) had
-  asymmetric upside while losses were strictly capped.
+F19 HIGH — Credentials configured is not equivalent to valid access.
+Where: google-store.js googleStoreConfigured; .private/production.env locally.
+Observed: .env.local lacks Google settings. Production file fields exist but
+the URL is invalid (ERR_INVALID_URL); do not print their contents. Cloud secret
+names exist. That alone proves neither connectivity nor storage correctness.
+Fixed: validate HTTPS endpoint structure; diagnostic fails honestly.
+Added: separate manually triggered read-only cloud audit using existing secrets.
+Portal research writes to Google are now disabled unless the operator explicitly
+sets K2_GOOGLE_STORAGE_AUDITED=true AFTER corrected Apps Script deployment and
+readback verification. Other existing services must also be checked before
+declaring all cloud writers safe. Push builds publish safety fixes without
+re-running/writing the full universe; scheduled/manual runs refresh research.
 
+F20 HIGH — Recommendation append helpers not wired into fixed-card build.
+Where: google-recommendations.js, recommendation-desk-ui.js, build-portal.js.
+Observed: helper exists, but production fixed-card renderer never invokes it;
+append functions also omit immutable original ID/version/full hedge evidence.
+Status: OPEN for real recommendation lifecycle. Do not assert every shown card
+is durably recorded or used for valid daily learning. New renderer emits no
+invented recommendations to paper over this absence.
 
-================================================================================
-6. DEVELOPER ONBOARDING QUICKSTART & OPERATIONAL RUNBOOK
-================================================================================
+F21 HIGH — Learning evidence and model quality not established.
+Where: daily-recommendation-audit.js, ml-model.js, models/upside.json,
+panel study artifacts and adaptive-learning routes.
+What is good: purged forward splits, some model-fitness gates, separate shadow
+and user/broker outcome groups, explicit no-auto-promotion in daily audit.
+What is missing: reconciled source fills/fees, immutable feature snapshots,
+out-of-sample after-cost profitability, calibration, drift policy, capacity,
+multiple-testing correction and prospective rollout. A source label/fill ID in
+JSON is not itself proof of a broker reconciliation. Existing poor validation
+does not become profitable merely by naming a model Medallion/Citadel/AI.
+Status: OPEN. Quarantine affected history-derived models pending reconciliation.
 
---------------------------------------------------------------------------------
-6.1 RUNNING THE VERIFICATION SUITE
---------------------------------------------------------------------------------
-To run all 42 automated tests and verify syntax, quant models, and risk rules:
-    npm run check
-Expected result: "ALL CI PRODUCTION DEFAULTS & ANTI-SYNTHETIC FLAG CHECKS PASSED!"
-Exit code: 0.
+F22 HIGH — Coverage conflates directory with analysed, liquid tradable stocks.
+Where: ai-universe-data.json, data/indian-market-directory.json, weekly-plan.js.
+Original502-name research universe remains. Public catalogue previously fetched
+22,993 NSE/BSE cash listings and40,614 derivative contracts across220 venue/
+underlying groups. These are not22,993 unique companies, not all equity stocks,
+not all liquid, not all F&O eligible and not a history/quote feed. Portal broad
+table is still502 research names; F&O scanner is its separate eligible universe.
+Status: OPEN for verified full-universe quotes/history/cap classifications.
 
---------------------------------------------------------------------------------
-6.2 BUILDING & DEPLOYING THE PORTAL
---------------------------------------------------------------------------------
-To compile the static portal and push live to GitHub Pages:
-    node scripts/build-portal.js
-    git add -A
-    git commit -m "feat: update live portal and recommendation desk"
-    git push origin main
-GitHub Actions automatically builds and publishes to:
-    https://kuldeep-oo7.github.io/k2-portal/
+F23 HIGH — Residual execution/accounting risk.
+Stops can gap; breakeven stops do not erase fees; protective options can fail
+to fill; short wings can create margin/delivery obligations. Defined terminal
+payoff does not bound intraday margin. One-lot trades cannot be scaled50/25/25.
+Needs tradeable lot allocation, liquidity/depth/impact, all-leg atomicity policy,
+portfolio correlation/stress, capital and explicitly accepted nonzero loss budget.
+Current mandate has no capital and zero allowed daily loss: no risky quantity
+can honestly be certified safe under that mandate. Zero trading is not zero
+market uncertainty; it simply avoids opening the proposed exposure.
 
---------------------------------------------------------------------------------
-6.3 TRIGGERING INTRADAY / MID-WEEK SCANS
---------------------------------------------------------------------------------
-To screen for new opportunities across the entire NSE directory (Large, Mid,
-Small Caps) without waiting for Monday:
-    node scripts/weekly-plan.js --symbols RELIANCE,TCS,INFY,HAL,KAYNES,DIXON
-Or run the live signal monitor:
-    node scripts/run-signal-monitor.js
+F24 HIGH — Disclosure/documentation stronger than implementation.
+Where: original manual and scripts/generate-system-manual.js.
+Fixed: original profit certification withdrawn; generator now uses this audited
+document, not a literal fabricated success table. Gzip/base64 is compression,
+NOT encryption. Encrypted portal book and private Sheet permissions are separate.
+No evidence of implemented deep learning, complete balance-sheet PIT database,
+all-market success, actual Kyle order-impact model or daily profitable certainty.
 
---------------------------------------------------------------------------------
-6.4 EMERGENCY PROCEDURES (DATA GATE LOCKS)
---------------------------------------------------------------------------------
-If India VIX spikes > 24, Brent Crude spikes > 5%, or exchange bhavcopy fails:
-The system automatically asserts a "LOCKED" data gate. No new order entries are
-permitted until macro volatility normalizes and verified data arrives.
-================================================================================
-END OF MASTER ARCHITECTURE AND CODEBASE MANUAL
-================================================================================
+5. WHAT WAS ALREADY RIGHT / RETAINED
+====================================
+- BSM and Black-76 pricing library with parity, independent finite-difference
+  Greek checks and IV inversion tests is useful mathematical infrastructure.
+  It is a pricing model, not a trading signal or a real-world win probability.
+- Exact finite piecewise expiry payoff calculations in option-strategy.js
+  distinguish debit/credit, bounded/unbounded tails and explicit all-leg costs.
+- Continuous holding and separate Monday reporting basis are the correct
+  ACCOUNTING semantics for the user's stated policy. Profit is not erased Monday.
+- Conservative shadow execution and ledger reconciliation tests are valuable;
+  shadow fills must remain separate from executed Zerodha trades.
+- Authentication/encrypted book rendering, dated ban-list checks, macro missing
+  data gates and leak tests should remain. Do not weaken them to create more calls.
+- Broad instrument discovery is useful; keep listing/analysis/execution universes
+  separate and show actual data coverage instead of a single impressive count.
+
+6. BETTER APPROACH — IMPLEMENTATION / ACCEPTANCE ROADMAP
+========================================================
+Priority0: correctness before another indicator.
+Raw source event -> immutable source snapshot -> schema/identity/time/basis checks
+-> versioned feature snapshot -> pre-registered strategy decision -> portfolio
+risk review -> manual recommendation -> fill evidence -> ledger -> outcome audit.
+Every arrow needs an observable ID and failure state. Missing input means unknown.
+
+Priority1: data foundation.
+Use a contract-master daily snapshot plus entitled timestamped cash/future/option
+bid/ask/depth feed. Maintain corporate actions, delistings, holidays and point-in-
+time symbol/ISIN changes. Keep raw and adjusted histories separate. Compare key
+fields against independent exchange records. Store provider, source/event/receipt
+times, instrument identity, data basis, schema/version and hash. Preserve revisions.
+Treat Sheets as an audit/control/reporting surface, not an every-second all-market
+tick database. Evaluate durable append-only object/time-series storage with
+retention/backups/access controls; migrate only after count/hash reconciliation.
+
+Priority2: options/risk.
+Use observed chain bid/ask and liquidity to choose valid expiries/strikes. Compute
+IV only within no-arbitrage bounds; stress skew/smile, gap, time decay and IV crush.
+Compare single option versus vertical spread AFTER all-leg costs and margin.
+Require valid orderable lot allocations. Pricing precision cannot overcome bad
+quotes or manufacture a forecast. Do not auto-sell a wing called a "free hedge".
+
+Priority3: validation and holding horizon.
+Compare a small set of pre-registered baselines (e.g. trend and mean reversion),
+matched to instrument/horizon; nested purged walk-forward, embargo and date-block
+bootstrap; count all parameter trials; costs/impact/turnover/capacity and stress.
+Measure loss tails/drawdown and calibration, not just hit rate. Keep a genuinely
+unseen prospective period. Public momentum research motivates a hypothesis; it
+does NOT prove that Indian weekly options or this system share that edge.
+For holding period, estimate distribution/time-to-target/stop/expiry conditional
+on regime, with right-censoring for open trades. Compare 1/3/5/10/20-session policies
+without choosing from the final test. Report ranges/uncertainty and invalidation,
+not "hold exactly4days". No mandatory Friday sale unless independently justified.
+
+Priority4: operation and learning.
+Always-on quote service with heartbeat, source age, entitlement, backpressure,
+restart replay, data-gap abstention, timestamped alerts and delivery receipts.
+Research refresh independent of weekly anchor; portal reads continuous alerts.
+Daily review checks data health, fills, forecast calibration, realised/unrealised
+P&L, fees and model drift. Log proposals; no automatic model promotion after a
+handful of wins. New model must beat a frozen challenger benchmark prospectively.
+
+7. WH-QUESTION AUDIT / ANSWERS / EVIDENCE STILL REQUIRED
+========================================================
+WHAT is the goal? Manual trading decision support, not investments or auto-orders.
+WHO executes? User in Zerodha. No order permission is necessary for this audit.
+WHAT was earned? Unknown. Hypothetical rows are not the user's realised account.
+WHO claimed50031? The old generated manual; arithmetic, not broker reconciliation.
+WHEN issued? Need frozen publication event; corrected code commits were after close.
+WHERE is original signal? Fixed array/plan artifacts; no matched immutable proof.
+WHICH recommendation version? Unresolved in claim; entries differ across sources.
+WHAT instrument? Must be exchange+symbol+type+expiry+strike+lot, not just stock name.
+WHICH expiry? Old24Sep was inconsistent with master; never guess from weekday.
+HOW were option marks obtained? Not demonstrated. Need exact-chain timestamp/bid/ask.
+WHAT quantity? Declared lots conflict with staged half-lot exits.
+WHEN filled? No confirmed entry/exit timestamps supplied for the13 claimed trades.
+HOW does target touch become a fill? It must not without sequence/liquidity evidence.
+WHICH stop applied? Original frozen rule; narrative TCS stop contradicts generator.
+WHY a BANKNIFTY loss cap? The missing second leg makes it unreconciled, not verified.
+HOW much capital/margin? Not supplied; futures notional is not margin or cash P&L.
+WHICH fees? Need dated broker taxes/charges, all legs, funding and exit marks.
+WHAT is a win? Completed after-cost trade, separately grouped by evidence source.
+WHY61.54%? Eight selected positives out of13; not calibrated future probability.
+WHERE is raw data? Provider responses in memory/caches; durable coverage unverified.
+WHERE is stored history? AI shards in Google or Blob depending config; local caches.
+IS gzip encryption? No. Portal AES-GCM book is a different mechanism.
+WHO can access Sheets? Controlled by Google sharing/deployment/secret; not audited
+  merely by reading the source. Need actual sharing/service identity review.
+HOW much of Sheet was read? See runtime evidence section; never infer all cells.
+WHEN was last good write? Needs remote readback/version/source coverage, not helper.
+WHAT if a write fails? Must remain unverified and retry idempotently; never success0.
+WHAT if feeds disagree? Quarantine and investigate; no such full comparator proven.
+WHAT if data is missing? Null/UNKNOWN, no fabricated price, volume or neutral score.
+WHAT if adjustment changes? Version it and rebuild consistently; old artifacts suspect.
+WHICH price basis? Raw for execution, appropriately adjusted for specified research.
+WHEN is a bar complete? Need exchange session/close and provider finalization policy.
+WHAT about future data leakage? Freeze availableAt <= decisionAt and purge labels.
+WHY use VPIN/Hurst/OU? Research features only; no independently validated veto edge.
+IS fractiond=.55 memory55%? No; output percentage removed.
+IS OU half-life holding time? No; model decay and optimal trade exit are different.
+ARE Greeks market probabilities? No; model sensitivities under explicit assumptions.
+WHAT ML is trained? Existing boosted/analogue/research paths; no demonstrated DL stack.
+WHO approves promotion? Must be an explicit reviewed protocol, not a score label.
+WHAT remains of losses Monday? Lifetime P&L/entry/holding age preserved; reporting resets.
+WHEN does portal change? Build schedules plus configured5second monitor polling.
+DOES it discover opportunities every second now? Not verified; feed/host unavailable.
+WHERE does scanner run with PC off? Requires hosted always-on service; static Pages
+  and a local Node script cannot establish that capability.
+WHAT if portal tab closes? Hosted service must continue; browser timer does not.
+WHAT if quotes stop? Monitor state stale; new alerts withheld and displayed cards cleared.
+WHICH market hours? Indian regular sessions currently; validated holiday adapter needed.
+ARE all listed companies analysed? No.502 research names and separate F&O scan are
+  not equivalent to the larger venue listing directory or continuous price coverage.
+WHAT about news overnight? Requires independent24/7 news ingestion and source timestamps.
+CAN buying a put guarantee no loss? No; premium, basis, timing, execution and other
+  positions matter. Joint long call+put can lose both premiums.
+HOW to improve accuracy? Correct data, cost-aware tests, fewer independently useful
+  features, prospective validation and reliable operations—not stacking formulas.
+WHAT would justify "best"? A defined benchmark and robust independent results;
+  no finite code audit can certify best-in-world future trading profits.
+
+8. VERIFICATION / DEPLOYMENT STATUS
+====================================
+Local: 42 test-script invocations in npm run check passed on the initial corrected
+set. Additional forensic regression suite and portal integrity tests passed.
+Browser test: installed Edge, headless; disconnected/connected/stale states,
+fresh alert rendering, text-injection safety, no JS errors, mobile visibility PASS.
+Static build/JS/leak checks PASS; application production build PASS.
+Production dependency audit: zero reported vulnerabilities at the time queried.
+Final post-edit rerun and cloud evidence are appended below when available.
+
+Baseline live deployment history (read from GitHub, not inferred from local files):
+- Run35186380500, Sep17 05:36:09UTC, push b97f9fb: success.
+- Run35112182054, Sep16 14:58:39UTC: portal Publish step succeeded, email step failed.
+- Other inspected Sep16 scheduled runs succeeded but reused existing weekly plan.
+The schedule is not a guaranteed wall-clock service: GitHub can delay/drop jobs.
+
+Live Google storage: local attempts could not authenticate/connect because the
+available local production URL is invalid. Cloud-secret read-only audit is a
+separate workflow; its result must be recorded before claiming live storage pass.
+Apps Script source patches are NOT automatically deployed by portal workflow.
+
+9. PRIMARY REFERENCES CHECKED IN THIS AUDIT
+==========================================
+NSE current contract specifications (expiry/price steps):
+https://www.nseindia.com/static/products-services/equity-derivatives-contract-specifications
+NSE stock-future tick table, NSE/FAOP/67134:
+https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Tick%20size%20of%20securities%20in%20the%20Capital%20Market%20Segment%20and%20Stock%20Futures.pdf
+Kite instruments/quotes: daily master is not a real-time price feed:
+https://kite.trade/docs/connect/v3/market-quotes/
+GitHub schedule limitations:
+https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
+Research baselines, not proof of this implementation's edge:
+https://www.aqr.com/Insights/Research/Journal-Article/Time-Series-Momentum
+https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf
+
+FINAL STANDARD: no false pass, no invented probability, no unverified net profit,
+no implicit data deletion, no treating a static UI or tested equation as proof of
+an always-on profitable trading system. OPEN items remain open until evidenced.

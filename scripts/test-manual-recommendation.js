@@ -1,97 +1,25 @@
 "use strict";
-
-const assert = require("node:assert");
-const { generateManualRecommendation } = require("../api/_lib/manual-recommendation");
-
-console.log("Starting Manual Recommendation Engine test suite...");
-
-// Test 1: NIFTY Call Option Recommendation with defined-risk hedge
-const niftyCall = generateManualRecommendation({
-  symbol: "NIFTY",
-  spotPrice: 23120,
-  direction: "LONG",
-  assetClass: "OPTION",
-  lotSize: 25,
-  expiry: "2026-09-24",
-  holdingSessions: 4
-});
-
-assert.equal(niftyCall.status, "ACTIVE");
-assert.equal(niftyCall.actionable, true);
-assert.equal(niftyCall.symbol, "NIFTY");
-assert.equal(niftyCall.assetClass, "OPTION");
-assert.equal(niftyCall.action, "BUY");
-assert.equal(niftyCall.strike, 23100);
-assert.equal(niftyCall.optionType, "CE");
-assert.ok(niftyCall.entryTrigger > 0, "Entry trigger must be positive");
-assert.ok(niftyCall.targetRung1 > niftyCall.entryTrigger, "Target 1 must be higher than entry for long call");
-assert.ok(niftyCall.runnerTarget > niftyCall.targetRung2, "Runner target must be higher than Target 2");
-assert.ok(niftyCall.stopLoss < niftyCall.entryTrigger, "Stop loss must be lower than entry for long call");
-assert.ok(niftyCall.zerodhaFastCopy.includes("BUY NIFTY"), "Zerodha fast copy must format BUY NIFTY");
-assert.equal(niftyCall.definedRiskHedge.strategyType, "BULL_CALL_SPREAD");
-assert.ok(niftyCall.definedRiskHedge.maximumLossCappedInr > 0, "Max loss on spread must be positive finite debit");
-
-// Test 2: NIFTY Put Option Recommendation (Short Direction)
-const niftyPut = generateManualRecommendation({
-  symbol: "NIFTY",
-  spotPrice: 23120,
-  direction: "SHORT",
-  assetClass: "OPTION",
-  lotSize: 25,
-  expiry: "2026-09-24",
-  holdingSessions: 3
-});
-
-assert.equal(niftyPut.status, "ACTIVE");
-assert.equal(niftyPut.optionType, "PE");
-assert.equal(niftyPut.strike, 23100);
-assert.ok(niftyPut.targetRung1 > niftyPut.entryTrigger, "Target 1 option premium must increase as spot falls");
-assert.equal(niftyPut.definedRiskHedge.strategyType, "BEAR_PUT_SPREAD");
-
-// Test 3: Futures Recommendation
-const futRec = generateManualRecommendation({
-  symbol: "SUPREMEIND",
-  spotPrice: 5200,
-  direction: "LONG",
-  assetClass: "FUTURES",
-  lotSize: 125,
-  expiry: "2026-09-24"
-});
-
-assert.equal(futRec.status, "ACTIVE");
-assert.equal(futRec.assetClass, "FUTURES");
-assert.equal(futRec.action, "BUY");
-assert.ok(futRec.targetRung1 > 5200);
-assert.ok(futRec.stopLoss < 5200);
-assert.ok(futRec.capitalRequiredInr > 100000, "Futures margin should reflect contract notional");
-
-// Test 4: Cash Recommendation
-const cashRec = generateManualRecommendation({
-  symbol: "APLAPOLLO",
-  spotPrice: 1540,
-  direction: "LONG",
-  assetClass: "CASH"
-});
-
-assert.equal(cashRec.status, "ACTIVE");
-assert.equal(cashRec.assetClass, "CASH");
-assert.equal(cashRec.lotSize, 1);
-assert.equal(cashRec.capitalRequiredInr, 1540);
-
-// Test 5: Event-risk VETO (Earnings upcoming within holding window)
-const vetoedRec = generateManualRecommendation({
-  symbol: "TCS",
-  spotPrice: 4200,
-  direction: "LONG",
-  assetClass: "OPTION",
-  holdingSessions: 5,
-  sentimentContext: {
-    events: [{ symbol: "TCS", type: "EARNINGS", date: new Date(Date.now() + 2 * 86400000).toISOString() }]
-  }
-});
-
-assert.equal(vetoedRec.status, "VETOED");
-assert.equal(vetoedRec.actionable, false);
-assert.ok(vetoedRec.reason.includes("High-risk event"));
-
-console.log("Manual Recommendation Engine tests passed: options rungs, fast-copy, defined-risk spreads, futures, cash, and event vetoes verified.");
+const assert = require("node:assert/strict");
+const { generateManualRecommendation: generate, roundToTick } = require("../api/_lib/manual-recommendation");
+const now = Date.parse("2026-09-17T05:00:00Z");
+const c = { key: "NFO:TEST26SEP100CE", tradingSymbol: "TEST26SEP100CE", underlying: "TEST", exchange: "NFO", expiry: "2026-09-29", type: "CE", strike: 100, lotSize: 50, tickSize: .05 };
+const catalogue = { fetchedAt: new Date(now - 10000).toISOString(), instruments: [c] };
+const quote = { instrumentKey: c.key, bid: 5, ask: 5.1, eventAt: new Date(now - 1000).toISOString(), provider: "TEST", timestampKind: "EXCHANGE", marketOpen: true };
+const input = { now, catalogue, contractKey: c.key, quote, action: "BUY", lots: 1, underlyingPrice: 100, roundTripCostsInr: 20 };
+assert.equal(generate({ symbol: "NIFTY", spotPrice: 23000 }).actionable, false, "A symbol + spot cannot fabricate a premium or contract");
+assert.equal(generate(input).entryTrigger, 5.1);
+assert.equal(generate(input).strategy.maxTerminalLossInr, 275, "Long option can lose full premium plus costs, not only stop distance");
+assert.equal(generate(input).permittedOrderQuantity, 0);
+assert.equal(generate(input).zerodhaFastCopy, null);
+assert.equal(generate(input).targetRung1, null);
+assert.equal(generate(input).sentimentRisk.allowedToTrade, false);
+assert.equal(generate({ ...input, lots: .5 }).reason, "POSITIVE_WHOLE_LOTS_REQUIRED");
+assert.equal(generate({ ...input, quote: { ...quote, eventAt: new Date(now - 6000).toISOString() } }).reason, "FRESH_EXACT_CONTRACT_BID_ASK_REQUIRED");
+assert.equal(generate({ ...input, quote: { ...quote, bid: 6 } }).status, "BLOCKED");
+assert.equal(generate({ ...input, contractKey: "MADE_UP" }).status, "BLOCKED");
+assert.equal(generate({ ...input, catalogue: { ...catalogue, fetchedAt: "2026-09-01T00:00:00Z" } }).status, "BLOCKED");
+assert.equal(generate({ ...input, catalogue: { ...catalogue, instruments: [{ ...c, expiry: "2026-09-17" }] } }).status, "BLOCKED");
+assert.equal(generate({ ...input, hedge: { contractKey: "MISSING", action: "SELL", quote } }).status, "BLOCKED");
+assert.equal(generate({ ...input, action: "SELL" }).strategy.unlimitedLoss, true);
+assert.equal(roundToTick(100, null), null);
+console.log("Manual recommendation safety tests passed: exact contracts/quotes, full premium risk, whole lots, no guessed orders or zero-risk approvals.");

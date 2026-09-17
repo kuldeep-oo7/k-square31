@@ -11,9 +11,9 @@ const { weekKeyOf } = require("../api/_lib/weekly-cycle");
 function fixturePlan(nowMs = Date.now()) {
   return { generatedAt: new Date(nowMs - 1000).toISOString(), weekKey: weekKeyOf(istToday(nowMs)),
     strategyVersion: "continuous-futures-v2", marketCoverage: { derivativesVerified: true, futuresSymbols: ["UI_TEST"] },
-    best: ["long", "short"].map((side) => ({ symbol: "UI_TEST", side, expectedWeeklyPct: 0.1, convictionPct: 50,
+    best: ["long", "short"].map((side) => ({ symbol: "UI_TEST", side, weekKey: weekKeyOf(istToday(nowMs)), expectedWeeklyPct: 0.1, convictionPct: 50,
       entries: [{ entry: 999, target: 1111, stopLoss: 888, portfolioRisk: { admitted: true },
-        orderIntent: { executable: true, strategyVersion: "continuous-futures-v2", entryPrice: 100, targetPrice: side === "long" ? 102 : 98, stopLossPrice: side === "long" ? 98 : 102 } }]
+        orderIntent: { executable: true, weekKey: weekKeyOf(istToday(nowMs)), decisionAt: new Date(nowMs - 2000).toISOString(), strategyVersion: "continuous-futures-v2", entryPrice: 100, targetPrice: side === "long" ? 102 : 98, stopLossPrice: side === "long" ? 98 : 102 } }]
     })) };
 }
 function run() {

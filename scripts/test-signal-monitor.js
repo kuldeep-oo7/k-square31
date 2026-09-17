@@ -5,6 +5,7 @@ let now = Date.parse("2026-09-15T05:00:00Z");
 const instruments = [{ key: "NSE:TEST", tradingSymbol: "TEST", type: "EQ", expiry: null }];
 const monitor = new SignalMonitor({ instruments, clock: () => now });
 const quote = (price, extra = {}) => ({ instrumentKey: "NSE:TEST", lastPrice: price, eventAt: now, provider: "TEST_FIXTURE", timestampKind: "EXCHANGE", marketOpen: true, session: "2026-09-15",
+  calendar: { verified: true, session: "2026-09-15", previousSession: "2026-09-14" },
   priorSession: { date: "2026-09-14", availableAt: now - 86400000, sourceVerified: true, high: 110, low: 90 }, ...extra });
 assert.equal(monitor.status().state, "WAITING_FOR_VERIFIED_FEED");
 assert.equal(monitor.consume(quote(109)).alerts.length, 0, "first quote primes rather than inventing a crossing");

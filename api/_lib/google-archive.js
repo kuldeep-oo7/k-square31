@@ -21,7 +21,7 @@ function archiveRows(items) {
 }
 
 function googleArchiveConfigured() {
-  return Boolean(process.env.K2_GOOGLE_SHEETS_WEB_APP_URL && process.env.K2_GOOGLE_SHEETS_ARCHIVE_SECRET);
+  return require("./google-store").googleStoreConfigured();
 }
 
 async function syncGoogleArchive(shard, items) {
@@ -31,9 +31,11 @@ async function syncGoogleArchive(shard, items) {
   // tabs wastes millions of Sheet cells and competes with ledger writes.
   return {
     configured: true,
-    synced: true,
-    rows: items.reduce((sum, { result }) => sum + resultBars(result).length, 0),
-    mode: "compressed-operational-state",
+    synced: false,
+    rows: 0,
+    candidateRows: items.reduce((sum, { result }) => sum + resultBars(result).length, 0),
+    reason: "SHARD_WRITE_REQUIRES_SEPARATE_READBACK_VERIFICATION",
+    mode: "compressed-operational-state-not-independently-verified",
     shard
   };
 }

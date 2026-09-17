@@ -1,10 +1,7 @@
 "use strict";
 
-// Exits 0 when a published plan still belongs to the current trading week.
-//
-// The universe measurement is the slow half of the portal build and only changes
-// when the week's anchor changes, so a half-hourly refresh carries the plan
-// forward and re-measures once the week rolls over.
+// A weekly anchor is not a freshness certificate. Refresh research at least hourly;
+// independently, a continuous quote observer can alert between research rebuilds.
 //
 //   node scripts/plan-is-current.js plan.json && echo "reuse it"
 
@@ -33,8 +30,14 @@ function planIsCurrent(plan, nowMs = Date.now()) {
   const current = weekKeyOf(istToday(nowMs));
   const generated = Date.parse(plan?.generatedAt);
   return plan?.weekKey === current && plan?.strategyVersion === "continuous-futures-v2"
-    && Number.isFinite(generated) && generated <= nowMs && nowMs - generated <= 7 * 86400000
-    && plan?.marketCoverage?.derivativesVerified === true;
+    && Number.isFinite(generated) && generated <= nowMs && nowMs - generated <= 60 * 60000
+    && istToday(generated) === istToday(nowMs)
+    && plan?.marketCoverage?.derivativesVerified === true
+    && (plan.best || []).every(item => item.weekKey === current && (item.entries || []).every(entry => {
+      const intent = entry.orderIntent;
+      return intent?.weekKey === current && Number.isFinite(Date.parse(intent.decisionAt)) && Date.parse(intent.decisionAt) <= generated
+        && !["target2Price", "target3MacroPrice", "stagedExecutionPlan", "runnerTargetPrice"].some(key => Object.hasOwn(entry, key) || Object.hasOwn(intent, key));
+    }));
 }
 
 if (require.main === module) {

@@ -1,0 +1,26 @@
+name: K2 read-only data foundation audit
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  audit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      - name: Read existing Google records (no writes)
+        env:
+          K2_GOOGLE_SHEETS_WEB_APP_URL: ${{ secrets.K2_GOOGLE_SHEETS_WEB_APP_URL }}
+          K2_GOOGLE_SHEETS_ARCHIVE_SECRET: ${{ secrets.K2_GOOGLE_SHEETS_ARCHIVE_SECRET }}
+        run: node scripts/audit-data-foundation.js
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: data-foundation-aggregate-audit
+          path: .private/audit-2026-09-17/data-foundation.json
+          include-hidden-files: true
+          retention-days: 7

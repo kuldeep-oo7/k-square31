@@ -50,7 +50,9 @@ class SignalMonitor {
       // Prior-session levels must come from a dated, completed bar. Today's
       // evolving high/low must not be accidentally used as a previous-day level.
       const p = q.priorSession;
-      if (p && typeof p.date === "string" && p.date < q.session && p.sourceVerified === true
+      if (p && /^\d{4}-\d{2}-\d{2}$/.test(p.date || "") && p.date < q.session && p.sourceVerified === true
+          && q.calendar?.verified === true && q.calendar.session === q.session && q.calendar.previousSession === p.date
+          && t - Date.parse(p.date + "T00:00:00+05:30") <= 7 * 86400000
           && finite(p.availableAt) && p.availableAt < t && [p.high, p.low].every((n) => finite(n) && n > 0) && p.high >= p.low) {
         if (previous.lastPrice <= p.high && q.lastPrice > p.high) emit("PRIOR_HIGH_BREAKOUT", "Price crossed the completed prior-session high; predictive edge is unproven", p.high);
         if (previous.lastPrice >= p.low && q.lastPrice < p.low) emit("PRIOR_LOW_BREAKDOWN", "Price crossed the completed prior-session low; predictive edge is unproven", p.low);

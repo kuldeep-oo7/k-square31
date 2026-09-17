@@ -69,13 +69,14 @@ const rawPrices = Array.from({ length: 80 }, (_, i) => 100 + i * 1.5 + Math.sin(
 const fracDiff = calculateFractionalDiff(rawPrices, 0.45);
 assert.equal(fracDiff.d, 0.45);
 assert(fracDiff.fractionalSeries.length === rawPrices.length);
-assert(fracDiff.memoryRetentionPct > 50);
-console.log(`  Fractional Diff Memory Retention: ${fracDiff.memoryRetentionPct}%`);
+assert.equal(fracDiff.memoryRetentionPct, null, "d is not a percentage of memory retained");
+assert.equal(fracDiff.stationarityVerified, false);
+assert.equal(fracDiff.fractionalSeries[0], null, "warmup is missing, not a fabricated zero");
 
 // 9. VPIN (Volume-Synchronized Probability of Toxicity)
 const normalBars = Array.from({ length: 40 }, (_, i) => ({
   close: 100 + (i % 2 === 0 ? 0.5 : -0.4),
-  volume: 5000 + Math.floor(Math.random() * 1000)
+  volume: 5000 + (i * 137) % 1000
 }));
 const vpinNormal = calculateVpin(normalBars, 15);
 assert(vpinNormal.vpin > 0 && vpinNormal.vpin < 1.0);

@@ -1,0 +1,55 @@
+"use strict";
+const assert = require("node:assert/strict"), fs = require("node:fs"), vm = require("node:vm");
+const { createMacroEnvelope, macroInputFromRadar, resultBars } = require("../api/_lib/market-feed");
+const { mergeStoredHistory } = require("../api/market")._test;
+const { calculateOuHalfLife, calculateFractionalDiff, calculateVpin, metaLabelConfidence } = require("../api/_lib/advanced-quant");
+const { stockFutureTickSize } = require("../api/_lib/bhavcopy");
+const { auditClaim } = require("./audit-profit-claim");
+const { recommendationSectionHtml, buildSampleRecommendations } = require("./recommendation-desk-ui");
+const { planIsCurrent } = require("./plan-is-current"), { fixturePlan } = require("./test-portal-integrity");
+const now = Date.now();
+assert.equal(createMacroEnvelope("TEST", "TEST", { price: 100, receivedAt: new Date(now).toISOString() }).quoteAsOf, null);
+assert.equal(macroInputFromRadar({ indiaVix: { price: 12, receivedAt: new Date(now).toISOString() } }).indiaVix, null);
+assert.equal(macroInputFromRadar({ indiaVix: { price: 12, quoteAsOf: new Date(now).toISOString(), timestampKind: "DAILY_BAR_START" } }).indiaVix, null);
+assert.equal(macroInputFromRadar({ indiaVix: { price: 12, quoteAsOf: new Date(now).toISOString(), timestampKind: "PROVIDER_QUOTE" } }, now).indiaVix, 12);
+const fresh = { timestamp: [Date.parse("2026-09-15T04:00:00Z") / 1000], indicators: { quote: [{ open: [100], high: [110], low: [90], close: [100], volume: [10] }], adjclose: [{ adjclose: [50] }] } };
+const merged = mergeStoredHistory(fresh, [{ session: "2026-09-14", open: 45, high: 49, low: 40, close: 46, volume: null }]);
+const bars = resultBars(merged);
+assert.equal(bars[0].close, 46, "short fresh adjclose array must not be applied to old dates");
+assert.equal(bars[1].close, 50); assert.equal(bars[1].rawClose, 100);
+assert.equal(bars[0].volume, null, "unknown volume is not zero");
+assert.equal(resultBars({ ...fresh, indicators: { quote: [{ open: [100], high: [90], low: [110], close: [100] }] } }).length, 0);
+assert.equal(calculateVpin(Array.from({ length: 20 }, () => ({ close: 100, volume: null }))).vpin, null);
+assert.equal(calculateFractionalDiff([1,2,3]).memoryRetentionPct, null);
+assert.equal(metaLabelConfidence({}).calibratedProbability, null);
+const ar1 = Array.from({ length: 25 }, (_, i) => 100 + 100 * Math.pow(.8, i));
+assert.ok(Math.abs(calculateOuHalfLife(ar1).halfLifePeriods - Math.log(.5) / Math.log(.8)) < 1e-7);
+assert.deepEqual([200,500,2000,7000,15000,25000].map(p=>stockFutureTickSize(p)), [.01,.05,.1,.5,1,5]);
+assert.equal(stockFutureTickSize(7000,.1), .1);
+const claim = auditClaim(); assert.equal(claim.claimedTotalInr, 50031); assert.equal(claim.naiveSingleLegGrossMarkArithmeticInr,38906.4);
+assert.equal(claim.rows.filter(r=>r.invalidHalfLot).length,2);
+assert.equal(claim.rows.at(-1).singleLegGrossMarkArithmeticInr,-9233.4);
+assert.deepEqual(buildSampleRecommendations(),[]);
+assert.match(recommendationSectionHtml(),/NOT CONNECTED/);
+assert.doesNotMatch(recommendationSectionHtml(),/99% Green|No Ruin|ZERO CATASTROPHIC|LIVE EXECUTION TICKETS/);
+assert.equal(planIsCurrent(fixturePlan(now),now),true);
+assert.equal(planIsCurrent(fixturePlan(now-3600001),now),false);
+const modified = fixturePlan(now); modified.best[0].entries[0].orderIntent.weekKey="2026-01-05";
+assert.equal(planIsCurrent(modified,now),false);
+// Execute actual Apps Script functions against a memory Sheet; never call Google.
+const rows = [["Path","Version","Chunk","Chunk Count","Gzip Base64","Updated At"]];
+const sheet = { getLastRow:()=>rows.length, getLastColumn:()=>6,
+  getRange:(r,c,n,m)=>({ getValues:()=>rows.slice(r-1,r-1+n).map(row=>row.slice(c-1,c-1+m)),
+    setValues:values=>values.forEach((row,i)=>{rows[r-1+i]=row;}), setFontWeight(){return this;},setBackground(){return this;},setFontColor(){return this;} }),
+  deleteRows:()=>{throw Error("No historical deletion permitted");},setFrozenRows:()=>{} };
+const ss = { getSheetByName:()=>sheet, deleteSheet:()=>{throw Error("No OHLCV deletion permitted");} };
+const ctx = vm.createContext({ SpreadsheetApp:{flush(){}},console });
+vm.runInContext(fs.readFileSync(require.resolve("../google-sheets/K2MarketArchive.gs"),"utf8"),ctx);
+ctx.ensureStateOnlyStorage_(ss);
+assert.equal(ctx.writeDocument_(ss,{path:"test/v1",expectedVersion:0,encoding:"gzip-base64",encoded:"eA=="}).version,1);
+assert.equal(ctx.writeDocument_(ss,{path:"test/v1",expectedVersion:1,encoding:"gzip-base64",encoded:"eQ=="}).version,2);
+assert.equal(rows.length,3,"old document version is retained");
+assert.equal(ctx.writeDocument_(ss,{path:"test/v1",expectedVersion:0,encoding:"gzip-base64",encoded:"eA=="}).code,"CONFLICT");
+assert.equal(ctx.readTabRows_(ss,{tab:"K2_STATE",offset:0,limit:1}).nextOffset,1);
+assert.equal(ctx.readTabRows_(ss,{tab:"K2_STATE",offset:1,limit:1}).nextOffset,null);
+console.log("Forensic foundation regression tests passed: timestamps, history alignment/raw basis, missingness, maths, claim arithmetic, no fake cards, stale plans, non-destructive versioned Sheets and pagination.");

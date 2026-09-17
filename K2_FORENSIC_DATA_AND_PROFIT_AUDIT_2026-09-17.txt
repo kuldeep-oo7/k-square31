@@ -1,0 +1,510 @@
+K2 FORENSIC DATA, PROFIT-CLAIM AND CONTINUOUS-SIGNAL AUDIT
+Date: 17 September 2026 | Time zone: Asia/Kolkata
+Repository examined: C:\Users\kulde\Downloads\pivot31
+Baseline commit: b97f9fb534e8afbb1e9cd9294dbf4dd932a37aea
+Concurrent revision reviewed: d1dffd575f8c166f1088f2f4d4fd20d6b26c301d.
+Scope: manual, recommendation generation, market-history transformations,
+storage, mathematical functions, risk claims, portal, schedules and tests.
+
+1. BOTTOM LINE
+===============
+The statement "YES, YOU MADE MONEY" is NOT established. The Rs 50,031 is the
+sum of a hypothetical table, not reconciled account profit. Several assumptions
+are contradicted by the code and contract metadata. This does NOT establish
+that the user lost money either. Actual profit remains UNKNOWN without fills,
+fees, valid contract identities, hedge legs and dated marks.
+
+The original 61.54% is arithmetically 8/13. It is NOT a validated strategy win
+rate: these are selected hypothetical positions, many still open. There is no
+verified evidence of an institutional edge, a loss-free system or superiority
+over other traders. Passing software tests is not evidence of trading profit.
+
+BEFORE THIS AUDIT: the portal rebuilt periodically, but reused a weekly plan.
+Its prominent manual recommendation cards came from a FIXED array of stocks,
+prices and quantitative scores. That is not continuous signal discovery.
+
+FIXES IMPLEMENTED: hard-coded active cards and certainty claims removed;
+quote/contract/news gates tightened; timestamp fabrication removed; a historical
+price alignment bug corrected; exact discrete OU half-life corrected; synthetic
+VPIN inputs removed; destructive Sheet migration removed; plan refresh shortened
+to at most one hour; a separate continuous-monitor portal client added.
+
+IMPORTANT: code existing locally, code deployed, data connected, and profitable
+operation are FOUR DIFFERENT claims. See deployment/verification section below.
+No broker account was accessed for trading and no order was placed in this audit.
+
+2. EVIDENCE PRESERVED / REPRODUCIBILITY
+======================================
+Original manual SHA256 before edits:
+9a222e04ea221d37aa898603fed5f5326c12183ea4df151d1a7e66a9cf19b89e
+Original plan-full.json SHA256:
+28a8d1e59de47d67eabbceeee316ec69a54d8ced8bef110a19470e672292f10a
+Local instrument catalogue SHA256 before refresh:
+c192ace59800d0ee8ad22ecb6bf13ce8ab43516e09098556813e93d4920a19d0
+Catalogue retrieval: 2026-09-15T11:26:46.859Z. This is NOT a live price timestamp.
+The original claims/code remain recoverable from baseline git history.
+Unrelated .claude content was not altered or staged by this audit.
+
+Reproduction commands (from the repository directory):
+  node scripts/audit-profit-claim.js
+  npm run check
+  npm run test:integrity
+  node scripts/test-portal-browser-audit.js
+  node scripts/build-portal.js site --offline --sync-root
+  node scripts/verify-portal.js site/index.html gm-positions.json
+  npm run build
+  npm audit --omit=dev --audit-level=high
+Read-only Google diagnostic (requires real configured credentials):
+  node scripts/audit-data-foundation.js
+Never publish .private files, environment values or the raw broker book.
+
+3. RECONSTRUCTION OF THE DISPUTED PROFIT TABLE
+==============================================
+All prices BELOW are transcribed from the disputed document, NOT certified
+exchange prices. Column 3 is simple (mark-entry)*quantity, gross, before costs.
+It ignores targets, stops, hedges and execution and is NOT alternative profit.
+
+Instrument          Claimed Rs     Single-leg mark arithmetic Rs
+ABB future             20,121              16,943.75
+BEL future             13,979              13,979.25
+RELIANCE call           2,415                 990.00
+KAYNES cash            15,705              14,450.00
+TRENT cash              5,320               5,320.00
+CDSL cash               4,190               4,190.00
+DATAPATTNS cash         4,080               4,080.00
+BANKBARODA future       1,345               1,345.50
+NIFTY call               -642                -642.20
+DIXON call             -1,465              -1,465.00
+HDFCBANK call          -3,451              -3,451.50
+TCS cash               -7,600              -7,600.00
+BANKNIFTY put          -3,966              -9,233.40
+TOTAL                 50,031              38,906.40
+
+WHY THE TABLE IS NOT A FACTUAL NET-PROFIT REPORT:
+A. ABB's claimed target booking uses 62.5 units of a 125-unit one-lot future.
+   Half-lot exits are not valid. Its half-exit arithmetic is Rs 20,121.875.
+B. RELIANCE's Rs 2,415 assumes half of a 500-unit option lot exits at 29.63:
+   250*(29.63-21.95)+250*(23.93-21.95). That is also an invalid half-lot exit.
+C. BANKNIFTY substitutes Rs -3,966 for the long put's Rs -9,233.40 marked loss,
+   invoking an unidentified spread. Where are the short-leg contract, bid/ask,
+   fill, expiry, fees and valuation? A theoretical loss bound is NOT today's P&L.
+D. Rows mix standalone option returns with a spread loss cap. That is not one
+   consistently defined portfolio. Neither spread costs nor all hedge marks
+   are supplied. Naked LONG calls/puts already have premium-limited loss;
+   adding a short wing changes profit, risk, margin and execution obligations.
+E. A high touching a target is not proof an order filled. Entry must occur first.
+   Intraday stop-versus-target sequence, queue position, gaps and slippage matter.
+F. At baseline, TCS cash generator used a 1.5% stop near 2217.25, whereas the
+   narrative discusses a 5% stop near 2138.45. A stop cannot be moved after the
+   outcome is known to make a losing trade appear still valid.
+G. The profit table's BEL entry 382.74 differs from plan intent 390.25;
+   BANKBARODA's 232.70 differs from its plan entry 225.89 (tick-rounded in intent).
+   ABB in the fixed card array used 7005.01, unlike the table's 6954.45.
+   Which frozen recommendation did the user actually see and follow?
+H. Corrected card commits were recorded Sep15 at 18:35, 19:28, 20:01 and 20:52
+   IST, after regular trading hours. This does not rule out an earlier signal
+   elsewhere, but NO proof of the required pre-entry published version was
+   supplied. Reconstructing entries at that day's close is not automatically
+   executable when a card was published after close.
+I. All derivative cards specified 2026-09-24, a Thursday. NSE specifications and
+   the local contract master use Tuesday expiries; relevant September monthly
+   contracts in the master expire September 29. NIFTY also has September 22
+   weekly contracts. The explicit contract must be resolved, not date-guessed.
+J. Option marks such as 23.93 and 6.54 are not on a 0.05 tick in the examined
+   contracts. They might be theoretical values or averages, but must not be
+   represented as exchange LTP without source evidence.
+K. Costs, capital, margin and funding are missing. "Net" was unsupported.
+L. A claimed hit rate on 13 selected open/closed positions cannot demonstrate
+   predictive accuracy, expected daily income or an out-of-sample edge.
+
+WHAT WOULD VERIFY IT: dated original signal + strategy version + exact contract
+master + entry/exit/all-hedge fills + broker charges + side-correct open marks +
+account/cash reconciliation. Manual broker-export files are sufficient; broker
+automation or giving the system order permission is NOT required.
+
+CONCURRENT CORRECTION REVIEW: while this audit was running, commit d1dffd5
+(11:21:45 IST) changed the manual's total to Rs29,078 and labelled BEL -5629,
+BANKBARODA unfilled, and six winners/six losers/one unfilled. The row-sum
+arithmetic is consistent with those replacements; acknowledging the wrong
+entry references is a useful correction. It DOES NOT establish real net profit:
+the same fractional-lot ABB/RELIANCE booking, undocumented BankNifty hedge,
+unverified contract/option marks and omitted costs remain. It calls BEL a
+Tuesday stop-out while still stating signals originated Tuesday session close;
+an earlier real publication/order timestamp would be needed. The stop price
+is not a guaranteed execution price. Both50031 and29078 remain UNVERIFIED.
+This audit incorporates that correction rather than ignoring the newer version.
+
+4. FINDINGS, LOCATIONS, FIXES AND REMAINING WORK
+================================================
+F01 CRITICAL — Fixed cards presented as live quantitative recommendations.
+Where: baseline scripts/recommendation-desk-ui.js, buildInstitutionalRecommendations.
+What: literal 13-name array, prices, 91%-99% scores, VPIN, Hurst, OU and Greeks.
+Why harmful: values were never measured by the displayed scanner. Missing
+metrics also defaulted to reassuring numbers. Rebuild changed IDs/time, not data.
+Fixed: no synthetic default cards, no guessed scores, no copyable live tickets.
+Test: test-foundation-audit.js and test-portal-browser-audit.js.
+
+F02 CRITICAL — Unverified option contracts/premiums and hedge risk.
+Where: api/_lib/manual-recommendation.js, generateManualRecommendation.
+What: guessed strikes/symbols/Thursday expiry; default sigma=.18, r=.065, q=.01;
+expired dates forced to positive time; theoretical premium or 2%-of-spot fallback;
+delta-linear targets; stop-distance called max risk; 22% assumed futures margin;
+undefined protective future hedge called "Finite"; missing events allowed ACTIVE.
+Fixed: current exact catalogue + matching timestamped bid/ask + whole lots;
+no model-price-as-market-price fallback; every hedge leg must be specified;
+terminal payoff uses option-strategy.js with costs; no invented margin or target.
+Research only, quantity permission zero until independent evidence/risk review.
+Remaining: real chain/depth, exercise/delivery/margin checks, validated alpha and
+portfolio budget. This is not an order-entry or broker-automation system.
+
+F03 CRITICAL — Download time masqueraded as market quote time.
+Where: api/_lib/market-feed.js, createMacroEnvelope/fetchLiveMacroRadar/macroInputFromRadar.
+What: TradingView response lacked timestamp but received Date.now(); fallback
+also used receivedAt. Daily Yahoo bar-start timestamps were treated as fresh quotes.
+Fixed: unknown quote timestamp remains null; provenance kind explicit; live-risk
+input requires exchange/provider quote timestamp <=5 minutes old, not daily bar.
+Consequence: missing macro feed now blocks instead of falsely reporting safe.
+
+F04 CRITICAL — Misaligned adjustment array on stored/fresh history merge.
+Where: api/market.js resultBars/mergeStoredHistory; api/_lib/market-feed.js resultBars.
+What: market.js used raw closes while the AI store contained adjusted bars;
+merge extended timestamps but retained the short fresh adjclose array. Calling
+the second parser could apply a different date's adjustment to an old candle.
+Fixed: shared normalization; already-adjusted merged candles retained as such;
+aligned adjclose series; raw OHLC and exact adjustment factors retained separately.
+Test: old close46 plus fresh raw100/adjusted50 stays [46,50], raw close100 retained.
+Remaining: stored legacy history may ALREADY be affected. Do not certify old ML
+artifacts until exchange/provider reconciliation and a versioned rebuild occur.
+Point-in-time corporate-action revision tracking remains necessary.
+
+F05 HIGH — Invalid/missing historical observations used as real data.
+Where: market-feed resultBars; market.js mergeStoredHistory; ai-engine processSymbol.
+Fixed: reject nonpositive/impossible OHLC; missing volume remains null; newly
+stored bars include source/raw OHLC/basis/factor/source-bar time/observation time.
+Remaining: dedup/conflict policy, holiday completeness, revisions, point-in-time
+adjustments, independent feed comparison and raw-response immutable retention
+must be expanded. A timestamp/hash alone does not establish accurate prices.
+
+F06 CRITICAL — Hidden deletion of OHLCV tabs during routine document writes.
+Where: google-sheets/K2MarketArchive.gs ensureStateOnlyStorage_/doPost.
+What: /^OHLCV_\d+$/ tabs were automatically deleted on first migration write.
+Fixed locally: no deleteSheet during writes. Prior K2_STATE document versions
+are retained; write-lock and compare-and-swap retained. Tests reject deletion.
+Remaining: Apps Script must be deployed separately; local edits do not change
+the live script. No Sheet data was deleted by this audit. Existing deletion,
+if any, needs Google version history/backups; its occurrence is NOT assumed.
+
+F07 HIGH — Archive claimed synced=true without doing a read/write verification.
+Where: api/_lib/google-archive.js syncGoogleArchive; caller api/ai-run.js.
+What: counted candidate bars and returned success. The caller DOES separately
+write AI shards through store.js, but this helper did not verify those writes.
+Fixed: report candidate rows and explicit unverified status, not false success.
+Remaining: compare saved shard hash, row coverage, as-of dates and source lineage
+against input on each durable write; retry idempotently and alarm on mismatch.
+
+F08 HIGH — Sheet readback limited to last500 rows, no full inventory.
+Where: K2MarketArchive.gs readTabRows_; google-store.js readTabRowsFromGoogle.
+Fixed locally: authenticated listTabs and paginated offset/nextOffset reads.
+Remaining: deploy new endpoint, then audit every tab/page, including K2_STATE
+versions and legacy OHLCV. Existing read-only diagnostic is explicit about its
+500-row samples and known full documents. No claim that every Sheet cell was read.
+
+F09 HIGH — Missing data represented as zero and default safe status in Sheets.
+Where: K2MarketArchive.gs appendTradeSignals_, appendMacroRadar_, fundamentals
+and recommendation appenders. Several legacy appenders use Number(x||0).
+Status: OPEN. Existing legacy tab schema needs a versioned migration preserving
+null/unknown versus real zero, explicit source/as-of, original IDs and all legs.
+Do not use default TAKE/NORMAL/zero P&L cells as verified training labels.
+
+F10 HIGH — News/events shield cleared missing coverage and ignored publication time.
+Where: api/_lib/sentiment-risk.js evaluateSentimentAndEventRisk.
+Fixed: source/coverage/as-of and holding-window coverage required; future,
+stale, duplicate or wrong-entity news excluded; missing feeds UNKNOWN; same-day
+date-only event retained; negative news requires review; F&O bans scoped to
+derivatives rather than banning cash delivery. No-news score is null, not neutral0.
+Remaining: actual exchange-announcement/calendar/news integrations; novelty,
+entity resolution, revisions, independent corroboration and out-of-sample tests.
+Current lexicon is NOT deep learning or a return-prediction probability.
+
+F11 HIGH — Once-per-week plan reuse despite half-hour portal rebuild.
+Where: scripts/plan-is-current.js and .github/workflows/portal.yml.
+Fixed: plan freshness <=1hour, same IST date, week/intent consistency, reject
+unvalidated staged-exit fields in the supposedly canonical plan. Recompute on
+next scheduled run when expired; keep weekly anchor separate from signal time.
+Remaining: scans take time; scheduling can be delayed. This is not every second.
+No holding is closed merely because its research snapshot became stale.
+
+F12 HIGH — Continuous monitor existed as code but was not connected to portal.
+Where: scripts/run-signal-monitor.js; api/_lib/signal-monitor.js;
+scripts/recommendation-desk-ui.js; build-portal.js; portal.yml.
+Fixed: configurable HTTPS monitor client polls5seconds while page is open;
+fresh research alerts appear without weekly rebuild; outages clear stale cards;
+XSS-safe text rendering; explicit connected/unavailable/not-configured states.
+Runtime reloads plan/catalogue and rejects catalogue older than24h. Prior-level
+cross requires verified preceding session/calendar, not any arbitrarily old high.
+Remaining: authorized timestamped quote feed, always-on hosting, secrets,
+display entitlement, exchange holiday/special-session adapter and health SLA.
+No corresponding feed/monitor configuration was found locally or in repository
+secret names. A local localhost service alone cannot serve a public portal24/7.
+
+F13 HIGH — Manual changes to plan artifacts bypassed real generation evidence.
+Where: baseline plan-full.json/plan.json, BEL/ABB/BANKBARODA entries.
+What: top weekKey Sept14 while order intents retained Sept7; staged targets
+reintroduced into artifacts although canonical strategy/tests expressly omit them.
+Fixed: current-plan guard rejects these inconsistencies; no old rows in calculator.
+Remaining: immutable generator/input/parameter hashes, signed publication event
+and model/strategy version checks must govern every issued recommendation.
+
+F14 HIGH — Wrong stock-future tick-size fallback above1000.
+Where: api/_lib/bhavcopy.js stockFutureTickSize; baseline ABB intent tick=.05.
+Fixed: NSE/FAOP/67134 price tiers: below250 .01;250..1000 .05; above1000..5000
+.10; above5000..10000 .50; above10000..20000 1; above20000 5. Exact supplied
+contract tick takes precedence. Local ABB contract master tick=.50.
+Remaining: match daily exact contract master rather than infer official tier
+from a changing spot price; rule estimates are not a live execution certificate.
+
+F15 MEDIUM — Fractional-difference memory/stationarity claims false.
+Where: advanced-quant.js calculateFractionalDiff and old manual.
+Fixed: memoryRetentionPct=null, stationarityVerified=false, warmup=null not0,
+validate d/threshold/input. d is an exponent, not "% memory retained". ADF
+stationarity cannot be guaranteed by assigning d=.55. Fit transforms only on
+training data and evaluate stability out of sample before promotion.
+
+F16 MEDIUM — OU half-life used Euler approximation as exact and hid limits.
+Where: advanced-quant.js calculateOuHalfLife.
+Fixed: phi=1+regressionSlope; theta=-log(phi); halfLife=log(2)/theta for0<phi<1.
+Reject nonstationary/negative-phi fit; no fake0.5..250 clipping; report sampling
+units. This estimates decay under a model, NOT ideal trade holding duration.
+
+F17 HIGH — VPIN invented missing volume and defaulted safe values.
+Where: advanced-quant.js calculateVpin/metaLabelConfidence.
+Fixed: missing/nonpositive volume -> unknown, no fake1000-share substitution,
+label bar-volume proxy explicitly. Meta score labelled hand-weighted heuristic,
+validated=false, calibratedProbability=null. Full trade-classified VPIN was
+not implemented; no evidence that displayed0.089 etc came from real order flow.
+
+F18 HIGH — Display converts bad expectation into good; fictional simulator.
+Where: build-portal.js planRow and old recommendation-desk-ui.js client.
+What: Math.abs(expectedWeeklyPct||2.1) could turn losses/zero into a positive
+claim; fixed8/8badge; simulated hedge P&L used arbitrary multipliers/cap2337.
+Fixed: preserve signed expectation and zero; no8/8badge or fictional simulator.
+No automatic empirical holding-time or staged-target claim without evidence.
+
+F19 HIGH — Credentials configured is not equivalent to valid access.
+Where: google-store.js googleStoreConfigured; .private/production.env locally.
+Observed: .env.local lacks Google settings. Production file fields exist but
+the URL is invalid (ERR_INVALID_URL); do not print their contents. Cloud secret
+names exist. That alone proves neither connectivity nor storage correctness.
+Fixed: validate HTTPS endpoint structure; diagnostic fails honestly.
+Added: separate manually triggered read-only cloud audit using existing secrets.
+Portal research writes to Google are now disabled unless the operator explicitly
+sets K2_GOOGLE_STORAGE_AUDITED=true AFTER corrected Apps Script deployment and
+readback verification. Other existing services must also be checked before
+declaring all cloud writers safe. Push builds publish safety fixes without
+re-running/writing the full universe; scheduled/manual runs refresh research.
+
+F20 HIGH — Recommendation append helpers not wired into fixed-card build.
+Where: google-recommendations.js, recommendation-desk-ui.js, build-portal.js.
+Observed: helper exists, but production fixed-card renderer never invokes it;
+append functions also omit immutable original ID/version/full hedge evidence.
+Status: OPEN for real recommendation lifecycle. Do not assert every shown card
+is durably recorded or used for valid daily learning. New renderer emits no
+invented recommendations to paper over this absence.
+
+F21 HIGH — Learning evidence and model quality not established.
+Where: daily-recommendation-audit.js, ml-model.js, models/upside.json,
+panel study artifacts and adaptive-learning routes.
+What is good: purged forward splits, some model-fitness gates, separate shadow
+and user/broker outcome groups, explicit no-auto-promotion in daily audit.
+What is missing: reconciled source fills/fees, immutable feature snapshots,
+out-of-sample after-cost profitability, calibration, drift policy, capacity,
+multiple-testing correction and prospective rollout. A source label/fill ID in
+JSON is not itself proof of a broker reconciliation. Existing poor validation
+does not become profitable merely by naming a model Medallion/Citadel/AI.
+Status: OPEN. Quarantine affected history-derived models pending reconciliation.
+
+F22 HIGH — Coverage conflates directory with analysed, liquid tradable stocks.
+Where: ai-universe-data.json, data/indian-market-directory.json, weekly-plan.js.
+Original502-name research universe remains. Public catalogue previously fetched
+22,993 NSE/BSE cash listings and40,614 derivative contracts across220 venue/
+underlying groups. These are not22,993 unique companies, not all equity stocks,
+not all liquid, not all F&O eligible and not a history/quote feed. Portal broad
+table is still502 research names; F&O scanner is its separate eligible universe.
+Status: OPEN for verified full-universe quotes/history/cap classifications.
+
+F23 HIGH — Residual execution/accounting risk.
+Stops can gap; breakeven stops do not erase fees; protective options can fail
+to fill; short wings can create margin/delivery obligations. Defined terminal
+payoff does not bound intraday margin. One-lot trades cannot be scaled50/25/25.
+Needs tradeable lot allocation, liquidity/depth/impact, all-leg atomicity policy,
+portfolio correlation/stress, capital and explicitly accepted nonzero loss budget.
+Current mandate has no capital and zero allowed daily loss: no risky quantity
+can honestly be certified safe under that mandate. Zero trading is not zero
+market uncertainty; it simply avoids opening the proposed exposure.
+
+F24 HIGH — Disclosure/documentation stronger than implementation.
+Where: original manual and scripts/generate-system-manual.js.
+Fixed: original profit certification withdrawn; generator now uses this audited
+document, not a literal fabricated success table. Gzip/base64 is compression,
+NOT encryption. Encrypted portal book and private Sheet permissions are separate.
+No evidence of implemented deep learning, complete balance-sheet PIT database,
+all-market success, actual Kyle order-impact model or daily profitable certainty.
+
+5. WHAT WAS ALREADY RIGHT / RETAINED
+====================================
+- BSM and Black-76 pricing library with parity, independent finite-difference
+  Greek checks and IV inversion tests is useful mathematical infrastructure.
+  It is a pricing model, not a trading signal or a real-world win probability.
+- Exact finite piecewise expiry payoff calculations in option-strategy.js
+  distinguish debit/credit, bounded/unbounded tails and explicit all-leg costs.
+- Continuous holding and separate Monday reporting basis are the correct
+  ACCOUNTING semantics for the user's stated policy. Profit is not erased Monday.
+- Conservative shadow execution and ledger reconciliation tests are valuable;
+  shadow fills must remain separate from executed Zerodha trades.
+- Authentication/encrypted book rendering, dated ban-list checks, macro missing
+  data gates and leak tests should remain. Do not weaken them to create more calls.
+- Broad instrument discovery is useful; keep listing/analysis/execution universes
+  separate and show actual data coverage instead of a single impressive count.
+
+6. BETTER APPROACH — IMPLEMENTATION / ACCEPTANCE ROADMAP
+========================================================
+Priority0: correctness before another indicator.
+Raw source event -> immutable source snapshot -> schema/identity/time/basis checks
+-> versioned feature snapshot -> pre-registered strategy decision -> portfolio
+risk review -> manual recommendation -> fill evidence -> ledger -> outcome audit.
+Every arrow needs an observable ID and failure state. Missing input means unknown.
+
+Priority1: data foundation.
+Use a contract-master daily snapshot plus entitled timestamped cash/future/option
+bid/ask/depth feed. Maintain corporate actions, delistings, holidays and point-in-
+time symbol/ISIN changes. Keep raw and adjusted histories separate. Compare key
+fields against independent exchange records. Store provider, source/event/receipt
+times, instrument identity, data basis, schema/version and hash. Preserve revisions.
+Treat Sheets as an audit/control/reporting surface, not an every-second all-market
+tick database. Evaluate durable append-only object/time-series storage with
+retention/backups/access controls; migrate only after count/hash reconciliation.
+
+Priority2: options/risk.
+Use observed chain bid/ask and liquidity to choose valid expiries/strikes. Compute
+IV only within no-arbitrage bounds; stress skew/smile, gap, time decay and IV crush.
+Compare single option versus vertical spread AFTER all-leg costs and margin.
+Require valid orderable lot allocations. Pricing precision cannot overcome bad
+quotes or manufacture a forecast. Do not auto-sell a wing called a "free hedge".
+
+Priority3: validation and holding horizon.
+Compare a small set of pre-registered baselines (e.g. trend and mean reversion),
+matched to instrument/horizon; nested purged walk-forward, embargo and date-block
+bootstrap; count all parameter trials; costs/impact/turnover/capacity and stress.
+Measure loss tails/drawdown and calibration, not just hit rate. Keep a genuinely
+unseen prospective period. Public momentum research motivates a hypothesis; it
+does NOT prove that Indian weekly options or this system share that edge.
+For holding period, estimate distribution/time-to-target/stop/expiry conditional
+on regime, with right-censoring for open trades. Compare 1/3/5/10/20-session policies
+without choosing from the final test. Report ranges/uncertainty and invalidation,
+not "hold exactly4days". No mandatory Friday sale unless independently justified.
+
+Priority4: operation and learning.
+Always-on quote service with heartbeat, source age, entitlement, backpressure,
+restart replay, data-gap abstention, timestamped alerts and delivery receipts.
+Research refresh independent of weekly anchor; portal reads continuous alerts.
+Daily review checks data health, fills, forecast calibration, realised/unrealised
+P&L, fees and model drift. Log proposals; no automatic model promotion after a
+handful of wins. New model must beat a frozen challenger benchmark prospectively.
+
+7. WH-QUESTION AUDIT / ANSWERS / EVIDENCE STILL REQUIRED
+========================================================
+WHAT is the goal? Manual trading decision support, not investments or auto-orders.
+WHO executes? User in Zerodha. No order permission is necessary for this audit.
+WHAT was earned? Unknown. Hypothetical rows are not the user's realised account.
+WHO claimed50031? The old generated manual; arithmetic, not broker reconciliation.
+WHEN issued? Need frozen publication event; corrected code commits were after close.
+WHERE is original signal? Fixed array/plan artifacts; no matched immutable proof.
+WHICH recommendation version? Unresolved in claim; entries differ across sources.
+WHAT instrument? Must be exchange+symbol+type+expiry+strike+lot, not just stock name.
+WHICH expiry? Old24Sep was inconsistent with master; never guess from weekday.
+HOW were option marks obtained? Not demonstrated. Need exact-chain timestamp/bid/ask.
+WHAT quantity? Declared lots conflict with staged half-lot exits.
+WHEN filled? No confirmed entry/exit timestamps supplied for the13 claimed trades.
+HOW does target touch become a fill? It must not without sequence/liquidity evidence.
+WHICH stop applied? Original frozen rule; narrative TCS stop contradicts generator.
+WHY a BANKNIFTY loss cap? The missing second leg makes it unreconciled, not verified.
+HOW much capital/margin? Not supplied; futures notional is not margin or cash P&L.
+WHICH fees? Need dated broker taxes/charges, all legs, funding and exit marks.
+WHAT is a win? Completed after-cost trade, separately grouped by evidence source.
+WHY61.54%? Eight selected positives out of13; not calibrated future probability.
+WHERE is raw data? Provider responses in memory/caches; durable coverage unverified.
+WHERE is stored history? AI shards in Google or Blob depending config; local caches.
+IS gzip encryption? No. Portal AES-GCM book is a different mechanism.
+WHO can access Sheets? Controlled by Google sharing/deployment/secret; not audited
+  merely by reading the source. Need actual sharing/service identity review.
+HOW much of Sheet was read? See runtime evidence section; never infer all cells.
+WHEN was last good write? Needs remote readback/version/source coverage, not helper.
+WHAT if a write fails? Must remain unverified and retry idempotently; never success0.
+WHAT if feeds disagree? Quarantine and investigate; no such full comparator proven.
+WHAT if data is missing? Null/UNKNOWN, no fabricated price, volume or neutral score.
+WHAT if adjustment changes? Version it and rebuild consistently; old artifacts suspect.
+WHICH price basis? Raw for execution, appropriately adjusted for specified research.
+WHEN is a bar complete? Need exchange session/close and provider finalization policy.
+WHAT about future data leakage? Freeze availableAt <= decisionAt and purge labels.
+WHY use VPIN/Hurst/OU? Research features only; no independently validated veto edge.
+IS fractiond=.55 memory55%? No; output percentage removed.
+IS OU half-life holding time? No; model decay and optimal trade exit are different.
+ARE Greeks market probabilities? No; model sensitivities under explicit assumptions.
+WHAT ML is trained? Existing boosted/analogue/research paths; no demonstrated DL stack.
+WHO approves promotion? Must be an explicit reviewed protocol, not a score label.
+WHAT remains of losses Monday? Lifetime P&L/entry/holding age preserved; reporting resets.
+WHEN does portal change? Build schedules plus configured5second monitor polling.
+DOES it discover opportunities every second now? Not verified; feed/host unavailable.
+WHERE does scanner run with PC off? Requires hosted always-on service; static Pages
+  and a local Node script cannot establish that capability.
+WHAT if portal tab closes? Hosted service must continue; browser timer does not.
+WHAT if quotes stop? Monitor state stale; new alerts withheld and displayed cards cleared.
+WHICH market hours? Indian regular sessions currently; validated holiday adapter needed.
+ARE all listed companies analysed? No.502 research names and separate F&O scan are
+  not equivalent to the larger venue listing directory or continuous price coverage.
+WHAT about news overnight? Requires independent24/7 news ingestion and source timestamps.
+CAN buying a put guarantee no loss? No; premium, basis, timing, execution and other
+  positions matter. Joint long call+put can lose both premiums.
+HOW to improve accuracy? Correct data, cost-aware tests, fewer independently useful
+  features, prospective validation and reliable operations—not stacking formulas.
+WHAT would justify "best"? A defined benchmark and robust independent results;
+  no finite code audit can certify best-in-world future trading profits.
+
+8. VERIFICATION / DEPLOYMENT STATUS
+====================================
+Local: 42 test-script invocations in npm run check passed on the initial corrected
+set. Additional forensic regression suite and portal integrity tests passed.
+Browser test: installed Edge, headless; disconnected/connected/stale states,
+fresh alert rendering, text-injection safety, no JS errors, mobile visibility PASS.
+Static build/JS/leak checks PASS; application production build PASS.
+Production dependency audit: zero reported vulnerabilities at the time queried.
+Final post-edit rerun and cloud evidence are appended below when available.
+
+Baseline live deployment history (read from GitHub, not inferred from local files):
+- Run35186380500, Sep17 05:36:09UTC, push b97f9fb: success.
+- Run35112182054, Sep16 14:58:39UTC: portal Publish step succeeded, email step failed.
+- Other inspected Sep16 scheduled runs succeeded but reused existing weekly plan.
+The schedule is not a guaranteed wall-clock service: GitHub can delay/drop jobs.
+
+Live Google storage: local attempts could not authenticate/connect because the
+available local production URL is invalid. Cloud-secret read-only audit is a
+separate workflow; its result must be recorded before claiming live storage pass.
+Apps Script source patches are NOT automatically deployed by portal workflow.
+
+9. PRIMARY REFERENCES CHECKED IN THIS AUDIT
+==========================================
+NSE current contract specifications (expiry/price steps):
+https://www.nseindia.com/static/products-services/equity-derivatives-contract-specifications
+NSE stock-future tick table, NSE/FAOP/67134:
+https://nsearchives.nseindia.com/web/sites/default/files/inline-files/Tick%20size%20of%20securities%20in%20the%20Capital%20Market%20Segment%20and%20Stock%20Futures.pdf
+Kite instruments/quotes: daily master is not a real-time price feed:
+https://kite.trade/docs/connect/v3/market-quotes/
+GitHub schedule limitations:
+https://docs.github.com/en/actions/reference/workflows-and-actions/events-that-trigger-workflows#schedule
+Research baselines, not proof of this implementation's edge:
+https://www.aqr.com/Insights/Research/Journal-Article/Time-Series-Momentum
+https://www.davidhbailey.com/dhbpapers/backtest-prob.pdf
+
+FINAL STANDARD: no false pass, no invented probability, no unverified net profit,
+no implicit data deletion, no treating a static UI or tested equation as proof of
+an always-on profitable trading system. OPEN items remain open until evidenced.

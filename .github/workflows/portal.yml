@@ -27,9 +27,9 @@ on:
         type: boolean
         default: true
   schedule:
-    # 02:45 UTC is 08:15 AM IST (Guaranteed Morning Briefing before Market Open)
+    # Intended 08:15 IST; GitHub schedules can be delayed or dropped.
     - cron: "45 2 * * 1-5"
-    # 10:15 UTC is 15:45 PM IST (Guaranteed Post-Market Wrap after Market Close)
+    # Intended 15:45 IST; not a guaranteed execution time.
     - cron: "15 10 * * 1-5"
     # Regular 30-minute interval during market hours
     - cron: "*/30 3-10 * * 1-5"
@@ -71,9 +71,8 @@ jobs:
           ssh-keyscan github.com >> ~/.ssh/known_hosts 2>/dev/null
           git clone --depth 1 git@github.com:kuldeep-oo7/k2-portal.git publish
 
-      # The universe measurement takes about twenty minutes and only changes when
-      # the week's anchor changes, so the published plan is carried forward and
-      # re-measured once a week.
+      # Weekly anchors persist, but research snapshots expire after an hour.
+      # This scheduled rebuild is NOT the continuous quote-monitoring service.
       - name: Decide whether the universe needs re-measuring
         id: plan
         run: |
@@ -89,11 +88,15 @@ jobs:
           fi
 
       - name: Measure the universe
-        if: ${{ steps.plan.outputs.measure == 'true' }}
+        # Pushes publish safety/UI fixes promptly. Scheduled/manual runs refresh
+        # research; stale old signals are withheld by the renderer meanwhile.
+        if: ${{ steps.plan.outputs.measure == 'true' && github.event_name != 'push' }}
         env:
           K2_UPSIDE_MODEL: models/upside.json
-          K2_GOOGLE_SHEETS_WEB_APP_URL: ${{ secrets.K2_GOOGLE_SHEETS_WEB_APP_URL }}
-          K2_GOOGLE_SHEETS_ARCHIVE_SECRET: ${{ secrets.K2_GOOGLE_SHEETS_ARCHIVE_SECRET }}
+          # Do not call an older Apps Script writer with destructive OHLCV migration.
+          # Enable only after the corrected deployment + readback audit is verified.
+          K2_GOOGLE_SHEETS_WEB_APP_URL: ${{ vars.K2_GOOGLE_STORAGE_AUDITED == 'true' && secrets.K2_GOOGLE_SHEETS_WEB_APP_URL || '' }}
+          K2_GOOGLE_SHEETS_ARCHIVE_SECRET: ${{ vars.K2_GOOGLE_STORAGE_AUDITED == 'true' && secrets.K2_GOOGLE_SHEETS_ARCHIVE_SECRET || '' }}
         run: node scripts/weekly-plan.js --top 60 --out plan-full.json
 
       - name: Refresh public exchange coverage
@@ -102,6 +105,7 @@ jobs:
       - name: Seal the book and build the portal
         env:
           K2_PORTAL_PASSPHRASE: ${{ secrets.K2_PORTAL_PASSPHRASE }}
+          K2_MONITOR_PUBLIC_URL: ${{ vars.K2_MONITOR_PUBLIC_URL }}
         run: node scripts/build-portal.js site
 
       - name: Refuse to publish a leaking build

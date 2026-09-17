@@ -1,4 +1,5 @@
 function resultBars(result) {
+  if (Array.isArray(result?.k2NormalizedBars)) return result.k2NormalizedBars.map(bar => ({ ...bar }));
   const timestamps = result?.timestamp || [];
   const quote = result?.indicators?.quote?.[0] || {};
   const adjclose = result?.indicators?.adjclose?.[0]?.adjclose || [];
@@ -20,10 +21,16 @@ function resultBars(result) {
       low: Number.isFinite(rawLow) ? Math.round(rawLow * factor * 100) / 100 : null,
       close: Number.isFinite(adjClose) ? Math.round(adjClose * 100) / 100 : (Number.isFinite(rawClose) ? Math.round(rawClose * 100) / 100 : null),
       rawClose: Number.isFinite(rawClose) ? rawClose : null,
-      dividendAdjFactor: Math.round(factor * 10000) / 10000,
-      volume: quote.volume?.[index]
+      rawOpen: Number.isFinite(rawOpen) ? rawOpen : null,
+      rawHigh: Number.isFinite(rawHigh) ? rawHigh : null,
+      rawLow: Number.isFinite(rawLow) ? rawLow : null,
+      dividendAdjFactor: factor,
+      priceBasis: Number.isFinite(adjClose) ? "ADJUSTED" : "RAW_UNADJUSTED",
+      source: "YahooFinance",
+      volume: Number.isFinite(quote.volume?.[index]) && quote.volume[index] >= 0 ? quote.volume[index] : null
     };
-  }).filter((bar) => [bar.high, bar.low, bar.close].every(Number.isFinite));
+  }).filter((bar) => Number.isFinite(bar.timestamp) && [bar.open, bar.high, bar.low, bar.close].every(n => Number.isFinite(n) && n > 0)
+    && bar.high >= Math.max(bar.open, bar.close, bar.low) && bar.low <= Math.min(bar.open, bar.close));
 }
 
 function formatSymbol(rawSymbol) {
@@ -60,7 +67,8 @@ async function fetchChart(rawSymbol, options = {}) {
  */
 function createMacroEnvelope(provider, providerSymbol, data = null, error = null) {
   const isLive = data && Number.isFinite(data.price) && data.price > 0;
-  const quoteIso = data?.quoteAsOf || (isLive ? (data?.receivedAt || new Date().toISOString()) : null);
+  // Retrieval time is not a source price timestamp. Never upgrade missing provenance.
+  const quoteIso = data?.quoteAsOf || null;
   const quoteTime = Date.parse(quoteIso);
   const recent = Number.isFinite(quoteTime) && Date.now() - quoteTime >= -60000 && Date.now() - quoteTime <= 24 * 60 * 60_000;
   return {
@@ -70,7 +78,8 @@ function createMacroEnvelope(provider, providerSymbol, data = null, error = null
     provider,
     providerSymbol,
     freshnessStatus: !isLive ? "UNAVAILABLE" : recent ? "RECENT_PROVIDER_SNAPSHOT" : Number.isFinite(quoteTime) ? "STALE" : "TIMESTAMP_UNVERIFIED",
-    qualityStatus: isLive ? "VALID" : "MISSING",
+    qualityStatus: isLive ? "VALID_PRICE_ONLY" : "MISSING",
+    timestampKind: data?.timestampKind || "UNVERIFIED",
     fallbackUsed: false,
     receivedAt: isLive ? new Date().toISOString() : null,
     quoteAsOf: quoteIso,
@@ -78,10 +87,11 @@ function createMacroEnvelope(provider, providerSymbol, data = null, error = null
   };
 }
 
-function macroInputFromRadar(radar, nowMs = Date.now(), maxAgeMs = 24 * 60 * 60_000) {
+function macroInputFromRadar(radar, nowMs = Date.now(), maxAgeMs = 5 * 60_000) {
   const value = (node, field) => {
-    const stamp = Date.parse(node?.quoteAsOf || node?.receivedAt);
-    return Number.isFinite(stamp) && nowMs - stamp <= maxAgeMs && nowMs - stamp >= -60000
+    const stamp = Date.parse(node?.quoteAsOf);
+    return ["EXCHANGE", "PROVIDER_QUOTE"].includes(node?.timestampKind)
+      && Number.isFinite(stamp) && nowMs - stamp <= maxAgeMs && nowMs - stamp >= 0
       && typeof node?.[field] === "number" && Number.isFinite(node[field]) ? node[field] : null;
   };
   return { giftNiftyGapPct: value(radar?.giftNifty, "changePct"), indiaVix: value(radar?.indiaVix, "price"),
@@ -120,7 +130,8 @@ async function fetchLiveMacroRadar() {
           price: Number(d.close),
           changePct: Number.isFinite(d.change) ? d.change : null,
           changeAbs: Number.isFinite(d.change_abs) ? d.change_abs : null,
-          quoteAsOf: new Date().toISOString()
+          quoteAsOf: null,
+          timestampKind: "UNVERIFIED"
         });
       }
     } else {
@@ -149,7 +160,8 @@ async function fetchLiveMacroRadar() {
           price: Number(last),
           changePct: Number(((last - prev) / prev) * 100),
           // These are daily bars, not an asserted live last-trade feed.
-          quoteAsOf: Number.isFinite(closes.at(-1).timestamp) ? new Date(closes.at(-1).timestamp * 1000).toISOString() : null
+          quoteAsOf: Number.isFinite(closes.at(-1).timestamp) ? new Date(closes.at(-1).timestamp * 1000).toISOString() : null,
+          timestampKind: "DAILY_BAR_START"
         },
         error: null
       };

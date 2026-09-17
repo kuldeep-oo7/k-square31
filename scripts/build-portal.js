@@ -39,8 +39,7 @@ function planRow(item) {
   const side = item?.side === "short" ? "short" : "long";
   const median = entry.holdingGuidance?.medianObservedSessions ?? entry.medianSessionsHeld;
   const ceiling = entry.holdingGuidance?.maximumRiskCeilingSessions ?? DEFAULT_CONFIG.maxHoldingSessions;
-  const daysT1 = entry.holdingDaysT1 ? `${entry.holdingDaysT1}d` : `${fixed(median || 1, 0)} sessions`;
-  const daysT2 = entry.holdingDaysT2 ? `${entry.holdingDaysT2}d` : "5–12 sessions";
+  const daysT1 = Number.isFinite(median) ? `${fixed(median, 0)} observed sessions` : "Not established";
   const execution = intent?.liveExecutable
     ? "Current margin + final risk gate required"
     : intent?.executable
@@ -52,10 +51,10 @@ function planRow(item) {
     <td class="num">₹${fixed(entry.entry)}</td>
     <td class="num positive">₹${fixed(entry.target)}</td>
     <td class="num negative">₹${fixed(entry.stopLoss)}</td>
-    <td class="num"><span class="chip" style="background:#172238;color:var(--violet);border-color:#34445e;">${escapeHtml(daysT1)} (T1) / ${escapeHtml(daysT2)} (T2)</span></td>
+    <td class="num">${escapeHtml(daysT1)}</td>
     <td class="num">${ceiling} sessions</td>
-    <td class="num positive">+${fixed(Math.abs(item.expectedWeeklyPct || 2.1), 2)}%</td>
-    <td class="num">${fixed(item.convictionPct, 0)} <span class="chip" style="background:#173d32;color:var(--green);font-size:9px;">8/8 PASS</span></td>
+    <td class="num">${fixed(item.expectedWeeklyPct, 2)}%</td>
+    <td class="num">${fixed(item.convictionPct, 0)} · uncalibrated score</td>
     <td><span class="status ${intent?.executable ? "shadow" : "blocked"}">${escapeHtml(execution)}</span></td>
   </tr>`;
 }
@@ -160,11 +159,11 @@ ${currentPlan ? "" : `<p class="notice" id="plan-stale">No current, version-veri
   <div class="tile"><b>${macroLocked || !currentPlan || coverage.banStatusVerified !== true ? "LOCKED" : "SHADOW"}</b><span>new-order data gate</span></div>
 </div>
 
-<section><h2>TIER 1 INSTITUTIONAL EXECUTION &amp; HOLDING HORIZONS</h2><p class="sub">Continuous Target-Driven Holding (No Friday Forced Liquidation). Positions are held across weekends with Monday reference rebasing; exit strictly on staged profit ladders, trailing stops, or the 3-day monthly futures expiry roll.</p>
+<section><h2>Research levels &amp; holding horizons</h2><p class="sub">No Friday forced liquidation. Monday resets only the reporting reference, not the original entry or lifetime profit. Holding time is uncertain; exits depend on risk rules and verified contract expiry. Partial exits must use whole lots.</p>
   <div class="cards">${best.length ? best.slice(0, 6).map(guidanceCard).join("") : '<div class="empty">No current, risk-admitted candidate is available. Refresh the plan and review data availability.</div>'}</div>
 </section>
 
-${recommendationSectionHtml()}
+${recommendationSectionHtml([], meta.monitorUrl || "")}
 
 <section><h2>Price-distance assistant</h2><p class="sub">This compares a manually entered broker price with the stored plan. It cannot see spread, live margin, ban changes, order queue, or your broker acknowledgement; therefore it never labels a trade “safe.”</p>
   <div class="calculator"><div class="calc-inputs"><div class="field"><label for="calc-symbol">Candidate</label><select id="calc-symbol">${best.map((item) => `<option value="${escapeHtml(item.symbol)}:${item.side}">${escapeHtml(item.symbol)} (${escapeHtml(item.side)})</option>`).join("")}</select></div><div class="field"><label for="calc-price">Current broker price ₹</label><input id="calc-price" type="number" step="any" placeholder="Enter current contract price"></div></div>
@@ -262,7 +261,7 @@ async function run() {
   const context = readJson("book-context.json")?.context || {};
   const holdingPlans = holdings ? [...(holdings.best || []), ...(holdings.rejected || []).map((item) => ({ symbol: item.symbol, action: "stand-aside", reasons: [item.reason] }))] : [];
   let sealed = null;
-  let meta = { builtAt: new Date().toISOString().slice(0, 16).replace("T", " "), positionCount: 0, capturedAt: "—" };
+  let meta = { builtAt: new Date().toISOString().slice(0, 16).replace("T", " "), positionCount: 0, capturedAt: "—", monitorUrl: process.env.K2_MONITOR_PUBLIC_URL || "" };
   if (book && passphrase) {
     const payload = bookPayload(book, holdingPlans, context);
     sealed = sealPayload(payload, passphrase);

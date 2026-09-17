@@ -13,7 +13,7 @@ function start({ env = process.env, fetchImpl = fetch } = {}) {
   const release = () => { try { fs.unlinkSync(lock); } catch {} };
   let server, timer;
   try {
-    const catalogue = read(path.join(root, ".cache", "indian-instruments", "latest.json"), {});
+    let catalogue = read(path.join(root, ".cache", "indian-instruments", "latest.json"), {}), reloadedAt = 0;
     const monitor = new SignalMonitor({ instruments: catalogue.instruments || [], plan: read(path.join(root, "plan-full.json"), {}), restored: read(path.join(directory, "state.json"), null) });
     const url = env.K2_MARKET_QUOTE_FEED_URL ? new URL(env.K2_MARKET_QUOTE_FEED_URL) : null;
     if (url && (url.protocol !== "https:" || url.username || url.password)) throw new Error("Feed must use HTTPS with credentials supplied separately");
@@ -26,6 +26,13 @@ function start({ env = process.env, fetchImpl = fetch } = {}) {
       if (busy || !url || env.K2_MARKET_DATA_ENTITLEMENT_CONFIRMED !== "true") return;
       busy = true;
       try {
+        if (Date.now() - reloadedAt > 60000) {
+          catalogue = read(path.join(root, ".cache", "indian-instruments", "latest.json"), {});
+          monitor.instruments = new Map((catalogue.instruments || []).map(i => [i.key, i]));
+          monitor.plan = read(path.join(root, "plan-full.json"), {}); reloadedAt = Date.now();
+        }
+        const catalogueAt = Date.parse(catalogue.fetchedAt);
+        if (!Number.isFinite(catalogueAt) || catalogueAt > Date.now() || Date.now() - catalogueAt > 86400000) throw new Error("CATALOGUE_STALE_OR_UNVERIFIED");
         const response = await fetchImpl(url, { headers: env.K2_MARKET_DATA_TOKEN ? { Authorization: `Bearer ${env.K2_MARKET_DATA_TOKEN}` } : {}, signal: AbortSignal.timeout(8000), redirect: "error" });
         if (!response.ok) throw new Error(`UPSTREAM_HTTP_${response.status}`);
         const contentLength = Number(response.headers.get("content-length"));
@@ -45,7 +52,7 @@ function start({ env = process.env, fetchImpl = fetch } = {}) {
         lastPersisted = new Date().toISOString(); feedIssue = null;
       } catch (e) {
         // Do not expose endpoint, authorization headers or raw provider errors.
-        feedIssue = /^(UPSTREAM_HTTP_\d+|QUOTE_BATCH_TOO_LARGE|QUOTE_BATCH_SCHEMA_INVALID|RAW_ARCHIVE_LIMIT_REACHED)$/.test(e.message) ? e.message : "FEED_OR_PERSISTENCE_ERROR";
+        feedIssue = /^(UPSTREAM_HTTP_\d+|QUOTE_BATCH_TOO_LARGE|QUOTE_BATCH_SCHEMA_INVALID|RAW_ARCHIVE_LIMIT_REACHED|CATALOGUE_STALE_OR_UNVERIFIED)$/.test(e.message) ? e.message : "FEED_OR_PERSISTENCE_ERROR";
       } finally { busy = false; }
     };
     server = http.createServer((req, res) => {

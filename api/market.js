@@ -122,16 +122,7 @@ function covariance(left, right) {
 }
 
 function resultBars(result) {
-  const timestamps = result?.timestamp || [];
-  const quote = result?.indicators?.quote?.[0] || {};
-  return timestamps.map((timestamp, index) => ({
-    timestamp,
-    open: quote.open?.[index],
-    high: quote.high?.[index],
-    low: quote.low?.[index],
-    close: quote.close?.[index],
-    volume: quote.volume?.[index]
-  })).filter((bar) => [bar.high, bar.low, bar.close].every(Number.isFinite));
+  return require("./_lib/market-feed").resultBars(result);
 }
 
 function mergeStoredHistory(result, observations) {
@@ -142,7 +133,10 @@ function mergeStoredHistory(result, observations) {
     merged.set(bar.session, {
       timestamp: Math.floor(Date.parse(`${bar.session}T06:30:00Z`) / 1000),
       open: Number(bar.open), high: Number(bar.high), low: Number(bar.low),
-      close: Number(bar.close), volume: Number.isFinite(Number(bar.volume)) ? Number(bar.volume) : null
+      close: Number(bar.close), volume: typeof bar.volume === "number" && Number.isFinite(bar.volume) ? bar.volume : null,
+      rawOpen: bar.rawOpen ?? null, rawHigh: bar.rawHigh ?? null, rawLow: bar.rawLow ?? null,
+      rawClose: bar.rawClose ?? null, dividendAdjFactor: bar.dividendAdjFactor ?? null,
+      priceBasis: "ADJUSTED_HISTORY", source: bar.source || "LEGACY_STORE_UNVERIFIED"
     });
   });
   resultBars(result).forEach((bar) => merged.set(indiaDate(bar.timestamp), bar));
@@ -151,9 +145,13 @@ function mergeStoredHistory(result, observations) {
     .sort((left, right) => left.timestamp - right.timestamp);
   return {
     ...result,
+    // These candles are ALREADY adjusted. Preserve aligned raw fields separately.
+    // Reusing the old short adjclose array against a longer history corrupts prices.
+    k2NormalizedBars: bars,
     timestamp: bars.map((bar) => bar.timestamp),
     indicators: {
       ...(result.indicators || {}),
+      adjclose: [{ adjclose: bars.map((bar) => bar.close) }],
       quote: [{
         open: bars.map((bar) => bar.open),
         high: bars.map((bar) => bar.high),

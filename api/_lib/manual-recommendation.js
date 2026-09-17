@@ -1,256 +1,82 @@
 "use strict";
-
-/**
- * Manual Recommendation Engine for K² Range Desk.
- * Generates human-executable trade tickets for Zerodha Kite (Cash, Futures, and Options)
- * with exact limit entry triggers, multi-tier profit targets (Target 1, 2, Runner),
- * strict stop-loss levels, defined-risk hedging, and pre-trade corporate event / sentiment checks.
- */
-
+// Quote-backed research tickets. No guessed contracts, premiums, Greeks or risk approval.
 const { evaluateSentimentAndEventRisk } = require("./sentiment-risk");
-const { europeanOption } = require("./option-pricing");
-const { analyzeOptionStrategy } = require("./option-strategy");
-
-function roundToTick(price, tickSize = 0.05) {
-  if (!Number.isFinite(price) || price <= 0) return 0;
-  const tick = Number.isFinite(tickSize) && tickSize > 0 ? tickSize : 0.05;
-  return Math.round(price / tick) * tick;
+const { analyzeOptionStrategy, recommendationReadiness } = require("./option-strategy");
+const { isDate } = require("./indian-instruments");
+const finite = n => typeof n === "number" && Number.isFinite(n);
+function roundToTick(price, tickSize) {
+  return finite(price) && price > 0 && finite(tickSize) && tickSize > 0
+    ? Number((Math.round(price / tickSize) * tickSize).toFixed(8)) : null;
 }
-
-function fixed(val, decimals = 2) {
-  if (!Number.isFinite(val)) return "—";
-  return Number(val).toFixed(decimals);
+function verifiedContract(catalogue, key, now) {
+  const received = Date.parse(catalogue?.fetchedAt);
+  if (!finite(received) || received > now || now - received > 86400000) return null;
+  const matches = (catalogue.instruments || []).filter(i => i.key === key);
+  const c = matches.length === 1 ? matches[0] : null;
+  if (!c || !["EQ", "FUT", "CE", "PE"].includes(c.type) || !Number.isSafeInteger(c.lotSize) || c.lotSize < 1
+      || !finite(c.tickSize) || c.tickSize <= 0 || !c.tradingSymbol || !c.exchange) return null;
+  if (c.type !== "EQ" && (!isDate(c.expiry) || Date.parse(c.expiry + "T00:00:00+05:30") <= now)) return null;
+  return c;
 }
-
-/**
- * Generates an institutional-grade, human-executable trade ticket for Zerodha Kite.
- *
- * @param {Object} input
- * @param {string} input.symbol - Ticker symbol (e.g. 'NIFTY', 'APLAPOLLO')
- * @param {number} input.spotPrice - Underlying cash/spot reference price
- * @param {string} [input.direction="LONG"] - "LONG" or "SHORT"
- * @param {string} [input.assetClass="OPTION"] - "OPTION" | "FUTURES" | "CASH"
- * @param {number} [input.strike] - Optional explicit strike
- * @param {string} [input.expiry="2026-09-24"] - Contract expiry date (YYYY-MM-DD)
- * @param {number} [input.lotSize=25] - Contract lot size (e.g. 25 for NIFTY, 1 for Cash)
- * @param {number} [input.tickSize=0.05] - Price tick size
- * @param {number} [input.holdingSessions=5] - Expected holding duration in trading sessions
- * @param {number} [input.volatility=0.18] - Implied or realized annualized volatility
- * @param {Array<number>} [input.targetPcts] - Step targets (e.g. [1.025, 1.05, 1.10])
- * @param {number} [input.stopLossPct=0.985] - Stop loss fraction (e.g. 0.985 for -1.5%)
- * @param {Object} [input.sentimentContext] - Optional news, event calendar, or ban list
- * @returns {Object} Structured recommendation ticket
- */
-function generateManualRecommendation({
-  symbol,
-  spotPrice,
-  direction = "LONG",
-  assetClass = "OPTION",
-  strike = null,
-  entryPrice = null,
-  expiry = "2026-09-24",
-  lotSize = 25,
-  tickSize = 0.05,
-  holdingSessions = 5,
-  volatility = 0.18,
-  targetPcts = null,
-  stopLossPct = null,
-  sentimentContext = {}
-} = {}) {
-  const cleanSymbol = String(symbol || "").trim().toUpperCase();
-  const spot = Number(spotPrice);
-  const isLong = direction.toUpperCase() !== "SHORT";
-
-  if (!cleanSymbol || !Number.isFinite(spot) || spot <= 0) {
-    return {
-      status: "INVALID",
-      actionable: false,
-      reason: "VALID_SYMBOL_AND_POSITIVE_SPOT_REQUIRED"
-    };
-  }
-
-  // 1. Corporate Actions & News Sentiment Gate
-  const sentimentRisk = evaluateSentimentAndEventRisk({
-    symbol: cleanSymbol,
-    holdingSessions,
-    now: sentimentContext.now || Date.now(),
-    events: sentimentContext.events || null,
-    newsHeadlines: sentimentContext.newsHeadlines || [],
-    foBanList: sentimentContext.foBanList || []
-  });
-
-  // Default targets & stop if not provided (Long vs Short)
-  const defaultTargets = isLong ? [1.025, 1.055, 1.12] : [0.975, 0.945, 0.88];
-  const defaultStop = isLong ? 0.985 : 1.015;
-  const resolvedTargets = Array.isArray(targetPcts) && targetPcts.length >= 2 ? targetPcts : defaultTargets;
-  const resolvedStop = Number.isFinite(stopLossPct) ? stopLossPct : defaultStop;
-
-  // Spot price levels
-  const spotStop = roundToTick(spot * resolvedStop, tickSize);
-  const spotT1 = roundToTick(spot * resolvedTargets[0], tickSize);
-  const spotT2 = roundToTick(spot * resolvedTargets[1], tickSize);
-  const spotRunner = roundToTick(spot * (resolvedTargets[2] || resolvedTargets[1] * (isLong ? 1.05 : 0.95)), tickSize);
-
-  let ticket = null;
-
-  if (assetClass.toUpperCase() === "OPTION") {
-    // Select ATM strike rounded to nearest strike step
-    const strikeStep = spot > 10000 ? 100 : spot > 2000 ? 50 : spot > 500 ? 20 : 10;
-    const selectedStrike = Number.isFinite(strike) && strike > 0
-      ? strike
-      : Math.round(spot / strikeStep) * strikeStep;
-
-    const optionType = isLong ? "CE" : "PE";
-    const action = "BUY";
-    const expiryFormatted = expiry.replace(/-/g, "").slice(2, 6) + expiry.slice(8, 10);
-    const tradingSymbol = `${cleanSymbol}${expiry.slice(2, 4)}${new Date(expiry).toLocaleString("en-US", { month: "short" }).toUpperCase()}${selectedStrike}${optionType}`;
-
-    // Black-Scholes estimate for entry premium & targets
-    const tYears = Math.max(0.005, (new Date(expiry) - Date.now()) / (365.25 * 24 * 3600 * 1000));
-    const pricing = europeanOption({
-      model: "BSM",
-      underlyingPrice: spot,
-      strike: selectedStrike,
-      timeToExpiryYears: tYears,
-      riskFreeRate: 0.065,
-      dividendYield: 0.01,
-      volatility,
-      optionType
-    });
-
-    const estEntryPremium = (entryPrice && Number(entryPrice) > 0)
-      ? roundToTick(Number(entryPrice), tickSize)
-      : (pricing.available ? roundToTick(pricing.price, tickSize) : roundToTick(spot * 0.02, tickSize));
-    const delta = pricing.available ? Math.abs(pricing.delta) : 0.5;
-
-    // Premium rungs based on Delta movement
-    const estStopPremium = roundToTick(Math.max(tickSize, estEntryPremium - Math.abs(spot - spotStop) * delta), tickSize);
-    const estT1Premium = roundToTick(estEntryPremium + Math.abs(spotT1 - spot) * delta, tickSize);
-    const estT2Premium = roundToTick(estEntryPremium + Math.abs(spotT2 - spot) * delta, tickSize);
-    const estRunnerPremium = roundToTick(estEntryPremium + Math.abs(spotRunner - spot) * delta, tickSize);
-
-    const premiumRequiredPerLot = roundToTick(estEntryPremium * lotSize, 1);
-    const maxRiskPerLot = roundToTick((estEntryPremium - estStopPremium) * lotSize, 1);
-
-    // Defined-Risk Hedge Leg (Spread structure: sell OTM wing)
-    const hedgeStrike = isLong ? selectedStrike + strikeStep * 2 : selectedStrike - strikeStep * 2;
-    const hedgeTradingSymbol = `${cleanSymbol}${expiry.slice(2, 4)}${new Date(expiry).toLocaleString("en-US", { month: "short" }).toUpperCase()}${hedgeStrike}${optionType}`;
-    const hedgePricing = europeanOption({
-      model: "BSM",
-      underlyingPrice: spot,
-      strike: hedgeStrike,
-      timeToExpiryYears: tYears,
-      riskFreeRate: 0.065,
-      dividendYield: 0.01,
-      volatility,
-      optionType
-    });
-    const estHedgePremium = hedgePricing.available ? roundToTick(hedgePricing.price, tickSize) : roundToTick(estEntryPremium * 0.4, tickSize);
-    const netDebitPerLot = roundToTick((estEntryPremium - estHedgePremium) * lotSize, 1);
-
-    const fastCopy = `${action} ${tradingSymbol} | QTY: ${lotSize} (1 Lot) | LIMIT: ₹${fixed(estEntryPremium)} | SL: ₹${fixed(estStopPremium)} | T1: ₹${fixed(estT1Premium)} | T2: ₹${fixed(estT2Premium)} | RUNNER: ₹${fixed(estRunnerPremium)}`;
-
-    ticket = {
-      id: `REC-${cleanSymbol}-${optionType}-${selectedStrike}-${Date.now().toString(36).toUpperCase()}`,
-      symbol: cleanSymbol,
-      underlyingSpot: spot,
-      assetClass: "OPTION",
-      action: "BUY",
-      tradingSymbol,
-      optionType,
-      strike: selectedStrike,
-      expiry,
-      lotSize,
-      exchange: "NFO",
-      orderType: "LIMIT",
-      entryTrigger: estEntryPremium,
-      stopLoss: estStopPremium,
-      targetRung1: estT1Premium,
-      targetRung2: estT2Premium,
-      runnerTarget: estRunnerPremium,
-      holdingSessions,
-      capitalRequiredInr: premiumRequiredPerLot,
-      maxRiskInr: maxRiskPerLot,
-      zerodhaFastCopy: fastCopy,
-      definedRiskHedge: {
-        strategyType: isLong ? "BULL_CALL_SPREAD" : "BEAR_PUT_SPREAD",
-        primaryLeg: `BUY ${tradingSymbol} @ ₹${fixed(estEntryPremium)}`,
-        hedgeLeg: `SELL ${hedgeTradingSymbol} @ ₹${fixed(estHedgePremium)}`,
-        netDebitPerLotInr: netDebitPerLot,
-        maximumLossCappedInr: netDebitPerLot,
-        breakEvenUnderlying: isLong ? selectedStrike + (netDebitPerLot / lotSize) : selectedStrike - (netDebitPerLot / lotSize)
-      }
-    };
-  } else if (assetClass.toUpperCase() === "FUTURES") {
-    const tradingSymbol = `${cleanSymbol}${expiry.slice(2, 4)}${new Date(expiry).toLocaleString("en-US", { month: "short" }).toUpperCase()}FUT`;
-    const action = isLong ? "BUY" : "SELL";
-    const fastCopy = `${action} ${tradingSymbol} | QTY: ${lotSize} | LIMIT: ₹${fixed(spot)} | SL: ₹${fixed(spotStop)} | T1: ₹${fixed(spotT1)} | T2: ₹${fixed(spotT2)} | RUNNER: ₹${fixed(spotRunner)}`;
-
-    ticket = {
-      id: `REC-${cleanSymbol}-FUT-${Date.now().toString(36).toUpperCase()}`,
-      symbol: cleanSymbol,
-      underlyingSpot: spot,
-      assetClass: "FUTURES",
-      action,
-      tradingSymbol,
-      expiry,
-      lotSize,
-      exchange: "NFO",
-      orderType: "LIMIT",
-      entryTrigger: spot,
-      stopLoss: spotStop,
-      targetRung1: spotT1,
-      targetRung2: spotT2,
-      runnerTarget: spotRunner,
-      holdingSessions,
-      capitalRequiredInr: roundToTick(spot * lotSize * 0.22, 100), // ~22% margin
-      maxRiskInr: roundToTick(Math.abs(spot - spotStop) * lotSize, 1),
-      zerodhaFastCopy: fastCopy,
-      definedRiskHedge: {
-        strategyType: isLong ? "PROTECTIVE_PUT" : "PROTECTIVE_CALL",
-        hedgeLeg: `BUY ${cleanSymbol} ${isLong ? "PE" : "CE"} @ OTM Strike to lock tail risk`,
-        maximumLossCappedInr: "Finite (Hedged against gap)"
-      }
-    };
-  } else {
-    // CASH Equity Delivery
-    const action = "BUY";
-    const fastCopy = `BUY ${cleanSymbol} (NSE EQ) | LIMIT: ₹${fixed(spot)} | SL: ₹${fixed(spotStop)} | T1: ₹${fixed(spotT1)} | T2: ₹${fixed(spotT2)} | RUNNER: ₹${fixed(spotRunner)}`;
-
-    ticket = {
-      id: `REC-${cleanSymbol}-EQ-${Date.now().toString(36).toUpperCase()}`,
-      symbol: cleanSymbol,
-      underlyingSpot: spot,
-      assetClass: "CASH",
-      action,
-      tradingSymbol: cleanSymbol,
-      exchange: "NSE",
-      orderType: "LIMIT",
-      lotSize: 1,
-      entryTrigger: spot,
-      stopLoss: spotStop,
-      targetRung1: spotT1,
-      targetRung2: spotT2,
-      runnerTarget: spotRunner,
-      holdingSessions,
-      capitalRequiredInr: spot,
-      maxRiskInr: roundToTick(Math.abs(spot - spotStop), 1),
-      zerodhaFastCopy: fastCopy,
-      definedRiskHedge: null
-    };
-  }
-
-  return {
-    ...ticket,
-    sentimentRisk,
-    status: sentimentRisk.allowedToTrade ? "ACTIVE" : "VETOED",
-    actionable: sentimentRisk.allowedToTrade,
-    reason: sentimentRisk.reason,
-    generatedAt: new Date().toISOString()
-  };
+function verifiedQuote(quote, contract, now) {
+  const t = Date.parse(quote?.eventAt);
+  return Boolean(contract && quote?.instrumentKey === contract.key && quote.provider && quote.timestampKind === "EXCHANGE"
+    && quote.marketOpen === true && finite(t) && t <= now && now - t <= 5000
+    && finite(quote.bid) && finite(quote.ask) && quote.bid > 0 && quote.ask >= quote.bid
+    && [quote.bid, quote.ask].every(p => Math.abs(p / contract.tickSize - Math.round(p / contract.tickSize)) < 1e-6));
 }
-
-module.exports = {
-  generateManualRecommendation,
-  roundToTick
-};
+function generateManualRecommendation(input = {}) {
+  const now = input.now ?? Date.now(), reasons = [];
+  const fail = reason => ({ status: "BLOCKED", actionable: false, permittedOrderQuantity: 0, reason,
+    reasons: [reason], zerodhaFastCopy: null, generatedAt: finite(now) ? new Date(now).toISOString() : null });
+  if (!finite(now)) return fail("INVALID_CLOCK");
+  const contract = verifiedContract(input.catalogue, input.contractKey, now);
+  if (!contract) return fail("EXACT_CURRENT_CATALOGUE_CONTRACT_REQUIRED");
+  if (!verifiedQuote(input.quote, contract, now)) return fail("FRESH_EXACT_CONTRACT_BID_ASK_REQUIRED");
+  const action = input.action;
+  if (!["BUY", "SELL"].includes(action)) return fail("EXPLICIT_BUY_OR_SELL_REQUIRED");
+  if (contract.type === "EQ" && action === "SELL") return fail("OVERNIGHT_CASH_SHORT_NOT_SUPPORTED");
+  const lots = input.lots;
+  if (!Number.isSafeInteger(lots) || lots < 1) return fail("POSITIVE_WHOLE_LOTS_REQUIRED");
+  const quantity = lots * contract.lotSize;
+  if (!Number.isSafeInteger(quantity)) return fail("QUANTITY_OVERFLOW");
+  const price = action === "BUY" ? input.quote.ask : input.quote.bid;
+  const sentimentRisk = evaluateSentimentAndEventRisk({ ...input.sentimentContext,
+    symbol: contract.underlying || contract.tradingSymbol, assetClass: contract.type === "EQ" ? "CASH" : "DERIVATIVE",
+    now, holdingSessions: input.holdingSessions });
+  if (!sentimentRisk.allowedToTrade) reasons.push(...sentimentRisk.riskFlags);
+  let strategy = null;
+  if (contract.type !== "EQ") {
+    const leg = (c, q, side) => ({ contractKey: c.key, underlying: c.underlying, exchange: c.exchange,
+      expiry: c.expiry, type: c.type, strike: c.strike, tickSize: c.tickSize, lotSize: c.lotSize,
+      quantity, side, price: side === "BUY" ? q.ask : q.bid });
+    const legs = [leg(contract, input.quote, action)];
+    if (input.hedge) {
+      const h = verifiedContract(input.catalogue, input.hedge.contractKey, now);
+      if (!h || !verifiedQuote(input.hedge.quote, h, now)) return fail("HEDGE_CONTRACT_AND_QUOTE_UNVERIFIED");
+      if (!["BUY", "SELL"].includes(input.hedge.action)) return fail("HEDGE_SIDE_REQUIRED");
+      legs.push(leg(h, input.hedge.quote, input.hedge.action));
+    }
+    strategy = analyzeOptionStrategy({ ...input.pricingAssumptions, legs,
+      roundTripCostsInr: input.roundTripCostsInr, underlyingPrice: input.underlyingPrice });
+    if (!strategy.available) reasons.push(strategy.reason);
+  } else if (!finite(input.roundTripCostsInr) || input.roundTripCostsInr < 0) reasons.push("ALL_LEG_COST_ESTIMATE_REQUIRED");
+  const readiness = recommendationReadiness({ strategy: strategy || { available: !reasons.length,
+    maxTerminalLossInr: price * quantity + (input.roundTripCostsInr || 0) }, mandate: input.mandate,
+    catalogueVerified: true, quotesVerified: true, evidence: input.evidence });
+  reasons.push(...readiness.reasons);
+  return { symbol: contract.underlying || contract.tradingSymbol, tradingSymbol: contract.tradingSymbol,
+    contractKey: contract.key, exchange: contract.exchange, expiry: contract.expiry,
+    assetClass: contract.type === "EQ" ? "CASH" : contract.type === "FUT" ? "FUTURES" : "OPTION",
+    action, optionType: ["CE", "PE"].includes(contract.type) ? contract.type : null,
+    lotSize: contract.lotSize, researchQuantity: quantity, entryTrigger: price, quoteAsOf: input.quote.eventAt,
+    sentimentRisk, strategy, status: reasons.length ? "RESEARCH_ONLY" : "MANUAL_REVIEW_REQUIRED",
+    actionable: false, permittedOrderQuantity: 0, zerodhaFastCopy: null,
+    targetRung1: null, targetRung2: null, runnerTarget: null, stopLoss: null,
+    maxRiskInr: strategy?.maxTerminalLossInr ?? null, capitalRequiredInr: null,
+    reasons: [...new Set(reasons)], generatedAt: new Date(now).toISOString(),
+    limitations: ["Research quantity is not approved sizing. A stop price does not cap loss.",
+      "Bid/ask is an observation, not a fill; depth, impact, margin and all-leg execution need validation.",
+      "Terminal payoff is conditional on matching filled legs, settlement and estimated costs; it is not zero-loss protection."] };
+}
+module.exports = { generateManualRecommendation, roundToTick, verifiedContract, verifiedQuote };

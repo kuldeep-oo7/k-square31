@@ -11,7 +11,10 @@ class GoogleStoreConflictError extends Error {
 }
 
 function googleStoreConfigured() {
-  return Boolean(process.env.K2_GOOGLE_SHEETS_WEB_APP_URL && process.env.K2_GOOGLE_SHEETS_ARCHIVE_SECRET);
+  try {
+    const url = new URL(process.env.K2_GOOGLE_SHEETS_WEB_APP_URL);
+    return url.protocol === "https:" && !url.username && !url.password && Boolean(process.env.K2_GOOGLE_SHEETS_ARCHIVE_SECRET);
+  } catch { return false; }
 }
 
 function encodeDocument(data) {
@@ -102,9 +105,9 @@ async function queryGoogleCapabilities() {
   return response.json();
 }
 
-async function readTabRowsFromGoogle({ tab, limit = 100 }) {
+async function readTabRowsFromGoogle({ tab, limit = 100, offset }) {
   if (!googleStoreConfigured()) throw new Error("Google Sheets operational store is not configured");
-  return requestGoogle("readTabRows", { tab, limit });
+  return requestGoogle("readTabRows", { tab, limit, ...(offset === undefined ? {} : { offset }) });
 }
 
 module.exports = {
