@@ -89,6 +89,28 @@ function buildReference(rows, session) {
     const openInterest = num(row.OpnIntrst) || 0;
     if (optionType === "CE") bucket.callStrikes.push(strike);
     else if (optionType === "PE") bucket.putStrikes.push(strike);
+
+    // The price the market actually paid. A Black-Scholes value is what a
+    // contract SHOULD be worth under a model; this is what it DID trade at, and
+    // it is the number a broker screen will show. Both are kept so a consumer
+    // can see the difference, but the traded price is the one to quote.
+    const traded = num(row.LastPric) ?? num(row.ClsPric) ?? num(row.SttlmPric);
+    if (traded !== null && traded >= 0) {
+      bucket.quotes = bucket.quotes || {};
+      bucket.quotes[`${strike}|${optionType}`] = {
+        price: traded,
+        settle: num(row.SttlmPric),
+        close: num(row.ClsPric),
+        open: num(row.OpnPric),
+        high: num(row.HghPric),
+        low: num(row.LwPric),
+        volume,
+        openInterest,
+        // A contract with no volume and no open interest has no market price,
+        // only an exchange-constructed settlement figure.
+        traded: volume > 0 || openInterest > 0
+      };
+    }
     // A strike with neither volume nor open interest is listed but dead; it is
     // recorded separately so the scanner can prefer strikes that actually trade.
     if (volume > 0 || openInterest > 0) bucket.liveStrikes.push(strike);
@@ -99,6 +121,7 @@ function buildReference(rows, session) {
       bucket.callStrikes = [...new Set(bucket.callStrikes)].sort((a, b) => a - b);
       bucket.putStrikes = [...new Set(bucket.putStrikes)].sort((a, b) => a - b);
       bucket.liveStrikes = [...new Set(bucket.liveStrikes)].sort((a, b) => a - b);
+      bucket.quotes = bucket.quotes || {};
     }
     entry.expiryList = Object.keys(entry.expiries).sort();
     entry.frontExpiry = entry.expiryList[0] || null;
@@ -173,6 +196,21 @@ function adjacentListedStrike(symbol, strike, direction = 1, { expiry = null, op
   return ordered.length ? { strike: ordered[0], expiry: chosenExpiry } : null;
 }
 
+/**
+ * The exchange's own traded price for one contract, or null.
+ * Returns traded:false when the strike is listed but nothing changed hands, so a
+ * caller can refuse to quote a price nobody paid.
+ */
+function tradedQuote(symbol, strike, optionType, expiry = null, reference = loadReference()) {
+  const entry = reference?.symbols?.[symbol];
+  if (!entry) return null;
+  const chosenExpiry = expiry || entry.frontExpiry;
+  const bucket = entry.expiries?.[chosenExpiry];
+  if (!bucket || !bucket.quotes) return null;
+  const quote = bucket.quotes[`${Number(strike)}|${optionType}`];
+  return quote ? { ...quote, expiry: chosenExpiry, lotSize: bucket.lotSize || entry.lotSize } : null;
+}
+
 /** Is this exact contract listed by the exchange? */
 function isListed(symbol, strike, optionType, expiry = null, reference = loadReference()) {
   const entry = reference?.symbols?.[symbol];
@@ -193,5 +231,6 @@ module.exports = {
   loadReference,
   nearestListedStrike,
   refreshReference,
+  tradedQuote,
   underlyingPrice
 };

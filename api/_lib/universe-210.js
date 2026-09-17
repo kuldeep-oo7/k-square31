@@ -11,7 +11,8 @@ const {
   underlyingPrice: fnoUnderlyingPrice,
   nearestListedStrike: nearestFnoStrike,
   adjacentListedStrike: adjacentFnoStrike,
-  isListed: isFnoListed
+  isListed: isFnoListed,
+  tradedQuote: tradedFnoQuote
 } = require("./fno-reference");
 
 const COVERAGE_PATH = path.resolve(__dirname, "../../data/market-coverage.json");
@@ -210,17 +211,62 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
   // quoting the call and the put at different percentages of one spot violates
   // put-call parity on every contract. A floor of 0.50 likewise manufactured
   // value the model did not find. If the model cannot price it, it is unpriced.
-  const legPriced = priceable && callBsm.available && putBsm.available && strikesAreListed !== false;
-  const wingsPriced = legPriced && otmCallBsm.available && otmPutBsm.available;
+  // THE PRICE THE MARKET PAID, not the price a model says it should have.
+  //
+  // Black-Scholes gives a theoretical fair value. A broker screen shows the
+  // traded price, and on this session the two differed materially: NIFTY 23250
+  // CE modelled at 189.97 against a traded 158.00, ANGELONE 295 CE at 4.87
+  // against 7.60, AMBER 7000 CE at 129.57 against 184.00. Quoting the model as
+  // an entry premium means quoting a number nobody can transact at, and every
+  // figure derived from it -- capital required, max loss, breakeven -- inherits
+  // the error.
+  //
+  // A strike that is listed but never traded has no market price at all, only
+  // an exchange-constructed settlement figure, so it is refused rather than
+  // quoted. The model value travels alongside as a cross-check.
+  const quoteFor = (strike, optionType) => (contractRef
+    ? tradedFnoQuote(symbol, strike, optionType, listedExpiry, contractRef)
+    : null);
+  const marketPrice = (strike, optionType) => {
+    const quote = quoteFor(strike, optionType);
+    return quote && quote.traded && quote.price > 0 ? Math.round(quote.price * 100) / 100 : null;
+  };
+  const callQuote = quoteFor(atmStrike, "CE");
+  const putQuote = quoteFor(atmStrike, "PE");
+  const callMarket = marketPrice(atmStrike, "CE");
+  const putMarket = marketPrice(atmStrike, "PE");
+  const otmCallMarket = marketPrice(otmCallStrike, "CE");
+  const otmPutMarket = marketPrice(otmPutStrike, "PE");
+
+  const callTheoretical = callBsm.available ? Math.round(callBsm.price * 100) / 100 : null;
+  const putTheoretical = putBsm.available ? Math.round(putBsm.price * 100) / 100 : null;
+
+  // When the exchange has a traded price it wins. Only if no reference is
+  // loaded at all does the model stand in, and the row says which was used.
+  const usingMarket = callMarket !== null && putMarket !== null;
+  const callPremium = callMarket !== null ? callMarket : (contractRef ? null : callTheoretical);
+  const putPremium = putMarket !== null ? putMarket : (contractRef ? null : putTheoretical);
+  const otmCallPremium = otmCallMarket !== null ? otmCallMarket
+    : (contractRef ? null : (otmCallBsm.available ? Math.round(otmCallBsm.price * 100) / 100 : null));
+  const otmPutPremium = otmPutMarket !== null ? otmPutMarket
+    : (contractRef ? null : (otmPutBsm.available ? Math.round(otmPutBsm.price * 100) / 100 : null));
+  const priceProvenance = usingMarket ? "EXCHANGE_TRADED_PRICE"
+    : contractRef ? "NO_TRADED_PRICE" : "THEORETICAL_BSM_NO_REFERENCE";
+
+  const legPriced = callPremium !== null && putPremium !== null && strikesAreListed !== false;
+  // Both wings priced AND the resulting vertical must actually be a debit
+  // spread. With real traded prices an illiquid wing can print at or above the
+  // at-the-money leg -- a stale or thin tick -- which makes the net debit zero
+  // or negative. That is not a cheap trade, it is a broken quote pair, and a
+  // spread whose cost is not positive has no defined max loss to show.
+  const wingsPriced = legPriced && otmCallPremium !== null && otmPutPremium !== null
+    && (isBullish ? (callPremium - otmCallPremium) > 0 : (putPremium - otmPutPremium) > 0);
   const unpricedReason = strikesAreListed === false ? "STRIKE_NOT_LISTED_BY_EXCHANGE"
     : !priceable ? "NO_MEASURED_VOLATILITY"
     : !callBsm.available ? callBsm.reason
     : !putBsm.available ? putBsm.reason
-    : !wingsPriced ? "HEDGE_LEG_UNPRICED" : null;
-  const callPremium = legPriced ? Math.round(callBsm.price * 100) / 100 : null;
-  const putPremium = legPriced ? Math.round(putBsm.price * 100) / 100 : null;
-  const otmCallPremium = wingsPriced ? Math.round(otmCallBsm.price * 100) / 100 : null;
-  const otmPutPremium = wingsPriced ? Math.round(otmPutBsm.price * 100) / 100 : null;
+    : callPremium === null || putPremium === null ? "NO_TRADED_PRICE_ON_EXCHANGE"
+    : !wingsPriced ? "HEDGE_LEG_NOT_TRADED_OR_NON_POSITIVE_DEBIT" : null;
 
   // Bull Call Spread. The net debit IS the maximum loss on a vertical debit
   // spread, and both legs come from the same model so the two stay consistent.
@@ -248,17 +294,27 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
       available: legPriced,
       status: legPriced ? "THEORETICAL_BSM_NOT_A_TRADED_QUOTE" : "UNPRICED",
       reason: legPriced ? null : unpricedReason,
-      premium: callPremium,
-      entryPrice: callPremium,
+      // A leg that is not tradeable carries no price. It previously kept its
+      // premium while reporting available:false, so a consumer reading the
+      // number without the flag saw a quote for a contract being refused.
+      premium: legPriced ? callPremium : null,
+      entryPrice: legPriced ? callPremium : null,
+      // Evidence from THIS contract's own order book. A liquid future says
+      // nothing about whether this strike trades; they are separate books.
+      priceSource: callPremium === null ? null : priceProvenance,
+      theoreticalPrice: callTheoretical,
+      exchangeVolume: callQuote ? callQuote.volume : null,
+      exchangeOpenInterest: callQuote ? callQuote.openInterest : null,
+      exchangeTraded: callQuote ? callQuote.traded === true : null,
       currentPrice: null,
       target1: null,
       target2: null,
       stopLoss: null,
       lotSize,
       // The entire premium is at risk on a long option.
-      maxLossRupees: callPremium === null ? null : Math.round(callPremium * lotSize),
-      capitalRequired: callPremium === null ? null : Math.round(callPremium * lotSize),
-      breakeven: callPremium === null ? null
+      maxLossRupees: legPriced && callPremium !== null ? Math.round(callPremium * lotSize) : null,
+      capitalRequired: legPriced && callPremium !== null ? Math.round(callPremium * lotSize) : null,
+      breakeven: !legPriced || callPremium === null ? null
         : Math.round((atmStrike + callPremium) * 100) / 100,
       greeks: {
         delta: legPriced && Number.isFinite(callBsm.delta) ? Number(callBsm.delta.toFixed(3)) : null,
@@ -276,17 +332,27 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
       available: legPriced,
       status: legPriced ? "THEORETICAL_BSM_NOT_A_TRADED_QUOTE" : "UNPRICED",
       reason: legPriced ? null : unpricedReason,
-      premium: putPremium,
-      entryPrice: putPremium,
+      // A leg that is not tradeable carries no price. It previously kept its
+      // premium while reporting available:false, so a consumer reading the
+      // number without the flag saw a quote for a contract being refused.
+      premium: legPriced ? putPremium : null,
+      entryPrice: legPriced ? putPremium : null,
+      // Evidence from THIS contract's own order book. A liquid future says
+      // nothing about whether this strike trades; they are separate books.
+      priceSource: putPremium === null ? null : priceProvenance,
+      theoreticalPrice: putTheoretical,
+      exchangeVolume: putQuote ? putQuote.volume : null,
+      exchangeOpenInterest: putQuote ? putQuote.openInterest : null,
+      exchangeTraded: putQuote ? putQuote.traded === true : null,
       currentPrice: null,
       target1: null,
       target2: null,
       stopLoss: null,
       lotSize,
       // The entire premium is at risk on a long option.
-      maxLossRupees: putPremium === null ? null : Math.round(putPremium * lotSize),
-      capitalRequired: putPremium === null ? null : Math.round(putPremium * lotSize),
-      breakeven: putPremium === null ? null
+      maxLossRupees: legPriced && putPremium !== null ? Math.round(putPremium * lotSize) : null,
+      capitalRequired: legPriced && putPremium !== null ? Math.round(putPremium * lotSize) : null,
+      breakeven: !legPriced || putPremium === null ? null
         : Math.round((atmStrike - putPremium) * 100) / 100,
       greeks: {
         delta: legPriced && Number.isFinite(putBsm.delta) ? Number(putBsm.delta.toFixed(3)) : null,
@@ -833,6 +899,11 @@ class FnoUniverseEngine {
       stopLoss: niftyOpts ? niftyOpts.call.stopLoss : 95.00,
       lotSize: (niftyListed && niftyListed.lotSize) || null,
       available: Boolean(niftyOpts && niftyOpts.spread && niftyOpts.spread.available),
+      optionVolume: niftyOpts && niftyOpts.call ? (niftyOpts.call.exchangeVolume ?? null) : null,
+      optionOpenInterest: niftyOpts && niftyOpts.call ? (niftyOpts.call.exchangeOpenInterest ?? null) : null,
+      priceSource: niftyOpts && niftyOpts.call ? (niftyOpts.call.priceSource ?? null) : null,
+      theoreticalPrice: niftyOpts && niftyOpts.call ? (niftyOpts.call.theoreticalPrice ?? null) : null,
+
       maxProfitRupees: niftyOpts && niftyOpts.spread && niftyOpts.spread.available ? niftyOpts.spread.maxProfitRupees : null,
       maxLossRupees: niftyOpts && niftyOpts.spread && niftyOpts.spread.available ? niftyOpts.spread.maxLossRupees : null,
       netDebit: niftyOpts && niftyOpts.spread && niftyOpts.spread.available ? niftyOpts.spread.netDebit : null,
@@ -877,6 +948,11 @@ class FnoUniverseEngine {
       stopLoss: bankNiftyOpts ? bankNiftyOpts.call.stopLoss : 215.00,
       lotSize: (bankNiftyListed && bankNiftyListed.lotSize) || null,
       available: Boolean(bankNiftyOpts && bankNiftyOpts.spread && bankNiftyOpts.spread.available),
+      optionVolume: bankNiftyOpts && bankNiftyOpts.call ? (bankNiftyOpts.call.exchangeVolume ?? null) : null,
+      optionOpenInterest: bankNiftyOpts && bankNiftyOpts.call ? (bankNiftyOpts.call.exchangeOpenInterest ?? null) : null,
+      priceSource: bankNiftyOpts && bankNiftyOpts.call ? (bankNiftyOpts.call.priceSource ?? null) : null,
+      theoreticalPrice: bankNiftyOpts && bankNiftyOpts.call ? (bankNiftyOpts.call.theoreticalPrice ?? null) : null,
+
       maxProfitRupees: bankNiftyOpts && bankNiftyOpts.spread && bankNiftyOpts.spread.available ? bankNiftyOpts.spread.maxProfitRupees : null,
       maxLossRupees: bankNiftyOpts && bankNiftyOpts.spread && bankNiftyOpts.spread.available ? bankNiftyOpts.spread.maxLossRupees : null,
       netDebit: bankNiftyOpts && bankNiftyOpts.spread && bankNiftyOpts.spread.available ? bankNiftyOpts.spread.netDebit : null,
@@ -960,6 +1036,15 @@ class FnoUniverseEngine {
           status: u.options.call.status,
           reason: u.options.call.reason || null,
           premium: u.options.call.premium,
+          // THIS CONTRACT'S OWN liquidity. A future being liquid says nothing
+          // about whether a particular strike trades: they are different
+          // instruments with separate order books. The only place the future
+          // legitimately enters an option is as the forward in Black-76, because
+          // an Indian stock option is an option ON the future.
+          optionVolume: u.options.call.exchangeVolume ?? null,
+          optionOpenInterest: u.options.call.exchangeOpenInterest ?? null,
+          priceSource: u.options.call.priceSource ?? null,
+          theoreticalPrice: u.options.call.theoreticalPrice ?? null,
           breakeven: u.options.call.breakeven ?? null,
           maxLossRupees: u.options.spread && u.options.spread.available
             ? u.options.spread.maxLossRupees
@@ -1017,6 +1102,15 @@ class FnoUniverseEngine {
           status: u.options.put.status,
           reason: u.options.put.reason || null,
           premium: u.options.put.premium,
+          // THIS CONTRACT'S OWN liquidity. A future being liquid says nothing
+          // about whether a particular strike trades: they are different
+          // instruments with separate order books. The only place the future
+          // legitimately enters an option is as the forward in Black-76, because
+          // an Indian stock option is an option ON the future.
+          optionVolume: u.options.put.exchangeVolume ?? null,
+          optionOpenInterest: u.options.put.exchangeOpenInterest ?? null,
+          priceSource: u.options.put.priceSource ?? null,
+          theoreticalPrice: u.options.put.theoreticalPrice ?? null,
           breakeven: u.options.put.breakeven ?? null,
           maxLossRupees: u.options.spread && u.options.spread.available
             ? u.options.spread.maxLossRupees

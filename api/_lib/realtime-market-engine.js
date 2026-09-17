@@ -151,10 +151,38 @@ class RealtimeMarketEngine {
     }
   }
 
+  /**
+   * Refresh the exchange contract reference: real strike ladders, real lot
+   * sizes, real index levels.
+   *
+   * Without this the desk falls back to a hand-written LOT_SIZES table and a
+   * synthetic strike-step table. Audited against the NSE bhavcopy while that
+   * fallback was live, production was serving 343 of 421 option cards with the
+   * WRONG lot size -- ABCAPITAL at 1,000 against a real 3,100 -- and 72 cards
+   * whose strike the exchange does not list at all, each with a premium, a
+   * breakeven and a one-tap order link. The reference file is gitignored, so it
+   * only ever existed on a developer machine and never on the server.
+   */
+  async refreshContractReference() {
+    try {
+      const { refreshReference } = require("./fno-reference");
+      const reference = await refreshReference();
+      this.contractReferenceSession = reference?.session || null;
+      console.log(`[K² Contract Reference] ${reference?.symbolCount || 0} symbols, session ${this.contractReferenceSession}`);
+      return reference;
+    } catch (error) {
+      console.error("Contract reference refresh failed:", error.message);
+      return null;
+    }
+  }
+
   start(pollIntervalMs = 5000) {
     if (typeof fnoUniverseEngine.startBackgroundIngest === "function") {
       fnoUniverseEngine.startBackgroundIngest();
     }
+    // Once at boot, then daily. The bhavcopy changes once per session.
+    this.refreshContractReference();
+    this.referenceTimer = setInterval(() => this.refreshContractReference(), 6 * 60 * 60 * 1000);
     this.pollTickCycle();
     this.timer = setInterval(() => this.pollTickCycle(), pollIntervalMs);
     console.log(`[K² Realtime Engine] Active. Polling interval: ${pollIntervalMs}ms`);
@@ -162,6 +190,7 @@ class RealtimeMarketEngine {
 
   stop() {
     if (this.timer) clearInterval(this.timer);
+    if (this.referenceTimer) clearInterval(this.referenceTimer);
     for (const client of this.clients) {
       try { client.end(); } catch {}
     }

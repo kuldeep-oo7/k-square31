@@ -210,4 +210,46 @@ if (universeSource) {
   }
 }
 
+// --- 8. EVERY card, not a sample -------------------------------------------
+// The audit that missed this checked four symbols and reported the sample as
+// the population. Enumerated against the exchange file, production was serving
+// 343 of 421 cards with the wrong lot size and 72 whose strike NSE does not
+// list. This loop walks every single card, and any card that is actionable must
+// have a strike the exchange lists and a lot size the exchange publishes.
+{
+  const referencePath = require("path").join(__dirname, "..", ".private", "cache", "fno", "contract-reference.json");
+  if (fs.existsSync(referencePath)) {
+    const reference = JSON.parse(fs.readFileSync(referencePath, "utf8"));
+    const { fnoUniverseEngine } = require("../api/_lib/universe-210");
+    const cards = fnoUniverseEngine
+      .getOptionsUniverse({ severity: "NORMAL", shieldActive: false })
+      .filter((card) => card && card.strike != null);
+    assert.ok(cards.length > 100, `expected a populated option universe, got ${cards.length}`);
+
+    const unlisted = [];
+    const wrongLot = [];
+    for (const card of cards) {
+      const entry = reference.symbols?.[card.symbol];
+      if (!entry) continue;
+      const expiries = entry.expiryList || [];
+      const strikeListed = expiries.some((expiry) => {
+        const bucket = entry.expiries[expiry];
+        const ladder = card.optionType === "PE" ? bucket.putStrikes : bucket.callStrikes;
+        return ladder.includes(Number(card.strike));
+      });
+      // A card that is not tradeable may carry a placeholder strike, as long as
+      // it says so. A card offered as actionable may not.
+      if (!strikeListed && card.available !== false) unlisted.push(`${card.symbol} ${card.strike}${card.optionType}`);
+      const frontLot = entry.expiries[expiries[0]]?.lotSize || entry.lotSize;
+      if (frontLot > 0 && card.lotSize != null && Number(card.lotSize) !== frontLot) {
+        wrongLot.push(`${card.symbol} ${card.lotSize} vs ${frontLot}`);
+      }
+    }
+    assert.equal(unlisted.length, 0,
+      `${unlisted.length} actionable cards quote a strike the exchange does not list: ${unlisted.slice(0, 5).join(", ")}`);
+    assert.equal(wrongLot.length, 0,
+      `${wrongLot.length} cards carry a lot size the exchange does not publish, which misstates money at risk by that ratio: ${wrongLot.slice(0, 5).join(", ")}`);
+  }
+}
+
 console.log("Fabricated-value guard passed: no literal analytics in generators, no built-in name list, no published fingerprints, no seeded ledger, provenance flags present");
