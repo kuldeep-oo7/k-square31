@@ -258,7 +258,7 @@ class FnoUniverseEngine {
       };
 
       // Calculate Whole Market Options (Call CE and Put PE)
-      analyzed.options = calculateOptions(symbol, spot, lotSize, finalAction === "BUY");
+      analyzed.options = calculateOptions(symbol, spot, lotSize, finalAction === "BUY" || finalAction === "ACCUMULATE");
 
       if (isActionable) {
         analyzed.pnlRupees = pnlRupees;

@@ -68,23 +68,43 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 3. REST API: Trigger Manual Action
+  // 3. REST API: Trigger Manual Action (Open / Track Purchased Trade)
   if (pathname === "/api/action/take" && req.method === "POST") {
     let body = "";
     req.on("data", chunk => { body += chunk; });
     req.on("end", () => {
       try {
         const payload = JSON.parse(body || "{}");
-        const candidate = engine.candidates.find(c => c.id === payload.candidateId);
+        const candidate = engine.candidates.find(c => c.id === payload.candidateId)
+                       || engine.getUniverse().find(u => u.id === payload.candidateId)
+                       || engine.getOptionsUniverse().find(o => o.id === payload.candidateId);
         if (candidate) {
-          const pos = engine.ledger.openPosition(candidate, payload.fillPrice);
-          res.writeHead(200, { "Content-Type": "application/json" });
+          const pos = engine.ledger.openPosition(candidate, payload.fillPrice || candidate.entryPrice);
+          res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
           res.end(JSON.stringify({ success: true, position: pos }));
           return;
         }
       } catch (e) {}
-      res.writeHead(400, { "Content-Type": "application/json" });
+      res.writeHead(400, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
       res.end(JSON.stringify({ error: "Invalid candidate" }));
+    });
+    return;
+  }
+
+  // 4. REST API: Close a Purchased Trade
+  if (pathname === "/api/action/close" && req.method === "POST") {
+    let body = "";
+    req.on("data", chunk => { body += chunk; });
+    req.on("end", () => {
+      try {
+        const payload = JSON.parse(body || "{}");
+        const closed = engine.ledger.closePosition(payload.positionId, payload.exitPrice, payload.reason || "MANUAL_EXIT");
+        res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
+        res.end(JSON.stringify({ success: true, trade: closed }));
+        return;
+      } catch (e) {}
+      res.writeHead(400, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
+      res.end(JSON.stringify({ error: "Failed to close position" }));
     });
     return;
   }

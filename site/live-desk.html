@@ -42,6 +42,11 @@
   .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.8s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.85); } }
 
+  .header-actions { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; }
+  .btn-header { background: var(--panel2); border: 1px solid var(--line); color: var(--text); padding: 7px 14px; border-radius: 999px; font: 700 12px var(--mono); cursor: pointer; text-decoration: none; display: inline-flex; align-items: center; gap: 6px; transition: all 0.2s; }
+  .btn-header:hover { border-color: var(--purple); background: var(--card); }
+  .btn-header.active { background: var(--purple); color: #0c0d14; border-color: var(--purple); font-weight: 800; }
+
   /* Search & Quick Controls */
   .search-bar-wrap { margin: 16px 0 12px; position: relative; }
   .search-box { width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px 12px 42px; color: var(--text); font-size: 14px; font-family: var(--sans); outline: none; transition: border-color 0.2s; }
@@ -102,13 +107,8 @@
   .tag-accum { background: var(--amber); color: #0c0d14; }
   .tag-ignore { background: rgba(255, 255, 255, 0.1); color: var(--muted); }
 
-  /* Signal Provenance & Timing Strip */
-  .provenance-strip { display: flex; flex-wrap: wrap; gap: 6px 14px; background: var(--panel2); border: 1px solid var(--line); border-radius: 10px; padding: 8px 12px; font: 700 11px var(--mono); color: var(--muted); align-items: center; }
-  .provenance-strip b { color: var(--text); }
-  .provenance-strip .age-pill { color: var(--purple); background: var(--purple-bg); padding: 1px 6px; border-radius: 4px; }
-
   /* Executive Pricing Hero Grid */
-  .pricing-hero { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; text-align: center; }
+  .pricing-hero { display: grid; grid-template-columns: 1.2fr 1fr 1fr 1fr; gap: 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--line); border-radius: 12px; padding: 12px 14px; text-align: center; }
   .pricing-hero div { display: flex; flex-direction: column; justify-content: center; }
   .pricing-hero small { font: 700 10px var(--mono); color: var(--muted); text-transform: uppercase; margin-bottom: 2px; }
   .pricing-hero .price-entry { font: 800 18px var(--mono); color: var(--green); text-shadow: 0 0 10px rgba(0, 230, 118, 0.25); }
@@ -116,13 +116,13 @@
   .pricing-hero .price-stop { font: 800 14px var(--mono); color: var(--red); }
   .pricing-hero .price-sub { font: 700 9px var(--mono); opacity: 0.8; margin-top: 1px; }
 
-  /* Follow Trade P&L Banner */
-  .follow-pnl-strip { display: flex; justify-content: space-between; align-items: center; padding: 9px 12px; border-radius: 10px; font: 700 12px var(--mono); }
+  /* Follow Trade P&L Banner (In Purchased view) */
+  .follow-pnl-strip { display: flex; justify-content: space-between; align-items: center; padding: 10px 14px; border-radius: 10px; font: 700 13px var(--mono); }
   .pnl-pos { background: rgba(0, 230, 118, 0.12); border: 1px solid rgba(0, 230, 118, 0.35); color: var(--green); }
   .pnl-neg { background: rgba(255, 82, 82, 0.12); border: 1px solid rgba(255, 82, 82, 0.35); color: var(--red); }
   .pnl-label { font-weight: 700; display: flex; align-items: center; gap: 6px; }
-  .pnl-val { font-size: 14px; font-weight: 800; }
-  .pnl-lot { font-size: 10px; opacity: 0.8; }
+  .pnl-val { font-size: 15px; font-weight: 800; }
+  .pnl-lot { font-size: 11px; opacity: 0.85; }
 
   /* Card Top */
   .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
@@ -153,9 +153,6 @@
   .hedge-box { background: rgba(0, 230, 118, 0.04); border: 1px dashed rgba(0, 230, 118, 0.3); border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.4; }
   .hedge-title { font: 700 11px var(--mono); color: var(--green); text-transform: uppercase; margin-bottom: 4px; }
 
-  /* Quant Strip */
-  .quant-strip { display: flex; flex-wrap: wrap; gap: 6px 10px; font: 700 10px var(--mono); color: var(--muted); background: var(--card); padding: 8px 10px; border-radius: 8px; }
-
   /* Hurdle Verification Box */
   .hurdle-box { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; }
   .hurdle-title { font: 700 10px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
@@ -179,6 +176,10 @@
   .btn-action:active { transform: scale(0.97); }
   .btn-kite { background: linear-gradient(135deg, #ff5722, #e64a19); color: #fff; border: 0; box-shadow: 0 2px 8px rgba(230, 74, 25, 0.3); }
   .btn-dhan { background: linear-gradient(135deg, #7c4dff, #6200ea); color: #fff; border: 0; box-shadow: 0 2px 8px rgba(98, 0, 234, 0.3); }
+  .btn-track { background: var(--panel2); border: 1px solid rgba(41, 121, 255, 0.5); color: #90caf9; padding: 8px 12px; border-radius: 8px; font: 700 11px var(--mono); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 6px; }
+  .btn-track:hover { background: rgba(41, 121, 255, 0.2); }
+  .btn-close-pos { background: rgba(255, 82, 82, 0.15); border: 1px solid var(--red); color: var(--red); padding: 6px 12px; border-radius: 8px; font: 700 11px var(--mono); cursor: pointer; }
+  .btn-close-pos:hover { background: var(--red); color: #fff; }
 
   /* Table View */
   .table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; margin-top: 12px; width: 100%; }
@@ -210,16 +211,23 @@
         <span id="conn-text">STREAMING LIVE</span>
       </div>
     </div>
-    <div style="font: 11px var(--mono); color: var(--muted); text-align: right;">
-      Multi-Cap Quantitative Radar · <span id="total-universe-count">210</span> Stocks &amp; <span id="total-options-count">423</span> Options<br>
-      <span id="last-tick-time">—</span>
+    <div class="header-actions">
+      <button class="btn-header" id="hdr-btn-purchased" data-tab-jump="purchased">
+        📦 My Purchased Trades (<span id="header-purchased-count">9</span>)
+      </button>
+      <button class="btn-header" id="hdr-btn-settings" data-tab-jump="accuracy">
+        ⚙️ Settings &amp; Track Record (<span id="header-winrate">71.4%</span>)
+      </button>
+      <div style="font: 11px var(--mono); color: var(--muted); text-align: right; margin-left: 8px;">
+        <span id="last-tick-time">—</span>
+      </div>
     </div>
   </header>
 
   <!-- Search Bar -->
   <div class="search-bar-wrap">
     <span class="search-icon">🔍</span>
-    <input type="text" id="universe-search" placeholder="Instant Search All 210 F&O Equities & 423 Option Contracts (e.g. RELIANCE, ABB, NIFTY, 25400CE...)" class="search-box">
+    <input type="text" id="universe-search" placeholder="Instant Search 210 Equities &amp; 423 Options (e.g. RELIANCE, ABB, NIFTY, 25400CE...)" class="search-box">
   </div>
 
   <!-- Metric Tiles -->
@@ -229,7 +237,7 @@
       <b class="positive" id="acc-realized">+₹29,078.10</b>
     </div>
     <div class="metric-card">
-      <small>Floating / Active MTM</small>
+      <small>Purchased Trades MTM</small>
       <b class="positive" id="acc-floating">+₹6,482.00</b>
     </div>
     <div class="metric-card">
@@ -257,27 +265,27 @@
     </div>
   </section>
 
-  <!-- Navigation Tabs -->
+  <!-- Main Navigation Tabs -->
   <div class="tabs-nav">
-    <button class="tab-btn active" data-tab="actionable">⭐ Actionable Trades (<span id="count-actionable">11</span>)</button>
+    <button class="tab-btn active" data-tab="actionable">⭐ Recommended Buys (<span id="count-actionable">46</span>)</button>
     <button class="tab-btn" data-tab="options">📞 Calls &amp; Puts (<span id="count-options">423</span>)</button>
-    <button class="tab-btn" data-tab="accuracy">🎯 Signal Accuracy (<span id="count-accuracy">71.4%</span>)</button>
     <button class="tab-btn" data-tab="universe">🌐 All 210 F&amp;O Radar (<span id="count-univ">210</span>)</button>
-    <button class="tab-btn" data-tab="portfolio">💼 Active Positions &amp; MTM (<span id="count-portfolio">9</span>)</button>
-    <button class="tab-btn" data-tab="ledger">📜 Realized Ledger</button>
+    <button class="tab-btn" data-tab="purchased" style="background: rgba(41, 121, 255, 0.15); border-color: rgba(41, 121, 255, 0.4); color: #90caf9;">📦 Purchased Trades (<span id="count-purchased">9</span>)</button>
+    <button class="tab-btn" data-tab="accuracy" style="background: rgba(0, 230, 118, 0.15); border-color: rgba(0, 230, 118, 0.4); color: #a7f3d0;">⚙️ Settings &amp; Track Record (<span id="count-accuracy">71.4%</span>)</button>
+    <button class="tab-btn" data-tab="ledger">📜 Closed Ledger</button>
     <button class="tab-btn" data-tab="k2lang">⚡ K²-Lang Sandbox</button>
   </div>
 
   <!-- Sub-filters for Options Tab -->
   <div class="sub-filters" id="options-subcontrols" style="display: none;">
     <div class="sub-pills">
-      <button class="sub-btn active" data-sub-opt="actionable">⭐ Actionable Only (Read &amp; Buy Spreads)</button>
+      <button class="sub-btn active" data-sub-opt="actionable">⭐ Actionable (Spreads)</button>
       <button class="sub-btn" data-sub-opt="all">All 423 Contracts</button>
       <button class="sub-btn" data-sub-opt="ce">📈 Calls (CE)</button>
       <button class="sub-btn" data-sub-opt="pe">📉 Puts (PE)</button>
-      <button class="sub-btn" data-sub-opt="indices">⚡ Indices (NIFTY &amp; BANKNIFTY)</button>
-      <button class="sub-btn" data-sub-opt="large">🏢 Large Cap Options</button>
-      <button class="sub-btn" data-sub-opt="mid">🏭 Mid Cap Options</button>
+      <button class="sub-btn" data-sub-opt="indices">⚡ Indices (NIFTY / BANKNIFTY)</button>
+      <button class="sub-btn" data-sub-opt="large">🏢 Large Cap</button>
+      <button class="sub-btn" data-sub-opt="mid">🏭 Mid Cap</button>
     </div>
   </div>
 
@@ -298,9 +306,24 @@
     </div>
   </div>
 
-  <!-- Cards Grid Container -->
+  <!-- Cards Grid Container (For Recommended Buys & Options) -->
   <div class="cards-grid" id="cards-container">
     <!-- Populated dynamically via SSE stream -->
+  </div>
+
+  <!-- Purchased Trades Section (Dedicated separate view) -->
+  <div id="purchased-section" style="display: none;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0 16px; flex-wrap: wrap; gap: 8px;">
+      <div>
+        <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">📦 My Purchased Trades &amp; Live MTM</h2>
+        <p style="font-size: 13px; color: var(--muted);">Track exactly how many days you have been holding each trade, current buying price, and live floating profit/loss.</p>
+      </div>
+      <div class="pill pill-green" style="font-size: 11px; padding: 6px 12px;">Live MTM Streaming</div>
+    </div>
+
+    <div class="cards-grid" id="purchased-cards-container">
+      <!-- Populated with active purchased positions -->
+    </div>
   </div>
 
   <!-- Universe Table Container (Hidden by default) -->
@@ -310,13 +333,13 @@
         <tr>
           <th>Symbol</th>
           <th>Company &amp; Sector</th>
-          <th>Decision / Verdict</th>
+          <th>Decision</th>
           <th>Spot LTP</th>
           <th>Entry Price</th>
           <th>Targets / Stop</th>
-          <th>Follow P&amp;L</th>
           <th>1D-CNN Alpha</th>
           <th>1-Tap Execution</th>
+          <th>Track</th>
         </tr>
       </thead>
       <tbody id="universe-tbody">
@@ -325,12 +348,12 @@
     </table>
   </div>
 
-  <!-- Accuracy Scorecard Section (Hidden by default) -->
+  <!-- Settings & Audited Track Record Section -->
   <div id="accuracy-section" style="display: none;">
-    <div style="display: flex; justify-content: space-between; align-items: center; margin: 12px 0 16px; flex-wrap: wrap; gap: 8px;">
+    <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0 16px; flex-wrap: wrap; gap: 8px;">
       <div>
-        <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">🎯 Real-Time Signal Provenance &amp; Audited Accuracy</h2>
-        <p style="font-size: 13px; color: var(--muted);">Track every trade recommendation from inception to resolution. When a stock hits Target (+2.5%) or Stop Loss (-1.0%), or finishes its 5-day horizon, it is automatically closed and archived with realized P&amp;L.</p>
+        <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">⚙️ Settings &amp; Audited Track Record</h2>
+        <p style="font-size: 13px; color: var(--muted);">Complete historical record of every signal recommended by the system, how many days it stayed on screen, exit reason, and verified profit or loss.</p>
       </div>
       <div class="pill pill-green" style="font-size: 11px; padding: 6px 12px;">SQLite ACID Ledger Verified</div>
     </div>
@@ -358,6 +381,7 @@
       </div>
     </div>
 
+    <h3 style="font-size: 16px; font-weight: 800; margin: 20px 0 10px;">📜 Audited Ledger of Closed / Removed Signals</h3>
     <div class="table-wrap">
       <table class="desk-table">
         <thead>
@@ -370,13 +394,36 @@
             <th>Exit Price</th>
             <th>Days on Screen</th>
             <th>Exit Reason</th>
-            <th>Net P&amp;L If Followed</th>
+            <th>Profit / Loss</th>
           </tr>
         </thead>
         <tbody id="accuracy-tbody">
           <!-- Populated from SQLite via SSE / REST -->
         </tbody>
       </table>
+    </div>
+
+    <!-- Platform Settings & Configuration Strip -->
+    <div style="background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 16px; margin-top: 24px;">
+      <h3 style="font-size: 16px; font-weight: 800; margin-bottom: 12px;">⚙️ Desk Risk Arbiter &amp; Execution Settings</h3>
+      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 12px; font-size: 13px;">
+        <div style="background: var(--panel2); padding: 12px; border-radius: 10px;">
+          <small style="font: 700 10px var(--mono); color: var(--muted); text-transform: uppercase;">Tick Refresh Cycle</small>
+          <div style="font: 700 14px var(--mono); color: var(--green); margin-top: 4px;">4.0 Seconds (Live SSE)</div>
+        </div>
+        <div style="background: var(--panel2); padding: 12px; border-radius: 10px;">
+          <small style="font: 700 10px var(--mono); color: var(--muted); text-transform: uppercase;">Macro Volatility Shield</small>
+          <div style="font: 700 14px var(--mono); color: var(--green); margin-top: 4px;">Automatic (Gift Nifty &amp; VIX)</div>
+        </div>
+        <div style="background: var(--panel2); padding: 12px; border-radius: 10px;">
+          <small style="font: 700 10px var(--mono); color: var(--muted); text-transform: uppercase;">Auto-Removal Rule</small>
+          <div style="font: 700 14px var(--mono); color: var(--purple); margin-top: 4px;">Target (+2.5%) / Stop (-1.5%) / 5d</div>
+        </div>
+        <div style="background: var(--panel2); padding: 12px; border-radius: 10px;">
+          <small style="font: 700 10px var(--mono); color: var(--muted); text-transform: uppercase;">Broker 1-Tap Routing</small>
+          <div style="font: 700 14px var(--mono); color: var(--blue); margin-top: 4px;">Zerodha Kite &amp; Dhan</div>
+        </div>
+      </div>
     </div>
   </div>
 
@@ -415,25 +462,6 @@
       <span style="color: #ff7b72;">SIGNAL</span> BUY <span style="color: #ff7b72;">WHEN</span> HURST &gt;= <span style="color: #79c0ff;">0.52</span> <span style="color: #ff7b72;">AND</span> VPIN &lt; <span style="color: #79c0ff;">0.35</span> <span style="color: #ff7b72;">AND</span> NEURAL_ALPHA &gt;= <span style="color: #79c0ff;">60</span><br><br>
       <span style="color: #ff7b72;">SET</span> TARGET1 = SPOT * <span style="color: #79c0ff;">1.025</span>, TARGET2 = SPOT * <span style="color: #79c0ff;">1.050</span>, STOPLOSS = SPOT * <span style="color: #79c0ff;">0.985</span>
     </div>
-
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 12px; margin-top: 20px;">
-      <div style="background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px;">
-        <h4 style="margin: 0 0 6px; font-size: 13px; color: var(--green);">1. 1D-CNN Temporal Convolution</h4>
-        <p style="margin: 0; font-size: 11px; color: var(--muted); line-height: 1.4;">Multi-kernel temporal convolution across returns, range compression, and volume flow, combined with LeakyReLU and MaxPool1D.</p>
-      </div>
-      <div style="background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px;">
-        <h4 style="margin: 0 0 6px; font-size: 13px; color: var(--green);">2. GARCH(1,1) Volatility SDE</h4>
-        <p style="margin: 0; font-size: 11px; color: var(--muted); line-height: 1.4;">Conditional variance filtering: \(\sigma_t^2 = \omega + \alpha \epsilon_{t-1}^2 + \beta \sigma_{t-1}^2\). Forecasts forward 5-day volatility regime.</p>
-      </div>
-      <div style="background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px;">
-        <h4 style="margin: 0 0 6px; font-size: 13px; color: var(--green);">3. Cornish-Fisher 99% CVaR</h4>
-        <p style="margin: 0; font-size: 11px; color: var(--muted); line-height: 1.4;">Adjusts for empirical skewness and excess kurtosis to compute the expected shortfall under fat-tail market shocks.</p>
-      </div>
-      <div style="background: var(--card); border: 1px solid var(--line); border-radius: 10px; padding: 12px;">
-        <h4 style="margin: 0 0 6px; font-size: 13px; color: var(--green);">4. Kyle's Lambda Microstructure</h4>
-        <p style="margin: 0; font-size: 11px; color: var(--muted); line-height: 1.4;">Measures institutional price impact: \(\Delta P_t = \lambda \cdot Q_t + \eta_t\), filtering out illiquid small-caps with slippage.</p>
-      </div>
-    </div>
   </div>
 
 </main>
@@ -462,6 +490,8 @@
   var macroPills = document.getElementById('macro-pills');
   var macroTime = document.getElementById('macro-time');
   var cardsContainer = document.getElementById('cards-container');
+  var purchasedSection = document.getElementById('purchased-section');
+  var purchasedCardsContainer = document.getElementById('purchased-cards-container');
   var universeTableWrap = document.getElementById('universe-table-wrap');
   var universeTbody = document.getElementById('universe-tbody');
   var universeSubcontrols = document.getElementById('universe-subcontrols');
@@ -571,6 +601,7 @@
     });
   }
 
+  // 1. Current Recommended Stocks Card (PURE & CLEAN RECOMMENDATION)
   function renderCardHtml(item) {
     var isBuy = item.action === 'BUY';
     var isAcc = item.action === 'ACCUMULATE';
@@ -580,7 +611,6 @@
 
     var compScore = item.compositeScore || 40;
     var neuralScore = item.neuralScore || 50;
-    var follow = item.followPnl || { formatted: money(item.pnlRupees), rupees: item.pnlRupees || 0, isProfit: (item.pnlRupees || 0) >= 0, pct: 1.85 };
 
     return `
       <article class="trade-card ${theme}" id="card-${item.id}" style="${isStand ? 'opacity: 0.85; border-left: 4px solid var(--muted);' : ''}">
@@ -592,7 +622,7 @@
               <span class="verdict-icon">🟢</span>
               <div>
                 <span class="verdict-headline" style="color: var(--green);">MUST READ &amp; BUY</span>
-                <span class="verdict-sub">High Conviction Entry · 7/7 Quantitative Hurdles Cleared</span>
+                <span class="verdict-sub">High Conviction Entry · Cleared All 7 Quant Hurdles</span>
               </div>
             </div>
             <span class="verdict-tag tag-apex">APEX BUY</span>
@@ -621,14 +651,7 @@
           </div>
         `}
 
-        <!-- 2. Signal Provenance & Timing Strip -->
-        <div class="provenance-strip">
-          <span>📅 Signal Issued: <b>${item.issuedAtFormatted || 'Today 09:15 AM'}</b></span>
-          <span>⏳ Active: <span class="age-pill">${item.daysActiveFormatted || '0.3 Days Active'}</span></span>
-          <span>🎯 Removal: <b>${isStand ? 'Model Filtered' : 'Target / Stop Hit or 5d Max'}</b></span>
-        </div>
-
-        <!-- 3. Identity & Spot LTP -->
+        <!-- 2. Identity & Spot LTP -->
         <div class="card-top">
           <div style="flex: 1; min-width: 0;">
             <div class="tag-group">
@@ -648,7 +671,7 @@
           </div>
         </div>
 
-        <!-- 4. Big Pricing & Execution Hero Box -->
+        <!-- 3. Big Pricing Hero Grid -->
         ${!isStand ? `
           <div class="pricing-hero">
             <div>
@@ -669,25 +692,16 @@
             <div>
               <small>STOP LOSS</small>
               <span class="price-stop">₹${fixed(item.stopLoss)}</span>
-              <span class="price-sub" style="color: var(--red);">-1.5% Hard Risk</span>
+              <span class="price-sub" style="color: var(--red);">-1.5% Risk</span>
             </div>
           </div>
         ` : `
           <div style="background: rgba(255,255,255,0.02); border: 1px dashed var(--line); border-radius: 12px; padding: 12px; text-align: center;">
-            <span style="font: 700 12px var(--mono); color: var(--muted);">🛡️ Stand Aside: No Buying Price Allowed by Risk Arbiter</span>
+            <span style="font: 700 12px var(--mono); color: var(--muted);">🛡️ Stand Aside: No Buying Allowed by Risk Arbiter</span>
           </div>
         `}
 
-        <!-- 5. Live "If You Followed" P&L Pill -->
-        ${!isStand ? `
-          <div class="follow-pnl-strip ${follow.isProfit ? 'pnl-pos' : 'pnl-neg'}">
-            <span class="pnl-label">💼 IF YOU FOLLOWED THIS TRADE:</span>
-            <span class="pnl-val">${follow.formatted}</span>
-            <span class="pnl-lot">[1 Lot · ${item.lotSize} qty]</span>
-          </div>
-        ` : ''}
-
-        <!-- 6. Direct 1-Tap Broker Execution -->
+        <!-- 4. Direct 1-Tap Broker Execution & Track as Purchased -->
         ${!isStand ? `
           <div class="action-row">
             <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite">
@@ -697,6 +711,9 @@
               🚀 1-Tap Buy on Dhan
             </a>
           </div>
+          <button class="btn-track" onclick="trackTrade('${item.id}', ${item.entryPrice})">
+            💼 I Bought This (Move to Purchased Trades)
+          </button>
         ` : `
           <div class="action-row">
             <div style="grid-column: 1 / -1; background: rgba(255,255,255,0.03); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 14px; text-align: center; font: 700 11px var(--mono); color: var(--muted);">
@@ -705,48 +722,17 @@
           </div>
         `}
 
-        <!-- 7. Quantitative Hurdle Verification Box -->
-        <div class="hurdle-box">
-          <div class="hurdle-title">
-            <span>🎯 7-Stage Quantitative Verification</span>
-            <span style="font-size: 9px; color: ${isBuy ? 'var(--green)' : isAcc ? 'var(--amber)' : 'var(--muted)'};">
-              ${isBuy ? '⭐ APEX ELIGIBLE' : isAcc ? '🟢 ACCUMULATE ELIGIBLE' : '🛡️ CAPITAL PRESERVED'}
-            </span>
-          </div>
-          <div class="hurdle-grid">
-            <div class="hurdle-col">
-              <span class="h-lbl">Composite Score</span>
-              <span class="h-num ${compScore >= 68 ? 'text-green' : compScore >= 58 ? 'text-amber' : 'text-muted'}">${compScore} / 100</span>
-              <span class="h-sub">${compScore >= 68 ? 'Hurdle ≥ 68: <b class="text-green">PASS ✅</b>' : compScore >= 58 ? 'Hurdle ≥ 58: <b class="text-amber">ACCUM ✅</b>' : 'Hurdle ≥ 68: <b class="text-red">FAIL ❌</b>'}</span>
-            </div>
-            <div class="hurdle-col">
-              <span class="h-lbl">1D-CNN Neural</span>
-              <span class="h-num ${neuralScore >= 70 ? 'text-green' : neuralScore >= 55 ? 'text-amber' : 'text-muted'}">${neuralScore}%</span>
-              <span class="h-sub">${neuralScore >= 70 ? 'Hurdle ≥ 70%: <b class="text-green">PASS ✅</b>' : neuralScore >= 55 ? 'Hurdle ≥ 55%: <b class="text-amber">ACCUM ✅</b>' : 'Hurdle ≥ 70%: <b class="text-red">FAIL ❌</b>'}</span>
-            </div>
-            <div class="hurdle-col">
-              <span class="h-lbl">Desk Decision</span>
-              <span class="h-badge ${isBuy ? 'badge-apex' : isAcc ? 'badge-acc' : 'badge-stand'}">
-                ${isBuy ? '⭐ APEX BUY' : isAcc ? '🟢 ACCUMULATE' : '🛡️ STAND ASIDE'}
-              </span>
-              <span class="h-sub" style="color: var(--muted);">${isBuy ? '7/7 Hurdles Cleared' : isAcc ? 'Support Pullback' : 'Noise / No Edge'}</span>
-            </div>
-          </div>
-        </div>
-
         <div class="grid-stats">
           <div><small>Lot Qty</small><b>${item.lotSize}</b></div>
           <div><small>Capital Req.</small><b>₹${item.capitalRequired ? Number(item.capitalRequired).toLocaleString('en-IN') : '—'}</b></div>
-          <div><small>VPIN Toxicity</small><b>${item.quant?.vpin || '0.12'}</b></div>
-          <div><small>HURST</small><b>${item.quant?.hurst || '0.58'}</b></div>
-          <div><small>GARCH Vol</small><b>${item.garchVol || '18%'}</b></div>
-          <div><small>99% CVaR</small><b>${item.cvar99Rupees || '₹5,200'}</b></div>
+          <div><small>1D-CNN Score</small><b>${neuralScore}%</b></div>
         </div>
 
       </article>
     `;
   }
 
+  // 2. Options Card (PURE RECOMMENDATION)
   function renderOptionCardHtml(opt) {
     var isCe = opt.optionType === 'CE';
     var isActionable = opt.action === 'BUY' || opt.action === 'ACCUMULATE' || opt.executiveVerdict === 'MUST_READ_AND_BUY';
@@ -755,8 +741,6 @@
       zerodhaOrderPreview: `https://kite.zerodha.com/trade?stock=${encodeURIComponent(opt.tradingSymbol || opt.symbol)}&action=BUY&quantity=${opt.lotSize || 1}&price=${opt.entryPrice || 0}&product=NRML&order_type=LIMIT`,
       dhanApp: `https://invite.dhan.co/?flow=trade&symbol=NSE:${encodeURIComponent(opt.tradingSymbol || opt.symbol)}&action=BUY&qty=${opt.lotSize || 1}`
     };
-
-    var follow = opt.followPnl || { formatted: '₹0.00', rupees: 0, isProfit: true, pct: 0 };
 
     return `
       <article class="trade-card ${theme}" id="card-${opt.id}" style="${!isActionable ? 'opacity: 0.85; border-left: 4px solid var(--muted);' : ''}">
@@ -768,7 +752,7 @@
               <span class="verdict-icon">${isCe ? '📈' : '📉'}</span>
               <div>
                 <span class="verdict-headline" style="color: ${isCe ? 'var(--green)' : 'var(--amber)'};">
-                  MUST READ &amp; BUY (${opt.strategy?.name || (isCe ? 'BULL CALL SPREAD' : 'BEAR PUT SPREAD')})
+                  MUST READ &amp; BUY (${isCe ? 'BULL CALL SPREAD' : 'BEAR PUT SPREAD'})
                 </span>
                 <span class="verdict-sub">${opt.actionReason || 'Optimal Strike Selected for Volatility Expansion'}</span>
               </div>
@@ -788,14 +772,7 @@
           </div>
         `}
 
-        <!-- 2. Provenance & Timing Strip -->
-        <div class="provenance-strip">
-          <span>📅 Signal Issued: <b>${opt.issuedAtFormatted || 'Today 09:15 AM'}</b></span>
-          <span>⏳ Active: <span class="age-pill">${opt.daysActiveFormatted || '0.3 Days Active'}</span></span>
-          <span>🎯 Removal: <b>${isActionable ? 'Target / Stop Hit or 5d Max' : 'Model Monitored'}</b></span>
-        </div>
-
-        <!-- 3. Option Identity -->
+        <!-- 2. Option Identity -->
         <div class="card-top">
           <div style="flex: 1; min-width: 0;">
             <div class="tag-group">
@@ -814,13 +791,13 @@
           </div>
         </div>
 
-        <!-- 4. Option Pricing Hero Grid -->
+        <!-- 3. Option Pricing Hero Grid -->
         ${isActionable ? `
           <div class="pricing-hero">
             <div>
               <small>PREMIUM BUY</small>
               <span class="price-entry">₹${fixed(opt.entryPrice)}</span>
-              <span class="price-sub" style="color: var(--green);">Entry Ask</span>
+              <span class="price-sub" style="color: var(--green);">Entry Premium</span>
             </div>
             <div>
               <small>TARGET 1</small>
@@ -844,7 +821,7 @@
           </div>
         `}
 
-        <!-- 5. Defined Risk Spread Box -->
+        <!-- 4. Defined Risk Spread Box -->
         ${opt.strategy ? `
           <div class="hedge-box" style="${!isActionable ? 'background: rgba(255,255,255,0.02); border-color: var(--line);' : ''}">
             <div class="hedge-title" style="${!isActionable ? 'color: var(--muted);' : ''}">
@@ -856,16 +833,7 @@
           </div>
         ` : ''}
 
-        <!-- 6. Live "If You Followed" P&L Pill -->
-        ${isActionable ? `
-          <div class="follow-pnl-strip ${follow.isProfit ? 'pnl-pos' : 'pnl-neg'}">
-            <span class="pnl-label">💼 IF YOU FOLLOWED THIS OPTION:</span>
-            <span class="pnl-val">${follow.formatted}</span>
-            <span class="pnl-lot">[1 Lot · ${opt.lotSize} qty · Cap: ₹${Number(opt.capitalRequired || 0).toLocaleString('en-IN')}]</span>
-          </div>
-        ` : ''}
-
-        <!-- 7. 1-Tap Broker Links -->
+        <!-- 5. 1-Tap Broker Links & Track as Purchased -->
         ${isActionable ? `
           <div class="action-row">
             <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite">
@@ -875,6 +843,9 @@
               🚀 1-Tap Buy on Dhan
             </a>
           </div>
+          <button class="btn-track" onclick="trackTrade('${opt.id}', ${opt.entryPrice})">
+            💼 I Bought This Option (Move to Purchased Trades)
+          </button>
         ` : `
           <div class="action-row">
             <div style="grid-column: 1 / -1; background: rgba(255,255,255,0.03); border: 1px dashed var(--line); border-radius: 10px; padding: 8px 14px; text-align: center; font: 700 11px var(--mono); color: var(--muted);">
@@ -887,13 +858,65 @@
     `;
   }
 
+  // 3. Purchased Trades Card (WHERE YOU SEE DAYS & PROFIT/LOSS IF BOUGHT!)
+  function renderPurchasedCardHtml(pos) {
+    var pnl = Number(pos.pnlRupees) || 0;
+    var isProfit = pnl >= 0;
+    var entry = Number(pos.entryPrice) || 100;
+    var current = Number(pos.currentLtp) || entry;
+    var pnlPct = entry > 0 ? ((current - entry) / entry * 100).toFixed(2) : '0.00';
+    var elapsedDays = pos.entryTime ? ((Date.now() - new Date(pos.entryTime).getTime()) / (1000 * 60 * 60 * 24)).toFixed(1) : '0.3';
+
+    return `
+      <article class="trade-card ${isProfit ? 'long' : 'short'}" id="pos-${pos.id}">
+        
+        <div style="display: flex; justify-content: space-between; align-items: center; border-bottom: 1px solid var(--line); padding-bottom: 8px;">
+          <div>
+            <span class="chip ${pos.type?.includes('OPTION') ? 'chip-chart' : 'chip-cat'}">${pos.type || 'FUTURES'}</span>
+            <span class="chip chip-neural">⏳ ${elapsedDays} Days on Screen</span>
+          </div>
+          <button class="btn-close-pos" onclick="closePurchasedTrade('${pos.id}', ${current})">
+            🔴 Exit / Close Trade
+          </button>
+        </div>
+
+        <div class="card-title-group" style="margin-top: 4px;">
+          <h3>${pos.tradingSymbol || pos.symbol}</h3>
+          <div class="spot-line">Bought At: <b>₹${fixed(entry)}</b> · Current Market Price: <b>₹${fixed(current)}</b></div>
+        </div>
+
+        <!-- BIG LIVE PROFIT / LOSS BANNER (IF YOU BOUGHT THIS!) -->
+        <div class="follow-pnl-strip ${isProfit ? 'pnl-pos' : 'pnl-neg'}">
+          <span class="pnl-label">💼 LIVE PROFIT / LOSS:</span>
+          <span class="pnl-val">${isProfit ? '+' : ''}${money(pnl)} (${isProfit ? '+' : ''}${pnlPct}%)</span>
+          <span class="pnl-lot">[Qty: ${pos.lotSize}]</span>
+        </div>
+
+        <div class="grid-stats">
+          <div><small>Target 1</small><b class="positive">₹${fixed(pos.target1)}</b></div>
+          <div><small>Target 2</small><b class="positive">₹${fixed(pos.target2)}</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹${fixed(pos.stopLoss)}</b></div>
+        </div>
+
+        ${pos.strategy ? `
+          <div class="hedge-box">
+            <div class="hedge-title">🛡️ POSITION FRAMEWORK</div>
+            <p><strong>Primary:</strong> ${pos.strategy.primary}</p>
+            <p><strong>Hedge:</strong> ${pos.strategy.hedge}</p>
+            <p><strong>Risk Boundary:</strong> ${pos.strategy.maxRisk}</p>
+          </div>
+        ` : ''}
+
+      </article>
+    `;
+  }
+
   function renderTableHtml(items) {
     universeTbody.innerHTML = items.map(function(item) {
       var links = item.links || {};
       var isBuy = item.action === 'BUY';
       var isAcc = item.action === 'ACCUMULATE';
       var isStand = item.action === 'STAND_ASIDE';
-      var follow = item.followPnl || { formatted: money(item.pnlRupees), isProfit: (item.pnlRupees || 0) >= 0 };
 
       return `
         <tr style="${isStand ? 'opacity: 0.7;' : ''}">
@@ -907,8 +930,7 @@
             <span class="chip chip-cat" style="font-size:9px;">${item.marketCap || 'Multi-Cap'}</span>
           </td>
           <td>
-            ${isBuy ? '<b style="color: var(--green);">🟢 READ &amp; BUY</b>' : isAcc ? '<b style="color: var(--amber);">🟡 ACCUMULATE</b>' : '<b style="color: var(--muted);">⚪ IGNORE</b>'}<br>
-            <small style="color: var(--muted); font-size: 10px;">${item.daysActiveFormatted || '0.3d Active'}</small>
+            ${isBuy ? '<b style="color: var(--green);">🟢 READ &amp; BUY</b>' : isAcc ? '<b style="color: var(--amber);">🟡 ACCUMULATE</b>' : '<b style="color: var(--muted);">⚪ IGNORE</b>'}
           </td>
           <td>
             ₹${fixed(item.spotPrice || item.currentLtp)}
@@ -919,9 +941,6 @@
           <td>
             <small style="color: var(--green);">T1: ₹${fixed(item.target1)}</small><br>
             <small style="color: var(--red);">SL: ₹${fixed(item.stopLoss)}</small>
-          </td>
-          <td>
-            <span class="${follow.isProfit ? 'positive' : 'negative'}"><strong>${follow.formatted}</strong></span>
           </td>
           <td>
             <span class="chip chip-neural">${item.neuralScore || 75}%</span>
@@ -935,6 +954,11 @@
             ` : `
               <span style="font-size: 11px; color: var(--muted); font-family: var(--mono);">🛡️ Gated</span>
             `}
+          </td>
+          <td>
+            ${!isStand ? `
+              <button class="btn-track" style="padding: 4px 8px; font-size: 10px;" onclick="trackTrade('${item.id}', ${item.entryPrice})">Track</button>
+            ` : '—'}
           </td>
         </tr>
       `;
@@ -951,9 +975,11 @@
     var elAvgDays = document.getElementById('scorecard-avgdays');
     var elPf = document.getElementById('scorecard-pf');
     var tabAcc = document.getElementById('count-accuracy');
+    var hdrWin = document.getElementById('header-winrate');
 
     if (elWin) elWin.textContent = fixed(acc.winRatePct, 1) + '%';
     if (tabAcc) tabAcc.textContent = fixed(acc.winRatePct, 1) + '%';
+    if (hdrWin) hdrWin.textContent = fixed(acc.winRatePct, 1) + '%';
     if (elCounts) elCounts.textContent = `${acc.winCount} Wins / ${acc.lossCount} Losses (${acc.totalSignals} Total)`;
     if (elProfit) elProfit.textContent = money(acc.totalFollowPnl);
     if (elAvgDays) elAvgDays.textContent = `${fixed(acc.avgDaysOnScreen, 1)} Days`;
@@ -971,7 +997,7 @@
           <td>${dateStr}</td>
           <td>₹${fixed(s.entry_price)}</td>
           <td>₹${fixed(s.current_price)}</td>
-          <td><span class="chip chip-neural">${fixed(s.days_active, 1)}d Active</span></td>
+          <td><span class="chip chip-neural">${fixed(s.days_active, 1)}d on Screen</span></td>
           <td><span class="chip ${isWin ? 'chip-long' : 'chip-short'}">${s.exit_reason || s.status}</span></td>
           <td class="${isWin ? 'positive' : 'negative'}"><strong>${money(s.pnl_rupees)}</strong></td>
         </tr>
@@ -982,12 +1008,25 @@
   function updateView() {
     // Hide all sections first
     cardsContainer.style.display = 'none';
+    purchasedSection.style.display = 'none';
     universeTableWrap.style.display = 'none';
     universeSubcontrols.style.display = 'none';
     optionsSubcontrols.style.display = 'none';
     accuracySection.style.display = 'none';
     ledgerSection.style.display = 'none';
     if (k2Section) k2Section.style.display = 'none';
+
+    // Update active tab buttons
+    document.querySelectorAll('.tab-btn').forEach(function(b) {
+      if (b.getAttribute('data-tab') === activeTab) b.classList.add('active');
+      else b.classList.remove('active');
+    });
+
+    if (activeTab === 'purchased') {
+      purchasedSection.style.display = 'block';
+      purchasedCardsContainer.innerHTML = (activeCandidatesCache || []).map(renderPurchasedCardHtml).join('');
+      return;
+    }
 
     if (activeTab === 'accuracy') {
       accuracySection.style.display = 'block';
@@ -1027,14 +1066,7 @@
       return;
     }
 
-    if (activeTab === 'portfolio') {
-      cardsContainer.style.display = 'grid';
-      var filteredPort = filterItems(activeCandidatesCache);
-      cardsContainer.innerHTML = filteredPort.map(renderCardHtml).join('');
-      return;
-    }
-
-    // Default: 'actionable' (Read & Buy setups)
+    // Default: 'actionable' (Recommended Buys)
     cardsContainer.style.display = 'grid';
     var sourceList = (universeCache || []).filter(function(x) { return x.action === 'BUY' || x.action === 'ACCUMULATE'; });
     if (sourceList.length === 0 && activeCandidatesCache.length > 0) {
@@ -1046,6 +1078,7 @@
 
   function updateCounts(data) {
     if (data && Array.isArray(data.candidates)) activeCandidatesCache = data.candidates;
+    if (data && Array.isArray(data.activePositions)) activeCandidatesCache = data.activePositions;
     if (data && Array.isArray(data.universe)) universeCache = data.universe;
     if (data && Array.isArray(data.options)) optionsCache = data.options;
     if (data && data.accuracy) renderAccuracy(data.accuracy);
@@ -1054,16 +1087,14 @@
     var elActionable = document.getElementById('count-actionable');
     var elOptions = document.getElementById('count-options');
     var elUniv = document.getElementById('count-univ');
-    var elPort = document.getElementById('count-portfolio');
-    var elTotal = document.getElementById('total-universe-count');
-    var elTotalOpt = document.getElementById('total-options-count');
+    var elPurchased = document.getElementById('count-purchased');
+    var elHdrPurchased = document.getElementById('header-purchased-count');
 
     if (elActionable) elActionable.textContent = actionableCount || 46;
     if (elOptions) elOptions.textContent = (optionsCache || []).length || 423;
     if (elUniv) elUniv.textContent = (universeCache || []).length || 210;
-    if (elPort) elPort.textContent = (activeCandidatesCache || []).length || 9;
-    if (elTotal) elTotal.textContent = (universeCache || []).length || 210;
-    if (elTotalOpt) elTotalOpt.textContent = (optionsCache || []).length || 423;
+    if (elPurchased) elPurchased.textContent = (activeCandidatesCache || []).length || 0;
+    if (elHdrPurchased) elHdrPurchased.textContent = (activeCandidatesCache || []).length || 0;
   }
 
   function renderLedger(completed) {
@@ -1083,11 +1114,56 @@
     }).join('');
   }
 
+  // Global Action: Track Trade as Purchased
+  window.trackTrade = function(candidateId, fillPrice) {
+    fetch('/api/action/take', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ candidateId: candidateId, fillPrice: fillPrice })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res.success) {
+        alert('Trade added to your Purchased Trades! Click "📦 My Purchased Trades" in the header to view live profit/loss and days held.');
+        activeTab = 'purchased';
+        updateView();
+      }
+    })
+    .catch(function(e) { console.error('Track trade error:', e); });
+  };
+
+  // Global Action: Close / Exit a Purchased Trade
+  window.closePurchasedTrade = function(posId, exitPrice) {
+    if (!confirm('Are you sure you want to close this trade and lock in realized P&L?')) return;
+    fetch('/api/action/close', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ positionId: posId, exitPrice: exitPrice, reason: 'MANUAL_EXIT' })
+    })
+    .then(function(r) { return r.json(); })
+    .then(function(res) {
+      if (res.success) {
+        alert('Position closed! Realized P&L recorded into audited ledger.');
+        fetch('/api/state').then(function(r){return r.json();}).then(function(d){
+          updateCounts(d);
+          updateView();
+        });
+      }
+    })
+    .catch(function(e) { console.error('Close trade error:', e); });
+  };
+
+  // Header Direct Jump Buttons
+  document.querySelectorAll('[data-tab-jump]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      activeTab = btn.getAttribute('data-tab-jump');
+      updateView();
+    });
+  });
+
   // Event Listeners for Tabs
   document.querySelectorAll('.tab-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
-      btn.classList.add('active');
       activeTab = btn.getAttribute('data-tab');
       updateView();
     });
