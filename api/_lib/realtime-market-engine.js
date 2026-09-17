@@ -202,6 +202,26 @@ class RealtimeMarketEngine {
     }
   }
 
+  async maintainBrokerSessions() {
+    try {
+      const auth = require("./broker-auth");
+      const status = auth.sessionStatus();
+      if (status.angelone.canAutoRefresh) {
+        const result = await auth.angelEnsureSession();
+        console.log(result.ok
+          ? `[K² Broker Session] Angel One rotated via ${result.rotated}`
+          : `[K² Broker Session] Angel One rotation failed: ${result.reason}`);
+      }
+      if (status.upstox.hasToken && status.upstox.expiringSoon) {
+        console.warn(`[K² Broker Session] Upstox token expires in ${status.upstox.hoursRemaining}h and cannot auto-refresh. Re-authorise: ${status.upstox.loginUrl || "set UPSTOX_API_KEY and UPSTOX_REDIRECT_URI"}`);
+      }
+      return status;
+    } catch (error) {
+      console.error("Broker session maintenance failed:", error.message);
+      return null;
+    }
+  }
+
   start(pollIntervalMs = 5000) {
     if (typeof fnoUniverseEngine.startBackgroundIngest === "function") {
       fnoUniverseEngine.startBackgroundIngest();
@@ -212,6 +232,10 @@ class RealtimeMarketEngine {
     // moment credentials appear, live quotes work without another cold start.
     this.refreshDhanScrips();
     this.refreshBrokerInstruments();
+    // Angel One can hold its own session from a TOTP secret. Upstox cannot --
+    // it issues no refresh token -- so it is watched and warned about instead.
+    this.maintainBrokerSessions();
+    this.sessionTimer = setInterval(() => this.maintainBrokerSessions(), 60 * 60 * 1000);
     this.referenceTimer = setInterval(() => this.refreshContractReference(), 6 * 60 * 60 * 1000);
     this.pollTickCycle();
     this.timer = setInterval(() => this.pollTickCycle(), pollIntervalMs);
@@ -221,6 +245,7 @@ class RealtimeMarketEngine {
   stop() {
     if (this.timer) clearInterval(this.timer);
     if (this.referenceTimer) clearInterval(this.referenceTimer);
+    if (this.sessionTimer) clearInterval(this.sessionTimer);
     for (const client of this.clients) {
       try { client.end(); } catch {}
     }
