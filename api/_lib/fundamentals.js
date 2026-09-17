@@ -12,9 +12,45 @@
 // degrades to "unavailable" so a fundamentals outage can never block a trade
 // decision that the price history alone can support.
 
+const fs = require("node:fs");
+const path = require("node:path");
+
 const USER_AGENT = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36";
 const MODULES = "financialData,defaultKeyStatistics,calendarEvents";
 const SESSION_TTL_MS = 30 * 60 * 1000;
+const CACHE_DIR = path.resolve(__dirname, "../../.private/cache/fundamentals");
+
+function ensureCacheDir() {
+  try {
+    if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+  } catch (e) {}
+}
+
+function getCachedFundamentals(rawSymbol, maxAgeMs = 24 * 60 * 60 * 1000) {
+  try {
+    const sym = String(rawSymbol).replace(/\.NS$/, "").replace(/[^a-zA-Z0-9_-]/g, "_");
+    const file = path.join(CACHE_DIR, `${sym}.json`);
+    if (!fs.existsSync(file)) return null;
+    const data = JSON.parse(fs.readFileSync(file, "utf8"));
+    if (!data || !data.fetchedAt) return null;
+    if (Date.now() - new Date(data.fetchedAt).getTime() > maxAgeMs) return null;
+    return data;
+  } catch (e) {
+    return null;
+  }
+}
+
+function saveCachedFundamentals(rawSymbol, data) {
+  try {
+    ensureCacheDir();
+    const sym = String(rawSymbol).replace(/\.NS$/, "").replace(/[^a-zA-Z0-9_-]/g, "_");
+    const file = path.join(CACHE_DIR, `${sym}.json`);
+    fs.writeFileSync(file, JSON.stringify(data), "utf8");
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
 
 let session = null;
 
@@ -101,6 +137,11 @@ function balanceSheetScore(metrics) {
 
 async function fundamentals(rawSymbol, options = {}) {
   const symbol = rawSymbol === "^NSEI" || String(rawSymbol).endsWith(".NS") ? String(rawSymbol) : `${rawSymbol}.NS`;
+  const cached = getCachedFundamentals(rawSymbol, options.maxAgeMs);
+  if (cached && !options.force) {
+    return cached;
+  }
+
   try {
     const { cookies, crumb } = await yahooSession(options.timeout);
     const url = `https://query1.finance.yahoo.com/v10/finance/quoteSummary/${encodeURIComponent(symbol)}?modules=${MODULES}&crumb=${encodeURIComponent(crumb)}`;
@@ -133,7 +174,7 @@ async function fundamentals(rawSymbol, options = {}) {
       sharesOutstanding: raw(statistics.sharesOutstanding)
     };
     const events = earningsWindow(result.calendarEvents, options.nowMs || Date.now());
-    return {
+    const res = {
       available: true,
       symbol,
       fetchedAt: new Date(options.nowMs || Date.now()).toISOString(),
@@ -144,9 +185,20 @@ async function fundamentals(rawSymbol, options = {}) {
       // sized for drift, not for an earnings gap.
       veto: events.insideTradingWeek ? "Results are scheduled inside this trading week" : null
     };
+    saveCachedFundamentals(rawSymbol, res);
+    return res;
   } catch (error) {
+    if (cached) return cached;
     return { available: false, symbol, reason: String(error?.message || error).slice(0, 160), veto: null, balanceSheetScore: 0 };
   }
 }
 
-module.exports = { balanceSheetScore, earningsWindow, fundamentals, weekBounds, yahooSession };
+module.exports = {
+  balanceSheetScore,
+  earningsWindow,
+  fundamentals,
+  getCachedFundamentals,
+  saveCachedFundamentals,
+  weekBounds,
+  yahooSession
+};

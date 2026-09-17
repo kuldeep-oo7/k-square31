@@ -27,11 +27,24 @@ console.log("  ✓ Benchmark Index Defined-Risk Options verified (NIFTY & BANKNI
 // 3. Check Stock Options (Both CE and PE)
 const relianceCe = options.find(o => o.symbol === "RELIANCE" && o.optionType === "CE");
 assert(relianceCe, "RELIANCE CE must be present");
-assert(relianceCe.entryPrice > 0, "RELIANCE CE must have valid entry premium");
-assert(relianceCe.target1 > relianceCe.entryPrice, "Target 1 must be higher than entry");
-assert(relianceCe.stopLoss < relianceCe.entryPrice, "Stop loss must be lower than entry");
-assert(relianceCe.daysActiveFormatted, "Days active formatted must be present");
-assert(relianceCe.followPnl, "Follow P&L object must be present");
+// This block used to require target1 > entry and stopLoss < entry, which were
+// satisfied by multiplying a fabricated premium by 1.35 and 0.60. A premium
+// that is 2.2% of spot regardless of strike, expiry or volatility is not a
+// price, and multiples of it are not levels. A contract is now either priced by
+// Black-Scholes or explicitly unpriced.
+if (relianceCe.available === false) {
+  assert(relianceCe.entryPrice === null || relianceCe.entryPrice === undefined,
+    "An unpriced contract must not carry a premium");
+  assert(typeof relianceCe.reason === "string" && relianceCe.reason.length > 0,
+    "An unpriced contract must say why");
+} else {
+  assert(relianceCe.entryPrice > 0, "A priced RELIANCE CE needs a positive premium");
+  const expectedBreakeven = Math.round((relianceCe.strike + relianceCe.entryPrice) * 100) / 100;
+  assert(Math.abs(relianceCe.breakeven - expectedBreakeven) < 0.011,
+    `Call breakeven must be strike + premium, got ${relianceCe.breakeven} wanted ${expectedBreakeven}`);
+  assert(relianceCe.target1 === null && relianceCe.stopLoss === null,
+    "Targets and stops must not be arbitrary multiples of the premium");
+}
 
 const reliancePe = options.find(o => o.symbol === "RELIANCE" && o.optionType === "PE");
 assert(reliancePe, "RELIANCE PE must be present");

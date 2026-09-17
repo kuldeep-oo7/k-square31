@@ -1,13 +1,18 @@
 "use strict";
 
 /**
- * 1D-CNN Temporal Convolutional Neural Network & Quantitative Alpha Engine
+ * 1D-CNN Temporal Convolutional Signal Detector & Quantitative Alpha Engine
  *
- * Implements a pure, deterministic deep learning feature extractor:
+ * NOTE: These 4 kernels are domain-engineered matched filters (wavelet pattern bank)
+ * designed from institutional price-volume motifs (momentum acceleration, oversold spring,
+ * volatility squeeze, volume absorption). They are NOT gradient backpropagation-trained weights.
+ * The 1D convolution arithmetic, LeakyReLU activation, and MaxPool1D pooling are real and deterministic.
+ *
+ * Architecture:
  * 1. 3-Channel Temporal Preprocessing (Returns, Range Ratio, Volume Flow)
- * 2. Multi-Kernel Conv1D (Momentum, Mean-Reversion, Squeeze, Institutional Accumulation)
+ * 2. Multi-Kernel Conv1D Matched Filters (Momentum, Mean-Reversion, Squeeze, Institutional Absorption)
  * 3. LeakyReLU Activation & MaxPool1D
- * 4. Dense Factor Fusion (CNN temporal visual features + 10 Quant Factors)
+ * 4. Dense Factor Fusion (CNN temporal visual features + Quant Factors)
  * 5. Calibrated Neural Alpha Score (0 - 100) & Regime Prediction
  */
 
@@ -26,8 +31,9 @@ function leakyRelu(x, alpha = 0.01) {
 }
 
 /**
- * 4 Pre-trained Conv1D Kernels for Temporal Financial Time Series
+ * 4 Domain-Engineered Conv1D Matched Filter Kernels for Temporal Financial Time Series
  * Kernel dimensions: [inChannels = 3, kernelSize = 3]
+ * Hand-tuned matched filters, not backprop gradient-trained weights.
  */
 const CONV_KERNELS = [
   // Kernel 0: Upward Momentum & Breakout Filter
