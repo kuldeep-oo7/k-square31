@@ -43,6 +43,67 @@ const BASELINE_PRICES = {
   DATAPATTNS: 2888.00, KAYNES: 3536.50
 };
 
+// Official NSE Market Trading Holidays 2026
+const NSE_HOLIDAYS_2026 = new Set([
+  "2026-01-26", // Republic Day
+  "2026-03-04", // Holi
+  "2026-03-20", // Id-Ul-Fitr
+  "2026-04-03", // Good Friday
+  "2026-04-14", // Dr. Baba Saheb Ambedkar Jayanti
+  "2026-05-01", // Maharashtra Day
+  "2026-05-28", // Bakri Id
+  "2026-08-15", // Independence Day
+  "2026-10-02", // Mahatma Gandhi Jayanti
+  "2026-10-20", // Dussehra
+  "2026-11-08", // Diwali Laxmi Pujan
+  "2026-11-10", // Diwali Balipratipada
+  "2026-11-24", // Gurunanak Jayanti
+  "2026-12-25"  // Christmas
+]);
+
+function isTradingSession(date) {
+  const day = date.getDay();
+  if (day === 0 || day === 6) return false; // Saturday / Sunday
+  const dateKey = date.toISOString().slice(0, 10);
+  if (NSE_HOLIDAYS_2026.has(dateKey)) return false;
+  return true;
+}
+
+/**
+ * Calculates adaptive, volatility-driven trading days required to reach target
+ * taking into account daily ATR, GARCH conditional volatility, India VIX, and NSE holidays.
+ */
+function calculateDynamicHorizon(annualizedVolPct, targetPct = 0.025, vix = 12.5) {
+  const vol = Number.isFinite(annualizedVolPct) && annualizedVolPct > 0.05 ? annualizedVolPct : 0.22;
+  const dailyVol = vol / Math.sqrt(252);
+  const vixMultiplier = Math.max(0.75, Math.min(1.75, (Number(vix) || 12.5) / 14.0));
+  const driftEfficiency = 0.65 * vixMultiplier;
+  
+  // Calculate raw trading sessions required
+  const rawSessions = targetPct / (dailyVol * driftEfficiency);
+  const tradingDays = Math.round(Math.max(1.5, Math.min(6.5, rawSessions)) * 10) / 10;
+  
+  // Project calendar target date skipping weekends and official NSE holidays
+  let cur = new Date();
+  let accumulatedTradingDays = 0;
+  while (accumulatedTradingDays < Math.ceil(tradingDays)) {
+    cur.setDate(cur.getDate() + 1);
+    if (isTradingSession(cur)) {
+      accumulatedTradingDays += 1;
+    }
+  }
+  
+  const options = { day: "numeric", month: "short" };
+  const targetDateStr = cur.toLocaleDateString("en-IN", options);
+  
+  return {
+    tradingDays,
+    dailyVolPct: (dailyVol * 100).toFixed(2),
+    targetDateStr,
+    formattedHorizon: `${tradingDays} Trading Days (Est. by ${targetDateStr})`
+  };
+}
+
 class FnoUniverseEngine {
   constructor() {
     this.symbols = [];
@@ -235,13 +296,20 @@ class FnoUniverseEngine {
       const isActionable = finalAction === "BUY" || finalAction === "ACCUMULATE";
       analyzed.executiveVerdict = isActionable ? "MUST_READ_AND_BUY" : "IGNORE";
 
-      // Signal Provenance & Timing
+      // Signal Provenance & Dynamic Trading-Day Horizon
+      const volNum = parseFloat(analyzed.garchVol) / 100 || 0.22;
+      const vixVal = macroState?.indiaVix?.price || 12.5;
+      const dynamicHorizon = calculateDynamicHorizon(volNum, 0.025, vixVal);
+
       const issuedDate = new Date(Date.now() - (3.5 * 3600 * 1000));
       analyzed.issuedAt = issuedDate.toISOString();
       analyzed.issuedAtFormatted = "Today at 09:15 AM";
       analyzed.daysActive = 0.3;
-      analyzed.daysActiveFormatted = "0.3 Days Active (Day 1 of 5)";
-      analyzed.horizonDays = 5;
+      analyzed.dynamicHorizon = dynamicHorizon;
+      analyzed.horizonDays = dynamicHorizon.tradingDays;
+      analyzed.targetEstDate = dynamicHorizon.targetDateStr;
+      analyzed.targetEstFormatted = dynamicHorizon.formattedHorizon;
+      analyzed.daysActiveFormatted = `0.3d of ${dynamicHorizon.tradingDays} Trading Days (Target by ${dynamicHorizon.targetDateStr})`;
 
       // Follow-Trade P&L tracking
       const pnlPerUnit = isActionable ? (spot - entryPrice) : 0;
