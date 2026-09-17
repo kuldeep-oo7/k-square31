@@ -278,6 +278,9 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
       const shortStrike = isBullish ? otmCallStrike : otmPutStrike;
       return {
         name: isBullish ? "Bull Call Spread" : "Bear Put Spread",
+        shortStrikePrice: shortStrike,
+        longStrikePrice: atmStrike,
+        widthPoints: Math.abs(shortStrike - atmStrike),
         available: wingsPriced,
         status: wingsPriced ? "THEORETICAL_BSM_NOT_A_TRADED_QUOTE" : "UNPRICED",
         reason: wingsPriced ? null : unpricedReason,
@@ -891,7 +894,20 @@ class FnoUniverseEngine {
           reason: u.options.call.reason || null,
           premium: u.options.call.premium,
           breakeven: u.options.call.breakeven ?? null,
-          maxLossRupees: u.options.call.maxLossRupees ?? null,
+          maxLossRupees: u.options.spread && u.options.spread.available
+            ? u.options.spread.maxLossRupees
+            : (u.options.call.maxLossRupees ?? null),
+          // A vertical spread's outcomes are BOUNDED and computable: the debit is the
+          // whole loss, and the strike width less the debit is the whole profit. These
+          // replace a ladder that was 1.35x and 1.70x an invented premium.
+          maxProfitRupees: u.options.spread && u.options.spread.available ? u.options.spread.maxProfitRupees : null,
+          shortStrike: u.options.spread && u.options.spread.available ? (u.options.spread.shortStrikePrice ?? null) : null,
+          netDebit: u.options.spread && u.options.spread.available ? u.options.spread.netDebit : null,
+          // The LEG's own breakeven stays numeric and is strike +/- premium.
+          // The spread's breakeven is a separate, differently-shaped number and
+          // must not overwrite it: a row describes one contract.
+          breakeven: u.options.call.breakeven ?? null,
+          spreadBreakeven: u.options.spread && u.options.spread.available ? u.options.spread.breakeven : null,
           currentLtp: u.options.call.currentPrice,
           target1: u.options.call.target1,
           target2: u.options.call.target2,
@@ -935,7 +951,20 @@ class FnoUniverseEngine {
           reason: u.options.put.reason || null,
           premium: u.options.put.premium,
           breakeven: u.options.put.breakeven ?? null,
-          maxLossRupees: u.options.put.maxLossRupees ?? null,
+          maxLossRupees: u.options.spread && u.options.spread.available
+            ? u.options.spread.maxLossRupees
+            : (u.options.put.maxLossRupees ?? null),
+          // A vertical spread's outcomes are BOUNDED and computable: the debit is the
+          // whole loss, and the strike width less the debit is the whole profit. These
+          // replace a ladder that was 1.35x and 1.70x an invented premium.
+          maxProfitRupees: u.options.spread && u.options.spread.available ? u.options.spread.maxProfitRupees : null,
+          shortStrike: u.options.spread && u.options.spread.available ? (u.options.spread.shortStrikePrice ?? null) : null,
+          netDebit: u.options.spread && u.options.spread.available ? u.options.spread.netDebit : null,
+          // The LEG's own breakeven stays numeric and is strike +/- premium.
+          // The spread's breakeven is a separate, differently-shaped number and
+          // must not overwrite it: a row describes one contract.
+          breakeven: u.options.put.breakeven ?? null,
+          spreadBreakeven: u.options.spread && u.options.spread.available ? u.options.spread.breakeven : null,
           currentLtp: u.options.put.currentPrice,
           target1: u.options.put.target1,
           target2: u.options.put.target2,

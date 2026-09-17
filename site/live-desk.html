@@ -801,19 +801,19 @@
               <span class="price-sub" style="color: var(--green);">Entry Premium</span>
             </div>
             <div>
-              <small>TARGET 1</small>
-              <span class="price-target">₹${fixed(opt.target1)}</span>
-              <span class="price-sub" style="color: var(--green);">+35% Profit</span>
+              <small>MAX PROFIT</small>
+              <span class="price-target">${opt.maxProfitRupees != null ? money(opt.maxProfitRupees) : "—"}</span>
+              <span class="price-sub" style="color: var(--green);">${opt.shortStrike ? "At or above ₹" + fixed(opt.shortStrike, 0) : "Unbounded above breakeven"}</span>
             </div>
             <div>
-              <small>TARGET 2</small>
-              <span class="price-target">₹${fixed(opt.target2)}</span>
-              <span class="price-sub" style="color: var(--green);">+70% Runner</span>
+              <small>MAX LOSS</small>
+              <span class="price-stop">${opt.maxLossRupees != null ? money(-Math.abs(opt.maxLossRupees)) : "—"}</span>
+              <span class="price-sub" style="color: var(--red);">Whole debit, nothing beyond</span>
             </div>
             <div>
-              <small>STOP LOSS</small>
-              <span class="price-stop">₹${fixed(opt.stopLoss)}</span>
-              <span class="price-sub" style="color: var(--red);">-60% Defined</span>
+              <small>BREAKEVEN</small>
+              <span class="price-target">${opt.spreadBreakeven != null ? opt.spreadBreakeven : (opt.breakeven != null ? "₹" + fixed(opt.breakeven) : "—")}</span>
+              <span class="price-sub" style="color: var(--muted);">Spot needed at expiry</span>
             </div>
           </div>
         ` : `
