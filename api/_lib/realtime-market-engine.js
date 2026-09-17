@@ -176,12 +176,28 @@ class RealtimeMarketEngine {
     }
   }
 
+  async refreshDhanScrips() {
+    try {
+      const dhan = require("./dhan-feed");
+      if (dhan.loadScripMaster()) return null;
+      const master = await dhan.refreshScripMaster();
+      console.log(`[K² Dhan Scrips] ${master.underlyingCount} underlyings, ${master.lotCount} contract lots`);
+      return master;
+    } catch (error) {
+      console.error("Dhan scrip master refresh failed:", error.message);
+      return null;
+    }
+  }
+
   start(pollIntervalMs = 5000) {
     if (typeof fnoUniverseEngine.startBackgroundIngest === "function") {
       fnoUniverseEngine.startBackgroundIngest();
     }
     // Once at boot, then daily. The bhavcopy changes once per session.
     this.refreshContractReference();
+    // Dhan's scrip master is public and needs no token; caching it means the
+    // moment credentials appear, live quotes work without another cold start.
+    this.refreshDhanScrips();
     this.referenceTimer = setInterval(() => this.refreshContractReference(), 6 * 60 * 60 * 1000);
     this.pollTickCycle();
     this.timer = setInterval(() => this.pollTickCycle(), pollIntervalMs);

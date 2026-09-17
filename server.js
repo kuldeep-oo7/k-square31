@@ -59,6 +59,13 @@ const server = http.createServer((req, res) => {
     res.end(JSON.stringify({
       timestamp: new Date().toISOString(),
       macro: { radar: engine.macroRadar, state: engine.macroState },
+      // Whether live option quotes are available, and if not, exactly why. A
+      // page that cannot tell configured from unconfigured will present
+      // end-of-day settlement prices as if they were live.
+      liveFeed: (() => {
+        try { return require("./api/_lib/dhan-feed").status(); }
+        catch (error) { return { configured: false, ready: false, reason: "FEED_MODULE_UNAVAILABLE" }; }
+      })(),
       summary: engine.ledger.getSummary(),
       accuracy: engine.ledger.getSignalsAccuracy ? engine.ledger.getSignalsAccuracy() : null,
       candidates: engine.getEnrichedCandidates(),
