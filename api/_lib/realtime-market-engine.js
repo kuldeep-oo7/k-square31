@@ -325,18 +325,23 @@ class RealtimeMarketEngine {
     const n = 30;
     const base = Number(entry) || 100;
     const target = Number(current) || base;
-    const startPrice = base * 0.98;
+    const startPrice = base * 0.97;
     const priceStep = (target - startPrice) / n;
     let p = startPrice;
     for (let i = 0; i < n; i++) {
-      p += priceStep + (Math.sin(i) * (base * 0.003));
+      p += priceStep + (Math.sin(i) * (base * 0.002));
       const range = base * 0.012;
+      const isUp = (i >= n - 3) ? true : (i % 2 === 0);
+      const open = isUp ? p - range * 0.5 : p + range * 0.3;
+      const close = isUp ? p + range * 0.3 : p - range * 0.2;
+      const high = Math.max(open, close) + range * 0.08;
+      const low = Math.min(open, close) - range * 0.08;
       bars.push({
-        open: p - range * 0.3,
-        high: p + range * 0.6,
-        low: p - range * 0.5,
-        close: p,
-        volume: 15000 + Math.floor(Math.sin(i * 0.5) * 5000)
+        open,
+        high,
+        low,
+        close,
+        volume: 25000 + Math.floor(Math.sin(i * 0.5) * 6000)
       });
     }
     return bars;

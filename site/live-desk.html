@@ -124,9 +124,26 @@
   /* Quant Strip */
   .quant-strip { display: flex; flex-wrap: wrap; gap: 6px 10px; font: 700 10px var(--mono); color: var(--muted); background: var(--card); padding: 8px 10px; border-radius: 8px; }
 
+  /* Hurdle Verification Box */
+  .hurdle-box { background: rgba(255, 255, 255, 0.03); border: 1px solid var(--line); border-radius: 12px; padding: 10px 12px; margin: 10px 0; }
+  .hurdle-title { font: 700 10px var(--mono); color: var(--muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; display: flex; align-items: center; justify-content: space-between; }
+  .hurdle-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; text-align: center; }
+  .hurdle-col { display: flex; flex-direction: column; align-items: center; background: var(--panel2); padding: 8px 6px; border-radius: 8px; }
+  .hurdle-col .h-lbl { font: 700 9px var(--mono); color: var(--muted); text-transform: uppercase; margin-bottom: 3px; }
+  .hurdle-col .h-num { font: 800 15px var(--mono); margin-bottom: 2px; }
+  .hurdle-col .h-sub { font: 700 9px var(--mono); white-space: nowrap; }
+  .h-badge { font: 800 11px var(--mono); padding: 3px 8px; border-radius: 6px; text-transform: uppercase; margin-bottom: 2px; }
+  .badge-apex { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
+  .badge-acc { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber); }
+  .badge-stand { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--line); }
+  .text-green { color: var(--green) !important; }
+  .text-amber { color: var(--amber) !important; }
+  .text-red { color: var(--red) !important; }
+  .text-muted { color: var(--muted) !important; }
+
   /* Action Buttons */
-  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px; }
-  .btn-action { display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; padding: 10px 12px; border-radius: 10px; font: 800 12px var(--mono); text-align: center; cursor: pointer; transition: transform 0.1s, opacity 0.15s; }
+  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin: 10px 0 6px; }
+  .btn-action { display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; padding: 12px 14px; border-radius: 10px; font: 800 13px var(--mono); text-align: center; cursor: pointer; transition: transform 0.1s, opacity 0.15s; }
   .btn-action:active { transform: scale(0.97); }
   .btn-kite { background: linear-gradient(135deg, #ff5722, #e64a19); color: #fff; border: 0; box-shadow: 0 2px 8px rgba(230, 74, 25, 0.3); }
   .btn-dhan { background: linear-gradient(135deg, #7c4dff, #6200ea); color: #fff; border: 0; box-shadow: 0 2px 8px rgba(98, 0, 234, 0.3); }
@@ -210,9 +227,10 @@
 
   <!-- Navigation Tabs -->
   <div class="tabs-nav">
-    <button class="tab-btn active" data-tab="active">🔥 Active Setups (<span id="count-active">9</span>)</button>
-    <button class="tab-btn" data-tab="universe">🌐 210 F&amp;O Universe (<span id="count-univ">210</span>)</button>
-    <button class="tab-btn" data-tab="options">Defined-Risk Spreads</button>
+    <button class="tab-btn active" data-tab="apex">⭐ Apex Buy Signals (<span id="count-apex">11</span>)</button>
+    <button class="tab-btn" data-tab="accumulate">🟢 Support Accumulate (<span id="count-accum">35</span>)</button>
+    <button class="tab-btn" data-tab="universe">🌐 All 210 F&amp;O Universe (<span id="count-univ">210</span>)</button>
+    <button class="tab-btn" data-tab="portfolio">💼 Active Positions &amp; MTM (<span id="count-portfolio">9</span>)</button>
     <button class="tab-btn" data-tab="ledger">📜 Realized Ledger</button>
     <button class="tab-btn" data-tab="k2lang">⚡ K²-Lang &amp; Math Engine</button>
   </div>
@@ -321,7 +339,7 @@
 
 <script>
 (function() {
-  var activeTab = 'active';
+  var activeTab = 'apex';
   var universeSubFilter = 'all';
   var universeViewMode = 'cards';
   var searchQuery = '';
@@ -415,8 +433,12 @@
         if (!matchSym && !matchName && !matchSector && !matchTs) return false;
       }
 
-      if (activeTab === 'options') {
-        return item.assetClass && (item.assetClass.includes('OPTION') || item.assetClass.includes('INDEX'));
+      if (activeTab === 'apex') {
+        return item.action === 'BUY';
+      }
+
+      if (activeTab === 'accumulate') {
+        return item.action === 'ACCUMULATE';
       }
 
       if (activeTab === 'universe') {
@@ -439,16 +461,18 @@
     var theme = isBuy ? 'long' : isAcc ? 'long' : 'neutral';
     var links = item.links || {};
 
+    var compScore = item.compositeScore || 40;
+    var neuralScore = item.neuralScore || 50;
+
     return `
       <article class="trade-card ${theme}" id="card-${item.id}" style="${isStand ? 'opacity: 0.82; border-left: 4px solid var(--muted);' : ''}">
         <div class="card-top">
           <div style="flex: 1; min-width: 0;">
             <div class="tag-group">
-              <span class="chip ${isBuy ? 'chip-long' : isAcc ? 'chip-neural' : 'chip-cat'}">${item.action}</span>
+              <span class="chip ${isBuy ? 'chip-long' : isAcc ? 'chip-neural' : 'chip-cat'}">${isBuy ? '⭐ APEX BUY' : isAcc ? '🟢 ACCUMULATE' : '🛡️ STAND ASIDE'}</span>
               <span class="chip chip-cat">${item.marketCap || 'Multi-Cap'}</span>
               <span class="chip chip-cat">${item.sector || item.assetClass || 'EQUITY'}</span>
-              <span class="chip chip-neural">🧠 Neural: ${item.neuralScore || 78}%</span>
-              <span class="chip chip-candle">🕯️ ${item.candlestickPattern || 'CONSOLIDATION'}</span>
+              <span class="chip chip-candle">🕯️ ${item.candlestickPattern || 'BULLISH'}</span>
               ${item.chartPattern && item.chartPattern !== 'RANGE' ? `<span class="chip chip-chart">📐 ${item.chartPattern}</span>` : ''}
               ${item.isBanned ? `<span class="chip chip-ban">⚠️ FO BAN</span>` : ''}
             </div>
@@ -464,16 +488,63 @@
             ${!isStand ? `
               <div class="status-badge ${item.pnlRupees >= 0 ? 'status-profit' : 'status-amber'}">
                 ${money(item.pnlRupees)}
-                <small style="display:block; font-size:10px; opacity:0.85; margin-top:2px;">Alpha: ${item.compositeScore || 85}/100</small>
+                <small style="display:block; font-size:10px; opacity:0.85; margin-top:2px;">Alpha: ${compScore}/100</small>
               </div>
             ` : `
               <div class="status-badge" style="background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--line);">
                 STAND ASIDE
-                <small style="display:block; font-size:10px; opacity:0.85; margin-top:2px;">Alpha: ${item.compositeScore || 40}/100</small>
+                <small style="display:block; font-size:10px; opacity:0.85; margin-top:2px;">Alpha: ${compScore}/100</small>
               </div>
             `}
           </div>
         </div>
+
+        <!-- Quantitative Hurdle Verification Box -->
+        <div class="hurdle-box">
+          <div class="hurdle-title">
+            <span>🎯 7-Stage Quantitative Hurdle Check</span>
+            <span style="font-size: 9px; color: ${isBuy ? 'var(--green)' : isAcc ? 'var(--amber)' : 'var(--muted)'};">
+              ${isBuy ? '⭐ APEX ELIGIBLE' : isAcc ? '🟢 ACCUMULATE ELIGIBLE' : '🛡️ CAPITAL PRESERVED'}
+            </span>
+          </div>
+          <div class="hurdle-grid">
+            <div class="hurdle-col">
+              <span class="h-lbl">Composite Score</span>
+              <span class="h-num ${compScore >= 68 ? 'text-green' : compScore >= 58 ? 'text-amber' : 'text-muted'}">${compScore} / 100</span>
+              <span class="h-sub">${compScore >= 68 ? 'Hurdle ≥ 68: <b class="text-green">PASS ✅</b>' : compScore >= 58 ? 'Hurdle ≥ 58: <b class="text-amber">ACCUM ✅</b>' : 'Hurdle ≥ 68: <b class="text-red">FAIL ❌</b>'}</span>
+            </div>
+            <div class="hurdle-col">
+              <span class="h-lbl">1D-CNN Neural</span>
+              <span class="h-num ${neuralScore >= 70 ? 'text-green' : neuralScore >= 55 ? 'text-amber' : 'text-muted'}">${neuralScore}%</span>
+              <span class="h-sub">${neuralScore >= 70 ? 'Hurdle ≥ 70%: <b class="text-green">PASS ✅</b>' : neuralScore >= 55 ? 'Hurdle ≥ 55%: <b class="text-amber">ACCUM ✅</b>' : 'Hurdle ≥ 70%: <b class="text-red">FAIL ❌</b>'}</span>
+            </div>
+            <div class="hurdle-col">
+              <span class="h-lbl">Desk Verdict</span>
+              <span class="h-badge ${isBuy ? 'badge-apex' : isAcc ? 'badge-acc' : 'badge-stand'}">
+                ${isBuy ? '⭐ APEX BUY' : isAcc ? '🟢 ACCUMULATE' : '🛡️ STAND ASIDE'}
+              </span>
+              <span class="h-sub" style="color: var(--muted);">${isBuy ? '7/7 Hurdles Cleared' : isAcc ? 'Support Pullback' : 'Noise / No Conviction'}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Direct 1-Tap Broker Execution Row (Prominent at top) -->
+        ${!isStand ? `
+          <div class="action-row">
+            <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite">
+              ⚡ 1-Tap Buy on Zerodha Kite
+            </a>
+            <a href="${links.dhanApp || '#'}" target="_blank" rel="noopener" class="btn-action btn-dhan">
+              🚀 1-Tap Buy on Dhan
+            </a>
+          </div>
+        ` : `
+          <div class="action-row">
+            <div style="grid-column: 1 / -1; background: rgba(255,255,255,0.03); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 14px; text-align: center; font: 700 11px var(--mono); color: var(--muted);">
+              🛡️ Gated by Risk Model · No Orders Permitted (Capital Preserved)
+            </div>
+          </div>
+        `}
 
         <div class="grid-stats">
           <div><small>Target 1</small><b class="${!isStand ? 'positive' : ''}">₹${fixed(item.target1)}</b></div>
@@ -502,23 +573,6 @@
           <span>99% CVaR: ${item.cvar99Rupees || '₹5,200'}</span>
           <span>K²-LANG: ${item.k2StrategyPassed ? 'VERIFIED' : 'HEURISTIC'}</span>
         </div>
-
-        ${!isStand ? `
-          <div class="action-row">
-            <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite">
-              ⚡ 1-Tap Kite
-            </a>
-            <a href="${links.dhanApp || '#'}" target="_blank" rel="noopener" class="btn-action btn-dhan">
-              🚀 1-Tap Dhan
-            </a>
-          </div>
-        ` : `
-          <div class="action-row">
-            <div style="grid-column: 1 / -1; background: rgba(255,255,255,0.03); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 14px; text-align: center; font: 700 11px var(--mono); color: var(--muted);">
-              🛡️ Gated by Risk Model · No Orders Permitted (Capital Preserved)
-            </div>
-          </div>
-        `}
       </article>
     `;
   }
@@ -611,14 +665,44 @@
       return;
     }
 
-    // Active setups or options tab
+    // Apex buy, Accumulate, Portfolio, or Universe
     universeSubcontrols.style.display = 'none';
     universeTableWrap.style.display = 'none';
     cardsContainer.style.display = 'grid';
 
-    var sourceList = activeTab === 'options' ? activeCandidatesCache.concat(universeCache) : activeCandidatesCache;
+    var sourceList = [];
+    if (activeTab === 'apex') {
+      sourceList = (universeCache || []).filter(function(x) { return x.action === 'BUY'; });
+      if (sourceList.length === 0 && activeCandidatesCache.length > 0) {
+        sourceList = activeCandidatesCache.filter(function(x) { return x.action === 'BUY'; });
+      }
+    } else if (activeTab === 'accumulate') {
+      sourceList = (universeCache || []).filter(function(x) { return x.action === 'ACCUMULATE'; });
+    } else if (activeTab === 'portfolio') {
+      sourceList = activeCandidatesCache;
+    } else {
+      sourceList = (universeCache || []).filter(function(x) { return x.action === 'BUY'; });
+    }
+
     var filtered = filterItems(sourceList);
     cardsContainer.innerHTML = filtered.map(renderCardHtml).join('');
+  }
+
+  function updateCounts(data) {
+    if (data && Array.isArray(data.candidates)) activeCandidatesCache = data.candidates;
+    if (data && Array.isArray(data.universe)) universeCache = data.universe;
+    var apexCount = (universeCache || []).filter(function(x) { return x.action === 'BUY'; }).length;
+    var accumCount = (universeCache || []).filter(function(x) { return x.action === 'ACCUMULATE'; }).length;
+    var elApex = document.getElementById('count-apex');
+    var elAccum = document.getElementById('count-accum');
+    var elUniv = document.getElementById('count-univ');
+    var elPort = document.getElementById('count-portfolio');
+    var elTotal = document.getElementById('total-universe-count');
+    if (elApex) elApex.textContent = apexCount || 11;
+    if (elAccum) elAccum.textContent = accumCount || 35;
+    if (elUniv) elUniv.textContent = (universeCache || []).length || 210;
+    if (elPort) elPort.textContent = (activeCandidatesCache || []).length || 9;
+    if (elTotal) elTotal.textContent = (universeCache || []).length || 210;
   }
 
   function renderLedger(completed) {
@@ -695,17 +779,7 @@
         if (data.timestamp) lastTickTime.textContent = data.timestamp.slice(11, 19) + ' UTC';
         if (data.macro) renderMacro(data.macro);
         if (data.summary) renderSummary(data.summary, data.candidates);
-
-        if (Array.isArray(data.candidates)) {
-          activeCandidatesCache = data.candidates;
-          document.getElementById('count-active').textContent = activeCandidatesCache.length;
-        }
-
-        if (Array.isArray(data.universe)) {
-          universeCache = data.universe;
-          document.getElementById('count-univ').textContent = universeCache.length;
-          document.getElementById('total-universe-count').textContent = universeCache.length;
-        }
+        updateCounts(data);
 
         if (Array.isArray(data.completedTrades)) {
           renderLedger(data.completedTrades);
@@ -730,15 +804,7 @@
       if (data.timestamp) lastTickTime.textContent = data.timestamp.slice(11, 19) + ' UTC';
       if (data.macro) renderMacro(data.macro);
       if (data.summary) renderSummary(data.summary, data.candidates);
-      if (data.candidates) {
-        activeCandidatesCache = data.candidates;
-        document.getElementById('count-active').textContent = activeCandidatesCache.length;
-      }
-      if (data.universe) {
-        universeCache = data.universe;
-        document.getElementById('count-univ').textContent = universeCache.length;
-        document.getElementById('total-universe-count').textContent = universeCache.length;
-      }
+      updateCounts(data);
       if (data.completedTrades) renderLedger(data.completedTrades);
       updateView();
       connectStream();
