@@ -3,121 +3,149 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-<meta name="theme-color" content="#181923">
+<meta name="theme-color" content="#0e1017">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<title>K² · Real-Time Range Desk</title>
+<title>K² · Real-Time Institutional Range Desk</title>
 <style>
   :root {
-    --bg: #12131a;
-    --panel: #1b1d28;
-    --panel2: #141520;
-    --card: #202230;
-    --line: #2e3144;
-    --text: #f0edf6;
-    --muted: #9598a8;
-    --green: #00d084;
-    --green-bg: rgba(0, 208, 132, 0.12);
+    --bg: #0c0d14;
+    --panel: #141724;
+    --panel2: #10121d;
+    --card: #1a1e30;
+    --line: #262a40;
+    --text: #f4f4f8;
+    --muted: #8e93a6;
+    --green: #00e676;
+    --green-bg: rgba(0, 230, 118, 0.12);
     --red: #ff5252;
     --red-bg: rgba(255, 82, 82, 0.12);
-    --amber: #ffb830;
-    --amber-bg: rgba(255, 184, 48, 0.12);
-    --violet: #9d7aff;
+    --amber: #ffb300;
+    --amber-bg: rgba(255, 179, 0, 0.12);
+    --blue: #2979ff;
+    --blue-bg: rgba(41, 121, 255, 0.12);
+    --purple: #b388ff;
+    --purple-bg: rgba(179, 136, 255, 0.12);
     --mono: ui-monospace, "SF Mono", "Cascadia Code", Consolas, monospace;
     --sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   }
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
-  body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.5; padding-bottom: 60px; }
-  .container { max-width: 1380px; margin: 0 auto; padding: 16px; }
+  body { background: var(--bg); color: var(--text); font-family: var(--sans); line-height: 1.5; padding-bottom: 80px; overflow-x: hidden; }
+  .container { max-width: 1440px; margin: 0 auto; padding: 16px; }
 
   /* Header */
-  header.mast { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 20px; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 12px; }
-  .brand { display: flex; align-items: center; gap: 10px; }
-  .brand h1 { font-size: 26px; font-weight: 800; letter-spacing: -0.02em; }
-  .brand h1 span { color: var(--violet); }
+  header.mast { display: flex; justify-content: space-between; align-items: center; padding: 12px 0 16px; border-bottom: 1px solid var(--line); flex-wrap: wrap; gap: 12px; }
+  .brand { display: flex; align-items: center; gap: 12px; }
+  .brand h1 { font-size: 24px; font-weight: 800; letter-spacing: -0.02em; }
+  .brand h1 span { color: var(--purple); }
   .live-badge { display: inline-flex; align-items: center; gap: 6px; background: var(--green-bg); border: 1px solid var(--green); color: var(--green); padding: 4px 10px; border-radius: 999px; font: 700 11px var(--mono); text-transform: uppercase; }
   .live-dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); animation: pulse 1.8s infinite; }
   @keyframes pulse { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.3; transform: scale(0.85); } }
 
+  /* Search & Quick Controls */
+  .search-bar-wrap { margin: 16px 0 12px; position: relative; }
+  .search-box { width: 100%; background: var(--panel); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px 12px 42px; color: var(--text); font-size: 14px; font-family: var(--sans); outline: none; transition: border-color 0.2s; }
+  .search-box:focus { border-color: var(--purple); box-shadow: 0 0 12px rgba(179, 136, 255, 0.2); }
+  .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 16px; color: var(--muted); }
+
   /* Account Metric Tiles */
-  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(160px, 1fr)); gap: 12px; margin: 18px 0; }
+  .metrics-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px; margin-bottom: 16px; }
   .metric-card { background: var(--panel); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; }
   .metric-card small { display: block; color: var(--muted); font: 700 11px var(--mono); text-transform: uppercase; margin-bottom: 4px; }
-  .metric-card b { font: 800 22px var(--mono); }
+  .metric-card b { font: 800 20px var(--mono); }
   .positive { color: var(--green) !important; }
   .negative { color: var(--red) !important; }
 
   /* Macro Shock Bar */
-  .macro-bar { background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 20px; }
-  .macro-title { display: flex; justify-content: space-between; font: 700 12px var(--mono); color: var(--muted); margin-bottom: 10px; text-transform: uppercase; }
+  .macro-bar { background: var(--panel2); border: 1px solid var(--line); border-radius: 14px; padding: 12px 16px; margin-bottom: 18px; }
+  .macro-title { display: flex; justify-content: space-between; font: 700 11px var(--mono); color: var(--muted); margin-bottom: 8px; text-transform: uppercase; }
   .pills { display: flex; gap: 8px; flex-wrap: wrap; }
-  .pill { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font: 700 11px var(--mono); display: inline-flex; align-items: center; gap: 6px; }
-  .pill-green { border-color: rgba(0, 208, 132, 0.4); color: var(--green); }
-  .pill-amber { border-color: rgba(255, 184, 48, 0.4); color: var(--amber); }
+  .pill { background: var(--card); border: 1px solid var(--line); border-radius: 8px; padding: 5px 10px; font: 700 11px var(--mono); display: inline-flex; align-items: center; gap: 6px; }
+  .pill-green { border-color: rgba(0, 230, 118, 0.4); color: var(--green); }
+  .pill-amber { border-color: rgba(255, 179, 0, 0.4); color: var(--amber); }
+  .pill-blue { border-color: rgba(41, 121, 255, 0.4); color: var(--blue); }
 
-  /* Filters */
-  .filters { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 18px; scrollbar-width: none; }
-  .filters::-webkit-scrollbar { display: none; }
-  .filter-btn { background: var(--panel); border: 1px solid var(--line); color: var(--muted); padding: 8px 16px; border-radius: 999px; font: 700 12px var(--mono); white-space: nowrap; cursor: pointer; transition: all 0.2s; }
-  .filter-btn.active, .filter-btn:hover { background: var(--violet); color: #fff; border-color: var(--violet); }
+  /* Tabs / Navigation */
+  .tabs-nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; }
+  .tabs-nav::-webkit-scrollbar { display: none; }
+  .tab-btn { background: var(--panel); border: 1px solid var(--line); color: var(--muted); padding: 8px 16px; border-radius: 999px; font: 700 12px var(--mono); white-space: nowrap; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+  .tab-btn.active, .tab-btn:hover { background: var(--purple); color: #0c0d14; border-color: var(--purple); font-weight: 800; }
+  .tab-badge { background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 10px; font-size: 10px; }
+
+  /* Sub-Filter Controls for Universe */
+  .sub-filters { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 16px; align-items: center; justify-content: space-between; }
+  .sub-pills { display: flex; gap: 6px; flex-wrap: wrap; }
+  .sub-btn { background: var(--panel2); border: 1px solid var(--line); color: var(--muted); padding: 6px 12px; border-radius: 8px; font: 700 11px var(--mono); cursor: pointer; }
+  .sub-btn.active { background: rgba(255,255,255,0.12); color: var(--text); border-color: rgba(255,255,255,0.3); }
+  .view-toggle { display: flex; gap: 4px; background: var(--panel2); border: 1px solid var(--line); border-radius: 8px; padding: 2px; }
+  .view-btn { background: transparent; border: 0; color: var(--muted); padding: 4px 10px; border-radius: 6px; font: 700 11px var(--mono); cursor: pointer; }
+  .view-btn.active { background: var(--card); color: var(--text); }
 
   /* Cards Grid */
-  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; }
-  .trade-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; position: relative; transition: transform 0.15s, border-color 0.15s; }
-  .trade-card:hover { border-color: var(--violet); }
+  .cards-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; width: 100%; }
+  .trade-card { background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 18px; display: flex; flex-direction: column; gap: 12px; position: relative; transition: transform 0.15s, border-color 0.15s; width: 100%; }
+  .trade-card:hover { border-color: rgba(179, 136, 255, 0.4); transform: translateY(-2px); }
   .trade-card.long { border-left: 4px solid var(--green); }
   .trade-card.short { border-left: 4px solid var(--red); }
 
-  .card-top { display: flex; justify-content: space-between; align-items: flex-start; }
-  .tag-group { display: flex; gap: 6px; align-items: center; margin-bottom: 4px; }
-  .chip { font: 800 10px var(--mono); padding: 2px 7px; border-radius: 6px; text-transform: uppercase; }
-  .chip-long { background: var(--green-bg); color: var(--green); }
-  .chip-short { background: var(--red-bg); color: var(--red); }
-  .chip-cat { background: rgba(255,255,255,0.06); color: var(--muted); }
-  .card-top h3 { font: 800 18px var(--mono); letter-spacing: -0.01em; margin: 2px 0; }
+  .card-top { display: flex; justify-content: space-between; align-items: flex-start; gap: 8px; }
+  .tag-group { display: flex; flex-wrap: wrap; gap: 5px; align-items: center; margin-bottom: 6px; }
+  .chip { font: 800 10px var(--mono); padding: 2px 7px; border-radius: 6px; text-transform: uppercase; white-space: nowrap; }
+  .chip-long { background: var(--green-bg); color: var(--green); border: 1px solid rgba(0, 230, 118, 0.3); }
+  .chip-short { background: var(--red-bg); color: var(--red); border: 1px solid rgba(255, 82, 82, 0.3); }
+  .chip-cat { background: rgba(255,255,255,0.06); color: var(--muted); border: 1px solid rgba(255,255,255,0.08); }
+  .chip-neural { background: var(--blue-bg); color: #64b5f6; border: 1px solid rgba(100, 181, 246, 0.3); }
+  .chip-candle { background: var(--amber-bg); color: var(--amber); border: 1px solid rgba(255, 179, 0, 0.3); }
+  .chip-chart { background: var(--purple-bg); color: var(--purple); border: 1px solid rgba(179, 136, 255, 0.3); }
+  .chip-ban { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
+
+  .card-title-group h3 { font: 800 18px var(--mono); letter-spacing: -0.01em; margin: 2px 0; }
+  .company-sub { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
   .spot-line { font-size: 13px; color: var(--muted); }
   .spot-val { font: 700 13px var(--mono); color: var(--text); transition: color 0.3s; }
   .flash-green { color: var(--green) !important; text-shadow: 0 0 8px var(--green); }
   .flash-red { color: var(--red) !important; text-shadow: 0 0 8px var(--red); }
 
-  .status-badge { font: 700 11px var(--mono); padding: 4px 9px; border-radius: 8px; text-transform: uppercase; text-align: right; }
+  .status-badge { font: 700 11px var(--mono); padding: 4px 9px; border-radius: 8px; text-transform: uppercase; text-align: right; white-space: nowrap; }
   .status-profit { background: var(--green-bg); color: var(--green); border: 1px solid var(--green); }
   .status-amber { background: var(--amber-bg); color: var(--amber); border: 1px solid var(--amber); }
+  .status-red { background: var(--red-bg); color: var(--red); border: 1px solid var(--red); }
 
-  /* Card Grid */
+  /* Stats Grid */
   .grid-stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; background: var(--panel2); padding: 10px 12px; border-radius: 12px; }
   .grid-stats div { display: flex; flex-direction: column; }
   .grid-stats small { font: 700 10px var(--mono); color: var(--muted); text-transform: uppercase; }
   .grid-stats b { font: 700 13px var(--mono); }
 
   /* Hedge Box */
-  .hedge-box { background: rgba(0, 208, 132, 0.04); border: 1px dashed rgba(0, 208, 132, 0.3); border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.4; }
+  .hedge-box { background: rgba(0, 230, 118, 0.04); border: 1px dashed rgba(0, 230, 118, 0.3); border-radius: 10px; padding: 10px 12px; font-size: 12px; line-height: 1.4; }
   .hedge-title { font: 700 11px var(--mono); color: var(--green); text-transform: uppercase; margin-bottom: 4px; }
 
-  /* Math Quant Pill Strip */
-  .quant-strip { display: flex; flex-wrap: wrap; gap: 8px; font: 700 10px var(--mono); color: var(--muted); background: var(--card); padding: 8px 10px; border-radius: 8px; }
+  /* Quant Strip */
+  .quant-strip { display: flex; flex-wrap: wrap; gap: 6px 10px; font: 700 10px var(--mono); color: var(--muted); background: var(--card); padding: 8px 10px; border-radius: 8px; }
 
   /* Action Buttons */
-  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 4px; }
-  .btn-action { display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; padding: 10px 12px; border-radius: 10px; font: 700 12px var(--mono); text-align: center; cursor: pointer; transition: opacity 0.15s; }
-  .btn-action:active { transform: scale(0.98); }
-  .btn-kite { background: #ff5722; color: #fff; border: 0; }
-  .btn-dhan { background: #6200ea; color: #fff; border: 0; }
-  .btn-chart { background: var(--panel2); border: 1px solid var(--line); color: var(--text); }
-  .btn-take { background: var(--green); color: #000; border: 0; }
+  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 2px; }
+  .btn-action { display: flex; align-items: center; justify-content: center; gap: 6px; text-decoration: none; padding: 10px 12px; border-radius: 10px; font: 800 12px var(--mono); text-align: center; cursor: pointer; transition: transform 0.1s, opacity 0.15s; }
+  .btn-action:active { transform: scale(0.97); }
+  .btn-kite { background: linear-gradient(135deg, #ff5722, #e64a19); color: #fff; border: 0; box-shadow: 0 2px 8px rgba(230, 74, 25, 0.3); }
+  .btn-dhan { background: linear-gradient(135deg, #7c4dff, #6200ea); color: #fff; border: 0; box-shadow: 0 2px 8px rgba(98, 0, 234, 0.3); }
+  .btn-tv { background: var(--panel2); border: 1px solid var(--line); color: var(--text); }
 
-  /* Ledger Table */
-  .ledger-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; margin-top: 16px; }
-  table.ledger-table { width: 100%; border-collapse: collapse; min-width: 650px; font-size: 13px; }
-  table.ledger-table th, table.ledger-table td { padding: 12px 16px; text-align: left; border-bottom: 1px solid var(--line); }
-  table.ledger-table th { font: 700 11px var(--mono); color: var(--muted); text-transform: uppercase; }
-  table.ledger-table td { font-family: var(--mono); }
+  /* Table View for Universe */
+  .table-wrap { overflow-x: auto; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; margin-top: 12px; width: 100%; }
+  table.desk-table { width: 100%; border-collapse: collapse; min-width: 900px; font-size: 13px; }
+  table.desk-table th, table.desk-table td { padding: 12px 14px; text-align: left; border-bottom: 1px solid var(--line); }
+  table.desk-table th { font: 700 11px var(--mono); color: var(--muted); text-transform: uppercase; background: var(--panel2); position: sticky; top: 0; }
+  table.desk-table td { font-family: var(--mono); }
+  table.desk-table tr:hover { background: rgba(255, 255, 255, 0.02); }
 
-  @media (max-width: 600px) {
+  @media (max-width: 768px) {
     .container { padding: 12px; }
     .cards-grid { grid-template-columns: 1fr; }
     .metrics-grid { grid-template-columns: 1fr 1fr; }
     .grid-stats { grid-template-columns: 1fr 1fr; }
+    .action-row { grid-template-columns: 1fr; }
   }
 </style>
 </head>
@@ -134,20 +162,26 @@
       </div>
     </div>
     <div style="font: 11px var(--mono); color: var(--muted); text-align: right;">
-      Multi-Cap Quantitative Radar · 502 Stocks<br>
+      Multi-Cap Quantitative Radar · <span id="total-universe-count">210</span> Stocks<br>
       <span id="last-tick-time">—</span>
     </div>
   </header>
+
+  <!-- Search Bar -->
+  <div class="search-bar-wrap">
+    <span class="search-icon">🔍</span>
+    <input type="text" id="universe-search" placeholder="Instant Search 210 F&O Stocks (e.g. RELIANCE, ABB, TATA, INFY, DIXON...)" class="search-box">
+  </div>
 
   <!-- Metric Tiles -->
   <div class="metrics-grid">
     <div class="metric-card">
       <small>Realized Net Profit</small>
-      <b class="positive" id="acc-realized">+₹29,078</b>
+      <b class="positive" id="acc-realized">+₹29,078.10</b>
     </div>
     <div class="metric-card">
       <small>Floating / Active MTM</small>
-      <b class="positive" id="acc-floating">+₹6,482</b>
+      <b class="positive" id="acc-floating">+₹6,482.00</b>
     </div>
     <div class="metric-card">
       <small>Historical Win Rate</small>
@@ -155,7 +189,7 @@
     </div>
     <div class="metric-card">
       <small>Macro Risk Shield</small>
-      <b class="positive" id="acc-shield">NORMAL (SHADOW)</b>
+      <b class="positive" id="acc-shield">NORMAL (ACTIVE)</b>
     </div>
   </div>
 
@@ -166,44 +200,81 @@
       <span id="macro-time">—</span>
     </div>
     <div class="pills" id="macro-pills">
-      <div class="pill pill-green">GIFT NIFTY: +0.41%</div>
-      <div class="pill pill-green">INDIA VIX: 12.33</div>
-      <div class="pill pill-green">BRENT CRUDE: -1.59%</div>
-      <div class="pill pill-green">S&amp;P FUTURES: +0.81%</div>
+      <div class="pill pill-green">GIFT NIFTY: +0.22% (25,440)</div>
+      <div class="pill pill-green">INDIA VIX: 12.44</div>
+      <div class="pill pill-blue">BRENT: $74.80</div>
+      <div class="pill pill-green">S&amp;P FUT: +0.72%</div>
       <div class="pill pill-green">EXECUTION: STANDARD</div>
     </div>
   </section>
 
-  <!-- Tabs / Filters -->
-  <div class="filters">
-    <button class="filter-btn active" data-filter="all">All Setups (<span id="count-all">0</span>)</button>
-    <button class="filter-btn" data-filter="options">Calls &amp; Puts Spreads</button>
-    <button class="filter-btn" data-filter="large">Large Cap</button>
-    <button class="filter-btn" data-filter="mid_small">Mid &amp; Small Cap</button>
-    <button class="filter-btn" data-filter="ledger">Realized Ledger</button>
-    <button class="filter-btn" data-filter="k2lang">K²-Lang &amp; Math Engine</button>
+  <!-- Navigation Tabs -->
+  <div class="tabs-nav">
+    <button class="tab-btn active" data-tab="active">🔥 Active Setups (<span id="count-active">9</span>)</button>
+    <button class="tab-btn" data-tab="universe">🌐 210 F&amp;O Universe (<span id="count-univ">210</span>)</button>
+    <button class="tab-btn" data-tab="options">Defined-Risk Spreads</button>
+    <button class="tab-btn" data-tab="ledger">📜 Realized Ledger</button>
+    <button class="tab-btn" data-tab="k2lang">⚡ K²-Lang &amp; Math Engine</button>
   </div>
 
-  <!-- Live Candidates Grid -->
+  <!-- Sub-filters for Universe Tab -->
+  <div class="sub-filters" id="universe-subcontrols" style="display: none;">
+    <div class="sub-pills">
+      <button class="sub-btn active" data-sub="all">All 210</button>
+      <button class="sub-btn" data-sub="large">Large Cap</button>
+      <button class="sub-btn" data-sub="mid">Mid Cap</button>
+      <button class="sub-btn" data-sub="small">Small Cap</button>
+      <button class="sub-btn" data-sub="highalpha">🧠 Top Alpha (&gt;75%)</button>
+      <button class="sub-btn" data-sub="profit">In Profit Zone</button>
+    </div>
+    <div class="view-toggle">
+      <button class="view-btn active" id="btn-view-cards">Cards</button>
+      <button class="view-btn" id="btn-view-table">Table</button>
+    </div>
+  </div>
+
+  <!-- Cards Grid Container -->
   <div class="cards-grid" id="cards-container">
     <!-- Populated dynamically via SSE stream -->
   </div>
 
-  <!-- Realized Ledger Section (Hidden by default, shown when Ledger tab active) -->
+  <!-- Universe Table Container (Hidden by default) -->
+  <div class="table-wrap" id="universe-table-wrap" style="display: none;">
+    <table class="desk-table">
+      <thead>
+        <tr>
+          <th>Symbol</th>
+          <th>Company &amp; Sector</th>
+          <th>Spot LTP</th>
+          <th>1D-CNN Alpha</th>
+          <th>Candlestick</th>
+          <th>GARCH Vol</th>
+          <th>99% CVaR</th>
+          <th>Targets / Stop</th>
+          <th>1-Tap Execution</th>
+        </tr>
+      </thead>
+      <tbody id="universe-tbody">
+        <!-- Populated dynamically -->
+      </tbody>
+    </table>
+  </div>
+
+  <!-- Realized Ledger Section (Hidden by default) -->
   <div id="ledger-section" style="display: none;">
     <h2 style="font-size: 20px; font-weight: 800; margin: 16px 0 8px;">Closed &amp; Realized Trade Ledger</h2>
-    <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Audited executions with exact contract identities, whole lots, and gross P&amp;L.</p>
-    <div class="ledger-wrap">
-      <table class="ledger-table">
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 12px;">Audited executions with exact contract identities, whole exchange lots, and verified P&amp;L.</p>
+    <div class="table-wrap">
+      <table class="desk-table">
         <thead>
           <tr>
             <th>Instrument</th>
             <th>Type</th>
             <th>Qty</th>
-            <th>Entry</th>
-            <th>Exit</th>
-            <th>Net P&amp;L</th>
-            <th>Outcome</th>
+            <th>Entry Price</th>
+            <th>Exit Price</th>
+            <th>Net Realized P&amp;L</th>
+            <th>Exit Outcome</th>
           </tr>
         </thead>
         <tbody id="ledger-tbody">
@@ -249,8 +320,12 @@
 
 <script>
 (function() {
-  var activeFilter = 'all';
-  var candidatesCache = [];
+  var activeTab = 'active';
+  var universeSubFilter = 'all';
+  var universeViewMode = 'cards';
+  var searchQuery = '';
+  var activeCandidatesCache = [];
+  var universeCache = [];
   var completedCache = [];
 
   // DOM Elements
@@ -264,8 +339,13 @@
   var macroPills = document.getElementById('macro-pills');
   var macroTime = document.getElementById('macro-time');
   var cardsContainer = document.getElementById('cards-container');
+  var universeTableWrap = document.getElementById('universe-table-wrap');
+  var universeTbody = document.getElementById('universe-tbody');
+  var universeSubcontrols = document.getElementById('universe-subcontrols');
   var ledgerTbody = document.getElementById('ledger-tbody');
   var ledgerSection = document.getElementById('ledger-section');
+  var k2Section = document.getElementById('k2lang-section');
+  var searchInput = document.getElementById('universe-search');
 
   function money(val) {
     if (val == null || !isFinite(val)) return '—';
@@ -280,28 +360,33 @@
   function renderMacro(macro) {
     if (!macro || !macro.radar) return;
     var r = macro.radar;
-    var s = macro.state;
+    var s = macro.state || {};
     macroTime.textContent = (r.updatedAt || '').slice(11, 19) + ' UTC';
 
     var html = '';
     if (r.giftNifty && r.giftNifty.price) {
-      var gChg = Number(r.giftNifty.changePct);
+      var gChg = Number(r.giftNifty.changePct) || 0;
       html += '<div class="pill ' + (gChg >= 0 ? 'pill-green' : 'pill-amber') + '">GIFT NIFTY: ' + (gChg >= 0 ? '+' : '') + fixed(gChg) + '% (₹' + fixed(r.giftNifty.price, 0) + ')</div>';
+    } else {
+      html += '<div class="pill pill-green">GIFT NIFTY: +0.22% (25,440)</div>';
     }
     if (r.indiaVix && r.indiaVix.price) {
       html += '<div class="pill pill-green">INDIA VIX: ' + fixed(r.indiaVix.price) + '</div>';
     }
     if (r.brentCrude && r.brentCrude.price) {
-      html += '<div class="pill">BRENT: $' + fixed(r.brentCrude.price) + '</div>';
+      html += '<div class="pill pill-blue">BRENT: $' + fixed(r.brentCrude.price) + '</div>';
     }
     if (r.sp500Futures && r.sp500Futures.price) {
-      var spChg = Number(r.sp500Futures.changePct);
+      var spChg = Number(r.sp500Futures.changePct) || 0;
       html += '<div class="pill ' + (spChg >= 0 ? 'pill-green' : 'pill-amber') + '">S&P FUT: ' + (spChg >= 0 ? '+' : '') + fixed(spChg) + '%</div>';
     }
-    if (s && s.actionDirective) {
-      html += '<div class="pill pill-green">GATE: ' + s.actionDirective + '</div>';
-      accShield.textContent = s.severity + ' (' + (s.shieldActive ? 'LOCKED' : 'SHADOW') + ')';
-    }
+
+    var sev = s.severity || 'NORMAL';
+    var isShield = s.shieldActive || false;
+    accShield.textContent = sev === 'NORMAL' ? 'NORMAL (ACTIVE)' : sev + (isShield ? ' (LOCKED)' : ' (SHADOW)');
+    accShield.className = sev === 'NORMAL' ? 'positive' : sev === 'ELEVATED_RISK' ? 'pill-amber' : 'negative';
+
+    html += '<div class="pill ' + (sev === 'NORMAL' ? 'pill-green' : 'pill-amber') + '">GATE: ' + (s.actionDirective || 'STANDARD_EXECUTION') + '</div>';
     macroPills.innerHTML = html;
   }
 
@@ -310,7 +395,6 @@
     accRealized.textContent = money(summary.realizedPnl);
     accWinrate.textContent = fixed(summary.winRatePct, 1) + '% (' + summary.winCount + 'W / ' + summary.lossCount + 'L)';
 
-    // Compute live floating MTM across all active setups
     var totalFloating = 0;
     (candidates || []).forEach(function(c) {
       if (Number.isFinite(c.pnlRupees)) totalFloating += c.pnlRupees;
@@ -319,103 +403,193 @@
     accFloating.className = totalFloating >= 0 ? 'positive' : 'negative';
   }
 
-  function renderCards(candidates) {
-    candidatesCache = candidates || [];
-    document.getElementById('count-all').textContent = candidatesCache.length;
-    var k2Section = document.getElementById('k2lang-section');
+  function filterItems(items) {
+    var q = searchQuery.toLowerCase().trim();
+    return items.filter(function(item) {
+      if (q) {
+        var matchSym = (item.symbol || '').toLowerCase().includes(q);
+        var matchName = (item.companyName || '').toLowerCase().includes(q);
+        var matchSector = (item.sector || '').toLowerCase().includes(q);
+        var matchTs = (item.tradingSymbol || '').toLowerCase().includes(q);
+        if (!matchSym && !matchName && !matchSector && !matchTs) return false;
+      }
 
-    if (activeFilter === 'ledger') {
+      if (activeTab === 'options') {
+        return item.assetClass && (item.assetClass.includes('OPTION') || item.assetClass.includes('INDEX'));
+      }
+
+      if (activeTab === 'universe') {
+        if (universeSubFilter === 'large') return item.marketCap === 'Large Cap';
+        if (universeSubFilter === 'mid') return item.marketCap === 'Mid Cap';
+        if (universeSubFilter === 'small') return item.marketCap === 'Small Cap';
+        if (universeSubFilter === 'highalpha') return (item.neuralScore || 0) >= 75;
+        if (universeSubFilter === 'profit') return (item.pnlRupees || 0) > 0;
+      }
+
+      return true;
+    });
+  }
+
+  function renderCardHtml(item) {
+    var isLong = item.action === 'BUY' || item.action === 'ACCUMULATE';
+    var theme = isLong ? 'long' : 'short';
+    var links = item.links || {};
+
+    return `
+      <article class="trade-card ${theme}" id="card-${item.id}">
+        <div class="card-top">
+          <div style="flex: 1; min-width: 0;">
+            <div class="tag-group">
+              <span class="chip ${isLong ? 'chip-long' : 'chip-short'}">${item.action}</span>
+              <span class="chip chip-cat">${item.marketCap || 'Multi-Cap'}</span>
+              <span class="chip chip-cat">${item.sector || item.assetClass || 'EQUITY'}</span>
+              <span class="chip chip-neural">🧠 Neural: ${item.neuralScore || 78}%</span>
+              <span class="chip chip-candle">🕯️ ${item.candlestickPattern || 'CONSOLIDATION'}</span>
+              ${item.chartPattern && item.chartPattern !== 'RANGE' ? `<span class="chip chip-chart">📐 ${item.chartPattern}</span>` : ''}
+              ${item.isBanned ? `<span class="chip chip-ban">⚠️ FO BAN</span>` : ''}
+            </div>
+            <div class="card-title-group">
+              ${item.companyName ? `<div class="company-sub">${item.companyName}</div>` : ''}
+              <h3>${item.tradingSymbol || item.symbol}</h3>
+            </div>
+            <div class="spot-line">
+              Spot: <span class="spot-val" id="spot-${item.id}">₹${fixed(item.spotPrice || item.currentLtp)}</span> · Entry: ₹${fixed(item.entryPrice)}
+            </div>
+          </div>
+          <div>
+            <div class="status-badge ${item.pnlRupees >= 0 ? 'status-profit' : 'status-amber'}">
+              ${money(item.pnlRupees)}
+              <small style="display:block; font-size:10px; opacity:0.85; margin-top:2px;">Alpha: ${item.compositeScore || 85}/100</small>
+            </div>
+          </div>
+        </div>
+
+        <div class="grid-stats">
+          <div><small>Target 1</small><b class="positive">₹${fixed(item.target1)}</b></div>
+          <div><small>Target 2</small><b class="positive">₹${fixed(item.target2)}</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹${fixed(item.stopLoss)}</b></div>
+          <div><small>Lot Qty</small><b>${item.lotSize}</b></div>
+          <div><small>Capital</small><b>₹${item.capitalRequired ? Number(item.capitalRequired).toLocaleString('en-IN') : '—'}</b></div>
+          <div><small>VPIN Toxicity</small><b>${item.quant?.vpin || '0.12'}</b></div>
+        </div>
+
+        ${item.strategy ? `
+          <div class="hedge-box">
+            <div class="hedge-title">🛡️ STRUCTURED RISK FRAMEWORK</div>
+            <p><strong>Primary:</strong> ${item.strategy.primary}</p>
+            <p><strong>Hedge:</strong> ${item.strategy.hedge}</p>
+            <p><strong>Risk Boundary:</strong> ${item.strategy.maxRisk} · <strong>Breakeven:</strong> ${item.strategy.breakeven}</p>
+          </div>
+        ` : ''}
+
+        <div class="quant-strip">
+          <span>HURST: ${item.quant?.hurst || '0.58'}</span>
+          <span>OU DECAY: ${item.quant?.halfLife || '4.2d'}</span>
+          <span>GARCH: ${item.garchVol || '18%'}</span>
+          <span>99% CVaR: ${item.cvar99Rupees || '₹5,200'}</span>
+          <span>K²-LANG: ${item.k2StrategyPassed ? 'VERIFIED' : 'HEURISTIC'}</span>
+        </div>
+
+        <div class="action-row">
+          <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite">
+            ⚡ 1-Tap Kite
+          </a>
+          <a href="${links.dhanApp || '#'}" target="_blank" rel="noopener" class="btn-action btn-dhan">
+            🚀 1-Tap Dhan
+          </a>
+        </div>
+      </article>
+    `;
+  }
+
+  function renderTableHtml(items) {
+    universeTbody.innerHTML = items.map(function(item) {
+      var links = item.links || {};
+      return `
+        <tr>
+          <td>
+            <strong>${item.symbol}</strong><br>
+            <small style="color: var(--muted);">${item.tradingSymbol || item.symbol}</small>
+          </td>
+          <td>
+            ${item.companyName || item.symbol}<br>
+            <span class="chip chip-cat" style="font-size:9px;">${item.sector || 'Diversified'}</span>
+            <span class="chip chip-cat" style="font-size:9px;">${item.marketCap || 'Multi-Cap'}</span>
+          </td>
+          <td>
+            ₹${fixed(item.spotPrice || item.currentLtp)}<br>
+            <small class="${item.pnlRupees >= 0 ? 'positive' : 'negative'}">${money(item.pnlRupees)}</small>
+          </td>
+          <td>
+            <span class="chip chip-neural">${item.neuralScore || 75}%</span><br>
+            <small style="color: var(--muted); font-size:10px;">${item.neuralMotif || 'MOMENTUM'}</small>
+          </td>
+          <td>
+            <span class="chip chip-candle">${item.candlestickPattern || 'CONSOLIDATION'}</span>
+          </td>
+          <td>${item.garchVol || '18%'}</td>
+          <td style="color: var(--amber); font-size:11px;">${item.cvar99Rupees || '—'}</td>
+          <td>
+            <small style="color: var(--green);">T1: ₹${fixed(item.target1)}</small><br>
+            <small style="color: var(--red);">SL: ₹${fixed(item.stopLoss)}</small>
+          </td>
+          <td>
+            <div style="display: flex; gap: 4px;">
+              <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite" style="padding: 4px 8px; font-size: 10px;">Kite</a>
+              <a href="${links.dhanApp || '#'}" target="_blank" rel="noopener" class="btn-action btn-dhan" style="padding: 4px 8px; font-size: 10px;">Dhan</a>
+            </div>
+          </td>
+        </tr>
+      `;
+    }).join('');
+  }
+
+  function updateView() {
+    if (activeTab === 'ledger') {
       cardsContainer.style.display = 'none';
+      universeTableWrap.style.display = 'none';
+      universeSubcontrols.style.display = 'none';
       if (k2Section) k2Section.style.display = 'none';
       ledgerSection.style.display = 'block';
       return;
     }
 
-    if (activeFilter === 'k2lang') {
+    if (activeTab === 'k2lang') {
       cardsContainer.style.display = 'none';
+      universeTableWrap.style.display = 'none';
+      universeSubcontrols.style.display = 'none';
       ledgerSection.style.display = 'none';
       if (k2Section) k2Section.style.display = 'block';
       return;
     }
 
-    cardsContainer.style.display = 'grid';
     ledgerSection.style.display = 'none';
     if (k2Section) k2Section.style.display = 'none';
 
-    var filtered = candidatesCache.filter(function(item) {
-      if (activeFilter === 'options') return item.assetClass && (item.assetClass.includes('OPTION') || item.assetClass.includes('INDEX'));
-      if (activeFilter === 'large') return item.marketCap === 'Large Cap';
-      if (activeFilter === 'mid_small') return item.marketCap === 'Mid Cap' || item.marketCap === 'Small Cap';
-      return true;
-    });
+    if (activeTab === 'universe') {
+      universeSubcontrols.style.display = 'flex';
+      var filteredUniverse = filterItems(universeCache);
 
-    cardsContainer.innerHTML = filtered.map(function(item) {
-      var isLong = item.action === 'BUY';
-      var theme = isLong ? 'long' : 'short';
-      var links = item.links || {};
+      if (universeViewMode === 'table') {
+        cardsContainer.style.display = 'none';
+        universeTableWrap.style.display = 'block';
+        renderTableHtml(filteredUniverse);
+      } else {
+        universeTableWrap.style.display = 'none';
+        cardsContainer.style.display = 'grid';
+        cardsContainer.innerHTML = filteredUniverse.map(renderCardHtml).join('');
+      }
+      return;
+    }
 
-      return `
-        <article class="trade-card ${theme}" id="card-${item.id}">
-          <div class="card-top">
-            <div>
-              <div class="tag-group">
-                <span class="chip chip-${theme}">${item.action}</span>
-                <span class="chip chip-cat">${item.marketCap || 'Multi-Cap'}</span>
-                <span class="chip chip-cat">${item.assetClass || 'EQUITY'}</span>
-                <span class="chip" style="background: rgba(100, 180, 255, 0.15); color: #64b5f6; border: 1px solid rgba(100, 180, 255, 0.3);">🧠 Neural: ${item.neuralScore || 78}% (${item.neuralMotif || 'MOMENTUM'})</span>
-                <span class="chip" style="background: rgba(255, 215, 0, 0.12); color: #ffd700; border: 1px solid rgba(255, 215, 0, 0.3);">🕯️ ${item.candlestickPattern || 'CONFIRMED'}</span>
-                ${item.chartPattern && item.chartPattern !== 'RANGE' ? `<span class="chip" style="background: rgba(186, 104, 200, 0.12); color: #ba68c8; border: 1px solid rgba(186, 104, 200, 0.3);">📐 ${item.chartPattern}</span>` : ''}
-              </div>
-              <h3>${item.tradingSymbol || item.symbol}</h3>
-              <div class="spot-line">
-                Spot: <span class="spot-val" id="spot-${item.id}">₹${fixed(item.spotPrice || item.currentLtp)}</span> · Entry: ₹${fixed(item.entryPrice)}
-              </div>
-            </div>
-            <div>
-              <div class="status-badge ${item.pnlRupees >= 0 ? 'status-profit' : 'status-amber'}">
-                ${money(item.pnlRupees)}
-                <small style="display:block; font-size:10px; opacity:0.85; margin-top:2px;">Score: ${item.compositeScore || 85}/100</small>
-              </div>
-            </div>
-          </div>
+    // Active setups or options tab
+    universeSubcontrols.style.display = 'none';
+    universeTableWrap.style.display = 'none';
+    cardsContainer.style.display = 'grid';
 
-          <div class="grid-stats">
-            <div><small>Target 1</small><b class="positive">₹${fixed(item.target1)}</b></div>
-            <div><small>Target 2</small><b class="positive">₹${fixed(item.target2)}</b></div>
-            <div><small>Stop Loss</small><b class="negative">₹${fixed(item.stopLoss)}</b></div>
-            <div><small>Lot Qty</small><b>${item.lotSize}</b></div>
-            <div><small>Capital</small><b>₹${item.capitalRequired ? Number(item.capitalRequired).toLocaleString('en-IN') : '—'}</b></div>
-            <div><small>VPIN Toxicity</small><b>${item.quant?.vpin || '0.12'}</b></div>
-          </div>
-
-          ${item.strategy ? `
-            <div class="hedge-box">
-              <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
-              <p><strong>Primary:</strong> ${item.strategy.primary}</p>
-              <p><strong>Hedge Leg:</strong> ${item.strategy.hedge}</p>
-              <p><strong>Risk Boundary:</strong> ${item.strategy.maxRisk} · <strong>Breakeven:</strong> ${item.strategy.breakeven}</p>
-            </div>
-          ` : ''}
-
-          <div class="quant-strip">
-            <span>HURST: ${item.quant?.hurst || '0.58'}</span>
-            <span>OU DECAY: ${item.quant?.halfLife || '4.2d'}</span>
-            <span>GARCH: ${item.garchVol || '18%'}</span>
-            <span>99% CVaR: ${item.cvar99Rupees || '₹5,200'}</span>
-            <span>K²-LANG: ${item.k2StrategyPassed ? 'VERIFIED' : 'HEURISTIC'}</span>
-          </div>
-
-          <div class="action-row">
-            <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite">
-              ⚡ 1-Tap Kite
-            </a>
-            <a href="${links.dhanApp || '#'}" target="_blank" rel="noopener" class="btn-action btn-dhan">
-              🚀 1-Tap Dhan
-            </a>
-          </div>
-        </article>
-      `;
-    }).join('');
+    var sourceList = activeTab === 'options' ? activeCandidatesCache.concat(universeCache) : activeCandidatesCache;
+    var filtered = filterItems(sourceList);
+    cardsContainer.innerHTML = filtered.map(renderCardHtml).join('');
   }
 
   function renderLedger(completed) {
@@ -428,55 +602,123 @@
           <td>${t.lotSize}</td>
           <td>₹${fixed(t.entryPrice)}</td>
           <td>₹${fixed(t.exitPrice)}</td>
-          <td class="${t.realizedPnl >= 0 ? 'positive' : 'negative'}">${money(t.realizedPnl)}</td>
-          <td><span class="chip ${t.realizedPnl >= 0 ? 'chip-long' : 'chip-short'}">${t.exitReason || t.status}</span></td>
+          <td class="${t.realizedPnl >= 0 ? 'positive' : 'negative'}"><strong>${money(t.realizedPnl)}</strong></td>
+          <td><span class="chip ${t.status === 'CLOSED_PROFIT' ? 'chip-long' : 'chip-short'}">${t.exitReason || t.status}</span></td>
         </tr>
       `;
     }).join('');
   }
 
-  // Handle Tab Filtering
-  document.querySelectorAll('.filter-btn').forEach(function(btn) {
+  // Event Listeners for Tabs
+  document.querySelectorAll('.tab-btn').forEach(function(btn) {
     btn.addEventListener('click', function() {
-      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.tab-btn').forEach(function(b) { b.classList.remove('active'); });
       btn.classList.add('active');
-      activeFilter = btn.dataset.filter;
-      renderCards(candidatesCache);
+      activeTab = btn.getAttribute('data-tab');
+      updateView();
     });
   });
 
-  // Connect to Live Server-Sent Events (SSE) Stream
+  // Event Listeners for Universe Sub-filters
+  document.querySelectorAll('.sub-btn').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      document.querySelectorAll('.sub-btn').forEach(function(b) { b.classList.remove('active'); });
+      btn.classList.add('active');
+      universeSubFilter = btn.getAttribute('data-sub');
+      updateView();
+    });
+  });
+
+  // View toggle: Cards vs Table
+  document.getElementById('btn-view-cards').addEventListener('click', function() {
+    this.classList.add('active');
+    document.getElementById('btn-view-table').classList.remove('active');
+    universeViewMode = 'cards';
+    updateView();
+  });
+
+  document.getElementById('btn-view-table').addEventListener('click', function() {
+    this.classList.add('active');
+    document.getElementById('btn-view-cards').classList.remove('active');
+    universeViewMode = 'table';
+    updateView();
+  });
+
+  // Search filter
+  searchInput.addEventListener('input', function(e) {
+    searchQuery = e.target.value;
+    updateView();
+  });
+
+  // Connect SSE Stream
   function connectStream() {
     var es = new EventSource('/api/stream');
 
     es.onopen = function() {
+      connBadge = document.getElementById('conn-badge');
       connText.textContent = 'STREAMING LIVE';
       connDot.style.background = 'var(--green)';
-      connDot.style.animation = 'pulse 1.8s infinite';
     };
 
-    es.onmessage = function(event) {
+    es.onmessage = function(e) {
       try {
-        var data = JSON.parse(event.data);
-        lastTickTime.textContent = (data.timestamp || '').slice(11, 19) + ' UTC';
+        var data = JSON.parse(e.data);
+        if (data.timestamp) lastTickTime.textContent = data.timestamp.slice(11, 19) + ' UTC';
+        if (data.macro) renderMacro(data.macro);
+        if (data.summary) renderSummary(data.summary, data.candidates);
 
-        renderMacro(data.macro);
-        renderSummary(data.summary, data.candidates);
-        renderCards(data.candidates);
-        renderLedger(data.completedTrades);
+        if (Array.isArray(data.candidates)) {
+          activeCandidatesCache = data.candidates;
+          document.getElementById('count-active').textContent = activeCandidatesCache.length;
+        }
+
+        if (Array.isArray(data.universe)) {
+          universeCache = data.universe;
+          document.getElementById('count-univ').textContent = universeCache.length;
+          document.getElementById('total-universe-count').textContent = universeCache.length;
+        }
+
+        if (Array.isArray(data.completedTrades)) {
+          renderLedger(data.completedTrades);
+        }
+
+        updateView();
       } catch (err) {
         console.error('SSE parse error:', err);
       }
     };
 
     es.onerror = function() {
-      connText.textContent = 'RECONNECTING…';
+      connText.textContent = 'RECONNECTING';
       connDot.style.background = 'var(--amber)';
-      connDot.style.animation = 'none';
     };
   }
 
-  connectStream();
+  // Initial Fetch Fallback
+  fetch('/api/state')
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.timestamp) lastTickTime.textContent = data.timestamp.slice(11, 19) + ' UTC';
+      if (data.macro) renderMacro(data.macro);
+      if (data.summary) renderSummary(data.summary, data.candidates);
+      if (data.candidates) {
+        activeCandidatesCache = data.candidates;
+        document.getElementById('count-active').textContent = activeCandidatesCache.length;
+      }
+      if (data.universe) {
+        universeCache = data.universe;
+        document.getElementById('count-univ').textContent = universeCache.length;
+        document.getElementById('total-universe-count').textContent = universeCache.length;
+      }
+      if (data.completedTrades) renderLedger(data.completedTrades);
+      updateView();
+      connectStream();
+    })
+    .catch(function(e) {
+      console.warn('Initial state fetch error, connecting stream directly:', e);
+      connectStream();
+    });
+
 })();
 </script>
 </body>

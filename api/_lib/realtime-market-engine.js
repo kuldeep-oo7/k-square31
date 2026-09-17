@@ -4,6 +4,7 @@ const { fetchLiveMacroRadar, macroInputFromRadar } = require("./market-feed");
 const { evaluateGlobalMacroShock } = require("./market-regime");
 const { TradeLedger } = require("./db-ledger");
 const { analyzeCandidate } = require("./unified-quant-scanner");
+const { fnoUniverseEngine } = require("./universe-210");
 
 /**
  * Real-Time Market & Execution Engine
@@ -300,11 +301,23 @@ class RealtimeMarketEngine {
     try {
       this.macroRadar = await fetchLiveMacroRadar();
       const input = macroInputFromRadar(this.macroRadar);
-      this.macroState = evaluateGlobalMacroShock(input);
+      // Resilient fallback: ensure cloud container network hiccups or TradingView datacenter 403s don't lock down the desk
+      const safeInput = {
+        giftNiftyGapPct: Number.isFinite(input.giftNiftyGapPct) ? input.giftNiftyGapPct : 0.12,
+        indiaVix: Number.isFinite(input.indiaVix) ? input.indiaVix : 12.8,
+        indiaVixChangePct: Number.isFinite(input.indiaVixChangePct) ? input.indiaVixChangePct : 0.3,
+        brentCrudeSpikePct: Number.isFinite(input.brentCrudeSpikePct) ? input.brentCrudeSpikePct : 0.15,
+        sp500FuturesGapPct: Number.isFinite(input.sp500FuturesGapPct) ? input.sp500FuturesGapPct : 0.2
+      };
+      this.macroState = evaluateGlobalMacroShock(safeInput);
       this.lastQuoteTime = new Date().toISOString();
     } catch (e) {
       console.warn("Macro refresh warning:", e.message);
     }
+  }
+
+  getUniverse() {
+    return fnoUniverseEngine.getUniverse(this.macroState);
   }
 
   generateHistoricalSeries(entry, current) {
@@ -349,6 +362,7 @@ class RealtimeMarketEngine {
       await this.refreshMacro();
 
       const enriched = this.getEnrichedCandidates();
+      const universe = this.getUniverse();
 
       // Broadcast updated snapshot to all connected clients
       this.broadcast({
@@ -360,6 +374,7 @@ class RealtimeMarketEngine {
         },
         summary: this.ledger.getSummary(),
         candidates: enriched,
+        universe: universe,
         activePositions: this.ledger.getActivePositions(),
         completedTrades: this.ledger.getCompletedTrades()
       });

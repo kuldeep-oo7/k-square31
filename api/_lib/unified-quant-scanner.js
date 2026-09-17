@@ -72,6 +72,9 @@ function generateBrokerDeepLinks({ symbol, exchange = "NSE", action = "BUY", qua
 function analyzeCandidate({
   id,
   symbol,
+  companyName = null,
+  sector = null,
+  isBanned = false,
   tradingSymbol,
   assetClass,
   marketCap = "Large Cap",
@@ -170,6 +173,9 @@ function analyzeCandidate({
   return {
     id,
     symbol,
+    companyName: companyName || symbol,
+    sector: sector || "General",
+    isBanned: Boolean(isBanned),
     tradingSymbol: tradingSymbol || symbol,
     assetClass,
     marketCap,

@@ -58,6 +58,7 @@ const server = http.createServer((req, res) => {
       macro: { radar: engine.macroRadar, state: engine.macroState },
       summary: engine.ledger.getSummary(),
       candidates: engine.getEnrichedCandidates(),
+      universe: engine.getUniverse(),
       activePositions: engine.ledger.getActivePositions(),
       completedTrades: engine.ledger.getCompletedTrades()
     }));
