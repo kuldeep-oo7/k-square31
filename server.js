@@ -68,12 +68,17 @@ const server = http.createServer((req, res) => {
           const dhan = require("./api/_lib/dhan-feed").status();
           const sessions = require("./api/_lib/broker-auth").sessionStatus();
           const quotes = require("./api/_lib/live-quotes").status();
+          // One sentence on whether the feed is actually working, so the
+          // answer is readable from a phone instead of needing a script run
+          // on the machine that happens to hold the credentials.
+          const feedCheck = require("./api/_lib/live-quotes").diagnose();
           return {
             anyReady: brokers.anyReady || dhan.ready,
             activeProvider: brokers.activeProvider || (dhan.ready ? "dhan" : null),
             providers: { ...brokers.providers, dhan },
             sessions,
             quotes,
+            feedCheck,
             howToConfigure: { ...brokers.howToConfigure, dhan: dhan.howToConfigure }
           };
         } catch (error) { return { anyReady: false, activeProvider: null, reason: "FEED_MODULE_UNAVAILABLE" }; }

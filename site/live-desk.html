@@ -250,6 +250,9 @@
     </div>
   </div>
 
+  <!-- Feed health: the first thing to read in the morning -->
+  <section id="feed-check" style="display:none;border-radius:14px;padding:12px 16px;margin-bottom:14px;border:1px solid var(--line)"></section>
+
   <!-- Global Macro Shock Bar -->
   <section class="macro-bar">
     <div class="macro-title">
@@ -512,6 +515,35 @@
 
   function fixed(val, d) {
     return (val != null && isFinite(val)) ? Number(val).toFixed(d || 2) : '—';
+  }
+
+  // Whether the feed is actually working, in one line at the top of the page.
+  // The REALTIME path fails quietly -- nothing throws, every test passes, and
+  // every card just reads CLOSING BOOK all day. So the page says it outright
+  // rather than leaving it to be inferred from a chip on one card.
+  function renderFeedCheck(check) {
+    var el = document.getElementById('feed-check');
+    if (!el || !check) { if (el) el.style.display = 'none'; return; }
+    var skin = {
+      LIVE:          { bg: 'rgba(34,197,94,0.08)',   bd: 'rgba(34,197,94,0.45)', fg: '#22c55e',      icon: '\u25cf' },
+      FEED_LAGGING:  { bg: 'rgba(239,68,68,0.08)',   bd: 'rgba(239,68,68,0.45)', fg: 'var(--red)',   icon: '\u26a0\ufe0f' },
+      NO_FEED:       { bg: 'rgba(239,68,68,0.08)',   bd: 'rgba(239,68,68,0.45)', fg: 'var(--red)',   icon: '\u26a0\ufe0f' },
+      MARKET_CLOSED: { bg: 'rgba(148,163,184,0.07)', bd: 'var(--line)',          fg: 'var(--muted)', icon: '\U0001f552' }
+    }[check.verdict] || { bg: 'rgba(148,163,184,0.07)', bd: 'var(--line)', fg: 'var(--muted)', icon: '\u2014' };
+
+    el.style.display = 'block';
+    el.style.background = skin.bg;
+    el.style.borderColor = skin.bd;
+    el.innerHTML = ''
+      + '<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap">'
+      +   '<span style="font:800 13px var(--mono);color:' + skin.fg + '">' + skin.icon + ' ' + check.headline + '</span>'
+      +   '<span style="font:700 10px var(--mono);color:var(--muted);border:1px solid var(--line);border-radius:999px;padding:2px 8px">'
+      +     check.marketPhase + ' \u00b7 ' + check.verdict + '</span>'
+      + '</div>'
+      + '<div style="font:600 11px var(--mono);color:var(--muted);margin-top:6px;line-height:1.5">' + check.detail + '</div>'
+      + (check.tradeable
+          ? ''
+          : '<div style="font:700 11px var(--mono);color:' + skin.fg + ';margin-top:6px">Nothing on this page is executable right now. Premiums shown are the last observed book.</div>');
   }
 
   function renderMacro(macro) {
@@ -1332,6 +1364,7 @@
       try {
         var data = JSON.parse(e.data);
         if (data.timestamp) lastTickTime.textContent = data.timestamp.slice(11, 19) + ' UTC';
+        renderFeedCheck(data.liveFeed && data.liveFeed.feedCheck);
         if (data.macro) renderMacro(data.macro);
         if (data.summary) renderSummary(data.summary, data.candidates);
         updateCounts(data);
@@ -1357,6 +1390,7 @@
     .then(function(r) { return r.json(); })
     .then(function(data) {
       if (data.timestamp) lastTickTime.textContent = data.timestamp.slice(11, 19) + ' UTC';
+      renderFeedCheck(data.liveFeed && data.liveFeed.feedCheck);
       if (data.macro) renderMacro(data.macro);
       if (data.summary) renderSummary(data.summary, data.candidates);
       updateCounts(data);

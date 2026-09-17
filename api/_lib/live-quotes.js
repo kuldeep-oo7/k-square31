@@ -185,6 +185,60 @@ function liveQuote(symbol, expiry, strike, optionType, { maxAgeMs = DEFAULT_MAX_
 }
 
 /** What the cache holds right now, for reporting rather than for pricing. */
+/**
+ * Is the live feed actually working, right now, in one sentence?
+ *
+ * The REALTIME path has never been observed during an open session, and the way
+ * it fails is quiet: exchFeedTime lags the window, REALTIME never fires, every
+ * card reads CLOSING BOOK all day and the spread gate silently keys itself to
+ * close-of-day spreads. Nothing throws. Every test still passes.
+ *
+ * Checking that used to mean running a script on the machine that holds the
+ * credentials. This runs on the SERVER instead, off the cache the engine
+ * already refreshes, so the answer is visible from a phone without a laptop
+ * anywhere near it.
+ *
+ * The verdict that matters is FEED_LAGGING: market open, a real book present,
+ * and not one contract current enough to trade against.
+ */
+function diagnose({ maxAgeMs = DEFAULT_MAX_AGE_MS, now = Date.now() } = {}) {
+  const state = status({ maxAgeMs, now });
+  const phase = marketPhase(now);
+  const base = { marketPhase: phase.phase, istDate: phase.istDate, checkedAt: new Date(now).toISOString() };
+
+  if (!phase.open) {
+    return {
+      ...base, verdict: "MARKET_CLOSED", ok: true, tradeable: false,
+      headline: "Market closed",
+      detail: state.contracts > 0
+        ? `Showing the closing book: ${state.closingBook} contracts from the last session.`
+        : "No quotes cached. Cards fall back to the exchange settled price."
+    };
+  }
+  if (!state.provider || state.contracts === 0) {
+    return {
+      ...base, verdict: "NO_FEED", ok: false, tradeable: false,
+      headline: "Market open, but no broker feed",
+      detail: "No quotes are cached at all. Usually means broker credentials are not configured on this server, so every card is on the exchange settled price."
+    };
+  }
+  if (state.realtime > 0) {
+    return {
+      ...base, verdict: "LIVE", ok: true, tradeable: true,
+      headline: `Live book on ${state.realtime} contracts`,
+      detail: `Quotes are inside the ${Math.round(maxAgeMs / 1000)}s window on the exchange's own clock. Prices are executable.`
+    };
+  }
+  // The failure this whole check exists for.
+  return {
+    ...base, verdict: "FEED_LAGGING", ok: false, tradeable: false,
+    headline: "Market open, but no quote is current",
+    detail: `${state.closingBook} contracts carry a book and none is inside the ${Math.round(maxAgeMs / 1000)}s window. `
+      + "The exchange feed time is lagging, so nothing is marked executable and the spread gate is judging on stale spreads. "
+      + "Widen the window to the measured lag and SAY that it was widened, or stop treating this field as a quote time."
+  };
+}
+
 function status({ maxAgeMs = DEFAULT_MAX_AGE_MS, now = Date.now() } = {}) {
   const cache = load();
   if (!cache) return { available: false, reason: "NO_CACHE", contracts: 0, fresh: 0 };
@@ -298,6 +352,6 @@ async function refreshQuotes(requests, { provider = null, concurrency = 1 } = {}
 }
 
 module.exports = {
-  CACHE_FILE, DEFAULT_MAX_AGE_MS, classifyBook, keyFor, liveQuote,
+  CACHE_FILE, DEFAULT_MAX_AGE_MS, classifyBook, diagnose, keyFor, liveQuote,
   marketPhase, parseExchangeClock, refreshQuotes, status
 };

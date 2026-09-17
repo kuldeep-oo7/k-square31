@@ -262,6 +262,11 @@ class RealtimeMarketEngine {
       if (!requests.length) return null;
       const result = await live.refreshQuotes(requests);
       if (result.ok) console.log(`[K² Live Quotes] ${result.refreshed}/${result.requested} chains from ${result.provider}`);
+      // Say plainly, in the server log, whether the feed is usable. The way
+      // this fails is quiet -- nothing throws and every test passes -- so it
+      // has to announce itself rather than wait to be asked.
+      const check = live.diagnose();
+      if (!check.ok) console.warn(`[K² Feed] ${check.verdict}: ${check.headline}`);
       return result;
     } catch (error) {
       console.error("Live quote refresh failed:", error.message);
