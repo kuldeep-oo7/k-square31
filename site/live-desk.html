@@ -764,7 +764,11 @@
         + 'BID ₹' + fixed(opt.bid) + ' · ASK ₹' + fixed(opt.ask)
         + ' · SPREAD <span style="color:' + (wide ? 'var(--red)' : 'var(--green)') + '">'
         + fixed(opt.spreadPct) + '%</span>' + ageTxt
-        + (opt.tradedToday === false ? ' · <span style="color:var(--red)">DID NOT TRADE TODAY</span>' : '')
+        + (opt.tradedToday === false
+            ? (opt.marketPhase === 'OPEN'
+                ? ' · <span style="color:#f59e0b">NO VOLUME YET TODAY</span>'
+                : ' · <span style="color:var(--red)">DID NOT TRADE TODAY</span>')
+            : '')
         + '</div>';
     }
     var theme = isActionable ? (isCe ? 'long' : 'short') : 'neutral';
@@ -870,17 +874,26 @@
 
         <!-- 5. 1-Tap Broker Links & Track as Purchased -->
         ${isActionable ? `
-          <div class="action-row">
-            <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite">
-              ⚡ 1-Tap Buy on Zerodha Kite
-            </a>
-            <a href="${links.dhanApp || '#'}" target="_blank" rel="noopener" class="btn-action btn-dhan">
-              🚀 1-Tap Buy on Dhan
-            </a>
-          </div>
-          <button class="btn-track" onclick="trackTrade('${opt.id}', ${opt.entryPrice})">
-            💼 I Bought This Option (Move to Purchased Trades)
-          </button>
+          ${opt.executable === false ? `
+            <div class="action-row">
+              <div style="grid-column: 1 / -1; background: rgba(245,158,11,0.08); border: 1px dashed rgba(245,158,11,0.4); border-radius: 10px; padding: 10px 14px; text-align: center; font: 700 11px var(--mono); color: #f59e0b;">
+                🕒 ${opt.marketPhase === 'OPEN' ? 'QUOTE OLDER THAN THE FRESHNESS WINDOW' : 'MARKET CLOSED · THIS IS THE CLOSING BOOK'}<br>
+                <span style="color:var(--muted);font-weight:600">Order buttons return when a live book does. The premium above is the last observed book, not a price you can transact at now.</span>
+              </div>
+            </div>
+          ` : `
+            <div class="action-row">
+              <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite">
+                ⚡ 1-Tap Buy on Zerodha Kite
+              </a>
+              <a href="${links.dhanApp || '#'}" target="_blank" rel="noopener" class="btn-action btn-dhan">
+                🚀 1-Tap Buy on Dhan
+              </a>
+            </div>
+            <button class="btn-track" onclick="trackTrade('${opt.id}', ${opt.entryPrice})">
+              💼 I Bought This Option (Move to Purchased Trades)
+            </button>
+          `}
         ` : `
           <div class="action-row">
             <div style="grid-column: 1 / -1; background: rgba(255,255,255,0.03); border: 1px dashed var(--line); border-radius: 10px; padding: 8px 14px; text-align: center; font: 700 11px var(--mono); color: var(--muted);">

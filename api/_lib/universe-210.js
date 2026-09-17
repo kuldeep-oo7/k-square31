@@ -1147,6 +1147,10 @@ class FnoUniverseEngine {
           executable: u.options.call.executable === true,
           bookState: u.options.call.bookState || null,
           tradedToday: u.options.call.tradedToday,
+          // Session phase belongs on the flattened card too: the UI decides
+          // between "no volume yet" and "did not trade today" with it, and
+          // undefined would render the second at 09:16.
+          marketPhase: u.options.marketPhase || null,
           quoteAgeSeconds: u.options.call.quoteAgeSeconds ?? null,
           optionOpenInterest: u.options.call.exchangeOpenInterest ?? null,
           priceSource: u.options.call.priceSource ?? null,
@@ -1224,6 +1228,10 @@ class FnoUniverseEngine {
           executable: u.options.put.executable === true,
           bookState: u.options.put.bookState || null,
           tradedToday: u.options.put.tradedToday,
+          // Session phase belongs on the flattened card too: the UI decides
+          // between "no volume yet" and "did not trade today" with it, and
+          // undefined would render the second at 09:16.
+          marketPhase: u.options.marketPhase || null,
           quoteAgeSeconds: u.options.put.quoteAgeSeconds ?? null,
           optionOpenInterest: u.options.put.exchangeOpenInterest ?? null,
           priceSource: u.options.put.priceSource ?? null,
