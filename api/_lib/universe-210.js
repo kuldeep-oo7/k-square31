@@ -16,6 +16,8 @@ const {
 } = require("./fno-reference");
 const { liveQuote: liveBrokerQuote } = require("./live-quotes");
 const { longOptionExits, verticalSpreadExits } = require("./exit-levels");
+const { tradeOdds } = require("./trade-odds");
+const { impliedVolatility: solveImpliedVolatility } = require("./option-pricing");
 
 const COVERAGE_PATH = path.resolve(__dirname, "../../data/market-coverage.json");
 const NIFTY500_PATH = path.resolve(__dirname, "../../data/nifty500-constituents.csv");
@@ -849,6 +851,11 @@ class FnoUniverseEngine {
     }
 
     // --- Final Signal Arbiter & Lifecycle Enrichment Pass ---
+    // The exchange's own contract file: the authority on which expiry is
+    // actually listed, which drives every time-dependent number below.
+    const contractReference = (() => {
+      try { return require("./fno-reference").loadReference(); } catch (error) { return null; }
+    })();
     results.forEach((analyzed) => {
       const fund = getCachedFundamentals(analyzed.symbol);
       const earningsVeto = fund?.events?.insideTradingWeek === true;
@@ -948,6 +955,73 @@ class FnoUniverseEngine {
 
       // Calculate Whole Market Options (Call CE and Put PE) with Black-Scholes Greeks
       analyzed.options = spot ? calculateOptions(analyzed.symbol, spot, lotSize, isActionable, volNum) : null;
+
+      // THE TWO QUESTIONS A DESK ASKS BEFORE TAKING A TRADE, on every card.
+      //
+      // What are the odds, and is the option cheap or expensive? The second is
+      // the one retail never sees and the one that most reliably decides the
+      // outcome: an option's price is a price for future movement, so paying
+      // 32% implied on a stock that has been realising 23% means overpaying for
+      // movement by a third, and being right about DIRECTION does not repair
+      // having paid the wrong price for VOLATILITY.
+      //
+      // The odds are computed against the stock's OWN measured movement, not
+      // against implied, because implied is the price being charged and using
+      // it would quote the seller's assumptions back as if they were evidence.
+      const oddsBars = this.barsCache.get(analyzed.symbol) || getCachedBars(analyzed.symbol)?.bars;
+      const oddsHasBars = !isSynthetic && Array.isArray(oddsBars) && oddsBars.length >= 10;
+      if (analyzed.options && oddsHasBars && spot > 0) {
+        // Match the structure the card actually shows. calculateOptions is
+        // called with isActionable as its isBullish flag, so an actionable name
+        // displays a bull CALL spread and a non-actionable one a bear PUT
+        // spread. Reading the call's breakeven for a put card inverts the
+        // probability and reports a comfortable 67% where the truth is 33%.
+        const bullish = isActionable;
+        const call = bullish ? analyzed.options.call : analyzed.options.put;
+        const spread = analyzed.options.spread;
+        // The IV must be SOLVED FROM THE TRADED PREMIUM. greeks.iv is the
+        // volatility that was fed INTO the model to produce that premium, so
+        // comparing it with realized volatility would compare an assumption
+        // with a measurement and always return whatever was assumed. It is
+        // also carried in percent while the solver works in decimals.
+        const impliedFromPremium = (() => {
+          const premium = Number(call?.premium);
+          const strike = Number(call?.strike);
+          const listed = contractReference?.symbols?.[analyzed.symbol]?.frontExpiry;
+          const ms = listed ? Date.parse(`${listed}T15:30:00+05:30`) - Date.now() : NaN;
+          const years = Number.isFinite(ms) && ms > 0 ? ms / (365 * 86400000) : null;
+          if (!(premium > 0) || !(strike > 0) || !(years > 0)) return null;
+          const solved = solveImpliedVolatility({
+            underlyingPrice: spot, strike, timeToExpiryYears: years,
+            riskFreeRate: 0.065, dividendYield: 0, optionType: bullish ? "CE" : "PE", model: "BSM"
+          }, premium);
+          return solved?.available && solved.iv > 0 ? solved.iv : null;
+        })();
+        analyzed.odds = tradeOdds({
+          spot,
+          bars: oddsBars,
+          impliedVol: impliedFromPremium,
+          // The single leg has to clear strike plus the whole premium; the
+          // spread only has to clear strike plus the net debit, which is why
+          // its odds are better and its maximum is smaller.
+          breakevenLong: Number(call?.breakeven) > 0 ? Number(call.breakeven) : null,
+          breakevenFull: Number(spread?.shortStrikePrice) > 0 ? Number(spread.shortStrikePrice) : null,
+          // Days to the EXCHANGE's listed expiry, not to a computed last
+          // Thursday. NSE moved stock F&O off Thursday, the listed September
+          // 2026 expiry is the 29th, and getDaysToMonthlyExpiry() also returns
+          // an object rather than a number -- either mistake alone makes every
+          // probability below meaningless.
+          daysToExpiry: (() => {
+            const listed = contractReference?.symbols?.[analyzed.symbol]?.frontExpiry;
+            const ms = listed ? Date.parse(`${listed}T15:30:00+05:30`) - Date.now() : NaN;
+            if (Number.isFinite(ms) && ms > 0) return ms / 86400000;
+            return getDaysToMonthlyExpiry().days;
+          })(),
+          isBullish: bullish
+        });
+      } else {
+        analyzed.odds = { available: false, reason: oddsHasBars ? "NO_OPTION_CHAIN" : "NO_REAL_PRICE_HISTORY" };
+      }
 
       if (isActionable && spot) {
         analyzed.pnlRupees = Math.round((spot - entryPrice) * lotSize * 100) / 100;
