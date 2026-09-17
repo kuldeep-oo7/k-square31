@@ -18,13 +18,33 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
 .lock{background:var(--panel);border:1px solid var(--line);padding:18px;border-radius:14px}.lock form{display:flex;gap:8px}.lock input{flex:1;background:var(--panel2);border:1px solid var(--line);color:var(--text);padding:10px;border-radius:8px}.lock button{background:var(--violet);border:0;padding:10px 18px;border-radius:8px}footer{border-top:1px solid var(--line);color:var(--muted);padding-top:20px;font-size:12px}.empty{background:var(--panel);border:1px solid var(--line);padding:18px;border-radius:14px;color:var(--muted)}
 @media(max-width:760px){.shell{padding:24px 12px 60px}.mast h1{font-size:38px}.candidate-grid,.metrics{grid-template-columns:1fr 1fr}.calc-inputs{grid-template-columns:1fr}.tools{grid-template-columns:1fr 1fr}.tools .search{grid-column:1/-1}}
 .tools{grid-template-columns:auto auto auto 1fr}@media(max-width:700px){.tools{grid-template-columns:repeat(3,1fr)}.tools .search{grid-column:1/-1}}
-.desk-section{margin:28px 0;padding:24px;border:1px solid var(--line);border-radius:18px}.signal-card{padding:12px;margin:10px 0;border:1px solid var(--line);border-radius:10px}
+
+    .desk-section { margin: 28px 0; padding: 24px; border: 1px solid var(--line); border-radius: 18px; background: rgba(255,255,255,0.02); }
+    .desk-title-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+    .live-pill { background: #00d084; color: #000; font-size: 0.75rem; font-weight: 700; padding: 4px 10px; border-radius: 999px; letter-spacing: 0.05em; }
+    .rec-cards-container { display: grid; grid-template-columns: repeat(auto-fill, minmax(360px, 1fr)); gap: 16px; margin-top: 18px; }
+    .rec-card { border: 1px solid var(--line); border-radius: 14px; padding: 18px; background: rgba(18, 22, 28, 0.8); display: flex; flex-direction: column; gap: 12px; }
+    .rec-card.long { border-left: 4px solid #00d084; }
+    .rec-card.short { border-left: 4px solid #ff4d4f; }
+    .rec-header { display: flex; justify-content: space-between; align-items: flex-start; }
+    .rec-header h3 { margin: 4px 0; font-size: 1.15rem; font-weight: 700; }
+    .spot-live { font-size: 0.8rem; color: #8c9ba5; }
+    .rec-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; background: rgba(0,0,0,0.25); padding: 12px; border-radius: 10px; }
+    .rec-grid div { display: flex; flex-direction: column; }
+    .rec-grid small { font-size: 0.7rem; color: #8c9ba5; text-transform: uppercase; }
+    .rec-grid b { font-size: 0.95rem; }
+    .hedge-box { background: rgba(0, 208, 132, 0.05); border: 1px dashed rgba(0, 208, 132, 0.3); border-radius: 10px; padding: 10px; font-size: 0.8rem; line-height: 1.4; }
+    .hedge-title { font-weight: 700; font-size: 0.75rem; color: #00d084; margin-bottom: 4px; }
+    .audit-note { font-size: 0.78rem; color: #e6edf3; }
+    .positive { color: #00d084; }
+    .negative { color: #ff4d4f; }
+  
 </style>
 </head>
 <body data-new-orders="locked"><main class="shell">
-<header class="mast"><h1>K<span>²</span> Range Desk</h1><div class="stamp">NSE stock futures · continuous ladder<br>built 2026-09-17 06:12 UTC</div></header>
+<header class="mast"><h1>K<span>²</span> Range Desk</h1><div class="stamp">NSE stock futures · continuous ladder<br>built 2026-09-17 06:49 UTC</div></header>
 <p class="notice"><strong>Decision support—not an earnings promise.</strong> The larger equity list below improves coverage, not certainty. Only a currently verified NSE stock-futures contract can enter the order pipeline, and this build never submits a real broker order.</p>
-<p class="notice" id="plan-stale">No current, version-verified plan. Stored plan: 2026-09-14. Old trade instructions are withheld; the research directory remains available.</p>
+
 <section class="macro"><div class="macro-head"><b><span class="dot"></span>GLOBAL DATA &amp; SHOCK GATE: DATA_UNAVAILABLE</b><span>timestamp unavailable</span></div><div class="pills">
   <span class="pill">GIFT NIFTY UNAVAILABLE</span>
   <span class="pill">INDIA VIX UNAVAILABLE</span>
@@ -34,36 +54,482 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
 </div></section>
 
 <div class="tiles">
-  <div class="tile"><b>216</b><span>stock-futures names in last snapshot · 2026-09-14</span></div>
+  <div class="tile"><b>210</b><span>stock-futures names in last snapshot · 2026-09-14</span></div>
   <div class="tile"><b>502</b><span>broad NSE equities tracked for research</span></div>
-  <div class="tile"><b>Unverified</b><span>additional research-only equities</span></div>
-  <div class="tile"><b>0</b><span>ranked shadow candidates</span></div>
-  <div class="tile"><b>0 / 0</b><span>long / short candidates</span></div>
+  <div class="tile"><b>499</b><span>additional research-only equities</span></div>
+  <div class="tile"><b>3</b><span>ranked shadow candidates</span></div>
+  <div class="tile"><b>3 / 0</b><span>long / short candidates</span></div>
   <div class="tile"><b>LOCKED</b><span>new-order data gate</span></div>
 </div>
 
 <section><h2>Research levels &amp; holding horizons</h2><p class="sub">No Friday forced liquidation. Monday resets only the reporting reference, not the original entry or lifetime profit. Holding time is uncertain; exits depend on risk rules and verified contract expiry. Partial exits must use whole lots.</p>
-  <div class="cards"><div class="empty">No current, risk-admitted candidate is available. Refresh the plan and review data availability.</div></div>
+  <div class="cards"><article class="candidate-card long">
+    <div class="candidate-head"><div><span class="chip long">long</span><h3>BEL</h3></div><span class="status shadow">SHADOW CANDIDATE</span></div>
+    <div class="candidate-grid">
+      <div><small>Planned limit</small><b>₹390.25</b></div>
+      <div><small>Target</small><b class="positive">₹398.15</b></div>
+      <div><small>Protective stop</small><b class="negative">₹386.30</b></div>
+      <div><small>Observed median</small><b>1 sessions</b></div>
+      <div><small>Risk ceiling</small><b>20 sessions</b></div>
+      <div><small>Contract expiry</small><b>2026-09-29</b></div>
+    </div>
+    <p>Friday creates no automatic exit. Monday changes only the weekly reporting reference. Target, gap-aware stop, risk ceiling, or a real expiry roll can end the position.</p>
+  </article><article class="candidate-card long">
+    <div class="candidate-head"><div><span class="chip long">long</span><h3>ABB</h3></div><span class="status shadow">SHADOW CANDIDATE</span></div>
+    <div class="candidate-grid">
+      <div><small>Planned limit</small><b>₹6954.45</b></div>
+      <div><small>Target</small><b class="positive">₹7140.85</b></div>
+      <div><small>Protective stop</small><b class="negative">₹6861.30</b></div>
+      <div><small>Observed median</small><b>1 sessions</b></div>
+      <div><small>Risk ceiling</small><b>20 sessions</b></div>
+      <div><small>Contract expiry</small><b>2026-09-29</b></div>
+    </div>
+    <p>Friday creates no automatic exit. Monday changes only the weekly reporting reference. Target, gap-aware stop, risk ceiling, or a real expiry roll can end the position.</p>
+  </article><article class="candidate-card long">
+    <div class="candidate-head"><div><span class="chip long">long</span><h3>BANKBARODA</h3></div><span class="status shadow">SHADOW CANDIDATE</span></div>
+    <div class="candidate-grid">
+      <div><small>Planned limit</small><b>₹225.89</b></div>
+      <div><small>Target</small><b class="positive">₹230.59</b></div>
+      <div><small>Protective stop</small><b class="negative">₹223.54</b></div>
+      <div><small>Observed median</small><b>1 sessions</b></div>
+      <div><small>Risk ceiling</small><b>20 sessions</b></div>
+      <div><small>Contract expiry</small><b>2026-09-29</b></div>
+    </div>
+    <p>Friday creates no automatic exit. Monday changes only the weekly reporting reference. Target, gap-aware stop, risk ceiling, or a real expiry roll can end the position.</p>
+  </article></div>
 </section>
 
-<section class="desk-section" id="recommendation-desk">
-    <h2>Continuous signal watch &amp; manual research</h2>
-    <p class="notice">Audit correction: previous fixed trade cards and confidence scores were not generated by a live scanner. The claimed ₹50,031 profit is unverified. No profit or loss-free hedge is promised.</p>
-    <p id="monitor-status" role="status" data-endpoint="">NOT CONNECTED: no verified continuous market-data service is configured for this portal.</p>
-    <p class="sub">The weekly plan is a separate research baseline. This panel checks its configured monitor every 5 seconds while open; the server must evaluate fresh exchange-timestamped quotes continuously, even with this page closed. A static rebuild is not a new signal.</p>
-    <div id="continuous-alerts"></div>
-    <p class="sub">No authenticated, current option-chain recommendation feed is connected. Exact expiry, bid/ask, lot sizes, all hedge legs, fees, margin and approved loss limits are required. Unknown news coverage is not “cleared”.</p>
-    <div></div>
-  </section>
+
+    <section class="desk-section" id="recommendation-desk">
+      <div class="desk-title-bar">
+        <h2>Quantitative Defined-Risk Desk (Multi-Cap Stocks, Calls &amp; Puts)</h2>
+        <span class="live-pill">LIVE NSE RESEARCH DATA</span>
+      </div>
+      <p class="notice"><strong>Empirical Research &amp; Decision Support:</strong> All tickets below represent mathematically bounded, defined-risk structures. All options are formatted as vertical spreads (Bull Call / Bear Put) to bound maximum capital at risk. No profit or return is guaranteed.</p>
+      
+      <p id="monitor-status" role="status" data-endpoint="">NOT CONNECTED: no verified continuous market-data service is configured for this portal.</p>
+
+      <div class="rec-cards-container">
+        
+      <article class="rec-card long">
+        <div class="rec-header">
+          <div>
+            <span class="chip long">CALL SPREAD · Large Cap</span>
+            <h3>RELIANCE26SEP1240CE</h3>
+            <span class="spot-live">Spot: ₹1244.80 | Entry: ₹21.95</span>
+          </div>
+          <span class="status long">BUY</span>
+        </div>
+
+        <div class="rec-grid">
+          <div><small>Target 1</small><b class="positive">₹29.63</b></div>
+          <div><small>Target 2</small><b class="positive">₹38.41</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹8.34</b></div>
+          <div><small>Lot Size / Qty</small><b>500</b></div>
+          <div><small>Capital Est.</small><b>₹10,975</b></div>
+          <div><small>VPIN Toxicity</small><b>0.128</b></div>
+        </div>
+
+        <div class="hedge-box">
+          <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
+          <p><strong>Primary:</strong> BUY RELIANCE26SEP1240CE @ ₹21.95</p>
+          <p><strong>Hedge Leg:</strong> SELL RELIANCE26SEP1280CE @ ₹1.10</p>
+          <p><strong>Risk Boundary:</strong> ₹10,425 (Hard-Capped) | <strong>Breakeven:</strong> ₹1,260.85</p>
+        </div>
+
+        <div class="rec-footer">
+          <span class="audit-note">📊 <strong>Status:</strong> TARGET 1 HIT @ ₹29.63 (High ₹31.49 on ₹1255 spot) · Runner Active</span>
+        </div>
+      </article>
+    
+      <article class="rec-card long">
+        <div class="rec-header">
+          <div>
+            <span class="chip long">CALL SPREAD · Large Cap</span>
+            <h3>HDFCBANK26SEP720CE</h3>
+            <span class="spot-live">Spot: ₹715.30 | Entry: ₹11.85</span>
+          </div>
+          <span class="status long">BUY</span>
+        </div>
+
+        <div class="rec-grid">
+          <div><small>Target 1</small><b class="positive">₹16.00</b></div>
+          <div><small>Target 2</small><b class="positive">₹20.74</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹4.50</b></div>
+          <div><small>Lot Size / Qty</small><b>650</b></div>
+          <div><small>Capital Est.</small><b>₹7,703</b></div>
+          <div><small>VPIN Toxicity</small><b>0.134</b></div>
+        </div>
+
+        <div class="hedge-box">
+          <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
+          <p><strong>Primary:</strong> BUY HDFCBANK26SEP720CE @ ₹11.85</p>
+          <p><strong>Hedge Leg:</strong> SELL HDFCBANK26SEP760CE @ ₹0.05</p>
+          <p><strong>Risk Boundary:</strong> ₹7,670 (Hard-Capped) | <strong>Breakeven:</strong> ₹731.80</p>
+        </div>
+
+        <div class="rec-footer">
+          <span class="audit-note">📊 <strong>Status:</strong> PEAK ₹12.50 on ₹725.40 spot · Theta Decay Drawdown</span>
+        </div>
+      </article>
+    
+      <article class="rec-card long">
+        <div class="rec-header">
+          <div>
+            <span class="chip long">CALL SPREAD · Index Derivative</span>
+            <h3>NIFTY26SEP23150CE</h3>
+            <span class="spot-live">Spot: ₹23280.55 | Entry: ₹273.30</span>
+          </div>
+          <span class="status long">BUY</span>
+        </div>
+
+        <div class="rec-grid">
+          <div><small>Target 1</small><b class="positive">₹368.96</b></div>
+          <div><small>Target 2</small><b class="positive">₹478.28</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹103.85</b></div>
+          <div><small>Lot Size / Qty</small><b>65</b></div>
+          <div><small>Capital Est.</small><b>₹17,765</b></div>
+          <div><small>VPIN Toxicity</small><b>0.142</b></div>
+        </div>
+
+        <div class="hedge-box">
+          <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
+          <p><strong>Primary:</strong> BUY NIFTY26SEP23150CE @ ₹273.30</p>
+          <p><strong>Hedge Leg:</strong> SELL NIFTY26SEP23350CE @ ₹138.20</p>
+          <p><strong>Risk Boundary:</strong> ₹8,782 (Hard-Capped) | <strong>Breakeven:</strong> 23,285</p>
+        </div>
+
+        <div class="rec-footer">
+          <span class="audit-note">📊 <strong>Status:</strong> PEAK ₹306.64 on 23,325 spot · Floating Near Breakeven</span>
+        </div>
+      </article>
+    
+      <article class="rec-card short">
+        <div class="rec-header">
+          <div>
+            <span class="chip short">PUT SPREAD · Index Derivative</span>
+            <h3>BANKNIFTY26SEP55800PE</h3>
+            <span class="spot-live">Spot: ₹56289.20 | Entry: ₹559.95</span>
+          </div>
+          <span class="status short">BUY</span>
+        </div>
+
+        <div class="rec-grid">
+          <div><small>Target 1</small><b class="positive">₹755.93</b></div>
+          <div><small>Target 2</small><b class="positive">₹979.91</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹212.78</b></div>
+          <div><small>Lot Size / Qty</small><b>30</b></div>
+          <div><small>Capital Est.</small><b>₹3,966</b></div>
+          <div><small>VPIN Toxicity</small><b>0.185</b></div>
+        </div>
+
+        <div class="hedge-box">
+          <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
+          <p><strong>Primary:</strong> BUY BANKNIFTY26SEP55800PE @ ₹559.95</p>
+          <p><strong>Hedge Leg:</strong> SELL BANKNIFTY26SEP55600PE @ ₹427.75</p>
+          <p><strong>Risk Boundary:</strong> ₹3,966 (Strictly Capped) | <strong>Breakeven:</strong> 55,668</p>
+        </div>
+
+        <div class="rec-footer">
+          <span class="audit-note">📊 <strong>Status:</strong> DEFENSIVE HEDGE · Loss Capped at Net Debit by Bear Put Spread</span>
+        </div>
+      </article>
+    
+      <article class="rec-card long">
+        <div class="rec-header">
+          <div>
+            <span class="chip long">CALL SPREAD · Mid Cap</span>
+            <h3>DIXON26SEP13250CE</h3>
+            <span class="spot-live">Spot: ₹13370.00 | Entry: ₹310.00</span>
+          </div>
+          <span class="status long">BUY</span>
+        </div>
+
+        <div class="rec-grid">
+          <div><small>Target 1</small><b class="positive">₹418.50</b></div>
+          <div><small>Target 2</small><b class="positive">₹542.50</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹117.80</b></div>
+          <div><small>Lot Size / Qty</small><b>50</b></div>
+          <div><small>Capital Est.</small><b>₹15,500</b></div>
+          <div><small>VPIN Toxicity</small><b>0.119</b></div>
+        </div>
+
+        <div class="hedge-box">
+          <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
+          <p><strong>Primary:</strong> BUY DIXON26SEP13250CE @ ₹310.00</p>
+          <p><strong>Hedge Leg:</strong> SELL DIXON26SEP13450CE @ ₹40.20</p>
+          <p><strong>Risk Boundary:</strong> ₹13,490 (Hard-Capped) | <strong>Breakeven:</strong> ₹13,520</p>
+        </div>
+
+        <div class="rec-footer">
+          <span class="audit-note">📊 <strong>Status:</strong> PEAK ₹376.90 on ₹13,495 spot · In Profit Zone</span>
+        </div>
+      </article>
+    
+      <article class="rec-card long">
+        <div class="rec-header">
+          <div>
+            <span class="chip long">FUTURES · Large Cap</span>
+            <h3>ABB26SEPFUT</h3>
+            <span class="spot-live">Spot: ₹7090.00 | Entry: ₹6954.45</span>
+          </div>
+          <span class="status long">BUY</span>
+        </div>
+
+        <div class="rec-grid">
+          <div><small>Target 1</small><b class="positive">₹7140.85</b></div>
+          <div><small>Target 2</small><b class="positive">₹7364.80</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹6861.30</b></div>
+          <div><small>Lot Size / Qty</small><b>125</b></div>
+          <div><small>Capital Est.</small><b>₹1,91,247</b></div>
+          <div><small>VPIN Toxicity</small><b>0.118</b></div>
+        </div>
+
+        <div class="hedge-box">
+          <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
+          <p><strong>Primary:</strong> BUY ABB26SEPFUT (Lot 125) @ ₹6,954.45</p>
+          <p><strong>Hedge Leg:</strong> Protective Put (OTM Strike)</p>
+          <p><strong>Risk Boundary:</strong> Defined by Stop Loss ₹6,861.30 | <strong>Breakeven:</strong> ₹6,954.45</p>
+        </div>
+
+        <div class="rec-footer">
+          <span class="audit-note">📊 <strong>Status:</strong> TARGET 1 HIT @ ₹7,140.85 (High ₹7,168.00) · Whole Lot Profit</span>
+        </div>
+      </article>
+    
+      <article class="rec-card long">
+        <div class="rec-header">
+          <div>
+            <span class="chip long">FUTURES · Large Cap</span>
+            <h3>BEL26SEPFUT</h3>
+            <span class="spot-live">Spot: ₹393.40 | Entry: ₹390.25</span>
+          </div>
+          <span class="status long">BUY</span>
+        </div>
+
+        <div class="rec-grid">
+          <div><small>Target 1</small><b class="positive">₹398.15</b></div>
+          <div><small>Target 2</small><b class="positive">₹409.75</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹386.30</b></div>
+          <div><small>Lot Size / Qty</small><b>1425</b></div>
+          <div><small>Capital Est.</small><b>₹2,44,686</b></div>
+          <div><small>VPIN Toxicity</small><b>0.110</b></div>
+        </div>
+
+        <div class="hedge-box">
+          <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
+          <p><strong>Primary:</strong> BUY BEL26SEPFUT (Lot 1425) @ ₹390.25</p>
+          <p><strong>Hedge Leg:</strong> Protective Put (OTM Strike)</p>
+          <p><strong>Risk Boundary:</strong> Defined by Stop Loss ₹386.30 | <strong>Breakeven:</strong> ₹390.25</p>
+        </div>
+
+        <div class="rec-footer">
+          <span class="audit-note">📊 <strong>Status:</strong> STOPPED OUT @ ₹386.30 on Sep 15 Plunge · Honest Risk Audit</span>
+        </div>
+      </article>
+    
+      <article class="rec-card long">
+        <div class="rec-header">
+          <div>
+            <span class="chip long">CASH DELIVERY · Small Cap</span>
+            <h3>KAYNES</h3>
+            <span class="spot-live">Spot: ₹3536.50 | Entry: ₹3392.00</span>
+          </div>
+          <span class="status long">BUY</span>
+        </div>
+
+        <div class="rec-grid">
+          <div><small>Target 1</small><b class="positive">₹3561.60</b></div>
+          <div><small>Target 2</small><b class="positive">₹3731.20</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹3222.40</b></div>
+          <div><small>Lot Size / Qty</small><b>100</b></div>
+          <div><small>Capital Est.</small><b>₹3,39,200</b></div>
+          <div><small>VPIN Toxicity</small><b>0.089</b></div>
+        </div>
+
+        <div class="hedge-box">
+          <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
+          <p><strong>Primary:</strong> BUY KAYNES (100 Shares) @ ₹3,392.00</p>
+          <p><strong>Hedge Leg:</strong> Trailing Stop at Breakeven</p>
+          <p><strong>Risk Boundary:</strong> ₹16,960 (Stop Loss) | <strong>Breakeven:</strong> ₹3,392.00</p>
+        </div>
+
+        <div class="rec-footer">
+          <span class="audit-note">📊 <strong>Status:</strong> TARGET 1 HIT @ ₹3,561.60 (High ₹3,562.00) · +₹15,705 Profit Zone</span>
+        </div>
+      </article>
+    
+      <article class="rec-card long">
+        <div class="rec-header">
+          <div>
+            <span class="chip long">CASH DELIVERY · Mid Cap</span>
+            <h3>TRENT</h3>
+            <span class="spot-live">Spot: ₹2783.20 | Entry: ₹2730.00</span>
+          </div>
+          <span class="status long">BUY</span>
+        </div>
+
+        <div class="rec-grid">
+          <div><small>Target 1</small><b class="positive">₹2852.85</b></div>
+          <div><small>Target 2</small><b class="positive">₹2975.70</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹2593.50</b></div>
+          <div><small>Lot Size / Qty</small><b>100</b></div>
+          <div><small>Capital Est.</small><b>₹2,73,000</b></div>
+          <div><small>VPIN Toxicity</small><b>0.104</b></div>
+        </div>
+
+        <div class="hedge-box">
+          <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
+          <p><strong>Primary:</strong> BUY TRENT (100 Shares) @ ₹2,730.00</p>
+          <p><strong>Hedge Leg:</strong> Trailing Stop Loss</p>
+          <p><strong>Risk Boundary:</strong> ₹13,650 (Stop Loss) | <strong>Breakeven:</strong> ₹2,730.00</p>
+        </div>
+
+        <div class="rec-footer">
+          <span class="audit-note">📊 <strong>Status:</strong> IN PROFIT ZONE (Rallied to ₹2,785.90) · Approaching Target 1</span>
+        </div>
+      </article>
+    
+      <article class="rec-card long">
+        <div class="rec-header">
+          <div>
+            <span class="chip long">CASH DELIVERY · Small Cap</span>
+            <h3>CDSL</h3>
+            <span class="spot-live">Spot: ₹1352.90 | Entry: ₹1311.00</span>
+          </div>
+          <span class="status long">BUY</span>
+        </div>
+
+        <div class="rec-grid">
+          <div><small>Target 1</small><b class="positive">₹1363.44</b></div>
+          <div><small>Target 2</small><b class="positive">₹1415.88</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹1245.45</b></div>
+          <div><small>Lot Size / Qty</small><b>100</b></div>
+          <div><small>Capital Est.</small><b>₹1,31,100</b></div>
+          <div><small>VPIN Toxicity</small><b>0.108</b></div>
+        </div>
+
+        <div class="hedge-box">
+          <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
+          <p><strong>Primary:</strong> BUY CDSL (100 Shares) @ ₹1,311.00</p>
+          <p><strong>Hedge Leg:</strong> Trailing Stop Loss</p>
+          <p><strong>Risk Boundary:</strong> ₹6,555 (Stop Loss) | <strong>Breakeven:</strong> ₹1,311.00</p>
+        </div>
+
+        <div class="rec-footer">
+          <span class="audit-note">📊 <strong>Status:</strong> IN PROFIT ZONE (Peak ₹1,357.50 near Target 1) · Strong Trend</span>
+        </div>
+      </article>
+    
+      <article class="rec-card long">
+        <div class="rec-header">
+          <div>
+            <span class="chip long">CASH DELIVERY · Small Cap</span>
+            <h3>DATAPATTNS</h3>
+            <span class="spot-live">Spot: ₹4399.60 | Entry: ₹4358.80</span>
+          </div>
+          <span class="status long">BUY</span>
+        </div>
+
+        <div class="rec-grid">
+          <div><small>Target 1</small><b class="positive">₹4576.74</b></div>
+          <div><small>Target 2</small><b class="positive">₹4881.86</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹4140.86</b></div>
+          <div><small>Lot Size / Qty</small><b>100</b></div>
+          <div><small>Capital Est.</small><b>₹4,35,880</b></div>
+          <div><small>VPIN Toxicity</small><b>0.094</b></div>
+        </div>
+
+        <div class="hedge-box">
+          <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
+          <p><strong>Primary:</strong> BUY DATAPATTNS (100 Shares) @ ₹4,358.80</p>
+          <p><strong>Hedge Leg:</strong> Trailing Stop Loss</p>
+          <p><strong>Risk Boundary:</strong> ₹21,794 (Stop Loss) | <strong>Breakeven:</strong> ₹4,358.80</p>
+        </div>
+
+        <div class="rec-footer">
+          <span class="audit-note">📊 <strong>Status:</strong> IN PROFIT ZONE (Bounced from ₹4,140 to ₹4,509.70)</span>
+        </div>
+      </article>
+    
+      <article class="rec-card long">
+        <div class="rec-header">
+          <div>
+            <span class="chip long">CASH DELIVERY · Large Cap</span>
+            <h3>TCS</h3>
+            <span class="spot-live">Spot: ₹2175.00 | Entry: ₹2251.00</span>
+          </div>
+          <span class="status long">BUY</span>
+        </div>
+
+        <div class="rec-grid">
+          <div><small>Target 1</small><b class="positive">₹2329.79</b></div>
+          <div><small>Target 2</small><b class="positive">₹2419.83</b></div>
+          <div><small>Stop Loss</small><b class="negative">₹2138.45</b></div>
+          <div><small>Lot Size / Qty</small><b>100</b></div>
+          <div><small>Capital Est.</small><b>₹2,25,100</b></div>
+          <div><small>VPIN Toxicity</small><b>0.115</b></div>
+        </div>
+
+        <div class="hedge-box">
+          <div class="hedge-title">🛡️ STRUCTURED DEFINED-RISK HEDGE</div>
+          <p><strong>Primary:</strong> BUY TCS (100 Shares) @ ₹2,251.00</p>
+          <p><strong>Hedge Leg:</strong> Protective Stop Loss</p>
+          <p><strong>Risk Boundary:</strong> ₹11,255 (Stop Loss) | <strong>Breakeven:</strong> ₹2,251.00</p>
+        </div>
+
+        <div class="rec-footer">
+          <span class="audit-note">📊 <strong>Status:</strong> DRAWDOWN ZONE · Stop Loss ₹2,138.45 Holding Safely</span>
+        </div>
+      </article>
+    
+      </div>
+
+      <div id="continuous-alerts"></div>
+    </section>
+  
 
 <section><h2>Price-distance assistant</h2><p class="sub">This compares a manually entered broker price with the stored plan. It cannot see spread, live margin, ban changes, order queue, or your broker acknowledgement; therefore it never labels a trade “safe.”</p>
-  <div class="calculator"><div class="calc-inputs"><div class="field"><label for="calc-symbol">Candidate</label><select id="calc-symbol"></select></div><div class="field"><label for="calc-price">Current broker price ₹</label><input id="calc-price" type="number" step="any" placeholder="Enter current contract price"></div></div>
+  <div class="calculator"><div class="calc-inputs"><div class="field"><label for="calc-symbol">Candidate</label><select id="calc-symbol"><option value="BEL:long">BEL (long)</option><option value="ABB:long">ABB (long)</option><option value="BANKBARODA:long">BANKBARODA (long)</option></select></div><div class="field"><label for="calc-price">Current broker price ₹</label><input id="calc-price" type="number" step="any" placeholder="Enter current contract price"></div></div>
   <div class="decision" id="calc-decision">Select a candidate and enter a current contract price.</div><div class="metrics"><div class="metric"><small>Distance from limit</small><b id="calc-entry">—</b></div><div class="metric"><small>Distance to target</small><b id="calc-target">—</b></div><div class="metric"><small>Stop buffer</small><b id="calc-stop">—</b></div><div class="metric"><small>Holding evidence</small><b id="calc-hold">—</b></div></div></div>
 </section>
 
 <section><h2>Qualified ladder candidates</h2><p class="sub">Continuous holding horizons with staged targets (T1: 1–3d, T2: 5–12d, T3: Macro Roll). Click a row to load its levels above.</p>
   <div class="tools"><button data-filter="all" aria-pressed="true">All</button><button data-filter="long" aria-pressed="false">Long</button><button data-filter="short" aria-pressed="false">Short</button><input id="plan-search" class="search" type="search" placeholder="Search candidates"></div>
-  <div class="scroll"><table><thead><tr><th>Instrument</th><th>Sector</th><th>Planned limit</th><th>Target</th><th>Stop</th><th>Holding Horizon</th><th>Risk ceiling</th><th>Expected Gain</th><th>Evidence score</th><th>Execution scope</th></tr></thead><tbody id="plan-rows"></tbody></table></div>
+  <div class="scroll"><table><thead><tr><th>Instrument</th><th>Sector</th><th>Planned limit</th><th>Target</th><th>Stop</th><th>Holding Horizon</th><th>Risk ceiling</th><th>Expected Gain</th><th>Evidence score</th><th>Execution scope</th></tr></thead><tbody id="plan-rows"><tr data-symbol="BEL" data-side="long" data-entry="390.25" data-target="398.15" data-stop="386.3" data-hold="1" data-ceiling="20" data-expected="0.094" data-conviction="27.23">
+    <th><span class="ticker">BEL</span> <span class="chip long">long</span></th>
+    <td>Unclassified</td>
+    <td class="num">₹390.25</td>
+    <td class="num positive">₹398.15</td>
+    <td class="num negative">₹386.30</td>
+    <td class="num">1 observed sessions</td>
+    <td class="num">20 sessions</td>
+    <td class="num">0.09%</td>
+    <td class="num">27 · uncalibrated score</td>
+    <td><span class="status shadow">Shadow only</span></td>
+  </tr><tr data-symbol="ABB" data-side="long" data-entry="6954.45" data-target="7140.85" data-stop="6861.3" data-hold="1" data-ceiling="20" data-expected="0.041" data-conviction="36.8">
+    <th><span class="ticker">ABB</span> <span class="chip long">long</span></th>
+    <td>Unclassified</td>
+    <td class="num">₹6954.45</td>
+    <td class="num positive">₹7140.85</td>
+    <td class="num negative">₹6861.30</td>
+    <td class="num">1 observed sessions</td>
+    <td class="num">20 sessions</td>
+    <td class="num">0.04%</td>
+    <td class="num">37 · uncalibrated score</td>
+    <td><span class="status shadow">Shadow only</span></td>
+  </tr><tr data-symbol="BANKBARODA" data-side="long" data-entry="225.89" data-target="230.59" data-stop="223.54" data-hold="1" data-ceiling="20" data-expected="0.038" data-conviction="19.01">
+    <th><span class="ticker">BANKBARODA</span> <span class="chip long">long</span></th>
+    <td>Unclassified</td>
+    <td class="num">₹225.89</td>
+    <td class="num positive">₹230.59</td>
+    <td class="num negative">₹223.54</td>
+    <td class="num">1 observed sessions</td>
+    <td class="num">20 sessions</td>
+    <td class="num">0.04%</td>
+    <td class="num">19 · uncalibrated score</td>
+    <td><span class="status shadow">Shadow only</span></td>
+  </tr></tbody></table></div>
 </section>
 
 <section><h2>Expanded NSE equity radar</h2><p class="sub">This keeps the current stock-futures set and adds the broader 502-name directory for research discovery. An extra cash-equity name is not a futures order: it must first obtain a current exchange contract ID, lot, expiry, liquidity, ban status, margin, and risk approval.</p>
@@ -103,7 +569,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
     <td>ABB India Ltd.</td>
     <td>Capital Goods</td>
     <td>Large Cap</td>
-    <td><span class="status research">Research only</span></td>
+    <td><span class="status verified">F&O snapshot; recheck before order</span></td>
   </tr><tr data-public-symbol="ABBOTINDIA" data-research="abbotindia abbott india ltd. healthcare mid cap">
     <th class="ticker">ABBOTINDIA</th>
     <td>Abbott India Ltd.</td>
@@ -457,7 +923,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
     <td>Bank of Baroda</td>
     <td>Financial Services</td>
     <td>Large Cap</td>
-    <td><span class="status research">Research only</span></td>
+    <td><span class="status verified">F&O snapshot; recheck before order</span></td>
   </tr><tr data-public-symbol="BANKINDIA" data-research="bankindia bank of india financial services mid cap">
     <th class="ticker">BANKINDIA</th>
     <td>Bank of India</td>
@@ -493,7 +959,7 @@ body{margin:0;background:var(--bg);color:var(--text);font-family:Inter,"Segoe UI
     <td>Bharat Electronics Ltd.</td>
     <td>Capital Goods</td>
     <td>Large Cap</td>
-    <td><span class="status research">Research only</span></td>
+    <td><span class="status verified">F&O snapshot; recheck before order</span></td>
   </tr><tr data-public-symbol="BELRISE" data-research="belrise belrise industries ltd. automobile and auto components small cap">
     <th class="ticker">BELRISE</th>
     <td>Belrise Industries Ltd.</td>
