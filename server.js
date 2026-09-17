@@ -63,8 +63,16 @@ const server = http.createServer((req, res) => {
       // page that cannot tell configured from unconfigured will present
       // end-of-day settlement prices as if they were live.
       liveFeed: (() => {
-        try { return require("./api/_lib/dhan-feed").status(); }
-        catch (error) { return { configured: false, ready: false, reason: "FEED_MODULE_UNAVAILABLE" }; }
+        try {
+          const brokers = require("./api/_lib/broker-feed").status();
+          const dhan = require("./api/_lib/dhan-feed").status();
+          return {
+            anyReady: brokers.anyReady || dhan.ready,
+            activeProvider: brokers.activeProvider || (dhan.ready ? "dhan" : null),
+            providers: { ...brokers.providers, dhan },
+            howToConfigure: { ...brokers.howToConfigure, dhan: dhan.howToConfigure }
+          };
+        } catch (error) { return { anyReady: false, activeProvider: null, reason: "FEED_MODULE_UNAVAILABLE" }; }
       })(),
       summary: engine.ledger.getSummary(),
       accuracy: engine.ledger.getSignalsAccuracy ? engine.ledger.getSignalsAccuracy() : null,

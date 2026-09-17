@@ -189,6 +189,19 @@ class RealtimeMarketEngine {
     }
   }
 
+  async refreshBrokerInstruments() {
+    try {
+      const brokers = require("./broker-feed");
+      for (const provider of brokers.PROVIDERS) {
+        if (brokers.loadInstruments(provider)) continue;
+        const master = await brokers.refreshInstruments(provider);
+        console.log(`[K² Broker Instruments] ${provider}: ${master.underlyingCount} underlyings${master.optionCount ? `, ${master.optionCount} contracts` : ""}`);
+      }
+    } catch (error) {
+      console.error("Broker instrument refresh failed:", error.message);
+    }
+  }
+
   start(pollIntervalMs = 5000) {
     if (typeof fnoUniverseEngine.startBackgroundIngest === "function") {
       fnoUniverseEngine.startBackgroundIngest();
@@ -198,6 +211,7 @@ class RealtimeMarketEngine {
     // Dhan's scrip master is public and needs no token; caching it means the
     // moment credentials appear, live quotes work without another cold start.
     this.refreshDhanScrips();
+    this.refreshBrokerInstruments();
     this.referenceTimer = setInterval(() => this.refreshContractReference(), 6 * 60 * 60 * 1000);
     this.pollTickCycle();
     this.timer = setInterval(() => this.pollTickCycle(), pollIntervalMs);
