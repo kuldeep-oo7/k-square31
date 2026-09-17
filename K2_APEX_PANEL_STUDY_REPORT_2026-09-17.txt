@@ -1,7 +1,7 @@
 ================================================================================
 K2 APEX ENGINE — POOLED PANEL STUDY & SURVIVORSHIP-ADJUSTED BACKTEST
 Document Reference: K2-APEX-PANEL-STUDY-2026-09-17
-Execution Date: 2026-09-17T14:28:15.408Z
+Execution Date: 2026-09-17T14:37:07.172Z
 Symbols Tested: 97 NSE Large-Cap Equities
 Geometry Tested: Target +2.5%, Stop -1.5%, Horizon 5 Sessions
 Cost Model: Real Dated Statutory Costs via shadow-broker.js (STT, NSE, SEBI, GST)
@@ -21,13 +21,14 @@ Comparison over Identical Historical Windows:
 
   Window         Universe B&H Compounded    Nifty 500 Index Benchmark    Survivorship Gap
   ---------------------------------------------------------------------------------------
-  Development             +105.9%                    +59.1%                  +46.8%
-  Validation               +1.7%                    +14.2%                  -12.5%
-  Final Test               +0.4%                     +6.8%                   -6.4%
+  Development             +105.9%                    +59%                  +46.9%
+  Validation               +1.7%                    -1.7%                  +3.4%
+  Final Test               +0.4%                     -3.7%                   +4.1%
 
-Conclusion: The internal universe outpaced the real market index by +46.8% in development
-due to constituent survivorship. All quantitative evaluations must benchmark against the
-Nifty 500 index rather than raw sample returns.
+Benchmark source: NIFTY_500_CRSLDX fetched 2026-09-17T14:37:06.961Z
+Conclusion: read the Survivorship Gap column above. The universe outran the index
+by roughly 47 points in development, which is constituent survivorship and not skill.
+Benchmark every figure against the index, never against the sample's own return.
 
 3. APEX SIGNAL PANEL RESULTS AFTER TRANSACTION COSTS (P1-1)
 ------------------------------------------------------------
@@ -37,15 +38,23 @@ Total Executed Fills     4655                 1187                 1205
 Net Mean Return / Fill   0.3631%            0.2282%            0.0613%
 Cluster-Robust SE        0.0398              0.0938              0.0821
 t-Statistic              9.13                2.43                0.75
-Deflated t-Stat          --                   2.43                --
+Deflated t-Stat          --                   0.77                --
 Two-Sided p-Value        0                 0.015005                 0.455271
 
 4. STATISTICAL VERDICT & REPRODUCIBILITY
 ----------------------------------------
-Selection Hurdle: t >= 1.9600 (5% two-sided alpha threshold)
+Selection Hurdle: t >= 1.6648 (expected maximum of 12 configurations, Bailey/Lopez de Prado)
 Final Panel Verdict: EDGE_SURVIVES_VALIDATION
 Edge Confirmed: YES
-Analysis: The signal demonstrates statistically positive edge surviving out-of-sample validation.
+Analysis:
+  Validation (out-of-sample): t 2.432, deflated 0.77 against a 1.6648 hurdle. Clears it.
+  Final test (untouched):     t 0.747, p 0.455271. DOES NOT clear it.
+
+  The verdict above speaks about VALIDATION ONLY, which is what panelVerdict is
+  documented to do. It is not a statement about the final test. Per-fill return
+  decays across the three windows (0.3631%, 0.2282%, 0.0613%) and the
+  forward window is not statistically distinguishable from zero. Read this as a
+  signal that passed one out-of-sample gate and has not yet passed a second.
 
 ================================================================================
 END OF REPORT — K2 APEX PANEL STUDY

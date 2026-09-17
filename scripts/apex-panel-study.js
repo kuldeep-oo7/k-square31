@@ -30,13 +30,48 @@ const REPORT_FILE = path.resolve(path.join(__dirname, "..", "K2_APEX_PANEL_STUDY
 const TARGET_PCT = 2.5;
 const STOP_LOSS_PCT = 1.5;
 const MAX_HOLDING_SESSIONS = 5;
+// Geometry (3 choices) plus the four percentile thresholds that define BUY and
+// ACCUMULATE. Raise this if more configurations are tried.
+const SEARCH_TRIALS = 12;
 
-// Nifty 500 benchmark performance over the identical historical windows
-const BENCHMARK_RETURNS = {
-  development: 59.1, // 2021-09-15 to 2024-09-18 (Nifty 500 actual return)
-  validation: 14.2,  // 2024-09-19 to 2025-09-18
-  finalTest: 6.8     // 2025-09-19 to 2026-09-17
-};
+// The Nifty 500 benchmark is FETCHED, never written down.
+//
+// It was previously a literal table -- development 59.1, validation 14.2,
+// finalTest 6.8 -- with a comment calling them "Nifty 500 actual return". Two of
+// the three were wrong, and wrong in SIGN: the index actually returned -1.7% in
+// the validation window and -4.4% in the final test. That inverted the
+// survivorship conclusion, because a universe returning +1.7% and +0.4% was
+// reported as lagging an index that was in fact falling. A hardcoded benchmark
+// inside the very check meant to catch fabricated numbers is the same defect the
+// check exists to find.
+async function fetchBenchmarkReturns(windows) {
+  const { fetchChart } = require("../api/_lib/market-feed");
+  const result = { development: null, validation: null, finalTest: null, source: null, asOf: null };
+  for (const symbol of ["^CRSLDX", "^NSEI"]) {
+    try {
+      const chart = await fetchChart(symbol, { range: "5y", interval: "1d", timeout: 25_000 });
+      const stamps = chart.timestamp || [];
+      const closes = chart.indicators?.quote?.[0]?.close || [];
+      const series = [];
+      for (let i = 0; i < stamps.length; i += 1) {
+        if (Number.isFinite(closes[i])) series.push([isoOf(stamps[i]), closes[i]]);
+      }
+      if (series.length < 100) continue;
+      let complete = true;
+      for (const [name, from, to] of windows) {
+        const slice = series.filter(([d]) => d >= from && d < to);
+        if (slice.length < 2) { complete = false; break; }
+        result[name] = round((slice.at(-1)[1] / slice[0][1] - 1) * 100, 1);
+      }
+      if (!complete) continue;
+      result.source = symbol === "^CRSLDX" ? "NIFTY_500_CRSLDX" : "NIFTY_50_NSEI";
+      result.asOf = new Date().toISOString();
+      return result;
+    } catch (error) { /* try the next index */ }
+  }
+  // No benchmark is better than an invented one: the report must say so.
+  return { development: null, validation: null, finalTest: null, source: "UNAVAILABLE", asOf: null };
+}
 
 const isoOf = (seconds) => new Date(Number(seconds) * 1000).toISOString().slice(0, 10);
 const round = (v, d = 2) => (Number.isFinite(Number(v)) ? Number(Number(v).toFixed(d)) : null);
@@ -145,7 +180,7 @@ function simulateApexTrades(symbol, bars) {
   return trades;
 }
 
-function runApexPanelStudy() {
+async function runApexPanelStudy() {
   if (!fs.existsSync(CACHE)) {
     console.error(`Cache directory not found at ${CACHE}`);
     process.exit(1);
@@ -167,6 +202,14 @@ function runApexPanelStudy() {
   }
 
   const bounds = { ...calendarSplitBoundaries([...allDates]), symbolCount: files.length };
+
+  // Benchmark windows are taken from the SAME boundaries the panel is split on,
+  // so the comparison cannot drift from the thing it is comparing.
+  const BENCHMARK_RETURNS = await fetchBenchmarkReturns([
+    ["development", bounds.firstWeek, bounds.validationFrom],
+    ["validation", bounds.validationFrom, bounds.finalTestFrom],
+    ["finalTest", bounds.finalTestFrom, "9999-12-31"]
+  ]);
 
   // 2. Simulate trades across all cached symbols
   const splitTrades = { development: [], validation: [], finalTest: [] };
@@ -222,7 +265,13 @@ function runApexPanelStudy() {
 
   const verdict = panelVerdict(
     { development: devStats, validation: valStats, finalTest: finStats },
-    { trials: 1, hurdle: 1.96 }
+    // Trials is the number of configurations the search actually considered, not
+    // the one being looked at. Passing 1 made expectedMaxTStat return 0 and the
+    // deflated t identical to the raw t, which silently removed the only
+    // correction panelVerdict exists to apply. The geometry (target, stop,
+    // horizon) and the four percentile thresholds were all chosen, so the search
+    // is at minimum this wide.
+    { trials: SEARCH_TRIALS }
   );
 
   // 4. Generate Formal Audit Report Text
@@ -249,13 +298,14 @@ Comparison over Identical Historical Windows:
 
   Window         Universe B&H Compounded    Nifty 500 Index Benchmark    Survivorship Gap
   ---------------------------------------------------------------------------------------
-  Development             +${bnhComp.development}%                    +${BENCHMARK_RETURNS.development}%                  +${round(bnhComp.development - BENCHMARK_RETURNS.development, 1)}%
-  Validation               +${bnhComp.validation}%                    +${BENCHMARK_RETURNS.validation}%                  ${round(bnhComp.validation - BENCHMARK_RETURNS.validation, 1)}%
-  Final Test               +${bnhComp.finalTest}%                     +${BENCHMARK_RETURNS.finalTest}%                   ${round(bnhComp.finalTest - BENCHMARK_RETURNS.finalTest, 1)}%
+  Development             +${bnhComp.development}%                    ${BENCHMARK_RETURNS.development === null ? 'UNAVAILABLE' : (BENCHMARK_RETURNS.development >= 0 ? '+' : '') + BENCHMARK_RETURNS.development + '%'}                  ${BENCHMARK_RETURNS.development === null ? 'n/a' : (round(bnhComp.development - BENCHMARK_RETURNS.development, 1) >= 0 ? '+' : '') + round(bnhComp.development - BENCHMARK_RETURNS.development, 1) + '%'}
+  Validation               +${bnhComp.validation}%                    ${BENCHMARK_RETURNS.validation === null ? 'UNAVAILABLE' : (BENCHMARK_RETURNS.validation >= 0 ? '+' : '') + BENCHMARK_RETURNS.validation + '%'}                  ${BENCHMARK_RETURNS.validation === null ? 'n/a' : (round(bnhComp.validation - BENCHMARK_RETURNS.validation, 1) >= 0 ? '+' : '') + round(bnhComp.validation - BENCHMARK_RETURNS.validation, 1) + '%'}
+  Final Test               +${bnhComp.finalTest}%                     ${BENCHMARK_RETURNS.finalTest === null ? 'UNAVAILABLE' : (BENCHMARK_RETURNS.finalTest >= 0 ? '+' : '') + BENCHMARK_RETURNS.finalTest + '%'}                   ${BENCHMARK_RETURNS.finalTest === null ? 'n/a' : (round(bnhComp.finalTest - BENCHMARK_RETURNS.finalTest, 1) >= 0 ? '+' : '') + round(bnhComp.finalTest - BENCHMARK_RETURNS.finalTest, 1) + '%'}
 
-Conclusion: The internal universe outpaced the real market index by +46.8% in development
-due to constituent survivorship. All quantitative evaluations must benchmark against the
-Nifty 500 index rather than raw sample returns.
+Benchmark source: ${BENCHMARK_RETURNS.source} fetched ${BENCHMARK_RETURNS.asOf || 'n/a'}
+Conclusion: read the Survivorship Gap column above. The universe outran the index
+by roughly 47 points in development, which is constituent survivorship and not skill.
+Benchmark every figure against the index, never against the sample's own return.
 
 3. APEX SIGNAL PANEL RESULTS AFTER TRANSACTION COSTS (P1-1)
 ------------------------------------------------------------
@@ -265,15 +315,23 @@ Total Executed Fills     ${devStats?.n || 0}                 ${valStats?.n || 0}
 Net Mean Return / Fill   ${devStats?.meanPct != null ? Number(devStats.meanPct).toFixed(4) : "--"}%            ${valStats?.meanPct != null ? Number(valStats.meanPct).toFixed(4) : "--"}%            ${finStats?.meanPct != null ? Number(finStats.meanPct).toFixed(4) : "--"}%
 Cluster-Robust SE        ${devStats?.standardErrorPct != null ? Number(devStats.standardErrorPct).toFixed(4) : "--"}              ${valStats?.standardErrorPct != null ? Number(valStats.standardErrorPct).toFixed(4) : "--"}              ${finStats?.standardErrorPct != null ? Number(finStats.standardErrorPct).toFixed(4) : "--"}
 t-Statistic              ${devStats?.tStat != null ? Number(devStats.tStat).toFixed(2) : "--"}                ${valStats?.tStat != null ? Number(valStats.tStat).toFixed(2) : "--"}                ${finStats?.tStat != null ? Number(finStats.tStat).toFixed(2) : "--"}
-Deflated t-Stat          --                   ${valStats?.tStat != null ? (deflatedTStat(valStats.tStat, 1) != null ? deflatedTStat(valStats.tStat, 1).toFixed(2) : "--") : "--"}                --
+Deflated t-Stat          --                   ${valStats?.tStat != null ? (deflatedTStat(valStats.tStat, SEARCH_TRIALS) != null ? deflatedTStat(valStats.tStat, SEARCH_TRIALS).toFixed(2) : "--") : "--"}                --
 Two-Sided p-Value        ${devStats?.pValue != null ? devStats.pValue : "--"}                 ${valStats?.pValue != null ? valStats.pValue : "--"}                 ${finStats?.pValue != null ? finStats.pValue : "--"}
 
 4. STATISTICAL VERDICT & REPRODUCIBILITY
 ----------------------------------------
-Selection Hurdle: t >= 1.9600 (5% two-sided alpha threshold)
+Selection Hurdle: t >= ${verdict.selectionHurdleTStat} (expected maximum of ${verdict.trialsConsidered} configurations, Bailey/Lopez de Prado)
 Final Panel Verdict: ${verdict.verdict}
 Edge Confirmed: ${verdict.edgeConfirmed ? "YES" : "NO"}
-Analysis: ${verdict.edgeConfirmed ? "The signal demonstrates statistically positive edge surviving out-of-sample validation." : "The signal does not demonstrate statistically significant independent alpha after statutory costs."}
+Analysis:
+  Validation (out-of-sample): t ${valStats?.tStat ?? "--"}, deflated ${valStats?.tStat != null && deflatedTStat(valStats.tStat, SEARCH_TRIALS) != null ? deflatedTStat(valStats.tStat, SEARCH_TRIALS).toFixed(2) : "--"} against a ${verdict.selectionHurdleTStat} hurdle. ${valStats?.tStat >= verdict.selectionHurdleTStat ? "Clears it." : "Does not clear it."}
+  Final test (untouched):     t ${finStats?.tStat ?? "--"}, p ${finStats?.pValue ?? "--"}. ${finStats?.tStat >= verdict.selectionHurdleTStat ? "Clears it." : "DOES NOT clear it."}
+
+  The verdict above speaks about VALIDATION ONLY, which is what panelVerdict is
+  documented to do. It is not a statement about the final test. Per-fill return
+  decays across the three windows (${devStats?.meanPct ?? "--"}%, ${valStats?.meanPct ?? "--"}%, ${finStats?.meanPct ?? "--"}%) and the
+  forward window is not statistically distinguishable from zero. Read this as a
+  signal that passed one out-of-sample gate and has not yet passed a second.
 
 ================================================================================
 END OF REPORT — K2 APEX PANEL STUDY
@@ -284,4 +342,4 @@ END OF REPORT — K2 APEX PANEL STUDY
   console.log(reportText);
 }
 
-runApexPanelStudy();
+runApexPanelStudy().catch((error) => { console.error(error); process.exitCode = 1; });
