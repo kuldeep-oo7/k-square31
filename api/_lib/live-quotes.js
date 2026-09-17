@@ -267,6 +267,12 @@ async function refreshQuotes(requests, { provider = null, concurrency = 1 } = {}
           theta: leg.theta,
           vega: leg.vega,
           lotSize: leg.lotSize ?? null,
+          // Angel's OWN label for the instrument it priced. Stored so the
+          // desk can check that the contract we filed under a key is the
+          // contract the broker actually quoted, rather than trusting our own
+          // token lookup to have been right.
+          tradingSymbol: leg.tradingSymbol ?? null,
+          token: leg.token ?? null,
           exchangeFeedTime: leg.exchangeFeedTime ?? null,
           exchangeTradeTime: leg.exchangeTradeTime ?? null,
           provider: chain.provider,

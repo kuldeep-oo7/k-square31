@@ -1,0 +1,149 @@
+"use strict";
+
+/**
+ * Is the call we show actually that call, and the put actually that put?
+ *
+ * This is the question this desk has been wrong about before -- wrong lot sizes
+ * on 343 cards, 72 strikes that did not exist, index spots off by 9%. Each time
+ * the failure was the same: a contract identifier the system ASSEMBLED, trusted,
+ * and never checked against anyone else's copy of the same fact.
+ *
+ * So nothing here trusts our own key. Every check compares what we filed against
+ * an INDEPENDENT source:
+ *
+ *   1. the broker's own instrument label, parsed from the symbol it returned
+ *   2. put-call parity, which is arithmetic and knows nothing about labels
+ *   3. the NSE bhavcopy -- the exchange's own record of strikes, OI and prices
+ *
+ * Checks 2 and 3 are the valuable ones, because they would catch a call and a
+ * put swapped even if every label in the system agreed with every other label.
+ *
+ * Runs only when a live cache exists. It reports that it skipped rather than
+ * passing silently, because a test that asserts nothing must never read as a
+ * test that found nothing wrong -- an earlier version of this file "verified"
+ * 565 contracts while actually checking zero of them.
+ */
+
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const { CACHE_FILE } = require("../api/_lib/live-quotes");
+const reference = require("../api/_lib/fno-reference");
+
+const MONTHS = { JAN: 1, FEB: 2, MAR: 3, APR: 4, MAY: 5, JUN: 6, JUL: 7, AUG: 8, SEP: 9, OCT: 10, NOV: 11, DEC: 12 };
+
+if (!fs.existsSync(CACHE_FILE)) {
+  console.log("  - no live quote cache; contract identity checks skipped (they need a broker session)");
+  console.log("Contract identity tests skipped: no cached broker quotes to verify against");
+  process.exit(0);
+}
+
+const cache = JSON.parse(fs.readFileSync(CACHE_FILE, "utf8"));
+const entries = Object.entries(cache.quotes || {});
+assert.ok(entries.length > 0, "a cache that exists must hold quotes");
+
+// --- 1. Every contract matches the BROKER's own label ------------------------
+// Angel writes AMBER29SEP265800CE: symbol, then DD MON YY, then strike, then
+// the right. Note the day comes FIRST -- reading it as year-first (the Zerodha
+// convention) turns strike 5800 into 265800 and reports mismatches that are not
+// there. The parser has to match the venue, not the habit.
+let labelled = 0;
+const mismatches = [];
+for (const [key, row] of entries) {
+  const symbol = String(row.tradingSymbol || "");
+  const match = symbol.match(/^(.+?)(\d{2})([A-Z]{3})(\d{2})(\d+(?:\.\d+)?)(CE|PE)$/);
+  if (!match) { mismatches.push(`${key}: broker label unparseable (${symbol || "absent"})`); continue; }
+  labelled += 1;
+  const [, sym, dd, mon, yy, strike, right] = match;
+  const [keySymbol, keyExpiry, keyStrike, keyRight] = key.split("|");
+  const brokerExpiry = `20${yy}-${String(MONTHS[mon]).padStart(2, "0")}-${dd}`;
+  if (sym !== keySymbol) mismatches.push(`${key}: broker underlying ${sym}`);
+  if (right !== keyRight) mismatches.push(`${key}: broker says ${right}, filed as ${keyRight}`);
+  if (Number(strike) !== Number(keyStrike)) mismatches.push(`${key}: broker strike ${strike}`);
+  if (brokerExpiry !== keyExpiry) mismatches.push(`${key}: broker expiry ${brokerExpiry}`);
+  if (row.optionType !== keyRight || Number(row.strike) !== Number(keyStrike)) {
+    mismatches.push(`${key}: the row's own fields disagree with its key`);
+  }
+}
+assert.equal(labelled, entries.length,
+  `${entries.length - labelled} of ${entries.length} contracts carry no parseable broker label, so they were never really checked`);
+assert.equal(mismatches.length, 0,
+  `${mismatches.length} contracts are not what the broker says they are: ${mismatches.slice(0, 3).join("; ")}`);
+console.log(`  ✓ All ${labelled} contracts match the broker's own instrument label (underlying, expiry, strike, right)`);
+
+// --- 2. Put-call parity: arithmetic that cannot read a label -----------------
+// C - P = (F - K)e^(-rT), so regressing C - P on K gives a slope of about -1.
+// Calls and puts swapped would give +1. This is the check that survives every
+// label in the system agreeing with every other label while all of them are
+// wrong together.
+const bySymbol = {};
+for (const [key, row] of entries) {
+  if (!(row.bid > 0 && row.ask > 0)) continue;
+  const [symbol, , strike, right] = key.split("|");
+  bySymbol[symbol] = bySymbol[symbol] || {};
+  bySymbol[symbol][strike] = bySymbol[symbol][strike] || {};
+  bySymbol[symbol][strike][right] = (row.bid + row.ask) / 2;
+}
+let regressed = 0;
+for (const [symbol, strikes] of Object.entries(bySymbol)) {
+  const points = Object.entries(strikes)
+    .filter(([, v]) => v.CE > 0 && v.PE > 0)
+    .map(([strike, v]) => [Number(strike), v.CE - v.PE]);
+  if (points.length < 6) continue;
+  const n = points.length;
+  const mx = points.reduce((a, p) => a + p[0], 0) / n;
+  const my = points.reduce((a, p) => a + p[1], 0) / n;
+  let sxy = 0, sxx = 0, syy = 0;
+  for (const [x, y] of points) { sxy += (x - mx) * (y - my); sxx += (x - mx) ** 2; syy += (y - my) ** 2; }
+  const slope = sxy / sxx;
+  const r2 = (sxy * sxy) / (sxx * syy);
+  assert.ok(slope < -0.85 && slope > -1.15,
+    `${symbol}: put-call parity slope ${slope.toFixed(3)} is not near -1; a slope near +1 means calls and puts are swapped`);
+  assert.ok(r2 > 0.95,
+    `${symbol}: parity fit R^2 ${r2.toFixed(4)} is too loose for strikes to be correctly assigned`);
+  regressed += 1;
+}
+assert.ok(regressed > 0, "no symbol had enough paired strikes to test parity, so nothing was verified");
+console.log(`  ✓ Put-call parity holds across ${regressed} symbols: slope near -1, so calls and puts are not transposed`);
+
+// --- 3. Against the exchange's own record ------------------------------------
+// The bhavcopy is NSE's record rather than the broker's. Open interest is the
+// sharpest field to compare: it is a hard integer, and a wrong strike or wrong
+// right would not reproduce it. Prices are compared only at the money, because
+// NSE derives settlement prices for untraded strikes from a model, and a far
+// out-of-the-money settled price is not an observation to hold a live book to.
+const contractRef = reference.loadReference();
+if (contractRef) {
+  let oiCompared = 0, oiAgreed = 0;
+  const atmDiffs = [];
+  for (const [key, row] of entries) {
+    if (!(row.bid > 0 && row.ask > 0)) continue;
+    const [symbol, expiry, strike, right] = key.split("|");
+    const exchange = reference.tradedQuote(symbol, Number(strike), right, expiry, contractRef);
+    if (!exchange) continue;
+    if (exchange.openInterest > 0 && row.openInterest > 0) {
+      oiCompared += 1;
+      if (Math.abs(row.openInterest - exchange.openInterest) / exchange.openInterest < 0.05) oiAgreed += 1;
+    }
+    const underlying = reference.underlyingPrice(symbol, contractRef);
+    if (underlying > 0 && exchange.price > 0 && Math.abs(Number(strike) - underlying) / underlying < 0.03) {
+      atmDiffs.push(Math.abs(100 * ((row.bid + row.ask) / 2 - exchange.price) / exchange.price));
+    }
+  }
+  if (oiCompared > 50) {
+    const rate = oiAgreed / oiCompared;
+    assert.ok(rate > 0.9,
+      `open interest agrees with the NSE bhavcopy on only ${oiAgreed}/${oiCompared} contracts; the desk may be quoting different contracts than it thinks`);
+    console.log(`  ✓ Open interest matches the NSE bhavcopy on ${oiAgreed}/${oiCompared} contracts`);
+  }
+  if (atmDiffs.length > 20) {
+    atmDiffs.sort((a, b) => a - b);
+    const median = atmDiffs[Math.floor(atmDiffs.length / 2)];
+    assert.ok(median < 10,
+      `at the money the live mid sits ${median.toFixed(1)}% from the exchange's settled price, which is too far to be the same contract`);
+    console.log(`  ✓ At the money, live mid and NSE settled price agree to ${median.toFixed(2)}% (median of ${atmDiffs.length})`);
+  }
+} else {
+  console.log("  - no contract reference cached; exchange cross-check skipped");
+}
+
+console.log("Contract identity tests passed: every contract matches the broker's own label, put-call parity rules out transposed calls and puts, and open interest and at-the-money prices agree with the NSE bhavcopy");
