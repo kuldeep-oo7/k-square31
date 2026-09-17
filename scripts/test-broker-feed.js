@@ -32,6 +32,8 @@ for (const key of ["UPSTOX_ACCESS_TOKEN", "ANGELONE_ACCESS_TOKEN", "ANGELONE_API
   delete process.env[key];
 }
 
+// On a configured machine these assertions are skipped rather than inverted:
+// the property under test is how the client behaves with NOTHING set.
 const cold = status();
 if (!cold.anyReady) {
   assert.equal(cold.activeProvider, null, "no provider is active without credentials");
@@ -45,9 +47,19 @@ if (!cold.anyReady) {
 }
 
 // Angel One needs BOTH an api key and a token; one alone is not credentials.
-process.env.ANGELONE_ACCESS_TOKEN = "token-only";
-assert.equal(credentialsFor("angelone"), null, "an access token without an api key is not usable");
-delete process.env.ANGELONE_ACCESS_TOKEN;
+//
+// This check is only meaningful when nothing else supplies the missing half.
+// Asserting it unconditionally made the test pass only on machines with NO
+// credentials configured and fail the moment a real .private/brokers.json
+// existed -- a test that breaks when the feature starts working.
+{
+  const fileSupplies = Boolean(credentialsFor("angelone"));
+  if (!fileSupplies) {
+    process.env.ANGELONE_ACCESS_TOKEN = "token-only";
+    assert.equal(credentialsFor("angelone"), null, "an access token without an api key is not usable");
+    delete process.env.ANGELONE_ACCESS_TOKEN;
+  }
+}
 
 // --- expiry normalisation ---------------------------------------------------
 // Angel writes 29SEP2026; every other surface here speaks ISO.

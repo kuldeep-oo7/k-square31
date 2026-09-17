@@ -78,10 +78,21 @@ assert.equal(status.upstox.hoursRemaining, 12, "hours remaining must be computed
 assert.ok(status.upstox.note.includes("no refresh token"), "the limitation must be stated in the status itself");
 
 // Angel One without a TOTP secret is manual; with one it is unattended.
-assert.equal(status.angelone.canAutoRefresh, false, "no credentials means no unattended refresh");
-assert.equal(status.angelone.mode, "MANUAL");
-assert.deepEqual(status.angelone.missing, ["apiKey", "clientCode", "mpin", "totpSecret"],
-  "the status must name exactly what is missing");
+//
+// Only assertable when nothing else supplies the credentials. Deleting the
+// environment variables does not unconfigure a machine that has a real
+// .private/brokers.json, and asserting otherwise made this test pass only
+// while the feature was switched off.
+if (!status.angelone.canAutoRefresh) {
+  assert.equal(status.angelone.mode, "MANUAL");
+  assert.deepEqual(status.angelone.missing, ["apiKey", "clientCode", "mpin", "totpSecret"],
+    "the status must name exactly what is missing");
+} else {
+  // Configured machine: the contract is that it declares itself unattended and
+  // reports nothing missing.
+  assert.equal(status.angelone.mode, "UNATTENDED_TOTP");
+  assert.deepEqual(status.angelone.missing, [], "a fully configured provider reports nothing missing");
+}
 
 process.env.ANGELONE_API_KEY = "k";
 process.env.ANGELONE_CLIENT_CODE = "c";
@@ -97,15 +108,19 @@ console.log("  ✓ Angel One reports UNATTENDED_TOTP once armed; Upstox always r
 (async () => {
   for (const key of ["ANGELONE_API_KEY", "ANGELONE_CLIENT_CODE", "ANGELONE_MPIN", "ANGELONE_TOTP_SECRET"]) delete process.env[key];
 
-  const login = await angelLogin();
-  assert.equal(login.ok, false);
-  assert.equal(login.reason, "INCOMPLETE_CREDENTIALS");
-  assert.ok(Array.isArray(login.missing) && login.missing.length > 0, "a refusal must list what is missing");
-  assert.equal(login.session, null, "a refusal carries no session");
+  // Only exercised on an unconfigured machine. On a configured one these calls
+  // would hit the live broker, which a test suite must never do.
+  if (!sessionStatus().angelone.canAutoRefresh) {
+    const login = await angelLogin();
+    assert.equal(login.ok, false);
+    assert.equal(login.reason, "INCOMPLETE_CREDENTIALS");
+    assert.ok(Array.isArray(login.missing) && login.missing.length > 0, "a refusal must list what is missing");
+    assert.equal(login.session, null, "a refusal carries no session");
 
-  const refresh = await angelRefresh();
-  assert.equal(refresh.ok, false);
-  assert.equal(refresh.session, null);
+    const refresh = await angelRefresh();
+    assert.equal(refresh.ok, false);
+    assert.equal(refresh.session, null);
+  }
 
   const exchange = await upstoxExchangeCode(null);
   assert.equal(exchange.ok, false);
