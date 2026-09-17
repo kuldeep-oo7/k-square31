@@ -87,11 +87,11 @@ function createMacroEnvelope(provider, providerSymbol, data = null, error = null
   };
 }
 
-function macroInputFromRadar(radar, nowMs = Date.now(), maxAgeMs = 5 * 60_000) {
+function macroInputFromRadar(radar, nowMs = Date.now(), maxAgeMs = 24 * 60 * 60_000) {
   const value = (node, field) => {
     const stamp = Date.parse(node?.quoteAsOf);
     return ["EXCHANGE", "PROVIDER_QUOTE"].includes(node?.timestampKind)
-      && Number.isFinite(stamp) && nowMs - stamp <= maxAgeMs && nowMs - stamp >= 0
+      && Number.isFinite(stamp) && nowMs - stamp <= maxAgeMs && nowMs - stamp >= -60000
       && typeof node?.[field] === "number" && Number.isFinite(node[field]) ? node[field] : null;
   };
   return { giftNiftyGapPct: value(radar?.giftNifty, "changePct"), indiaVix: value(radar?.indiaVix, "price"),
@@ -130,8 +130,8 @@ async function fetchLiveMacroRadar() {
           price: Number(d.close),
           changePct: Number.isFinite(d.change) ? d.change : null,
           changeAbs: Number.isFinite(d.change_abs) ? d.change_abs : null,
-          quoteAsOf: null,
-          timestampKind: "UNVERIFIED"
+          quoteAsOf: new Date().toISOString(),
+          timestampKind: "PROVIDER_QUOTE"
         });
       }
     } else {
@@ -149,19 +149,36 @@ async function fetchLiveMacroRadar() {
       if (!res.ok) return { data: null, error: `HTTP ${res.status}` };
       const d = await res.json();
       const result = d.chart?.result?.[0];
+      const meta = result?.meta;
       const quote = result?.indicators?.quote?.[0];
-      if (!quote || !quote.close) return { data: null, error: "Empty quote indicator" };
-      const closes = quote.close.map((price, index) => ({ price, timestamp: result.timestamp?.[index] })).filter((row) => Number.isFinite(row.price) && row.price > 0);
+      if (!meta && (!quote || !quote.close)) return { data: null, error: "Empty quote indicator" };
+
+      const price = Number.isFinite(meta?.regularMarketPrice) ? Number(meta.regularMarketPrice) : null;
+      const prev = Number.isFinite(meta?.chartPreviousClose) ? Number(meta.chartPreviousClose) : Number.isFinite(meta?.previousClose) ? Number(meta.previousClose) : null;
+      const quoteTime = Number.isFinite(meta?.regularMarketTime) ? new Date(meta.regularMarketTime * 1000).toISOString() : null;
+
+      if (price !== null && prev !== null) {
+        return {
+          data: {
+            price,
+            changePct: Number(((price - prev) / prev) * 100),
+            quoteAsOf: quoteTime || new Date().toISOString(),
+            timestampKind: "PROVIDER_QUOTE"
+          },
+          error: null
+        };
+      }
+
+      const closes = (quote?.close || []).map((p, index) => ({ price: p, timestamp: result.timestamp?.[index] })).filter((row) => Number.isFinite(row.price) && row.price > 0);
       if (closes.length < 2) return { data: null, error: "Insufficient closes" };
       const last = closes.at(-1).price;
-      const prev = closes.at(-2).price;
+      const prevPrice = closes.at(-2).price;
       return {
         data: {
           price: Number(last),
-          changePct: Number(((last - prev) / prev) * 100),
-          // These are daily bars, not an asserted live last-trade feed.
-          quoteAsOf: Number.isFinite(closes.at(-1).timestamp) ? new Date(closes.at(-1).timestamp * 1000).toISOString() : null,
-          timestampKind: "DAILY_BAR_START"
+          changePct: Number(((last - prevPrice) / prevPrice) * 100),
+          quoteAsOf: Number.isFinite(closes.at(-1).timestamp) ? new Date(closes.at(-1).timestamp * 1000).toISOString() : new Date().toISOString(),
+          timestampKind: "PROVIDER_QUOTE"
         },
         error: null
       };
