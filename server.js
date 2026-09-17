@@ -9,6 +9,10 @@ const { RealtimeMarketEngine } = require("./api/_lib/realtime-market-engine");
 const PORT = Number(process.env.PORT) || 4173;
 const HOST = process.env.HOST || "0.0.0.0";
 
+// Everything servable to the public lives under this directory and nothing else.
+const STATIC_ROOT = path.resolve(__dirname, "site");
+const APP_ENTRY = path.resolve(STATIC_ROOT, "live-desk.html");
+
 const engine = new RealtimeMarketEngine();
 engine.start(4000); // 4-second live tick cycle
 
@@ -109,30 +113,51 @@ const server = http.createServer((req, res) => {
     return;
   }
 
-  // 4. Serve the Dynamic Mobile Application by default
-  let targetFile;
-  if (pathname === "/" || pathname === "/index.html" || pathname === "/app") {
-    targetFile = path.resolve(__dirname, "site", "live-desk.html");
-  } else {
-    targetFile = path.resolve(__dirname, pathname.replace(/^\/+/, ""));
+  // 5. An unmatched /api/ route is an error, not a page. Returning the SPA with
+  // HTTP 200 for a mistyped endpoint makes a broken client look like a working
+  // one, because fetch().ok is true and the body only fails later at JSON.parse.
+  if (pathname === "/api" || pathname.startsWith("/api/")) {
+    res.writeHead(404, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
+    res.end(JSON.stringify({ error: "Unknown endpoint", path: pathname }));
+    return;
   }
 
-  if (fs.existsSync(targetFile) && !fs.statSync(targetFile).isDirectory()) {
+  // 6. Static assets, served ONLY from site/.
+  //
+  // This previously resolved the request path against the repository root, which
+  // served any file the process could read: .private/k2-trading.db (the whole
+  // trading ledger), every module under api/_lib, package.json. The containment
+  // check below is what makes that impossible, and it is a check on the RESOLVED
+  // path rather than on the request string, so encoded and nested traversal
+  // attempts are all rejected by the same test.
+  const requested = decodeURIComponent(pathname);
+  const isAppRoute = requested === "/" || requested === "/index.html" || requested === "/app";
+  const targetFile = isAppRoute ? APP_ENTRY : path.resolve(STATIC_ROOT, `.${path.sep}${requested.replace(/^\/+/, "")}`);
+  const relative = path.relative(STATIC_ROOT, targetFile);
+  const insideStaticRoot = targetFile === STATIC_ROOT || (relative && !relative.startsWith("..") && !path.isAbsolute(relative));
+  // A leading dot on any segment is refused outright: dotfiles are configuration
+  // and version-control state, never page assets.
+  const hidden = requested.split("/").some((segment) => segment.startsWith("."));
+
+  if (insideStaticRoot && !hidden) {
     const ext = path.extname(targetFile);
-    res.writeHead(200, { "Content-Type": MIME_TYPES[ext] || "application/octet-stream" });
-    fs.createReadStream(targetFile).pipe(res);
-    return;
+    if (Object.prototype.hasOwnProperty.call(MIME_TYPES, ext)
+      && fs.existsSync(targetFile) && fs.statSync(targetFile).isFile()) {
+      res.writeHead(200, { "Content-Type": MIME_TYPES[ext] });
+      fs.createReadStream(targetFile).pipe(res);
+      return;
+    }
   }
 
-  // Fallback to live-desk.html
-  const fallback = path.resolve(__dirname, "site", "live-desk.html");
-  if (fs.existsSync(fallback)) {
+  // Single-page fallback for genuine app routes only.
+  if (!hidden && fs.existsSync(APP_ENTRY)) {
     res.writeHead(200, { "Content-Type": "text/html; charset=utf-8" });
-    fs.createReadStream(fallback).pipe(res);
+    fs.createReadStream(APP_ENTRY).pipe(res);
     return;
   }
 
-  res.writeHead(404, { "Content-Type": "text/plain" }).end("404 Not Found");
+  res.writeHead(404, { "Content-Type": "text/plain" });
+  res.end("404 Not Found");
 });
 
 server.listen(PORT, HOST, () => {
