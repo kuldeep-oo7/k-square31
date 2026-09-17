@@ -17,7 +17,8 @@ process.env.PORT = "0";
 process.env.HOST = "127.0.0.1";
 const { server, engine } = require("../server");
 
-// The tick engine polls live venues on a timer; a test must not keep that open.
+// The engine only starts when server.js runs as the main entry, so importing it
+// here binds nothing and polls nothing. Stopping it is belt-and-braces.
 if (engine && typeof engine.stop === "function") engine.stop();
 
 function get(port, requestPath) {
@@ -89,6 +90,20 @@ async function run(port) {
     assert.ok(!body.includes("seedDefaultData"), `${target} escaped the static root`);
   }
 
+  // --- malformed input must not kill the process -----------------------------
+  // decodeURIComponent throws URIError on a bad escape. Inside a request handler
+  // that is an uncaught exception, so GET /% alone would stop the desk.
+  for (const target of ["/%", "/%zz", "/%e0%a4", "/%00", "/a%2", "/%FF%FE"]) {
+    const response = await get(port, target);
+    assert.ok(
+      response.status === 400 || response.status === 404 || response.status === 200,
+      `${target} must return a response rather than crash the server`
+    );
+  }
+  // The server is still alive and answering after all of that.
+  const alive = await get(port, "/api/state");
+  assert.equal(alive.status, 200, "the server must survive malformed percent-encoding");
+
   // --- the application itself must still work --------------------------------
   for (const target of ["/", "/index.html", "/app"]) {
     const response = await get(port, target);
@@ -123,13 +138,15 @@ async function run(port) {
 
 server.listen(0, "127.0.0.1", async () => {
   const { port } = server.address();
+  let code = 0;
   try {
     await run(port);
-    server.close();
-    process.exit(0);
   } catch (error) {
-    server.close();
     console.error(error.message);
-    process.exit(1);
+    code = 1;
   }
+  // Exit directly. Calling server.close() here races the tick engine tearing
+  // down its own handles and trips a libuv assertion on Windows; the process is
+  // ending anyway, which releases the socket.
+  process.exit(code);
 });
