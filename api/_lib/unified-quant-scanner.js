@@ -144,8 +144,47 @@ function analyzeCandidate({
 
   // 7. Composite Institutional Score (0 - 100)
   // Weighted: 35% Neural 1D-CNN + 25% Candlestick/Chart + 25% Quant Formulas + 15% Macro/GARCH
-  let compScore = (neuralResult.neuralAlphaScore * 0.35) +
-                  (candleResult.score * 100 * 0.15) +
+  // CONTINUOUS COMPONENTS, not switches.
+  //
+  // This expression previously collapsed four of its six inputs to a two-valued
+  // constant: (hurst > 0.55 ? 85 : 50), (vpin < 0.25 ? 85 : 50), the chart
+  // detector to (pattern ? 80 : 50), and the whole GARCH model to
+  // (regime === "MODERATE_VOL" ? 85 : 50). A Hurst exponent estimated to four
+  // decimals and a name at 0.551 scored identically to one at 0.950. Four of
+  // six terms therefore carried one bit of information each, and the precision
+  // every one of those models computes was discarded at the moment it mattered.
+  //
+  // The raw values now travel out of this function untouched, and universe-210
+  // ranks each one CROSS-SECTIONALLY across the whole universe before combining
+  // them. Ranking is the right transform here because these quantities live on
+  // incomparable scales -- a Hurst of 0.6 and a VPIN of 0.2 mean nothing
+  // against each other until both are expressed as a position in their own
+  // distribution -- and because a rank has no free parameters to tune.
+  //
+  // Directions, applied at ranking time:
+  //   hurst        higher is better (persistent trend)
+  //   vpin         LOWER is better (less toxic order flow) -> negated
+  //   garchVol     a BAND is better, not a direction; distance from the centre
+  //                of the preferred regime is negated so closer ranks higher
+  //   chart/candle higher is better
+  const IDEAL_ANNUAL_VOL = 0.18;   // centre of the old "MODERATE_VOL" band
+  const forecastVol = Number(garch.forecastedAnnualizedVol);
+  const rawComponents = {
+    neural: Number(neuralResult.neuralAlphaScore),
+    candle: Number(candleResult.score) * 100,
+    chart: Number(chartResult.dominantPattern?.confidence ?? chartResult.dominantPattern?.strength ?? (chartResult.dominantPattern ? 1 : 0)),
+    hurst: Number(hurst),
+    vpinNegated: Number.isFinite(Number(vpin.vpin)) ? -Number(vpin.vpin) : null,
+    volBandCloseness: Number.isFinite(forecastVol) && forecastVol > 0
+      ? -Math.abs(Math.log(forecastVol / IDEAL_ANNUAL_VOL))
+      : null
+  };
+
+  // Fallback only: if a caller uses this scanner standalone, without the
+  // cross-sectional pass, the old blended score is still produced so nothing
+  // breaks. The deployed path overwrites it with the ranked version.
+  let compScore = (rawComponents.neural * 0.35) +
+                  (rawComponents.candle * 0.15) +
                   ((chartResult.dominantPattern ? 80 : 50) * 0.10) +
                   ((hurst > 0.55 ? 85 : 50) * 0.15) +
                   ((vpin.vpin < 0.25 ? 85 : 50) * 0.10) +
@@ -190,6 +229,8 @@ function analyzeCandidate({
 
     // Integrated Analytics
     rawCompScore: compScore,
+    rawComponents,
+    componentWeights: { neural: 0.35, candle: 0.15, chart: 0.10, hurst: 0.15, vpinNegated: 0.10, volBandCloseness: 0.15 },
     compositeScore: compScore,
     neuralScore: neuralResult.neuralAlphaScore,
     rawActivationScore: neuralResult.rawActivationScore,

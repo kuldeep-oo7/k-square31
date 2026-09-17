@@ -176,4 +176,38 @@ if (universeSource) {
   }
 }
 
+// --- 7. Contract identity must come from the exchange, never a literal -------
+// universe-210.js carried `const niftySpot = 25440.00` and
+// `const bankNiftySpot = 52680.00` while the exchange file for that session
+// reported 23,270.60 and 56,055.75 -- wrong by 9.3% and 6.0% -- with lot sizes
+// of 25 and 15 against a real 65 and 30, published as one-tap buy cards.
+// ANGELONE was quoted at lot 250 against a real 2500, understating the money at
+// risk tenfold.
+{
+  const universeSource = read("api/_lib/universe-210.js");
+  if (universeSource) {
+    const hardcodedSpot = /const\s+(nifty|bankNifty)Spot\s*=\s*[\d.]+/gi;
+    const hits = universeSource.match(hardcodedSpot) || [];
+    assert.equal(hits.length, 0,
+      `universe-210.js hardcodes an index level: ${hits.join(", ")}. Index levels come from the exchange file.`);
+    assert.ok(universeSource.includes("fno-reference"),
+      "universe-210.js must consult the exchange contract reference for strikes, lots and index levels");
+  }
+}
+{
+  const { fnoUniverseEngine } = require("../api/_lib/universe-210");
+  const rows = fnoUniverseEngine.getUniverse({ severity: "NORMAL", shieldActive: false });
+  const withChains = rows.filter((row) => row.options);
+  if (withChains.length > 50) {
+    const synthetic = withChains.filter((row) => row.options.strikeSource !== "EXCHANGE_LISTED_LADDER");
+    assert.equal(synthetic.length, 0,
+      `${synthetic.length} names still derive strikes from the hand-written step table rather than the exchange ladder`);
+    // Lot size is what turns a premium into money. A wrong one misstates risk
+    // by its own ratio and nothing downstream can detect it.
+    for (const row of withChains.slice(0, 40)) {
+      assert.ok(Number(row.lotSize) > 0, `${row.symbol} must carry a positive lot size`);
+    }
+  }
+}
+
 console.log("Fabricated-value guard passed: no literal analytics in generators, no built-in name list, no published fingerprints, no seeded ledger, provenance flags present");

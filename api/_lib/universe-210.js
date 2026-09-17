@@ -6,6 +6,13 @@ const { analyzeCandidate } = require("./unified-quant-scanner");
 const { getCachedBars, StaggeredBarIngestor, CACHE_DIR: BARS_CACHE_DIR } = require("./bar-cache");
 const { getCachedFundamentals } = require("./fundamentals");
 const { europeanOption } = require("./option-pricing");
+const {
+  loadReference: loadFnoReference,
+  underlyingPrice: fnoUnderlyingPrice,
+  nearestListedStrike: nearestFnoStrike,
+  adjacentListedStrike: adjacentFnoStrike,
+  isListed: isFnoListed
+} = require("./fno-reference");
 
 const COVERAGE_PATH = path.resolve(__dirname, "../../data/market-coverage.json");
 const NIFTY500_PATH = path.resolve(__dirname, "../../data/nifty500-constituents.csv");
@@ -120,10 +127,29 @@ function getDaysToMonthlyExpiry(now = new Date()) {
  */
 function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
   if (!Number.isFinite(spot) || spot <= 0) return null;
+  // Strikes come from the exchange's own ladder whenever the contract reference
+  // has been refreshed. getStrikeStep is a hand-written table -- under 100 step
+  // 2.5, under 250 step 5, under 500 step 10 -- and NSE does not space strikes
+  // that way uniformly. A strike the exchange does not list cannot be traded at
+  // any price, so inventing one produces a card with a premium, a breakeven and
+  // a one-tap order link for a contract that does not exist.
+  const contractRef = loadFnoReference();
+  const listedAtm = contractRef ? nearestFnoStrike(symbol, spot, { reference: contractRef }) : null;
   const step = getStrikeStep(spot);
-  const atmStrike = Math.round(spot / step) * step;
-  const otmCallStrike = atmStrike + step;
-  const otmPutStrike = Math.max(step, atmStrike - step);
+  const atmStrike = listedAtm ? listedAtm.strike : Math.round(spot / step) * step;
+  const listedExpiry = listedAtm ? listedAtm.expiry : null;
+  const nextCall = listedAtm
+    ? adjacentFnoStrike(symbol, atmStrike, 1, { reference: contractRef, expiry: listedExpiry, optionType: "CE" })
+    : null;
+  const nextPut = listedAtm
+    ? adjacentFnoStrike(symbol, atmStrike, -1, { reference: contractRef, expiry: listedExpiry, optionType: "PE" })
+    : null;
+  const otmCallStrike = nextCall ? nextCall.strike : atmStrike + step;
+  const otmPutStrike = nextPut ? nextPut.strike : Math.max(step, atmStrike - step);
+  // Whether every leg is a contract the exchange actually lists.
+  const strikesAreListed = Boolean(listedAtm)
+    && isFnoListed(symbol, atmStrike, "CE", listedExpiry, contractRef)
+    && isFnoListed(symbol, atmStrike, "PE", listedExpiry, contractRef);
 
   const { timeToExpiryYears, days: daysToExpiry } = getDaysToMonthlyExpiry();
   // Volatility is an input, never a default. Substituting 0.22 whenever it was
@@ -184,9 +210,10 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
   // quoting the call and the put at different percentages of one spot violates
   // put-call parity on every contract. A floor of 0.50 likewise manufactured
   // value the model did not find. If the model cannot price it, it is unpriced.
-  const legPriced = priceable && callBsm.available && putBsm.available;
+  const legPriced = priceable && callBsm.available && putBsm.available && strikesAreListed !== false;
   const wingsPriced = legPriced && otmCallBsm.available && otmPutBsm.available;
-  const unpricedReason = !priceable ? "NO_MEASURED_VOLATILITY"
+  const unpricedReason = strikesAreListed === false ? "STRIKE_NOT_LISTED_BY_EXCHANGE"
+    : !priceable ? "NO_MEASURED_VOLATILITY"
     : !callBsm.available ? callBsm.reason
     : !putBsm.available ? putBsm.reason
     : !wingsPriced ? "HEDGE_LEG_UNPRICED" : null;
@@ -208,6 +235,9 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
 
   return {
     atmStrike,
+    listedExpiry,
+    strikesAreListed,
+    strikeSource: listedAtm ? "EXCHANGE_LISTED_LADDER" : "SYNTHETIC_STEP_TABLE",
     daysToExpiry,
     model: "BLACK_SCHOLES_MERTON",
     call: {
@@ -475,8 +505,17 @@ class FnoUniverseEngine {
         historicalBarsAreSynthetic = true;
       }
 
-      // Lot size determination
-      let lotSize = LOT_SIZES[symbol];
+      // Lot size comes from the exchange when the contract reference is loaded.
+      // The hand-maintained LOT_SIZES table and the spot-based fallback below
+      // had ANGELONE at 250 against a real 2500, understating the money at risk
+      // on every ANGELONE card by a factor of ten.
+      const listedLot = (() => {
+        const ref = loadFnoReference();
+        if (!ref) return null;
+        const near = nearestFnoStrike(symbol, spot, { reference: ref });
+        return near && near.lotSize > 0 ? near.lotSize : null;
+      })();
+      let lotSize = listedLot || LOT_SIZES[symbol];
       if (!lotSize) {
         if (spot && spot < 300) lotSize = 2500;
         else if (spot && spot < 750) lotSize = 1000;
@@ -756,29 +795,50 @@ class FnoUniverseEngine {
     const optionsList = [];
 
     // 1. Major Benchmark Indices priced with Black-Scholes
-    const niftySpot = 25440.00;
-    const niftyOpts = calculateOptions("NIFTY", niftySpot, 25, true, 0.13);
-    const bankNiftySpot = 52680.00;
-    const bankNiftyOpts = calculateOptions("BANKNIFTY", bankNiftySpot, 15, true, 0.16);
+    // Index levels, lot sizes and expiries come from the exchange file, never
+    // from a literal. These were hardcoded at 25440.00 and 52680.00 while the
+    // same session's bhavcopy reported NIFTY at 23,270.60 and BANKNIFTY at
+    // 56,055.75 -- wrong by 9.3% and 6.0%. The lot sizes were wrong too (25 and
+    // 15 against a real 65 and 30), and NIFTY's front expiry is a weekly, not
+    // the monthly the symbol string assumed. A card built on all four was
+    // published as a one-tap buy.
+    const reference = loadFnoReference();
+    const niftySpot = fnoUnderlyingPrice("NIFTY", reference);
+    const bankNiftySpot = fnoUnderlyingPrice("BANKNIFTY", reference);
+    const niftyListed = niftySpot ? nearestFnoStrike("NIFTY", niftySpot, { reference }) : null;
+    const bankNiftyListed = bankNiftySpot ? nearestFnoStrike("BANKNIFTY", bankNiftySpot, { reference }) : null;
+    const niftyOpts = niftySpot && niftyListed
+      ? calculateOptions("NIFTY", niftySpot, niftyListed.lotSize || 65, true, 0.13)
+      : null;
+    const bankNiftyOpts = bankNiftySpot && bankNiftyListed
+      ? calculateOptions("BANKNIFTY", bankNiftySpot, bankNiftyListed.lotSize || 30, true, 0.16)
+      : null;
 
     optionsList.push({
       id: "OPT-NIFTY-CE",
       symbol: "NIFTY",
       companyName: "Nifty 50 Benchmark Index",
-      tradingSymbol: niftyOpts ? niftyOpts.call.tradingSymbol : "NIFTY26SEP25400CE",
+      tradingSymbol: niftyOpts ? niftyOpts.call.tradingSymbol : null,
       assetClass: "INDEX_OPTION",
       optionType: "CE",
-      strike: niftyOpts ? niftyOpts.atmStrike : 25400,
+      strike: niftyOpts ? niftyOpts.atmStrike : null,
       side: "BUY",
       action: "BUY",
       executiveVerdict: "MUST_READ_AND_BUY",
       spotPrice: niftySpot,
-      entryPrice: niftyOpts ? niftyOpts.call.entryPrice : 165.50,
+      entryPrice: niftyOpts ? niftyOpts.call.entryPrice : null,
       currentLtp: niftyOpts ? niftyOpts.call.currentPrice : 182.20,
       target1: niftyOpts ? niftyOpts.call.target1 : 225.00,
       target2: niftyOpts ? niftyOpts.call.target2 : 280.00,
       stopLoss: niftyOpts ? niftyOpts.call.stopLoss : 95.00,
-      lotSize: 25,
+      lotSize: (niftyListed && niftyListed.lotSize) || null,
+      available: Boolean(niftyOpts && niftyOpts.spread && niftyOpts.spread.available),
+      maxProfitRupees: niftyOpts && niftyOpts.spread && niftyOpts.spread.available ? niftyOpts.spread.maxProfitRupees : null,
+      maxLossRupees: niftyOpts && niftyOpts.spread && niftyOpts.spread.available ? niftyOpts.spread.maxLossRupees : null,
+      netDebit: niftyOpts && niftyOpts.spread && niftyOpts.spread.available ? niftyOpts.spread.netDebit : null,
+      shortStrike: niftyOpts && niftyOpts.spread ? (niftyOpts.spread.shortStrikePrice ?? null) : null,
+      spreadBreakeven: niftyOpts && niftyOpts.spread && niftyOpts.spread.available ? niftyOpts.spread.breakeven : null,
+      breakeven: niftyOpts && niftyOpts.call ? (niftyOpts.call.breakeven ?? null) : null,
       capitalRequired: niftyOpts ? niftyOpts.call.capitalRequired : 4138,
       status: "APEX_BUY_SIGNAL",
       actionReason: "Bullish Index Momentum Breakout (Black-Scholes Delta: " + (niftyOpts?.call?.greeks?.delta ?? 0.51) + ")",
@@ -802,20 +862,27 @@ class FnoUniverseEngine {
       id: "OPT-BANKNIFTY-CE",
       symbol: "BANKNIFTY",
       companyName: "Bank Nifty Index",
-      tradingSymbol: bankNiftyOpts ? bankNiftyOpts.call.tradingSymbol : "BANKNIFTY26SEP52500CE",
+      tradingSymbol: bankNiftyOpts ? bankNiftyOpts.call.tradingSymbol : null,
       assetClass: "INDEX_OPTION",
       optionType: "CE",
-      strike: bankNiftyOpts ? bankNiftyOpts.atmStrike : 52500,
+      strike: bankNiftyOpts ? bankNiftyOpts.atmStrike : null,
       side: "BUY",
       action: "BUY",
       executiveVerdict: "MUST_READ_AND_BUY",
       spotPrice: bankNiftySpot,
-      entryPrice: bankNiftyOpts ? bankNiftyOpts.call.entryPrice : 380.00,
+      entryPrice: bankNiftyOpts ? bankNiftyOpts.call.entryPrice : null,
       currentLtp: bankNiftyOpts ? bankNiftyOpts.call.currentPrice : 425.50,
       target1: bankNiftyOpts ? bankNiftyOpts.call.target1 : 515.00,
       target2: bankNiftyOpts ? bankNiftyOpts.call.target2 : 650.00,
       stopLoss: bankNiftyOpts ? bankNiftyOpts.call.stopLoss : 215.00,
-      lotSize: 15,
+      lotSize: (bankNiftyListed && bankNiftyListed.lotSize) || null,
+      available: Boolean(bankNiftyOpts && bankNiftyOpts.spread && bankNiftyOpts.spread.available),
+      maxProfitRupees: bankNiftyOpts && bankNiftyOpts.spread && bankNiftyOpts.spread.available ? bankNiftyOpts.spread.maxProfitRupees : null,
+      maxLossRupees: bankNiftyOpts && bankNiftyOpts.spread && bankNiftyOpts.spread.available ? bankNiftyOpts.spread.maxLossRupees : null,
+      netDebit: bankNiftyOpts && bankNiftyOpts.spread && bankNiftyOpts.spread.available ? bankNiftyOpts.spread.netDebit : null,
+      shortStrike: bankNiftyOpts && bankNiftyOpts.spread ? (bankNiftyOpts.spread.shortStrikePrice ?? null) : null,
+      spreadBreakeven: bankNiftyOpts && bankNiftyOpts.spread && bankNiftyOpts.spread.available ? bankNiftyOpts.spread.breakeven : null,
+      breakeven: bankNiftyOpts && bankNiftyOpts.call ? (bankNiftyOpts.call.breakeven ?? null) : null,
       capitalRequired: bankNiftyOpts ? bankNiftyOpts.call.capitalRequired : 5700,
       status: "APEX_BUY_SIGNAL",
       actionReason: "Bank Index Private Bank Heavyweight Absorption.",
@@ -847,12 +914,12 @@ class FnoUniverseEngine {
       action: "STAND_ASIDE",
       executiveVerdict: "IGNORE",
       spotPrice: niftySpot,
-      entryPrice: niftyOpts ? niftyOpts.put.entryPrice : 92.00,
+      entryPrice: niftyOpts ? niftyOpts.put.entryPrice : null,
       currentLtp: niftyOpts ? niftyOpts.put.currentPrice : 76.50,
       target1: niftyOpts ? niftyOpts.put.target1 : 145.00,
       target2: niftyOpts ? niftyOpts.put.target2 : 190.00,
       stopLoss: niftyOpts ? niftyOpts.put.stopLoss : 45.00,
-      lotSize: 25,
+      lotSize: (niftyListed && niftyListed.lotSize) || null,
       capitalRequired: niftyOpts ? niftyOpts.put.capitalRequired : 2300,
       status: "DEFENSIVE_HEDGE",
       actionReason: "Stand aside on puts while market regime is NORMAL.",

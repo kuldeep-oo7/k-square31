@@ -19,7 +19,11 @@ console.log(`  ✓ Whole Market Options coverage verified (${options.length} Cal
 const niftyCe = options.find(o => o.id === "OPT-NIFTY-CE");
 assert(niftyCe, "NIFTY CE option contract must be present");
 assert(niftyCe.executiveVerdict === "MUST_READ_AND_BUY", "NIFTY CE must be MUST_READ_AND_BUY");
-assert(niftyCe.lotSize === 25, "NIFTY lot size must be 25");
+// Lot size is whatever the exchange lists, not a constant. This asserted 25
+// while the NSE F&O bhavcopy for the same session carried 65, so the test was
+// defending a figure that understated the money at risk on every NIFTY card.
+assert(Number(niftyCe.lotSize) > 0, `NIFTY lot size must come from the exchange, got: ${niftyCe.lotSize}`);
+assert(Number.isInteger(Number(niftyCe.lotSize)), "a lot size is a whole number of units");
 assert(niftyCe.strategy && niftyCe.strategy.name === "Bull Call Spread", "NIFTY CE must have defined-risk spread");
 assert(niftyCe.links && niftyCe.links.zerodhaOrderPreview && niftyCe.links.dhanApp, "1-Tap broker links must be present");
 console.log("  ✓ Benchmark Index Defined-Risk Options verified (NIFTY & BANKNIFTY)");
