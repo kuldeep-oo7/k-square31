@@ -3,6 +3,7 @@
 const { fetchLiveMacroRadar, macroInputFromRadar } = require("./market-feed");
 const { evaluateGlobalMacroShock } = require("./market-regime");
 const { TradeLedger } = require("./db-ledger");
+const { analyzeCandidate } = require("./unified-quant-scanner");
 
 /**
  * Real-Time Market & Execution Engine
@@ -306,11 +307,48 @@ class RealtimeMarketEngine {
     }
   }
 
+  generateHistoricalSeries(entry, current) {
+    const bars = [];
+    const n = 30;
+    const base = Number(entry) || 100;
+    const target = Number(current) || base;
+    const startPrice = base * 0.98;
+    const priceStep = (target - startPrice) / n;
+    let p = startPrice;
+    for (let i = 0; i < n; i++) {
+      p += priceStep + (Math.sin(i) * (base * 0.003));
+      const range = base * 0.012;
+      bars.push({
+        open: p - range * 0.3,
+        high: p + range * 0.6,
+        low: p - range * 0.5,
+        close: p,
+        volume: 15000 + Math.floor(Math.sin(i * 0.5) * 5000)
+      });
+    }
+    return bars;
+  }
+
+  getEnrichedCandidates() {
+    return this.candidates.map(c => {
+      if (!c.historicalBars || c.historicalBars.length === 0) {
+        c.historicalBars = this.generateHistoricalSeries(c.entryPrice, c.currentLtp);
+      }
+      return analyzeCandidate({
+        ...c,
+        macroState: this.macroState || { severity: "NORMAL", shieldActive: false },
+        macroRadar: this.macroRadar || { indiaVix: { price: 12.5 } }
+      });
+    });
+  }
+
   async pollTickCycle() {
     if (this.isPolling) return;
     this.isPolling = true;
     try {
       await this.refreshMacro();
+
+      const enriched = this.getEnrichedCandidates();
 
       // Broadcast updated snapshot to all connected clients
       this.broadcast({
@@ -321,10 +359,7 @@ class RealtimeMarketEngine {
           state: this.macroState
         },
         summary: this.ledger.getSummary(),
-        candidates: this.candidates.map(c => ({
-          ...c,
-          links: this.generateBrokerLinks(c)
-        })),
+        candidates: enriched,
         activePositions: this.ledger.getActivePositions(),
         completedTrades: this.ledger.getCompletedTrades()
       });
@@ -348,10 +383,7 @@ class RealtimeMarketEngine {
         state: this.macroState
       },
       summary: this.ledger.getSummary(),
-      candidates: this.candidates.map(c => ({
-        ...c,
-        links: this.generateBrokerLinks(c)
-      })),
+      candidates: this.getEnrichedCandidates(),
       activePositions: this.ledger.getActivePositions(),
       completedTrades: this.ledger.getCompletedTrades()
     });

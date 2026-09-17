@@ -57,7 +57,7 @@ const server = http.createServer((req, res) => {
       timestamp: new Date().toISOString(),
       macro: { radar: engine.macroRadar, state: engine.macroState },
       summary: engine.ledger.getSummary(),
-      candidates: engine.candidates.map(c => ({ ...c, links: engine.generateBrokerLinks(c) })),
+      candidates: engine.getEnrichedCandidates(),
       activePositions: engine.ledger.getActivePositions(),
       completedTrades: engine.ledger.getCompletedTrades()
     }));
