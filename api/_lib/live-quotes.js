@@ -130,9 +130,17 @@ function load() {
 }
 
 function save(payload) {
-  fs.mkdirSync(CACHE_DIR, { recursive: true });
-  fs.writeFileSync(CACHE_FILE, JSON.stringify(payload));
+  // Memory first, disk second. The disk copy only buys a warm start after a
+  // restart; the quotes themselves are already in hand. On a host with an
+  // ephemeral or read-only filesystem, writing the file must not be the thing
+  // that throws away a refresh that already succeeded.
   memo = payload;
+  try {
+    fs.mkdirSync(CACHE_DIR, { recursive: true });
+    fs.writeFileSync(CACHE_FILE, JSON.stringify(payload));
+  } catch (error) {
+    console.error("Quote cache not persisted, serving from memory:", error.message);
+  }
   return payload;
 }
 
