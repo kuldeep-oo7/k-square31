@@ -80,6 +80,26 @@ class TradeLedger {
   recordMacroSnapshot(macroData) {
     this.sqlite.recordMacroSnapshot(macroData);
   }
+
+  recordOrUpdateSignal(sig) {
+    return this.sqlite.recordOrUpdateSignal(sig);
+  }
+
+  archiveSignal(sigId, exitPrice, reason) {
+    return this.sqlite.archiveSignal(sigId, exitPrice, reason);
+  }
+
+  getActiveSignals() {
+    return this.sqlite.getActiveSignals();
+  }
+
+  getArchivedSignals(limit = 100) {
+    return this.sqlite.getArchivedSignals(limit);
+  }
+
+  getSignalsAccuracy() {
+    return this.sqlite.getSignalsAccuracy();
+  }
 }
 
 module.exports = { TradeLedger, LEDGER_PATH, DB_PATH };

@@ -57,10 +57,13 @@ const server = http.createServer((req, res) => {
       timestamp: new Date().toISOString(),
       macro: { radar: engine.macroRadar, state: engine.macroState },
       summary: engine.ledger.getSummary(),
+      accuracy: engine.ledger.getSignalsAccuracy ? engine.ledger.getSignalsAccuracy() : null,
       candidates: engine.getEnrichedCandidates(),
       universe: engine.getUniverse(),
+      options: engine.getOptionsUniverse(),
       activePositions: engine.ledger.getActivePositions(),
-      completedTrades: engine.ledger.getCompletedTrades()
+      completedTrades: engine.ledger.getCompletedTrades(),
+      archivedSignals: engine.ledger.getArchivedSignals ? engine.ledger.getArchivedSignals(50) : []
     }));
     return;
   }

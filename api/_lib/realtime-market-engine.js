@@ -320,6 +320,10 @@ class RealtimeMarketEngine {
     return fnoUniverseEngine.getUniverse(this.macroState);
   }
 
+  getOptionsUniverse() {
+    return fnoUniverseEngine.getOptionsUniverse(this.macroState);
+  }
+
   generateHistoricalSeries(entry, current) {
     const bars = [];
     const n = 30;
@@ -368,6 +372,8 @@ class RealtimeMarketEngine {
 
       const enriched = this.getEnrichedCandidates();
       const universe = this.getUniverse();
+      const options = this.getOptionsUniverse();
+      const accuracy = this.ledger.getSignalsAccuracy ? this.ledger.getSignalsAccuracy() : null;
 
       // Broadcast updated snapshot to all connected clients
       this.broadcast({
@@ -378,10 +384,13 @@ class RealtimeMarketEngine {
           state: this.macroState
         },
         summary: this.ledger.getSummary(),
+        accuracy: accuracy,
         candidates: enriched,
         universe: universe,
+        options: options,
         activePositions: this.ledger.getActivePositions(),
-        completedTrades: this.ledger.getCompletedTrades()
+        completedTrades: this.ledger.getCompletedTrades(),
+        archivedSignals: this.ledger.getArchivedSignals ? this.ledger.getArchivedSignals(50) : []
       });
     } catch (err) {
       console.error("Tick cycle error:", err.message);
@@ -403,9 +412,13 @@ class RealtimeMarketEngine {
         state: this.macroState
       },
       summary: this.ledger.getSummary(),
+      accuracy: this.ledger.getSignalsAccuracy ? this.ledger.getSignalsAccuracy() : null,
       candidates: this.getEnrichedCandidates(),
+      universe: this.getUniverse(),
+      options: this.getOptionsUniverse(),
       activePositions: this.ledger.getActivePositions(),
-      completedTrades: this.ledger.getCompletedTrades()
+      completedTrades: this.ledger.getCompletedTrades(),
+      archivedSignals: this.ledger.getArchivedSignals ? this.ledger.getArchivedSignals(50) : []
     });
     res.write(`data: ${payload}\n\n`);
   }
