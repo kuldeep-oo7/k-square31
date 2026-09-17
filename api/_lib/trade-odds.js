@@ -142,6 +142,53 @@ function volatilityVerdict(impliedVol, realizedVol) {
  * to compute the odds would be quoting the seller's own assumptions back as
  * though they were evidence.
  */
+/**
+ * How long until it gets there.
+ *
+ * "Buy at X, sell at Y" is only half an instruction -- the other half is
+ * whether Y is reachable in the time the contract has left. An option expires;
+ * a target that needs six weeks on a contract with nine days is not a target,
+ * it is a way of losing the premium slowly.
+ *
+ * This is a first-passage problem, not an end-point one. The position can be
+ * closed the moment the underlying TOUCHES the level, so what matters is the
+ * probability of touching at any point before expiry, which by the reflection
+ * principle is about twice the probability of merely finishing beyond it:
+ *
+ *     P(touch by T) = 2 * N(-|ln(B/S)| / (sigma * sqrt(T)))
+ *
+ * The median time is derived from the same expression, solved for the t at
+ * which half of the eventual touches have happened. Drift is zero, for the
+ * same reason as everywhere else here: a drift term is a directional forecast
+ * and this desk has no validated one.
+ */
+function timeToTarget({ spot, target, volatility, daysAvailable }) {
+  const years = Number(daysAvailable) / 365;
+  if (!(spot > 0) || !(target > 0) || !(volatility > 0) || !(years > 0)) return null;
+  const distance = Math.abs(Math.log(target / spot));
+  if (distance === 0) return { probabilityOfTouchPct: 100, medianDaysIfItHappens: 0, reachable: true };
+
+  const touch = Math.min(1, 2 * normalCdf(-distance / (volatility * Math.sqrt(years))));
+
+  // Median of the first-passage time, conditional on it happening at all
+  // before expiry. Found by bisection on P(touch by t) = half of P(touch by T).
+  const target_p = touch / 2;
+  let low = 1e-6, high = years, mid = years;
+  for (let i = 0; i < 80; i += 1) {
+    mid = (low + high) / 2;
+    const p = Math.min(1, 2 * normalCdf(-distance / (volatility * Math.sqrt(mid))));
+    if (p < target_p) low = mid; else high = mid;
+  }
+  return {
+    probabilityOfTouchPct: Math.round(touch * 1000) / 10,
+    medianDaysIfItHappens: Math.round(mid * 365 * 10) / 10,
+    daysAvailable: Math.round(Number(daysAvailable) * 10) / 10,
+    // The single thing a reader needs: is this target realistic in the time left?
+    reachable: touch >= 0.5,
+    basis: "MEASURED_VOLATILITY_ZERO_DRIFT"
+  };
+}
+
 function tradeOdds({ spot, bars, impliedVol, breakevenLong, breakevenFull, daysToExpiry, isBullish = true }) {
   const years = Number(daysToExpiry) / 365;
   if (!(spot > 0) || !(years > 0) || !Array.isArray(bars) || bars.length < 5) {
@@ -177,6 +224,14 @@ function tradeOdds({ spot, bars, impliedVol, breakevenLong, breakevenFull, daysT
     probabilityOfLossPct: pProfit === null ? null : Math.round((1 - pProfit) * 1000) / 10,
     probabilityOfMaxProfitPct: pFull === null ? null : Math.round(pFull * 1000) / 10,
     volatility: volatilityVerdict(impliedVol, realized),
+    // How long, not just how likely. A target that needs six weeks on a
+    // contract with nine days left is not a target.
+    timing: breakevenLong > 0
+      ? timeToTarget({ spot, target: breakevenLong, volatility: realized, daysAvailable: Number(daysToExpiry) })
+      : null,
+    timingToMax: breakevenFull > 0
+      ? timeToTarget({ spot, target: breakevenFull, volatility: realized, daysAvailable: Number(daysToExpiry) })
+      : null,
     // Stated so the number is never mistaken for a forecast.
     driftAssumption: "ZERO. No directional view is applied, because none has been validated.",
     basis: "MEASURED"
@@ -185,6 +240,7 @@ function tradeOdds({ spot, bars, impliedVol, breakevenLong, breakevenFull, daysT
 
 module.exports = {
   TRADING_DAYS,
+  timeToTarget,
   closeToCloseVol,
   normalCdf,
   parkinsonVol,

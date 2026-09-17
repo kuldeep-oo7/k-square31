@@ -1243,6 +1243,7 @@ class FnoUniverseEngine {
           // The single leg's own exits, which are NOT the spread's:
           // this one costs the whole premium, not the net debit.
           legExits: u.options.call.exits || null,
+          odds: u.odds || null,
           executable: u.options.call.executable === true,
           bookState: u.options.call.bookState || null,
           tradedToday: u.options.call.tradedToday,
@@ -1330,6 +1331,7 @@ class FnoUniverseEngine {
           // The single leg's own exits, which are NOT the spread's:
           // this one costs the whole premium, not the net debit.
           legExits: u.options.put.exits || null,
+          odds: u.odds || null,
           executable: u.options.put.executable === true,
           bookState: u.options.put.bookState || null,
           tradedToday: u.options.put.tradedToday,
