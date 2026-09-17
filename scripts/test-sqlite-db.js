@@ -23,22 +23,24 @@ const journalMode = db.db.prepare("PRAGMA journal_mode;").get();
 assert(journalMode.journal_mode.toLowerCase() === "wal", "Database must use WAL journal mode, got: " + journalMode.journal_mode);
 console.log("  ✓ SQLite Engine initialized with WAL (Write-Ahead Logging) mode verified");
 
-// 2. Summary & Seed Data
+// 2. A fresh ledger starts empty.
+// This block previously asserted a seeded account at +Rs 29,078.10 over 8 trades
+// at a 75% win rate, and a closed-trade ledger containing specific ABB and BEL
+// fills. None of those trades were ever placed; the constructor wrote them. A
+// test that requires invented performance to be present will also defend it.
 const summary = db.getSummary();
-assert(summary.realizedPnl === 29078.10, "Default seeded realized P&L must be 29078.10");
-assert(summary.totalTrades === 8, "Total trades count must be 8");
-assert(summary.winCount === 6, "Win count must be 6");
-assert(summary.winRatePct === 75.0, "Win rate must be 75.0%");
-console.log("  ✓ Account Equity & Summary verified (Realized P&L: ₹" + summary.realizedPnl + " | Win Rate: " + summary.winRatePct + "%)");
+assert(summary.realizedPnl === 0, "A fresh ledger has no realized P&L, got: " + summary.realizedPnl);
+assert(summary.totalTrades === 0, "A fresh ledger has no trades, got: " + summary.totalTrades);
+assert(summary.winCount === 0 && summary.lossCount === 0, "A fresh ledger has no wins or losses");
+assert(summary.winRatePct === null, "A fresh ledger has no win rate, got: " + summary.winRatePct);
+assert(summary.hasTrackRecord === false, "A fresh ledger must declare it has no track record");
+assert(summary.initialCapital > 0, "Initial capital is configuration and may be set");
+console.log("  ✓ Fresh account reports zero history and a null win rate (no seeded performance)");
 
-// 3. Completed Trades Verification
+// 3. Completed trades ledger starts empty.
 const completed = db.getCompletedTrades();
-assert(completed.length >= 3, "Should have seeded completed trades");
-const abb = completed.find(t => t.symbol === "ABB");
-assert(abb && abb.realizedPnl === 20121.25, "ABB trade P&L must be +₹20,121.25");
-const bel = completed.find(t => t.symbol === "BEL");
-assert(bel && bel.realizedPnl === -5628.75, "BEL trade P&L must be -₹5,628.75");
-console.log("  ✓ Historical Closed Trades Ledger verified (ABB +₹20,121.25, BEL -₹5,628.75)");
+assert(Array.isArray(completed) && completed.length === 0, "A fresh ledger has no completed trades, got: " + completed.length);
+console.log("  ✓ Completed-trade ledger starts empty");
 
 // 4. Open Position & Close Position Lifecycle (ACID Transaction)
 const sampleCandidate = {
@@ -68,9 +70,11 @@ assert(closeResult.realizedPnl === 5000.00, "Realized P&L must be +5000.00, got:
 
 // Verify atomic balance update in account
 const updatedSummary = db.getSummary();
-assert(updatedSummary.realizedPnl === 29078.10 + 5000.00, "Account balance must atomically increase by +₹5,000");
-assert(updatedSummary.totalTrades === 9, "Total trades must increment to 9");
-assert(updatedSummary.winCount === 7, "Win count must increment to 7");
+assert(updatedSummary.realizedPnl === 5000.00, "Account balance must atomically increase by +₹5,000, got: " + updatedSummary.realizedPnl);
+assert(updatedSummary.totalTrades === 1, "Total trades must increment to 1, got: " + updatedSummary.totalTrades);
+assert(updatedSummary.winCount === 1, "Win count must increment to 1, got: " + updatedSummary.winCount);
+assert(updatedSummary.winRatePct === 100, "One win out of one trade is 100%, got: " + updatedSummary.winRatePct);
+assert(updatedSummary.hasTrackRecord === true, "A closed trade creates a track record");
 console.log("  ✓ Position close transaction verified (Updated Realized P&L: ₹" + updatedSummary.realizedPnl + ")");
 
 // 5. Time-Series Tick Insertion & Query

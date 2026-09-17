@@ -43,15 +43,73 @@ const TEST_DB = path.resolve(__dirname, "../.private/test-options-accuracy.db");
 if (fs.existsSync(TEST_DB)) fs.unlinkSync(TEST_DB);
 
 const db = new SqliteTradingDatabase(TEST_DB);
-const accuracy = db.getSignalsAccuracy();
-assert(accuracy.winRatePct >= 70, `Win rate must be >= 70%, got: ${accuracy.winRatePct}%`);
-assert(accuracy.winCount === 5, `Expected 5 wins in seed data, got: ${accuracy.winCount}`);
-assert(accuracy.lossCount === 2, `Expected 2 losses in seed data, got: ${accuracy.lossCount}`);
-assert(accuracy.totalFollowPnl > 40000, `Expected total follow PnL > ₹40,000, got: ₹${accuracy.totalFollowPnl}`);
-assert(accuracy.avgDaysOnScreen > 0, "Average days on screen must be > 0");
-assert(accuracy.profitFactor > 3.0, `Expected profit factor > 3.0, got: ${accuracy.profitFactor}`);
-assert(Array.isArray(accuracy.archived) && accuracy.archived.length === 7, "Archived signals count must be 7");
-console.log(`  ✓ Audited Signal Accuracy verified (${accuracy.winRatePct}% Win Rate | 5W / 2L | +₹${accuracy.totalFollowPnl} P&L | PF: ${accuracy.profitFactor})`);
+
+// A brand-new ledger has traded nothing and must say so. This assertion used to
+// read the opposite way: it required a >= 70% win rate and exactly 5 wins from
+// rows the constructor inserted, so the suite certified an invented track record
+// as "Audited Signal Accuracy verified".
+const fresh = db.getSignalsAccuracy();
+assert(fresh.hasTrackRecord === false, "A fresh ledger must report no track record");
+assert(fresh.winRatePct === null, `Win rate must be null with no closed signals, got: ${fresh.winRatePct}`);
+assert(fresh.profitFactor === null, `Profit factor must be null with no losses to divide by, got: ${fresh.profitFactor}`);
+assert(fresh.totalFollowPnl === null, "Total P&L must be null with no closed signals");
+assert(fresh.avgDaysOnScreen === null, "Average holding time must be null with no closed signals");
+assert(fresh.winCount === 0 && fresh.lossCount === 0, "A fresh ledger counts nothing");
+assert(Array.isArray(fresh.archived) && fresh.archived.length === 0, "A fresh ledger archives nothing");
+const freshSummary = db.getSummary();
+assert(freshSummary.realizedPnl === 0, `A fresh account has no realized P&L, got: ${freshSummary.realizedPnl}`);
+assert(freshSummary.totalTrades === 0, `A fresh account has no trades, got: ${freshSummary.totalTrades}`);
+assert(freshSummary.winRatePct === null, "A fresh account has no win rate");
+console.log("  ✓ Fresh ledger honestly reports no track record (no seeded performance)");
+
+// Accuracy arithmetic, computed over signals this test inserts itself.
+function closedSignal(id, entry, exit, lot, days) {
+  db.recordOrUpdateSignal({
+    id, symbol: id, tradingSymbol: `${id}26SEPFUT`, assetClass: "FUTURES", side: "BUY",
+    lotSize: lot, entryPrice: entry, currentPrice: entry, target1: entry * 1.02,
+    target2: entry * 1.05, stopLoss: entry * 0.99,
+    issuedAt: new Date(Date.now() - days * 86400000).toISOString(), horizonDays: 5
+  });
+  db.archiveSignal(id, exit, exit >= entry ? "TARGET 1 ACHIEVED" : "STOP LOSS HIT");
+}
+closedSignal("WINA", 100, 103, 100, 1);   // +300
+closedSignal("WINB", 200, 206, 100, 3);   // +600
+closedSignal("LOSA", 100, 98, 100, 1);    // -200
+
+const measured = db.getSignalsAccuracy();
+assert(measured.winCount === 2, `Expected 2 wins, got: ${measured.winCount}`);
+assert(measured.lossCount === 1, `Expected 1 loss, got: ${measured.lossCount}`);
+// The old implementation ran two independent filters, so a signal could land in
+// both counts and the total could exceed the number of signals on the books.
+assert(
+  measured.winCount + measured.lossCount === measured.archived.length,
+  `Every closed signal must be counted exactly once: ${measured.winCount}W + ${measured.lossCount}L != ${measured.archived.length} archived`
+);
+assert(measured.totalSignals === 3, `Expected 3 classified signals, got: ${measured.totalSignals}`);
+assert(Math.abs(measured.winRatePct - 66.7) < 0.2, `Expected 66.7% win rate, got: ${measured.winRatePct}%`);
+assert(Math.abs(measured.grossWins - 900) < 1, `Expected gross wins 900, got: ${measured.grossWins}`);
+assert(Math.abs(measured.grossLoss - 200) < 1, `Expected gross loss 200, got: ${measured.grossLoss}`);
+assert(Math.abs(measured.profitFactor - 4.5) < 0.05, `Expected profit factor 4.50, got: ${measured.profitFactor}`);
+assert(Math.abs(measured.totalFollowPnl - 700) < 1, `Expected net P&L 700, got: ${measured.totalFollowPnl}`);
+console.log(`  ✓ Accuracy arithmetic verified on self-inserted signals (${measured.winRatePct}% | PF ${measured.profitFactor} | net ₹${measured.totalFollowPnl})`);
+
+// With wins and no losses the ratio is undefined, not a large number produced by
+// flooring the denominator at one rupee.
+const LOSSLESS_DB = path.resolve(__dirname, "../.private/test-lossless.db");
+for (const f of [LOSSLESS_DB, LOSSLESS_DB + "-wal", LOSSLESS_DB + "-shm"]) if (fs.existsSync(f)) fs.unlinkSync(f);
+const db2 = new SqliteTradingDatabase(LOSSLESS_DB);
+db2.recordOrUpdateSignal({
+  id: "ONLYWIN", symbol: "ONLYWIN", tradingSymbol: "ONLYWIN26SEPFUT", assetClass: "FUTURES",
+  side: "BUY", lotSize: 100, entryPrice: 100, currentPrice: 100, target1: 102, target2: 105,
+  stopLoss: 99, issuedAt: new Date().toISOString(), horizonDays: 5
+});
+db2.archiveSignal("ONLYWIN", 105, "TARGET 1 ACHIEVED");
+const lossless = db2.getSignalsAccuracy();
+assert(lossless.profitFactor === null, `Profit factor must be null with zero losses, got: ${lossless.profitFactor}`);
+assert(lossless.winRatePct === 100, `Expected 100% win rate, got: ${lossless.winRatePct}`);
+db2.close();
+for (const f of [LOSSLESS_DB, LOSSLESS_DB + "-wal", LOSSLESS_DB + "-shm"]) if (fs.existsSync(f)) fs.unlinkSync(f);
+console.log("  ✓ Profit factor is undefined rather than fabricated when there are no losses");
 
 // 5. Test Dynamic Signal Lifecycle: Record and Archive
 db.recordOrUpdateSignal({

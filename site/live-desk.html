@@ -216,7 +216,7 @@
         📦 My Purchased Trades (<span id="header-purchased-count">9</span>)
       </button>
       <button class="btn-header" id="hdr-btn-settings" data-tab-jump="accuracy">
-        ⚙️ Settings &amp; Track Record (<span id="header-winrate">71.4%</span>)
+        ⚙️ Settings &amp; Track Record (<span id="header-winrate">&mdash;</span>)
       </button>
       <div style="font: 11px var(--mono); color: var(--muted); text-align: right; margin-left: 8px;">
         <span id="last-tick-time">—</span>
@@ -238,11 +238,11 @@
     </div>
     <div class="metric-card">
       <small>Purchased Trades MTM</small>
-      <b class="positive" id="acc-floating">+₹6,482.00</b>
+      <b id="acc-floating">&mdash;</b>
     </div>
     <div class="metric-card">
       <small>Audited Signal Win Rate</small>
-      <b class="positive" id="acc-winrate">71.4% (5W / 2L)</b>
+      <b id="acc-winrate">&mdash; (no closed signals yet)</b>
     </div>
     <div class="metric-card">
       <small>Macro Risk Shield</small>
@@ -271,7 +271,7 @@
     <button class="tab-btn" data-tab="options">📞 Calls &amp; Puts (<span id="count-options">423</span>)</button>
     <button class="tab-btn" data-tab="universe">🌐 All 210 F&amp;O Radar (<span id="count-univ">210</span>)</button>
     <button class="tab-btn" data-tab="purchased" style="background: rgba(41, 121, 255, 0.15); border-color: rgba(41, 121, 255, 0.4); color: #90caf9;">📦 Purchased Trades (<span id="count-purchased">9</span>)</button>
-    <button class="tab-btn" data-tab="accuracy" style="background: rgba(0, 230, 118, 0.15); border-color: rgba(0, 230, 118, 0.4); color: #a7f3d0;">⚙️ Settings &amp; Track Record (<span id="count-accuracy">71.4%</span>)</button>
+    <button class="tab-btn" data-tab="accuracy" style="background: rgba(0, 230, 118, 0.15); border-color: rgba(0, 230, 118, 0.4); color: #a7f3d0;">⚙️ Settings &amp; Track Record (<span id="count-accuracy">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="ledger">📜 Closed Ledger</button>
     <button class="tab-btn" data-tab="k2lang">⚡ K²-Lang Sandbox</button>
   </div>
@@ -353,30 +353,30 @@
     <div style="display: flex; justify-content: space-between; align-items: center; margin: 8px 0 16px; flex-wrap: wrap; gap: 8px;">
       <div>
         <h2 style="font-size: 22px; font-weight: 800; margin-bottom: 4px;">⚙️ Settings &amp; Audited Track Record</h2>
-        <p style="font-size: 13px; color: var(--muted);">Complete historical record of every signal recommended by the system, how many days it stayed on screen, exit reason, and verified profit or loss.</p>
+        <p style="font-size: 13px; color: var(--muted);">Record of signals this installation has actually issued and closed. Empty until the desk has closed its first signal; no figure here is simulated or seeded.</p>
       </div>
-      <div class="pill pill-green" style="font-size: 11px; padding: 6px 12px;">SQLite ACID Ledger Verified</div>
+      <div class="pill" style="font-size: 11px; padding: 6px 12px;" id="ledger-pill">SQLite ACID Ledger</div>
     </div>
 
     <div class="metrics-grid">
       <div class="metric-card">
         <small>Audited System Accuracy</small>
-        <b class="positive" id="scorecard-winrate">71.4%</b>
-        <span style="font: 700 11px var(--mono); color: var(--muted); display: block; margin-top: 4px;" id="scorecard-counts">5 Wins / 2 Losses (7 Total)</span>
+        <b id="scorecard-winrate">&mdash;</b>
+        <span style="font: 700 11px var(--mono); color: var(--muted); display: block; margin-top: 4px;" id="scorecard-counts">No closed signals yet</span>
       </div>
       <div class="metric-card">
         <small>Total Profit If Followed</small>
-        <b class="positive" id="scorecard-profit">+₹51,492.50</b>
+        <b id="scorecard-profit">&mdash;</b>
         <span style="font: 700 11px var(--mono); color: var(--muted); display: block; margin-top: 4px;">Cumulative 1-Lot Return</span>
       </div>
       <div class="metric-card">
         <small>Avg Days on Screen Before Removal</small>
-        <b style="color: var(--purple);" id="scorecard-avgdays">1.0 Days</b>
+        <b style="color: var(--purple);" id="scorecard-avgdays">&mdash;</b>
         <span style="font: 700 11px var(--mono); color: var(--muted); display: block; margin-top: 4px;">Closed upon Target / Stop Hit</span>
       </div>
       <div class="metric-card">
         <small>Profit Factor</small>
-        <b class="positive" id="scorecard-pf">4.52</b>
+        <b id="scorecard-pf">&mdash;</b>
         <span style="font: 700 11px var(--mono); color: var(--muted); display: block; margin-top: 4px;">Gross Wins / Gross Losses</span>
       </div>
     </div>
@@ -977,13 +977,26 @@
     var tabAcc = document.getElementById('count-accuracy');
     var hdrWin = document.getElementById('header-winrate');
 
-    if (elWin) elWin.textContent = fixed(acc.winRatePct, 1) + '%';
-    if (tabAcc) tabAcc.textContent = fixed(acc.winRatePct, 1) + '%';
-    if (hdrWin) hdrWin.textContent = fixed(acc.winRatePct, 1) + '%';
-    if (elCounts) elCounts.textContent = `${acc.winCount} Wins / ${acc.lossCount} Losses (${acc.totalSignals} Total)`;
-    if (elProfit) elProfit.textContent = money(acc.totalFollowPnl);
-    if (elAvgDays) elAvgDays.textContent = `${fixed(acc.avgDaysOnScreen, 1)} Days`;
-    if (elPf) elPf.textContent = fixed(acc.profitFactor, 2);
+    // Until a signal has actually closed, every one of these is null on the
+    // server and must read as absent. Printing a placeholder number here is
+    // what let a desk with no history advertise a 71.4% win rate.
+    var hasRecord = acc.hasTrackRecord === true && acc.totalSignals > 0;
+    var winText = hasRecord ? fixed(acc.winRatePct, 1) + '%' : '—';
+
+    if (elWin) elWin.textContent = winText;
+    if (tabAcc) tabAcc.textContent = winText;
+    if (hdrWin) hdrWin.textContent = winText;
+    if (elCounts) {
+      elCounts.textContent = hasRecord
+        ? `${acc.winCount} Wins / ${acc.lossCount} Losses (${acc.totalSignals} Total)`
+        : 'No closed signals yet';
+    }
+    if (elProfit) elProfit.textContent = acc.totalFollowPnl == null ? '—' : money(acc.totalFollowPnl);
+    if (elAvgDays) elAvgDays.textContent = acc.avgDaysOnScreen == null ? '—' : `${fixed(acc.avgDaysOnScreen, 1)} Days`;
+    if (elPf) elPf.textContent = acc.profitFactor == null ? '—' : fixed(acc.profitFactor, 2);
+    if (elWin) elWin.className = hasRecord && acc.winRatePct >= 50 ? 'positive' : '';
+    if (elProfit) elProfit.className = Number(acc.totalFollowPnl) > 0 ? 'positive' : '';
+    if (elPf) elPf.className = Number(acc.profitFactor) > 1 ? 'positive' : '';
 
     var archived = acc.archived || [];
     accuracyTbody.innerHTML = archived.map(function(s) {

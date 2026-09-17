@@ -18,7 +18,7 @@ class SqliteTradingDatabase {
     this.db = new DatabaseSync(dbPath);
     this.initPragmas();
     this.initTables();
-    this.seedDefaultData();
+    this.ensureAccountRow();
   }
 
   initPragmas() {
@@ -154,114 +154,43 @@ class SqliteTradingDatabase {
     `);
   }
 
-  seedDefaultData() {
+  /**
+   * Creates the single account row a fresh install needs, with ZERO history.
+   *
+   * This method previously inserted an invented track record -- an account at
+   * +Rs 29,078.10 across 6 wins and 2 losses, three completed trades, and seven
+   * closed signals worth +Rs 51,492.50 at a 71.4% win rate -- under a comment
+   * calling them "verified historical baseline trades". None of it was traded.
+   * Those rows reached the live deployment and were served from /api/state as
+   * the desk's audited performance, which is the most dangerous thing software
+   * like this can do: it invites real money on the strength of a result that
+   * never happened. An untraded ledger reports nothing, and nothing is the
+   * honest answer.
+   */
+  ensureAccountRow() {
     const existing = this.db.prepare("SELECT COUNT(*) AS count FROM account WHERE id = 'PRIMARY'").get();
     if (!existing || existing.count === 0) {
-      const now = new Date().toISOString();
       this.db.prepare(`
         INSERT INTO account (id, initial_capital, realized_pnl, unrealized_pnl, win_count, loss_count, total_trades, win_rate_pct, updated_at)
-        VALUES ('PRIMARY', 100000, 29078.10, 0, 6, 2, 8, 75.0, ?)
-      `).run(now);
-
-      // Seed verified historical baseline trades
-      const insertTrade = this.db.prepare(`
-        INSERT OR IGNORE INTO trades (id, symbol, trading_symbol, type, side, lot_size, entry_price, exit_price, entry_time, exit_time, realized_pnl, pnl_pct, exit_reason, status, created_at)
-        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `);
-
-      insertTrade.run(
-        "TRD-ABB-01", "ABB", "ABB26SEPFUT", "FUTURES", "BUY", 125,
-        6954.45, 7140.85, "2026-09-15T09:30:00.000Z", "2026-09-16T14:15:00.000Z",
-        20121.25, 2.68, "TARGET 1 HIT", "CLOSED_PROFIT", now
-      );
-
-      insertTrade.run(
-        "TRD-BEL-01", "BEL", "BEL26SEPFUT", "FUTURES", "BUY", 1425,
-        390.25, 386.30, "2026-09-15T10:05:00.000Z", "2026-09-15T13:45:00.000Z",
-        -5628.75, -1.01, "STOP LOSS TRIGGERED", "CLOSED_LOSS", now
-      );
-
-      insertTrade.run(
-        "TRD-RELIANCE-01", "RELIANCE", "RELIANCE26SEP1240CE", "OPTION_SPREAD", "BUY", 500,
-        21.95, 29.63, "2026-09-15T11:00:00.000Z", "2026-09-16T11:30:00.000Z",
-        3840.00, 34.99, "TARGET 1 HIT", "CLOSED_PROFIT", now
-      );
-    }
-
-    const existingSignals = this.db.prepare("SELECT COUNT(*) AS count FROM signals_lifecycle").get();
-    if (!existingSignals || existingSignals.count === 0) {
-      const now = new Date().toISOString();
-      const insertSignal = this.db.prepare(`
-        INSERT OR IGNORE INTO signals_lifecycle (
-          id, symbol, trading_symbol, asset_class, side, option_type, strike,
-          lot_size, entry_price, current_price, target1, target2, stop_loss,
-          issued_at, closed_at, days_active, horizon_days, status, exit_reason,
-          pnl_points, pnl_pct, pnl_rupees, created_at, updated_at
-        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-      `);
-
-      insertSignal.run(
-        "SIG-ABB-01", "ABB", "ABB26SEPFUT", "FUTURES", "BUY", null, null,
-        125, 6954.45, 7140.85, 7140.85, 7300.00, 6850.00,
-        "2026-09-14T09:30:00.000Z", "2026-09-15T14:15:00.000Z", 1.2, 5,
-        "TARGET_HIT", "TARGET 1 ACHIEVED (+2.68%)", 186.40, 2.68, 20121.25, now, now
-      );
-
-      insertSignal.run(
-        "SIG-BEL-01", "BEL", "BEL26SEPFUT", "FUTURES", "BUY", null, null,
-        1425, 390.25, 386.30, 401.00, 412.00, 386.30,
-        "2026-09-15T10:05:00.000Z", "2026-09-15T13:45:00.000Z", 0.2, 5,
-        "STOPPED_OUT", "STOP LOSS HIT (-1.01%)", -3.95, -1.01, -5628.75, now, now
-      );
-
-      insertSignal.run(
-        "SIG-RELIANCE-01", "RELIANCE", "RELIANCE26SEP1240CE", "CALL_OPTION", "BUY", "CE", 1240,
-        500, 21.95, 29.63, 29.63, 38.00, 8.34,
-        "2026-09-15T11:00:00.000Z", "2026-09-16T11:30:00.000Z", 1.0, 5,
-        "TARGET_HIT", "TARGET 1 ACHIEVED (+34.99%)", 7.68, 34.99, 3840.00, now, now
-      );
-
-      insertSignal.run(
-        "SIG-TRENT-01", "TRENT", "TRENT26SEPFUT", "FUTURES", "BUY", null, null,
-        100, 7120.00, 7350.00, 7298.00, 7476.00, 7013.00,
-        "2026-09-15T09:20:00.000Z", "2026-09-16T10:15:00.000Z", 1.0, 5,
-        "TARGET_HIT", "TARGET 1 ACHIEVED (+2.50%)", 178.00, 2.50, 17800.00, now, now
-      );
-
-      insertSignal.run(
-        "SIG-TATASTEEL-01", "TATASTEEL", "TATASTEEL26SEPFUT", "FUTURES", "BUY", null, null,
-        5500, 152.40, 156.20, 156.20, 160.00, 150.10,
-        "2026-09-14T10:00:00.000Z", "2026-09-16T15:00:00.000Z", 2.2, 5,
-        "TARGET_HIT", "TARGET 1 ACHIEVED (+2.49%)", 3.80, 2.49, 20900.00, now, now
-      );
-
-      insertSignal.run(
-        "SIG-INFY-01", "INFY", "INFY26SEP1900CE", "CALL_OPTION", "BUY", "CE", 1900,
-        400, 32.50, 41.20, 41.20, 52.00, 16.00,
-        "2026-09-14T11:30:00.000Z", "2026-09-15T15:30:00.000Z", 1.2, 5,
-        "TARGET_HIT", "TARGET 1 ACHIEVED (+26.77%)", 8.70, 26.77, 3480.00, now, now
-      );
-
-      insertSignal.run(
-        "SIG-HDFCBANK-01", "HDFCBANK", "HDFCBANK26SEPFUT", "FUTURES", "BUY", null, null,
-        550, 1640.00, 1623.60, 1681.00, 1722.00, 1623.60,
-        "2026-09-15T09:45:00.000Z", "2026-09-15T14:00:00.000Z", 0.2, 5,
-        "STOPPED_OUT", "STOP LOSS HIT (-1.00%)", -16.40, -1.00, -9020.00, now, now
-      );
+        VALUES ('PRIMARY', ?, 0, 0, 0, 0, 0, 0, ?)
+      `).run(Number(process.env.K2_INITIAL_CAPITAL) || 100000, new Date().toISOString());
     }
   }
 
   getSummary() {
     const row = this.db.prepare("SELECT * FROM account WHERE id = 'PRIMARY'").get();
+    // A missing account row means the ledger is not initialised. Reporting a
+    // win rate for it would be reporting a number nobody earned.
     if (!row) {
       return {
-        initialCapital: 100000,
-        realizedPnl: 29078.10,
+        initialCapital: Number(process.env.K2_INITIAL_CAPITAL) || 100000,
+        realizedPnl: 0,
         unrealizedPnl: 0,
-        winCount: 6,
-        lossCount: 2,
-        totalTrades: 8,
-        winRatePct: 75.0
+        winCount: 0,
+        lossCount: 0,
+        totalTrades: 0,
+        winRatePct: null,
+        hasTrackRecord: false
       };
     }
     return {
@@ -271,7 +200,8 @@ class SqliteTradingDatabase {
       winCount: row.win_count,
       lossCount: row.loss_count,
       totalTrades: row.total_trades,
-      winRatePct: row.total_trades > 0 ? Math.round((row.win_count / row.total_trades * 100) * 10) / 10 : 0
+      winRatePct: row.total_trades > 0 ? Math.round((row.win_count / row.total_trades * 100) * 10) / 10 : null,
+      hasTrackRecord: row.total_trades > 0
     };
   }
 
@@ -502,26 +432,53 @@ class SqliteTradingDatabase {
     return this.db.prepare("SELECT * FROM signals_lifecycle WHERE status != 'ACTIVE' ORDER BY closed_at DESC LIMIT ?").all(limit);
   }
 
+  /**
+   * Realised accuracy of closed signals.
+   *
+   * Every statistic here is null until there is something to compute it from.
+   * The previous version substituted a 75.0% win rate, a 1.8-day average hold
+   * and a profit factor divided by a floor of one rupee whenever the ledger was
+   * empty or lossless, so a desk that had never traded still displayed a
+   * healthy record. A statistic with no observations behind it is not a
+   * conservative default; it is a fabricated one.
+   */
   getSignalsAccuracy() {
     const archived = this.getArchivedSignals(200);
-    const winCount = archived.filter(s => s.status === 'TARGET_HIT' || s.pnl_rupees > 0).length;
-    const lossCount = archived.filter(s => s.status === 'STOPPED_OUT' || s.pnl_rupees < 0).length;
+    // Classify each closed signal exactly once. The old pair of independent
+    // filters counted a TARGET_HIT that closed negative as both a win and a
+    // loss, so winCount + lossCount could exceed the number of signals.
+    let winCount = 0;
+    let lossCount = 0;
+    let grossWins = 0;
+    let grossLoss = 0;
+    let totalFollowPnl = 0;
+    let daysSum = 0;
+    for (const signal of archived) {
+      const pnl = Number(signal.pnl_rupees) || 0;
+      totalFollowPnl += pnl;
+      daysSum += Number(signal.days_active) || 0;
+      const isWin = pnl > 0 || (pnl === 0 && signal.status === "TARGET_HIT");
+      const isLoss = pnl < 0 || (pnl === 0 && signal.status === "STOPPED_OUT");
+      if (isWin) { winCount += 1; grossWins += pnl; }
+      else if (isLoss) { lossCount += 1; grossLoss += Math.abs(pnl); }
+    }
     const total = winCount + lossCount;
-    const winRatePct = total > 0 ? Math.round((winCount / total * 100) * 10) / 10 : 75.0;
-    const totalFollowPnl = archived.reduce((acc, s) => acc + (s.pnl_rupees || 0), 0);
-    const avgDays = archived.length > 0 ? (archived.reduce((acc, s) => acc + (s.days_active || 0), 0) / archived.length).toFixed(1) : "1.8";
-    const grossWins = archived.filter(s => s.pnl_rupees > 0).reduce((acc, s) => acc + s.pnl_rupees, 0);
-    const grossLoss = Math.abs(archived.filter(s => s.pnl_rupees < 0).reduce((acc, s) => acc + s.pnl_rupees, 0)) || 1;
-    const profitFactor = (grossWins / grossLoss).toFixed(2);
 
     return {
       winCount,
       lossCount,
       totalSignals: total,
-      winRatePct,
-      totalFollowPnl: Math.round(totalFollowPnl * 100) / 100,
-      avgDaysOnScreen: Number(avgDays),
-      profitFactor: Number(profitFactor),
+      // Null, never a stand-in number, when nothing has closed.
+      winRatePct: total > 0 ? Math.round((winCount / total * 100) * 10) / 10 : null,
+      totalFollowPnl: archived.length ? Math.round(totalFollowPnl * 100) / 100 : null,
+      avgDaysOnScreen: archived.length ? Number((daysSum / archived.length).toFixed(1)) : null,
+      // A profit factor needs losses to divide by. With none, the ratio is
+      // undefined; flooring the denominator at one rupee manufactured a huge
+      // number out of an empty denominator.
+      profitFactor: grossLoss > 0 ? Number((grossWins / grossLoss).toFixed(2)) : null,
+      grossWins: Math.round(grossWins * 100) / 100,
+      grossLoss: Math.round(grossLoss * 100) / 100,
+      hasTrackRecord: total > 0,
       archived
     };
   }
