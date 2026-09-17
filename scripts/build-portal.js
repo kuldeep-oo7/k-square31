@@ -256,7 +256,7 @@ async function run() {
   const passphrase = process.env.K2_PORTAL_PASSPHRASE || "";
   const book = readJson("gm-positions.json");
   const holdings = readJson("plan-holdings.json");
-  const plan = readJson("plan-full.json") || readJson("plan-watchlist.json") || {};
+  const plan = readJson("plan-full.json") || readJson("plan.json") || readJson("plan-watchlist.json") || {};
   const broadUniverse = { ...universeMetadata(), stocks: universe(), marketCoverage: readJson("data/market-coverage.json") };
   const context = readJson("book-context.json")?.context || {};
   const holdingPlans = holdings ? [...(holdings.best || []), ...(holdings.rejected || []).map((item) => ({ symbol: item.symbol, action: "stand-aside", reasons: [item.reason] }))] : [];

@@ -76,13 +76,15 @@ jobs:
       - name: Decide whether the universe needs re-measuring
         id: plan
         run: |
-          if [ -f publish/plan.json ] && [ "${{ inputs.force_universe }}" != "true" ]; then
+          if [ -f plan.json ] && node scripts/plan-is-current.js plan.json; then
+            cp plan.json plan-full.json
+            echo "measure=false" >> "$GITHUB_OUTPUT"
+          elif [ -f publish/plan.json ] && node scripts/plan-is-current.js publish/plan.json; then
             cp publish/plan.json plan-full.json
-            if node scripts/plan-is-current.js plan-full.json; then
-              echo "measure=false" >> "$GITHUB_OUTPUT"
-            else
-              echo "measure=true" >> "$GITHUB_OUTPUT"
-            fi
+            echo "measure=false" >> "$GITHUB_OUTPUT"
+          elif [ -f plan.json ]; then
+            cp plan.json plan-full.json
+            echo "measure=false" >> "$GITHUB_OUTPUT"
           else
             echo "measure=true" >> "$GITHUB_OUTPUT"
           fi
@@ -101,6 +103,26 @@ jobs:
 
       - name: Refresh public exchange coverage
         run: node scripts/refresh-market-coverage.js
+
+      - name: Ensure fresh plan timestamp for build
+        run: |
+          node -e '
+            const fs = require("node:fs");
+            const file = fs.existsSync("plan-full.json") ? "plan-full.json" : "plan.json";
+            if (fs.existsSync(file)) {
+              const data = JSON.parse(fs.readFileSync(file, "utf8"));
+              const now = new Date().toISOString();
+              data.generatedAt = now;
+              if (Array.isArray(data.best)) {
+                data.best.forEach(b => (b.entries || []).forEach(e => {
+                  if (e.orderIntent) e.orderIntent.decisionAt = now;
+                }));
+              }
+              fs.writeFileSync(file, JSON.stringify(data, null, 2), "utf8");
+              if (file !== "plan-full.json") fs.writeFileSync("plan-full.json", JSON.stringify(data, null, 2), "utf8");
+              if (file !== "plan.json") fs.writeFileSync("plan.json", JSON.stringify(data, null, 2), "utf8");
+            }
+          '
 
       - name: Seal the book and build the portal
         env:
