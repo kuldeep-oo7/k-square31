@@ -14,6 +14,7 @@ const {
   isListed: isFnoListed,
   tradedQuote: tradedFnoQuote
 } = require("./fno-reference");
+const { liveQuote: liveBrokerQuote } = require("./live-quotes");
 
 const COVERAGE_PATH = path.resolve(__dirname, "../../data/market-coverage.json");
 const NIFTY500_PATH = path.resolve(__dirname, "../../data/nifty500-constituents.csv");
@@ -224,9 +225,27 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
   // A strike that is listed but never traded has no market price at all, only
   // an exchange-constructed settlement figure, so it is refused rather than
   // quoted. The model value travels alongside as a cross-check.
-  const quoteFor = (strike, optionType) => (contractRef
-    ? tradedFnoQuote(symbol, strike, optionType, listedExpiry, contractRef)
-    : null);
+  // A LIVE broker quote outranks the exchange's settled price, which outranks
+  // the model. Each step down is LABELLED rather than silently substituted: a
+  // settled price is yesterday's close wearing a premium's clothes unless
+  // something says so.
+  const quoteFor = (strike, optionType) => {
+    const live = listedExpiry ? liveBrokerQuote(symbol, listedExpiry, strike, optionType) : null;
+    if (live) {
+      return {
+        // The MID of a two-sided book, not the last print. On a thin strike the
+        // last trade can be an hour old while the book is still standing.
+        price: Math.round(((live.bid + live.ask) / 2) * 100) / 100,
+        bid: live.bid, ask: live.ask, spread: live.spread, spreadPct: live.spreadPct,
+        volume: live.volume, openInterest: live.openInterest,
+        impliedVolatility: live.impliedVolatility,
+        delta: live.delta, gamma: live.gamma, theta: live.theta, vega: live.vega,
+        traded: true, live: true, ageSeconds: live.ageSeconds,
+        provider: live.provider, source: live.source
+      };
+    }
+    return contractRef ? tradedFnoQuote(symbol, strike, optionType, listedExpiry, contractRef) : null;
+  };
   const marketPrice = (strike, optionType) => {
     const quote = quoteFor(strike, optionType);
     return quote && quote.traded && quote.price > 0 ? Math.round(quote.price * 100) / 100 : null;
@@ -250,10 +269,34 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     : (contractRef ? null : (otmCallBsm.available ? Math.round(otmCallBsm.price * 100) / 100 : null));
   const otmPutPremium = otmPutMarket !== null ? otmPutMarket
     : (contractRef ? null : (otmPutBsm.available ? Math.round(otmPutBsm.price * 100) / 100 : null));
-  const priceProvenance = usingMarket ? "EXCHANGE_TRADED_PRICE"
+  const anyLive = Boolean(callQuote?.live || putQuote?.live);
+
+  // SPREAD IS A COST YOU PAY IMMEDIATELY.
+  //
+  // Measured on the live book, ASTRAL 1400 PE quoted 18.00 bid against 28.65
+  // ask -- a 45.7% spread. Buying at the ask and marking at the mid loses a
+  // fifth of the premium before the underlying moves at all, and a card that
+  // showed a mid of 23.33 with a 2.5% target beside it would be describing a
+  // trade that starts far behind. Nothing in this desk measured that until the
+  // live book arrived, because a settled price has no spread to measure.
+  const MAX_ACCEPTABLE_SPREAD_PCT = 15;
+  const widestSpread = Math.max(
+    Number(callQuote?.spreadPct) || 0,
+    Number(putQuote?.spreadPct) || 0
+  );
+  const spreadAcceptable = !anyLive || widestSpread <= MAX_ACCEPTABLE_SPREAD_PCT;
+  // Both legs of a paired structure are refused together, because a structure
+  // with one untradeable side cannot be built. But the figure has to say whose
+  // it is: ASTRAL's call quoted 12.8% while the refusal cited 45.7%, which is
+  // the put's number. A percentage printed beside a leg that is not that leg's
+  // percentage is the same defect as any other invented figure.
+  const widestLeg = (Number(putQuote?.spreadPct) || 0) >= (Number(callQuote?.spreadPct) || 0) ? "PE" : "CE";
+  const priceProvenance = usingMarket
+    ? (anyLive ? "LIVE_BROKER_QUOTE" : "EXCHANGE_SETTLED_PRICE")
     : contractRef ? "NO_TRADED_PRICE" : "THEORETICAL_BSM_NO_REFERENCE";
 
-  const legPriced = callPremium !== null && putPremium !== null && strikesAreListed !== false;
+  const legPriced = callPremium !== null && putPremium !== null
+    && strikesAreListed !== false && spreadAcceptable;
   // Both wings priced AND the resulting vertical must actually be a debit
   // spread. With real traded prices an illiquid wing can print at or above the
   // at-the-money leg -- a stale or thin tick -- which makes the net debit zero
@@ -265,6 +308,7 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     : !priceable ? "NO_MEASURED_VOLATILITY"
     : !callBsm.available ? callBsm.reason
     : !putBsm.available ? putBsm.reason
+    : !spreadAcceptable ? `BID_ASK_SPREAD_TOO_WIDE_${Math.round(widestSpread)}PCT_ON_${widestLeg}`
     : callPremium === null || putPremium === null ? "NO_TRADED_PRICE_ON_EXCHANGE"
     : !wingsPriced ? "HEDGE_LEG_NOT_TRADED_OR_NON_POSITIVE_DEBIT" : null;
 
@@ -284,6 +328,8 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     listedExpiry,
     strikesAreListed,
     strikeSource: listedAtm ? "EXCHANGE_LISTED_LADDER" : "SYNTHETIC_STEP_TABLE",
+    widestSpreadPct: anyLive ? Math.round(widestSpread * 100) / 100 : null,
+    maxAcceptableSpreadPct: MAX_ACCEPTABLE_SPREAD_PCT,
     daysToExpiry,
     model: "BLACK_SCHOLES_MERTON",
     call: {
@@ -304,6 +350,12 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
       priceSource: callPremium === null ? null : priceProvenance,
       theoreticalPrice: callTheoretical,
       exchangeVolume: callQuote ? callQuote.volume : null,
+      bid: callQuote ? (callQuote.bid ?? null) : null,
+      ask: callQuote ? (callQuote.ask ?? null) : null,
+      spread: callQuote ? (callQuote.spread ?? null) : null,
+      spreadPct: callQuote ? (callQuote.spreadPct ?? null) : null,
+      isLive: Boolean(callQuote && callQuote.live),
+      quoteAgeSeconds: callQuote && callQuote.live ? callQuote.ageSeconds : null,
       exchangeOpenInterest: callQuote ? callQuote.openInterest : null,
       exchangeTraded: callQuote ? callQuote.traded === true : null,
       currentPrice: null,
@@ -342,6 +394,12 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
       priceSource: putPremium === null ? null : priceProvenance,
       theoreticalPrice: putTheoretical,
       exchangeVolume: putQuote ? putQuote.volume : null,
+      bid: putQuote ? (putQuote.bid ?? null) : null,
+      ask: putQuote ? (putQuote.ask ?? null) : null,
+      spread: putQuote ? (putQuote.spread ?? null) : null,
+      spreadPct: putQuote ? (putQuote.spreadPct ?? null) : null,
+      isLive: Boolean(putQuote && putQuote.live),
+      quoteAgeSeconds: putQuote && putQuote.live ? putQuote.ageSeconds : null,
       exchangeOpenInterest: putQuote ? putQuote.openInterest : null,
       exchangeTraded: putQuote ? putQuote.traded === true : null,
       currentPrice: null,
@@ -1042,6 +1100,14 @@ class FnoUniverseEngine {
           // legitimately enters an option is as the forward in Black-76, because
           // an Indian stock option is an option ON the future.
           optionVolume: u.options.call.exchangeVolume ?? null,
+          // The book, not just the last print: a card that shows a price
+          // without a bid and an ask is not telling you whether you could fill.
+          bid: u.options.call.bid ?? null,
+          ask: u.options.call.ask ?? null,
+          spread: u.options.call.spread ?? null,
+          spreadPct: u.options.call.spreadPct ?? null,
+          isLive: u.options.call.isLive === true,
+          quoteAgeSeconds: u.options.call.quoteAgeSeconds ?? null,
           optionOpenInterest: u.options.call.exchangeOpenInterest ?? null,
           priceSource: u.options.call.priceSource ?? null,
           theoreticalPrice: u.options.call.theoreticalPrice ?? null,
@@ -1108,6 +1174,14 @@ class FnoUniverseEngine {
           // legitimately enters an option is as the forward in Black-76, because
           // an Indian stock option is an option ON the future.
           optionVolume: u.options.put.exchangeVolume ?? null,
+          // The book, not just the last print: a card that shows a price
+          // without a bid and an ask is not telling you whether you could fill.
+          bid: u.options.put.bid ?? null,
+          ask: u.options.put.ask ?? null,
+          spread: u.options.put.spread ?? null,
+          spreadPct: u.options.put.spreadPct ?? null,
+          isLive: u.options.put.isLive === true,
+          quoteAgeSeconds: u.options.put.quoteAgeSeconds ?? null,
           optionOpenInterest: u.options.put.exchangeOpenInterest ?? null,
           priceSource: u.options.put.priceSource ?? null,
           theoreticalPrice: u.options.put.theoreticalPrice ?? null,

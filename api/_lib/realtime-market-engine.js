@@ -222,6 +222,30 @@ class RealtimeMarketEngine {
     }
   }
 
+  async refreshLiveQuotes({ limit = 12 } = {}) {
+    try {
+      const live = require("./live-quotes");
+      const reference = require("./fno-reference");
+      const contractRef = reference.loadReference();
+      if (!contractRef) return null;
+      const universe = fnoUniverseEngine.getUniverse(this.macroState);
+      const picks = universe
+        .filter((row) => row.action === "BUY" || row.action === "ACCUMULATE")
+        .slice(0, limit);
+      const requests = picks.map((row) => {
+        const near = reference.nearestListedStrike(row.symbol, row.spotPrice, { reference: contractRef });
+        return near ? { symbol: row.symbol, expiry: near.expiry, referencePrice: row.spotPrice } : null;
+      }).filter(Boolean);
+      if (!requests.length) return null;
+      const result = await live.refreshQuotes(requests);
+      if (result.ok) console.log(`[K² Live Quotes] ${result.refreshed}/${result.requested} chains from ${result.provider}`);
+      return result;
+    } catch (error) {
+      console.error("Live quote refresh failed:", error.message);
+      return null;
+    }
+  }
+
   start(pollIntervalMs = 5000) {
     if (typeof fnoUniverseEngine.startBackgroundIngest === "function") {
       fnoUniverseEngine.startBackgroundIngest();
@@ -235,6 +259,11 @@ class RealtimeMarketEngine {
     // Angel One can hold its own session from a TOTP secret. Upstox cannot --
     // it issues no refresh token -- so it is watched and warned about instead.
     this.maintainBrokerSessions();
+    // Live books for the names the desk is actually recommending. Refreshing all
+    // 210 would take minutes under broker rate limits and the first quotes would
+    // be stale before the last arrived, so this follows the recommendations.
+    this.refreshLiveQuotes();
+    this.quoteTimer = setInterval(() => this.refreshLiveQuotes(), 90 * 1000);
     this.sessionTimer = setInterval(() => this.maintainBrokerSessions(), 60 * 60 * 1000);
     this.referenceTimer = setInterval(() => this.refreshContractReference(), 6 * 60 * 60 * 1000);
     this.pollTickCycle();
@@ -246,6 +275,7 @@ class RealtimeMarketEngine {
     if (this.timer) clearInterval(this.timer);
     if (this.referenceTimer) clearInterval(this.referenceTimer);
     if (this.sessionTimer) clearInterval(this.sessionTimer);
+    if (this.quoteTimer) clearInterval(this.quoteTimer);
     for (const client of this.clients) {
       try { client.end(); } catch {}
     }
