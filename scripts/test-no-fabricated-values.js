@@ -137,4 +137,30 @@ if (universeSource) {
   );
 }
 
+// --- 6. A score pinned at its own ceiling is not a score --------------------
+// Measured on the live 210-name universe on 2026-09-17: 205 names carried a
+// neuralScore of exactly 98, which is the Math.min(98, ...) ceiling, and the
+// "neural >= 70" hurdle passed 210 of 210. The cause was channel scaling in
+// extractTemporalTensor -- volume entered the convolution around 1.0 while
+// returns sat in [-0.2, 0.2], and the absorption kernel weights it [1.0, 1.4,
+// 1.8], so roughly +4.2 of constant was added to the logit for every symbol and
+// the sigmoid saturated. A gate that admits the whole universe is not a gate.
+{
+  const { fnoUniverseEngine } = require("../api/_lib/universe-210");
+  const rows = fnoUniverseEngine.getUniverse({ severity: "NORMAL", shieldActive: false });
+  const scores = rows.map((row) => Number(row.neuralScore)).filter(Number.isFinite);
+  if (scores.length >= 50) {
+    const ceiling = Math.max(...scores);
+    const atCeiling = scores.filter((value) => value >= ceiling).length;
+    const share = atCeiling / scores.length;
+    assert.ok(
+      share < 0.90,
+      `neuralScore is saturated: ${atCeiling} of ${scores.length} names (${(share * 100).toFixed(1)}%) sit at the ceiling ${ceiling}. `
+      + "A score that returns the same number for nearly every input carries no information and cannot gate anything."
+    );
+    const distinct = new Set(scores).size;
+    assert.ok(distinct >= 5, `neuralScore takes only ${distinct} distinct values across ${scores.length} names`);
+  }
+}
+
 console.log("Fabricated-value guard passed: no literal analytics in generators, no built-in name list, no published fingerprints, no seeded ledger, provenance flags present");

@@ -109,9 +109,24 @@ function extractTemporalTensor(rawBars, maxLookback = 30) {
     const rng = c > 0 ? (h - l) / c : 0.01;
     const vNorm = v / avgVol;
 
+    // All three channels must be mean-zero and on a comparable scale, or the
+    // convolution measures whichever channel is largest rather than the shape of
+    // the series.
+    //
+    // Volume was previously pushed as v/avgVol clamped to [0.1, 5], so it sat
+    // around 1.0 while returns sat in [-0.2, 0.2] and ranges in [0, 0.5]. It
+    // also carries the heaviest kernel weights -- INSTITUTIONAL_ABSORPTION reads
+    // [1.0, 1.4, 1.8] on this channel -- so a typical bar contributed a constant
+    // of roughly +4.2 to the logit for every symbol in the universe. sigmoid(z)
+    // then pinned at 1 and the score hit its own ceiling: measured across the
+    // 210-name F&O universe, 205 names scored exactly 98 and the "neural >= 70"
+    // hurdle passed 210 of 210. A gate that admits everything is not a gate.
+    //
+    // Centring the channel removes that constant and leaves the deviation, which
+    // is the thing the absorption kernel was meant to detect in the first place.
     returns.push(Math.max(-0.2, Math.min(0.2, r * 10))); // Scaled return
-    ranges.push(Math.max(0, Math.min(0.5, rng * 10)));   // Scaled range
-    volumes.push(Math.max(0.1, Math.min(5, vNorm)));     // Normalized volume
+    ranges.push(Math.max(-0.5, Math.min(0.5, rng * 10 - 0.1))); // Range deviation
+    volumes.push(Math.max(-1, Math.min(4, vNorm - 1)));  // Volume deviation
   }
 
   return { returns, ranges, volumes, length: n };
