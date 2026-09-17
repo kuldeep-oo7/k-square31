@@ -38,6 +38,39 @@ assert(reliancePe, "RELIANCE PE must be present");
 assert(reliancePe.executiveVerdict === "IGNORE", "RELIANCE PE must be IGNORE during normal regime");
 console.log("  ✓ Equity Call & Put pairs verified across 210 F&O universe");
 
+// 3b. Data provenance: a row may not be recommended on invented inputs.
+//
+// Measured on 2026-09-17, before this gate existed: of 210 symbols, 120 carried
+// a price derived from a hash of the symbol name, 40 came from a hand-written
+// baseline table that had TATASTEEL at 152.40 against a traded 187.29, and the
+// 30-bar "history" every score was computed from was a linear ramp with a sine
+// ripple. 49 of the 49 rows holding a real spot then cleared the conviction
+// hurdle -- a 98% pass rate, because the synthetic curve looks alike for every
+// name. These assertions keep a verdict from being issued on that basis again.
+const provenanceUniverse = fnoUniverseEngine.getUniverse({ severity: "NORMAL", shieldActive: false });
+assert(provenanceUniverse.length > 100, "Universe must be populated");
+for (const row of provenanceUniverse) {
+  assert(typeof row.priceSource === "string" && row.priceSource.length > 0,
+    `${row.symbol} must declare where its price came from`);
+  if (row.historicalBarsAreSynthetic || !row.hasObservedPrice) {
+    assert(row.tradeable === false,
+      `${row.symbol} has ${row.hasObservedPrice ? "synthetic history" : "no observed price"} and must not be tradeable`);
+    assert(row.action === "STAND_ASIDE",
+      `${row.symbol} must stand aside without real inputs, got: ${row.action}`);
+    assert(row.executiveVerdict !== "MUST_READ_AND_BUY",
+      `${row.symbol} must never be advertised as a buy on synthetic inputs`);
+  }
+  if (row.quant && row.quant.computed === false) {
+    assert(row.quant.vpin === null && row.quant.hurst === null && row.quant.halfLife === null,
+      `${row.symbol} must report null for uncomputed quant statistics rather than a placeholder number`);
+  }
+}
+const actionable = provenanceUniverse.filter((r) => r.action === "BUY" || r.action === "ACCUMULATE");
+const actionableWithoutData = actionable.filter((r) => r.historicalBarsAreSynthetic || !r.hasObservedPrice);
+assert(actionableWithoutData.length === 0,
+  `No row may be actionable without real price and history; found ${actionableWithoutData.length}`);
+console.log(`  ✓ Data provenance enforced (${provenanceUniverse.length} symbols; ${actionable.length} actionable, none on synthetic inputs)`);
+
 // 4. Test SQLite Signals Lifecycle & Accuracy Scorecard
 const TEST_DB = path.resolve(__dirname, "../.private/test-options-accuracy.db");
 if (fs.existsSync(TEST_DB)) fs.unlinkSync(TEST_DB);

@@ -166,6 +166,12 @@ class FnoUniverseEngine {
     } catch (e) {}
   }
 
+  /**
+   * SYNTHETIC price path -- a linear ramp with a sine ripple and a sine volume
+   * curve. It is not market history and no statistic computed from it describes
+   * the instrument. Present only so rows can render before a real bar feed is
+   * wired in; every caller receives historicalBarsAreSynthetic alongside it.
+   */
   generateHistoricalSeries(spot, n = 30) {
     const bars = [];
     const base = Number(spot) || 500;
@@ -198,13 +204,26 @@ class FnoUniverseEngine {
 
       const isBanned = this.banned.has(symbol);
 
-      // Price determination: known portfolio mark price > baseline directory > deterministic synthetic mark
-      let spot = this.knownPrices.get(symbol) || BASELINE_PRICES[symbol];
+      // Price provenance. Only a mark carried in from a real holdings snapshot is
+      // an observed price. BASELINE_PRICES is a static table written by hand and
+      // it goes stale silently: on 2026-09-17 it still carried TATASTEEL at
+      // 152.40 while the traded price was 187.29, a 23% error, and every entry,
+      // target, stop, lot value and option strike derived from it was wrong by
+      // the same margin. The hash branch is not a price at all.
+      let spot = this.knownPrices.get(symbol);
+      let priceSource = spot ? "PORTFOLIO_MARK" : null;
       if (!spot) {
-        // Deterministic realistic Indian equity price based on symbol hash
+        spot = BASELINE_PRICES[symbol];
+        priceSource = spot ? "STATIC_BASELINE_TABLE" : null;
+      }
+      if (!spot) {
+        // Deterministic placeholder from the symbol name. Kept only so the row
+        // can render; it must never reach a price-dependent decision.
         const hash = symbol.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
         spot = Math.round((200 + (hash % 2800) + (index * 7.5)) * 100) / 100;
+        priceSource = "SYNTHETIC_SYMBOL_HASH";
       }
+      const hasObservedPrice = priceSource === "PORTFOLIO_MARK";
 
       // Lot size determination
       let lotSize = LOT_SIZES[symbol];
@@ -224,10 +243,15 @@ class FnoUniverseEngine {
       const capitalRequired = Math.round(entryPrice * lotSize);
       const pnlRupees = Math.round((spot - entryPrice) * lotSize * 100) / 100;
 
-      // Deterministic technical factors
-      const vpinVal = (0.10 + ((index * 3) % 18) / 100).toFixed(2);
-      const hurstVal = (0.50 + ((index * 7) % 30) / 100).toFixed(2);
-      const halfLifeVal = (3.5 + ((index * 5) % 40) / 10).toFixed(1) + "d";
+      // These were never measured. VPIN, the Hurst exponent and the
+      // mean-reversion half-life were arithmetic on the symbol's POSITION in the
+      // list -- (index * 3) % 18, (index * 7) % 30, (index * 5) % 40 -- so the
+      // seventh name in the array always showed VPIN 0.13 whatever it did that
+      // day. Order-flow toxicity and long-memory statistics need real trade and
+      // price history, which this path does not have, so they report nothing.
+      const vpinVal = null;
+      const hurstVal = null;
+      const halfLifeVal = null;
 
       const baseCandidate = {
         id: `UNIV-${symbol}`,
@@ -250,12 +274,23 @@ class FnoUniverseEngine {
         capitalRequired,
         pnlRupees: 0,
         status: "EVALUATING",
+        priceSource,
+        hasObservedPrice,
         quant: {
           vpin: vpinVal,
           hurst: hurstVal,
-          halfLife: halfLifeVal
+          halfLife: halfLifeVal,
+          computed: false,
+          note: "Requires real trade and price history; not available on this path."
         },
-        historicalBars: this.generateHistoricalSeries(spot, 30)
+        // The 30 bars below are a deterministic ramp with a sine ripple, not
+        // market history. Everything downstream that consumes them -- the
+        // convolution score, GARCH, VaR, the liquidity estimate, candlestick and
+        // chart-pattern detection -- is therefore describing this curve and not
+        // the instrument. The flag travels with the data so no consumer can
+        // mistake one for the other.
+        historicalBars: this.generateHistoricalSeries(spot, 30),
+        historicalBarsAreSynthetic: true
       };
 
       const analyzed = analyzeCandidate({
@@ -275,6 +310,25 @@ class FnoUniverseEngine {
         finalAction = "STAND_ASIDE";
         finalStatus = "SEBI_FO_BAN";
         reason = "Trading strictly prohibited by exchange F&O MWPL ban (>95% market limit).";
+      } else if (baseCandidate.historicalBarsAreSynthetic) {
+        // Even with an observed spot, every score on this row was produced by
+        // running the convolution, GARCH and the risk model over a generated
+        // curve. Before this branch existed, 49 of the 49 rows that carried a
+        // real price cleared the conviction hurdle -- a 98% pass rate, because
+        // the synthetic path looks the same for every symbol. A verdict computed
+        // from a curve nobody traded is not a weak signal, it is not a signal.
+        finalAction = "STAND_ASIDE";
+        finalStatus = "NO_MARKET_HISTORY";
+        reason = "Scores on this row were computed from a synthetic price path, not market history. No verdict is possible until a real bar feed is wired in.";
+      } else if (!hasObservedPrice) {
+        // No observed price means the entry, target, stop and every score on this
+        // row were computed from a placeholder. A recommendation built on that is
+        // not a weak recommendation, it is a fabricated one.
+        finalAction = "STAND_ASIDE";
+        finalStatus = "NO_OBSERVED_PRICE";
+        reason = priceSource === "STATIC_BASELINE_TABLE"
+          ? "Price comes from a static baseline table, not a live quote. Not tradeable until a real quote is wired in."
+          : "No price source for this symbol. Figures shown are placeholders.";
       } else if (analyzed.compositeScore >= 68 && analyzed.neuralScore >= 70) {
         finalAction = "BUY";
         finalStatus = "APEX_BUY_SIGNAL";
@@ -293,6 +347,10 @@ class FnoUniverseEngine {
       analyzed.status = finalStatus;
       analyzed.actionReason = reason;
 
+      analyzed.priceSource = priceSource;
+      analyzed.hasObservedPrice = hasObservedPrice;
+      analyzed.tradeable = hasObservedPrice && !isBanned && !baseCandidate.historicalBarsAreSynthetic;
+      analyzed.historicalBarsAreSynthetic = baseCandidate.historicalBarsAreSynthetic === true;
       const isActionable = finalAction === "BUY" || finalAction === "ACCUMULATE";
       analyzed.executiveVerdict = isActionable ? "MUST_READ_AND_BUY" : "IGNORE";
 
