@@ -58,10 +58,16 @@ function calculateMoments(prices) {
     m4 += diff2 * diff2;
   }
 
+  // Sample variance (n-1) is the right dispersion estimate, but the shape
+  // statistics must divide by the POPULATION second moment. Mixing the two --
+  // m3/n over (m2/(n-1))^1.5 -- is not any standard estimator and biases
+  // skewness and kurtosis low by ((n-1)/n)^1.5 and ((n-1)/n)^2.
   const variance = m2 / (n - 1);
+  const populationVariance = m2 / n;
   const stdDev = Math.sqrt(Math.max(1e-12, variance));
-  const skewness = (m3 / n) / Math.pow(variance, 1.5);
-  const kurtosis = (m4 / n) / Math.pow(variance, 2);
+  const shapeBase = Math.max(1e-18, populationVariance);
+  const skewness = (m3 / n) / Math.pow(shapeBase, 1.5);
+  const kurtosis = (m4 / n) / Math.pow(shapeBase, 2);
 
   return { mean, variance, stdDev, skewness, kurtosis, returns };
 }
@@ -93,7 +99,8 @@ function estimateGbmParameters(prices, dt = 1 / 252) {
  * sigma_t^2 = omega + alpha * epsilon_{t-1}^2 + beta * sigma_{t-1}^2
  * Standard empirical baseline parameters for Indian equities: omega ~ 1e-5, alpha ~ 0.08, beta ~ 0.88 (alpha + beta < 1)
  */
-function forecastGarch11Volatility(prices, { horizonDays = 5, omega = 0.000005, alpha = 0.08, beta = 0.88 } = {}) {
+function forecastGarch11Volatility(prices, options = {}) {
+  const { horizonDays = 5, omega = 0.000005, alpha = 0.08, beta = 0.88 } = options;
   const { returns, variance } = calculateMoments(prices);
   if (returns.length < 10) {
     return {
@@ -101,20 +108,34 @@ function forecastGarch11Volatility(prices, { horizonDays = 5, omega = 0.000005, 
       forecastedAnnualizedVol: round(Math.sqrt(variance) * Math.sqrt(252)),
       persistence: alpha + beta,
       longRunAnnualizedVol: null,
+      varianceTargeted: false,
       volatilityRegime: "MODERATE_VOL"
     };
   }
 
   // Stationarity check: alpha + beta must be strictly < 1
   const persistence = alpha + beta;
-  const longRunVariance = persistence < 1.0 ? omega / (1.0 - persistence) : variance;
 
-  // Filter rolling conditional variance through history
+  // Variance targeting. A fixed omega pins the long-run variance to one constant
+  // for every instrument: with omega 5e-6 and persistence 0.96 that is 0.0125%
+  // daily, about 17.75% annualised, so a 40%-vol name was told it reverts to
+  // 17.75% and a 10%-vol name was told it reverts up to the same number. Solving
+  // omega = sampleVariance * (1 - alpha - beta) anchors the forecast to the
+  // asset's own unconditional variance, which is what Engle's variance-targeting
+  // estimator does and what makes the mean-reversion term meaningful.
+  const targetedOmega = persistence < 1.0 && !(Number(options.omega) > 0 && options.omegaFixed)
+    ? Math.max(1e-12, variance * (1.0 - persistence))
+    : omega;
+  const longRunVariance = persistence < 1.0 ? targetedOmega / (1.0 - persistence) : variance;
+
+  // Filter conditional variance through history. The loop previously stopped one
+  // observation early -- it consumed returns[0..n-2] and never saw the most
+  // recent return, which is the single most informative shock for a one-step
+  // forecast, so every reported "current" volatility was a day stale.
   let currentVar = variance;
-  for (let i = 1; i < returns.length; i++) {
-    const shock = returns[i - 1];
-    const shockSquared = shock * shock;
-    currentVar = omega + alpha * shockSquared + beta * currentVar;
+  for (let i = 0; i < returns.length; i++) {
+    const shock = returns[i];
+    currentVar = targetedOmega + alpha * shock * shock + beta * currentVar;
   }
 
   // Multi-step forward projection:
@@ -136,6 +157,8 @@ function forecastGarch11Volatility(prices, { horizonDays = 5, omega = 0.000005, 
     longRunAnnualizedVol: round(annualizedLongRunVol, 4),
     dailyVariance: round(currentVar, 8),
     persistence: round(persistence, 4),
+    omegaUsed: round(targetedOmega, 12),
+    varianceTargeted: true,
     volatilityRegime: annualizedForecastedVol > 0.28 ? "HIGH_VOL" : annualizedForecastedVol < 0.15 ? "LOW_VOL" : "MODERATE_VOL"
   };
 }
@@ -146,41 +169,71 @@ function forecastGarch11Volatility(prices, { horizonDays = 5, omega = 0.000005, 
  * z_CF = z + (z^2 - 1)*S / 6 + (z^3 - 3z)*K / 24 - (2z^3 - 5z)*S^2 / 36
  */
 function calculateCornishFisherRisk(prices, notionalRupees = 1000000, confidence = 0.99) {
-  const { mean, stdDev, skewness, kurtosis } = calculateMoments(prices);
+  const { mean, stdDev, skewness, kurtosis, returns } = calculateMoments(prices);
   if (stdDev <= 0 || notionalRupees <= 0) {
-    return { varRupees: 0, cvarRupees: 0, varPct: 0, cvarPct: 0, skewness: 0, excessKurtosis: 0 };
+    return { varRupees: 0, cvarRupees: 0, varPct: 0, cvarPct: 0, skewness: 0, excessKurtosis: 0, method: "INSUFFICIENT_DATA" };
   }
 
   const z = Z_CRITICAL[confidence] || 2.3263;
+  const alphaTail = Math.max(1e-6, 1 - confidence);
   const S = Number.isFinite(skewness) ? Math.max(-3, Math.min(3, skewness)) : 0;
-  const excessK = Number.isFinite(kurtosis) ? Math.max(-1, Math.min(10, kurtosis - 3)) : 0;
+  const excessK = Number.isFinite(kurtosis) ? Math.max(-2, Math.min(20, kurtosis - 3)) : 0;
 
-  // Cornish-Fisher adjusted critical quantile
-  const zCF = z +
-    ((z * z - 1) * S) / 6 +
-    ((z * z * z - 3 * z) * excessK) / 24 -
-    ((2 * z * z * z - 5 * z) * S * S) / 36;
+  // Cornish-Fisher adjusted critical quantile.
+  const cornishFisher = (q) => q
+    + ((q * q - 1) * S) / 6
+    + ((q * q * q - 3 * q) * excessK) / 24
+    - ((2 * q * q * q - 5 * q) * S * S) / 36;
+  const zCF = cornishFisher(z);
 
-  // Daily VaR percentage (1-tail downside loss)
-  const varPct = Math.max(0, -mean + zCF * stdDev);
-  const varRupees = varPct * notionalRupees;
+  // DOMAIN GUARD. The Cornish-Fisher expansion is a third-order approximation
+  // and is only a valid quantile transform while it stays monotone increasing.
+  // Past that -- which a real equity series reaches easily, at roughly |S| > 1
+  // with fat tails -- the polynomial turns over and returns a SMALLER quantile
+  // for a more extreme tail. Measured on a series with 9% crash days it produced
+  // zCF = -0.929, and the Math.max(0, ...) below then reported VaR of exactly
+  // zero: the risk engine announced no risk precisely where the risk was worst.
+  const monotone = cornishFisher(z + 0.01) > cornishFisher(z - 0.01);
+  const usable = Number.isFinite(zCF) && zCF > 0 && monotone;
 
-  // Expected Shortfall (CVaR) approximation via standard normal density integration
-  const phiZ = Math.exp(-0.5 * zCF * zCF) / Math.sqrt(2 * Math.PI);
-  const alphaTail = 1 - confidence;
-  const cvarFactor = Math.max(zCF, phiZ / Math.max(1e-6, alphaTail));
-  const cvarPct = Math.max(varPct, -mean + cvarFactor * stdDev);
-  const cvarRupees = cvarPct * notionalRupees;
+  // Empirical (historical) tail, which needs no distributional assumption.
+  const losses = returns.map((r) => -r).sort((a, b) => b - a);
+  const tailCount = Math.max(1, Math.floor(losses.length * alphaTail));
+  const hasEmpiricalTail = losses.length >= Math.max(20, Math.ceil(2 / alphaTail));
+  const empiricalVar = hasEmpiricalTail ? losses[tailCount - 1] : null;
+  const empiricalCvar = hasEmpiricalTail
+    ? losses.slice(0, tailCount).reduce((a, b) => a + b, 0) / tailCount
+    : null;
+
+  const parametricVar = Math.max(0, -mean + (usable ? zCF : z) * stdDev);
+  // Gaussian expected shortfall uses phi(z)/alpha at the GAUSSIAN quantile. The
+  // previous code evaluated the density at zCF instead, so a fatter tail pushed
+  // phi(zCF) toward zero, the factor collapsed, and CVaR fell back to exactly
+  // VaR -- an impossibility for any continuous loss distribution.
+  const gaussianEsFactor = Math.exp(-0.5 * z * z) / Math.sqrt(2 * Math.PI) / alphaTail;
+  const parametricCvar = Math.max(parametricVar, -mean + gaussianEsFactor * stdDev);
+
+  // Report the more conservative of the parametric and empirical tails. A risk
+  // number that a straight count of history already exceeds is not a risk number.
+  const varPct = empiricalVar === null ? parametricVar : Math.max(parametricVar, empiricalVar);
+  const cvarPct = Math.max(varPct, empiricalCvar === null ? parametricCvar : Math.max(parametricCvar, empiricalCvar));
+  const method = !usable
+    ? (empiricalVar === null ? "GAUSSIAN_FALLBACK_CF_OUT_OF_DOMAIN" : "EMPIRICAL_CF_OUT_OF_DOMAIN")
+    : (empiricalVar !== null && empiricalVar > parametricVar ? "EMPIRICAL_EXCEEDS_CORNISH_FISHER" : "CORNISH_FISHER");
 
   return {
     varPct: round(varPct * 100, 2),
-    varRupees: round(varRupees, 2),
+    varRupees: round(varPct * notionalRupees, 2),
     cvarPct: round(cvarPct * 100, 2),
-    cvarRupees: round(cvarRupees, 2),
+    cvarRupees: round(cvarPct * notionalRupees, 2),
     skewness: round(S, 3),
     excessKurtosis: round(excessK, 3),
     gaussianQuantile: z,
-    adjustedQuantile: round(zCF, 3)
+    adjustedQuantile: round(zCF, 3),
+    cornishFisherValid: usable,
+    empiricalVarPct: empiricalVar === null ? null : round(empiricalVar * 100, 2),
+    empiricalCvarPct: empiricalCvar === null ? null : round(empiricalCvar * 100, 2),
+    method
   };
 }
 
@@ -212,10 +265,14 @@ function calculateMicrostructureLiquidity(bars) {
       amihudSum += (ret / vol) * 1e6;
       count++;
 
-      const deltaP = close - prevClose;
-      const signedVol = (close >= prevClose ? 1 : -1) * vol;
-      priceChanges.push(deltaP);
-      signedVolumes.push(signedVol);
+      // Order-flow direction cannot be recovered from a daily OHLCV bar. The
+      // previous code signed volume by the sign of the very price change it then
+      // regressed on, so cov(dP, signedVol) reduced to E[|dP| * vol] and was
+      // positive by construction: across 200 pure random walks the estimate came
+      // back negative zero times. Regressing the ABSOLUTE move on volume measures
+      // impact magnitude per share without that circularity.
+      priceChanges.push(Math.abs(close - prevClose) / prevClose);
+      signedVolumes.push(vol);
     }
   }
 
@@ -237,8 +294,8 @@ function calculateMicrostructureLiquidity(bars) {
     }
 
     if (varVol > 0) {
-      // Lambda scaled to price impact per 100,000 shares
-      kyleLambda = Math.max(0, (cov / varVol) * 100000);
+      // Fractional price move per 100,000 shares traded.
+      kyleLambda = Math.max(0, (cov / varVol) * 100000 * 100);
     }
   }
 
@@ -247,7 +304,15 @@ function calculateMicrostructureLiquidity(bars) {
   const isLiquid = amihudRatio < 2.5 && kyleLambda < 5.0;
 
   return {
+    // Retained under the original key because the scanner and the neural score
+    // both read it, but named honestly alongside: this is a daily-bar impact
+    // magnitude, not Kyle's lambda. True Kyle lambda regresses signed order flow
+    // on price change and needs trade-level data with a Lee-Ready or tick-rule
+    // classification, which daily OHLCV cannot supply.
     kyleLambda: round(kyleLambda, 4),
+    priceImpactPctPerLakhShares: round(kyleLambda, 4),
+    estimator: "ABS_RETURN_ON_VOLUME_REGRESSION_DAILY_BARS",
+    trueKyleLambdaRequiresTradeData: true,
     amihudRatio: round(amihudRatio, 4),
     liquidityScore: round(liquidityScore, 3),
     isLiquid
