@@ -19,8 +19,7 @@ const { carryScore } = require("./carry");
 const { upside } = require("./upside");
 const {
   calculateVpin,
-  metaLabelConfidence,
-  calculateKellyFraction
+  metaLabelConfidence
 } = require("./advanced-quant");
 const { scanChartPatterns } = require("./chart-patterns");
 
@@ -97,17 +96,11 @@ function convictionOf({ cycle, model, technical, fundamentals, trend, carry, sid
   return { convictionPct: round(components.reduce((sum, item) => sum + Number(item.contribution), 0)), components };
 }
 
-function enforceHardVetoes({ symbol, metaGate, vpinData, evidence = {} }) {
-  // The present daily-bar flow score and hand-written meta formula are research
-  // proxies, not calibrated VPIN/meta-models. They may annotate a setup but must
-  // not veto executable risk unless a future model is explicitly validated.
-  if (metaGate?.validated !== true) return null;
-  if (metaGate?.decision === "VETO" || (metaGate?.metaMultiplier !== undefined && metaGate.metaMultiplier <= 0)) {
-    const vetoReason = `Meta-Labeling VETO: Low win probability (${metaGate?.metaProb ?? 0}) or high flow toxicity (VPIN: ${vpinData?.vpin ?? 0})`;
-    if (!evidence.vetoes) evidence.vetoes = [];
-    if (!evidence.vetoes.includes(vetoReason)) evidence.vetoes.push(vetoReason);
-    return standAside(symbol, vetoReason, evidence);
-  }
+function enforceHardVetoes({ symbol, vpinData, evidence = {} }) {
+  // P0-2 REMEDIATION: The hand-written metaLabelConfidence formula is an uncalibrated
+  // heuristic, not a trained secondary classifier. Per audit requirement P0-2,
+  // enforceHardVetoes no longer consults metaGate or metaLabelConfidence.
+  // Meta-labeling is strictly a diagnostic metric displayed in research UI, not a gate.
   return null;
 }
 
@@ -284,13 +277,6 @@ function potentialCall(symbol, { bars, cycle, potential, config, input }) {
     vpinData,
     evidence: { cycle, upside: potential, trend, vetoes }
   });
-  if (hardVeto) return hardVeto;
-
-  const kelly = calculateKellyFraction({
-    winRate: Math.max(0.40, convictionPct / 100),
-    rewardToRiskRatio: riskReward
-  });
-
   const finalSizeMultiplier = round(clamp(0.20 + 0.20 * clamp(convictionPct / 70), 0.10, 0.40), 3);
 
   const orderIntent = buildOrderIntent({
@@ -517,23 +503,7 @@ function recommendation(input) {
     vpin: vpinData.vpin,
     isUptrend: metrics?.isUptrendStructure
   });
-  const kelly = calculateKellyFraction({
-    winRate: Math.max(0.40, adjustedConviction / 100),
-    rewardToRiskRatio: riskReward
-  });
-
-  // Hard Veto Gate: A rejected meta-label setup must NEVER pass through with capital
-  const hardVeto = enforceHardVetoes({
-    symbol,
-    metaGate,
-    vpinData,
-    evidence
-  });
-  if (hardVeto) return hardVeto;
-
-  // The hand-written meta score and Kelly input are not calibrated
-  // probabilities, so neither is permitted to size capital. Risk remains capped
-  // by the order-level rupee stop budget and portfolio engine.
+  // Risk remains capped by the order-level rupee stop budget and portfolio engine.
   const finalSizeMultiplier = round(clamp(0.25 + 0.25 * clamp(adjustedConviction / 70), 0.10, 0.50), 3);
 
   const entriesWithIntent = entries.map((entry) => ({
@@ -579,8 +549,7 @@ function recommendation(input) {
       toxicityTone: vpinData.toxicityTone,
       metaProb: metaGate.metaProb,
       metaDecision: metaGate.decision,
-      qualityRating: metaGate.qualityRating,
-      kellyFraction: kelly
+      qualityRating: metaGate.qualityRating
     },
     evidencePillars: {
       pillar1_fundamentals: {
@@ -608,7 +577,7 @@ function recommendation(input) {
       pillar6_statistics: {
         wilsonLowerBoundPct: entries[0]?.hitRateLowerPct ?? null,
         tStatistic: cycle[side]?.levels?.find((l) => l.level === verdict.levels[0])?.tStat ?? null,
-        kellyAllocationPct: kelly
+        kellyAllocationPct: null
       },
       pillar7_microstructure: {
         dailyBarFlowToxicityProxy: vpinData.vpin,

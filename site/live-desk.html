@@ -337,7 +337,7 @@
           <th>Spot LTP</th>
           <th>Entry Price</th>
           <th>Targets / Stop</th>
-          <th>1D-CNN Alpha</th>
+          <th>Conv1D Filter Alpha</th>
           <th>1-Tap Execution</th>
           <th>Track</th>
         </tr>
@@ -454,7 +454,7 @@
   <!-- K²-Lang & Quantitative Math Section -->
   <div id="k2lang-section" style="display: none; background: var(--panel); border: 1px solid var(--line); border-radius: 16px; padding: 20px; margin-top: 16px;">
     <h2 style="font-size: 20px; font-weight: 800; margin: 0 0 8px;">K²-Lang Quantitative Strategy Sandbox</h2>
-    <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">Custom domain-specific language (DSL) executing live mathematical preconditions, stochastic drift gates, and 1D-CNN temporal features.</p>
+    <p style="font-size: 13px; color: var(--muted); margin-bottom: 16px;">Custom domain-specific language (DSL) executing live mathematical preconditions, stochastic drift gates, and Conv1D matched filter temporal features.</p>
     
     <div style="background: #0d1117; border: 1px solid rgba(255,255,255,0.1); border-radius: 10px; padding: 14px; font-family: var(--mono); font-size: 12px; line-height: 1.6; color: #58a6ff; overflow-x: auto;">
       <span style="color: #ff7b72;">STRATEGY</span> <span style="color: #a5d6ff;">"ApexInstitutionalMultiFactor"</span><br><br>
@@ -644,7 +644,7 @@
               <span class="verdict-icon">⚪</span>
               <div>
                 <span class="verdict-headline" style="color: var(--muted);">IGNORE · STAND ASIDE (NO EDGE)</span>
-                <span class="verdict-sub">Filtered Out by CNN Quant Model · Zero Capital at Risk</span>
+                <span class="verdict-sub">Filtered Out by Quantitative Risk Gates · Zero Capital at Risk</span>
               </div>
             </div>
             <span class="verdict-tag tag-ignore">STAND ASIDE</span>
@@ -725,7 +725,7 @@
         <div class="grid-stats">
           <div><small>Lot Qty</small><b>${item.lotSize}</b></div>
           <div><small>Capital Req.</small><b>₹${item.capitalRequired ? Number(item.capitalRequired).toLocaleString('en-IN') : '—'}</b></div>
-          <div><small>1D-CNN Score</small><b>${neuralScore}%</b></div>
+          <div><small>Conv1D Filter Score</small><b>${neuralScore}%</b></div>
         </div>
 
       </article>

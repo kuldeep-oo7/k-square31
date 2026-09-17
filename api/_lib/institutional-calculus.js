@@ -299,9 +299,25 @@ function calculateMicrostructureLiquidity(bars) {
     }
   }
 
+  // 20-day Average Daily Volume (ADV) and Turnover
+  const nAdv = Math.min(20, bars.length);
+  const advSlice = bars.slice(-nAdv);
+  let advVolSum = 0;
+  let advTurnoverSum = 0;
+  for (const b of advSlice) {
+    const v = Number(b.volume || b.v || 0);
+    const c = Number(b.close || b.c || 0);
+    advVolSum += v;
+    advTurnoverSum += v * c;
+  }
+  const advShares = nAdv > 0 ? Math.round(advVolSum / nAdv) : 0;
+  const advRupees = nAdv > 0 ? Math.round(advTurnoverSum / nAdv) : 0;
+  // Institutional capacity: 1.5% of ADV is standard non-disruptive execution capacity
+  const estimatedCapacityRupees = Math.round(advRupees * 0.015);
+
   // Normalized liquidity score (0.0 to 1.0, where 1.0 is highest institutional liquidity)
   const liquidityScore = Math.max(0, Math.min(1, 1 / (1 + amihudRatio * 0.5 + kyleLambda * 0.1)));
-  const isLiquid = amihudRatio < 2.5 && kyleLambda < 5.0;
+  const isLiquid = amihudRatio < 2.5 && kyleLambda < 5.0 && advRupees >= 50_000_000;
 
   return {
     // Retained under the original key because the scanner and the neural score
@@ -315,6 +331,9 @@ function calculateMicrostructureLiquidity(bars) {
     trueKyleLambdaRequiresTradeData: true,
     amihudRatio: round(amihudRatio, 4),
     liquidityScore: round(liquidityScore, 3),
+    advShares,
+    advRupees,
+    estimatedCapacityRupees,
     isLiquid
   };
 }

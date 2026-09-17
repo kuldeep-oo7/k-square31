@@ -5,15 +5,16 @@
  *
  * NOTE: These 4 kernels are domain-engineered matched filters (wavelet pattern bank)
  * designed from institutional price-volume motifs (momentum acceleration, oversold spring,
- * volatility squeeze, volume absorption). They are NOT gradient backpropagation-trained weights.
+ * volatility squeeze, volume absorption). They are hand-designed matched filters, NOT
+ * gradient backpropagation-trained weights.
  * The 1D convolution arithmetic, LeakyReLU activation, and MaxPool1D pooling are real and deterministic.
  *
  * Architecture:
- * 1. 3-Channel Temporal Preprocessing (Returns, Range Ratio, Volume Flow)
+ * 1. 3-Channel Temporal Preprocessing (Returns, Range Deviation, Volume Deviation)
  * 2. Multi-Kernel Conv1D Matched Filters (Momentum, Mean-Reversion, Squeeze, Institutional Absorption)
  * 3. LeakyReLU Activation & MaxPool1D
- * 4. Dense Factor Fusion (CNN temporal visual features + Quant Factors)
- * 5. Calibrated Neural Alpha Score (0 - 100) & Regime Prediction
+ * 4. Factor Fusion (Temporal matched filter visual activations + Quant Factors)
+ * 5. Convolutional Alpha Score (0 - 100) & Regime Prediction
  */
 
 function round(val, digits = 2) {
@@ -198,8 +199,8 @@ function maxPool1D(featureMaps) {
 }
 
 /**
- * Full Deep Learning Forward Pass with Factor Embedding Fusion
- * Fuses 1D-CNN temporal visual activations with mathematical quant features
+ * Matched Filter Convolutional Forward Pass with Factor Embedding Fusion
+ * Fuses 1D-CNN temporal matched filter activations with mathematical quant features
  */
 function evaluateNeuralAlpha({ bars, quantFactors = {}, sentimentScore = 0.50 } = {}) {
   const tensor = extractTemporalTensor(bars, 30);
@@ -282,6 +283,8 @@ function evaluateNeuralAlpha({ bars, quantFactors = {}, sentimentScore = 0.50 } 
   const confidence = round(Math.abs(probability - 0.5) * 2, 2);
 
   return {
+    rawZ: round(z, 4),
+    rawActivationScore: round(bestMotif.maxVal, 4),
     neuralAlphaScore: alphaScore,
     predictedRegime: regime,
     convConfidence: confidence,

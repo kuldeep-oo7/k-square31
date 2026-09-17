@@ -423,7 +423,9 @@ function metaLabelConfidence({ primarySide = "long", primaryScore = 50, hurst = 
     metaProb,
     calibratedProbability: null,
     validated: false,
-    modelType: "HAND_WEIGHTED_HEURISTIC_NOT_TRAINED_META_MODEL",
+    modelType: "HAND_WEIGHTED_HEURISTIC_DIAGNOSTIC_ONLY",
+    role: "diagnostic, not a gate",
+    diagnosticOnly: true,
     decision,
     metaMultiplier,
     qualityRating: metaProb >= 0.75 ? "PRIME" : metaProb >= 0.60 ? "HIGH_CONVICTION" : metaProb >= 0.50 ? "ACCEPTABLE" : "REJECTED"

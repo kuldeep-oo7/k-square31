@@ -4,10 +4,10 @@
  * Unified Institutional Multi-Cap Quantitative Scanner & Signal Arbiter
  *
  * Synthesizes:
- * 1. 1D-CNN Temporal Deep Learning (Neural Alpha 0-100)
+ * 1. 1D-CNN Temporal Matched Filters (Convolutional Alpha 0-100)
  * 2. Institutional Candlestick Pattern Engine (Morning Star, Hammer, Engulfing, Marubozu)
  * 3. Classical Geometric Chart Scanner (Double Bottom/Top, H&S, Triangles)
- * 4. 10 Foundational Quant Formulas (Hurst, VPIN, Black-Scholes Greeks, OU Decay, Merton-Kelly)
+ * 4. Foundational Quant Formulas (Hurst, VPIN, Black-Scholes Greeks, OU Decay)
  * 5. Stochastic Calculus & Risk (GARCH(1,1), Cornish-Fisher CVaR, Kyle's Lambda)
  * 6. K²-Lang Dynamic Strategy Rule Governance
  * 7. 1-Tap Mobile Execution Deep-Links (Zerodha Kite & Dhan)
@@ -27,7 +27,6 @@ const {
   calculateVpin,
   calculateOuHalfLife,
   calculateKaufmanER,
-  calculateKellyFraction,
   blackScholesMerton
 } = require("./advanced-quant");
 
@@ -105,10 +104,8 @@ function analyzeCandidate({
   const vpin = calculateVpin(historicalBars);
   const er = calculateKaufmanER(closePrices);
   const ou = calculateOuHalfLife(closePrices);
-  const kelly = calculateKellyFraction({ winRate: 0.62, rewardToRiskRatio: 2.1 });
   const halfLifeVal = Number.isFinite(ou?.halfLifeDays) ? ou.halfLifeDays : 4.5;
   const vpinVal = Number.isFinite(vpin?.vpin) ? vpin.vpin : 0.20;
-  const kellyPct = Number.isFinite(kelly) ? (kelly * 100).toFixed(1) : "15.0";
 
   // 4. Stochastic Calculus & Risk Engine
   const garch = forecastGarch11Volatility(closePrices, { horizonDays: 5 });
@@ -116,7 +113,7 @@ function analyzeCandidate({
   const cfRisk = calculateCornishFisherRisk(closePrices, notional, 0.99);
   const liquidity = calculateMicrostructureLiquidity(historicalBars);
 
-  // 5. 1D-CNN Deep Learning Feature Extractor
+  // 5. 1D-CNN Matched Filter Feature Extractor
   const quantFactors = {
     hurst,
     vpin: vpinVal,
@@ -192,8 +189,11 @@ function analyzeCandidate({
     strategy,
 
     // Integrated Analytics
+    rawCompScore: compScore,
     compositeScore: compScore,
     neuralScore: neuralResult.neuralAlphaScore,
+    rawActivationScore: neuralResult.rawActivationScore,
+    rawZ: neuralResult.rawZ,
     neuralMotif: neuralResult.salientMotif,
     neuralRegime: neuralResult.predictedRegime,
     candlestickPattern: candleResult.primaryPattern || "CONSOLIDATION",
@@ -205,6 +205,11 @@ function analyzeCandidate({
     cvar99Rupees: `₹${cfRisk.cvarRupees.toLocaleString('en-IN')}`,
     kyleLambda: liquidity.kyleLambda,
     amihudRatio: liquidity.amihudRatio,
+    advShares: liquidity.advShares,
+    advRupees: liquidity.advRupees,
+    estimatedCapacityRupees: liquidity.estimatedCapacityRupees,
+    capacityFormatted: `₹${(liquidity.estimatedCapacityRupees / 1e7).toFixed(2)} Cr`,
+    isLiquid: liquidity.isLiquid,
     k2StrategyPassed: k2Result.passed,
 
     // Quant Greek & Microstructure block
@@ -213,7 +218,7 @@ function analyzeCandidate({
       vpin: vpinVal.toFixed(2),
       er: er.toFixed(2),
       halfLife: `${halfLifeVal.toFixed(1)}d`,
-      kellyFraction: `${kellyPct}%`
+      capacity: `₹${(liquidity.estimatedCapacityRupees / 1e7).toFixed(2)} Cr`
     },
 
     links

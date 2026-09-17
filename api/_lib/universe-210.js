@@ -553,60 +553,22 @@ class FnoUniverseEngine {
         };
       }
 
-      // Conviction Arbiter:
-      let finalAction = "STAND_ASIDE";
-      let finalStatus = "NO_CONVICTION_STAND_ASIDE";
-      let reason = "Model confidence below conviction hurdle. Standing aside to protect capital.";
-
-      if (isBanned) {
-        finalAction = "STAND_ASIDE";
-        finalStatus = "SEBI_FO_BAN";
-        reason = "Trading strictly prohibited by exchange F&O MWPL ban (>95% market limit).";
-      } else if (!hasObservedPrice || spot === null) {
-        finalAction = "STAND_ASIDE";
-        finalStatus = "NO_OBSERVED_PRICE";
-        reason = "No market price observed for this symbol. Standing aside.";
-      } else if (baseCandidate.historicalBarsAreSynthetic) {
-        finalAction = "STAND_ASIDE";
-        finalStatus = "NO_MARKET_HISTORY";
-        reason = "Scores on this row were computed from a synthetic price path, not market history. No verdict is possible until a real bar feed is wired in.";
-      } else if (earningsVeto) {
-        finalAction = "STAND_ASIDE";
-        finalStatus = "EVENT_RISK_EARNINGS_VETO";
-        reason = "Earnings release scheduled inside this trading week; standing aside to eliminate binary gap risk.";
-      } else {
-        // Genuine market bars available
-        if (fund?.metrics?.debtToEquity > 200) {
-          analyzed.compositeScore = Math.max(10, analyzed.compositeScore - 15);
-        } else if (balanceScore > 0.25) {
-          analyzed.compositeScore = Math.min(99, analyzed.compositeScore + 4);
-        }
-
-        if (analyzed.compositeScore >= 68 && analyzed.neuralScore >= 65) {
-          finalAction = "BUY";
-          finalStatus = "APEX_BUY_SIGNAL";
-          reason = "High conviction: Cleared 1D-CNN temporal matched filter, GARCH volatility, and Hurst persistence on verified market bars.";
-        } else if (analyzed.compositeScore >= 58 && analyzed.neuralScore >= 55) {
-          finalAction = "ACCUMULATE";
-          finalStatus = "SUPPORT_ACCUMULATION";
-          reason = "Institutional accumulation detected near support boundary on verified market bars.";
-        } else {
-          finalAction = "STAND_ASIDE";
-          finalStatus = "NO_CONVICTION_STAND_ASIDE";
-          reason = "Model confidence below conviction hurdle on real market data. Standing aside to protect capital.";
-        }
+      // Attach Data Provenance, Basis Model, and Bar Staleness
+      let barsAsOf = new Date().toISOString();
+      let barsAgeDays = 0;
+      if (historicalBars && historicalBars.length > 0) {
+        const lastBar = historicalBars[historicalBars.length - 1];
+        const lastTs = lastBar.timestamp > 1e11 ? lastBar.timestamp : lastBar.timestamp * 1000;
+        barsAsOf = new Date(lastTs).toISOString();
+        barsAgeDays = Math.max(0, Math.round(((Date.now() - lastTs) / (1000 * 60 * 60 * 24)) * 10) / 10);
       }
-
-      analyzed.action = finalAction;
-      analyzed.status = finalStatus;
-      analyzed.actionReason = reason;
-
+      analyzed.barsAsOf = barsAsOf;
+      analyzed.barsAgeDays = barsAgeDays;
+      analyzed.basisModel = "CASH_DERIVED_SYNTHETIC_BASIS";
+      analyzed.basisNote = "Futures price and historical bars derived from NSE equity cash with cash-futures basis model; physical futures roll and margins not modeled.";
       analyzed.priceSource = priceSource;
       analyzed.hasObservedPrice = hasObservedPrice;
-      analyzed.tradeable = hasObservedPrice && !isBanned && !baseCandidate.historicalBarsAreSynthetic && (finalAction === "BUY" || finalAction === "ACCUMULATE");
       analyzed.historicalBarsAreSynthetic = baseCandidate.historicalBarsAreSynthetic === true;
-      const isActionable = finalAction === "BUY" || finalAction === "ACCUMULATE";
-      analyzed.executiveVerdict = isActionable ? "MUST_READ_AND_BUY" : "IGNORE";
 
       if (baseCandidate.historicalBarsAreSynthetic) {
         analyzed.quant = {
@@ -619,6 +581,116 @@ class FnoUniverseEngine {
       } else {
         analyzed.quant.computed = true;
       }
+
+      results.push(analyzed);
+    });
+
+    // --- Cross-Sectional Ranking across the active F&O universe (P0-1 & P1-4) ---
+    // Rather than uncalibrated absolute thresholds that admit 97% of the market,
+    // scores are ranked cross-sectionally across all names with verified market bars.
+    // The published conviction hurdle is defined in terms of percentiles:
+    // - Top 10% (compositePercentile >= 90 && neuralPercentile >= 75): BUY (APEX_BUY_SIGNAL)
+    // - Next 15% (compositePercentile >= 75 && neuralPercentile >= 60): ACCUMULATE (SUPPORT_ACCUMULATION)
+    // - Bottom 75%: STAND_ASIDE (NO_CONVICTION_STAND_ASIDE)
+    // This strictly admits <= 25% of the universe as actionable on any normal day.
+    const eligible = results.filter((r) => r.hasObservedPrice && !r.isBanned && !r.historicalBarsAreSynthetic);
+    if (eligible.length > 0) {
+      const nEligible = eligible.length;
+
+      // 1. Cross-sectional ranking for convolutional matched filter activations:
+      eligible.sort((a, b) => (Number(a.rawActivationScore) || 0) - (Number(b.rawActivationScore) || 0));
+      eligible.forEach((item, idx) => {
+        const pct = Math.max(5, Math.min(98, Math.round(((idx + 0.5) / nEligible) * 100)));
+        item.neuralScore = pct;
+        item.neuralPercentile = pct;
+      });
+
+      // 2. Cross-sectional ranking for composite institutional score:
+      eligible.forEach((item) => {
+        let raw = item.rawCompScore !== undefined ? item.rawCompScore : item.compositeScore;
+        const fund = getCachedFundamentals(item.symbol);
+        if (fund?.metrics?.debtToEquity > 200) raw = Math.max(10, raw - 15);
+        else if ((fund?.balanceSheetScore ?? 0) > 0.25) raw = Math.min(99, raw + 4);
+        item._rawCompForRank = raw;
+      });
+
+      eligible.sort((a, b) => a._rawCompForRank - b._rawCompForRank);
+      eligible.forEach((item, idx) => {
+        const pct = Math.max(5, Math.min(99, Math.round(((idx + 0.5) / nEligible) * 100)));
+        item.compositeScore = pct;
+        item.compositePercentile = pct;
+        delete item._rawCompForRank;
+      });
+    }
+
+    // --- Final Signal Arbiter & Lifecycle Enrichment Pass ---
+    results.forEach((analyzed) => {
+      const fund = getCachedFundamentals(analyzed.symbol);
+      const earningsVeto = fund?.events?.insideTradingWeek === true;
+      const isBanned = analyzed.isBanned;
+      const hasObservedPrice = analyzed.hasObservedPrice;
+      const isSynthetic = analyzed.historicalBarsAreSynthetic;
+      const isStale = (analyzed.barsAgeDays || 0) > 5;
+      const advRupees = analyzed.advRupees || 0;
+      const isLiquid = advRupees >= 50_000_000;
+      const spot = analyzed.spotPrice;
+      const entryPrice = analyzed.entryPrice;
+      const stopLoss = analyzed.stopLoss;
+      const lotSize = analyzed.lotSize;
+
+      let finalAction = "STAND_ASIDE";
+      let finalStatus = "NO_CONVICTION_STAND_ASIDE";
+      let reason = "Cross-sectional percentile below conviction hurdle (top 25% admitted). Standing aside to protect capital.";
+
+      if (isBanned) {
+        finalAction = "STAND_ASIDE";
+        finalStatus = "SEBI_FO_BAN";
+        reason = "Trading strictly prohibited by exchange F&O MWPL ban (>95% market limit).";
+      } else if (!hasObservedPrice || spot === null) {
+        finalAction = "STAND_ASIDE";
+        finalStatus = "NO_OBSERVED_PRICE";
+        reason = "No market price observed for this symbol. Standing aside.";
+      } else if (isSynthetic) {
+        finalAction = "STAND_ASIDE";
+        finalStatus = "NO_MARKET_HISTORY";
+        reason = "Scores on this row were computed from a synthetic price path, not market history. No verdict is possible until a real bar feed is wired in.";
+      } else if (isStale) {
+        finalAction = "STAND_ASIDE";
+        finalStatus = "STALE_DATA_REFUSAL";
+        reason = `Historical bars are older than 5 days (last updated ${analyzed.barsAsOf}); standing aside until fresh data is ingested.`;
+      } else if (earningsVeto) {
+        finalAction = "STAND_ASIDE";
+        finalStatus = "EVENT_RISK_EARNINGS_VETO";
+        reason = "Earnings release scheduled inside this trading week; standing aside to eliminate binary gap risk.";
+      } else if (!isLiquid) {
+        finalAction = "STAND_ASIDE";
+        finalStatus = "INSUFFICIENT_LIQUIDITY_ADV";
+        reason = `20-day average daily turnover (₹${(advRupees / 1e7).toFixed(2)} Cr) below ₹5 Cr hurdle. Standing aside to avoid slippage.`;
+      } else {
+        // Cross-sectional conviction hurdle (designed to admit at most 25% of the universe):
+        // - Top 10% (compositePercentile >= 90 && neuralPercentile >= 75): BUY
+        // - Next 15% (compositePercentile >= 75 && neuralPercentile >= 60): ACCUMULATE
+        if (analyzed.compositeScore >= 90 && analyzed.neuralScore >= 75) {
+          finalAction = "BUY";
+          finalStatus = "APEX_BUY_SIGNAL";
+          reason = `Top decile cross-sectional conviction: 90th percentile composite score, 75th+ percentile matched filter activation.`;
+        } else if (analyzed.compositeScore >= 75 && analyzed.neuralScore >= 60) {
+          finalAction = "ACCUMULATE";
+          finalStatus = "SUPPORT_ACCUMULATION";
+          reason = `Upper quartile cross-sectional conviction: 75th+ percentile composite score, supportive volume flow.`;
+        } else {
+          finalAction = "STAND_ASIDE";
+          finalStatus = "NO_CONVICTION_STAND_ASIDE";
+          reason = `Cross-sectional ranking (comp: ${analyzed.compositeScore}%, neural: ${analyzed.neuralScore}%) below top 25% hurdle. Standing aside.`;
+        }
+      }
+
+      analyzed.action = finalAction;
+      analyzed.status = finalStatus;
+      analyzed.actionReason = reason;
+      const isActionable = (finalAction === "BUY" || finalAction === "ACCUMULATE");
+      analyzed.tradeable = hasObservedPrice && !isBanned && !isSynthetic && isActionable;
+      analyzed.executiveVerdict = isActionable ? "MUST_READ_AND_BUY" : "IGNORE";
 
       // Signal Provenance & Dynamic Trading-Day Horizon
       const volNum = parseFloat(analyzed.garchVol) / 100 || 0.22;
@@ -650,13 +722,13 @@ class FnoUniverseEngine {
       };
 
       // Calculate Whole Market Options (Call CE and Put PE) with Black-Scholes Greeks
-      analyzed.options = spot ? calculateOptions(symbol, spot, lotSize, isActionable, volNum) : null;
+      analyzed.options = spot ? calculateOptions(analyzed.symbol, spot, lotSize, isActionable, volNum) : null;
 
       if (isActionable && spot) {
-        analyzed.pnlRupees = pnlRupees;
+        analyzed.pnlRupees = Math.round((spot - entryPrice) * lotSize * 100) / 100;
         analyzed.strategy = {
           name: finalAction === "BUY" ? "Futures Apex Momentum" : "Futures Support Accumulation",
-          primary: `BUY ${symbol}26SEPFUT (Lot ${lotSize}) @ ₹${entryPrice}`,
+          primary: `BUY ${analyzed.symbol}26SEPFUT (Lot ${lotSize}) @ ₹${entryPrice}`,
           hedge: `Hard Stop Loss @ ₹${stopLoss}`,
           maxRisk: `₹${Math.round((entryPrice - stopLoss) * lotSize).toLocaleString("en-IN")}`,
           breakeven: `₹${entryPrice}`
@@ -671,8 +743,6 @@ class FnoUniverseEngine {
           breakeven: "N/A"
         };
       }
-
-      results.push(analyzed);
     });
 
     return results;
