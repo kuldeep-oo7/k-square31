@@ -1,0 +1,126 @@
+================================================================================
+PRE-REGISTERED OUT-OF-SAMPLE TEST OF THE APEX SIGNAL
+Written 2026-09-17, BEFORE the test was run and BEFORE any result was seen.
+Committed ahead of the result so the decision rule cannot move to meet it.
+================================================================================
+
+WHY THIS DOCUMENT EXISTS
+
+The Apex signal has already been measured on a 97-symbol panel across three
+calendar windows. All three have been looked at. Once a window has been seen,
+running it again does not test anything: the result is already known and any
+adjustment made afterwards is fitting, however it is described.
+
+So this test uses data that has never been examined for this signal, and the
+rule for reading the outcome is written down here, in advance, in a commit that
+precedes the run.
+
+--------------------------------------------------------------------------------
+1. WHAT IS BEING TESTED
+--------------------------------------------------------------------------------
+
+The signal exactly as it stands in scripts/apex-panel-study.js. No parameter is
+changed for this test:
+
+    ENTRY   returns5  > 0.01     (5-session return above 1%)
+      AND   returns20 > 0.02     (20-session return above 2%)
+      AND   volRatio  > 1.1      (session volume above 1.1x its 20-day average)
+
+    EXIT    target +2.50%
+            stop   -1.50%
+            time   5 sessions, whichever comes first
+
+    COSTS   real dated statutory charges via shadow-broker.js
+
+This is a momentum-breakout rule. It is NOT the percentile-ranked engine that is
+currently deployed; the deployed engine has never been backtested at all. That
+gap is stated plainly rather than papered over, and it is the next thing to fix.
+
+--------------------------------------------------------------------------------
+2. THE HELD-OUT SAMPLE
+--------------------------------------------------------------------------------
+
+The previous study used the 97 NSE large caps cached in .cache/panel-bars.
+The NSE F&O universe holds 210 names. The remaining 113 have never been fetched,
+never been simulated, and never appeared in any report:
+
+  360ONE, ABCAPITAL, ALKEM, AMBER, ANGELONE, APLAPOLLO, ASHOKLEY, ASTRAL,
+  ATHERENERG, AUBANK, AUROPHARMA, BANDHANBNK, BANKINDIA, BDL, BHARATFORG,
+  BHEL, BIOCON, BLUESTARCO, BSE, CAMS, and 93 others.
+
+These 113 symbols are the test set. They are a fresh CROSS-SECTION rather than a
+fresh calendar period, because no future data exists yet. That is a real
+limitation and it is recorded here rather than discovered later: the market
+regime overlaps with the windows already seen, so a common factor could carry
+across. What the held-out names do establish is whether the rule generalises
+beyond the specific 97 securities it was measured on, which is the part that has
+never been tested.
+
+The 113 are mostly mid-cap. Mid-caps are more volatile and less liquid than the
+97 large caps, which cuts both ways: a momentum rule may trigger more often, and
+costs and impact bite harder. No adjustment is made for this.
+
+--------------------------------------------------------------------------------
+3. THE DECISION RULE, FIXED IN ADVANCE
+--------------------------------------------------------------------------------
+
+Primary statistic: mean net return per fill after statutory costs, with a
+cluster-robust standard error clustering on the calendar week, because names
+entering in the same week share that week's market shock.
+
+Selection hurdle: the expected maximum of SEARCH_TRIALS = 12 independent
+standard normal draws, which is t >= 1.6648. The geometry and thresholds were
+chosen from a search, so the bar is the bar that search would clear by luck.
+
+    PASS      mean net per fill > 0
+              AND cluster-robust t >= 1.6648
+              AND at least 200 fills
+
+    FAIL      anything else
+
+There is no third outcome. A result between those two is a FAIL. If the test
+fails, the finding is that the rule does not generalise across the cross-section
+and it will be reported as such, in full, with the numbers.
+
+A benchmark runs alongside: the Nifty 500 over the identical window, fetched not
+typed. A rule that earns less than the index it trades inside has not earned
+anything, whatever its t-statistic says.
+
+--------------------------------------------------------------------------------
+4. WHAT WILL NOT HAPPEN AFTERWARDS
+--------------------------------------------------------------------------------
+
+If the result is poor, none of the following will be done:
+
+  - changing the target, the stop, the holding period or the entry thresholds
+    and re-running on this same sample
+  - dropping symbols whose results are inconvenient
+  - splitting the 113 into sub-groups until one of them passes
+  - reporting the best of several variants as though it were the only one tried
+  - describing a failure as "promising", "directionally positive" or "needs
+    more data" when the number says no
+
+Any of those would convert this held-out sample into a fitted one, and there is
+no second held-out sample to replace it with. The sample is spent once.
+
+If a change is genuinely warranted afterwards, it must be tested on a window
+that does not exist yet: forward data, collected after the change is made.
+
+--------------------------------------------------------------------------------
+5. PREDICTION ON RECORD
+--------------------------------------------------------------------------------
+
+Stated before the run, so it can be wrong in public.
+
+The prior study showed per-fill return decaying across its three windows:
+0.3631% in development, 0.2282% in validation, 0.0613% in the final test, with
+the final test at t 0.747 and p 0.455 -- indistinguishable from zero. A momentum
+rule of this shape is also among the most widely known in the market, which
+argues against a large surviving edge.
+
+My expectation is therefore that this test FAILS: a small positive or slightly
+negative mean, a t-statistic below the 1.6648 hurdle, and no confirmed edge.
+
+If it passes cleanly, that is a genuine and surprising result and I will say so.
+If it fails, that is the answer and the rule should not be traded.
+================================================================================
