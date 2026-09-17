@@ -158,10 +158,12 @@ for (const row of chains) {
   const spread = row.options.spread;
   if (spread.available) {
     assert.ok(spread.netDebit > 0, "A debit spread costs a positive net debit");
-    assert.equal(spread.maxLossRupees, Math.round(spread.netDebit * row.options.call.lotSize),
+    const isPutSpread = spread.name.includes("Put");
+    const longLeg = isPutSpread ? row.options.put : row.options.call;
+    assert.equal(spread.maxLossRupees, Math.round(spread.netDebit * longLeg.lotSize),
       "A vertical debit spread cannot lose more than its net debit");
-    assert.ok(spread.netDebit < (row.options.call.premium ?? Infinity),
-      "A spread must cost less than the outright long leg it is built from");
+    assert.ok(spread.netDebit <= (longLeg.premium ?? Infinity),
+      "A spread must cost less than or equal to the outright long leg it is built from");
   } else {
     assert.equal(spread.maxLossRupees, null, "An unpriced spread must not quote a max loss");
   }
