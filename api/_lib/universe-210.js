@@ -240,7 +240,19 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
         volume: live.volume, openInterest: live.openInterest,
         impliedVolatility: live.impliedVolatility,
         delta: live.delta, gamma: live.gamma, theta: live.theta, vega: live.vega,
-        traded: true, live: true, ageSeconds: live.ageSeconds,
+        traded: true,
+        // A book from the exchange, and separately whether an order can be sent
+        // against it. After 15:30 the first stays true and the second does not.
+        book: live.freshness,
+        live: live.freshness === "REALTIME",
+        executable: live.executable === true,
+        // The EXCHANGE's clock, not ours. Asking at 21:48 for a book the
+        // exchange stamped 15:40 is a six-hour-old quote however fast the
+        // request returned.
+        exchangeAgeSeconds: live.exchangeAgeSeconds,
+        exchangeFeedTime: live.exchangeFeedTime || null,
+        tradedToday: live.tradedToday === true,
+        marketPhase: live.marketPhase,
         provider: live.provider, source: live.source
       };
     }
@@ -269,6 +281,12 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     : (contractRef ? null : (otmCallBsm.available ? Math.round(otmCallBsm.price * 100) / 100 : null));
   const otmPutPremium = otmPutMarket !== null ? otmPutMarket
     : (contractRef ? null : (otmPutBsm.available ? Math.round(otmPutBsm.price * 100) / 100 : null));
+  // Two different questions. anyBook asks whether a real order book was
+  // observed at all; anyLive asks whether it is current enough to trade on.
+  // The spread gate keys off the FIRST, because a closing book's spread is a
+  // measured spread -- gating only on the second would switch the protection
+  // off at 15:30 every day, which is exactly when the desk gets read.
+  const anyBook = Boolean(callQuote?.book || putQuote?.book);
   const anyLive = Boolean(callQuote?.live || putQuote?.live);
 
   // SPREAD IS A COST YOU PAY IMMEDIATELY.
@@ -284,7 +302,7 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     Number(callQuote?.spreadPct) || 0,
     Number(putQuote?.spreadPct) || 0
   );
-  const spreadAcceptable = !anyLive || widestSpread <= MAX_ACCEPTABLE_SPREAD_PCT;
+  const spreadAcceptable = !anyBook || widestSpread <= MAX_ACCEPTABLE_SPREAD_PCT;
   // Both legs of a paired structure are refused together, because a structure
   // with one untradeable side cannot be built. But the figure has to say whose
   // it is: ASTRAL's call quoted 12.8% while the refusal cited 45.7%, which is
@@ -292,7 +310,9 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
   // percentage is the same defect as any other invented figure.
   const widestLeg = (Number(putQuote?.spreadPct) || 0) >= (Number(callQuote?.spreadPct) || 0) ? "PE" : "CE";
   const priceProvenance = usingMarket
-    ? (anyLive ? "LIVE_BROKER_QUOTE" : "EXCHANGE_SETTLED_PRICE")
+    ? (anyLive ? "LIVE_BROKER_QUOTE"
+      : anyBook ? "BROKER_CLOSING_BOOK"
+      : "EXCHANGE_SETTLED_PRICE")
     : contractRef ? "NO_TRADED_PRICE" : "THEORETICAL_BSM_NO_REFERENCE";
 
   const legPriced = callPremium !== null && putPremium !== null
@@ -328,7 +348,12 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     listedExpiry,
     strikesAreListed,
     strikeSource: listedAtm ? "EXCHANGE_LISTED_LADDER" : "SYNTHETIC_STEP_TABLE",
-    widestSpreadPct: anyLive ? Math.round(widestSpread * 100) / 100 : null,
+    widestSpreadPct: anyBook ? Math.round(widestSpread * 100) / 100 : null,
+    marketPhase: callQuote?.marketPhase || putQuote?.marketPhase || null,
+    // One boolean the caller must read before treating a premium as a fill
+    // price. False does not mean the number is wrong; it means the market is
+    // shut and nobody can transact against it right now.
+    executable: Boolean(callQuote?.executable && putQuote?.executable) && legPriced,
     maxAcceptableSpreadPct: MAX_ACCEPTABLE_SPREAD_PCT,
     daysToExpiry,
     model: "BLACK_SCHOLES_MERTON",
@@ -355,7 +380,13 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
       spread: callQuote ? (callQuote.spread ?? null) : null,
       spreadPct: callQuote ? (callQuote.spreadPct ?? null) : null,
       isLive: Boolean(callQuote && callQuote.live),
-      quoteAgeSeconds: callQuote && callQuote.live ? callQuote.ageSeconds : null,
+      executable: Boolean(callQuote && callQuote.executable),
+      bookState: callQuote ? (callQuote.book || "SETTLED") : null,
+      // Age measured on the exchange's clock, which is the only one that
+      // describes the quote rather than the request.
+      quoteAgeSeconds: callQuote ? callQuote.exchangeAgeSeconds ?? null : null,
+      exchangeFeedTime: callQuote ? callQuote.exchangeFeedTime || null : null,
+      tradedToday: callQuote ? callQuote.tradedToday === true : null,
       exchangeOpenInterest: callQuote ? callQuote.openInterest : null,
       exchangeTraded: callQuote ? callQuote.traded === true : null,
       currentPrice: null,
@@ -399,7 +430,13 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
       spread: putQuote ? (putQuote.spread ?? null) : null,
       spreadPct: putQuote ? (putQuote.spreadPct ?? null) : null,
       isLive: Boolean(putQuote && putQuote.live),
-      quoteAgeSeconds: putQuote && putQuote.live ? putQuote.ageSeconds : null,
+      executable: Boolean(putQuote && putQuote.executable),
+      bookState: putQuote ? (putQuote.book || "SETTLED") : null,
+      // Age measured on the exchange's clock, which is the only one that
+      // describes the quote rather than the request.
+      quoteAgeSeconds: putQuote ? putQuote.exchangeAgeSeconds ?? null : null,
+      exchangeFeedTime: putQuote ? putQuote.exchangeFeedTime || null : null,
+      tradedToday: putQuote ? putQuote.tradedToday === true : null,
       exchangeOpenInterest: putQuote ? putQuote.openInterest : null,
       exchangeTraded: putQuote ? putQuote.traded === true : null,
       currentPrice: null,
@@ -1107,6 +1144,9 @@ class FnoUniverseEngine {
           spread: u.options.call.spread ?? null,
           spreadPct: u.options.call.spreadPct ?? null,
           isLive: u.options.call.isLive === true,
+          executable: u.options.call.executable === true,
+          bookState: u.options.call.bookState || null,
+          tradedToday: u.options.call.tradedToday,
           quoteAgeSeconds: u.options.call.quoteAgeSeconds ?? null,
           optionOpenInterest: u.options.call.exchangeOpenInterest ?? null,
           priceSource: u.options.call.priceSource ?? null,
@@ -1181,6 +1221,9 @@ class FnoUniverseEngine {
           spread: u.options.put.spread ?? null,
           spreadPct: u.options.put.spreadPct ?? null,
           isLive: u.options.put.isLive === true,
+          executable: u.options.put.executable === true,
+          bookState: u.options.put.bookState || null,
+          tradedToday: u.options.put.tradedToday,
           quoteAgeSeconds: u.options.put.quoteAgeSeconds ?? null,
           optionOpenInterest: u.options.put.exchangeOpenInterest ?? null,
           priceSource: u.options.put.priceSource ?? null,

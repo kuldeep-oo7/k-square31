@@ -247,6 +247,11 @@ async function upstoxOptionChain(symbol, expiry, { timeoutMs = 20_000 } = {}) {
   }
   legs.sort((a, b) => a.strike - b.strike || a.optionType.localeCompare(b.optionType));
   return {
+    // Upstox v2 sends no exchange feed time with the chain. The freshness
+    // contract treats an absent exchange clock as STALE rather than as fresh,
+    // so these books are read for reference but never reach a card claiming to
+    // be executable. That is deliberate: absent evidence must not read as
+    // evidence of currency. Angel One does send exchFeedTime and is preferred.
     ok: true, provider: "upstox", source: "UPSTOX_V2_OPTION_CHAIN_LIVE",
     symbol, expiry: String(expiry).slice(0, 10), underlyingPrice,
     receivedAt: new Date().toISOString(), strikeCount: legs.length, chain: legs
