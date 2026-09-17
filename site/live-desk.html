@@ -528,7 +528,7 @@
       LIVE:          { bg: 'rgba(34,197,94,0.08)',   bd: 'rgba(34,197,94,0.45)', fg: '#22c55e',      icon: '\u25cf' },
       FEED_LAGGING:  { bg: 'rgba(239,68,68,0.08)',   bd: 'rgba(239,68,68,0.45)', fg: 'var(--red)',   icon: '\u26a0\ufe0f' },
       NO_FEED:       { bg: 'rgba(239,68,68,0.08)',   bd: 'rgba(239,68,68,0.45)', fg: 'var(--red)',   icon: '\u26a0\ufe0f' },
-      MARKET_CLOSED: { bg: 'rgba(148,163,184,0.07)', bd: 'var(--line)',          fg: 'var(--muted)', icon: '\U0001f552' }
+      MARKET_CLOSED: { bg: 'rgba(148,163,184,0.07)', bd: 'var(--line)',          fg: 'var(--muted)', icon: '🕒' }
     }[check.verdict] || { bg: 'rgba(148,163,184,0.07)', bd: 'var(--line)', fg: 'var(--muted)', icon: '\u2014' };
 
     el.style.display = 'block';
@@ -794,35 +794,67 @@
     var exitBlock = '';
     var sx = opt.spreadExits, lx = opt.legExits;
     if (sx && sx.available) {
+      var t = sx.ticket;
+      var row = function (n, o, price, sym) {
+        return '<div style="display:flex;gap:8px;align-items:baseline;padding:5px 0;border-bottom:1px solid var(--line)">'
+          + '<span style="color:var(--muted);font:700 10px var(--mono);min-width:14px">' + n + '</span>'
+          + '<span style="font:800 11px var(--mono);color:' + (o.action === 'BUY' ? '#22c55e' : 'var(--red)') + ';min-width:38px">' + o.action + '</span>'
+          + '<span style="font:700 11px var(--mono);color:var(--text);flex:1">' + sym + '</span>'
+          + '<span style="font:700 11px var(--mono);color:var(--muted)">qty ' + o.quantity + '</span>'
+          + '<span style="font:800 11px var(--mono);color:var(--text)">LIMIT \u20b9' + price + '</span>'
+          + '</div>';
+      };
+      var base = (opt.tradingSymbol || '').replace(/[0-9.]+(CE|PE)$/, '');
+      var ladder = (sx.spotLadder || []).map(function (r) {
+        var good = r.pnlRupees >= 0;
+        return '<div style="display:flex;justify-content:space-between;font:700 10px var(--mono);padding:2px 0">'
+          + '<span style="color:var(--muted)">\u20b9' + r.spot + '</span>'
+          + '<span style="color:var(--muted)">\u20b9' + r.spreadValueAtExpiry + '</span>'
+          + '<span style="color:' + (good ? '#22c55e' : 'var(--red)') + '">' + (good ? '+' : '\u2212') + '\u20b9' + Math.abs(r.pnlRupees).toLocaleString('en-IN') + '</span>'
+          + '</div>';
+      }).join('');
+
       exitBlock = ''
         + '<div style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.25);border-radius:12px;padding:12px 14px;margin-top:10px">'
-        + '<div style="font:800 11px var(--mono);color:#22c55e;letter-spacing:.06em;margin-bottom:8px">\U0001f3af WHERE YOU GET OUT · SPREAD</div>'
-        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font:600 11px var(--mono)">'
-        +   '<div><span style="color:var(--muted)">TAKE PROFIT — sell spread at</span><br>'
-        +     '<span style="color:#22c55e;font:800 15px var(--mono)">₹' + sx.profitTarget.spreadValue + '</span>'
-        +     '<span style="color:var(--muted)"> → +₹' + sx.profitTarget.gainRupees.toLocaleString("en-IN") + '</span></div>'
-        +   '<div><span style="color:var(--muted)">CUT LOSS — sell spread at</span><br>'
-        +     '<span style="color:var(--red);font:800 15px var(--mono)">₹' + sx.stop.spreadValue + '</span>'
-        +     '<span style="color:var(--muted)"> → −₹' + sx.stop.lossRupees.toLocaleString("en-IN") + '</span></div>'
+        + '<div style="font:800 11px var(--mono);color:#22c55e;letter-spacing:.06em;margin-bottom:8px">\u{1F4DD} ORDER TICKET \u00b7 TYPE THIS</div>'
+        + row(1, t.entry[0], t.entry[0].limitPrice, base + t.entry[0].strike + t.entry[0].right)
+        + row(2, t.entry[1], t.entry[1].limitPrice, base + t.entry[1].strike + t.entry[1].right)
+        + '<div style="font:700 11px var(--mono);color:var(--text);margin-top:8px">Net cost \u20b9' + sx.entry.netDebitRupees.toLocaleString('en-IN')
+        +   ' <span style="color:var(--muted);font-weight:600">\u2014 order type LIMIT, product NRML/Overnight</span></div>'
+        + '<div style="font:600 10px var(--mono);color:#f59e0b;margin-top:4px">' + t.warning + '</div>'
+
+        + '<div style="font:800 11px var(--mono);color:#22c55e;letter-spacing:.06em;margin:12px 0 6px">\u{1F3AF} TO CLOSE IT</div>'
+        + '<div style="font:600 11px var(--mono);color:var(--muted);line-height:1.6">'
+        +   'SELL the ' + t.exit[0].strike + t.exit[0].right + ' and BUY BACK the ' + t.exit[1].strike + t.exit[1].right + ', together.<br>'
+        +   'Target: the two prices differ by <span style="color:#22c55e;font-weight:800">\u20b9' + sx.profitTarget.spreadValue + '</span> \u2192 +\u20b9' + sx.profitTarget.gainRupees.toLocaleString('en-IN') + '. '
+        +   'Cut if the difference falls to <span style="color:var(--red);font-weight:800">\u20b9' + sx.stop.spreadValue + '</span> \u2192 \u2212\u20b9' + sx.stop.lossRupees.toLocaleString('en-IN') + '.<br>'
+        +   '<span style="color:#f59e0b">No broker has a field for a net spread price. You watch the two legs and close both when the gap is right.</span>'
         + '</div>'
-        + '<div style="font:600 11px var(--mono);color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">'
-        +   '⏰ BE FLAT ' + sx.timeStop.daysBeforeExpiry + ' trading days before expiry — ' + sx.timeStop.reason
+
+        + '<div style="margin-top:10px;padding-top:8px;border-top:1px solid var(--line)">'
+        +   '<div style="font:800 10px var(--mono);color:var(--muted);letter-spacing:.06em;margin-bottom:4px">WHAT IT PAYS AT EXPIRY (EXACT)</div>'
+        +   '<div style="display:flex;justify-content:space-between;font:700 9px var(--mono);color:var(--muted);border-bottom:1px solid var(--line);padding-bottom:2px"><span>SPOT</span><span>SPREAD</span><span>P&amp;L</span></div>'
+        +   ladder
+        +   '<div style="font:600 10px var(--mono);color:var(--muted);margin-top:6px">Before expiry it is worth LESS than this \u2014 the short leg still holds time value. These are where it converges, not what it prints on the way.</div>'
         + '</div>'
-        + '<div style="font:600 10px var(--mono);color:var(--muted);margin-top:6px">'
-        +   'Max profit ₹' + sx.atExpiry.maxProfitRupees.toLocaleString("en-IN") + ' and breakeven ₹' + sx.atExpiry.breakevenSpot + ' are EXACT arithmetic. '
-        +   'The two exit prices above are CONVENTION — taking ' + sx.profitTarget.pctOfMaxProfit + '% of the maximum rather than holding through peak gamma for the rest. Not a measured edge.'
+
+        + '<div style="font:600 10px var(--mono);color:var(--muted);margin-top:8px;padding-top:6px;border-top:1px solid var(--line)">'
+        +   '\u23f0 Be flat ' + sx.timeStop.daysBeforeExpiry + ' trading days before expiry. '
+        +   'Breakeven \u20b9' + sx.atExpiry.breakevenSpot + ' and max \u20b9' + sx.atExpiry.maxProfitRupees.toLocaleString('en-IN') + ' are EXACT. '
+        +   'The two exit prices are CONVENTION \u2014 ' + sx.profitTarget.pctOfMaxProfit + '% of maximum, not a measured edge.'
         + '</div>'
         + '</div>';
     }
     if (lx && lx.available) {
       exitBlock += ''
-        + '<div style="background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:12px 14px;margin-top:8px">'
-        + '<div style="font:800 11px var(--mono);color:#f59e0b;letter-spacing:.06em;margin-bottom:6px">⚠️ IF YOU BUY THE SINGLE LEG ONLY</div>'
-        + '<div style="font:600 11px var(--mono);color:var(--muted)">'
-        +   'That is a DIFFERENT trade. It costs <span style="color:var(--text);font-weight:800">₹' + lx.costRupees.toLocaleString("en-IN") + '</span>, not the net debit, '
-        +   'and the whole amount is at risk with no hedge leg capping it.<br>'
-        +   'Take profit at <span style="color:#22c55e;font-weight:800">₹' + lx.profitTarget.premium + '</span> (+₹' + lx.profitTarget.gainRupees.toLocaleString("en-IN") + ') · '
-        +   'cut at <span style="color:var(--red);font-weight:800">₹' + lx.stop.premium + '</span> (−₹' + lx.stop.lossRupees.toLocaleString("en-IN") + ')'
+        + '<div style="background:rgba(245,158,11,0.06);border:1px solid rgba(245,158,11,0.3);border-radius:12px;padding:12px 14px;margin-top:8px">'
+        + '<div style="font:800 11px var(--mono);color:#f59e0b;letter-spacing:.06em;margin-bottom:6px">\u26a0\ufe0f SINGLE LEG ONLY \u2014 SIMPLER, AND COSTS MORE</div>'
+        + '<div style="font:600 11px var(--mono);color:var(--muted);line-height:1.7">'
+        +   'One order, no hedge. Costs <span style="color:var(--text);font-weight:800">\u20b9' + lx.costRupees.toLocaleString('en-IN') + '</span> and all of it is at risk.<br>'
+        +   '<span style="color:#22c55e;font-weight:800">BUY</span> qty ' + opt.lotSize + ' LIMIT \u20b9' + opt.entryPrice + '<br>'
+        +   '<span style="color:#22c55e;font-weight:800">SELL to take profit</span> LIMIT \u20b9' + lx.profitTarget.premium + ' \u2192 +\u20b9' + lx.profitTarget.gainRupees.toLocaleString('en-IN') + '<br>'
+        +   '<span style="color:var(--red);font-weight:800">STOP</span> GTT trigger \u20b9' + lx.stop.premium + ' \u2192 \u2212\u20b9' + lx.stop.lossRupees.toLocaleString('en-IN') + '<br>'
+        +   'Breakeven \u20b9' + lx.atExpiry.breakevenSpot + ' at expiry. Every price here IS a field on the order screen.'
         + '</div></div>';
     }
 

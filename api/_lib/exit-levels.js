@@ -127,7 +127,45 @@ function verticalSpreadExits(input) {
       maxLossRupees: Math.round(netDebit * lotSize),
       breakevenSpot,
       basis: "EXACT"
-    }
+    },
+
+    // The orders, exactly as they are typed. A net spread price is not a field
+    // in any retail order screen -- "sell the spread at 1.82" maps to no
+    // button, which makes it useless as an instruction however correct the
+    // arithmetic behind it. Two legs, two tickets, each with its own price.
+    ticket: {
+      entry: [
+        { action: "BUY", strike: longStrike, right: isBullish ? "CE" : "PE", limitPrice: round2(longPremium), quantity: lotSize },
+        { action: "SELL", strike: shortStrike, right: isBullish ? "CE" : "PE", limitPrice: round2(shortPremium), quantity: lotSize }
+      ],
+      exit: [
+        { action: "SELL", strike: longStrike, right: isBullish ? "CE" : "PE", note: "the leg you bought" },
+        { action: "BUY", strike: shortStrike, right: isBullish ? "CE" : "PE", note: "buy back the leg you sold" }
+      ],
+      orderType: "LIMIT",
+      warning: "Enter both legs together, as a basket if the broker offers one. If only the first fills you are holding the single leg, which costs the full premium instead of the net debit."
+    },
+
+    // What the position is worth at expiry for a given underlying price. This
+    // is exact -- at expiry a vertical is worth its intrinsic value capped at
+    // the width, with no model and no volatility involved. BEFORE expiry it is
+    // worth LESS than this, because the short leg still carries time value, so
+    // these are the levels the trade converges to rather than levels it prints
+    // on the way there.
+    spotLadder: (() => {
+      const rows = [];
+      const step = width / 4;
+      for (let i = -1; i <= 5; i += 1) {
+        const spot = round2(longStrike + i * step);
+        const intrinsic = Math.min(Math.max(isBullish ? spot - longStrike : longStrike - spot, 0), width);
+        rows.push({
+          spot,
+          spreadValueAtExpiry: round2(intrinsic),
+          pnlRupees: Math.round((intrinsic - netDebit) * lotSize)
+        });
+      }
+      return rows;
+    })()
   };
 }
 
