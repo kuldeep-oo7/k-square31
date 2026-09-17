@@ -754,6 +754,46 @@
 
     // The actual two-sided book, when one was observed. The spread is the cost
     // of getting in, and it is the number a settled price can never show.
+    // WHERE YOU GET OUT. The card gave four at-expiry outcomes and never said
+    // what to sell at, which leaves the exit to be improvised at the worst
+    // moment. EXACT levels are arithmetic; CONVENTION levels are rules of thumb
+    // with a stated reason, and the card says which is which rather than
+    // letting a preference read as a measurement.
+    var exitBlock = '';
+    var sx = opt.spreadExits, lx = opt.legExits;
+    if (sx && sx.available) {
+      exitBlock = ''
+        + '<div style="background:rgba(34,197,94,0.05);border:1px solid rgba(34,197,94,0.25);border-radius:12px;padding:12px 14px;margin-top:10px">'
+        + '<div style="font:800 11px var(--mono);color:#22c55e;letter-spacing:.06em;margin-bottom:8px">\U0001f3af WHERE YOU GET OUT · SPREAD</div>'
+        + '<div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font:600 11px var(--mono)">'
+        +   '<div><span style="color:var(--muted)">TAKE PROFIT — sell spread at</span><br>'
+        +     '<span style="color:#22c55e;font:800 15px var(--mono)">₹' + sx.profitTarget.spreadValue + '</span>'
+        +     '<span style="color:var(--muted)"> → +₹' + sx.profitTarget.gainRupees.toLocaleString("en-IN") + '</span></div>'
+        +   '<div><span style="color:var(--muted)">CUT LOSS — sell spread at</span><br>'
+        +     '<span style="color:var(--red);font:800 15px var(--mono)">₹' + sx.stop.spreadValue + '</span>'
+        +     '<span style="color:var(--muted)"> → −₹' + sx.stop.lossRupees.toLocaleString("en-IN") + '</span></div>'
+        + '</div>'
+        + '<div style="font:600 11px var(--mono);color:var(--muted);margin-top:8px;padding-top:8px;border-top:1px solid var(--line)">'
+        +   '⏰ BE FLAT ' + sx.timeStop.daysBeforeExpiry + ' trading days before expiry — ' + sx.timeStop.reason
+        + '</div>'
+        + '<div style="font:600 10px var(--mono);color:var(--muted);margin-top:6px">'
+        +   'Max profit ₹' + sx.atExpiry.maxProfitRupees.toLocaleString("en-IN") + ' and breakeven ₹' + sx.atExpiry.breakevenSpot + ' are EXACT arithmetic. '
+        +   'The two exit prices above are CONVENTION — taking ' + sx.profitTarget.pctOfMaxProfit + '% of the maximum rather than holding through peak gamma for the rest. Not a measured edge.'
+        + '</div>'
+        + '</div>';
+    }
+    if (lx && lx.available) {
+      exitBlock += ''
+        + '<div style="background:rgba(245,158,11,0.05);border:1px solid rgba(245,158,11,0.25);border-radius:12px;padding:12px 14px;margin-top:8px">'
+        + '<div style="font:800 11px var(--mono);color:#f59e0b;letter-spacing:.06em;margin-bottom:6px">⚠️ IF YOU BUY THE SINGLE LEG ONLY</div>'
+        + '<div style="font:600 11px var(--mono);color:var(--muted)">'
+        +   'That is a DIFFERENT trade. It costs <span style="color:var(--text);font-weight:800">₹' + lx.costRupees.toLocaleString("en-IN") + '</span>, not the net debit, '
+        +   'and the whole amount is at risk with no hedge leg capping it.<br>'
+        +   'Take profit at <span style="color:#22c55e;font-weight:800">₹' + lx.profitTarget.premium + '</span> (+₹' + lx.profitTarget.gainRupees.toLocaleString("en-IN") + ') · '
+        +   'cut at <span style="color:var(--red);font-weight:800">₹' + lx.stop.premium + '</span> (−₹' + lx.stop.lossRupees.toLocaleString("en-IN") + ')'
+        + '</div></div>';
+    }
+
     var bookLine = '';
     if (opt.bid > 0 && opt.ask > 0) {
       var ageTxt = opt.quoteAgeSeconds == null ? ''
@@ -859,6 +899,9 @@
             ${bookLine}
           </div>
         `}
+
+        <!-- 3b. Exit levels -->
+        ${exitBlock}
 
         <!-- 4. Defined Risk Spread Box -->
         ${opt.strategy ? `

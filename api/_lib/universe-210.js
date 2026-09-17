@@ -15,6 +15,7 @@ const {
   tradedQuote: tradedFnoQuote
 } = require("./fno-reference");
 const { liveQuote: liveBrokerQuote } = require("./live-quotes");
+const { longOptionExits, verticalSpreadExits } = require("./exit-levels");
 
 const COVERAGE_PATH = path.resolve(__dirname, "../../data/market-coverage.json");
 const NIFTY500_PATH = path.resolve(__dirname, "../../data/nifty500-constituents.csv");
@@ -390,6 +391,13 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
       exchangeOpenInterest: callQuote ? callQuote.openInterest : null,
       exchangeTraded: callQuote ? callQuote.traded === true : null,
       currentPrice: null,
+      // A single long leg is NOT the spread: it costs the whole premium
+      // rather than the net debit, so it carries its own exits. Showing the
+      // spread's risk beside a single leg's cost is how someone ends up
+      // risking three times what the card told them.
+      exits: callPremium !== null && callPremium > 0
+        ? longOptionExits({ premium: callPremium, strike: atmStrike, lotSize, isCall: true })
+        : { available: false, reason: unpricedReason || "UNPRICED" },
       target1: null,
       target2: null,
       stopLoss: null,
@@ -440,6 +448,9 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
       exchangeOpenInterest: putQuote ? putQuote.openInterest : null,
       exchangeTraded: putQuote ? putQuote.traded === true : null,
       currentPrice: null,
+      exits: putPremium !== null && putPremium > 0
+        ? longOptionExits({ premium: putPremium, strike: atmStrike, lotSize, isCall: false })
+        : { available: false, reason: unpricedReason || "UNPRICED" },
       target1: null,
       target2: null,
       stopLoss: null,
@@ -486,7 +497,18 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
         maxProfitRupees: netDebit === null ? null
           : Math.round((Math.abs(otmCallStrike - atmStrike) - netDebit) * lotSize),
         maxRisk: maxRisk === null ? null : `₹${maxRisk.toLocaleString("en-IN")}`,
-        breakeven: breakeven === null ? null : `₹${breakeven}`
+        breakeven: breakeven === null ? null : `₹${breakeven}`,
+        // Where you get OUT. The card gave four at-expiry outcomes and never
+        // said what to sell at, which leaves the exit to be improvised at the
+        // worst possible moment. Every level is tagged EXACT or CONVENTION so
+        // a rule of thumb is never read as a measurement.
+        exits: wingsPriced && longPremium > 0 && shortPremium > 0
+          ? verticalSpreadExits({
+            longPremium, shortPremium,
+            longStrike: atmStrike, shortStrike,
+            lotSize, isBullish
+          })
+          : { available: false, reason: unpricedReason || "UNPRICED" }
       };
     })()
   };
@@ -1144,6 +1166,9 @@ class FnoUniverseEngine {
           spread: u.options.call.spread ?? null,
           spreadPct: u.options.call.spreadPct ?? null,
           isLive: u.options.call.isLive === true,
+          // The single leg's own exits, which are NOT the spread's:
+          // this one costs the whole premium, not the net debit.
+          legExits: u.options.call.exits || null,
           executable: u.options.call.executable === true,
           bookState: u.options.call.bookState || null,
           tradedToday: u.options.call.tradedToday,
@@ -1163,6 +1188,9 @@ class FnoUniverseEngine {
           // whole loss, and the strike width less the debit is the whole profit. These
           // replace a ladder that was 1.35x and 1.70x an invented premium.
           maxProfitRupees: u.options.spread && u.options.spread.available ? u.options.spread.maxProfitRupees : null,
+          // Where to get out, for the spread and for the single leg. The
+          // card said BUY and never said SELL.
+          spreadExits: u.options.spread ? u.options.spread.exits : null,
           shortStrike: u.options.spread && u.options.spread.available ? (u.options.spread.shortStrikePrice ?? null) : null,
           netDebit: u.options.spread && u.options.spread.available ? u.options.spread.netDebit : null,
           // The LEG's own breakeven stays numeric and is strike +/- premium.
@@ -1225,6 +1253,9 @@ class FnoUniverseEngine {
           spread: u.options.put.spread ?? null,
           spreadPct: u.options.put.spreadPct ?? null,
           isLive: u.options.put.isLive === true,
+          // The single leg's own exits, which are NOT the spread's:
+          // this one costs the whole premium, not the net debit.
+          legExits: u.options.put.exits || null,
           executable: u.options.put.executable === true,
           bookState: u.options.put.bookState || null,
           tradedToday: u.options.put.tradedToday,
@@ -1244,6 +1275,9 @@ class FnoUniverseEngine {
           // whole loss, and the strike width less the debit is the whole profit. These
           // replace a ladder that was 1.35x and 1.70x an invented premium.
           maxProfitRupees: u.options.spread && u.options.spread.available ? u.options.spread.maxProfitRupees : null,
+          // Where to get out, for the spread and for the single leg. The
+          // card said BUY and never said SELL.
+          spreadExits: u.options.spread ? u.options.spread.exits : null,
           shortStrike: u.options.spread && u.options.spread.available ? (u.options.spread.shortStrikePrice ?? null) : null,
           netDebit: u.options.spread && u.options.spread.available ? u.options.spread.netDebit : null,
           // The LEG's own breakeven stays numeric and is strike +/- premium.
