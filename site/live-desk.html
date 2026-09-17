@@ -220,12 +220,13 @@
   <!-- Sub-filters for Universe Tab -->
   <div class="sub-filters" id="universe-subcontrols" style="display: none;">
     <div class="sub-pills">
-      <button class="sub-btn active" data-sub="all">All 210</button>
+      <button class="sub-btn active" data-sub="actionable">⭐ Actionable Only (BUY / ACCUMULATE)</button>
+      <button class="sub-btn" data-sub="all">All 210 (Radar)</button>
       <button class="sub-btn" data-sub="large">Large Cap</button>
       <button class="sub-btn" data-sub="mid">Mid Cap</button>
       <button class="sub-btn" data-sub="small">Small Cap</button>
       <button class="sub-btn" data-sub="highalpha">🧠 Top Alpha (&gt;75%)</button>
-      <button class="sub-btn" data-sub="profit">In Profit Zone</button>
+      <button class="sub-btn" data-sub="standaside">🛡️ Stand Aside (Filtered Out)</button>
     </div>
     <div class="view-toggle">
       <button class="view-btn active" id="btn-view-cards">Cards</button>
@@ -419,11 +420,12 @@
       }
 
       if (activeTab === 'universe') {
+        if (universeSubFilter === 'actionable') return item.action === 'BUY' || item.action === 'ACCUMULATE';
+        if (universeSubFilter === 'standaside') return item.action === 'STAND_ASIDE';
         if (universeSubFilter === 'large') return item.marketCap === 'Large Cap';
         if (universeSubFilter === 'mid') return item.marketCap === 'Mid Cap';
         if (universeSubFilter === 'small') return item.marketCap === 'Small Cap';
         if (universeSubFilter === 'highalpha') return (item.neuralScore || 0) >= 75;
-        if (universeSubFilter === 'profit') return (item.pnlRupees || 0) > 0;
       }
 
       return true;
@@ -431,16 +433,18 @@
   }
 
   function renderCardHtml(item) {
-    var isLong = item.action === 'BUY' || item.action === 'ACCUMULATE';
-    var theme = isLong ? 'long' : 'short';
+    var isBuy = item.action === 'BUY';
+    var isAcc = item.action === 'ACCUMULATE';
+    var isStand = item.action === 'STAND_ASIDE';
+    var theme = isBuy ? 'long' : isAcc ? 'long' : 'neutral';
     var links = item.links || {};
 
     return `
-      <article class="trade-card ${theme}" id="card-${item.id}">
+      <article class="trade-card ${theme}" id="card-${item.id}" style="${isStand ? 'opacity: 0.82; border-left: 4px solid var(--muted);' : ''}">
         <div class="card-top">
           <div style="flex: 1; min-width: 0;">
             <div class="tag-group">
-              <span class="chip ${isLong ? 'chip-long' : 'chip-short'}">${item.action}</span>
+              <span class="chip ${isBuy ? 'chip-long' : isAcc ? 'chip-neural' : 'chip-cat'}">${item.action}</span>
               <span class="chip chip-cat">${item.marketCap || 'Multi-Cap'}</span>
               <span class="chip chip-cat">${item.sector || item.assetClass || 'EQUITY'}</span>
               <span class="chip chip-neural">🧠 Neural: ${item.neuralScore || 78}%</span>
@@ -453,32 +457,41 @@
               <h3>${item.tradingSymbol || item.symbol}</h3>
             </div>
             <div class="spot-line">
-              Spot: <span class="spot-val" id="spot-${item.id}">₹${fixed(item.spotPrice || item.currentLtp)}</span> · Entry: ₹${fixed(item.entryPrice)}
+              Spot: <span class="spot-val" id="spot-${item.id}">₹${fixed(item.spotPrice || item.currentLtp)}</span> ${!isStand ? `· Entry: ₹${fixed(item.entryPrice)}` : ''}
             </div>
           </div>
           <div>
-            <div class="status-badge ${item.pnlRupees >= 0 ? 'status-profit' : 'status-amber'}">
-              ${money(item.pnlRupees)}
-              <small style="display:block; font-size:10px; opacity:0.85; margin-top:2px;">Alpha: ${item.compositeScore || 85}/100</small>
-            </div>
+            ${!isStand ? `
+              <div class="status-badge ${item.pnlRupees >= 0 ? 'status-profit' : 'status-amber'}">
+                ${money(item.pnlRupees)}
+                <small style="display:block; font-size:10px; opacity:0.85; margin-top:2px;">Alpha: ${item.compositeScore || 85}/100</small>
+              </div>
+            ` : `
+              <div class="status-badge" style="background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--line);">
+                STAND ASIDE
+                <small style="display:block; font-size:10px; opacity:0.85; margin-top:2px;">Alpha: ${item.compositeScore || 40}/100</small>
+              </div>
+            `}
           </div>
         </div>
 
         <div class="grid-stats">
-          <div><small>Target 1</small><b class="positive">₹${fixed(item.target1)}</b></div>
-          <div><small>Target 2</small><b class="positive">₹${fixed(item.target2)}</b></div>
-          <div><small>Stop Loss</small><b class="negative">₹${fixed(item.stopLoss)}</b></div>
+          <div><small>Target 1</small><b class="${!isStand ? 'positive' : ''}">₹${fixed(item.target1)}</b></div>
+          <div><small>Target 2</small><b class="${!isStand ? 'positive' : ''}">₹${fixed(item.target2)}</b></div>
+          <div><small>Stop Loss</small><b class="${!isStand ? 'negative' : ''}">₹${fixed(item.stopLoss)}</b></div>
           <div><small>Lot Qty</small><b>${item.lotSize}</b></div>
           <div><small>Capital</small><b>₹${item.capitalRequired ? Number(item.capitalRequired).toLocaleString('en-IN') : '—'}</b></div>
           <div><small>VPIN Toxicity</small><b>${item.quant?.vpin || '0.12'}</b></div>
         </div>
 
         ${item.strategy ? `
-          <div class="hedge-box">
-            <div class="hedge-title">🛡️ STRUCTURED RISK FRAMEWORK</div>
+          <div class="hedge-box" style="${isStand ? 'background: rgba(255,255,255,0.02); border-color: var(--line);' : ''}">
+            <div class="hedge-title" style="${isStand ? 'color: var(--muted);' : ''}">
+              ${isStand ? '🛡️ RISK ARBITER STATUS' : '🛡️ STRUCTURED RISK FRAMEWORK'}
+            </div>
             <p><strong>Primary:</strong> ${item.strategy.primary}</p>
             <p><strong>Hedge:</strong> ${item.strategy.hedge}</p>
-            <p><strong>Risk Boundary:</strong> ${item.strategy.maxRisk} · <strong>Breakeven:</strong> ${item.strategy.breakeven}</p>
+            <p><strong>Risk Boundary:</strong> ${item.strategy.maxRisk} ${item.strategy.breakeven !== 'N/A' ? `· <strong>Breakeven:</strong> ${item.strategy.breakeven}` : ''}</p>
           </div>
         ` : ''}
 
@@ -490,14 +503,22 @@
           <span>K²-LANG: ${item.k2StrategyPassed ? 'VERIFIED' : 'HEURISTIC'}</span>
         </div>
 
-        <div class="action-row">
-          <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite">
-            ⚡ 1-Tap Kite
-          </a>
-          <a href="${links.dhanApp || '#'}" target="_blank" rel="noopener" class="btn-action btn-dhan">
-            🚀 1-Tap Dhan
-          </a>
-        </div>
+        ${!isStand ? `
+          <div class="action-row">
+            <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite">
+              ⚡ 1-Tap Kite
+            </a>
+            <a href="${links.dhanApp || '#'}" target="_blank" rel="noopener" class="btn-action btn-dhan">
+              🚀 1-Tap Dhan
+            </a>
+          </div>
+        ` : `
+          <div class="action-row">
+            <div style="grid-column: 1 / -1; background: rgba(255,255,255,0.03); border: 1px dashed var(--line); border-radius: 10px; padding: 10px 14px; text-align: center; font: 700 11px var(--mono); color: var(--muted);">
+              🛡️ Gated by Risk Model · No Orders Permitted (Capital Preserved)
+            </div>
+          </div>
+        `}
       </article>
     `;
   }
@@ -505,11 +526,15 @@
   function renderTableHtml(items) {
     universeTbody.innerHTML = items.map(function(item) {
       var links = item.links || {};
+      var isBuy = item.action === 'BUY';
+      var isAcc = item.action === 'ACCUMULATE';
+      var isStand = item.action === 'STAND_ASIDE';
+
       return `
-        <tr>
+        <tr style="${isStand ? 'opacity: 0.7;' : ''}">
           <td>
             <strong>${item.symbol}</strong><br>
-            <small style="color: var(--muted);">${item.tradingSymbol || item.symbol}</small>
+            <span class="chip ${isBuy ? 'chip-long' : isAcc ? 'chip-neural' : 'chip-cat'}" style="font-size:9px;">${item.action}</span>
           </td>
           <td>
             ${item.companyName || item.symbol}<br>
@@ -518,7 +543,7 @@
           </td>
           <td>
             ₹${fixed(item.spotPrice || item.currentLtp)}<br>
-            <small class="${item.pnlRupees >= 0 ? 'positive' : 'negative'}">${money(item.pnlRupees)}</small>
+            ${!isStand ? `<small class="${item.pnlRupees >= 0 ? 'positive' : 'negative'}">${money(item.pnlRupees)}</small>` : '<small style="color: var(--muted);">Neutral Tape</small>'}
           </td>
           <td>
             <span class="chip chip-neural">${item.neuralScore || 75}%</span><br>
@@ -534,10 +559,14 @@
             <small style="color: var(--red);">SL: ₹${fixed(item.stopLoss)}</small>
           </td>
           <td>
-            <div style="display: flex; gap: 4px;">
-              <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite" style="padding: 4px 8px; font-size: 10px;">Kite</a>
-              <a href="${links.dhanApp || '#'}" target="_blank" rel="noopener" class="btn-action btn-dhan" style="padding: 4px 8px; font-size: 10px;">Dhan</a>
-            </div>
+            ${!isStand ? `
+              <div style="display: flex; gap: 4px;">
+                <a href="${links.zerodhaOrderPreview || '#'}" target="_blank" rel="noopener" class="btn-action btn-kite" style="padding: 4px 8px; font-size: 10px;">Kite</a>
+                <a href="${links.dhanApp || '#'}" target="_blank" rel="noopener" class="btn-action btn-dhan" style="padding: 4px 8px; font-size: 10px;">Dhan</a>
+              </div>
+            ` : `
+              <span style="font-size: 11px; color: var(--muted); font-family: var(--mono);">🛡️ Gated</span>
+            `}
           </td>
         </tr>
       `;

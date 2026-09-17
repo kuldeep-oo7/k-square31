@@ -168,7 +168,7 @@ class FnoUniverseEngine {
       const hurstVal = (0.50 + ((index * 7) % 30) / 100).toFixed(2);
       const halfLifeVal = (3.5 + ((index * 5) % 40) / 10).toFixed(1) + "d";
 
-      const candidate = {
+      const baseCandidate = {
         id: `UNIV-${symbol}`,
         symbol,
         companyName: meta.name,
@@ -178,7 +178,7 @@ class FnoUniverseEngine {
         isBanned,
         tradingSymbol: `${symbol}26SEPFUT`,
         assetClass: "FUTURES",
-        action: isBanned ? "STAND_ASIDE" : (index % 5 === 0 ? "ACCUMULATE" : "BUY"),
+        action: "STAND_ASIDE",
         spotPrice: spot,
         currentLtp: spot,
         entryPrice,
@@ -187,15 +187,8 @@ class FnoUniverseEngine {
         stopLoss,
         lotSize,
         capitalRequired,
-        pnlRupees: isBanned ? 0 : pnlRupees,
-        status: isBanned ? "SEBI_FO_BAN" : (spot >= target1 ? "TARGET 1 HIT" : spot >= entryPrice ? "IN_PROFIT" : "PENDING_PULLBACK"),
-        strategy: {
-          name: isBanned ? "SEBI F&O Ban Notice" : "Futures Swing Range Ladder",
-          primary: isBanned ? "TRADING BLOCKED BY EXCHANGE BAN" : `BUY ${symbol}26SEPFUT (Lot ${lotSize}) @ ₹${entryPrice}`,
-          hedge: isBanned ? "No Fresh Positions Permitted" : `Hard Stop @ ₹${stopLoss}`,
-          maxRisk: isBanned ? "₹0" : `₹${Math.round((entryPrice - stopLoss) * lotSize).toLocaleString("en-IN")}`,
-          breakeven: `₹${entryPrice}`
-        },
+        pnlRupees: 0,
+        status: "EVALUATING",
         quant: {
           vpin: vpinVal,
           hurst: hurstVal,
@@ -205,10 +198,59 @@ class FnoUniverseEngine {
       };
 
       const analyzed = analyzeCandidate({
-        ...candidate,
+        ...baseCandidate,
         macroState: macroState || { severity: "NORMAL", shieldActive: false },
         macroRadar: { indiaVix: { price: 12.5 } }
       });
+
+      // Strict Institutional Conviction Arbiter:
+      // Only the elite top setups receive BUY or ACCUMULATE. 
+      // The vast majority of stocks are strictly STAND_ASIDE to protect risk capital.
+      let finalAction = "STAND_ASIDE";
+      let finalStatus = "NO_CONVICTION_STAND_ASIDE";
+      let reason = "Model confidence below conviction hurdle. Standing aside to protect capital.";
+
+      if (isBanned) {
+        finalAction = "STAND_ASIDE";
+        finalStatus = "SEBI_FO_BAN";
+        reason = "Trading strictly prohibited by exchange F&O MWPL ban (>95% market limit).";
+      } else if (analyzed.compositeScore >= 68 && analyzed.neuralScore >= 70) {
+        finalAction = "BUY";
+        finalStatus = "APEX_BUY_SIGNAL";
+        reason = "High conviction: Cleared 1D-CNN temporal convolution, GARCH volatility, and Hurst persistence.";
+      } else if (analyzed.compositeScore >= 58 && analyzed.neuralScore >= 55) {
+        finalAction = "ACCUMULATE";
+        finalStatus = "SUPPORT_ACCUMULATION";
+        reason = "Institutional accumulation detected near support boundary.";
+      } else if (analyzed.compositeScore < 45) {
+        finalAction = "STAND_ASIDE";
+        finalStatus = "HIGH_NOISE_VETO";
+        reason = "Brownian noise and order-flow chop detected. Negative drift expectation.";
+      }
+
+      analyzed.action = finalAction;
+      analyzed.status = finalStatus;
+      analyzed.actionReason = reason;
+
+      if (finalAction === "BUY" || finalAction === "ACCUMULATE") {
+        analyzed.pnlRupees = pnlRupees;
+        analyzed.strategy = {
+          name: finalAction === "BUY" ? "Futures Apex Momentum" : "Futures Support Accumulation",
+          primary: `BUY ${symbol}26SEPFUT (Lot ${lotSize}) @ ₹${entryPrice}`,
+          hedge: `Hard Stop Loss @ ₹${stopLoss}`,
+          maxRisk: `₹${Math.round((entryPrice - stopLoss) * lotSize).toLocaleString("en-IN")}`,
+          breakeven: `₹${entryPrice}`
+        };
+      } else {
+        analyzed.pnlRupees = 0;
+        analyzed.strategy = {
+          name: isBanned ? "Exchange Ban Notice" : "Capital Preservation Gate",
+          primary: "STAND ASIDE — NO NEW ORDERS CLEARED",
+          hedge: reason,
+          maxRisk: "₹0 (Zero Capital at Risk)",
+          breakeven: "N/A"
+        };
+      }
 
       results.push(analyzed);
     });
