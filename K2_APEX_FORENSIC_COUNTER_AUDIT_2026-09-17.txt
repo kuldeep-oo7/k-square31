@@ -1,0 +1,414 @@
+================================================================================
+K2 APEX ENGINE — FORENSIC COUNTER-AUDIT
+Response to K2_APEX_ENGINE_PRODUCTION_AUDIT_REPORT_2026-09-17.txt
+Written 2026-09-17. Every figure below was reproduced from the code, the
+database, or the live deployment on that date.
+================================================================================
+
+HOW TO READ THIS
+  [MEASURED]  reproduced from data or from the running production host
+  [VERIFIED]  read directly from source this session
+  [FIXED]     defect found and repaired this session, with a test
+  [OPEN]      real gap, not yet closed
+
+Commits from this session: 90e3f66, 837fb65, 61ce375, 244f469, 58239ce.
+`npm run check` passes at every one of them.
+
+================================================================================
+PART 1 — YOUR FIRST QUESTION: IS IT REALLY LIVE AND DYNAMIC?
+================================================================================
+
+Partly. The plumbing is genuinely live. The market data is not.
+
+WHAT IS GENUINELY LIVE [MEASURED]
+  - https://k-square31.onrender.com answers HTTP 200 in 0.78s. Real deployment.
+  - /api/state returns 1.1 MB of JSON with a timestamp current to the second.
+  - The 4-second SSE tick engine runs and broadcasts.
+  - The macro radar (Gift Nifty, India VIX, Brent) genuinely fetches live.
+  - The SQLite WAL database is real, with real ACID transactions.
+  - 210 equities and 423 option contracts are really generated.
+
+WHAT IS NOT LIVE [MEASURED] — and this is the heart of the matter
+
+Of the 210 symbols, on the live host:
+
+    120 symbols  price = hash of the symbol's own name
+                 spot = 200 + (sum of char codes % 2800) + (index * 7.5)
+     40 symbols  price = a hand-written table in universe-210.js
+     50 symbols  price = a mark carried in from a holdings snapshot
+
+The hand-written table is stale and nothing refreshes it. Checked against the
+real NSE close on 2026-09-17:
+
+    symbol      live API showed    actual NSE close    error
+    TATASTEEL        152.40             187.29         -23%
+    INFY            1845.20          (table value, unrefreshed)
+    TRENT           7272.00          (table value, unrefreshed)
+    ABB             7090.00          (table value, unrefreshed)
+    DIXON          13410.00          (table value, unrefreshed)
+
+INFY, TRENT, ABB and DIXON matched the hardcoded table to the paisa on the live
+API, which is how you can tell nothing is refreshing them.
+
+THEN THE DEEPER PROBLEM. universe-210.js contains:
+
+    generateHistoricalSeries(spot, n = 30) {
+      let p = base * 0.985;
+      const step = (base - p) / n;
+      for (...) {
+        p += step + Math.sin(i * 0.4) * (base * 0.003);
+        volume: 25000 + Math.floor(Math.sin(i * 0.6) * 10000)
+      }
+    }
+
+That is a straight line with a sine ripple, and a sine wave for volume. Those 30
+bars are the ONLY history the desk has, and they are what gets fed to:
+
+    the 1D-CNN neural score        GARCH(1,1) volatility
+    Cornish-Fisher VaR and CVaR    Kyle / Amihud liquidity
+    candlestick pattern detection  chart pattern detection
+
+So every quantitative number the desk displayed was a true and correct
+measurement OF A SINE WAVE. The mathematics is real. The input was not.
+
+AND THREE STATISTICS WERE NEVER COMPUTED AT ALL [VERIFIED]
+
+    const vpinVal    = (0.10 + ((index * 3) % 18) / 100).toFixed(2);
+    const hurstVal   = (0.50 + ((index * 7) % 30) / 100).toFixed(2);
+    const halfLifeVal= (3.5 + ((index * 5) % 40) / 10).toFixed(1) + "d";
+
+`index` is the symbol's POSITION IN THE ARRAY. The seventh name in the list
+always showed VPIN 0.13, whatever it did that day. These were displayed as
+order-flow toxicity, long-memory persistence and mean-reversion half-life.
+
+WHAT I DID [FIXED — commit 58239ce]
+Every row now carries `priceSource`, `hasObservedPrice`,
+`historicalBarsAreSynthetic` and `tradeable`. A row without an observed price,
+or whose scores came from the synthetic path, is forced to STAND_ASIDE with
+status NO_OBSERVED_PRICE or NO_MARKET_HISTORY, and can never be shown as a buy.
+VPIN, Hurst and half-life now report null instead of a placeholder.
+
+THIS TAKES THE RECOMMENDATION COUNT TO ZERO. 205 NO_MARKET_HISTORY plus 5
+SEBI_FO_BAN. I want to be direct about that: the desk will show no buys until a
+real bar feed is wired in. That is not me breaking it — that is what it was
+always worth, now stated out loud. Before the change, 49 of the 49 rows holding
+a real spot cleared the conviction hurdle: a 98% pass rate, because a sine wave
+looks the same for every symbol.
+
+================================================================================
+PART 2 — THE MOST SERIOUS FINDING: THE TRACK RECORD WAS INVENTED
+================================================================================
+
+The report states, as its sixth headline achievement:
+
+    "Audited Track Record & SQLite ACID Ledger ... Current audited accuracy:
+     71.4% Win Rate, +Rs 51,492.50 cumulative profit (1-lot basis), 1.0 day
+     average time to target, 4.52 Profit Factor."
+
+[MEASURED] None of those trades happened. db-sqlite.js contained
+`seedDefaultData()`, called straight from the constructor, which on first boot
+inserted:
+
+    account:            +Rs 29,078.10, 6 wins, 2 losses, 8 trades, 75.0%
+    trades:             3 rows (ABB, BEL, RELIANCE)
+    signals_lifecycle:  7 rows -> 5 TARGET_HIT, 2 STOPPED_OUT = 71.4%
+                        sum of pnl_rupees = Rs 51,492.50
+                        gross wins 66,141.25 / gross loss 14,648.75 = PF 4.52
+
+Those are the exact numbers in the report. The comment above them read
+"Seed verified historical baseline trades".
+
+It reached production. Fetched from the live host before the fix:
+
+    GET /api/state -> accuracy {winRatePct: 71.4, win: 5, loss: 2,
+                                pnl: 51492.5, pf: 4.52, avgDays: 1}
+                      summary  {realizedPnl: 29078.1, winCount: 6,
+                                totalTrades: 8, winRatePct: 75}
+
+Note those two contradict each other — 71.4% over 7 signals against 75% over 8
+trades, from the same database — which is itself a sign nobody reconciled them.
+The page displayed them under "Audited System Accuracy" with a green
+"SQLite ACID Ledger Verified" badge.
+
+There were also fabricated FALLBACKS, so an empty ledger still showed a record:
+
+    winRatePct = total > 0 ? ... : 75.0        // invented win rate
+    avgDays    = archived.length ? ... : "1.8" // invented holding period
+    grossLoss  = Math.abs(...) || 1            // profit factor over Rs 1
+
+And two of the "49 green suites" asserted the fiction:
+    test-sqlite-db.js       required realizedPnl === 29078.10
+    test-options-universe.js required a >= 70% win rate and exactly 5 wins,
+                            then printed "Audited Signal Accuracy verified"
+
+A test that demands invented performance be present will also defend it.
+
+[FIXED — commit 837fb65] Seeding replaced by a single zeroed account row. Every
+statistic returns null until something real backs it, and both summary and
+accuracy now carry `hasTrackRecord`. The live rows were purged (backed up
+first). The page shows an em dash and "No closed signals yet". Both tests were
+rewritten to assert a fresh ledger reports nothing, and to check the arithmetic
+against signals the test inserts itself.
+
+I also fixed a counting bug while in there: winCount and lossCount ran as two
+independent filters, so a TARGET_HIT that closed negative counted as BOTH, and
+winCount + lossCount could exceed the number of signals on the books.
+
+================================================================================
+PART 3 — SECURITY: THE REPORT SAYS "ZERO SECRET LEAKS". IT WAS NOT TRUE.
+================================================================================
+
+[MEASURED] The static file handler resolved the request path against the
+repository root, so any file the process could read was downloadable from the
+internet. Run against the live host before the fix:
+
+    GET /.private/k2-trading.db  -> 200  application/octet-stream
+                                        body began "SQLite format 3"
+    GET /api/_lib/db-sqlite.js   -> 200  full server source
+    GET /package.json            -> 200  full manifest
+
+That is the entire trading ledger plus every server-side module. `.env` and
+`.git/config` returned the fallback page only because those files do not exist
+on that box — had they existed, they would have been served.
+
+[FIXED — commit 90e3f66] Static files resolve only under site/, and are served
+only when the RESOLVED path is contained by that directory, so encoded and
+nested traversal fail the same check. Any path segment starting with a dot is
+refused. Only known asset extensions are served. An unmatched /api/ route now
+returns 404 JSON instead of the page with HTTP 200 — that had made a mistyped
+endpoint look like a working one, because fetch().ok was true and the failure
+only surfaced later at JSON.parse.
+
+scripts/test-server-security.js boots the real server and attacks it.
+
+THEN I BROKE IT MYSELF, AND FIXED THAT TOO [FIXED — commit 244f469]
+My own fix introduced a denial of service. It called decodeURIComponent on the
+request path, which throws URIError on a malformed escape; inside a request
+handler that is an uncaught exception. `GET /%` would have killed the process.
+Decoding is now guarded, NUL bytes rejected, fs calls wrapped. server.js also
+started the engine and bound a port at require time, which raced teardown and
+caused intermittent failures; both now happen only under require.main.
+
+Verified on the real startup path: engine ticking, / serves the app, /api/state
+returns JSON, /.private/k2-trading.db is 404, /% is 400.
+
+>>> THIS IS ONLY FIXED IN YOUR LOCAL REPOSITORY. <<<
+The live host still serves the database until you push. Render auto-deploys on
+`git push origin main`. Until then, treat the ledger and source as public.
+
+================================================================================
+PART 4 — CALCULATION BUGS IN THE MATHEMATICS
+================================================================================
+
+You asked specifically for bugs in the calculations. There were four, all in
+institutional-calculus.js, all found by numerical probe rather than by reading.
+The existing test suite passed with every one of them present, because it only
+checked that numbers fell inside wide ranges. [FIXED — commit 61ce375]
+
+BUG 1 — THE RISK ENGINE REPORTED ZERO RISK ON FAT TAILS. This is the worst one.
+The Cornish-Fisher expansion is a third-order approximation and is only a valid
+quantile transform while it stays monotone increasing. With skewness clamped to
+-3 and excess kurtosis to 10 the polynomial turns over. Measured on a series
+containing 9% crash days it produced an adjusted quantile of -0.929, and
+
+    const varPct = Math.max(0, -mean + zCF * stdDev);
+
+quietly converted that into a 99% VaR of exactly 0.00%. The model announced no
+risk precisely where the risk was worst, and the Math.max hid it.
+    Now: monotonicity guard, empirical tail computed alongside, the more
+    conservative reported. Same series: 0.00% -> 11.04%.
+
+BUG 2 — EXPECTED SHORTFALL COULD NOT EXCEED VaR. The Gaussian ES factor is
+phi(z)/alpha evaluated at the GAUSSIAN quantile. The code evaluated the density
+at the Cornish-Fisher quantile instead, so a fatter tail drove phi(zCF) toward
+zero, the factor collapsed, and CVaR fell back to exactly VaR — impossible for
+any continuous loss distribution, and again worst exactly where it mattered.
+    Now, on a Gaussian control: VaR 2.32% against theory 2.326%, CVaR 2.66%
+    against theory 2.665%. Both constants reproduced.
+
+BUG 3 — EVERY INSTRUMENT SHARED ONE LONG-RUN VOLATILITY. omega was fixed at
+5e-6 with persistence 0.96, so omega/(1-alpha-beta) pinned every asset in the
+universe to 17.75% annualised. A 50%-vol name was told it reverts DOWN to
+17.75%; a 7%-vol name that it reverts UP to the same number. Measured before:
+0.1775 for a calm series and 0.1775 for a wild one, identical.
+    Now omega is solved from the sample by variance targeting: calm 6.6%,
+    wild 49.7%.
+    The filter loop also stopped one observation short, so the most recent
+    return — the most informative shock for a one-step forecast — never reached
+    it. A -15% session now moves conditional volatility 0.168 -> 0.751 instead
+    of not moving it at all.
+
+BUG 4 — KYLE'S LAMBDA WAS TAUTOLOGICAL. Order flow was signed by the sign of
+the very price change it was then regressed on:
+
+    const signedVol = (close >= prevClose ? 1 : -1) * vol;
+
+so the covariance reduced to E[|dP| * volume] and was positive by construction.
+Across 200 pure random walks the estimate came back negative ZERO times. Daily
+OHLCV cannot recover signed order flow at all — true Kyle lambda needs
+trade-level data with a Lee-Ready or tick-rule classification.
+    Now it regresses absolute move on volume and declares its own method and
+    that it is not Kyle's lambda.
+
+ALSO: skewness and kurtosis divided the third and fourth moments by n while
+using the (n-1) sample variance in the denominator. That is not any standard
+estimator and biased both toward zero. Now consistent; normal returns measure
+kurtosis 2.794 against a theoretical 3.0.
+
+Regression assertions added for every one of these.
+
+================================================================================
+PART 5 — YOUR REAL QUESTION: WHAT ARE WE MISSING?
+================================================================================
+
+You asked whether something is missing in technical analysis, in modern data
+science / ML / deep learning, or in foundational financial information from the
+balance sheet. Here is the verified answer for each.
+
+5.1 TECHNICAL ANALYSIS — PRESENT, BUT STARVED [VERIFIED]
+    candlestick-engine.js and chart-patterns.js both exist and are both wired
+    into unified-quant-scanner.js. The detection logic is real.
+    THE PROBLEM IS NOT COVERAGE, IT IS INPUT. They are reading the sine wave.
+    A Morning Star detected on a generated curve is a correct detection of
+    nothing. Wire real bars and this layer starts working immediately — it is
+    the cheapest win in the system.
+    Genuinely absent: multi-timeframe confirmation, volume profile / VWAP
+    anchoring, market-profile value areas, and any volume-at-price structure.
+
+5.2 DEEP LEARNING — THE CNN IS NOT TRAINED [VERIFIED]
+    neural-quant-engine.js describes "4 Pre-trained Conv1D Kernels". They are
+    hand-written round numbers with intent comments:
+
+        weights: [[-0.2, 0.4, 1.2],   // "accelerating positive returns"
+                  [-0.1, 0.2, 0.8],   // "widening range"
+                  [ 0.0, 0.3, 1.0]],  // "rising volume"
+        bias: 0.15
+
+    There is no training data, no loss function, no gradient step, no fit
+    procedure and no validation anywhere in the file. The convolution arithmetic
+    is real, so this is a bank of hand-tuned matched filters — which is a
+    legitimate technique — but it is not a trained network and must not be
+    called one. Nobody has ever measured whether these four kernels predict
+    anything.
+    This is the same defect I flagged in the older engine, where
+    metaLabelConfidence is also a hand-written formula holding a hard veto.
+
+5.3 FUNDAMENTALS — COMPLETELY ABSENT FROM THIS ENGINE [VERIFIED]
+    Your instinct here is exactly right, and it is the biggest structural gap.
+    fundamentals.js exists. It is required by recommendation.js and
+    scripts/weekly-plan.js — the OLDER weekly-ladder path. It is referenced
+    NOWHERE in universe-210.js, unified-quant-scanner.js or
+    realtime-market-engine.js.
+    So the Apex desk — the thing that is actually deployed — has no balance
+    sheet, no earnings, no margins, no debt, no cash flow, no valuation, no
+    accruals and no earnings-date awareness. It is pure price mechanics on
+    synthetic prices. You said in your very first brief that fundamentals are
+    "where from all of the number comes". They are not in this engine at all.
+
+5.4 DATA SCIENCE AND VALIDATION — THE GAP THAT MATTERS MOST
+    There is no backtest of the Apex engine. None. No walk-forward, no
+    out-of-sample split, no benchmark, no transaction costs, no capacity model.
+    The composite score, the 68/70 conviction hurdle, the 2.5% target and the
+    1.5% stop have never been validated against anything.
+    You already own the apparatus for this. The panel harness I built earlier
+    (api/_lib/panel.js, scripts/panel-study.js) does purged calendar splits,
+    cluster-robust standard errors, a buy-and-hold control and a
+    selection-adjusted hurdle. It has never been pointed at the Apex engine.
+    Worth remembering what it found when pointed at the older ladder: zero of
+    24 geometries survived validation, and all 24 validation cells were
+    negative. That is the standard the Apex scores have not yet had to meet.
+
+5.5 THINGS NOT ON YOUR LIST THAT I WOULD ADD
+    - Point-in-time data. The universe is today's constituent list applied
+      backwards, so every historical statistic in this repo is survivorship-
+      inflated by an unmeasured amount.
+    - Options pricing. 423 contracts are generated with strike stepping, but
+      there is no Black-Scholes, no implied volatility, no Greeks and no IV
+      surface. A "Bull Call Spread" without a premium model has no measurable
+      edge, and the max-risk figure shown cannot be right without one.
+    - Corporate actions. No split or dividend adjustment in the desk path.
+    - Earnings blackout. Nothing prevents entering the day before results.
+    - Execution realism. No ADV, open-interest or spread filter, no capacity
+      curve, no slippage model in the desk path (the older shadow-broker has
+      real dated statutory costs — that work should be reused here).
+    - Regime conditioning beyond the macro shield.
+
+================================================================================
+PART 6 — WHAT THE BUILD GETS GENUINELY RIGHT
+================================================================================
+
+Said plainly, because the list above is long and this part is real.
+
+  - Running a convolution, GARCH, Cornish-Fisher VaR and a Kalman filter in
+    native Node inside 512 MB, with zero Python, is a genuinely clever piece of
+    engineering. The memory argument in the report is sound.
+  - The SQLite WAL ledger is properly built: real ACID transactions, real
+    schema, signal lifecycle provenance.
+  - 49 test suites really do exist and really do run. The problem was what two
+    of them asserted, not that they were fake.
+  - The macro shield really does fetch live Gift Nifty, VIX and Brent.
+  - The NSE holiday-aware trading-day horizon is a real improvement over
+    calendar-day cutoffs.
+  - The deployment is real, free, and fast.
+  - The conviction arbiter's instinct — that the vast majority of names should
+    be STAND_ASIDE — is exactly right and matches what my panel study found
+    independently on the older engine.
+
+The engineering is not the problem. The inputs and the honesty of the reporting
+were the problem.
+
+================================================================================
+PART 7 — WHAT TO DO NEXT, IN ORDER
+================================================================================
+
+1. PUSH. The security fix is local only. The live host is still serving
+   .private/k2-trading.db to anyone who asks. `git push origin main`.
+
+2. WIRE A REAL BAR FEED. This single change revives candlesticks, chart
+   patterns, GARCH, VaR, liquidity and the CNN all at once, because every one of
+   them is already correct and merely starved. The mechanism is already in the
+   repo and already works: api/_lib/market-feed.js `fetchChart(symbol,
+   {range, interval})` returns genuine NSE bars, and it is what the research
+   path uses. Cache per symbol on disk, refresh on a stagger rather than all 210
+   at once, and mark any symbol that fails to fetch as UNPRICED rather than
+   substituting a placeholder. The provenance flags added in 58239ce are the
+   contract to fill.
+
+3. DELETE BASELINE_PRICES once step 2 lands. A stale hardcoded price table is
+   more dangerous than no price at all, because it looks plausible.
+
+4. BACKTEST THE APEX ENGINE before trusting any score. Point panel-study at it.
+   Accept the answer.
+
+5. TRAIN THE CNN OR RENAME IT. Either fit the kernels on labelled outcomes with
+   a proper validation split, or call them what they are: hand-tuned filters.
+
+6. WIRE FUNDAMENTALS INTO THE DESK. fundamentals.js already exists and is
+   already used by the older path.
+
+7. PRICE THE OPTIONS. Black-Scholes, IV, Greeks. Until then the spreads are
+   strike arithmetic, not trades.
+
+================================================================================
+PART 8 — THE BLUNT SUMMARY
+================================================================================
+
+The infrastructure is real and in places genuinely impressive. The mathematics,
+after this session's four fixes, is now correct. The deployment is live.
+
+But before today the desk was displaying a 71.4% win rate that came from seven
+rows written by the constructor, computing every quantitative score from a sine
+wave, pricing 160 of 210 symbols from a hash or a stale table, and serving its
+own database to the open internet.
+
+None of that was a mathematical failure. Every one of those was a failure to
+distinguish between a number the system MEASURED and a number the system MADE
+UP. That is the single discipline this codebase most needs, and it is worth more
+than any additional model: a system that cannot tell you what it does not know
+will eventually tell you something false with total confidence.
+
+The fixes in this session are all of the same shape — make the system say
+"I don't know" where it previously invented an answer. That is why the
+recommendation count is now zero. It should stay zero until real data arrives,
+and then it should be earned.
+================================================================================
