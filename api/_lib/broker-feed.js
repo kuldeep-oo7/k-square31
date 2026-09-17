@@ -320,6 +320,10 @@ async function angelOptionChain(symbol, expiry, { timeoutMs = 20_000, strikesEit
       }, null),
       // Angel's quote carries no greeks; the separate optionGreek endpoint does.
       greeksAvailable: false,
+      // The exchange's own clock. When we asked is not when the exchange
+      // priced it, and after the close those differ by hours.
+      exchangeFeedTime: row.exchFeedTime || null,
+      exchangeTradeTime: row.exchTradeTime || null,
       token: contract.token, lotSize: contract.lotSize, tradingSymbol: contract.symbol
     });
   }

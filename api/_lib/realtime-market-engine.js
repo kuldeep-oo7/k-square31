@@ -222,6 +222,29 @@ class RealtimeMarketEngine {
     }
   }
 
+  /** Cold-start sequence: each step needs the one before it. */
+  async bootstrap() {
+    try {
+      // The bhavcopy changes once per session, and every strike, lot size and
+      // settled price on the desk is read from it.
+      await this.refreshContractReference();
+      // Dhan's scrip master is public and needs no token. Angel and Upstox
+      // masters are what turn a symbol into a tradeable instrument token.
+      await Promise.all([this.refreshDhanScrips(), this.refreshBrokerInstruments()]);
+      // Angel One can hold its own session from a TOTP secret. Upstox cannot --
+      // it issues no refresh token -- so it is watched and warned about instead.
+      await this.maintainBrokerSessions();
+      // Live books for the names the desk is actually recommending. Refreshing
+      // all 210 would take minutes under broker rate limits and the first quotes
+      // would be stale before the last arrived, so this follows the picks.
+      await this.refreshLiveQuotes();
+    } catch (error) {
+      // A failed bootstrap leaves the desk on exchange settled prices, which is
+      // a labelled and honest state, so it must never take the server down.
+      console.error("Bootstrap incomplete, desk stays on settled prices:", error.message);
+    }
+  }
+
   async refreshLiveQuotes({ limit = 12 } = {}) {
     try {
       const live = require("./live-quotes");
@@ -250,19 +273,13 @@ class RealtimeMarketEngine {
     if (typeof fnoUniverseEngine.startBackgroundIngest === "function") {
       fnoUniverseEngine.startBackgroundIngest();
     }
-    // Once at boot, then daily. The bhavcopy changes once per session.
-    this.refreshContractReference();
-    // Dhan's scrip master is public and needs no token; caching it means the
-    // moment credentials appear, live quotes work without another cold start.
-    this.refreshDhanScrips();
-    this.refreshBrokerInstruments();
-    // Angel One can hold its own session from a TOTP secret. Upstox cannot --
-    // it issues no refresh token -- so it is watched and warned about instead.
-    this.maintainBrokerSessions();
-    // Live books for the names the desk is actually recommending. Refreshing all
-    // 210 would take minutes under broker rate limits and the first quotes would
-    // be stale before the last arrived, so this follows the recommendations.
-    this.refreshLiveQuotes();
+    // Boot in dependency order rather than all at once. A quote request needs
+    // the contract reference, the instrument master and a live session, and on
+    // a cold deploy none of the three exist yet -- .private is not in the repo,
+    // so the server builds its own. Fired in parallel these race and the first
+    // quote refresh loses, which the 90s timer would paper over while logging a
+    // failure that was really just ordering.
+    this.bootstrap();
     this.quoteTimer = setInterval(() => this.refreshLiveQuotes(), 90 * 1000);
     this.sessionTimer = setInterval(() => this.maintainBrokerSessions(), 60 * 60 * 1000);
     this.referenceTimer = setInterval(() => this.refreshContractReference(), 6 * 60 * 60 * 1000);
