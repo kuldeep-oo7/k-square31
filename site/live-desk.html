@@ -579,7 +579,10 @@
     macroPills.innerHTML = html;
   }
 
-  function renderSummary(summary, candidates) {
+  // positions is passed explicitly rather than read from purchasedCache: this
+  // runs BEFORE updateCounts populates that cache, so the cache would be one
+  // poll stale here and empty on the very first render.
+  function renderSummary(summary, candidates, positions) {
     if (!summary) return;
     accRealized.textContent = money(summary.realizedPnl);
     if (accuracyCache && accuracyCache.winRatePct) {
@@ -588,12 +591,40 @@
       accWinrate.textContent = fixed(summary.winRatePct, 1) + '% (' + summary.winCount + 'W / ' + summary.lossCount + 'L)';
     }
 
+    // The tile says "Purchased Trades MTM" and it must sum the trades that were
+    // actually PURCHASED. It previously summed pnlRupees across `candidates` --
+    // the recommendation list -- which is the notional gain of a hypothetical
+    // futures position in every name the desk happened to like, bought or not.
+    // That is how a page showing an empty track record and zero realized profit
+    // simultaneously displayed +Rs 51,770.75 in green at the top: a number the
+    // system INVENTED, wearing the label of a number it had MEASURED.
+    var purchased = Array.isArray(positions) ? positions
+      : Array.isArray(purchasedCache) ? purchasedCache : [];
     var totalFloating = 0;
-    (candidates || []).forEach(function(c) {
-      if (Number.isFinite(c.pnlRupees)) totalFloating += c.pnlRupees;
+    var markedCount = 0;
+    purchased.forEach(function (position) {
+      var entry = Number(position.entryPrice);
+      var current = Number(position.currentLtp);
+      var quantity = Number(position.lotSize || position.quantity);
+      // A position with no current mark has no mark-to-market. Treating a
+      // missing price as no change would silently report zero P&L as a fact.
+      if (!(entry > 0) || !(current > 0) || !(quantity > 0)) return;
+      totalFloating += (current - entry) * quantity;
+      markedCount += 1;
     });
-    accFloating.textContent = money(totalFloating);
-    accFloating.className = totalFloating >= 0 ? 'positive' : 'negative';
+    if (!purchased.length) {
+      accFloating.textContent = '₹0';
+      accFloating.className = '';
+      accFloating.title = 'No purchased trades.';
+    } else if (!markedCount) {
+      accFloating.textContent = '—';
+      accFloating.className = '';
+      accFloating.title = purchased.length + ' purchased, none with a current mark.';
+    } else {
+      accFloating.textContent = money(totalFloating);
+      accFloating.className = totalFloating >= 0 ? 'positive' : 'negative';
+      accFloating.title = markedCount + ' of ' + purchased.length + ' purchased trades marked.';
+    }
   }
 
   function filterItems(items) {
@@ -1398,7 +1429,7 @@
         if (data.timestamp) lastTickTime.textContent = data.timestamp.slice(11, 19) + ' UTC';
         renderFeedCheck(data.liveFeed && data.liveFeed.feedCheck);
         if (data.macro) renderMacro(data.macro);
-        if (data.summary) renderSummary(data.summary, data.candidates);
+        if (data.summary) renderSummary(data.summary, data.candidates, data.activePositions);
         updateCounts(data);
 
         if (Array.isArray(data.completedTrades)) {
@@ -1424,7 +1455,7 @@
       if (data.timestamp) lastTickTime.textContent = data.timestamp.slice(11, 19) + ' UTC';
       renderFeedCheck(data.liveFeed && data.liveFeed.feedCheck);
       if (data.macro) renderMacro(data.macro);
-      if (data.summary) renderSummary(data.summary, data.candidates);
+      if (data.summary) renderSummary(data.summary, data.candidates, data.activePositions);
       updateCounts(data);
       if (data.completedTrades) renderLedger(data.completedTrades);
       updateView();
