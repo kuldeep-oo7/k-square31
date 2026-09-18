@@ -152,6 +152,38 @@ class SqliteTradingDatabase {
       CREATE INDEX IF NOT EXISTS idx_signals_status ON signals_lifecycle(status);
       CREATE INDEX IF NOT EXISTS idx_signals_symbol ON signals_lifecycle(symbol);
     `);
+    this.migrateSignalProvenance();
+  }
+
+  /**
+   * Adds provenance columns to signals_lifecycle.
+   *
+   * A price without a source is the defect this desk keeps producing: the row
+   * looks identical whether the number came from a live broker book, the
+   * exchange's settled close, or a model. A track record cannot be audited
+   * unless every entry and exit says where its price came from, so these
+   * columns are what make the ledger checkable rather than merely stored.
+   *
+   * SQLite has no ADD COLUMN IF NOT EXISTS, so the existing columns are read
+   * first. This runs on every boot and must stay idempotent.
+   */
+  migrateSignalProvenance() {
+    const existing = new Set(
+      this.db.prepare("PRAGMA table_info(signals_lifecycle)").all().map((row) => row.name)
+    );
+    const columns = [
+      ["entry_price_source", "TEXT"],
+      ["exit_price_source", "TEXT"],
+      ["entry_executable", "INTEGER NOT NULL DEFAULT 0"],
+      ["probability_of_profit_pct", "REAL"],
+      ["volatility_verdict", "TEXT"],
+      ["expiry", "TEXT"]
+    ];
+    for (const [name, type] of columns) {
+      if (!existing.has(name)) {
+        this.db.exec(`ALTER TABLE signals_lifecycle ADD COLUMN ${name} ${type};`);
+      }
+    }
   }
 
   /**

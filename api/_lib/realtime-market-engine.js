@@ -242,7 +242,6 @@ class RealtimeMarketEngine {
       if (!phase.open) return { ok: false, reason: "MARKET_CLOSED_NOT_RECORDING" };
 
       const cards = fnoUniverseEngine.getOptionsUniverse(this.macroState) || [];
-      const store = ledger.load();
       let recorded = 0, refused = 0;
 
       for (const card of cards) {
@@ -261,7 +260,7 @@ class RealtimeMarketEngine {
           targetPrice: exits.profitTarget?.premium, stopPrice: exits.stop?.premium,
           probabilityOfProfitPct: card.odds?.probabilityOfProfitPct,
           volatilityVerdict: card.odds?.volatility?.verdict
-        }, { store });
+        });
         if (result.ok && result.status === "RECORDED") recorded += 1;
         else if (!result.ok) refused += 1;
       }
@@ -276,13 +275,13 @@ class RealtimeMarketEngine {
         const settled = reference.tradedQuote(position.symbol, position.strike, position.right, position.expiry);
         return settled?.price > 0 ? { price: settled.price, source: "EXCHANGE_SETTLED_PRICE" } : null;
       };
-      const marks = ledger.markToMarket(priceFor, { store });
+      const marks = ledger.markToMarket(priceFor);
 
       if (recorded || marks.closed) {
         console.log(`[K² Ledger] recorded ${recorded}, marked ${marks.marked}, closed ${marks.closed}`);
         // Mirror only when something actually changed. The ephemeral disk means
         // an unmirrored close is a closed trade that disappears on next deploy.
-        ledger.syncToRemote({ store }).then((sync) => {
+        ledger.syncToRemote().then((sync) => {
           if (!sync.ok && sync.reason !== "GOOGLE_STORE_NOT_CONFIGURED") {
             console.error("Ledger mirror failed:", sync.reason);
           }

@@ -1,100 +1,74 @@
 "use strict";
 
 /**
- * What the signals ACTUALLY earned.
+ * What the signals ACTUALLY earned -- stored in the database, with the rest.
  *
- * Every other number on this desk is a forecast, a price, or a probability.
+ * Every other number on this desk is a forecast, a price or a probability.
  * This is the only one that is a RESULT: if you had bought what the card said,
- * at the price the card showed, and sold where the card told you to, what would
- * have happened?
+ * at the price it showed, and sold where it told you to, what happened?
  *
- * WHY THIS FILE IS BUILT THE WAY IT IS. A previous version of this system
- * shipped a 71.4% win rate and Rs 51,492.50 of profit that were inserted by a
- * seed function and had never been traded. Two test suites asserted the
- * fiction. So the design here is not about convenience, it is about making that
- * specific failure impossible:
+ * This lived briefly in its own JSON file while the schema for it already
+ * existed in SQLite. That was wrong. A second store means two answers to the
+ * same question and eventually they disagree, so the ledger is the
+ * `signals_lifecycle` table, alongside positions, trades and audit events, in
+ * one file under one set of guarantees.
  *
- *   - A signal is recorded ONCE, at the moment it is issued, with the price
- *     observable AT THAT MOMENT. openedAt is stamped from the clock, never
- *     supplied by a caller.
- *   - Entry price is immutable. Re-recording the same signal is a no-op rather
- *     than an update, so a later, better-looking price can never replace the one
- *     that was actually shown.
- *   - A position closes only against an OBSERVED price carrying its provenance.
- *     There is no path that closes a position at a price nobody printed.
- *   - Back-dating is rejected outright. A record whose issue time is not close
- *     to now is refused, because every fabricated track record in history was
- *     built by writing yesterday's winners into today's ledger.
- *   - Nothing here computes a win rate from anything except closed positions
- *     with both prices observed.
+ * WHY IT IS BUILT THIS WAY. This system once shipped a 71.4% win rate and
+ * Rs 51,492.50 of profit written by a seed function and never traded, and two
+ * test suites asserted the fiction. The design exists to make that impossible:
  *
- * The result may well be unflattering. The out-of-sample test already failed at
- * t = 1.25 against a 1.6648 hurdle, and P(profit) across the option cards runs
- * a median of 35%. If this ledger comes back negative it is doing its job: an
- * honest record of a strategy that does not work is worth incomparably more
- * than a flattering one that was never traded.
+ *   - Entry price is written ONCE. The update path touches the mark, the P&L
+ *     and the clock -- entry_price never appears in a SET clause.
+ *   - Every price carries its provenance. A row whose entry came from a live
+ *     broker book must not look identical to one that came from a model.
+ *   - Back-dating is refused, because every fabricated record is built by
+ *     writing yesterday's winners into today's ledger.
+ *   - A position closes only against an OBSERVED price.
+ *   - The win rate counts closed positions only. An unrealised mark is not a
+ *     win, and counting it as one is the oldest trick there is.
+ *
+ * The result may be unflattering. The out-of-sample test failed at t = 1.25
+ * against a 1.6648 hurdle and P(profit) across these cards has a median of 35%.
+ * An honest record of a strategy that does not work is worth more than a
+ * flattering one that was never traded.
  */
 
-const fs = require("node:fs");
-const path = require("node:path");
-const crypto = require("node:crypto");
-
-const STORE_DIR = path.resolve(path.join(__dirname, "..", "..", ".private", "ledger"));
-const STORE_FILE = path.join(STORE_DIR, "signal-record.json");
-// Path inside the durable Apps Script store.
 const REMOTE_PATH = "k2/signal-record.json";
 
-// A record issued more than this far from now is a back-date and is refused.
+// A signal issued more than this far from now is a back-date and is refused.
 const MAX_BACKDATE_MS = 10 * 60 * 1000;
 
 const round2 = (v) => Math.round(v * 100) / 100;
 const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
 
-function emptyStore() {
-  return { version: 1, createdAt: new Date().toISOString(), positions: {}, rejected: 0 };
-}
+let sharedDb = null;
 
-function load() {
-  try {
-    if (!fs.existsSync(STORE_FILE)) return emptyStore();
-    const parsed = JSON.parse(fs.readFileSync(STORE_FILE, "utf8"));
-    return parsed && typeof parsed === "object" && parsed.positions ? parsed : emptyStore();
-  } catch (error) {
-    return emptyStore();
+/** The one database. Callers may pass their own, which is how tests stay clean. */
+function database(db) {
+  if (db) return db;
+  if (!sharedDb) {
+    const { SqliteTradingDatabase } = require("./db-sqlite");
+    sharedDb = new SqliteTradingDatabase();
   }
+  return sharedDb;
 }
 
-function save(store) {
-  try {
-    fs.mkdirSync(STORE_DIR, { recursive: true });
-    fs.writeFileSync(STORE_FILE, JSON.stringify(store));
-  } catch (error) {
-    console.error("Signal record not persisted:", error.message);
-  }
-  return store;
-}
-
-/**
- * One signal per contract per day. Deterministic, so the same card seen twice
- * in a session cannot become two positions and inflate the count.
- */
+/** One signal per contract per day, so the same card seen twice is one row. */
 function signalId({ symbol, strike, right, expiry, day }) {
-  return crypto.createHash("sha1")
+  return require("node:crypto").createHash("sha1")
     .update([symbol, strike, right, expiry, day].join("|"))
     .digest("hex")
     .slice(0, 16);
 }
 
 /**
- * Record a signal at the price it was shown at. Returns what happened, so a
- * caller can never mistake "already recorded" for "recorded again".
+ * Record a signal at the price it was shown at.
+ *
+ * Returns what happened, so a caller can never mistake "already recorded" for
+ * "recorded again" and count one signal twice.
  */
-function record(signal, { now = Date.now(), store = null, persist = store === null } = {}) {
-  // A caller that supplies its own store owns it. Persisting a passed-in store
-  // is how a test wrote MOTHERSON at 100% and Rs 9,840 into the live ledger --
-  // the seeded-track-record failure, arriving again through the back door.
-  store = store || load();
-  const commit = (value) => (persist ? save(value) : value);
+function record(signal, { now = Date.now(), db = null } = {}) {
+  const handle = database(db);
   const symbol = String(signal?.symbol || "").toUpperCase();
   const right = String(signal?.right || "").toUpperCase();
   const strike = num(signal?.strike);
@@ -108,223 +82,148 @@ function record(signal, { now = Date.now(), store = null, persist = store === nu
   // A price nobody printed cannot open a position.
   if (!signal.priceSource) return { ok: false, reason: "NO_PRICE_PROVENANCE" };
 
-  // Back-dating is how every fabricated record gets built.
   const issued = signal.issuedAt ? Date.parse(signal.issuedAt) : now;
   if (!Number.isFinite(issued) || Math.abs(now - issued) > MAX_BACKDATE_MS) {
-    store.rejected = (store.rejected || 0) + 1;
-    commit(store);
+    try { handle.logAuditEvent("SIGNAL_BACKDATE_REFUSED", { symbol, strike, right, issuedAt: signal.issuedAt }); }
+    catch (error) { /* the refusal stands whether or not it could be logged */ }
     return { ok: false, reason: "BACKDATED_OR_FUTURE_SIGNAL_REFUSED" };
   }
 
   const day = new Date(now).toISOString().slice(0, 10);
   const id = signalId({ symbol, strike, right, expiry, day });
-  if (store.positions[id]) return { ok: true, status: "ALREADY_RECORDED", id };
+  if (handle.db.prepare("SELECT id FROM signals_lifecycle WHERE id = ?").get(id)) {
+    return { ok: true, status: "ALREADY_RECORDED", id };
+  }
 
-  store.positions[id] = {
-    id, symbol, strike, right, expiry,
-    // Immutable from here. Nothing in this module rewrites these three.
-    entryPrice: round2(entryPrice),
-    lotSize,
-    openedAt: new Date(now).toISOString(),
-    entryPriceSource: signal.priceSource,
-    entryExecutable: signal.executable === true,
-    targetPrice: num(signal.targetPrice),
-    stopPrice: num(signal.stopPrice),
-    probabilityOfProfitPct: num(signal.probabilityOfProfitPct),
-    volatilityVerdict: signal.volatilityVerdict || null,
-    status: "OPEN",
-    lastMark: null,
-    lastMarkAt: null,
-    closedAt: null, closePrice: null, closeReason: null, closePriceSource: null
-  };
-  commit(store);
+  const iso = new Date(now).toISOString();
+  const horizon = Math.max(1, Math.ceil((Date.parse(`${expiry}T15:30:00+05:30`) - now) / 86400000));
+  handle.db.prepare(`
+    INSERT INTO signals_lifecycle (
+      id, symbol, trading_symbol, asset_class, side, option_type, strike, lot_size,
+      entry_price, current_price, target1, target2, stop_loss, issued_at, closed_at,
+      days_active, horizon_days, status, exit_reason, pnl_points, pnl_pct, pnl_rupees,
+      created_at, updated_at, entry_price_source, entry_executable,
+      probability_of_profit_pct, volatility_verdict, expiry
+    ) VALUES (?, ?, ?, 'OPTION', 'BUY', ?, ?, ?, ?, ?, ?, ?, ?, ?, null, 0, ?, 'ACTIVE', null, 0, 0, 0, ?, ?, ?, ?, ?, ?, ?)
+  `).run(
+    id, symbol, `${symbol}${strike}${right}`, right, strike, lotSize,
+    round2(entryPrice), round2(entryPrice),
+    num(signal.targetPrice) ?? 0, num(signal.targetPrice) ?? 0, num(signal.stopPrice) ?? 0,
+    iso, horizon, iso, iso,
+    String(signal.priceSource), signal.executable === true ? 1 : 0,
+    num(signal.probabilityOfProfitPct), signal.volatilityVerdict || null, expiry
+  );
   return { ok: true, status: "RECORDED", id };
 }
 
 /**
- * Mark open positions against observed prices, and close the ones that reached
- * a level or ran out of time.
+ * Mark open positions against observed prices, closing those that reached a
+ * level or ran out of time.
  *
  * `quoteFor(position)` must return { price, source } from a real book or an
- * exchange price, or null. Returning a modelled number here would put a
- * fabricated result into the one place on this desk that is supposed to hold
- * only outcomes.
+ * exchange price, or null. A modelled number here would put a fabricated result
+ * into the one place on this desk meant to hold only outcomes.
  */
-function markToMarket(quoteFor, { now = Date.now(), store = null, persist = store === null } = {}) {
-  store = store || load();
-  const commit = (value) => (persist ? save(value) : value);
+function markToMarket(quoteFor, { now = Date.now(), db = null } = {}) {
+  const handle = database(db);
+  const open = handle.db.prepare("SELECT * FROM signals_lifecycle WHERE status = 'ACTIVE'").all();
   let marked = 0, closed = 0;
-  for (const position of Object.values(store.positions)) {
-    if (position.status !== "OPEN") continue;
-    const quote = typeof quoteFor === "function" ? quoteFor(position) : null;
+
+  for (const row of open) {
+    const quote = typeof quoteFor === "function"
+      ? quoteFor({ symbol: row.symbol, strike: row.strike, right: row.option_type, expiry: row.expiry })
+      : null;
     const price = num(quote?.price);
+    // No observable price means no mark. Marking it flat would report "no
+    // change" as a finding when the truth is that nothing was seen.
     if (!(price > 0)) continue;
 
-    position.lastMark = round2(price);
-    position.lastMarkAt = new Date(now).toISOString();
-    position.markSource = quote.source || null;
+    const pnlPoints = round2(price - row.entry_price);
+    const iso = new Date(now).toISOString();
+    const daysActive = round2(Math.max(0, now - Date.parse(row.issued_at)) / 86400000);
+
+    // Only the mark and its consequences move. entry_price is never in this SET.
+    handle.db.prepare(`
+      UPDATE signals_lifecycle
+      SET current_price = ?, days_active = ?, pnl_points = ?, pnl_pct = ?, pnl_rupees = ?, updated_at = ?
+      WHERE id = ?
+    `).run(
+      round2(price), daysActive, pnlPoints,
+      round2((pnlPoints / row.entry_price) * 100),
+      Math.round(pnlPoints * row.lot_size), iso, row.id
+    );
     marked += 1;
 
-    // Expiry settles at intrinsic value against the underlying, which is the
-    // only price that exists once the contract stops trading.
-    const expired = Date.parse(`${position.expiry}T15:30:00+05:30`) <= now;
+    const expired = row.expiry ? Date.parse(`${row.expiry}T15:30:00+05:30`) <= now : false;
     let reason = null;
-    if (position.targetPrice > 0 && price >= position.targetPrice) reason = "TARGET_HIT";
-    else if (position.stopPrice > 0 && price <= position.stopPrice) reason = "STOP_HIT";
+    if (row.target1 > 0 && price >= row.target1) reason = "TARGET_HIT";
+    else if (row.stop_loss > 0 && price <= row.stop_loss) reason = "STOP_HIT";
     else if (expired) reason = "EXPIRED";
 
     if (reason) {
-      position.status = "CLOSED";
-      position.closedAt = new Date(now).toISOString();
-      position.closePrice = round2(price);
-      position.closeReason = reason;
-      position.closePriceSource = quote.source || null;
-      position.pnlRupees = Math.round((price - position.entryPrice) * position.lotSize);
-      position.returnPct = round2(((price - position.entryPrice) / position.entryPrice) * 100);
+      handle.db.prepare(`
+        UPDATE signals_lifecycle
+        SET status = 'CLOSED', closed_at = ?, exit_reason = ?, exit_price_source = ?, updated_at = ?
+        WHERE id = ?
+      `).run(iso, reason, quote.source || null, iso, row.id);
       closed += 1;
     }
   }
-  commit(store);
   return { marked, closed };
 }
 
 /**
- * The track record. Computed ONLY from closed positions with both prices
- * observed -- an open position has no result yet, and counting an unrealised
- * mark as a win is the oldest way to make a losing book look profitable.
+ * The track record, from closed positions only.
+ *
+ * Absence is reported as absence: nulls rather than zeros. A win rate of 0% and
+ * "nothing has closed yet" are different facts and must not render alike.
  */
-function trackRecord({ store = null } = {}) {
-  store = store || load();
-  const all = Object.values(store.positions || {});
-  const closed = all.filter((p) => p.status === "CLOSED" && p.closePrice !== null && p.entryPrice > 0);
-  const open = all.filter((p) => p.status === "OPEN");
+function trackRecord({ db = null } = {}) {
+  const handle = database(db);
+  const rows = handle.db.prepare("SELECT * FROM signals_lifecycle").all();
+  const closed = rows.filter((r) => r.status === "CLOSED");
+  const open = rows.filter((r) => r.status === "ACTIVE");
 
   if (!closed.length) {
     return {
       available: false,
-      reason: all.length ? "NO_POSITIONS_CLOSED_YET" : "NO_SIGNALS_RECORDED_YET",
-      recorded: all.length,
-      open: open.length,
-      closed: 0,
-      // Stated rather than shown as zero: a win rate of 0% and "no trades yet"
-      // are different facts and must not render identically.
+      reason: rows.length ? "NO_POSITIONS_CLOSED_YET" : "NO_SIGNALS_RECORDED_YET",
+      recorded: rows.length, open: open.length, closed: 0,
       winRatePct: null, totalPnlRupees: null
     };
   }
 
-  const wins = closed.filter((p) => p.pnlRupees > 0);
-  const total = closed.reduce((a, p) => a + (p.pnlRupees || 0), 0);
-  const returns = closed.map((p) => p.returnPct).filter((r) => Number.isFinite(r));
-  const meanReturn = returns.length ? returns.reduce((a, b) => a + b, 0) / returns.length : null;
-  const grossWin = wins.reduce((a, p) => a + p.pnlRupees, 0);
-  const grossLoss = Math.abs(closed.filter((p) => p.pnlRupees < 0).reduce((a, p) => a + p.pnlRupees, 0));
-
+  const wins = closed.filter((r) => r.pnl_rupees > 0);
+  const grossWin = wins.reduce((a, r) => a + r.pnl_rupees, 0);
+  const grossLoss = Math.abs(closed.filter((r) => r.pnl_rupees < 0).reduce((a, r) => a + r.pnl_rupees, 0));
   const byReason = {};
-  for (const p of closed) byReason[p.closeReason] = (byReason[p.closeReason] || 0) + 1;
+  for (const r of closed) byReason[r.exit_reason] = (byReason[r.exit_reason] || 0) + 1;
 
   return {
     available: true,
-    recorded: all.length,
-    open: open.length,
-    closed: closed.length,
-    wins: wins.length,
-    losses: closed.length - wins.length,
+    recorded: rows.length, open: open.length, closed: closed.length,
+    wins: wins.length, losses: closed.length - wins.length,
     winRatePct: round2((wins.length / closed.length) * 100),
-    totalPnlRupees: Math.round(total),
-    averageReturnPct: meanReturn === null ? null : round2(meanReturn),
+    totalPnlRupees: Math.round(closed.reduce((a, r) => a + r.pnl_rupees, 0)),
+    averageReturnPct: round2(closed.reduce((a, r) => a + r.pnl_pct, 0) / closed.length),
     // Undefined rather than infinite when nothing lost: a profit factor with no
-    // denominator is not a very large number, it is an unanswerable question.
+    // denominator is an unanswerable question, not a very large number.
     profitFactor: grossLoss > 0 ? round2(grossWin / grossLoss) : null,
     profitFactorNote: grossLoss > 0 ? null : "Undefined: no losing trades yet, so there is no denominator.",
     closedBy: byReason,
-    firstSignalAt: all.reduce((a, p) => (!a || p.openedAt < a ? p.openedAt : a), null),
-    backdatedRejections: store.rejected || 0,
+    firstSignalAt: rows.reduce((a, r) => (!a || r.issued_at < a ? r.issued_at : a), null),
     basis: "OBSERVED_PRICES_ONLY"
   };
 }
 
-/**
- * The ledger in the shape the desk's scorecard already reads.
- *
- * Deliberately returns nulls rather than zeros when nothing has closed. A win
- * rate of 0% and "nothing has closed yet" are different facts, and rendering
- * them identically is how a desk with no history came to advertise 71.4%.
- */
-/**
- * Durable storage, because the local file is not.
- *
- * Render's free tier gives an ephemeral disk: the ledger survives a restart but
- * is wiped on every deploy. A track record that resets whenever the code
- * changes is not a track record -- and the whole point of this module is a
- * history long enough to answer whether the desk makes money. So the ledger
- * mirrors to the Google Apps Script store, which outlives the container.
- *
- * The merge is UNION BY ID and it is deliberately one-directional about facts:
- * a position already present locally is never overwritten by the remote copy,
- * and a CLOSED position is never reopened. Two containers both writing would
- * otherwise let a later, emptier snapshot erase real closed trades -- the same
- * class of loss as overwriting an entry price, just distributed.
- */
-async function syncToRemote({ store = null } = {}) {
-  const google = require("./google-store");
-  if (!google.googleStoreConfigured()) {
-    return { ok: false, reason: "GOOGLE_STORE_NOT_CONFIGURED" };
-  }
-  store = store || load();
-  try {
-    const remote = await google.readGoogleDocument(REMOTE_PATH, null);
-    const merged = mergeStores(remote?.data || null, store);
-    await google.writeGoogleDocument(REMOTE_PATH, merged, remote?.etag);
-    save(merged);
-    return { ok: true, positions: Object.keys(merged.positions).length };
-  } catch (error) {
-    // A failed sync must never lose the local ledger.
-    return { ok: false, reason: error.message };
-  }
-}
-
-/** Pull the durable copy back after a deploy has wiped the disk. */
-async function restoreFromRemote() {
-  const google = require("./google-store");
-  if (!google.googleStoreConfigured()) return { ok: false, reason: "GOOGLE_STORE_NOT_CONFIGURED" };
-  try {
-    const remote = await google.readGoogleDocument(REMOTE_PATH, null);
-    if (!remote?.data?.positions) return { ok: false, reason: "NOTHING_STORED_REMOTELY" };
-    const merged = mergeStores(remote.data, load());
-    save(merged);
-    return { ok: true, positions: Object.keys(merged.positions).length };
-  } catch (error) {
-    return { ok: false, reason: error.message };
-  }
-}
-
-/**
- * Union by id. Local wins on conflict, and a closed position stays closed
- * whichever side holds it.
- */
-function mergeStores(remote, local) {
-  const merged = { ...(remote || emptyStore()), ...local };
-  merged.positions = { ...((remote && remote.positions) || {}) };
-  for (const [id, position] of Object.entries(local?.positions || {})) {
-    const existing = merged.positions[id];
-    // A close is a fact. Never let an open snapshot undo one.
-    merged.positions[id] = existing?.status === "CLOSED" && position.status !== "CLOSED"
-      ? existing
-      : position;
-  }
-  merged.rejected = Math.max(Number(remote?.rejected) || 0, Number(local?.rejected) || 0);
-  return merged;
-}
-
-function accuracyView({ store = null } = {}) {
-  store = store || load();
-  const summary = trackRecord({ store });
-  const closed = Object.values(store.positions || {})
-    .filter((p) => p.status === "CLOSED" && p.closePrice !== null);
-
-  const days = closed
-    .map((p) => (Date.parse(p.closedAt) - Date.parse(p.openedAt)) / 86400000)
-    .filter((d) => Number.isFinite(d) && d >= 0);
+/** The ledger in the shape the desk's scorecard already reads. */
+function accuracyView({ db = null } = {}) {
+  const handle = database(db);
+  const summary = trackRecord({ db: handle });
+  const closed = handle.db.prepare(
+    "SELECT * FROM signals_lifecycle WHERE status = 'CLOSED' ORDER BY closed_at DESC LIMIT 100"
+  ).all();
+  const days = closed.map((r) => r.days_active).filter((d) => Number.isFinite(d));
 
   return {
     hasTrackRecord: summary.available,
@@ -334,37 +233,97 @@ function accuracyView({ store = null } = {}) {
     winRatePct: summary.winRatePct,
     totalFollowPnl: summary.totalPnlRupees,
     profitFactor: summary.profitFactor,
-    avgDaysOnScreen: days.length ? Math.round((days.reduce((a, b) => a + b, 0) / days.length) * 10) / 10 : null,
+    avgDaysOnScreen: days.length ? round2(days.reduce((a, b) => a + b, 0) / days.length) : null,
     openPositions: summary.open || 0,
     recordedTotal: summary.recorded || 0,
-    backdatedRejections: summary.backdatedRejections || 0,
-    source: "SIGNAL_PAPER_LEDGER",
+    source: "SIGNALS_LIFECYCLE_TABLE",
     basis: summary.basis || "OBSERVED_PRICES_ONLY",
-    archived: closed
-      .sort((a, b) => String(b.closedAt).localeCompare(String(a.closedAt)))
-      .slice(0, 100)
-      .map((p) => ({
-        signal_id: p.id,
-        trading_symbol: `${p.symbol}${p.strike}${p.right}`,
-        instrument_type: p.right,
-        lot_size: p.lotSize,
-        issued_at: p.openedAt,
-        entry_price: p.entryPrice,
-        exit_price: p.closePrice,
-        status: p.closeReason,
-        pnl_rupees: p.pnlRupees,
-        entry_source: p.entryPriceSource,
-        exit_source: p.closePriceSource
-      }))
+    archived: closed.map((r) => ({
+      signal_id: r.id,
+      trading_symbol: r.trading_symbol,
+      instrument_type: r.option_type,
+      lot_size: r.lot_size,
+      issued_at: r.issued_at,
+      entry_price: r.entry_price,
+      exit_price: r.current_price,
+      status: r.exit_reason,
+      pnl_rupees: r.pnl_rupees,
+      entry_source: r.entry_price_source,
+      exit_source: r.exit_price_source
+    }))
   };
 }
 
+/**
+ * Back the database up off the box.
+ *
+ * SQLite is the store, but on Render's free tier it sits on a disk wiped by
+ * every deploy. A track record that resets whenever the code changes is not a
+ * track record, so the signal rows mirror to the Apps Script store and are
+ * restored on boot. This backs up the ONE store rather than being a second one:
+ * nothing reads from it except the restore path.
+ */
+async function syncToRemote({ db = null } = {}) {
+  const google = require("./google-store");
+  if (!google.googleStoreConfigured()) return { ok: false, reason: "GOOGLE_STORE_NOT_CONFIGURED" };
+  const handle = database(db);
+  try {
+    const rows = handle.db.prepare("SELECT * FROM signals_lifecycle").all();
+    const remote = await google.readGoogleDocument(REMOTE_PATH, null);
+    const merged = mergeRows(remote?.data?.rows || [], rows);
+    await google.writeGoogleDocument(REMOTE_PATH, { version: 2, rows: merged }, remote?.etag);
+    return { ok: true, positions: merged.length };
+  } catch (error) {
+    // A failed backup must never disturb the live ledger.
+    return { ok: false, reason: error.message };
+  }
+}
+
+/** Restore after a deploy wiped the disk. */
+async function restoreFromRemote({ db = null } = {}) {
+  const google = require("./google-store");
+  if (!google.googleStoreConfigured()) return { ok: false, reason: "GOOGLE_STORE_NOT_CONFIGURED" };
+  const handle = database(db);
+  try {
+    const remote = await google.readGoogleDocument(REMOTE_PATH, null);
+    const rows = remote?.data?.rows;
+    if (!Array.isArray(rows) || !rows.length) return { ok: false, reason: "NOTHING_STORED_REMOTELY" };
+    const columns = new Set(handle.db.prepare("PRAGMA table_info(signals_lifecycle)").all().map((c) => c.name));
+    let restored = 0;
+    for (const row of rows) {
+      // Never overwrite a local row: the live database is the authority, and a
+      // stale backup must not reopen something that has since closed.
+      if (handle.db.prepare("SELECT id FROM signals_lifecycle WHERE id = ?").get(row.id)) continue;
+      const names = Object.keys(row).filter((k) => columns.has(k));
+      if (!names.length) continue;
+      handle.db.prepare(
+        `INSERT INTO signals_lifecycle (${names.join(", ")}) VALUES (${names.map(() => "?").join(", ")})`
+      ).run(...names.map((k) => row[k]));
+      restored += 1;
+    }
+    return { ok: true, positions: restored };
+  } catch (error) {
+    return { ok: false, reason: error.message };
+  }
+}
+
+/**
+ * Union by id, local winning. A CLOSED row is never replaced by an open one,
+ * whichever side holds it: two containers both writing would otherwise let a
+ * later, emptier snapshot erase finished trades.
+ */
+function mergeRows(remoteRows, localRows) {
+  const byId = new Map();
+  for (const row of remoteRows || []) byId.set(row.id, row);
+  for (const row of localRows || []) {
+    const existing = byId.get(row.id);
+    byId.set(row.id, existing?.status === "CLOSED" && row.status !== "CLOSED" ? existing : row);
+  }
+  return [...byId.values()];
+}
+
 module.exports = {
-  REMOTE_PATH,
-  accuracyView,
-  mergeStores,
-  restoreFromRemote,
-  syncToRemote,
-  MAX_BACKDATE_MS, STORE_FILE,
-  emptyStore, load, markToMarket, record, save, signalId, trackRecord
+  MAX_BACKDATE_MS, REMOTE_PATH,
+  accuracyView, database, markToMarket, mergeRows, record,
+  restoreFromRemote, signalId, syncToRemote, trackRecord
 };
