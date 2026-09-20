@@ -70,6 +70,29 @@ function identifyCandlestickPatterns(rawBars) {
   const prev = bars[bars.length - 2];
   const prev2 = bars[bars.length - 3];
 
+  // THE PRIOR TREND, WITHOUT WHICH HALF THESE PATTERNS HAVE NO MEANING.
+  //
+  // This is the oldest rule in Japanese candlestick analysis and it was missing.
+  // A long lower shadow is a HAMMER after a decline and a HANGING MAN after a
+  // rally -- the SAME GEOMETRY, opposite meanings, told apart only by what came
+  // before. Likewise a long upper shadow is a SHOOTING STAR after a rally and an
+  // INVERTED HAMMER after a decline.
+  //
+  // Measured across 210 symbols before this fix: 22 of 23 detections labelled
+  // SHOOTING_STAR (bearish) had followed a DOWNTREND, which makes them Inverted
+  // Hammers and classically BULLISH. The sign was inverted on 96% of the second
+  // most common pattern the engine emits, and candlesticks carry 15% of the
+  // composite weight.
+  //
+  // Five sessions back is the conventional look-back for "the prior trend" on a
+  // daily chart: long enough to be a move, short enough to still be the context
+  // this candle is reacting to.
+  const trendLookback = Math.min(6, bars.length - 1);
+  const trendFrom = bars[bars.length - 1 - trendLookback];
+  const priorTrend = trendFrom && Number.isFinite(trendFrom.close) && Number.isFinite(prev.close)
+    ? (prev.close > trendFrom.close ? "UP" : prev.close < trendFrom.close ? "DOWN" : "FLAT")
+    : "UNKNOWN";
+
   const detected = [];
 
   // ==========================================
@@ -190,23 +213,36 @@ function identifyCandlestickPatterns(rawBars) {
   // 3. SINGLE-CANDLE PATTERNS
   // ==========================================
 
-  // Hammer / Bullish Pinbar: Long lower shadow (>= 2x body), small upper shadow
+  // Long lower shadow. HAMMER after a decline, HANGING MAN after a rally.
   if (curr.lowerToBody >= 2.0 && curr.upperShadow <= Math.max(curr.body * 0.8, curr.range * 0.15)) {
+    const isHammer = priorTrend === "DOWN";
     detected.push({
-      name: "HAMMER",
-      bias: "BULLISH",
-      reliability: 0.75,
-      description: "Aggressive lower price rejection by buyers."
+      name: isHammer ? "HAMMER" : priorTrend === "UP" ? "HANGING_MAN" : "LOWER_SHADOW_REJECTION",
+      bias: isHammer ? "BULLISH" : priorTrend === "UP" ? "BEARISH" : "NEUTRAL",
+      // A pattern read without its context is worth less than one read with it.
+      reliability: priorTrend === "UNKNOWN" || priorTrend === "FLAT" ? 0.50 : 0.75,
+      priorTrend,
+      description: isHammer
+        ? "Hammer: buyers reject lower prices after a decline."
+        : priorTrend === "UP"
+          ? "Hanging Man: the same shape after a rally, which warns rather than invites."
+          : "Lower rejection with no clear prior trend, so no reversal claim is made."
     });
   }
 
-  // Shooting Star / Bearish Pinbar: Long upper shadow (>= 2x body), small lower shadow
+  // Long upper shadow. SHOOTING STAR after a rally, INVERTED HAMMER after a decline.
   if (curr.upperToBody >= 2.0 && curr.lowerShadow <= Math.max(curr.body * 0.8, curr.range * 0.15)) {
+    const isShootingStar = priorTrend === "UP";
     detected.push({
-      name: "SHOOTING_STAR",
-      bias: "BEARISH",
-      reliability: 0.75,
-      description: "Aggressive overhead supply rejection by sellers."
+      name: isShootingStar ? "SHOOTING_STAR" : priorTrend === "DOWN" ? "INVERTED_HAMMER" : "UPPER_SHADOW_REJECTION",
+      bias: isShootingStar ? "BEARISH" : priorTrend === "DOWN" ? "BULLISH" : "NEUTRAL",
+      reliability: priorTrend === "UNKNOWN" || priorTrend === "FLAT" ? 0.50 : 0.75,
+      priorTrend,
+      description: isShootingStar
+        ? "Shooting Star: sellers reject higher prices after a rally."
+        : priorTrend === "DOWN"
+          ? "Inverted Hammer: the same shape after a decline, classically bullish."
+          : "Upper rejection with no clear prior trend, so no reversal claim is made."
     });
   }
 

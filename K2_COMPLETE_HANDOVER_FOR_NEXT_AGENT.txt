@@ -1,6 +1,7 @@
 ================================================================================
 K² QUANTITATIVE RANGE DESK — COMPLETE HANDOVER
-Written 2026-09-20. Read this end to end before changing anything.
+Written 2026-09-20, revised the same evening after a full production audit.
+Read this end to end before changing anything.
 ================================================================================
 
 This file exists so the next agent does not have to rediscover, by argument and
@@ -24,8 +25,8 @@ to stop, and how long it should take.
   Live URL      https://k-square31.onrender.com
   Repository    github.com/kuldeep-oo7/k-square31, branch main
   Owner         Kuldeep (kuldeepsavaliya70@gmail.com)
-  Size          ~35,600 lines across api/, scripts/, site/, server.js
-  Commits       232
+  Size          ~36,500 lines across api/, scripts/, site/, server.js
+  Commits       241
   Language      Node.js (CommonJS, no framework, no build step)
 
 WHO IT IS FOR: one user, trading his own money, on a phone during market hours.
@@ -82,8 +83,17 @@ PROVEN (measured, reproducible, tested):
   - Open interest agrees with the NSE bhavcopy on 487 of 500 contracts.
   - At-the-money premiums sit 2.05% (median) from the exchange settled price.
   - Lot sizes agree with the bhavcopy across 659 contracts, zero disagreements.
-  - Black-Scholes / Black-76 pricing, Greeks by finite difference, IV inversion.
+  - Black-Scholes matches Hull's published values: call 4.7594 and put 0.8086
+    to within 2.3e-5 and 2.3e-8; all five Greeks to three decimals; put-call
+    parity with dividends to 7.11e-15; IV round trip to 2.79e-10.
   - The arithmetic of every vertical spread payoff at expiry.
+  - The volatility surface is coherent once priced on the future: RICH 98,
+    FAIR 160, CHEAP 102, EXPENSIVE 60 — implied above realized, as real option
+    markets behave — with IV spanning 13.6% to 85%, median 23.5%.
+  - A simulated trading day (`npm run rehearse`) passes 34 checks against moving
+    prices: a wilder stock raises P(touch) AND shortens time to target, a
+    dropped feed leaves the last real mark alone, and a loss is recorded as
+    exactly (exit - entry) x lot.
 
 NOT PROVEN — THE SIGNAL DOES NOT HAVE A MEASURED EDGE:
   - Pre-registered out-of-sample test: 112 symbols never touched in development,
@@ -139,9 +149,22 @@ working: configured true, ready true, session UNATTENDED_TOTP with a live token.
 Environment variables (ANGELONE_API_KEY, ANGELONE_CLIENT_CODE, ANGELONE_MPIN,
 ANGELONE_TOTP_SECRET) remain an equivalent alternative.
 
-STILL ABSENT: K2_GOOGLE_SHEETS_WEB_APP_URL and K2_GOOGLE_SHEETS_ARCHIVE_SECRET.
-Without them the ledger has no durable backup. The values in
-.private/production.env are 11-character placeholders, not real credentials.
+DURABLE LEDGER BACKUP: LIVE as of 2026-09-20. The Apps Script archive
+(google-sheets/K2MarketArchive.gs) is deployed, and both
+K2_GOOGLE_SHEETS_WEB_APP_URL and K2_GOOGLE_SHEETS_ARCHIVE_SECRET are set on
+Render and VERIFIED FROM RENDER ITSELF — "Restored 1 rows from the archive" —
+rather than merely configured.
+
+  - /api/state exposes liveFeed.persistence.ledgerVerified, true only once a
+    call has actually SUCCEEDED from that host. Configured and working are
+    different facts and are reported separately.
+  - Google's dashboard offers a URL shaped /macros/u/1/s/<id>/exec, where u/1
+    names WHICH signed-in browser account is looking. That URL returns 404 from
+    a server. The code strips the account selector so a pasted link works, but
+    know the shape.
+  - When redeploying the Apps Script use "Manage deployments" and EDIT the
+    existing one. "New deployment" mints a different /exec URL, the old one
+    keeps working, and Render silently keeps writing to the old version.
 
 SECURITY NOTE: the Angel TOTP secret has appeared in screenshots and in the
 assistant transcript. It should be re-enrolled. Anyone holding it plus the
@@ -156,8 +179,10 @@ client code can log into the trading account.
                           resolved-path containment; /api/* 404s as JSON;
                           /api/state is the one big read endpoint; SSE stream.
   api/_lib/               64 modules. The whole system. Detailed below.
-  scripts/                110 scripts, 66 of them tests. `npm run check` runs
-                          the suite: 170 assertions, all green as of 2026-09-20.
+  scripts/                67 test scripts among others. `npm run check` runs the
+                          suite: 219 assertions, green as of 2026-09-20.
+                          `npm run rehearse` drives a whole simulated trading
+                          day and is the thing to run before any session.
   site/                   index.html (static portal) and live-desk.html (THE
                           DESK — this is what "/" serves; see server.js
                           APP_ENTRY). All card rendering lives here, inline.
@@ -235,6 +260,29 @@ PRICING WATERFALL — each step down is LABELLED, never silently substituted:
     NO_TRADED_PRICE        refused
     (a model price NEVER reaches a card as a tradeable premium)
 
+THE UNDERLYING WATERFALL — read this before touching any pricing code:
+
+    LIVE_BROKER_FUTURE         Angel's live futures quote        208 of 210 cards
+    EXCHANGE_SETTLED_FUTURE    the bhavcopy futures price        the 2 indices
+    CASH_SPOT_NO_FUTURE        the equity share price            LAST RESORT
+
+AN INDIAN STOCK OPTION IS AN OPTION ON THE FUTURE. Pricing one against the cash
+share is not a rounding error. Measured on APOLLOHOSP on 2026-09-20: cash
+8944.38 against a future of 8865, a gap of 0.90%, which turned an at-the-money
+implied volatility of 13.74% into 6.02% — understated by 7.72 points — and
+produced a smile ramping 6% to 13% across four strikes, a shape no real option
+market makes. Across the universe the cash share is off by a median of 0.77% and
+up to 3.07%, and THE SIGN FLIPS PER NAME (COFORGE -2.50%, RELIANCE +1.22%), so
+it does not cancel: it distorted every symbol differently and therefore
+distorted the ranking BETWEEN them.
+
+Put-call parity gives the market's own forward with no model at all, and is the
+check to use if you ever doubt this:  F = K + (C - P)·e^(rT).  On APOLLOHOSP it
+returned 8869.44, 8871.19 and 8870.10 from three different strikes while the
+cash share said 8944.38. The options were telling us the right number.
+
+Every card carries `pricingBasis` and `pricingUnderlying` so this is auditable.
+
 
 ================================================================================
 7. THE FRESHNESS CONTRACT (live-quotes.js)
@@ -283,10 +331,19 @@ credentials there was no quote, the phase was undefined, and every card printed
 
 OPTION PRICING (api/_lib/option-pricing.js)
   Black-Scholes-Merton     C = S·e^(-qT)·N(d1) - K·e^(-rT)·N(d2)
-  Black-76                 on the FUTURES price, which is correct for Indian
-                           stock options — they are options on the future.
-                           Switching from spot to future moved the median
-                           25-delta skew from -0.9 to +0.1.
+  THE UNDERLYING           An Indian stock option is an option ON THE FUTURE,
+                           and everything is priced on the live futures quote.
+                           See the underlying waterfall in section 6. Using the
+                           cash share understated at-the-money implied
+                           volatility by 7.72 points on APOLLOHOSP and by a
+                           median of 0.77% of underlying across the universe,
+                           with the SIGN FLIPPING per name so it never cancels.
+  Put-call parity          C - P = (F - K)e^(-rT). Used two ways: as an identity
+                           check that calls and puts are not transposed (slope
+                           -0.995, R² 0.9999), and to recover THE MARKET'S OWN
+                           FORWARD with no model at all, F = K + (C - P)e^(rT).
+                           That is the tool to reach for whenever an implied
+                           volatility looks wrong.
   Greeks                   delta, gamma, theta, vega, rho; verified against
                            finite differences.
   Implied volatility       bisection, 200 iterations, 1e-8 tolerance, bracketed
@@ -300,7 +357,13 @@ VOLATILITY (api/_lib/trade-odds.js)
   Parkinson RV             σ = sqrt( mean(ln(H/L)²) / (4·ln2) ) · sqrt(252)
                            ~5x more efficient; a stock that travels widely and
                            closes flat shows nothing in a close-to-close series.
-  Variance risk premium    IV / RV. THE number retail never sees and the one
+  Variance risk premium    IV / RV, with the realized window MATCHED TO THE
+                           OPTION'S TENOR — comparing a 20-day backward estimate
+                           with a 9-day forward implied volatility measures two
+                           different horizons. IV is solved with the time to
+                           expiry that applied WHEN THE PREMIUM WAS STRUCK, not
+                           now, or a weekend inflates every reading by 1.3 to
+                           1.9 points. THE number retail never sees and the one
                            that most reliably decides the outcome. An option's
                            price is a price for future MOVEMENT: paying 32%
                            implied on a stock realizing 23% means overpaying by
@@ -428,6 +491,46 @@ CRASHES AND CAPACITY
   - The same option chain was serialised twice: nested on every universe row and
     again as the array the page renders from.
 
+WRONG INPUT, RIGHT FORMULA — the 2026-09-20 audit
+  - OPTIONS WERE PRICED AGAINST THE CASH SHARE, NOT THE FUTURE. The single
+    largest correctness defect found to date. An Indian stock option is an
+    option on the future; pricing it on the equity understated at-the-money
+    implied volatility by 7.72 points on APOLLOHOSP (6.02% where the truth was
+    13.74%) and produced a smile ramping 6% to 13% across four strikes, a shape
+    no real market makes. The SYMPTOM was visible and easy to miss: the top five
+    recommendations all came back CHEAP, and the whole universe read CHEAP 154
+    against EXPENSIVE 122 — implied BELOW realized, which is the reverse of how
+    option markets behave. Because the desk ranks on cheap-versus-expensive, it
+    was systematically selecting the names whose underlying error was largest.
+    THE LESSON: when a verdict is lopsided across a whole universe, suspect the
+    input, not the market. Put-call parity recovers the true forward with no
+    model at all and would have caught this in one line.
+  - TWO GUARDS THAT HAD NEVER FIRED. The fundamentals cache directory did not
+    exist, so getCachedFundamentals returned null for all 210 names. The
+    earnings veto (fund?.events?.insideTradingWeek) was undefined every time —
+    so the desk could recommend buying premium into an earnings announcement,
+    the one setup where being right about direction still loses. The
+    balance-sheet penalty never fired either: 21 names carry debt-to-equity over
+    200, CHOLAFIN at 695, all ranked as though clean. Both read as working code.
+    Neither had data. LOOK FOR THIS SHAPE: a guard whose input is never
+    populated is worse than no guard, because nobody looks for it.
+  - A FIFTH OF THE COMPOSITE SCORE WAS TWO CONSTANTS. chart and vpin took the
+    same value (50) for all 210 names, so they added ten points to everything
+    and ranked nothing, while the published componentWeights claimed they did
+    20% of the work. The formula also binarised hurst, collapsing 160 distinct
+    values onto {50, 85} across a single threshold.
+  - 972 OF 5,791 SETTLED CALLS ARE PRICED BELOW INTRINSIC VALUE, across 168
+    symbols — POWERINDIA 26000 CE settled at 4,162 against an intrinsic of
+    6,699. NSE derives settlement prices for contracts that did not trade. None
+    reach a card (the desk picks near the money) but an implied volatility
+    solved from one is meaningless, so they are refused explicitly.
+  - THE REALIZED WINDOW DID NOT MATCH THE TENOR. A 20-day backward volatility
+    was being compared with a 9-day forward implied volatility and the
+    difference called a variance risk premium. Different horizons.
+  - IV WAS SOLVED AT THE WRONG TIME. A settled premium struck on Friday was
+    priced against Monday's shorter time to expiry, attributing the same money
+    to less time and inflating every reading by 1.3 to 1.9 points.
+
 DATA INTEGRITY
   - 343 of 421 cards carried the WRONG LOT SIZE and 72 strikes did not exist,
     because the contract reference was gitignored and never built on the server.
@@ -509,13 +612,23 @@ not set.
      distinct stamps from 15:39:51 to 15:40:09 across 565 contracts.
      IF IT FAILS: widen the window to the measured lag AND SAY IT WAS WIDENED.
      Never silently relabel a lagging book as live.
-  2. The ledger has no durable backup until the two Google env vars are set.
+  2. CLOSED 2026-09-20. The durable backup is live and verified from Render.
   3. Render free tier: spin-down and ephemeral disk. $7/month fixes both.
   4. The TOTP secret is exposed and should be re-enrolled.
-  5. The CNN is untrained. VPIN returns null. The chart-pattern detector exposes
-     no strength value.
+  5. The CNN is untrained. VPIN returns null — and is now REMOVED from the
+     score rather than silently counted as a constant. The chart-pattern
+     detector runs but no symbol currently reports a dominant pattern, so it is
+     also out of the weighting and declared in `inactiveComponents`. If either
+     is ever implemented, put it back explicitly.
   6. The signal has no measured edge. The paper ledger exists to settle this
      with evidence rather than argument. Let it run before believing anything.
+     NOTE: everything recorded BEFORE 2026-09-20 evening was priced off the cash
+     share and its implied volatilities are wrong. Treat that as a different
+     system; the honest record starts from the futures-pricing fix.
+  7. The 667 contracts still below intrinsic when measured against the FUTURE
+     (down from 972 against the cash share) are NSE-derived settlement prices
+     for contracts that did not trade. They are refused, not repaired. If a live
+     broker book is ever available for them the problem disappears on its own.
 
 
 ================================================================================
