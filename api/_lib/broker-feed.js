@@ -147,6 +147,16 @@ async function refreshInstruments(provider, { timeoutMs = 180_000 } = {}) {
     const rows = JSON.parse(await response.text());
     const underlyings = {};
     const options = {};
+    // FUTURES ARE A SEPARATE INSTRUMENT AND WERE BEING DISCARDED.
+    //
+    // The master was filtered to cash equities and options only, so the desk
+    // had no live futures price and fell back to the end-of-day bhavcopy for
+    // one. That matters because an Indian stock option is priced off its
+    // FUTURE: measured on APOLLOHOSP, using the cash share (8944.38) instead of
+    // the future (8865) understated at-the-money implied volatility by 7.72
+    // points. A stale futures price is better than a cash price and worse than
+    // a live one, and only the live one is a market price.
+    const futures = {};
     for (const row of rows) {
       const type = row.instrumenttype;
       const name = String(row.name || "").trim().toUpperCase();
@@ -154,6 +164,14 @@ async function refreshInstruments(provider, { timeoutMs = 180_000 } = {}) {
       if ((type === "" || type === undefined) && row.exch_seg === "NSE") {
         // Cash equity rows carry no instrumenttype on this feed.
         if (!underlyings[name]) underlyings[name] = { token: String(row.token), exchange: "NSE", symbol: row.symbol };
+        continue;
+      }
+      if (type === "FUTSTK" || type === "FUTIDX") {
+        const expiry = normaliseAngelExpiry(row.expiry);
+        if (!expiry) continue;
+        futures[`${name}|${expiry}`] = {
+          token: String(row.token), symbol: row.symbol, lotSize: num(row.lotsize), exchange: row.exch_seg
+        };
         continue;
       }
       if (type === "OPTSTK" || type === "OPTIDX") {
@@ -168,7 +186,13 @@ async function refreshInstruments(provider, { timeoutMs = 180_000 } = {}) {
         };
       }
     }
-    const payload = { provider, fetchedAt: new Date().toISOString(), underlyingCount: Object.keys(underlyings).length, optionCount: Object.keys(options).length, underlyings, options };
+    const payload = {
+      provider, fetchedAt: new Date().toISOString(),
+      underlyingCount: Object.keys(underlyings).length,
+      optionCount: Object.keys(options).length,
+      futuresCount: Object.keys(futures).length,
+      underlyings, options, futures
+    };
     fs.writeFileSync(instrumentCachePath(provider), JSON.stringify(payload));
     memo[provider] = payload;
     return payload;
@@ -371,6 +395,88 @@ async function angelOptionChain(symbol, expiry, { timeoutMs = 20_000, strikesEit
 }
 
 /** Whichever provider is configured, normalised the same way. */
+/**
+ * LIVE futures prices, straight from the broker.
+ *
+ * An Indian stock option is an option ON THE FUTURE, so the future's price is
+ * what prices it. The desk was taking that number from the end-of-day bhavcopy
+ * because the instrument master discarded futures entirely, which meant that
+ * during a live session every implied volatility, every probability and every
+ * cheap-versus-expensive verdict rested on yesterday's forward.
+ *
+ * Measured on APOLLOHOSP: the cash share at 8944.38 against a future of 8865 --
+ * a gap of 0.90% -- understated at-the-money implied volatility by 7.72 points
+ * and produced a smile that ramped from 6% to 13% across four strikes. On the
+ * future the same chain reads 13.04 / 13.74 / 14.03 / 14.57 / 15.70.
+ *
+ * Batched, because Angel caps a quote request at 50 tokens and 210 names would
+ * otherwise be 210 round trips.
+ */
+async function futuresQuotes(requests, { timeoutMs = 20_000, batchSize = 50 } = {}) {
+  const credentials = credentialsFor("angelone");
+  if (!credentials) return { ok: false, reason: "NOT_CONFIGURED_NO_CREDENTIALS", quotes: {} };
+  const instruments = loadInstruments("angelone");
+  if (!instruments?.futures) return { ok: false, reason: "NO_FUTURES_IN_INSTRUMENT_MASTER", quotes: {} };
+
+  const wanted = [];
+  for (const request of Array.isArray(requests) ? requests : []) {
+    const symbol = String(request?.symbol || "").toUpperCase();
+    const expiry = String(request?.expiry || "").slice(0, 10);
+    const contract = instruments.futures[`${symbol}|${expiry}`];
+    // Spread FIRST: the instrument row carries its own `symbol` (the trading
+    // symbol, APOLLOHOSP29SEP26FUT) and would otherwise overwrite the
+    // underlying name the caller asked for, so every key came back unmatched.
+    if (contract?.token) wanted.push({ ...contract, symbol, expiry, tradingSymbol: contract.symbol });
+  }
+  if (!wanted.length) return { ok: false, reason: "NO_MATCHING_FUTURES", quotes: {} };
+
+  const quotes = {};
+  const failures = [];
+  for (let i = 0; i < wanted.length; i += batchSize) {
+    const batch = wanted.slice(i, i + batchSize);
+    try {
+      const response = await fetch(`${ANGEL_ROOT}/rest/secure/angelbroking/market/v1/quote`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", Accept: "application/json",
+          "X-UserType": "USER", "X-SourceID": "WEB",
+          "X-PrivateKey": credentials.apiKey,
+          "X-ClientLocalIP": "127.0.0.1", "X-ClientPublicIP": "127.0.0.1", "X-MACAddress": "00:00:00:00:00:00",
+          Authorization: `Bearer ${credentials.accessToken}`
+        },
+        body: JSON.stringify({ mode: "FULL", exchangeTokens: { NFO: batch.map((c) => c.token) } }),
+        signal: AbortSignal.timeout(timeoutMs)
+      });
+      if (!response.ok) { failures.push(`HTTP_${response.status}`); continue; }
+      const payload = await response.json();
+      const byToken = new Map(batch.map((c) => [String(c.token), c]));
+      for (const row of payload?.data?.fetched || []) {
+        const contract = byToken.get(String(row.symbolToken));
+        if (!contract) continue;
+        const last = num(row.ltp);
+        // A future with no last price is not a forward anybody quoted.
+        if (!(last > 0)) continue;
+        quotes[`${contract.symbol}|${contract.expiry}`] = {
+          symbol: contract.symbol, expiry: contract.expiry,
+          tradingSymbol: contract.tradingSymbol,
+          price: last,
+          bid: num(row.depth?.buy?.[0]?.price),
+          ask: num(row.depth?.sell?.[0]?.price),
+          openInterest: num(row.opnInterest),
+          volume: num(row.tradeVolume),
+          lotSize: contract.lotSize,
+          // The exchange's own clock, so staleness is measurable.
+          exchangeFeedTime: row.exchFeedTime || null,
+          provider: "angelone", source: "ANGELONE_SMARTAPI_FUTURES_LIVE"
+        };
+      }
+    } catch (error) {
+      failures.push(error.message);
+    }
+  }
+  return { ok: Object.keys(quotes).length > 0, provider: "angelone", quotes, failures, requested: wanted.length };
+}
+
 async function optionChain(symbol, expiry, options = {}) {
   const preferred = options.provider || status().activeProvider;
   if (!preferred) return { ok: false, reason: "NO_BROKER_CONFIGURED", detail: status(), chain: null };
@@ -388,6 +494,7 @@ function quoteFromChain(chain, strike, optionType) {
 }
 
 module.exports = {
+  futuresQuotes,
   CREDENTIAL_PATHS, credentialFile,
   ANGEL_INSTRUMENTS, ANGEL_ROOT, CREDENTIALS_FILE, PROVIDERS, UPSTOX_INSTRUMENTS, UPSTOX_ROOT,
   angelOptionChain, credentialsFor, instrumentCachePath, loadInstruments,

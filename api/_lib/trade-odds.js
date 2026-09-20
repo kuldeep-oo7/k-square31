@@ -195,11 +195,25 @@ function tradeOdds({ spot, bars, impliedVol, breakevenLong, breakevenFull, daysT
     return { available: false, reason: "INSUFFICIENT_DATA_FOR_ODDS" };
   }
 
-  const rv20 = closeToCloseVol(bars, 20);
+  // MATCH THE WINDOW TO THE TENOR.
+  //
+  // This compared a 20-day BACKWARD realized volatility against a 9-day FORWARD
+  // implied volatility and called the difference a variance risk premium. Those
+  // measure different horizons: a stock that was wild three weeks ago and calm
+  // since reads EXPENSIVE, and one that just started moving reads CHEAP, in
+  // both cases because of days the option does not cover.
+  //
+  // The option's own tenor is the right window. Bounded at 10 so an estimate
+  // never rests on a handful of bars, and at 60 so a long-dated contract does
+  // not reach back into a different regime.
+  const tenorWindow = Math.max(10, Math.min(60, Math.round(Number(daysToExpiry) || 20)));
+  const rvTenor = closeToCloseVol(bars, tenorWindow);
   const rvAll = closeToCloseVol(bars);
-  const park20 = parkinsonVol(bars, 20);
+  const parkTenor = parkinsonVol(bars, tenorWindow);
   // Prefer Parkinson where a real range exists: same data, less noise.
-  const realized = park20 || rv20 || rvAll;
+  const realized = parkTenor || rvTenor || rvAll;
+  const rv20 = rvTenor;
+  const park20 = parkTenor;
   if (!(realized > 0)) return { available: false, reason: "REALIZED_VOLATILITY_UNAVAILABLE" };
 
   const side = (level) => {
@@ -217,9 +231,10 @@ function tradeOdds({ spot, bars, impliedVol, breakevenLong, breakevenFull, daysT
     daysToExpiry: Number(daysToExpiry),
     barsUsed: bars.length,
     realizedVolPct: Math.round(realized * 1000) / 10,
-    realizedCloseToClose20Pct: rv20 ? Math.round(rv20 * 1000) / 10 : null,
-    realizedParkinson20Pct: park20 ? Math.round(park20 * 1000) / 10 : null,
-    estimator: park20 ? "PARKINSON_20D" : rv20 ? "CLOSE_TO_CLOSE_20D" : "CLOSE_TO_CLOSE_ALL",
+    realizedCloseToClosePct: rvTenor ? Math.round(rvTenor * 1000) / 10 : null,
+    realizedParkinsonPct: parkTenor ? Math.round(parkTenor * 1000) / 10 : null,
+    estimator: parkTenor ? `PARKINSON_${tenorWindow}D` : rvTenor ? `CLOSE_TO_CLOSE_${tenorWindow}D` : "CLOSE_TO_CLOSE_ALL",
+    realizedWindowDays: tenorWindow,
     probabilityOfProfitPct: pProfit === null ? null : Math.round(pProfit * 1000) / 10,
     probabilityOfLossPct: pProfit === null ? null : Math.round((1 - pProfit) * 1000) / 10,
     probabilityOfMaxProfitPct: pFull === null ? null : Math.round(pFull * 1000) / 10,

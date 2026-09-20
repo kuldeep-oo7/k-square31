@@ -423,6 +423,20 @@ class RealtimeMarketEngine {
       if (!requests.length) return null;
       const result = await live.refreshQuotes(requests);
       if (result.ok) console.log(`[K² Live Quotes] ${result.refreshed}/${result.requested} chains from ${result.provider}`);
+
+      // The FUTURES price, for every listed name, because an Indian stock
+      // option is priced off its future and the cash share is off by as much as
+      // 2.5%. Cheap to fetch -- one quote per symbol, batched 50 at a time.
+      try {
+        const all = fnoUniverseEngine.getUniverse(this.macroState).map((row) => {
+          const entry = contractRef?.symbols?.[row.symbol];
+          return entry?.frontExpiry ? { symbol: row.symbol, expiry: entry.frontExpiry } : null;
+        }).filter(Boolean);
+        const futures = await live.refreshFutures(all);
+        if (futures.ok) console.log(`[K² Live Futures] ${futures.count} forwards refreshed`);
+      } catch (error) {
+        console.error("Futures refresh failed:", error.message);
+      }
       // Say plainly, in the server log, whether the feed is usable. The way
       // this fails is quiet -- nothing throws and every test passes -- so it
       // has to announce itself rather than wait to be asked.

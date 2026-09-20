@@ -16,6 +16,7 @@ const {
 } = require("./fno-reference");
 const { liveQuote: liveBrokerQuote } = require("./live-quotes");
 const { marketPhase: sessionPhase } = require("./live-quotes");
+const { liveFuture: liveFuturePrice } = require("./live-quotes");
 const { longOptionExits, verticalSpreadExits } = require("./exit-levels");
 const { tradeOdds } = require("./trade-odds");
 const { impliedVolatility: solveImpliedVolatility } = require("./option-pricing");
@@ -166,9 +167,43 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
   const r = 0.065; // RBI Repo Rate (6.5%)
   const q = 0.012; // Continuous dividend yield assumption
 
+  // PRICE AGAINST THE FUTURE, NOT THE CASH EQUITY.
+  //
+  // Indian stock options are options ON THE FUTURE. Pricing them against the
+  // equity spot silently substitutes the wrong underlying, and the error is not
+  // academic -- measured on APOLLOHOSP, spot 8944.38 against a future of 8865,
+  // a gap of 0.90%, understated at-the-money implied volatility by 7.72 points
+  // (6.02% instead of 13.74%) and produced a smile that ramped 6% to 13% across
+  // four strikes. Priced on the future the same chain reads 13.04 / 13.74 /
+  // 14.03 / 14.57 / 15.70: a flat, ordinary smile, and the in-the-money strike
+  // that would not solve at all now solves cleanly.
+  //
+  // Because the desk RANKS on cheap-versus-expensive, a systematic bias in
+  // implied volatility is a systematic bias in what it recommends -- it was
+  // selecting the contracts whose underlying error was largest. Put-call parity
+  // confirms the exchange's own forward across strikes: 8869.44, 8871.19,
+  // 8870.10 against the reference's 8865.
+  //
+  // The futures price was already in the contract reference, unused.
+  // LIVE broker future first, then the exchange file, and only then the cash
+  // share -- each step down labelled, never silently substituted, exactly as
+  // the premium waterfall works. The cash share is the worst of the three and
+  // is off by up to 2.5% (COFORGE -2.50%, RELIANCE +1.22%), which is an
+  // enormous error in an option price.
+  const pricing = (() => {
+    const live = listedExpiry ? liveFuturePrice(symbol, listedExpiry) : null;
+    if (live?.price > 0) return { price: live.price, basis: "LIVE_BROKER_FUTURE" };
+    const bucket = contractRef?.symbols?.[symbol]?.expiries?.[listedExpiry];
+    const settled = Number(bucket?.futuresPrice);
+    if (Number.isFinite(settled) && settled > 0) return { price: settled, basis: "EXCHANGE_SETTLED_FUTURE" };
+    return { price: spot, basis: "CASH_SPOT_NO_FUTURE_AVAILABLE" };
+  })();
+  const pricingUnderlying = pricing.price;
+  const pricingBasis = pricing.basis;
+
   const callBsm = europeanOption({
     model: "BSM",
-    underlyingPrice: spot,
+    underlyingPrice: pricingUnderlying,
     strike: atmStrike,
     timeToExpiryYears,
     riskFreeRate: r,
@@ -179,7 +214,7 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
 
   const putBsm = europeanOption({
     model: "BSM",
-    underlyingPrice: spot,
+    underlyingPrice: pricingUnderlying,
     strike: atmStrike,
     timeToExpiryYears,
     riskFreeRate: r,
@@ -360,6 +395,12 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     // at 09:50 on a Friday with the exchange open. Whether the market is open
     // is a fact about the time of day and nothing else.
     marketPhase: callQuote?.marketPhase || putQuote?.marketPhase || sessionPhase().phase,
+    // WHICH underlying priced these options, so it can be audited rather than
+    // assumed. An option on a future priced off the cash share is wrong by the
+    // basis, which runs to 2.5% on this universe.
+    pricingBasis,
+    pricingUnderlying: Math.round(pricingUnderlying * 100) / 100,
+    cashSpot: Math.round(spot * 100) / 100,
     // One boolean the caller must read before treating a premium as a fill
     // price. False does not mean the number is wrong; it means the market is
     // shut and nobody can transact against it right now.
@@ -1002,6 +1043,16 @@ class FnoUniverseEngine {
       // it would quote the seller's assumptions back as if they were evidence.
       const oddsBars = this.barsCache.get(analyzed.symbol) || getCachedBars(analyzed.symbol)?.bars;
       const oddsHasBars = !isSynthetic && Array.isArray(oddsBars) && oddsBars.length >= 10;
+      // The same substitution the card pricing needed: an option on a future
+      // must be measured against that future. Under the risk-neutral measure
+      // the forward IS the expectation of the terminal price, so the
+      // probability calculation starts there too.
+      const oddsUnderlying = (() => {
+        const entry = contractReference?.symbols?.[analyzed.symbol];
+        const bucket = entry?.expiries?.[entry?.frontExpiry];
+        const futures = Number(bucket?.futuresPrice);
+        return Number.isFinite(futures) && futures > 0 ? futures : spot;
+      })();
       if (analyzed.options && oddsHasBars && spot > 0) {
         // Match the structure the card actually shows. calculateOptions is
         // called with isActionable as its isBullish flag, so an actionable name
@@ -1020,17 +1071,45 @@ class FnoUniverseEngine {
           const premium = Number(call?.premium);
           const strike = Number(call?.strike);
           const listed = contractReference?.symbols?.[analyzed.symbol]?.frontExpiry;
-          const ms = listed ? Date.parse(`${listed}T15:30:00+05:30`) - Date.now() : NaN;
+          if (!(premium > 0) || !(strike > 0) || !listed) return null;
+
+          // PRICE THE PREMIUM WITH THE TIME THAT APPLIED WHEN IT WAS STRUCK.
+          //
+          // A settled price comes from the bhavcopy session, which over a
+          // weekend is two or three days before now. Solving it against
+          // today's shorter time-to-expiry attributes the same money to less
+          // time and reports a volatility that was never traded -- measured on
+          // the APOLLOHOSP smile, every strike came out 1.33 to 1.89 points
+          // too high. Since the desk RANKS on cheap-versus-expensive, a
+          // systematic bias in implied volatility is a systematic bias in what
+          // it recommends.
+          const settled = String(call?.priceSource || "").startsWith("EXCHANGE_SETTLED");
+          const observedAt = settled && contractReference?.session
+            ? Date.parse(`${contractReference.session}T15:30:00+05:30`)
+            : Date.now();
+          const ms = Date.parse(`${listed}T15:30:00+05:30`) - observedAt;
           const years = Number.isFinite(ms) && ms > 0 ? ms / (365 * 86400000) : null;
-          if (!(premium > 0) || !(strike > 0) || !(years > 0)) return null;
+          if (!(years > 0)) return null;
+
+          // A premium below intrinsic value violates the no-arbitrage lower
+          // bound and cannot be a price anyone traded. 972 of 5,791 settled
+          // calls in this reference are below intrinsic, because NSE derives a
+          // settlement price for contracts that did not trade. None reach a
+          // card today, since the desk picks near the money -- but an implied
+          // volatility solved from one would be meaningless, so it is refused
+          // here rather than relied upon not to arrive.
+          const intrinsic = bullish
+            ? Math.max(0, oddsUnderlying - strike)
+            : Math.max(0, strike - oddsUnderlying);
+          if (premium < intrinsic - 0.01) return null;
           const solved = solveImpliedVolatility({
-            underlyingPrice: spot, strike, timeToExpiryYears: years,
+            underlyingPrice: oddsUnderlying, strike, timeToExpiryYears: years,
             riskFreeRate: 0.065, dividendYield: 0, optionType: bullish ? "CE" : "PE", model: "BSM"
           }, premium);
           return solved?.available && solved.iv > 0 ? solved.iv : null;
         })();
         analyzed.odds = tradeOdds({
-          spot,
+          spot: oddsUnderlying,
           bars: oddsBars,
           impliedVol: impliedFromPremium,
           // The single leg has to clear strike plus the whole premium; the
@@ -1285,6 +1364,10 @@ class FnoUniverseEngine {
           // between "no volume yet" and "did not trade today" with it, and
           // undefined would render the second at 09:16.
           marketPhase: u.options.marketPhase || null,
+          pricingBasis: u.options.pricingBasis || null,
+          pricingUnderlying: u.options.pricingUnderlying ?? null,
+          pricingBasis: u.options.pricingBasis || null,
+          pricingUnderlying: u.options.pricingUnderlying ?? null,
           quoteAgeSeconds: u.options.call.quoteAgeSeconds ?? null,
           optionOpenInterest: u.options.call.exchangeOpenInterest ?? null,
           priceSource: u.options.call.priceSource ?? null,

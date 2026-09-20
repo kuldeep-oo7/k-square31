@@ -184,6 +184,38 @@ function liveQuote(symbol, expiry, strike, optionType, { maxAgeMs = DEFAULT_MAX_
   };
 }
 
+/**
+ * The LIVE futures price for a symbol, which is what prices its options.
+ *
+ * Read synchronously from the same cache the engine refreshes, for the same
+ * reason the option books are: the card builder is synchronous and a broker
+ * call is not. Returns null rather than a stale number, so the caller falls
+ * back to the exchange file and labels it, instead of quietly pricing today's
+ * options off a forward from an earlier session.
+ */
+function liveFuture(symbol, expiry, { maxAgeMs = 24 * 60 * 60 * 1000, now = Date.now() } = {}) {
+  const cache = load();
+  const row = cache?.futures?.[`${String(symbol).toUpperCase()}|${String(expiry).slice(0, 10)}`];
+  if (!row || !(row.price > 0)) return null;
+  const fetchedAt = Date.parse(row.fetchedAt || cache.fetchedAt || "");
+  if (!Number.isFinite(fetchedAt) || now - fetchedAt > maxAgeMs) return null;
+  return { ...row, fetchAgeSeconds: Math.round((now - fetchedAt) / 1000) };
+}
+
+/** Refresh futures prices for the given symbol/expiry pairs. */
+async function refreshFutures(requests) {
+  const brokers = require("./broker-feed");
+  if (typeof brokers.futuresQuotes !== "function") return { ok: false, reason: "NOT_SUPPORTED" };
+  const result = await brokers.futuresQuotes(requests);
+  if (!result.ok) return { ok: false, reason: result.reason || "NO_FUTURES_RETURNED" };
+  const store = load() || {};
+  const fetchedAt = new Date().toISOString();
+  const futures = { ...(store.futures || {}) };
+  for (const [key, quote] of Object.entries(result.quotes)) futures[key] = { ...quote, fetchedAt };
+  save({ ...store, futures, futuresCount: Object.keys(futures).length });
+  return { ok: true, count: Object.keys(result.quotes).length };
+}
+
 /** What the cache holds right now, for reporting rather than for pricing. */
 /**
  * Is the live feed actually working, right now, in one sentence?
@@ -352,6 +384,7 @@ async function refreshQuotes(requests, { provider = null, concurrency = 1 } = {}
 }
 
 module.exports = {
-  CACHE_FILE, DEFAULT_MAX_AGE_MS, classifyBook, diagnose, keyFor, liveQuote,
+  CACHE_FILE, DEFAULT_MAX_AGE_MS, classifyBook, diagnose, keyFor, liveFuture, liveQuote,
+  refreshFutures,
   marketPhase, parseExchangeClock, refreshQuotes, status
 };
