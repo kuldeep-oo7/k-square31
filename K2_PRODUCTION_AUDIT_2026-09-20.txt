@@ -7,9 +7,18 @@ Every number below was MEASURED against the running system on the date above.
 Where something is unverified it says so. Nothing here is recalled.
 
 VERDICT IN ONE LINE: the pricing mathematics is exact, the plumbing is now sound
-enough for a trading day, two guards that looked like they protected you had
-never once fired and are now fixed, and the entry signal still has no measured
-edge — so trade nothing on it until the ledger says otherwise.
+enough for a trading day, FOUR separate defects were feeding it the wrong INPUTS
+— including options priced against the wrong instrument entirely — all four are
+fixed and measured, and the entry signal still has no proven edge, so trade
+nothing on it until the ledger says otherwise.
+
+WHAT CHANGED AFTER THE FIRST DRAFT OF THIS DOCUMENT. A second pass, asking the
+same questions from a derivatives trader's chair rather than an engineer's,
+found that every implied volatility on the desk was wrong because options were
+being priced against the cash share instead of the future, and that the
+candlestick engine had the sign inverted on its second most common pattern.
+Neither would have shown up as an error, a crash or a failing test. Both are in
+Parts 3A and 3B.
 
 
 ================================================================================
@@ -134,6 +143,157 @@ to contribute again.
 
 THIS IS A DEFECT FIX, NOT A VALIDATED IMPROVEMENT. Removing dead weight does not
 create an edge. See Part 6.
+
+
+================================================================================
+PART 3A — THE OPTIONS WERE PRICED AGAINST THE WRONG INSTRUMENT
+================================================================================
+
+The largest correctness defect found in this system to date, and it produced no
+error, no crash and no failing test.
+
+THE DESK PRICED EVERY OPTION AGAINST THE CASH EQUITY INSTEAD OF THE MARKET'S
+FORWARD.
+
+A precision note, cross-checked against NSE rather than assumed: single stock
+options in India are PHYSICALLY SETTLED into shares (mandatory since October
+2019), so they are NOT options on the future. The reason the future matters is
+different and more general: Black-Scholes prices off the FORWARD, and for an F&O
+name the market publishes its forward as the futures price. An assumed
+cost-of-carry from spot does not reproduce it -- for APOLLOHOSP, spot at r 6.5%
+and q 0 implies a forward of 8961 while the market's own forward is 8870, a
+91-point gap made of dividends, borrow cost and futures basis.
+
+MEASURED ON APOLLOHOSP, 2026-09-20. Cash share 8944.38. Future 8865. A gap of
+0.90%.
+
+    strike   premium    IV on the cash share    IV on the future
+      8800    127.45    would not solve at all           13.04%
+      8900     75.95                    6.02%            13.74%
+      9000     40.35                    9.24%            14.03%
+      9100     20.50                   10.96%            14.57%
+      9200     11.45                   12.70%            15.70%
+
+At the money the error is 7.72 volatility points. On the cash share the smile
+ramps 6% to 13% across four strikes, which is not a shape any real option market
+makes; on the future it is flat and ordinary, and the in-the-money strike that
+would not solve at all solves cleanly.
+
+THE MARKET HAD BEEN TELLING US THE RIGHT NUMBER. Put-call parity recovers the
+forward with no model at all, F = K + (C - P)e^(rT), and three different strikes
+agreed: 8869.44, 8871.19, 8870.10, against a cash share of 8944.38. The options
+themselves knew. Nobody asked them.
+
+ACROSS THE UNIVERSE the cash share is off by a median of 0.77% and up to 3.07%,
+and THE SIGN FLIPS PER NAME — COFORGE -2.50%, RELIANCE +1.22%, TATAPOWER -1.79%.
+So it was not a constant bias that cancels in a ranking. It distorted every
+symbol differently and therefore distorted the ranking BETWEEN them.
+
+HOW IT SHOWED UP, AND WHY IT WAS NEARLY MISSED. The demo run for the user put
+five names at the top and ALL FIVE came back CHEAP. Across the whole universe
+the verdicts read CHEAP 154 against EXPENSIVE 122 — implied BELOW realized,
+which is the reverse of how option markets behave and the reason option sellers
+win on average. Every individual number looked plausible. Only the DISTRIBUTION
+gave it away.
+
+    THE GENERAL LESSON: when a verdict is lopsided across an entire universe,
+    suspect the input, not the market.
+
+FIXED, AND THE DATA IS NOW LIVE. The Angel instrument master was filtered to
+equities and options and discarded futures entirely, which is why the desk had
+been reaching for the end-of-day bhavcopy for a forward. It now captures 1,305
+futures contracts and quotes them live in batches of 50.
+
+    LIVE_BROKER_FUTURE         208 of 210 cards
+    EXCHANGE_SETTLED_FUTURE    the 2 indices, which have no stock future
+    CASH_SPOT_NO_FUTURE        last resort, labelled
+
+Verdicts now read RICH 98, FAIR 160, CHEAP 102, EXPENSIVE 60 — implied above
+realized, as it should be — with implied volatility spanning 13.6% to 85%,
+median 23.5%, instead of bottoming out at 6%.
+
+THREE SMALLER INPUT ERRORS FOUND IN THE SAME PASS:
+
+  - The realized-volatility window did not match the option's tenor. A 20-day
+    BACKWARD estimate was compared with a 9-day FORWARD implied volatility and
+    the difference called a variance risk premium. Different horizons.
+  - Implied volatility was solved at the wrong time. A settled premium struck on
+    Friday was priced against Monday's shorter time to expiry, attributing the
+    same money to less time and inflating every reading by 1.3 to 1.9 points.
+  - 972 of 5,791 settled calls are priced BELOW INTRINSIC VALUE across 168
+    symbols — POWERINDIA 26000 CE settled at 4,162 against an intrinsic of
+    6,699 — because NSE derives settlement prices for contracts that did not
+    trade. None reach a card, since the desk picks near the money, but an
+    implied volatility solved from one is meaningless and they are now refused
+    explicitly rather than relied upon not to arrive.
+
+
+================================================================================
+PART 3C — PHYSICAL SETTLEMENT: THE RISK THAT DWARFS THE TRADE
+================================================================================
+
+Found by cross-checking NSE's own rules rather than reasoning from the code, and
+it is the largest single-trade risk on this desk.
+
+SINCE OCTOBER 2019, IN-THE-MONEY SINGLE STOCK OPTIONS IN INDIA ARE SETTLED BY
+DELIVERY OF SHARES, NOT CASH. Index options remain cash settled.
+
+An in-the-money long call carried into expiry is therefore not a claim on a
+profit. It is an obligation to pay for the entire lot.
+
+    APOLLOHOSP 8900/9000 spread
+      net debit paid                    Rs     4,450
+      delivery obligation if carried    Rs 11,12,500      250x the trade
+
+A short leg is worse still: an obligation to DELIVER shares that may not be
+held, which brings auction and penalty risk on top.
+
+The desk already said "be flat 2 days before expiry" but justified it only as a
+gamma convention, which understates it by two orders of magnitude. Every spread
+card now carries the settlement obligation in rupees, and the time stop is
+labelled CONVENTION_PLUS_SETTLEMENT_RULE, because the gamma half is a preference
+and the settlement half is an exchange rule.
+
+FOR THE USER, PLAINLY: never hold an in-the-money stock option into expiry
+unless you intend to take or make delivery and have the cash to do it.
+
+
+================================================================================
+PART 3B — THE CANDLESTICK ENGINE HAD THE SIGN INVERTED
+================================================================================
+
+Read as a Japanese technician would read it, not as a programmer.
+
+A long lower shadow is a HAMMER after a decline and a HANGING MAN after a rally.
+The same geometry, opposite meanings, told apart ONLY by what came before.
+Likewise a long upper shadow is a SHOOTING STAR after a rally and an INVERTED
+HAMMER after a decline. This is not a refinement of the patterns. It is their
+definition.
+
+The engine matched on shape alone, with no prior trend anywhere in the file.
+
+MEASURED ACROSS 210 SYMBOLS:
+
+    SHOOTING_STAR detections, labelled BEARISH        23
+      ...of which followed a DOWNTREND                22   <-- Inverted Hammers,
+                                                            classically BULLISH
+      ...of which followed an UPTREND                  1   <-- genuine
+
+    HAMMER detections, labelled BULLISH                3
+      ...of which followed an UPTREND                  1   <-- Hanging Man,
+                                                            classically BEARISH
+
+The sign was wrong on 96% of the second most common pattern the engine emits.
+That matters because candlesticks carry 15% of the composite weight and are one
+of only two components with continuous resolution, so an error there moves the
+ranking directly.
+
+FIXED. The prior trend is measured over the conventional five-session look-back
+and the pattern is named and biased accordingly. Where the prior trend is flat
+or unknown the pattern is reported as a rejection with a NEUTRAL bias and
+reduced reliability rather than guessing a direction — a pattern read without
+its context is worth less than one read with it, and should say so. The same 210
+symbols now report 22 INVERTED_HAMMER (bullish) and 1 SHOOTING_STAR (bearish).
 
 
 ================================================================================

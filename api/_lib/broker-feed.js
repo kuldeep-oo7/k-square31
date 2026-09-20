@@ -398,8 +398,11 @@ async function angelOptionChain(symbol, expiry, { timeoutMs = 20_000, strikesEit
 /**
  * LIVE futures prices, straight from the broker.
  *
- * An Indian stock option is an option ON THE FUTURE, so the future's price is
- * what prices it. The desk was taking that number from the end-of-day bhavcopy
+ * Black-Scholes prices off the FORWARD, and for an F&O name the market's own
+ * forward is the futures price. (NSE single-stock options are physically
+ * settled into shares, so they are not options on the future -- but the future
+ * is still where the market publishes its forward, and an assumed cost-of-carry
+ * from spot does not reproduce it.) The desk was taking that number from the end-of-day bhavcopy
  * because the instrument master discarded futures entirely, which meant that
  * during a live session every implied volatility, every probability and every
  * cheap-versus-expensive verdict rested on yesterday's forward.

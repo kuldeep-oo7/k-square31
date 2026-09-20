@@ -167,11 +167,15 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
   const r = 0.065; // RBI Repo Rate (6.5%)
   const q = 0.012; // Continuous dividend yield assumption
 
-  // PRICE AGAINST THE FUTURE, NOT THE CASH EQUITY.
+  // PRICE OFF THE MARKET'S FORWARD, NOT THE CASH SPOT.
   //
-  // Indian stock options are options ON THE FUTURE. Pricing them against the
-  // equity spot silently substitutes the wrong underlying, and the error is not
-  // academic -- measured on APOLLOHOSP, spot 8944.38 against a future of 8865,
+  // NSE single-stock options are physically settled into SHARES -- they are not
+  // options on the future. But Black-Scholes prices off the FORWARD, not the
+  // spot, and for an F&O name the market's forward IS the futures price.
+  // Pricing off spot with an assumed carry (r 6.5%, q 0) implies a forward of
+  // 8961 for APOLLOHOSP when the market's own forward is 8870 -- a 91-point gap
+  // of dividends, borrow cost and basis that no assumed carry recovers. The
+  // error is not academic -- measured on APOLLOHOSP, spot 8944.38 against a future of 8865,
   // a gap of 0.90%, understated at-the-money implied volatility by 7.72 points
   // (6.02% instead of 13.74%) and produced a smile that ramped 6% to 13% across
   // four strikes. Priced on the future the same chain reads 13.04 / 13.74 /

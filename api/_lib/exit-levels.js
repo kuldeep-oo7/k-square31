@@ -39,9 +39,22 @@ const DEFAULT_PROFIT_FRACTION = 0.5;
 // Cut when half the debit is gone. Symmetric with the target, so the structure
 // risks one rupee to make one rupee on the premium actually at stake.
 const DEFAULT_STOP_FRACTION = 0.5;
-// Be flat before the final gamma days. On the last sessions a vertical stops
-// behaving like a smooth payoff and starts behaving like a coin flip on pin
-// risk, and an in-the-money short leg carries assignment risk over the weekend.
+// Be flat before expiry. Two reasons, and the second is the one that can cost
+// far more than the trade.
+//
+// 1. GAMMA. In the last sessions a vertical stops behaving like a smooth payoff
+//    and starts behaving like a coin flip on where the underlying pins.
+//
+// 2. PHYSICAL SETTLEMENT. Verified against NSE rules rather than assumed: since
+//    October 2019, in-the-money SINGLE STOCK options in India are settled by
+//    DELIVERY OF SHARES, not cash. An in-the-money long call carried into
+//    expiry is not a claim on a profit, it is an obligation to pay for the full
+//    lot. One APOLLOHOSP lot is 125 shares; at a strike of 8900 that is about
+//    Rs 11.1 lakh of cash against a premium of roughly Rs 9,500. A short leg is
+//    worse: it is an obligation to DELIVER shares that may not be held, which
+//    brings auction and penalty risk.
+//
+// Index options remain cash settled. This applies to stocks.
 const DEFAULT_DAYS_BEFORE_EXPIRY = 2;
 
 /**
@@ -118,8 +131,12 @@ function verticalSpreadExits(input) {
 
     timeStop: {
       daysBeforeExpiry: DEFAULT_DAYS_BEFORE_EXPIRY,
-      basis: "CONVENTION",
-      reason: "Gamma and pin risk dominate the final sessions, and an in-the-money short leg can be assigned."
+      // The gamma half is a convention. The settlement half is a rule.
+      basis: "CONVENTION_PLUS_SETTLEMENT_RULE",
+      reason: "Gamma dominates the final sessions, and NSE settles in-the-money single stock options by PHYSICAL DELIVERY -- carrying one into expiry turns a premium into an obligation for the whole lot.",
+      physicalSettlementRisk: isBullish
+        ? `An in-the-money ${longStrike} call at expiry obliges you to buy ${lotSize} shares, about Rs ${Math.round(longStrike * lotSize).toLocaleString("en-IN")}, not to collect a profit.`
+        : `An in-the-money ${longStrike} put at expiry obliges delivery of ${lotSize} shares you may not hold.`
     },
 
     atExpiry: {

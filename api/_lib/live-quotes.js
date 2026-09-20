@@ -185,7 +185,8 @@ function liveQuote(symbol, expiry, strike, optionType, { maxAgeMs = DEFAULT_MAX_
 }
 
 /**
- * The LIVE futures price for a symbol, which is what prices its options.
+ * The LIVE futures price for a symbol: the market's forward, which is what an
+ * option must be priced against.
  *
  * Read synchronously from the same cache the engine refreshes, for the same
  * reason the option books are: the card builder is synchronous and a broker

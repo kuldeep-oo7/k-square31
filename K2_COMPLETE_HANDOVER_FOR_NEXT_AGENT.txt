@@ -266,8 +266,14 @@ THE UNDERLYING WATERFALL — read this before touching any pricing code:
     EXCHANGE_SETTLED_FUTURE    the bhavcopy futures price        the 2 indices
     CASH_SPOT_NO_FUTURE        the equity share price            LAST RESORT
 
-AN INDIAN STOCK OPTION IS AN OPTION ON THE FUTURE. Pricing one against the cash
-share is not a rounding error. Measured on APOLLOHOSP on 2026-09-20: cash
+PRICE OFF THE MARKET'S FORWARD, NOT THE CASH SPOT. Verified against NSE: single
+stock options are PHYSICALLY SETTLED into shares since October 2019, so they are
+NOT options on the future. But Black-Scholes prices off the FORWARD, and for an
+F&O name the market publishes its forward as the futures price. An assumed
+cost-of-carry from spot does not reproduce it: for APOLLOHOSP, spot with r 6.5%
+and q 0 implies 8961 while the market's forward is 8870, a 91-point gap of
+dividends, borrow cost and futures basis. Pricing off the cash share is not a
+rounding error. Measured on APOLLOHOSP on 2026-09-20: cash
 8944.38 against a future of 8865, a gap of 0.90%, which turned an at-the-money
 implied volatility of 13.74% into 6.02% — understated by 7.72 points — and
 produced a smile ramping 6% to 13% across four strikes, a shape no real option
@@ -331,8 +337,12 @@ credentials there was no quote, the phase was undefined, and every card printed
 
 OPTION PRICING (api/_lib/option-pricing.js)
   Black-Scholes-Merton     C = S·e^(-qT)·N(d1) - K·e^(-rT)·N(d2)
-  THE UNDERLYING           An Indian stock option is an option ON THE FUTURE,
-                           and everything is priced on the live futures quote.
+  THE UNDERLYING           Black-Scholes prices off the FORWARD. For an F&O
+                           name the market's forward IS the futures price, so
+                           everything is priced on the live futures quote. NSE
+                           stock options themselves settle PHYSICALLY into
+                           shares; the future is where the forward is quoted,
+                           not what the option is written on.
                            See the underlying waterfall in section 6. Using the
                            cash share understated at-the-money implied
                            volatility by 7.72 points on APOLLOHOSP and by a
