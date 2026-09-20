@@ -213,18 +213,6 @@ class RealtimeMarketEngine {
     }
   }
 
-  async refreshDhanScrips() {
-    try {
-      const dhan = require("./dhan-feed");
-      if (dhan.loadScripMaster()) return null;
-      const master = await dhan.refreshScripMaster();
-      console.log(`[K² Dhan Scrips] ${master.underlyingCount} underlyings, ${master.lotCount} contract lots`);
-      return master;
-    } catch (error) {
-      console.error("Dhan scrip master refresh failed:", error.message);
-      return null;
-    }
-  }
 
   async refreshBrokerInstruments() {
     try {
@@ -381,9 +369,10 @@ class RealtimeMarketEngine {
       // The bhavcopy changes once per session, and every strike, lot size and
       // settled price on the desk is read from it.
       await this.refreshContractReference();
-      // Dhan's scrip master is public and needs no token. Angel and Upstox
-      // masters are what turn a symbol into a tradeable instrument token.
-      await Promise.all([this.refreshDhanScrips(), this.refreshBrokerInstruments()]);
+      // The Angel instrument master is what turns a symbol into a tradeable
+      // token. Dhan's scrip master was fetched here for a feed this account
+      // does not have; the Dhan ORDER link on the cards is unaffected.
+      await this.refreshBrokerInstruments();
       // Angel One can hold its own session from a TOTP secret. Upstox cannot --
       // it issues no refresh token -- so it is watched and warned about instead.
       await this.maintainBrokerSessions();

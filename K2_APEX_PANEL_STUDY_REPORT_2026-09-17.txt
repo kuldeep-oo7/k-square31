@@ -1,7 +1,7 @@
 ================================================================================
 K2 APEX ENGINE — POOLED PANEL STUDY & SURVIVORSHIP-ADJUSTED BACKTEST
 Document Reference: K2-APEX-PANEL-STUDY-2026-09-17
-Execution Date: 2026-09-17T16:09:55.303Z
+Execution Date: 2026-09-20T17:37:20.866Z
 Symbols Tested: 97 NSE Large-Cap Equities
 Geometry Tested: Target +2.5%, Stop -1.5%, Horizon 5 Sessions
 Cost Model: Real Dated Statutory Costs via shadow-broker.js (STT, NSE, SEBI, GST)
@@ -21,11 +21,11 @@ Comparison over Identical Historical Windows:
 
   Window         Universe B&H Compounded    Nifty 500 Index Benchmark    Survivorship Gap
   ---------------------------------------------------------------------------------------
-  Development             +105.9%                    +59%                  +46.9%
+  Development             +105.9%                    +61.2%                  +44.7%
   Validation               +1.7%                    -1.7%                  +3.4%
-  Final Test               +0.4%                     -3.7%                   +4.1%
+  Final Test               +0.4%                     -2.9%                   +3.3%
 
-Benchmark source: NIFTY_500_CRSLDX fetched 2026-09-17T16:09:55.102Z
+Benchmark source: NIFTY_500_CRSLDX fetched 2026-09-20T17:37:20.659Z
 Conclusion: read the Survivorship Gap column above. The universe outran the index
 by roughly 47 points in development, which is constituent survivorship and not skill.
 Benchmark every figure against the index, never against the sample's own return.

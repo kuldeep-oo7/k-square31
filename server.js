@@ -78,7 +78,6 @@ const server = http.createServer((req, res) => {
       liveFeed: (() => {
         try {
           const brokers = require("./api/_lib/broker-feed").status();
-          const dhan = require("./api/_lib/dhan-feed").status();
           const sessions = require("./api/_lib/broker-auth").sessionStatus();
           const quotes = require("./api/_lib/live-quotes").status();
           // One sentence on whether the feed is actually working, so the
@@ -130,14 +129,14 @@ const server = http.createServer((req, res) => {
             };
           })();
           return {
-            anyReady: brokers.anyReady || dhan.ready,
-            activeProvider: brokers.activeProvider || (dhan.ready ? "dhan" : null),
-            providers: { ...brokers.providers, dhan },
+            anyReady: brokers.anyReady,
+            activeProvider: brokers.activeProvider,
+            providers: { ...brokers.providers },
             sessions,
             quotes,
             feedCheck,
             persistence,
-            howToConfigure: { ...brokers.howToConfigure, dhan: dhan.howToConfigure }
+            howToConfigure: { ...brokers.howToConfigure }
           };
         } catch (error) { return { anyReady: false, activeProvider: null, reason: "FEED_MODULE_UNAVAILABLE" }; }
       })(),

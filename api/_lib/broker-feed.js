@@ -105,6 +105,22 @@ function credentialsFor(provider) {
 const PROVIDERS = ["upstox", "angelone"];
 
 /** Which providers are usable right now, and precisely why not if not. */
+/**
+ * Upstox cannot satisfy this desk's freshness contract, whatever credentials it
+ * is given.
+ *
+ * Its option chain carries NO exchange feed time. The contract treats a book
+ * with no exchange clock as STALE, because absent evidence must not read as
+ * evidence of currency -- so an Upstox quote can never be classified REALTIME
+ * and can never reach a card as executable. Configuring it would buy nothing.
+ *
+ * The code is left in place because it costs nothing dormant and documents the
+ * comparison, but the status now SAYS this, so nobody -- including a future
+ * agent reading "NOT_CONFIGURED" as an invitation -- spends an evening wiring
+ * up a provider that is structurally unusable here.
+ */
+const UPSTOX_LIMITATION = "Sends no exchange feed time, so its quotes can never be classified REALTIME and never reach a card. Angel One is the supported live feed.";
+
 function status() {
   const providers = {};
   for (const provider of PROVIDERS) {
@@ -119,6 +135,10 @@ function status() {
     };
   }
   const active = PROVIDERS.find((provider) => providers[provider].ready) || null;
+  if (providers.upstox) {
+    providers.upstox.supported = false;
+    providers.upstox.limitation = UPSTOX_LIMITATION;
+  }
   return {
     providers,
     activeProvider: active,
