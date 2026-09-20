@@ -1,0 +1,561 @@
+================================================================================
+K² QUANTITATIVE RANGE DESK — COMPLETE HANDOVER
+Written 2026-09-20. Read this end to end before changing anything.
+================================================================================
+
+This file exists so the next agent does not have to rediscover, by argument and
+by breaking production, what took this one many sessions to learn. Everything
+below was verified against the running code on the date above, not recalled.
+
+Where a number appears, it was measured. Where something is unproven, it says
+so. That distinction is the single most important thing in this document, and
+section 3 explains why.
+
+
+================================================================================
+1. WHAT THIS IS
+================================================================================
+
+A trading desk for Indian equity derivatives (NSE F&O). It scans 210 F&O
+underlyings, builds 423 option cards (call and put per name plus two indices),
+prices them, and tells the user what to buy, at what price, where to sell, where
+to stop, and how long it should take.
+
+  Live URL      https://k-square31.onrender.com
+  Repository    github.com/kuldeep-oo7/k-square31, branch main
+  Owner         Kuldeep (kuldeepsavaliya70@gmail.com)
+  Size          ~35,600 lines across api/, scripts/, site/, server.js
+  Commits       232
+  Language      Node.js (CommonJS, no framework, no build step)
+
+WHO IT IS FOR: one user, trading his own money, on a phone during market hours.
+He is not a quant. He has asked repeatedly for plain instructions — buy at X,
+sell at Y, stop at Z, how long — and every time the desk answered with a lecture
+instead, he was right to be angry. Keep the surface small.
+
+WHAT IT IS FOR: pure TRADING, not investment. Intraday to a few weeks.
+
+
+================================================================================
+2. THE ONE RULE
+================================================================================
+
+    A number the system MADE UP must never be presented as a number the
+    system MEASURED.
+
+Every serious defect in this repository's history has that exact shape. Not
+most. All of them. Section 9 is the catalogue, and it is worth reading in full
+before writing code, because the failure keeps arriving in new clothes:
+
+  - a seeded track record served as audited performance
+  - a hash function standing in for a price feed
+  - a sine wave standing in for a score
+  - the sum of hypothetical gains labelled "Purchased Trades MTM"
+  - a fetch latency labelled as a quote age
+  - a model's own input volatility compared against realized volatility
+  - exit prices computed from a premium the card refused to display
+
+The practical rules that follow from it:
+
+  1. ABSENCE IS NOT ZERO. "No closed signals" and "a 0% win rate" are different
+     facts. Return null, render an em-dash, never a placeholder number.
+  2. EVERY PRICE CARRIES ITS PROVENANCE. A live broker book, an exchange settled
+     close, and a model output must never render identically.
+  3. FAIL CLOSED. No credentials means NOT_CONFIGURED and no data, never a
+     fallback estimate. A guess reaches a card with an order button on it.
+  4. A TEST THAT ASSERTS NOTHING MUST NOT LOOK LIKE A TEST THAT PASSED. An
+     earlier check reported "0 mismatches" across 565 contracts while checking
+     zero of them, because the field it compared was never stored.
+
+
+================================================================================
+3. WHAT IS PROVEN AND WHAT IS NOT
+================================================================================
+
+READ THIS BEFORE BELIEVING ANY OUTPUT.
+
+PROVEN (measured, reproducible, tested):
+  - Contract identity. 565 of 565 cached contracts match the broker's own
+    instrument label on underlying, expiry, strike and right.
+  - Put-call parity holds: slope -0.995, R² 0.9999 across 12 symbols. Calls and
+    puts are not transposed.
+  - Open interest agrees with the NSE bhavcopy on 487 of 500 contracts.
+  - At-the-money premiums sit 2.05% (median) from the exchange settled price.
+  - Lot sizes agree with the bhavcopy across 659 contracts, zero disagreements.
+  - Black-Scholes / Black-76 pricing, Greeks by finite difference, IV inversion.
+  - The arithmetic of every vertical spread payoff at expiry.
+
+NOT PROVEN — THE SIGNAL DOES NOT HAVE A MEASURED EDGE:
+  - Pre-registered out-of-sample test: 112 symbols never touched in development,
+    8,893 fills, +0.0422% per fill, t = 1.25 against a 1.6648 hurdle. FAILED.
+  - By year: 2023 +0.1358% (peak), 2026 -0.1752% at t = -2.10. Negative and
+    significant in the most recent year.
+  - 0 of 24 ladder geometries survived validation.
+  - P(profit) across the 423 option cards: 23% to 44.6%, median 35%. Not one
+    card is above 45%.
+
+So: the MACHINERY is trustworthy and the SELECTION is not. The desk can tell you
+exactly what a contract is, what it costs, what it pays and what the odds are.
+It cannot yet tell you that buying it makes money. Do not let any future feature
+blur that line, and do not let a good week be mistaken for evidence.
+
+NEVER OBSERVED: the REALTIME (executable) quote path has never been seen during
+an open market session — all the work happened after 15:30. See section 11.
+
+
+================================================================================
+4. WHERE IT RUNS
+================================================================================
+
+HOSTING: Render, free tier, service srv-dalqlhoae00c73cadqi0, auto-deploy from
+main. Node 24 via NODE_VERSION. Build is `npm install; npm run build` where
+build is a no-op echo. Start is `node server.js`. PORT is injected by Render.
+
+THREE FREE-TIER FACTS THAT SHAPE EVERYTHING:
+
+  1. 512 MB RAM. Resident memory measured 313 MB under ordinary polling before
+     optimisation, which left nothing for a spike and ended in 502s. Now 262 MB.
+     Anything added to the per-request path must be MEASURED, not assumed cheap.
+
+  2. EPHEMERAL DISK. Wiped on every deploy. The SQLite database and the whole
+     .private directory do not survive. A track record that resets whenever the
+     code changes is not a track record.
+
+  3. SPINS DOWN AFTER ~15 MINUTES IDLE. First request after that takes ~50s.
+     This is the "RECONNECTING" badge the user sees. It is not a bug.
+
+  The $7/month Starter plan removes 2 and 3 together. It is the highest-value
+  purchase available and has been recommended.
+
+CREDENTIALS ON RENDER: .private is gitignored, so it does not deploy. Two routes
+work, and the code searches in this order:
+
+    .private/brokers.json          local development, wins
+    /etc/secrets/brokers.json      Render Secret File  <-- currently in use
+    <project root>/brokers.json
+
+The user uploaded brokers.json as a Render Secret File on 2026-09-20 and it is
+working: configured true, ready true, session UNATTENDED_TOTP with a live token.
+Environment variables (ANGELONE_API_KEY, ANGELONE_CLIENT_CODE, ANGELONE_MPIN,
+ANGELONE_TOTP_SECRET) remain an equivalent alternative.
+
+STILL ABSENT: K2_GOOGLE_SHEETS_WEB_APP_URL and K2_GOOGLE_SHEETS_ARCHIVE_SECRET.
+Without them the ledger has no durable backup. The values in
+.private/production.env are 11-character placeholders, not real credentials.
+
+SECURITY NOTE: the Angel TOTP secret has appeared in screenshots and in the
+assistant transcript. It should be re-enrolled. Anyone holding it plus the
+client code can log into the trading account.
+
+
+================================================================================
+5. FILE AND FOLDER STRUCTURE
+================================================================================
+
+  server.js               HTTP server. Static files confined to site/ with
+                          resolved-path containment; /api/* 404s as JSON;
+                          /api/state is the one big read endpoint; SSE stream.
+  api/_lib/               64 modules. The whole system. Detailed below.
+  scripts/                110 scripts, 66 of them tests. `npm run check` runs
+                          the suite: 170 assertions, all green as of 2026-09-20.
+  site/                   index.html (static portal) and live-desk.html (THE
+                          DESK — this is what "/" serves; see server.js
+                          APP_ENTRY). All card rendering lives here, inline.
+  data/                   Universe definitions, NIFTY500 constituents.
+  models/                 Trained model artefacts (upside.json). Retrained by an
+                          external automation that also pushes to main.
+  .private/               GITIGNORED. Credentials, SQLite DB, all caches.
+  .private/cache/fno/     contract-reference.json, built from the NSE bhavcopy.
+  .private/cache/bars/    Per-symbol OHLCV history from Yahoo Finance.
+
+THE MODULES THAT MATTER MOST, in dependency order:
+
+  fno-reference.js     Exchange truth. Builds the contract reference from the
+                       NSE bhavcopy: which strikes are LISTED, lot size per
+                       expiry, settled prices, open interest, underlying price.
+                       Everything downstream depends on this being right.
+  broker-auth.js       RFC 6238 TOTP (verified against all five published
+                       vectors), Angel login/refresh/session, Upstox OAuth
+                       expiry pinned to 03:30 IST.
+  broker-feed.js       Unified Angel + Upstox option chains. Angel strikes
+                       arrive in PAISE (123000 = Rs 1,230); expiries as
+                       29SEP2026. Angel quote requests cap at 50 tokens.
+  live-quotes.js       THE FRESHNESS CONTRACT. Async-refresh / sync-read cache,
+                       the IST exchange clock, the three book states. Section 7.
+  universe-210.js      The card builder. 210 names in, 423 cards out. Strike
+                       selection, pricing waterfall, spread gate, Greeks, exits,
+                       odds. The largest and most defect-prone file.
+  option-pricing.js    europeanOption (BSM and BLACK76), impliedVolatility by
+                       bisection, priceBounds. Model must be named explicitly.
+  exit-levels.js       Where you get OUT. Spread and single-leg exits, order
+                       tickets, at-expiry spot ladder.
+  trade-odds.js        P(profit), realized vs implied volatility, first-passage
+                       time to target.
+  signal-record.js     The paper-trading ledger. Records what the desk said, at
+                       the price it said it, and reports what it earned.
+  realtime-market-engine.js  The loop. Boot sequence, timers, recording.
+  db-sqlite.js         The one store. Schema and accessors.
+
+
+================================================================================
+6. HOW THE DATA FLOWS
+================================================================================
+
+BOOT (realtime-market-engine.js bootstrap(), strictly ordered — each step needs
+the one before it, and firing them in parallel makes the first quote refresh
+lose a race it should not be in):
+
+  1. refreshContractReference()  NSE bhavcopy -> strikes, lots, settled prices.
+     CRITICAL: NSE publishes the bhavcopy only AFTER the close. Asking for
+     TODAY's file during a live session always 404s. It walks back up to 7 days
+     to the most recent available session. Asking only for today was why the
+     desk spent an entire trading day with no prices at all.
+  2. refreshDhanScrips() and refreshBrokerInstruments() in parallel.
+  3. maintainBrokerSessions()    Angel logs in or refreshes; Upstox is watched.
+  4. refreshLiveQuotes()         Option chains for the recommended names.
+  5. restoreFromRemote()         Pull the ledger back if the disk was wiped.
+
+TIMERS: quotes and ledger every 90s, sessions hourly, reference every 6h, tick
+cycle every 4s.
+
+PER REQUEST (/api/state):
+  engine.getUniverse()  -> cached 2.5s, keyed on macro state identity
+  -> universe rows (nested option chain STRIPPED from the wire: it was being
+     sent twice, 1.1 MB of a 4.6 MB payload)
+  -> options universe (423 flattened cards)
+  -> gzip when the client asks: 3.5 MB becomes 244 KB, a 93% reduction
+  The WHOLE handler is inside one try/catch. It did not used to be, and a single
+  unformattable date returned 502 for the entire desk.
+
+PRICING WATERFALL — each step down is LABELLED, never silently substituted:
+
+    LIVE_BROKER_QUOTE      mid of a two-sided Angel book, inside 120s
+    BROKER_CLOSING_BOOK    today's book, market shut, NOT executable
+    EXCHANGE_SETTLED_PRICE the bhavcopy close
+    NO_TRADED_PRICE        refused
+    (a model price NEVER reaches a card as a tradeable premium)
+
+
+================================================================================
+7. THE FRESHNESS CONTRACT (live-quotes.js)
+================================================================================
+
+The most subtle correct thing in the codebase. Do not simplify it.
+
+THE PROBLEM IT SOLVES: a quote fetched at 21:48 IST was reporting an age of two
+seconds. The two seconds were real — that is how long the REQUEST took. The book
+carried the exchange's own stamp of 15:40, six hours earlier, and the contract
+had last traded six days before that. Retrieval time was being presented as
+quote time.
+
+THE EXCHANGE CLOCK: Angel sends exchFeedTime as "17-Sep-2026 15:40:00" with NO
+offset. Date.parse reads that in the HOST's timezone — correct on an IST laptop,
+five and a half hours out on Render, where during market hours it places the
+quote in the FUTURE, and a negative age passes every "older than" test. So a
+stale book would read as fresh on precisely the machine that serves real users.
+The offset is applied EXPLICITLY. Tests assert an identical verdict under UTC,
+IST and US/Eastern hosts, and are mutation-checked.
+
+Also: 01-Jan-1970 05:30:00 is epoch zero expressed in IST — the exchange's way
+of saying a contract has never traded. It is a sentinel, not a time, and is
+refused rather than returned as a 56-year-old quote.
+
+THREE STATES, not a boolean:
+
+  REALTIME      exchange priced it inside 120s, market open. EXECUTABLE.
+  CLOSING_BOOK  today's book, market shut. NOT executable, but KEPT — its
+                spread is a measured spread, and discarding it switched the
+                spread gate off at 15:30 every day, which is exactly when the
+                desk gets read.
+  STALE         not from today, or no exchange clock at all. Upstox sends no
+                feed time, so its books can never claim REALTIME. Absent
+                evidence must not read as evidence of currency.
+
+MARKET PHASE comes from the CLOCK (09:15–15:30 IST, weekends and pre-open
+excluded), never from a quote. It used to be read off the live book, so with no
+credentials there was no quote, the phase was undefined, and every card printed
+"MARKET CLOSED" at 09:50 on a trading day.
+
+
+================================================================================
+8. THE MATHS — EVERY FORMULA, WHERE IT LIVES, WHETHER IT IS USED
+================================================================================
+
+OPTION PRICING (api/_lib/option-pricing.js)
+  Black-Scholes-Merton     C = S·e^(-qT)·N(d1) - K·e^(-rT)·N(d2)
+  Black-76                 on the FUTURES price, which is correct for Indian
+                           stock options — they are options on the future.
+                           Switching from spot to future moved the median
+                           25-delta skew from -0.9 to +0.1.
+  Greeks                   delta, gamma, theta, vega, rho; verified against
+                           finite differences.
+  Implied volatility       bisection, 200 iterations, 1e-8 tolerance, bracketed
+                           and bounded. Refuses outside no-arbitrage bounds.
+  Put-call parity          C - P = (F - K)·e^(-rT). Used as an INDEPENDENT
+                           identity check: slope of (C-P) on K must be near -1.
+  Normal CDF               Abramowitz & Stegun 26.2.17, |error| < 7.5e-8.
+
+VOLATILITY (api/_lib/trade-odds.js)
+  Close-to-close RV        σ = stdev(log returns) · sqrt(252)
+  Parkinson RV             σ = sqrt( mean(ln(H/L)²) / (4·ln2) ) · sqrt(252)
+                           ~5x more efficient; a stock that travels widely and
+                           closes flat shows nothing in a close-to-close series.
+  Variance risk premium    IV / RV. THE number retail never sees and the one
+                           that most reliably decides the outcome. An option's
+                           price is a price for future MOVEMENT: paying 32%
+                           implied on a stock realizing 23% means overpaying by
+                           a third, and being right about DIRECTION does not
+                           repair paying the wrong price for VOLATILITY.
+                           Verdicts: >=1.25 EXPENSIVE, >=1.10 RICH, >=0.90 FAIR,
+                           else CHEAP. Measured across 204 cards: 23 CHEAP,
+                           71 FAIR, 63 RICH, 47 EXPENSIVE.
+  CRITICAL: IV must be SOLVED FROM THE TRADED PREMIUM. greeks.iv is the
+  volatility fed INTO the model and is carried in PERCENT. Comparing it with
+  realized compares an assumption with a measurement and returns whatever was
+  assumed — it read 2800% and EXPENSIVE on every card until fixed.
+
+PROBABILITY (api/_lib/trade-odds.js)
+  P(finish beyond)         N(d2) with the stock's OWN realized volatility, not
+                           implied — implied is the price being charged, and
+                           using it quotes the seller's assumptions back as
+                           though they were evidence.
+  P(touch before expiry)   2·N(-|ln(B/S)| / (σ·sqrt(T))) by reflection. The
+                           position can be closed the moment the underlying
+                           TOUCHES the level, so first passage is the right
+                           question, not the end point.
+  Median time to touch     the same expression solved for the t at which half
+                           the eventual touches have occurred.
+  DRIFT IS ZERO, DELIBERATELY. Any non-zero drift is a directional forecast and
+  this desk has no validated one. Inserting one would smuggle an assumed edge
+  into a number presented as a measurement.
+
+PORTFOLIO (api/_lib/covariance.js)
+  Ledoit-Wolf shrinkage    toward a constant-correlation target, δ solved
+                           analytically. Recovers a known covariance; PSD across
+                           400 random probes; δ adapts with sample length.
+  Euler risk decomposition risk contributions sum to portfolio volatility.
+  Meucci effective bets    entropy over PRINCIPAL PORTFOLIOS, not a Herfindahl
+                           of risk contributions. 16 independent assets read
+                           15.65; perfectly correlated assets read 1.0.
+  Principal components     power iteration with deflation; PC1 share matches a
+                           closed form to 45.00%.
+
+STATISTICS (api/_lib/panel.js)
+  Cluster-robust errors    sandwich estimator, clustered on calendar week.
+  Purged calendar splits   labels straddling a boundary are DROPPED, not leaked.
+  Deflated Sharpe          Bailey & López de Prado expected maximum of N draws
+                           as the selection hurdle. With trials:1 the deflation
+                           is a no-op — that mistake turned an honest t of 0.77
+                           into a reported 2.43.
+  Pre-registration         protocol and decision rule committed BEFORE the test.
+
+LIQUIDITY AND RISK
+  fno-liquidity.js         ADV, OI, capacity in whole lots, annualised basis
+                           (median 10.64%).
+  advanced-quant.js        GARCH(1,1) conditional volatility, Cornish-Fisher
+                           VaR (validity requires the expansion to stay
+                           monotone — it silently returned 0 on fat tails until
+                           that was checked), CVaR, Kyle's lambda, Amihud.
+  portfolio-risk.js        Order schema, concentration, leverage, stress, a net
+                           loss kill switch.
+
+MACHINE LEARNING — HONESTLY LABELLED
+  ml-model.js              Deterministic gradient boosting, leak-free labelling,
+                           walk-forward validation, a trust gate that rejects
+                           noise. Governance DEMOTES weak models to advisory
+                           only; they cannot generate trades standalone.
+  upside.js                Pooled cross-sectional model. Per-name fits are
+                           REFUSED as unvalidatable.
+  neural-quant-engine.js   Scores cards. The CNN is UNTRAINED and labelled as
+                           such. Do not present its output as a prediction.
+  VPIN                     returns null for every name. Not implemented.
+
+
+================================================================================
+9. THE DEFECT CATALOGUE — READ THIS ONE TWICE
+================================================================================
+
+Every entry is a real defect that reached the user. They are listed because the
+same shapes keep coming back, and recognising the shape is faster than
+rediscovering the instance.
+
+FABRICATION
+  - seedDefaultData() inserted a 71.4% win rate and Rs 51,492.50 of profit, and
+    served them from /api/state as audited performance. TWO TEST SUITES
+    ASSERTED THE FICTION rather than catching it.
+  - The Apex engine priced from a hash function and scored from a sine wave.
+  - "Purchased Trades MTM: +Rs 51,770.75" was the sum of hypothetical gains
+    across 31 RECOMMENDATIONS nobody had bought, in the largest green type on
+    the page, above a ledger correctly reporting zero.
+  - While building the paper ledger, the assistant RECREATED this defect: save()
+    persisted whatever store it was handed, so test fixtures landed in the live
+    ledger and the desk reported one closed trade, a 100% win rate and Rs 9,840
+    that nobody traded. A test now asserts the live DB is untouched, byte for
+    byte, after the suite runs.
+
+WRONG UNITS, WRONG CLOCK, WRONG LABEL
+  - Retrieval latency presented as quote age (2 seconds vs 6 hours).
+  - Date.parse on an offset-less exchange timestamp: correct on an IST laptop,
+    5.5 hours wrong on Render, placing quotes in the FUTURE where negative age
+    passes every staleness check.
+  - greeks.iv (percent, model input) compared against realized volatility
+    (decimal, measured). Every card read EXPENSIVE at 2800%.
+  - getDaysToMonthlyExpiry() returns an OBJECT, not a number, and assumes a last
+    Thursday. NSE moved stock F&O off Thursday.
+  - Angel trading symbols are DAY-first (AMBER29SEP265800CE = 29 SEP 26, strike
+    5800). Parsed year-first — the Zerodha convention — it reported 1130
+    mismatches that did not exist.
+  - Angel strikes arrive in PAISE.
+
+INCONSISTENT GATES
+  - entryPrice gated on legPriced, exits gated on the raw premium. Cards printed
+    "BUY Rs null" beside "SELL Rs 16.7" and "STOP Rs 5.57" — exits for a trade
+    with no entry.
+  - The spread gate keyed on "is there a LIVE quote", so it switched itself off
+    at 15:30 and a 45.66% spread went back to available.
+  - marketPhase read off the live book, so no credentials meant every card said
+    "MARKET CLOSED" during an open session.
+
+CRASHES AND CAPACITY
+  - new Date(NaN).toISOString() throws. /api/state had no outer try/catch, so
+    one unformattable BAR-AGE field returned 502 for the whole desk during live
+    market hours.
+  - refreshReference asked for exactly one date — today — and gave up on a 404.
+    NSE publishes after the close, so the one date guaranteed to fail was the
+    only one requested. No strikes, no lots, no prices for a whole session.
+  - getUniverse() recomputed 210 names on EVERY caller and /api/state called it
+    three times per request. 313 MB RSS on a 512 MB host.
+  - The same option chain was serialised twice: nested on every universe row and
+    again as the array the page renders from.
+
+DATA INTEGRITY
+  - 343 of 421 cards carried the WRONG LOT SIZE and 72 strikes did not exist,
+    because the contract reference was gitignored and never built on the server.
+    The audit that missed it SPOT-CHECKED FOUR SYMBOLS and reported it verified.
+    ENUMERATE EVERYTHING. Sampling is how this class of defect survives.
+  - Hardcoded index spots: NIFTY 25440.00 against a real 23270.60. Lot sizes
+    25/15 against a real 65/30. ANGELONE lot 250 against 2500 — a tenfold
+    understatement of risk.
+  - A benchmark hardcoded as 14.2 when the measured value was -1.7%. Wrong sign.
+
+PROCESS
+  - DEFECTS MIGRATE. Hardcoded cards were fixed at 11:51 and reintroduced under
+    a new function name at 12:22 — thirty-one minutes — then rebuilt again in a
+    new engine by 18:04. One invented dataset reached three surfaces. The fix
+    was test-no-fabricated-values.js, scoped to NO module.
+  - Two test suites asserted NOT_CONFIGURED by deleting env vars, while a real
+    brokers.json supplied them. THEY PASSED ONLY WHILE THE FEATURE WAS OFF.
+  - Python patch scripts silently no-op when an anchor does not match. ALWAYS
+    assert the anchor count. A `\b` in a Python string became a literal
+    backspace in JavaScript; `\U0001f3af` printed as the text "U0001f3af".
+  - DO NOT verify a cold host with `mv .private .private.bak`. The restore
+    NESTS the real directory inside the new one. Copy the repo elsewhere.
+
+
+================================================================================
+10. THE DATABASE
+================================================================================
+
+SQLite via node:sqlite (experimental warning is expected), at
+.private/k2-trading.db. WAL mode. ONE store — a second store means two answers
+to the same question and eventually they disagree.
+
+  account             equity and aggregate statistics. Exactly one row, ZEROED.
+  positions           open positions.
+  trades              closed trades.
+  signals_lifecycle   THE PAPER LEDGER. See below.
+  macro_snapshots     macro radar history.
+  ticks_history       per-symbol tick history.
+  audit_events        refusals and notable events, including back-date refusals.
+
+signals_lifecycle carries id, symbol, trading_symbol, option_type, strike,
+lot_size, entry_price, current_price, target1/2, stop_loss, issued_at,
+closed_at, status, exit_reason, pnl_*, plus the provenance columns added
+2026-09-20: entry_price_source, exit_price_source, entry_executable,
+probability_of_profit_pct, volatility_verdict, expiry. SQLite has no ADD COLUMN
+IF NOT EXISTS, so the migration reads PRAGMA table_info first and is idempotent.
+
+THE LEDGER'S GUARANTEES, none of which are negotiable:
+  - entry_price is written ONCE and never appears in a SET clause.
+  - Every price carries its source. A live book and a model must not look alike.
+  - Back-dated and future-dated signals are REFUSED and written to audit_events.
+  - A position closes only against an OBSERVED price.
+  - The win rate counts CLOSED rows only. Absence reports null, never zero.
+  - Recording happens ONLY while the market is open. A signal issued against a
+    closing book is not one anyone could have acted on.
+  - A modelled premium can never open a position, or the ledger would be
+    measuring the model against itself.
+
+DURABILITY: the disk is ephemeral, so rows mirror to the Google Apps Script
+store — a BACKUP of the one store, not a second store; nothing reads it except
+the restore path. The merge is a union by id where a CLOSED row is never
+reopened by an open snapshot. Currently INACTIVE: the two Google env vars are
+not set.
+
+
+================================================================================
+11. OPEN ITEMS
+================================================================================
+
+  1. THE REALTIME PATH HAS NEVER BEEN OBSERVED DURING AN OPEN SESSION. Every
+     REALTIME assertion runs against a CONSTRUCTED timestamp. If exchFeedTime
+     lags the 120s window during a session, REALTIME never fires, every card
+     reads CLOSING BOOK all day, order buttons never appear, and the spread gate
+     stays keyed to close-of-day spreads — silently, while every test passes.
+     CHECK: open the desk during market hours and read the banner. LIVE means it
+     works. FEED_LAGGING is the failure. Also at /api/state under
+     liveFeed.feedCheck.verdict, and the engine warns in the Render log.
+     Encouraging evidence: exchFeedTime is per-contract, not a batch mark — 34
+     distinct stamps from 15:39:51 to 15:40:09 across 565 contracts.
+     IF IT FAILS: widen the window to the measured lag AND SAY IT WAS WIDENED.
+     Never silently relabel a lagging book as live.
+  2. The ledger has no durable backup until the two Google env vars are set.
+  3. Render free tier: spin-down and ephemeral disk. $7/month fixes both.
+  4. The TOTP secret is exposed and should be re-enrolled.
+  5. The CNN is untrained. VPIN returns null. The chart-pattern detector exposes
+     no strength value.
+  6. The signal has no measured edge. The paper ledger exists to settle this
+     with evidence rather than argument. Let it run before believing anything.
+
+
+================================================================================
+12. HOW TO WORK ON THIS
+================================================================================
+
+  npm run check                      the whole suite. 170 assertions. Must be
+                                     green before every commit, no exceptions.
+  node server.js                     runs the desk locally on PORT or 10000.
+  node scripts/check-live-session.js during market hours only; prints
+                                     per-contract exchange lag.
+
+VERIFICATION HABITS THAT WERE LEARNED THE HARD WAY:
+  - ENUMERATE, never sample. The four-symbol spot check missed 343 wrong lots.
+  - Cross-check against an INDEPENDENT source: the broker's own label, the
+    exchange bhavcopy, or an identity like put-call parity.
+  - Mutation-test the important fixes. Break the fix deliberately and confirm
+    the test fails. A test that passes against the bug is decoration.
+  - Assert that a check actually checked something. Count what you compared and
+    assert the count.
+  - Measure memory and payload for anything on the per-request path.
+  - Kill stray `node server.js` processes. Six were once left running, each
+    refreshing the same cache on a 90s timer with stale in-memory code,
+    overwriting a field that had just been added and burning API quota.
+
+COMMUNICATION WITH THIS USER:
+  - He wants four things on a card: buy price, sell price, stop, how long. The
+    card was once sixty lines of correct, unreadable prose. A card nobody
+    finishes is worse than a card that says less.
+  - Give him prices that map to a BUTTON in his broker app. "Sell the spread at
+    Rs 1.82" maps to no field anywhere and is therefore a wrong answer however
+    correct the arithmetic.
+  - He is on a phone, on mobile data, often at the office. Do not assume he can
+    run a script on his laptop.
+  - Tell him what is broken before he finds it. He has caught real defects this
+    system's own audits missed, and he is right to be angry when a number is
+    presented as measured that was not.
+  - Never dress up the failed out-of-sample result. He asked for the test, he
+    accepted the answer, and the honest record is the product.
+
+================================================================================
+END. Everything above was verified against the running code on 2026-09-20.
+================================================================================
