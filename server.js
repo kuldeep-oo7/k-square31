@@ -88,12 +88,27 @@ const server = http.createServer((req, res) => {
           // What is configured on THIS host, so a deploy can be checked from a
           // phone instead of guessed at. Names only -- never the values.
           const persistence = (() => {
-            const missing = ["ANGELONE_API_KEY", "ANGELONE_CLIENT_CODE", "ANGELONE_MPIN", "ANGELONE_TOTP_SECRET",
-              "K2_GOOGLE_SHEETS_WEB_APP_URL", "K2_GOOGLE_SHEETS_ARCHIVE_SECRET"]
-              .filter((name) => !process.env[name]);
+            // Report CAPABILITY, not the presence of environment variables.
+            // Credentials may arrive by env var OR by a Render secret file, and
+            // this check knew only about the first: with a working secret file
+            // and an authenticated session it still listed all four ANGELONE_
+            // names as missing. A diagnostic that says "missing" about
+            // something demonstrably present is worse than none, because it is
+            // read at the moment someone is trying to find out what is wrong.
+            const brokerReady = Boolean(brokers.anyReady);
+            const missing = [];
+            if (!brokerReady) {
+              missing.push("ANGELONE_API_KEY", "ANGELONE_CLIENT_CODE", "ANGELONE_MPIN", "ANGELONE_TOTP_SECRET");
+            }
+            for (const name of ["K2_GOOGLE_SHEETS_WEB_APP_URL", "K2_GOOGLE_SHEETS_ARCHIVE_SECRET"]) {
+              if (!process.env[name]) missing.push(name);
+            }
             let durable = false;
             try { durable = require("./api/_lib/google-store").googleStoreConfigured(); } catch (error) { durable = false; }
             return {
+              brokerCredentials: brokerReady
+                ? "PRESENT (environment or secret file)"
+                : "ABSENT - set the four ANGELONE_ variables, or upload brokers.json as a Render secret file",
               ledgerDurable: durable,
               ledgerNote: durable
                 ? "Ledger mirrors to the Apps Script store and survives redeploys."
