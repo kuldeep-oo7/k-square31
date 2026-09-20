@@ -183,12 +183,39 @@ function analyzeCandidate({
   // Fallback only: if a caller uses this scanner standalone, without the
   // cross-sectional pass, the old blended score is still produced so nothing
   // breaks. The deployed path overwrites it with the ranked version.
-  let compScore = (rawComponents.neural * 0.35) +
-                  (rawComponents.candle * 0.15) +
-                  ((chartResult.dominantPattern ? 80 : 50) * 0.10) +
-                  ((hurst > 0.55 ? 85 : 50) * 0.15) +
-                  ((vpin.vpin < 0.25 ? 85 : 50) * 0.10) +
-                  ((garch.volatilityRegime === "MODERATE_VOL" ? 85 : 50) * 0.15);
+  // MEASURED ACROSS THE LIVE UNIVERSE, 2026-09-20, and rebuilt on what was found.
+  //
+  // The previous formula spent 20% of its weight on two terms that were
+  // CONSTANT for all 210 names: chart resolved to 50 everywhere because no
+  // symbol reports a dominant pattern, and vpin to 50 everywhere because VPIN
+  // is not implemented and returns null (null < 0.25 is false). A constant adds
+  // the same ten points to every score and ranks nothing, while the published
+  // componentWeights claimed it was doing a fifth of the work.
+  //
+  // It also binarised continuous evidence. Hurst carried 160 distinct values
+  // across the universe and was collapsed to {50, 85} on a single threshold, so
+  // 0.549 and 0.843 scored identically while 0.549 and 0.551 scored 35 apart.
+  // That is a hard boundary through the middle of a noisy estimate.
+  //
+  // So: dead terms carry no weight instead of a hidden constant, and continuous
+  // evidence stays continuous. This is a DEFECT FIX, not a validated
+  // improvement -- the entry signal still has no measured edge (out-of-sample
+  // t = 1.25 against a 1.6648 hurdle) and nothing here changes that.
+  const liveWeights = { neural: 0.35, candle: 0.15, hurst: 0.25, garch: 0.25 };
+
+  // Hurst maps continuously over [0.35, 0.75]: trending names score higher, and
+  // a name just over the old 0.55 line no longer leaps 35 points past one just
+  // under it.
+  const hurstScore = Number.isFinite(hurst)
+    ? 50 + 35 * Math.max(0, Math.min(1, (hurst - 0.35) / 0.40))
+    : 50;
+  // Volatility regime keeps its ordering rather than one favoured bucket.
+  const regimeScore = { LOW_VOL: 65, MODERATE_VOL: 85, ELEVATED_VOL: 55, HIGH_VOL: 40 }[garch.volatilityRegime] ?? 50;
+
+  let compScore = (rawComponents.neural * liveWeights.neural) +
+                  (rawComponents.candle * liveWeights.candle) +
+                  (hurstScore * liveWeights.hurst) +
+                  (regimeScore * liveWeights.garch);
 
   compScore = Math.max(10, Math.min(99, Math.round(compScore)));
 
@@ -230,7 +257,14 @@ function analyzeCandidate({
     // Integrated Analytics
     rawCompScore: compScore,
     rawComponents,
-    componentWeights: { neural: 0.35, candle: 0.15, chart: 0.10, hurst: 0.15, vpinNegated: 0.10, volBandCloseness: 0.15 },
+    // What the formula ACTUALLY weights. The previous list named six components
+    // when two of them were constants, which made it a description of an
+    // intention rather than of the code beneath it.
+    componentWeights: { neural: 0.35, candle: 0.15, hurst: 0.25, garchRegime: 0.25 },
+    inactiveComponents: {
+      chartPattern: "No symbol reports a dominant pattern; carried 10% as a constant 50.",
+      vpin: "Not implemented, returns null; carried 10% as a constant 50."
+    },
     compositeScore: compScore,
     neuralScore: neuralResult.neuralAlphaScore,
     rawActivationScore: neuralResult.rawActivationScore,
