@@ -139,12 +139,24 @@ function instrumentCachePath(provider) {
  * fetched and reduced at boot. Only what the desk needs is kept: mapping a
  * symbol to the provider's own key, and the option contracts per expiry.
  */
+/** True when the cached master predates the fields this code expects. */
+function instrumentsAreStale(provider) {
+  const cached = loadInstruments(provider);
+  return !cached || cached.schemaStale === true;
+}
+
 async function refreshInstruments(provider, { timeoutMs = 180_000 } = {}) {
   fs.mkdirSync(CACHE_DIR, { recursive: true });
   if (provider === "angelone") {
     const response = await fetch(ANGEL_INSTRUMENTS, { headers: { "User-Agent": USER_AGENT }, signal: AbortSignal.timeout(timeoutMs) });
     if (!response.ok) throw new Error(`angel instruments returned ${response.status}`);
-    const rows = JSON.parse(await response.text());
+    // response.json() parses straight from the network buffer. The previous
+    // JSON.parse(await response.text()) materialised a 35 MB JavaScript string
+    // AND the object tree beside it. Measured peak for this call is 200 MB RSS;
+    // on a 512 MB host already holding 260 MB that is the difference between a
+    // refresh completing and a container that quietly keeps serving a master
+    // with no futures in it.
+    let rows = await response.json();
     const underlyings = {};
     const options = {};
     // FUTURES ARE A SEPARATE INSTRUMENT AND WERE BEING DISCARDED.
@@ -193,6 +205,9 @@ async function refreshInstruments(provider, { timeoutMs = 180_000 } = {}) {
       futuresCount: Object.keys(futures).length,
       underlyings, options, futures
     };
+    // Release the 100k-row array before serialising the small result, so the
+    // two never occupy the heap at the same moment.
+    rows = null;
     fs.writeFileSync(instrumentCachePath(provider), JSON.stringify(payload));
     memo[provider] = payload;
     return payload;
@@ -256,9 +271,19 @@ function loadInstruments(provider) {
   if (!fs.existsSync(file)) return null;
   try {
     const parsed = JSON.parse(fs.readFileSync(file, "utf8"));
-    // Too old to trust: treat it as absent so the caller refetches, rather than
-    // serving a shape this code no longer understands.
-    if (Number(parsed?.schemaVersion) !== INSTRUMENT_SCHEMA_VERSION) return null;
+    // An out-of-date shape is DEGRADED, not unusable.
+    //
+    // Returning null here was a mistake that would have been severe in
+    // production. The Angel master is 35 MB of JSON and takes about 35 seconds
+    // to download; parsing it holds both the text and the object tree, which on
+    // a 512 MB host already sitting at 260 MB frequently does not complete. If
+    // a stale cache reads as ABSENT and the refresh then fails, the desk has no
+    // instrument master at all -- no option chains, no strikes, nothing. Losing
+    // the futures field is a degradation; losing the chain is a break.
+    //
+    // So an old cache is still served, marked stale, and the refresh is left to
+    // upgrade it when it can.
+    parsed.schemaStale = Number(parsed?.schemaVersion) !== INSTRUMENT_SCHEMA_VERSION;
     memo[provider] = parsed;
     return memo[provider];
   } catch (error) { return null; }
@@ -520,6 +545,7 @@ function quoteFromChain(chain, strike, optionType) {
 
 module.exports = {
   futuresQuotes,
+  instrumentsAreStale,
   CREDENTIAL_PATHS, credentialFile,
   ANGEL_INSTRUMENTS, ANGEL_ROOT, CREDENTIALS_FILE, PROVIDERS, UPSTOX_INSTRUMENTS, UPSTOX_ROOT,
   angelOptionChain, credentialsFor, instrumentCachePath, loadInstruments,
