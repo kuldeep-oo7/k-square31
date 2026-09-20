@@ -17,6 +17,7 @@ const {
 const { liveQuote: liveBrokerQuote } = require("./live-quotes");
 const { marketPhase: sessionPhase } = require("./live-quotes");
 const { liveFuture: liveFuturePrice } = require("./live-quotes");
+const { parityForward: parityImpliedForward } = require("./fno-reference");
 const { longOptionExits, verticalSpreadExits } = require("./exit-levels");
 const { tradeOdds } = require("./trade-odds");
 const { impliedVolatility: solveImpliedVolatility } = require("./option-pricing");
@@ -200,6 +201,13 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     const bucket = contractRef?.symbols?.[symbol]?.expiries?.[listedExpiry];
     const settled = Number(bucket?.futuresPrice);
     if (Number.isFinite(settled) && settled > 0) return { price: settled, basis: "EXCHANGE_SETTLED_FUTURE" };
+    // No matching future. NIFTY options expire WEEKLY while index futures are
+    // MONTHLY, so a 22-Sep option has no 22-Sep future -- and falling back to
+    // the cash index repeats the very error this waterfall exists to avoid, on
+    // the instrument where the basis is largest. Put-call parity returns the
+    // forward the options themselves are using, with no model at all.
+    const parity = contractRef ? parityImpliedForward(symbol, listedExpiry, { reference: contractRef }) : null;
+    if (parity?.price > 0) return { price: parity.price, basis: "PARITY_IMPLIED_FORWARD" };
     return { price: spot, basis: "CASH_SPOT_NO_FUTURE_AVAILABLE" };
   })();
   const pricingUnderlying = pricing.price;
@@ -1237,6 +1245,14 @@ class FnoUniverseEngine {
       spotPrice: niftySpot,
       entryPrice: niftyOpts ? niftyOpts.call.entryPrice : null,
       currentLtp: niftyOpts ? niftyOpts.call.currentPrice : 182.20,
+      // The index cards are projected on a separate path and were missing the
+      // exits entirely -- so the desk said BUY NIFTY at a premium with no sell
+      // price and no stop, which is the exact complaint that started this work.
+      legExits: niftyOpts && niftyOpts.call ? niftyOpts.call.exits || null : null,
+      spreadExits: niftyOpts && niftyOpts.spread ? niftyOpts.spread.exits || null : null,
+      pricingBasis: niftyOpts ? niftyOpts.pricingBasis || null : null,
+      pricingUnderlying: niftyOpts ? (niftyOpts.pricingUnderlying ?? null) : null,
+      marketPhase: niftyOpts ? niftyOpts.marketPhase || null : null,
       target1: niftyOpts ? niftyOpts.call.target1 : 225.00,
       target2: niftyOpts ? niftyOpts.call.target2 : 280.00,
       stopLoss: niftyOpts ? niftyOpts.call.stopLoss : 95.00,
@@ -1287,6 +1303,14 @@ class FnoUniverseEngine {
       spotPrice: bankNiftySpot,
       entryPrice: bankNiftyOpts ? bankNiftyOpts.call.entryPrice : null,
       currentLtp: bankNiftyOpts ? bankNiftyOpts.call.currentPrice : 425.50,
+      // The index cards are projected on a separate path and were missing the
+      // exits entirely -- so the desk said BUY NIFTY at a premium with no sell
+      // price and no stop, which is the exact complaint that started this work.
+      legExits: bankNiftyOpts && bankNiftyOpts.call ? bankNiftyOpts.call.exits || null : null,
+      spreadExits: bankNiftyOpts && bankNiftyOpts.spread ? bankNiftyOpts.spread.exits || null : null,
+      pricingBasis: bankNiftyOpts ? bankNiftyOpts.pricingBasis || null : null,
+      pricingUnderlying: bankNiftyOpts ? (bankNiftyOpts.pricingUnderlying ?? null) : null,
+      marketPhase: bankNiftyOpts ? bankNiftyOpts.marketPhase || null : null,
       target1: bankNiftyOpts ? bankNiftyOpts.call.target1 : 515.00,
       target2: bankNiftyOpts ? bankNiftyOpts.call.target2 : 650.00,
       stopLoss: bankNiftyOpts ? bankNiftyOpts.call.stopLoss : 215.00,
