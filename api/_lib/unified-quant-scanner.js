@@ -96,7 +96,7 @@ function analyzeCandidate({
   const candleResult = identifyCandlestickPatterns(historicalBars);
 
   // 2. Chart Pattern Scanning
-  const chartResult = scanChartPatterns(historicalBars, spot);
+  const chartResult = scanChartPatterns(historicalBars);
 
   // 3. 10 Advanced Quant Formulas
   const closePrices = historicalBars.map(b => Number(b.close || b.c || spot));
@@ -135,7 +135,7 @@ function analyzeCandidate({
     HURST: hurst,
     VPIN: vpin.vpin,
     ER: er,
-    PATTERN: chartResult.dominantPattern?.pattern || "NONE",
+    PATTERN: chartResult.primaryPattern?.pattern || "NONE",
     CANDLE: candleResult.primaryPattern || "NONE",
     NEURAL_ALPHA: neuralResult.neuralAlphaScore,
     SPOT: spot
@@ -172,7 +172,7 @@ function analyzeCandidate({
   const rawComponents = {
     neural: Number(neuralResult.neuralAlphaScore),
     candle: Number(candleResult.score) * 100,
-    chart: Number(chartResult.dominantPattern?.confidence ?? chartResult.dominantPattern?.strength ?? (chartResult.dominantPattern ? 1 : 0)),
+    chart: Number(chartResult.primaryPattern?.confidence ?? (chartResult.primaryPattern ? 0.5 : 0)) * 100,
     hurst: Number(hurst),
     vpinNegated: Number.isFinite(Number(vpin.vpin)) ? -Number(vpin.vpin) : null,
     volBandCloseness: Number.isFinite(forecastVol) && forecastVol > 0
@@ -273,8 +273,8 @@ function analyzeCandidate({
     neuralRegime: neuralResult.predictedRegime,
     candlestickPattern: candleResult.primaryPattern || "CONSOLIDATION",
     candlestickSummary: candleResult.candlestickSummary,
-    chartPattern: chartResult.dominantPattern?.pattern || "RANGE",
-    chartPatternBias: chartResult.dominantPattern?.bias || "NEUTRAL",
+    chartPattern: chartResult.primaryPattern?.pattern || "RANGE",
+    chartPatternBias: chartResult.primaryPattern?.bias || "NEUTRAL",
     garchVol: `${Math.round(garch.forecastedAnnualizedVol * 100)}%`,
     garchRegime: garch.volatilityRegime,
     cvar99Rupees: `₹${cfRisk.cvarRupees.toLocaleString('en-IN')}`,
