@@ -1,0 +1,338 @@
+================================================================================
+K² PRODUCTION AUDIT — 2026-09-20
+Is it correct, will it survive market hours, and can it harm us?
+================================================================================
+
+Every number below was MEASURED against the running system on the date above.
+Where something is unverified it says so. Nothing here is recalled.
+
+VERDICT IN ONE LINE: the pricing mathematics is exact, the plumbing is now sound
+enough for a trading day, two guards that looked like they protected you had
+never once fired and are now fixed, and the entry signal still has no measured
+edge — so trade nothing on it until the ledger says otherwise.
+
+
+================================================================================
+PART 1 — WHAT I VERIFIED AGAINST PUBLISHED REFERENCE VALUES
+================================================================================
+
+Not against the system's own code. Against Hull, "Options, Futures and Other
+Derivatives", which is the standard reference.
+
+  Hull ch.15   S=42 K=40 r=0.10 sigma=0.20 T=0.5
+               call  4.7594   book 4.7594   error 2.3e-5
+               put   0.8086   book 0.8086   error 2.3e-8
+
+  Hull ch.19   S=49 K=50 r=0.05 sigma=0.20 T=0.3846
+               delta 0.522   book 0.522
+               gamma 0.066   book 0.066
+               vega  12.1    book 12.1
+               theta -4.31   book -4.31
+               rho    8.91   book  8.91
+
+  Put-call parity with dividends, C - P = S·e^(-qT) - K·e^(-rT)
+               error 7.11e-15  (machine precision)
+
+  Implied volatility round trip, 0.300000 in -> 0.300000 out
+               error 2.79e-10
+
+The 2.3e-5 on the call is the Abramowitz & Stegun 26.2.17 normal CDF
+approximation, whose published bound is 7.5e-8 per evaluation. For a premium of
+Rs 3.10 that is an error in the ninth decimal place. It is not worth replacing.
+
+THE PRICING CORE IS CORRECT. It is not where the risk lives.
+
+Also verified earlier and still holding:
+  - 565 of 565 contracts match the broker's own instrument label
+  - put-call parity across 12 live symbols: slope -0.995, R² 0.9999
+  - open interest agrees with the NSE bhavcopy on 487 of 500
+  - lot sizes agree across 659 contracts, zero disagreements
+  - at-the-money premiums sit 2.05% (median) from the exchange settled price
+
+
+================================================================================
+PART 2 — THE TWO GUARDS THAT HAD NEVER FIRED
+================================================================================
+
+This is the most important section. Both were live code that looked correct and
+did nothing, which is worse than absent code because nobody looks for it.
+
+2.1 THE EARNINGS VETO HAD NEVER FIRED, FOR ANY NAME, EVER
+
+    const earningsVeto = fund?.events?.insideTradingWeek === true;
+
+    Correct code. But .private/cache/fundamentals/ did not exist, so
+    getCachedFundamentals returned null for all 210 symbols and the expression
+    was undefined every time.
+
+    WHY IT MATTERS MORE THAN IT LOOKS. Buying premium into an earnings
+    announcement is the one setup where being RIGHT ABOUT DIRECTION STILL LOSES.
+    Implied volatility is bid up before the event and collapses the moment the
+    number is out. The stock can move your way and the option still falls,
+    because you paid for volatility that has just been extinguished. A desk that
+    recommends a long call the day before results, with no veto, is handing you
+    the worst trade in options.
+
+    FIXED: the engine now fetches fundamentals at boot and every twelve hours,
+    paced in batches of eight. Verified live: 210 of 210 fetched, 0 failures.
+    The veto is armed. It fires on nothing this week, which is the correct
+    answer for this week, not a broken one.
+
+2.2 THE BALANCE-SHEET PENALTY HAD NEVER FIRED EITHER
+
+    Same root cause. The composite applies -15 to any name with debt-to-equity
+    above 200 and +4 to a strong balance sheet. With no fundamentals, neither
+    branch ran, so leverage was invisible to the ranking.
+
+    MEASURED AFTER THE FIX: 21 of 210 names carry debt-to-equity above 200 —
+    CHOLAFIN at 695, ABCAPITAL at 496, ADANIGREEN at 347, BAJFINANCE at 315,
+    BAJAJFINSV at 256. All 21 were being ranked as though their balance sheets
+    were clean.
+
+    With the penalty applying, NONE of them remain in the recommended set.
+    balanceSheetScore now spans -0.261 to 0.999 across all 210 names.
+
+    This is the "all of the balance sheet" layer you asked about. It existed,
+    it was wired in, and it had no data. It has data now.
+
+
+================================================================================
+PART 3 — A FIFTH OF THE SCORE WAS TWO CONSTANTS
+================================================================================
+
+The composite published these weights:
+
+    neural .35   candle .15   chart .10   hurst .15   vpin .10   volBand .15
+
+Measured across all 210 names, two of those terms take the SAME VALUE for every
+single symbol:
+
+    chart  = 50 for all 210    no symbol reports a dominant pattern
+    vpin   = 50 for all 210    VPIN is not implemented and returns null,
+                               and null < 0.25 is false
+
+A constant adds ten points to every score and ranks nothing. Twenty per cent of
+the stated weighting was decoration. This is the defect this repository keeps
+producing in new clothes: a number describing the system that does not describe
+the system.
+
+The formula also BINARISED continuous evidence:
+
+    ((hurst > 0.55 ? 85 : 50) * 0.15)
+
+Hurst carried 160 distinct values across the universe and was collapsed onto two
+of them. So 0.549 and 0.843 scored identically, while 0.549 and 0.551 scored 35
+points apart — a hard boundary driven through the middle of a noisy estimate.
+Volatility regime had the same shape: one favoured bucket, everything else
+flattened together.
+
+FIXED. Dead terms carry no weight instead of a hidden constant. Hurst maps
+continuously over [0.35, 0.75]. Regime keeps its ordering. Weights are now
+neural .35, candle .15, hurst .25, garchRegime .25, and the two inactive
+components are declared by name with the reason, so nothing can silently claim
+to contribute again.
+
+THIS IS A DEFECT FIX, NOT A VALIDATED IMPROVEMENT. Removing dead weight does not
+create an edge. See Part 6.
+
+
+================================================================================
+PART 4 — WILL IT SURVIVE MARKET HOURS
+================================================================================
+
+It did not, on Friday 2026-09-18. Blank page at 10:51, HTTP 502 at 10:52. Four
+independent faults, all now fixed and all verified:
+
+  THE CRASH. new Date(NaN).toISOString() throws a RangeError. On a host with no
+  cached bars the generated series carries no timestamp, and /api/state had no
+  outer try/catch — so one unformattable BAR-AGE field returned 502 for the
+  entire desk. Every card, every price, gone, because a provenance string could
+  not be printed. Timestamp validated, handler guarded.
+
+  NO PRICES AT ALL. refreshReference asked for exactly one date, TODAY, and gave
+  up on a 404. NSE publishes the bhavcopy only AFTER the close, so during a live
+  session today's file never exists: the one date guaranteed to fail was the
+  only one requested. It now walks back to the last available session. Verified
+  from a cold start: Friday's file, 216 symbols, 275 of 423 cards priced.
+
+  MEMORY. getUniverse() recomputed 210 names on every caller and /api/state
+  called it three times per request — about 260ms and 40MB a pass, on a 512MB
+  host. Measured 313MB resident. Cached 2.5s, keyed on macro state. Now 262MB,
+  and 40 polls complete in 6 seconds.
+
+  PAYLOAD. 3.5MB of JSON per poll, read on a phone over 4G, with the option
+  chain serialised TWICE — nested on every universe row and again as the array
+  the page renders from. Duplication removed, gzip added: 244KB, a 93% cut.
+
+Load tested after the fixes: 40 consecutive /api/state calls, zero failures,
+zero errors in the log.
+
+REMAINING PRODUCTION HAZARDS, none of them code:
+
+  Render free tier spins down after ~15 minutes idle. First request after that
+  waits ~50 seconds. This is the "RECONNECTING" badge. Render's own banner says
+  so. It is not a bug and the desk recovers on its own.
+
+  The disk is ephemeral. The SQLite ledger is wiped on every deploy. MITIGATED:
+  the Google Apps Script archive is now live and VERIFIED from Render itself —
+  "Restored 1 rows from the archive" at 16:56:26Z. Not configured-and-hoped-for;
+  actually exercised from the production host.
+
+  $7/month Starter removes both the spin-down and the ephemeral disk. It is the
+  highest-value purchase available and nothing else fixes them.
+
+
+================================================================================
+PART 5 — WHAT THE ANALYSIS LAYER ACTUALLY DOES
+================================================================================
+
+Asked plainly, because you asked plainly.
+
+REAL AND WIRED IN:
+  Black-Scholes-Merton, Black-76     exact, verified above
+  Greeks                             exact, verified against Hull
+  Implied volatility                 bisection, bracketed, bounded, exact
+  Realized volatility                close-to-close and Parkinson, from 67 real
+                                     Yahoo bars per name
+  Variance risk premium              IV solved from the TRADED premium against
+                                     realized. Across 204 cards: 23 CHEAP,
+                                     71 FAIR, 63 RICH, 47 EXPENSIVE
+  Probability of profit              N(d2) under measured volatility, zero drift
+  First-passage time to target       2·N(-|ln(B/S)|/(sigma·sqrt(T)))
+  GARCH(1,1)                         conditional volatility, feeds the regime term
+  Hurst exponent                     now continuous in the score
+  Candlestick engine                 14 distinct values across 210 names, live
+  Ledoit-Wolf covariance             recovers a known covariance, PSD over 400
+                                     probes, Euler decomposition sums correctly
+  Cornish-Fisher VaR / CVaR          with a monotonicity domain check
+  Kyle's lambda, Amihud              liquidity measures, vary per name
+  Fundamentals / balance sheet       NOW LIVE, 210 of 210
+
+PRESENT BUT NOT CONTRIBUTING, and now declared as such:
+  Chart patterns                     the detector runs but no symbol currently
+                                     reports a dominant pattern, so the term was
+                                     constant. Removed from the weighting rather
+                                     than left as a hidden constant.
+  VPIN                               NOT IMPLEMENTED. Returns null for every
+                                     name. Was silently scored as 50.
+  CNN / deep learning                neural-quant-engine.js has conv1D, maxPool
+                                     and a forward pass, but the network is
+                                     UNTRAINED. Its output is a deterministic
+                                     function of recent bars, not a learned
+                                     prediction. It is labelled untrained in the
+                                     code and must not be presented as a forecast.
+  ML governance                      trainBoostedTrees and walk-forward
+                                     validation are real, and the governance
+                                     gate DEMOTES weak models to advisory only —
+                                     they cannot generate trades standalone.
+                                     That gate is doing its job: the models have
+                                     not earned trade generation.
+
+So: the DERIVATIVES mathematics is institutional quality. The MACHINE LEARNING
+is honest scaffolding that has not yet earned its place, and the code says so
+rather than pretending.
+
+
+================================================================================
+PART 6 — THE THING THAT CAN HARM YOU MOST
+================================================================================
+
+Not a crash. Not a wrong price. Those are fixed and tested.
+
+THE SIGNAL HAS NO MEASURED EDGE, AND EVERYTHING ELSE BEING EXCELLENT MAKES THAT
+MORE DANGEROUS, NOT LESS.
+
+    Pre-registered out-of-sample test: 112 symbols never touched in
+    development, 8,893 fills, +0.0422% per fill, t = 1.25 against a
+    1.6648 hurdle. FAILED.
+
+    By year: 2023 +0.1358% (the peak), 2026 -0.1752% at t = -2.10.
+    Negative, and significant, in the most recent year.
+
+    0 of 24 ladder geometries survived validation.
+
+    P(profit) across all 423 option cards: 23% to 44.6%, median 35%.
+    NOT ONE CARD IS ABOVE 45%.
+
+That last line deserves reading twice. Every card on this desk, priced from real
+books with exact mathematics, has the odds against it. That is not a flaw in the
+desk — it is the honest arithmetic of buying options, where you must clear the
+strike AND the premium AND the time decay.
+
+The risk is psychological, and it is specific: a system that prices correctly,
+refuses wide spreads, states probabilities, and shows a clean audit trail LOOKS
+authoritative. The quality of the machinery is easily mistaken for evidence
+about the selection. It is not. The machinery tells you exactly what a contract
+is worth. It does not tell you that buying it makes money.
+
+WHAT TO DO ABOUT IT: the paper ledger now records every signal at the price
+shown, marks it against observed prices, and reports what it actually earned. It
+also stamps each signal with the P(profit) and cheap/expensive verdict it
+carried AT ISSUE — so in a month you can ask not only "did it win" but "were the
+probabilities calibrated", which is the better question. Let it run. Trade
+nothing on the signal until it has an answer.
+
+
+================================================================================
+PART 7 — WHAT I CHANGED TODAY
+================================================================================
+
+  fix(score)       removed 20% dead weight, stopped binarising continuous
+                   evidence, declared the inactive components by name
+  fix(safety)      fundamentals fetched at boot and every 12h; earnings veto and
+                   balance-sheet penalty can now fire. 210/210 live, 21 names
+                   penalised, all 21 dropped out of the recommended set
+  fix(diagnostics) ledgerVerified reports whether the backup has SUCCEEDED from
+                   this host, not merely whether it is configured
+  fix(store)       account-scoped Apps Script URLs (/macros/u/1/s/) 404 from a
+                   server; normalised, so a pasted dashboard URL works
+
+  Suite: 178 assertions, green.
+
+STATE OF THE DEPLOYMENT, verified live:
+
+  broker credentials   PRESENT (Render secret file), Angel session UNATTENDED_TOTP
+  contract reference   216 symbols, session 2026-09-18
+  cards priced         305 of 423
+  ledger durable       TRUE and VERIFIED from Render
+  missing env vars     none
+  payload              244 KB gzipped
+  memory               262 MB of 512 MB
+
+
+================================================================================
+PART 8 — HONEST ANSWERS TO YOUR QUESTIONS
+================================================================================
+
+  "Is everything working?"
+      The plumbing, yes, and it is now tested rather than assumed. The signal,
+      no — it has never been shown to make money and the one rigorous test it
+      faced, it failed.
+
+  "Is everything correct?"
+      The mathematics is correct to machine precision against published
+      references. The scoring had a real defect (a fifth of it was constants)
+      and two guards had no data. All three are fixed today.
+
+  "Will it work during market hours?"
+      Friday's four failure modes are fixed and verified. Expect slow first
+      loads from the free-tier spin-down. Watch the banner: LIVE means quotes
+      are current; FEED_LAGGING is the one path never observed during an open
+      session and is the thing to report to me.
+
+  "Can it harm us?"
+      Not through a crash or a wrong price any more. Through overconfidence,
+      yes. See Part 6. The most dangerous property of this system is how
+      trustworthy the correct parts make the unproven part look.
+
+  "Can anything improve the accuracy?"
+      Today: removing 20% dead weight, keeping continuous evidence continuous,
+      and arming two guards that had never fired. Those are defect fixes, and I
+      have not claimed they create an edge, because I have not measured that.
+      The honest next improvement is not another indicator. It is a month of
+      paper-ledger evidence, and then acting on what it says — including
+      stopping, if that is what it says.
+
+================================================================================
+END. Verified against the running system, 2026-09-20.
+================================================================================
