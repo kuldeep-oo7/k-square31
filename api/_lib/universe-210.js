@@ -681,6 +681,43 @@ class FnoUniverseEngine {
   }
 
   /**
+   * Re-fetch bars for symbols that still have none.
+   *
+   * The ingest ran exactly ONCE per container: runCycle only advances its
+   * cursor and reset() was never called from anywhere, so a symbol whose fetch
+   * failed on that single pass stayed synthetic for the life of the process.
+   * On Render, where the disk is wiped every deploy and the outbound IP is
+   * shared, 159 of 210 symbols failed that pass -- and because the odds engine
+   * needs real bars, 306 of 423 cards were served with no probability, no
+   * implied volatility and no cheap-versus-expensive verdict at all.
+   *
+   * Nothing errored. The cards simply arrived without the numbers, and a card
+   * that silently omits its odds looks the same as one that has none to give.
+   */
+  async retryMissingBars({ limit = 60 } = {}) {
+    const missing = this.symbols.filter((symbol) => {
+      const bars = this.barsCache.get(symbol);
+      return !Array.isArray(bars) || bars.length < 10;
+    }).slice(0, limit);
+    if (!missing.length) return { ok: true, retried: 0, remaining: 0 };
+
+    const ingestor = new StaggeredBarIngestor(missing, {
+      batchSize: 3,
+      delayMs: 400,
+      onBarUpdated: (symbol, bars) => {
+        if (Array.isArray(bars) && bars.length > 0) this.barsCache.set(symbol, bars);
+      }
+    });
+    await ingestor.runCycle();
+
+    const stillMissing = this.symbols.filter((symbol) => {
+      const bars = this.barsCache.get(symbol);
+      return !Array.isArray(bars) || bars.length < 10;
+    }).length;
+    return { ok: true, retried: missing.length, recovered: missing.length - stillMissing, remaining: stillMissing };
+  }
+
+  /**
    * SYNTHETIC price path -- linear ramp with sine ripple. Kept only for portfolio
    * mark compatibility; always carries historicalBarsAreSynthetic: true.
    */
@@ -1370,8 +1407,6 @@ class FnoUniverseEngine {
           marketPhase: u.options.marketPhase || null,
           pricingBasis: u.options.pricingBasis || null,
           pricingUnderlying: u.options.pricingUnderlying ?? null,
-          pricingBasis: u.options.pricingBasis || null,
-          pricingUnderlying: u.options.pricingUnderlying ?? null,
           quoteAgeSeconds: u.options.call.quoteAgeSeconds ?? null,
           optionOpenInterest: u.options.call.exchangeOpenInterest ?? null,
           priceSource: u.options.call.priceSource ?? null,
@@ -1453,6 +1488,12 @@ class FnoUniverseEngine {
           // this one costs the whole premium, not the net debit.
           legExits: u.options.put.exits || null,
           odds: u.odds || null,
+          // Both legs carry the pricing basis. The first patch replaced the
+          // call projection twice instead of one each, so every put card went
+          // out with no record of which underlying priced it.
+          marketPhase: u.options.marketPhase || null,
+          pricingBasis: u.options.pricingBasis || null,
+          pricingUnderlying: u.options.pricingUnderlying ?? null,
           executable: u.options.put.executable === true,
           bookState: u.options.put.bookState || null,
           tradedToday: u.options.put.tradedToday,

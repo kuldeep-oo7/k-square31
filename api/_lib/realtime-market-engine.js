@@ -453,6 +453,17 @@ class RealtimeMarketEngine {
     if (typeof fnoUniverseEngine.startBackgroundIngest === "function") {
       fnoUniverseEngine.startBackgroundIngest();
     }
+    // Keep retrying the symbols that have no bars yet. The first pass is one
+    // shot, and on a shared outbound IP a large fraction of it fails; without
+    // this the desk serves those names with no odds for the whole session.
+    this.barRetryTimer = setInterval(() => {
+      if (typeof fnoUniverseEngine.retryMissingBars !== "function") return;
+      fnoUniverseEngine.retryMissingBars().then((result) => {
+        if (result.retried) {
+          console.log(`[K² Bars] retried ${result.retried}, recovered ${result.recovered}, ${result.remaining} still missing`);
+        }
+      }).catch(() => {});
+    }, 5 * 60 * 1000);
     // Boot in dependency order rather than all at once. A quote request needs
     // the contract reference, the instrument master and a live session, and on
     // a cold deploy none of the three exist yet -- .private is not in the repo,
@@ -478,6 +489,7 @@ class RealtimeMarketEngine {
     if (this.quoteTimer) clearInterval(this.quoteTimer);
     if (this.ledgerTimer) clearInterval(this.ledgerTimer);
     if (this.fundamentalsTimer) clearInterval(this.fundamentalsTimer);
+    if (this.barRetryTimer) clearInterval(this.barRetryTimer);
     for (const client of this.clients) {
       try { client.end(); } catch {}
     }

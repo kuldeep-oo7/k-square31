@@ -187,7 +187,7 @@ async function refreshInstruments(provider, { timeoutMs = 180_000 } = {}) {
       }
     }
     const payload = {
-      provider, fetchedAt: new Date().toISOString(),
+      provider, schemaVersion: INSTRUMENT_SCHEMA_VERSION, fetchedAt: new Date().toISOString(),
       underlyingCount: Object.keys(underlyings).length,
       optionCount: Object.keys(options).length,
       futuresCount: Object.keys(futures).length,
@@ -215,7 +215,15 @@ async function refreshInstruments(provider, { timeoutMs = 180_000 } = {}) {
         if (!underlyings[name] || underlyings[name].kind !== "INDEX") underlyings[name] = { instrumentKey: key, kind: "EQUITY" };
       }
     }
-    const payload = { provider, fetchedAt: new Date().toISOString(), underlyingCount: Object.keys(underlyings).length, underlyings };
+    // Upstox builds its master on a separate path and needs the same version
+    // stamp. Without it loadInstruments rejects this cache forever, which
+    // silently disables the provider entirely -- a version check that is not
+    // applied everywhere is worse than none, because it breaks the paths it
+    // was never meant to touch.
+    const payload = {
+      provider, schemaVersion: INSTRUMENT_SCHEMA_VERSION, fetchedAt: new Date().toISOString(),
+      underlyingCount: Object.keys(underlyings).length, underlyings
+    };
     fs.writeFileSync(instrumentCachePath(provider), JSON.stringify(payload));
     memo[provider] = payload;
     return payload;
@@ -234,12 +242,26 @@ function normaliseAngelExpiry(value) {
 }
 
 const memo = {};
+// Bumped whenever this file starts expecting a field the cache may not carry.
+// A cached artifact that outlives the code reading it degrades SILENTLY: adding
+// futures to the master did nothing in production for a full deploy cycle,
+// because the container happily kept serving a file written before futures
+// existed and every card quietly fell back to the end-of-day forward. Nothing
+// errored. Nothing was logged. The desk simply got worse.
+const INSTRUMENT_SCHEMA_VERSION = 2;
+
 function loadInstruments(provider) {
   if (memo[provider]) return memo[provider];
   const file = instrumentCachePath(provider);
   if (!fs.existsSync(file)) return null;
-  try { memo[provider] = JSON.parse(fs.readFileSync(file, "utf8")); return memo[provider]; }
-  catch (error) { return null; }
+  try {
+    const parsed = JSON.parse(fs.readFileSync(file, "utf8"));
+    // Too old to trust: treat it as absent so the caller refetches, rather than
+    // serving a shape this code no longer understands.
+    if (Number(parsed?.schemaVersion) !== INSTRUMENT_SCHEMA_VERSION) return null;
+    memo[provider] = parsed;
+    return memo[provider];
+  } catch (error) { return null; }
 }
 
 /** One normalised leg. `tradeable` is the field that matters. */
