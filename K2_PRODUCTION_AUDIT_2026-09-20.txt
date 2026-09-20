@@ -297,6 +297,120 @@ symbols now report 22 INVERTED_HAMMER (bullish) and 1 SHOOTING_STAR (bearish).
 
 
 ================================================================================
+PART 3D — WHAT THE SECOND AUDIT FOUND, AFTER THE FIRST WAS WRITTEN
+================================================================================
+
+Each of these was found by a different method, and that is the point: none of
+them would have surfaced from reading the code.
+
+3D.1  REALIZED VOLATILITY WAS BLIND TO THE OVERNIGHT GAP
+      Parkinson uses only the intraday high-low range, so it cannot see the move
+      from yesterday's close to today's open -- and on Indian equities that gap
+      is a large share of the actual movement. Across all 210 symbols on a
+      20-day window it came in BELOW Yang-Zhang on 184 of them (88%), by a
+      median of 8.8%.
+
+      That biases every verdict, because this desk divides implied by realized:
+      understating the denominator by 8.8% inflates the ratio by about 9.6% and
+      tilts the universe toward EXPENSIVE.
+
+      CONFIRMED BY SIMULATION AGAINST A KNOWN VOLATILITY, which is the test that
+      does not depend on anyone's expectations:
+
+          true vol   gap share   Yang-Zhang   Parkinson
+            20%         0%         17.6%       17.8%
+            20%        40%         18.6%       13.8%    31% too low
+            30%        60%         28.6%       16.8%    44% too low
+
+      Yang-Zhang sums the overnight move, the open-to-close move and
+      Rogers-Satchell for the intraday range, making it gap-aware AND
+      drift-independent. It is now the primary estimator.
+
+3D.2  THE CHANCE OF REACHING THE TARGET WAS OPTIMISTIC
+      P(touch) used the reflection principle as 2*N(-b/(sigma*sqrt(T))). That is
+      the result for driftless ARITHMETIC Brownian motion. A price is geometric,
+      and a martingale price carries log-drift of -sigma^2/2 -- so the old form
+      quietly assumed the stock drifts UP at +sigma^2/2 and promised a better
+      chance of reaching target than the mathematics supports. On a 30-day,
+      25-vol, 5% barrier it read 49.60% where the truth is 48.40%.
+
+      VERIFIED TWO WAYS. Analytically, forcing mu to zero reproduces the old
+      formula exactly (49.6039 against 49.6039), so the general form contains
+      the special case. Numerically, Monte Carlo converges onto the new one as
+      the barrier is monitored more finely: 44.91% at 100 steps, 46.91% at 500,
+      47.77% at 2,000, 48.17% at 8,000, against a closed form of 48.40%. The gap
+      closes as one over root steps, the signature of discretisation in the
+      SIMULATION rather than error in the formula.
+
+      A NEAR MISS WORTH RECORDING. The first Monte Carlo returned 7.1% and then
+      0.0% at high step counts, which is impossible. The cause was a linear
+      congruential generator cycling under about a billion draws -- the same
+      PRNG class that produced a variance of 1.013 in the covariance tests
+      earlier in this project. Trusting it would have "disproved" a formula that
+      was right. A verification is only as sound as its random numbers.
+
+3D.3  NIFTY IMPLIED VOLATILITY WAS 8% AGAINST AN INDIA VIX OF 12.4
+      Caught by comparing against a number already on the user's own screen.
+      NIFTY OPTIONS EXPIRE WEEKLY -- the front contract was 22-Sep -- while the
+      code used the monthly expiry, roughly doubling the tenor and pushing
+      implied volatility down by about a factor of root two. Corrected to the
+      listed expiry: 1.7 days, IV 13.1%, which is where a short-dated weekly
+      belongs relative to a 30-day composite.
+
+      NSE's published methodology confirms the comparison is sound: India VIX is
+      annualised, 30-day, reverse Black-Scholes from out-of-the-money quotes --
+      the same construction, so the two are comparable, though VIX is a
+      composite across strikes and no single contract should match it exactly.
+
+3D.4  THE INDEX CARDS HAD NO EXITS AND NO ODDS
+      NIFTY and BANKNIFTY are projected on their own code path, which was never
+      updated when exits and odds were added. The desk was saying BUY NIFTY
+      23350 CE at Rs 88.05 with NO SELL PRICE AND NO STOP -- the exact complaint
+      that began this work, surviving on the two most prominent cards on the
+      page. Both now carry the full block, and odds from the index's own bars
+      (Yahoo publishes them as ^NSEI and ^NSEBANK, which match the spots the
+      desk already displayed).
+
+3D.5  NIFTY WEEKLIES HAVE NO MATCHING FUTURE
+      Index futures are MONTHLY; NIFTY options are WEEKLY. A 22-Sep option has
+      no 22-Sep future, so the underlying waterfall fell through to the cash
+      index -- repeating the error of Part 3A on the instrument where the basis
+      is largest. Put-call parity supplies the answer with no model at all:
+      F = K + (C-P)e^(rT), taken as the median across near-the-money pairs. It
+      cross-validates where both exist (APOLLOHOSP parity 8870.15 against a
+      quoted future of 8865) and now sits above the cash fallback.
+
+3D.6  THREE FAULTS VISIBLE ONLY ON THE DEPLOYED SITE
+      - The bar ingest ran ONCE per container. runCycle only advances its cursor
+        and reset() was called from nowhere, so a symbol whose fetch failed on
+        that single pass stayed synthetic for the life of the process. On Render
+        159 of 210 failed, and 306 of 423 LIVE CARDS were served with no
+        probability, no implied volatility and no verdict. Nothing errored.
+      - The instrument master outlived the code reading it. Adding futures did
+        nothing in production for a full deploy cycle because the container kept
+        serving a cache written before futures existed. Now schema-versioned --
+        and a stale cache DEGRADES rather than reading as absent, because the
+        first version of that fix would have left the desk with no option chains
+        at all when the 35 MB refresh failed to complete.
+      - pricingBasis reached the call leg twice and the put leg never.
+
+3D.7  DEAD INTEGRATIONS REMOVED
+      Dhan feed, TradingView quotes and GM-readonly are deleted: the account has
+      no Dhan, TradingView's public API cannot serve options at all (verified by
+      test, HTTP 400), and the GM path was ordered removed. UPSTOX is kept but
+      MARKED UNSUPPORTED with the reason in its status -- it sends no exchange
+      feed time, so under this desk's own freshness contract its quotes can
+      never be REALTIME and can never reach a card, whatever credentials it is
+      given. Reporting only NOT_CONFIGURED invited somebody to waste an evening
+      on it.
+
+      NOTE: the Dhan ONE-TAP ORDER LINK on the cards is untouched. It is a deep
+      link into the user's broker app and has nothing to do with the data feed.
+      I deleted it by accident with an over-broad regex and restored it; the two
+      share a name and not a purpose.
+
+
+================================================================================
 PART 4 — WILL IT SURVIVE MARKET HOURS
 ================================================================================
 

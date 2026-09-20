@@ -262,9 +262,15 @@ PRICING WATERFALL — each step down is LABELLED, never silently substituted:
 
 THE UNDERLYING WATERFALL — read this before touching any pricing code:
 
-    LIVE_BROKER_FUTURE         Angel's live futures quote        208 of 210 cards
-    EXCHANGE_SETTLED_FUTURE    the bhavcopy futures price        the 2 indices
-    CASH_SPOT_NO_FUTURE        the equity share price            LAST RESORT
+    LIVE_BROKER_FUTURE         Angel's live futures quote        416 of 423 cards
+    EXCHANGE_SETTLED_FUTURE    the bhavcopy futures price        5
+    PARITY_IMPLIED_FORWARD     from the options themselves       NIFTY weeklies
+    CASH_SPOT_NO_FUTURE        the equity share price            now unreached
+
+NIFTY OPTIONS EXPIRE WEEKLY AND INDEX FUTURES ARE MONTHLY, so a 22-Sep option
+has no 22-Sep future. Put-call parity answers with no model at all --
+F = K + (C-P)e^(rT), median across near-the-money pairs -- and cross-validates
+where both exist: APOLLOHOSP parity 8870.15 against a quoted future of 8865.
 
 PRICE OFF THE MARKET'S FORWARD, NOT THE CASH SPOT. Verified against NSE: single
 stock options are PHYSICALLY SETTLED into shares since October 2019, so they are
@@ -363,10 +369,19 @@ OPTION PRICING (api/_lib/option-pricing.js)
   Normal CDF               Abramowitz & Stegun 26.2.17, |error| < 7.5e-8.
 
 VOLATILITY (api/_lib/trade-odds.js)
-  Close-to-close RV        σ = stdev(log returns) · sqrt(252)
-  Parkinson RV             σ = sqrt( mean(ln(H/L)²) / (4·ln2) ) · sqrt(252)
-                           ~5x more efficient; a stock that travels widely and
-                           closes flat shows nothing in a close-to-close series.
+  Yang-Zhang RV            THE PRIMARY ESTIMATOR. Overnight variance + k·
+                           open-to-close + (1-k)·Rogers-Satchell, with
+                           k = 0.34/(1.34 + (n+1)/(n-1)). Gap-aware AND
+                           drift-independent.
+  Parkinson RV             σ = sqrt( mean(ln(H/L)²) / (4·ln2) ) · sqrt(252).
+                           FALLBACK ONLY. It sees only the intraday range, so it
+                           is blind to the overnight gap: on simulated bars with
+                           40% of variance in the gap it read 13.8% against a
+                           true 20%, and at 60% it read 16.8% against 30%.
+                           Across the live universe it understated Yang-Zhang on
+                           184 of 210 names by a median of 8.8%.
+  Close-to-close RV        σ = stdev(log returns) · sqrt(252). Last fallback;
+                           a trending stock inflates it.
   Variance risk premium    IV / RV, with the realized window MATCHED TO THE
                            OPTION'S TENOR — comparing a 20-day backward estimate
                            with a 9-day forward implied volatility measures two
@@ -392,10 +407,16 @@ PROBABILITY (api/_lib/trade-odds.js)
                            implied — implied is the price being charged, and
                            using it quotes the seller's assumptions back as
                            though they were evidence.
-  P(touch before expiry)   2·N(-|ln(B/S)| / (σ·sqrt(T))) by reflection. The
-                           position can be closed the moment the underlying
-                           TOUCHES the level, so first passage is the right
-                           question, not the end point.
+  P(touch before expiry)   First passage WITH the Ito drift:
+                             N((-b+μT)/(σ√T)) + e^(2μb/σ²)·N((-b-μT)/(σ√T)),
+                           b = |ln(B/S)|, μ = -σ²/2.
+                           The naive 2·N(-b/(σ√T)) is the DRIFTLESS ARITHMETIC
+                           result; a martingale price has log-drift -σ²/2, so
+                           using it assumes the stock drifts UP and overstates
+                           the odds (49.60% where the truth is 48.40%).
+                           Verified: forcing μ=0 reproduces the old form
+                           exactly, and Monte Carlo converges on the new one
+                           (48.17% at 8,000 steps vs 48.40% closed form).
   Median time to touch     the same expression solved for the t at which half
                            the eventual touches have occurred.
   DRIFT IS ZERO, DELIBERATELY. Any non-zero drift is a directional forecast and
@@ -541,6 +562,29 @@ WRONG INPUT, RIGHT FORMULA — the 2026-09-20 audit
     priced against Monday's shorter time to expiry, attributing the same money
     to less time and inflating every reading by 1.3 to 1.9 points.
 
+HOW EACH OF THESE WAS FOUND — the methods matter more than the instances
+  - A LOPSIDED DISTRIBUTION. Every individual number looked plausible; only the
+    fact that ALL FIVE top picks read CHEAP, and the universe read CHEAP 154
+    against EXPENSIVE 122, gave away that options were priced off the cash share
+    instead of the forward. When a verdict is lopsided across a whole universe,
+    suspect the input, not the market.
+  - AN EXTERNAL NUMBER ALREADY ON SCREEN. NIFTY implied volatility of 8% was
+    caught against an India VIX of 12.4 sitting in the macro bar. The cause was
+    the tenor: NIFTY options expire WEEKLY and the code used the monthly expiry.
+  - MONTE CARLO. P(touch) used the driftless reflection result on a geometric
+    price, overstating the odds by about 1.2 points. Simulation found it; the
+    analytic check (μ=0 must reproduce the old form) confirmed it.
+  - A BROKEN VERIFIER NEARLY WON. That Monte Carlo first returned 7.1% and then
+    0.0%, which is impossible — a linear congruential generator cycling under a
+    billion draws, the same PRNG class that gave a variance of 1.013 in the
+    covariance tests. It would have "disproved" a formula that was right. CHECK
+    YOUR RANDOM NUMBERS BEFORE BELIEVING WHAT THEY TELL YOU.
+  - THE DEPLOYED SITE, NOT THE LOCAL RUN. The bar ingest running once per
+    container, the instrument master outliving its schema, and pricingBasis
+    missing from every put card were all invisible locally.
+  - READING IT AS A PRACTITIONER. The candlestick sign inversion needed someone
+    asking what a Japanese technician asks: what came BEFORE this candle?
+
 DATA INTEGRITY
   - 343 of 421 cards carried the WRONG LOT SIZE and 72 strikes did not exist,
     because the contract reference was gitignored and never built on the server.
@@ -635,7 +679,14 @@ not set.
      NOTE: everything recorded BEFORE 2026-09-20 evening was priced off the cash
      share and its implied volatilities are wrong. Treat that as a different
      system; the honest record starts from the futures-pricing fix.
-  7. The 667 contracts still below intrinsic when measured against the FUTURE
+  7. Index cards get their bars from Yahoo's INDEX tickers (^NSEI, ^NSEBANK),
+     not the F&O symbol. If a third index is ever added, map it in
+     INDEX_BAR_TICKERS or its odds will silently read NO_REAL_PRICE_HISTORY.
+  8. On a cold Render container most symbols start on SYNTHETIC bars and the
+     odds engine needs real ones, so coverage climbs over the first hour as the
+     five-minute retry fills them. Early-session cards may legitimately show no
+     probability; that is filling, not broken.
+  9. The 667 contracts still below intrinsic when measured against the FUTURE
      (down from 972 against the cash share) are NSE-derived settlement prices
      for contracts that did not trade. They are refused, not repaired. If a live
      broker book is ever available for them the problem disappears on its own.
