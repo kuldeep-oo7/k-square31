@@ -63,8 +63,13 @@ const server = http.createServer((req, res) => {
     // card, every price and the whole page during live market hours. A field
     // that cannot be computed must degrade to null, never to a dead endpoint.
     try {
-      res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
-      res.end(JSON.stringify({
+      // Compressed when the client asks for it. The payload is about 3.5 MB of
+      // JSON and the desk is read on a phone over mobile data, where pulling
+      // that every few seconds is punishing: it gzips to a small fraction and
+      // costs a few milliseconds of CPU. Uncompressed remains the fallback, so
+      // a client that sends no Accept-Encoding still works unchanged.
+      const wantsGzip = String(req.headers["accept-encoding"] || "").includes("gzip");
+      const payload = JSON.stringify({
       timestamp: new Date().toISOString(),
       macro: { radar: engine.macroRadar, state: engine.macroState },
       // Whether live option quotes are available, and if not, exactly why. A
@@ -132,7 +137,20 @@ const server = http.createServer((req, res) => {
       activePositions: engine.ledger.getActivePositions(),
       completedTrades: engine.ledger.getCompletedTrades(),
       archivedSignals: engine.ledger.getArchivedSignals ? engine.ledger.getArchivedSignals(50) : []
-      }));
+      });
+      if (wantsGzip) {
+        const body = require("node:zlib").gzipSync(payload);
+        res.writeHead(200, {
+          "Content-Type": "application/json",
+          "Content-Encoding": "gzip",
+          "Content-Length": body.length,
+          "Access-Control-Allow-Origin": "*"
+        });
+        res.end(body);
+      } else {
+        res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
+        res.end(payload);
+      }
     } catch (error) {
       // Say what broke rather than showing a blank page. The desk reads this
       // and can report it instead of leaving someone staring at dashes.

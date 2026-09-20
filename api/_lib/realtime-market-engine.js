@@ -6,6 +6,9 @@ const { TradeLedger } = require("./db-ledger");
 const { analyzeCandidate } = require("./unified-quant-scanner");
 const { fnoUniverseEngine } = require("./universe-210");
 
+// Shorter than the poll interval, so the desk still refreshes every cycle.
+const UNIVERSE_CACHE_MS = 2500;
+
 /**
  * Real-Time Market & Execution Engine
  * Continuously polls verified provider quotes, updates active setups,
@@ -17,6 +20,9 @@ class RealtimeMarketEngine {
     this.clients = new Set();
     this.macroRadar = null;
     this.macroState = null;
+    this.universeCache = null;
+    this.universeCacheAt = 0;
+    this.universeCacheMacro = null;
     this.lastQuoteTime = null;
     this.candidates = this.getInitialCandidates();
     this.isPolling = false;
@@ -63,8 +69,39 @@ class RealtimeMarketEngine {
     }
   }
 
+  /**
+   * The computed universe, cached for a few seconds.
+   *
+   * This recomputed all 210 names on EVERY caller -- and /api/state calls it
+   * three times over, directly and through getEnrichedCandidates and
+   * getOptionsUniverse. Each pass costs about 260ms and allocates roughly
+   * 40 MB, so a page polling every four seconds kept a 512 MB host churning
+   * hundreds of megabytes a minute. Resident memory measured 313 MB under
+   * ordinary load, which is how Friday ended in 502s.
+   *
+   * The inputs only change when the engine ticks, so recomputing per caller
+   * bought nothing. The TTL is deliberately shorter than the poll interval:
+   * the desk still refreshes every cycle, it just stops rebuilding the same
+   * answer three times inside one request.
+   */
   getUniverse() {
-    return fnoUniverseEngine.getUniverse(this.macroState);
+    const now = Date.now();
+    if (this.universeCache && now - this.universeCacheAt < UNIVERSE_CACHE_MS
+      && this.universeCacheMacro === this.macroState) {
+      return this.universeCache;
+    }
+    this.universeCache = fnoUniverseEngine.getUniverse(this.macroState);
+    this.universeCacheAt = now;
+    // Cached against the macro state it was computed under: a shield change
+    // must invalidate immediately rather than wait out the timer.
+    this.universeCacheMacro = this.macroState;
+    return this.universeCache;
+  }
+
+  /** Drop the cache, for callers that must see a recomputation now. */
+  invalidateUniverseCache() {
+    this.universeCache = null;
+    this.universeCacheAt = 0;
   }
 
   getOptionsUniverse() {
