@@ -129,5 +129,22 @@ console.log("  ✓ Angel One reports UNATTENDED_TOTP once armed; Upstox always r
   console.log("  ✓ Incomplete credentials refuse locally and never reach the network");
 
   for (const [key, value] of Object.entries(saved)) if (value) process.env[key] = value;
-  console.log("Broker auth tests passed: RFC 6238 TOTP vectors, Upstox 03:30 IST expiry, honest per-provider capability, local refusal on incomplete credentials");
+  // --- Credentials can come from a Render Secret File --------------------------
+// The repo has no .private on a deployed host: it is gitignored, which is the
+// point. Render's own answer is Secret Files, mounted at /etc/secrets/<name> or
+// dropped at the project root. Reading only the local path meant the supported
+// way to give a host its credentials did nothing at all, and the only route
+// left was retyping four values by hand into a dashboard.
+{
+  const paths = require("../api/_lib/broker-auth").CREDENTIAL_PATHS;
+  assert.ok(Array.isArray(paths) && paths.length >= 3, "there must be more than one place to look");
+  assert.ok(paths.some((p) => p.includes(".private")), "the local file stays supported");
+  assert.ok(paths.some((p) => p.includes("/etc/secrets/")), "Render secret-file mount must be searched");
+  // The local file wins: it is the one a developer edits and rotates sessions
+  // into, and a stale uploaded copy must never shadow it.
+  assert.ok(paths[0].includes(".private"), "the local file must be searched first");
+  console.log("  ✓ Credentials load from .private, a Render secret file, or the project root, in that order");
+}
+
+console.log("Broker auth tests passed: RFC 6238 TOTP vectors, Upstox 03:30 IST expiry, honest per-provider capability, local refusal on incomplete credentials");
 })();

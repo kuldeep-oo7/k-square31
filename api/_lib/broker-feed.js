@@ -36,6 +36,34 @@ const zlib = require("node:zlib");
 
 const PRIVATE_DIR = path.resolve(path.join(__dirname, "..", "..", ".private"));
 const CREDENTIALS_FILE = path.join(PRIVATE_DIR, "brokers.json");
+
+/**
+ * Where the credential file can live.
+ *
+ * Locally it is .private/brokers.json, which git never sees. On Render the
+ * repository has no .private at all, and the platform's own answer to secrets
+ * is Secret Files -- uploaded once through the dashboard and mounted at
+ * /etc/secrets/<name>, or placed at the project root. Reading only the local
+ * path meant the supported way to give a host its credentials silently did
+ * nothing, and the only route left was retyping four values by hand.
+ *
+ * Order matters: the local file wins, because that is the one a developer is
+ * actively editing and rotating sessions into.
+ */
+const CREDENTIAL_PATHS = [
+  CREDENTIALS_FILE,
+  "/etc/secrets/brokers.json",
+  path.resolve(process.cwd(), "brokers.json")
+];
+
+/** The first credential file that exists, or null when none do. */
+function credentialFile() {
+  for (const candidate of CREDENTIAL_PATHS) {
+    try { if (fs.existsSync(candidate)) return candidate; } catch (error) { /* unreadable is absent */ }
+  }
+  return null;
+}
+
 const CACHE_DIR = path.join(PRIVATE_DIR, "cache");
 
 const UPSTOX_ROOT = "https://api.upstox.com/v2";
@@ -51,8 +79,9 @@ const num = (value) => {
 };
 
 function readCredentialsFile() {
-  if (!fs.existsSync(CREDENTIALS_FILE)) return {};
-  try { return JSON.parse(fs.readFileSync(CREDENTIALS_FILE, "utf8")) || {}; }
+  const file = credentialFile();
+  if (!file) return {};
+  try { return JSON.parse(fs.readFileSync(file, "utf8")) || {}; }
   catch (error) { return {}; }
 }
 
@@ -359,6 +388,7 @@ function quoteFromChain(chain, strike, optionType) {
 }
 
 module.exports = {
+  CREDENTIAL_PATHS, credentialFile,
   ANGEL_INSTRUMENTS, ANGEL_ROOT, CREDENTIALS_FILE, PROVIDERS, UPSTOX_INSTRUMENTS, UPSTOX_ROOT,
   angelOptionChain, credentialsFor, instrumentCachePath, loadInstruments,
   normaliseAngelExpiry, normaliseLeg, optionChain, quoteFromChain, refreshInstruments, status, upstoxOptionChain
