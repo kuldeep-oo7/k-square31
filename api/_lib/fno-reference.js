@@ -129,16 +129,45 @@ function buildReference(rows, session) {
   return { session: normaliseDate(session), symbolCount: Object.keys(symbols).length, symbols };
 }
 
-/** Fetch the latest session and write the reference to disk. */
-async function refreshReference(date = new Date()) {
-  const payload = await fetchBhavcopy(date instanceof Date ? date : new Date(date));
-  const reference = buildReference(payload.rows, payload.tradeDate);
-  if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
-  fs.writeFileSync(REFERENCE_FILE, JSON.stringify(reference));
-  return reference;
+let memo = null;
+
+/**
+ * Fetch the most recent AVAILABLE session and write the reference to disk.
+ *
+ * This used to ask for exactly one date -- today -- and give up on a 404. NSE
+ * publishes the bhavcopy only AFTER the close, so during every live session
+ * today's file does not exist yet, and on a host with no cached copy the desk
+ * spent the entire trading day with no strikes, no lot sizes and no settled
+ * prices. Every card read null. The one date guaranteed to fail is the one it
+ * was asking for.
+ *
+ * So it walks back instead: today first, in case the close has passed, then the
+ * previous sessions. Weekends and holidays simply 404 and are skipped. Strikes
+ * and lot sizes do not change intraday, so the previous session's contract file
+ * is the correct reference for today's trading -- and the session it came from
+ * travels with it, so nothing can mistake it for today's settlement.
+ */
+async function refreshReference(date = new Date(), { maxLookbackDays = 7 } = {}) {
+  const start = date instanceof Date ? date : new Date(date);
+  const attempts = [];
+  for (let back = 0; back <= maxLookbackDays; back += 1) {
+    const day = new Date(start.getTime() - back * 86400000);
+    try {
+      const payload = await fetchBhavcopy(day);
+      const reference = buildReference(payload.rows, payload.tradeDate);
+      if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
+      fs.writeFileSync(REFERENCE_FILE, JSON.stringify(reference));
+      memo = null;
+      return reference;
+    } catch (error) {
+      attempts.push(`${day.toISOString().slice(0, 10)}: ${error.message}`);
+    }
+  }
+  const failure = new Error(`no bhavcopy in the last ${maxLookbackDays} days -- ${attempts.slice(0, 3).join("; ")}`);
+  failure.attempts = attempts;
+  throw failure;
 }
 
-let memo = null;
 /** Synchronous read for the scanner path. Returns null when never refreshed. */
 function loadReference({ force = false } = {}) {
   if (memo && !force) return memo;

@@ -15,6 +15,7 @@ const {
   tradedQuote: tradedFnoQuote
 } = require("./fno-reference");
 const { liveQuote: liveBrokerQuote } = require("./live-quotes");
+const { marketPhase: sessionPhase } = require("./live-quotes");
 const { longOptionExits, verticalSpreadExits } = require("./exit-levels");
 const { tradeOdds } = require("./trade-odds");
 const { impliedVolatility: solveImpliedVolatility } = require("./option-pricing");
@@ -352,7 +353,13 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     strikesAreListed,
     strikeSource: listedAtm ? "EXCHANGE_LISTED_LADDER" : "SYNTHETIC_STEP_TABLE",
     widestSpreadPct: anyBook ? Math.round(widestSpread * 100) / 100 : null,
-    marketPhase: callQuote?.marketPhase || putQuote?.marketPhase || null,
+    // The session phase comes from the CLOCK, not from a quote. It used to be
+    // read off the live book, so on a host with no broker credentials there was
+    // no quote, marketPhase was undefined, and the card fell through to its
+    // closed-market branch: "MARKET CLOSED - THIS IS THE CLOSING BOOK" printed
+    // at 09:50 on a Friday with the exchange open. Whether the market is open
+    // is a fact about the time of day and nothing else.
+    marketPhase: callQuote?.marketPhase || putQuote?.marketPhase || sessionPhase().phase,
     // One boolean the caller must read before treating a premium as a fill
     // price. False does not mean the number is wrong; it means the market is
     // shut and nobody can transact against it right now.
@@ -397,7 +404,13 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
       // rather than the net debit, so it carries its own exits. Showing the
       // spread's risk beside a single leg's cost is how someone ends up
       // risking three times what the card told them.
-      exits: callPremium !== null && callPremium > 0
+      // Gated on legPriced, the SAME condition as entryPrice above. These
+      // used to key off the raw premium alone, so a card whose entry the desk
+      // refused to display -- unlisted strike, unpriced pair, spread too wide
+      // -- still printed a sell price and a stop derived from that hidden
+      // number. The screenshot read "BUY Rs null" beside "SELL Rs 16.7" and
+      // "STOP Rs 5.57": exits for a trade with no entry.
+      exits: legPriced && callPremium !== null && callPremium > 0
         ? longOptionExits({ premium: callPremium, strike: atmStrike, lotSize, isCall: true })
         : { available: false, reason: unpricedReason || "UNPRICED" },
       target1: null,
@@ -450,7 +463,13 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
       exchangeOpenInterest: putQuote ? putQuote.openInterest : null,
       exchangeTraded: putQuote ? putQuote.traded === true : null,
       currentPrice: null,
-      exits: putPremium !== null && putPremium > 0
+      // Gated on legPriced, the SAME condition as entryPrice above. These
+      // used to key off the raw premium alone, so a card whose entry the desk
+      // refused to display -- unlisted strike, unpriced pair, spread too wide
+      // -- still printed a sell price and a stop derived from that hidden
+      // number. The screenshot read "BUY Rs null" beside "SELL Rs 16.7" and
+      // "STOP Rs 5.57": exits for a trade with no entry.
+      exits: legPriced && putPremium !== null && putPremium > 0
         ? longOptionExits({ premium: putPremium, strike: atmStrike, lotSize, isCall: false })
         : { available: false, reason: unpricedReason || "UNPRICED" },
       target1: null,
@@ -785,9 +804,22 @@ class FnoUniverseEngine {
       let barsAgeDays = 0;
       if (historicalBars && historicalBars.length > 0) {
         const lastBar = historicalBars[historicalBars.length - 1];
-        const lastTs = lastBar.timestamp > 1e11 ? lastBar.timestamp : lastBar.timestamp * 1000;
-        barsAsOf = new Date(lastTs).toISOString();
-        barsAgeDays = Math.max(0, Math.round(((Date.now() - lastTs) / (1000 * 60 * 60 * 24)) * 10) / 10);
+        const raw = Number(lastBar?.timestamp);
+        // A bar without a usable timestamp is the normal case on a cold host:
+        // with no cached bars the series is generated and carries none. Passing
+        // NaN to toISOString throws a RangeError, and because /api/state had no
+        // outer guard that single line returned 502 for the WHOLE desk during
+        // live market hours -- every card, every price, gone, because one
+        // provenance field could not be formatted.
+        const lastTs = Number.isFinite(raw) && raw > 0 ? (raw > 1e11 ? raw : raw * 1000) : null;
+        if (lastTs !== null) {
+          barsAsOf = new Date(lastTs).toISOString();
+          barsAgeDays = Math.max(0, Math.round(((Date.now() - lastTs) / (1000 * 60 * 60 * 24)) * 10) / 10);
+        } else {
+          // Say the age is unknown rather than claiming the bars are current.
+          barsAsOf = null;
+          barsAgeDays = null;
+        }
       }
       analyzed.barsAsOf = barsAsOf;
       analyzed.barsAgeDays = barsAgeDays;
@@ -1096,6 +1128,7 @@ class FnoUniverseEngine {
       theoreticalPrice: niftyOpts && niftyOpts.call ? (niftyOpts.call.theoreticalPrice ?? null) : null,
 
       maxProfitRupees: niftyOpts && niftyOpts.spread && niftyOpts.spread.available ? niftyOpts.spread.maxProfitRupees : null,
+      marketPhase: sessionPhase().phase,
       maxLossRupees: niftyOpts && niftyOpts.spread && niftyOpts.spread.available ? niftyOpts.spread.maxLossRupees : null,
       netDebit: niftyOpts && niftyOpts.spread && niftyOpts.spread.available ? niftyOpts.spread.netDebit : null,
       shortStrike: niftyOpts && niftyOpts.spread ? (niftyOpts.spread.shortStrikePrice ?? null) : null,
@@ -1145,6 +1178,7 @@ class FnoUniverseEngine {
       theoreticalPrice: bankNiftyOpts && bankNiftyOpts.call ? (bankNiftyOpts.call.theoreticalPrice ?? null) : null,
 
       maxProfitRupees: bankNiftyOpts && bankNiftyOpts.spread && bankNiftyOpts.spread.available ? bankNiftyOpts.spread.maxProfitRupees : null,
+      marketPhase: sessionPhase().phase,
       maxLossRupees: bankNiftyOpts && bankNiftyOpts.spread && bankNiftyOpts.spread.available ? bankNiftyOpts.spread.maxLossRupees : null,
       netDebit: bankNiftyOpts && bankNiftyOpts.spread && bankNiftyOpts.spread.available ? bankNiftyOpts.spread.netDebit : null,
       shortStrike: bankNiftyOpts && bankNiftyOpts.spread ? (bankNiftyOpts.spread.shortStrikePrice ?? null) : null,

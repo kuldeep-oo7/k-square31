@@ -55,8 +55,16 @@ const server = http.createServer((req, res) => {
 
   // 2. REST API: Current State
   if (pathname === "/api/state") {
-    res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
-    res.end(JSON.stringify({
+    // ONE guard around the whole payload.
+    //
+    // This handler had none, so any throw anywhere inside it returned 502 for
+    // the entire desk. On Friday a single unformattable provenance timestamp
+    // -- new Date(NaN).toISOString() on a bar with no clock -- took down every
+    // card, every price and the whole page during live market hours. A field
+    // that cannot be computed must degrade to null, never to a dead endpoint.
+    try {
+      res.writeHead(200, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
+      res.end(JSON.stringify({
       timestamp: new Date().toISOString(),
       macro: { radar: engine.macroRadar, state: engine.macroState },
       // Whether live option quotes are available, and if not, exactly why. A
@@ -112,12 +120,32 @@ const server = http.createServer((req, res) => {
         return engine.ledger.getSignalsAccuracy ? engine.ledger.getSignalsAccuracy() : null;
       })(),
       candidates: engine.getEnrichedCandidates(),
-      universe: engine.getUniverse(),
+      // The same option chain was being sent TWICE: nested on every universe
+      // row and again as the flattened `options` array the page actually
+      // renders from. That duplication was 1.1 MB of a 4.6 MB payload, rebuilt
+      // on every poll, on a 512 MB host -- and the desk spent Friday morning
+      // reconnecting and then returning 502. The page reads universe rows only
+      // for their action and score, so the nested copy goes out of the wire
+      // shape while staying available in the engine.
+      universe: engine.getUniverse().map(({ options, ...row }) => row),
       options: engine.getOptionsUniverse(),
       activePositions: engine.ledger.getActivePositions(),
       completedTrades: engine.ledger.getCompletedTrades(),
       archivedSignals: engine.ledger.getArchivedSignals ? engine.ledger.getArchivedSignals(50) : []
-    }));
+      }));
+    } catch (error) {
+      // Say what broke rather than showing a blank page. The desk reads this
+      // and can report it instead of leaving someone staring at dashes.
+      console.error("/api/state failed:", error.stack || error.message);
+      if (!res.headersSent) {
+        res.writeHead(500, { "Content-Type": "application/json", "Access-Control-Allow-Origin": "*" });
+      }
+      res.end(JSON.stringify({
+        error: "STATE_BUILD_FAILED",
+        message: String(error && error.message || error),
+        timestamp: new Date().toISOString()
+      }));
+    }
     return;
   }
 

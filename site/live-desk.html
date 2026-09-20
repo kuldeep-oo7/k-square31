@@ -989,9 +989,9 @@
             <div class="hedge-title" style="${!isActionable ? 'color: var(--muted);' : ''}">
               🛡️ DEFINED RISK SPREAD FRAMEWORK
             </div>
-            <p><strong>Primary Leg:</strong> ${opt.strategy.primary}</p>
-            <p><strong>Hedge Leg:</strong> ${opt.strategy.hedge}</p>
-            <p><strong>Max Risk:</strong> ${opt.strategy.maxRisk} · <strong>Breakeven:</strong> ${opt.strategy.breakeven}</p>
+            <p><strong>Primary Leg:</strong> ${opt.strategy.primary || '&mdash;'}</p>
+            <p><strong>Hedge Leg:</strong> ${opt.strategy.hedge || '&mdash;'}</p>
+            <p><strong>Max Risk:</strong> ${opt.strategy.maxRisk || '&mdash;'} · <strong>Breakeven:</strong> ${opt.strategy.breakeven || '&mdash;'}</p>
           </div>
         ` : ''}
 
@@ -1000,7 +1000,9 @@
           ${opt.executable === false ? `
             <div class="action-row">
               <div style="grid-column: 1 / -1; background: rgba(245,158,11,0.08); border: 1px dashed rgba(245,158,11,0.4); border-radius: 10px; padding: 10px 14px; text-align: center; font: 700 11px var(--mono); color: #f59e0b;">
-                🕒 ${opt.marketPhase === 'OPEN' ? 'QUOTE OLDER THAN THE FRESHNESS WINDOW' : 'MARKET CLOSED · THIS IS THE CLOSING BOOK'}<br>
+                🕒 ${opt.marketPhase === 'OPEN' ? 'QUOTE OLDER THAN THE FRESHNESS WINDOW'
+                  : opt.marketPhase === 'WEEKEND' || opt.marketPhase === 'CLOSED' || opt.marketPhase === 'PRE_OPEN' ? 'MARKET CLOSED · THIS IS THE CLOSING BOOK'
+                  : 'NO LIVE BOOK · SHOWING THE LAST OBSERVED PRICE'}<br>
                 <span style="color:var(--muted);font-weight:600">Order buttons return when a live book does. The premium above is the last observed book, not a price you can transact at now.</span>
               </div>
             </div>
