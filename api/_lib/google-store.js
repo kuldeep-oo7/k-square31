@@ -37,9 +37,28 @@ function decodeDocument(encoded) {
   return JSON.parse(gunzipSync(Buffer.from(String(encoded || ""), "base64")).toString("utf8"));
 }
 
+/**
+ * Strip the account selector from an Apps Script web app URL.
+ *
+ * Google shows a deployment as .../macros/u/1/s/<id>/exec while you are signed
+ * in, where u/1 identifies WHICH signed-in account is viewing. Copied into a
+ * server's configuration that URL returns 404 for every request: there is no
+ * browser session, so there is no account 1. Measured, not assumed -- the two
+ * forms were tested against the same live deployment and only the canonical one
+ * answered.
+ *
+ * The failure is silent in the worst way. The deploy is green, the variable
+ * looks right, and every backup fails with a 404 nobody reads, so the gap is
+ * discovered on the day the ledger is needed back. Normalising here costs
+ * nothing and removes the whole class.
+ */
+function canonicalWebAppUrl(raw) {
+  return String(raw || "").replace(/\/macros\/u\/\d+\/s\//, "/macros/s/");
+}
+
 async function requestGoogle(action, payload = {}) {
   if (!googleStoreConfigured()) throw new Error("Google Sheets operational store is not configured");
-  const response = await fetch(process.env.K2_GOOGLE_SHEETS_WEB_APP_URL, {
+  const response = await fetch(canonicalWebAppUrl(process.env.K2_GOOGLE_SHEETS_WEB_APP_URL), {
     method: "POST",
     redirect: "follow",
     headers: { "Content-Type": "text/plain;charset=utf-8" },
@@ -108,7 +127,7 @@ async function appendStockFundamentalsToGoogle(fundamentals) {
 
 async function queryGoogleCapabilities() {
   if (!process.env.K2_GOOGLE_SHEETS_WEB_APP_URL) return { ok: false, error: "URL not configured" };
-  const response = await fetch(process.env.K2_GOOGLE_SHEETS_WEB_APP_URL, {
+  const response = await fetch(canonicalWebAppUrl(process.env.K2_GOOGLE_SHEETS_WEB_APP_URL), {
     method: "GET",
     redirect: "follow",
     signal: AbortSignal.timeout(GOOGLE_STORE_TIMEOUT_MS)
@@ -123,6 +142,7 @@ async function readTabRowsFromGoogle({ tab, limit = 100, offset }) {
 }
 
 module.exports = {
+  canonicalWebAppUrl,
   GoogleStoreConflictError,
   appendMacroRadarToGoogle,
   appendPortfolioAuditToGoogle,

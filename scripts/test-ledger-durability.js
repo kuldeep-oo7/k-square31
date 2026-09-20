@@ -132,6 +132,30 @@ function startFakeAppsScript() {
       "an https-or-local URL plus a secret is a configured store");
     console.log("  ✓ The Apps Script store reports itself configured once URL and secret are present");
 
+    // --- 1b. Account-scoped deployment URLs are normalised ------------------
+    // Google shows a deployment as .../macros/u/1/s/<id>/exec while you are
+    // signed in, where u/1 says WHICH signed-in account is looking. Pasted into
+    // a server's configuration that URL returns 404 on every request, because
+    // there is no browser session and so no account 1. Measured against a live
+    // deployment: the u/1 form 404s, the canonical form answers.
+    //
+    // The failure mode is the dangerous kind -- deploy green, variable looks
+    // right, every backup silently 404s, and the gap surfaces on the day the
+    // ledger is needed back.
+    {
+      const canonical = google.canonicalWebAppUrl;
+      const id = "AKfycbTEST";
+      assert.equal(canonical(`https://script.google.com/macros/u/1/s/${id}/exec`),
+        `https://script.google.com/macros/s/${id}/exec`, "u/1 must be stripped");
+      assert.equal(canonical(`https://script.google.com/macros/u/0/s/${id}/exec`),
+        `https://script.google.com/macros/s/${id}/exec`, "any account index must be stripped");
+      assert.equal(canonical(`https://script.google.com/macros/s/${id}/exec`),
+        `https://script.google.com/macros/s/${id}/exec`, "a canonical URL is left alone");
+      // Nothing outside the account selector may be rewritten.
+      assert.equal(canonical("http://127.0.0.1:8080/x"), "http://127.0.0.1:8080/x");
+      console.log("  ✓ Account-scoped Apps Script URLs are normalised, so a pasted u/1 link still works");
+    }
+
     // --- 2. A full round trip through the real encoder ----------------------
     const written = await google.writeGoogleDocument("k2/probe.json", { hello: "world", n: 42 }, null);
     assert.ok(Number(written.etag) > 0, "a write returns a version to match against next time");
