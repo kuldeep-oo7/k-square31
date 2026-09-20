@@ -172,8 +172,17 @@ function verticalSpreadExits(input) {
     spotLadder: (() => {
       const rows = [];
       const step = width / 4;
+      // WALK TOWARD THE PROFITABLE SIDE.
+      //
+      // This always stepped UP from the long strike, which is right for a bull
+      // call spread and useless for a bear put spread -- that one pays as spot
+      // FALLS, so six of the seven rows sat in the worthless region and the
+      // maximum profit never appeared on the table at all. A payoff ladder that
+      // shows only the losing half is worse than none: it invites the reader to
+      // conclude the trade cannot pay.
+      const direction = isBullish ? 1 : -1;
       for (let i = -1; i <= 5; i += 1) {
-        const spot = round2(longStrike + i * step);
+        const spot = round2(longStrike + direction * i * step);
         const intrinsic = Math.min(Math.max(isBullish ? spot - longStrike : longStrike - spot, 0), width);
         rows.push({
           spot,
