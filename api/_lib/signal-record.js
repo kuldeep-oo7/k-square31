@@ -43,6 +43,27 @@ const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
 
 let sharedDb = null;
 
+/**
+ * The last thing the backup actually DID, on this host.
+ *
+ * "Configured" and "working" are different facts. A URL and a secret being
+ * present says nothing about whether this container can reach Google -- a
+ * blocked egress, a revoked deployment or a mistyped secret all look identical
+ * from the outside, and every one of them means the ledger is not really
+ * durable. So the outcome of each attempt is kept and reported, and the desk
+ * says "verified" only once a call has succeeded from HERE.
+ */
+let lastBackup = { attemptedAt: null, ok: null, detail: "No backup attempted yet on this host." };
+
+function backupStatus() {
+  return { ...lastBackup };
+}
+
+function noteBackup(ok, detail) {
+  lastBackup = { attemptedAt: new Date().toISOString(), ok, detail };
+  return lastBackup;
+}
+
 /** The one database. Callers may pass their own, which is how tests stay clean. */
 function database(db) {
   if (db) return db;
@@ -272,9 +293,12 @@ async function syncToRemote({ db = null } = {}) {
     const remote = await google.readGoogleDocument(REMOTE_PATH, null);
     const merged = mergeRows(remote?.data?.rows || [], rows);
     await google.writeGoogleDocument(REMOTE_PATH, { version: 2, rows: merged }, remote?.etag);
+    noteBackup(true, `Wrote ${merged.length} rows to the archive.`);
     return { ok: true, positions: merged.length };
   } catch (error) {
-    // A failed backup must never disturb the live ledger.
+    // A failed backup must never disturb the live ledger -- but it must be
+    // visible, or the desk will keep claiming durability it does not have.
+    noteBackup(false, `Write failed: ${error.message}`);
     return { ok: false, reason: error.message };
   }
 }
@@ -287,7 +311,11 @@ async function restoreFromRemote({ db = null } = {}) {
   try {
     const remote = await google.readGoogleDocument(REMOTE_PATH, null);
     const rows = remote?.data?.rows;
-    if (!Array.isArray(rows) || !rows.length) return { ok: false, reason: "NOTHING_STORED_REMOTELY" };
+    if (!Array.isArray(rows) || !rows.length) {
+      // Reaching the store and finding it empty still proves the link works.
+      noteBackup(true, "Reached the archive; nothing stored there yet.");
+      return { ok: false, reason: "NOTHING_STORED_REMOTELY" };
+    }
     const columns = new Set(handle.db.prepare("PRAGMA table_info(signals_lifecycle)").all().map((c) => c.name));
     let restored = 0;
     for (const row of rows) {
@@ -301,8 +329,10 @@ async function restoreFromRemote({ db = null } = {}) {
       ).run(...names.map((k) => row[k]));
       restored += 1;
     }
+    noteBackup(true, `Restored ${restored} rows from the archive.`);
     return { ok: true, positions: restored };
   } catch (error) {
+    noteBackup(false, `Restore failed: ${error.message}`);
     return { ok: false, reason: error.message };
   }
 }
@@ -324,6 +354,6 @@ function mergeRows(remoteRows, localRows) {
 
 module.exports = {
   MAX_BACKDATE_MS, REMOTE_PATH,
-  accuracyView, database, markToMarket, mergeRows, record,
+  accuracyView, backupStatus, database, markToMarket, mergeRows, record,
   restoreFromRemote, signalId, syncToRemote, trackRecord
 };

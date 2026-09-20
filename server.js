@@ -105,14 +105,27 @@ const server = http.createServer((req, res) => {
             }
             let durable = false;
             try { durable = require("./api/_lib/google-store").googleStoreConfigured(); } catch (error) { durable = false; }
+            // Whether the backup has actually SUCCEEDED from this host, as
+            // opposed to merely being configured on it. A blocked egress, a
+            // revoked deployment and a mistyped secret all look identical from
+            // the outside, and every one leaves the ledger undurable.
+            let backup = { attemptedAt: null, ok: null, detail: "unavailable" };
+            try { backup = require("./api/_lib/signal-record").backupStatus(); }
+            catch (error) { /* reported as unavailable */ }
             return {
+              backup,
+              ledgerVerified: backup.ok === true,
               brokerCredentials: brokerReady
                 ? "PRESENT (environment or secret file)"
                 : "ABSENT - set the four ANGELONE_ variables, or upload brokers.json as a Render secret file",
               ledgerDurable: durable,
-              ledgerNote: durable
-                ? "Ledger mirrors to the Apps Script store and survives redeploys."
-                : "Ledger is on an ephemeral disk and is WIPED on every deploy.",
+              ledgerNote: !durable
+                ? "Ledger is on an ephemeral disk and is WIPED on every deploy."
+                : backup.ok === true
+                  ? "Ledger mirrors to the Apps Script store; a call has succeeded from this host."
+                  : backup.ok === false
+                    ? `Archive CONFIGURED but the last call FAILED: ${backup.detail}`
+                    : "Archive configured; no call attempted yet from this host.",
               missingEnvVars: missing
             };
           })();
