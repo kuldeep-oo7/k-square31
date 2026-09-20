@@ -406,6 +406,7 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     // closed-market branch: "MARKET CLOSED - THIS IS THE CLOSING BOOK" printed
     // at 09:50 on a Friday with the exchange open. Whether the market is open
     // is a fact about the time of day and nothing else.
+    listedExpiry,
     marketPhase: callQuote?.marketPhase || putQuote?.marketPhase || sessionPhase().phase,
     // WHICH underlying priced these options, so it can be audited rather than
     // assumed. An option on a future priced off the cash share is wrong by the
@@ -586,6 +587,51 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
       };
     })()
   };
+}
+
+/**
+ * Odds for an index card.
+ *
+ * NIFTY and BANKNIFTY are recommended like any other name but were carrying no
+ * probability and no cheap-versus-expensive verdict, because the index cards are
+ * built on their own path and the odds engine needs bars the stock ingest never
+ * fetched. Yahoo publishes them under index tickers rather than the F&O symbol:
+ * ^NSEI and ^NSEBANK. Verified against the cards themselves -- ^NSEI last close
+ * 23346.4 and ^NSEBANK 56358.7 match the spots the desk already shows.
+ */
+const INDEX_BAR_TICKERS = { NIFTY: "^NSEI", BANKNIFTY: "^NSEBANK", FINNIFTY: "^CNXFIN" };
+
+/** Days to the expiry the card is actually built on. */
+function indexDaysToListedExpiry(opts) {
+  const expiry = opts?.listedExpiry;
+  const ms = expiry ? Date.parse(String(expiry).slice(0, 10) + "T15:30:00+05:30") - Date.now() : NaN;
+  if (Number.isFinite(ms) && ms > 0) return ms / 86400000;
+  return getDaysToMonthlyExpiry().days;
+}
+
+function indexOdds(symbol, { underlying, strike, premium, daysToExpiry, isBullish = true }) {
+  const ticker = INDEX_BAR_TICKERS[symbol];
+  if (!ticker) return { available: false, reason: "NO_INDEX_TICKER_MAPPED" };
+  const cached = getCachedBars(ticker);
+  const bars = cached?.bars;
+  if (!Array.isArray(bars) || bars.length < 10) return { available: false, reason: "NO_REAL_PRICE_HISTORY" };
+  if (!(underlying > 0) || !(strike > 0) || !(premium > 0) || !(daysToExpiry > 0)) {
+    return { available: false, reason: "INCOMPLETE_INDEX_INPUTS" };
+  }
+  const years = daysToExpiry / 365;
+  const solved = solveImpliedVolatility({
+    underlyingPrice: underlying, strike, timeToExpiryYears: years,
+    riskFreeRate: 0.065, dividendYield: 0, optionType: isBullish ? "CE" : "PE", model: "BSM"
+  }, premium);
+  return tradeOdds({
+    spot: underlying,
+    bars,
+    impliedVol: solved?.available && solved.iv > 0 ? solved.iv : null,
+    breakevenLong: isBullish ? strike + premium : strike - premium,
+    breakevenFull: strike,
+    daysToExpiry,
+    isBullish
+  });
 }
 
 class FnoUniverseEngine {
@@ -1249,6 +1295,18 @@ class FnoUniverseEngine {
       // exits entirely -- so the desk said BUY NIFTY at a premium with no sell
       // price and no stop, which is the exact complaint that started this work.
       legExits: niftyOpts && niftyOpts.call ? niftyOpts.call.exits || null : null,
+      odds: niftyOpts && niftyOpts.call ? indexOdds("NIFTY", {
+        underlying: niftyOpts.pricingUnderlying,
+        strike: niftyOpts.call.strike,
+        premium: niftyOpts.call.premium,
+        // The LISTED expiry, not the monthly one. NIFTY options expire WEEKLY:
+        // the front contract is 22-Sep while getDaysToMonthlyExpiry returns the
+        // month end, so the tenor was roughly doubled and implied volatility came
+        // out about a factor of root-two too low -- 8 percent against an India VIX
+        // of 12.4, which is not a level any index option trades at.
+        daysToExpiry: indexDaysToListedExpiry(niftyOpts),
+        isBullish: true
+      }) : null,
       spreadExits: niftyOpts && niftyOpts.spread ? niftyOpts.spread.exits || null : null,
       pricingBasis: niftyOpts ? niftyOpts.pricingBasis || null : null,
       pricingUnderlying: niftyOpts ? (niftyOpts.pricingUnderlying ?? null) : null,
@@ -1307,6 +1365,18 @@ class FnoUniverseEngine {
       // exits entirely -- so the desk said BUY NIFTY at a premium with no sell
       // price and no stop, which is the exact complaint that started this work.
       legExits: bankNiftyOpts && bankNiftyOpts.call ? bankNiftyOpts.call.exits || null : null,
+      odds: bankNiftyOpts && bankNiftyOpts.call ? indexOdds("BANKNIFTY", {
+        underlying: bankNiftyOpts.pricingUnderlying,
+        strike: bankNiftyOpts.call.strike,
+        premium: bankNiftyOpts.call.premium,
+        // The LISTED expiry, not the monthly one. NIFTY options expire WEEKLY:
+        // the front contract is 22-Sep while getDaysToMonthlyExpiry returns the
+        // month end, so the tenor was roughly doubled and implied volatility came
+        // out about a factor of root-two too low -- 8 percent against an India VIX
+        // of 12.4, which is not a level any index option trades at.
+        daysToExpiry: indexDaysToListedExpiry(bankNiftyOpts),
+        isBullish: true
+      }) : null,
       spreadExits: bankNiftyOpts && bankNiftyOpts.spread ? bankNiftyOpts.spread.exits || null : null,
       pricingBasis: bankNiftyOpts ? bankNiftyOpts.pricingBasis || null : null,
       pricingUnderlying: bankNiftyOpts ? (bankNiftyOpts.pricingUnderlying ?? null) : null,
