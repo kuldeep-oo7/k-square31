@@ -10,10 +10,22 @@ class GoogleStoreConflictError extends Error {
   }
 }
 
+/** Loopback only. Nothing else may drop TLS. */
+function isLoopback(hostname) {
+  return hostname === "127.0.0.1" || hostname === "localhost" || hostname === "[::1]" || hostname === "::1";
+}
+
 function googleStoreConfigured() {
   try {
     const url = new URL(process.env.K2_GOOGLE_SHEETS_WEB_APP_URL);
-    return url.protocol === "https:" && !url.username && !url.password && Boolean(process.env.K2_GOOGLE_SHEETS_ARCHIVE_SECRET);
+    if (url.username || url.password) return false;
+    if (!process.env.K2_GOOGLE_SHEETS_ARCHIVE_SECRET) return false;
+    // The shared secret travels in the request body, so TLS is required for
+    // anything that leaves this machine. Plain http is accepted ONLY for
+    // loopback, where nothing is on the wire to intercept -- without that
+    // exception the backup path cannot be exercised locally at all, which is
+    // exactly why it shipped having never once run.
+    return url.protocol === "https:" || (url.protocol === "http:" && isLoopback(url.hostname));
   } catch { return false; }
 }
 
