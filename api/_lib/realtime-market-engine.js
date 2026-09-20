@@ -331,6 +331,50 @@ class RealtimeMarketEngine {
     }
   }
 
+  /**
+   * Refresh company fundamentals for the universe.
+   *
+   * These were never fetched. The cache directory did not exist, so
+   * getCachedFundamentals returned null for all 210 names, and two things that
+   * LOOK like they protect the desk quietly did nothing at all:
+   *
+   *   - the balance-sheet adjustment in the composite ranking never fired, so a
+   *     name with debt-to-equity over 200 was scored exactly like one without
+   *   - THE EARNINGS VETO NEVER FIRED. earningsVeto reads
+   *     fund?.events?.insideTradingWeek, and with no fundamentals that is
+   *     undefined for every symbol. The desk could recommend buying premium on
+   *     a stock reporting that week, which is the one setup where being right
+   *     about direction still loses: implied volatility collapses on the
+   *     announcement and takes the long option with it.
+   *
+   * Fetched slowly and cached for a day. Fundamentals change quarterly; there
+   * is no reason to hurry, and pacing keeps this away from rate limits.
+   */
+  async refreshFundamentals({ batchSize = 8, pauseMs = 1200 } = {}) {
+    try {
+      const { fundamentals } = require("./fundamentals");
+      const symbols = fnoUniverseEngine.getUniverse(this.macroState).map((row) => row.symbol);
+      let fetched = 0, failed = 0;
+      for (let i = 0; i < symbols.length; i += batchSize) {
+        const batch = symbols.slice(i, i + batchSize);
+        const results = await Promise.allSettled(batch.map((symbol) => fundamentals(symbol)));
+        for (const result of results) {
+          if (result.status === "fulfilled" && result.value?.available) fetched += 1;
+          else failed += 1;
+        }
+        if (i + batchSize < symbols.length) await new Promise((resolve) => setTimeout(resolve, pauseMs));
+      }
+      console.log(`[K² Fundamentals] ${fetched} of ${symbols.length} refreshed (${failed} unavailable)`);
+      return { ok: fetched > 0, fetched, failed };
+    } catch (error) {
+      // Missing fundamentals must not take the desk down; it degrades to no
+      // balance-sheet adjustment and no earnings veto, which is where it has
+      // been all along -- but now it is reported rather than silent.
+      console.error("Fundamentals refresh failed:", error.message);
+      return { ok: false, reason: error.message };
+    }
+  }
+
   /** Cold-start sequence: each step needs the one before it. */
   async bootstrap() {
     try {
@@ -350,6 +394,9 @@ class RealtimeMarketEngine {
       // Pull the durable ledger back. Render's free disk is wiped on every
       // deploy, so without this the track record restarts from nothing each
       // time the code changes -- which is not a track record.
+      // Fundamentals last: slow, paced, and nothing above depends on it.
+      this.refreshFundamentals();
+      this.fundamentalsTimer = setInterval(() => this.refreshFundamentals(), 12 * 60 * 60 * 1000);
       const restored = await require("./signal-record").restoreFromRemote();
       if (restored.ok) console.log(`[K² Ledger] restored ${restored.positions} positions from the durable store`);
     } catch (error) {
@@ -416,6 +463,7 @@ class RealtimeMarketEngine {
     if (this.sessionTimer) clearInterval(this.sessionTimer);
     if (this.quoteTimer) clearInterval(this.quoteTimer);
     if (this.ledgerTimer) clearInterval(this.ledgerTimer);
+    if (this.fundamentalsTimer) clearInterval(this.fundamentalsTimer);
     for (const client of this.clients) {
       try { client.end(); } catch {}
     }
