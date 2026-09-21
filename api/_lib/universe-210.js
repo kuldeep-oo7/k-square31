@@ -973,6 +973,35 @@ class FnoUniverseEngine {
           computed: false,
           note: "Requires real trade and price history; not available on this path."
         };
+        // EVERY reading taken off the bars must go, not only the three above.
+        //
+        // The synthetic path is a linear ramp with a sine ripple. Read by a
+        // pattern detector that ramp is a textbook double top, and on a cold
+        // Render container -- where the disk is wiped and 200 of 210 names are
+        // still synthetic in the first minute -- the desk printed DOUBLE_TOP on
+        // 199 cards. A sine wave is not a chart pattern. It was equally untrue
+        // of the candlestick, the volatility regime and the CVaR, which were
+        // being shown all along; reconnecting the chart engine only made the
+        // fabrication loud enough to notice.
+        //
+        // These rows are already barred from ranking and from ever becoming
+        // actionable. They must also stop REPORTING things nobody measured.
+        analyzed.chartPattern = null;
+        analyzed.chartPatternBias = null;
+        analyzed.candlestickPattern = null;
+        analyzed.candlestickSummary = null;
+        analyzed.neuralMotif = null;
+        analyzed.neuralRegime = null;
+        analyzed.garchVol = null;
+        analyzed.garchRegime = null;
+        analyzed.cvar99Rupees = null;
+        analyzed.componentScores = null;
+        analyzed.rawComponents = null;
+        analyzed.rawZ = null;
+        analyzed.rawActivationScore = null;
+        analyzed.technicalReadingsUnavailable =
+          "No verified price history for this symbol yet, so no pattern, regime or risk "
+          + "figure is reported. The bar ingest retries every five minutes.";
       } else {
         analyzed.quant.computed = true;
       }

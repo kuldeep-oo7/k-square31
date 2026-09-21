@@ -20,6 +20,18 @@ candlestick engine had the sign inverted on its second most common pattern.
 Neither would have shown up as an error, a crash or a failing test. Both are in
 Parts 3A and 3B.
 
+AND THEN A THIRD PASS, 2026-09-21, ASKING ONLY ONE QUESTION: does each thing
+this desk claims to compute actually reach the output? Four of them did not.
+A 309-line chart-pattern engine was producing correct geometry for half the
+universe and being discarded on a misspelt key. The neural score was a saturated
+constant, and the ranking had been quietly repointed at a direction-free
+magnitude to work around it. A quarter of the composite was a three-valued step
+function reading a forecast that had 202 distinct values. And two inputs that
+were never measured were being substituted with confident-looking defaults.
+Part 3E. Nothing in this pass was found by reading code for bugs; every one of
+them came from measuring the DISTRIBUTION of an output across the whole
+universe and asking why it had the shape it had.
+
 
 ================================================================================
 PART 1 — WHAT I VERIFIED AGAINST PUBLISHED REFERENCE VALUES
@@ -411,6 +423,159 @@ them would have surfaced from reading the code.
 
 
 ================================================================================
+PART 3E — FOUR THINGS THE DESK COMPUTED AND THEN THREW AWAY (2026-09-21)
+================================================================================
+
+All four measured across the 212 symbols with real cached bars. All four fixed,
+pushed and verified on the deployed Render host before the open.
+
+--------------------------------------------------------------------------------
+1. THE CHART-PATTERN ENGINE WAS NEVER CONNECTED
+--------------------------------------------------------------------------------
+
+chart-patterns.js returns `primaryPattern`. unified-quant-scanner.js read
+`dominantPattern` — a key that file has never emitted. Optional chaining
+resolved it to undefined, silently, on every symbol, forever.
+
+The previous draft of THIS DOCUMENT read that universe-wide zero as evidence and
+wrote: "the detector runs but no symbol currently reports a dominant pattern".
+That conclusion was wrong. The detector was finding plenty; the consumer was
+asking for a key that did not exist.
+
+How it was caught: feeding the detector textbook synthetic shapes drawn to
+definition. It returned patterns: [DOUBLE_BOTTOM] and dominantPattern: NONE in
+the same object. That separates a broken detector from a severed wire in one
+run, and it is the check to reach for whenever a component reports nothing.
+
+Reconnected, the same 212 symbols report 102 patterns:
+
+    DOUBLE_TOP                    27        HEAD_AND_SHOULDERS            13
+    ASCENDING_TRIANGLE            25        INVERSE_HEAD_AND_SHOULDERS     2
+    DESCENDING_TRIANGLE           19        CUP_AND_HANDLE                 1
+    DOUBLE_BOTTOM                 15        (no pattern)                 110
+
+Cross-checked against Bulkowski's tested ranges: a cup runs 7 to 65 weeks on
+daily bars and a daily head-and-shoulders 2 to 8 weeks. With a median of 67
+bars this desk can only ever see the short end of that, which is why exactly one
+CUP_AND_HANDLE appears and the triangles and double patterns dominate. That is
+the right answer for this window length, not a defect.
+
+    THE GENERAL LESSON: a component that reports NOTHING across an entire
+    universe is not evidence that there is nothing to report. Prove the
+    detector works on a shape you drew yourself before you believe its silence.
+
+--------------------------------------------------------------------------------
+2. THE NEURAL SCORE WAS SATURATED, AND THE DESK RANKED THE WRONG NUMBER
+--------------------------------------------------------------------------------
+
+neuralAlphaScore across 212 names, BEFORE:
+
+    median 97      minimum 62      maximum 84 clamped at 98
+    26 distinct values for 212 names
+    rawZ never went negative once — minimum +0.470
+
+The cause is mechanical. The four matched-filter activations were summed RAW
+with positive weights totalling 1.35, and a pooled LeakyReLU output is
+effectively non-negative — here 1.3 to 12.6. The filter block alone therefore
+contributed +2 to +10 to z, so the sigmoid only ever lived on [0.615, 1.0].
+
+It was a constant wearing a probability's clothing. And the consequence is the
+most instructive part of the whole audit: SOMEBODY HAD ALREADY NOTICED, and
+worked around it instead of fixing it. universe-210.js ranks the neural
+percentile on `rawActivationScore` — the peak output of whichever filter fired
+hardest. That is a MAGNITUDE. It has no direction in it at all: a stock
+collapsing on enormous volume produces a large one. That percentile is 35% of
+the composite AND the hard BUY gate at >= 75.
+
+A third defect sat underneath both. The argmax that picks the salient motif
+compared filters with different weight norms — INSTITUTIONAL_ABSORPTION norms to
+2.53 against VOLATILITY_SQUEEZE at 1.65 — so it asked which kernel contains the
+largest numbers, not which motif is present. It answered INSTITUTIONAL_ABSORPTION
+for 201 of 212 names, and `predictedRegime` read INSTITUTIONAL_ACCUMULATION on
+95% of the desk. A constant printed as a prediction.
+
+WHAT WAS CHANGED, AND WHAT WAS NOT. No kernel, no weight, no convolution and no
+pooling was altered — that would be replacing one set of invented numbers with
+another on a signal that has never been validated. Three things changed:
+
+  - each activation is divided by its own filter norm, which is the standard
+    matched-filter normalisation and the only way four filters can be compared;
+  - the block is then expressed as each filter's deviation from the bank's own
+    mean over the bank's own spread — signed and scale-free, instead of
+    strictly additive;
+  - the percentile ranks `rawZ`, the fused signal, which has 212 distinct values
+    where the rounded score has 64.
+
+MEASURED AFTER, and confirmed identical on the live host:
+
+    rawZ        -1.33 to +2.20 about a median of +0.70, 210 distinct values
+    score       14 to 85 across 64 values, no longer pinned at the clamp
+    motif       INSTITUTIONAL_ABSORPTION falls from 201 to 160 of 210, with
+                MOMENTUM_BREAKOUT, MEAN_REVERSION_LONG and BALANCED_RANGE now
+                appearing 15 or 16 times each
+
+THE MEASUREMENT THAT MATTERS MOST: the old ranking and the new one correlate at
+Spearman -0.04, and their top quartiles overlap at 25% — exactly chance. That
+number is not a description of an improvement. It is the size of the error: the
+desk had been selecting a completely different set of names than its own engine
+was pointing at.
+
+--------------------------------------------------------------------------------
+3. A QUARTER OF THE SCORE WAS STILL A STEP FUNCTION
+--------------------------------------------------------------------------------
+
+The GARCH term mapped a three-bucket label — LOW 65, MODERATE 85, HIGH 40, cut
+at 15% and 28% annualised — while the forecast behind it carried 202 distinct
+values across 212 names. Two names either side of 28.0% volatility scored 45
+points apart. On a 25% weight that single step drove 61% of the cross-sectional
+spread of the non-neural terms.
+
+This is the same binarisation already removed from Hurst in the previous audit,
+left behind on the term sitting next to it. The intent is unchanged — a BAND is
+preferred, not a direction — and so are the endpoints: 18% annualised still
+scores 85, and one e-fold away in either direction still scores 40. Only the
+resolution between them is restored. The expression to do it, volBandCloseness,
+was already sitting in rawComponents with nothing consuming it.
+
+--------------------------------------------------------------------------------
+4. TWO INPUTS NOBODY MEASURED, SUBSTITUTED WITH CONFIDENT DEFAULTS
+--------------------------------------------------------------------------------
+
+  - VPIN resolves for 2 of 212 names. Order-flow toxicity needs bucketed trade
+    prints and a daily bar cannot produce it. The missing 210 were defaulted to
+    0.20, worth a standing +0.175 to every name in the fusion.
+  - sentimentScore was hard-coded to 0.65 in the scanner. There is no news feed
+    wired to this desk. That is a bullish opinion typed into a model and read
+    back out as evidence, applied to all 210 names.
+
+Both now contribute exactly zero when unmeasured. A constant does not change a
+ranking, but it does push every score toward the top of a sigmoid, and it makes
+a model look like it is reading something it is not.
+
+--------------------------------------------------------------------------------
+5. AND THE FIX MADE A FIFTH ONE VISIBLE
+--------------------------------------------------------------------------------
+
+Within a minute of the redeploy the live desk showed DOUBLE_TOP on 199 cards.
+
+Render wipes the disk on every deploy, so a cold container starts with no bars
+and falls back to a synthetic path — a linear ramp with a sine ripple. Read by a
+pattern detector, that ramp IS a textbook double top. The rows were already
+barred from ranking and from ever becoming actionable, and their quant block was
+already blanked, but the candlestick, the volatility regime, the CVaR and now
+the chart pattern were all still being REPORTED off a sine wave. Reconnecting
+the chart engine only made a fabrication that was already there loud enough to
+notice. Every reading taken off the bars is now suppressed on those rows, with
+an explicit note saying why.
+
+WARM-UP, MEASURED THIS MORNING. From the redeploy the desk went 10 real symbols
+to 117 in thirty seconds and to 210 of 210 within a few minutes, with 420 of 423
+cards carrying odds and 416 priced off live broker futures. The five-minute
+retry loop does its job. But the first minute of any Render deploy serves a desk
+that knows almost nothing, and it must look like it knows nothing.
+
+
+================================================================================
 PART 4 — WILL IT SURVIVE MARKET HOURS
 ================================================================================
 
@@ -482,29 +647,88 @@ REAL AND WIRED IN:
   Kyle's lambda, Amihud              liquidity measures, vary per name
   Fundamentals / balance sheet       NOW LIVE, 210 of 210
 
-PRESENT BUT NOT CONTRIBUTING, and now declared as such:
-  Chart patterns                     the detector runs but no symbol currently
-                                     reports a dominant pattern, so the term was
-                                     constant. Removed from the weighting rather
-                                     than left as a hidden constant.
-  VPIN                               NOT IMPLEMENTED. Returns null for every
-                                     name. Was silently scored as 50.
-  CNN / deep learning                neural-quant-engine.js has conv1D, maxPool
-                                     and a forward pass, but the network is
-                                     UNTRAINED. Its output is a deterministic
-                                     function of recent bars, not a learned
-                                     prediction. It is labelled untrained in the
-                                     code and must not be presented as a forecast.
-  ML governance                      trainBoostedTrees and walk-forward
-                                     validation are real, and the governance
-                                     gate DEMOTES weak models to advisory only —
-                                     they cannot generate trades standalone.
-                                     That gate is doing its job: the models have
-                                     not earned trade generation.
+  Chart patterns                     LIVE as of 2026-09-21. Double tops and
+                                     bottoms, head and shoulders, cup and
+                                     handle, ascending and descending
+                                     triangles, off kernel pivot points. 102 of
+                                     212 names carry one. Shares the 15% pattern
+                                     weight with candlesticks and is SIGNED BY
+                                     BIAS — reading confidence alone scored a
+                                     confirmed DOUBLE_TOP at 82 out of 100 on a
+                                     desk that buys.
 
-So: the DERIVATIVES mathematics is institutional quality. The MACHINE LEARNING
-is honest scaffolding that has not yet earned its place, and the code says so
-rather than pretending.
+PRESENT BUT NOT CONTRIBUTING, and now declared as such:
+  VPIN                               NOT IMPLEMENTED for daily bars, and it
+                                     cannot be: order-flow toxicity needs
+                                     bucketed trade prints. Resolves for 2 of
+                                     212 names. SKIPPED in the fusion rather
+                                     than defaulted to 0.20.
+  Sentiment                          NO FEED EXISTS. Was hard-coded 0.65. Now
+                                     neutral, contributing exactly zero.
+  CNN / deep learning                THERE IS NO TRAINED NETWORK ON THIS DESK.
+                                     neural-quant-engine.js implements real and
+                                     deterministic conv1D arithmetic, LeakyReLU
+                                     and MaxPool1D, but its four kernels are
+                                     HAND-WRITTEN matched filters — a wavelet
+                                     pattern bank chosen by a person, never
+                                     fitted to anything by gradient descent.
+                                     Matched filtering is a legitimate signal
+                                     processing technique with a century of
+                                     literature behind it. It is not deep
+                                     learning, and the file's own header has
+                                     always said so. Anyone describing this desk
+                                     should say "a hand-designed matched-filter
+                                     bank", never "a neural network".
+  Boosted trees / walk-forward       ml-model.js (513 lines) and upside.js (280)
+                                     are real, tested, and UNREACHABLE FROM
+                                     server.js. Their only consumer is
+                                     recommendation.js, which the deployed
+                                     server never loads. The governance gate
+                                     that demotes weak models is real and has
+                                     never had to fire, because nothing it
+                                     governs is running.
+
+So: the DERIVATIVES mathematics is institutional quality and verified against
+Hull. The TECHNICAL ANALYSIS is now genuinely wired in and reading real bars.
+The MACHINE LEARNING, stated without decoration: THE DEPLOYED DESK RUNS NO
+TRAINED MODEL OF ANY KIND. What it runs is classical quantitative finance,
+classical technical analysis, and a hand-designed filter bank. That is not a
+criticism of the system — every one of those is a real method — but the word
+"AI" should not be attached to what this desk currently does.
+
+--------------------------------------------------------------------------------
+THE OPEN-SOURCE QUESTION, ANSWERED PRECISELY
+--------------------------------------------------------------------------------
+
+Asked: are we actually using any of it?
+
+Walking the require() graph from server.js, the real production entry point, and
+counting a lazy require inside a function body as reachable:
+
+    EXTERNAL PACKAGES REACHABLE FROM server.js:   NONE.
+
+The deployed desk imports no third-party code at runtime whatsoever. Every
+dependency in package.json is either a test tool or scaffolding for a
+deployment path that is not the live host:
+
+    playwright        3 test scripts inside npm run check. KEEP.
+    @vercel/blob      required only by store.js and blob-smoke.js, neither of
+                      which server.js can reach, and the Vercel account is
+                      suspended anyway.
+    next, react, react-dom, react-server-dom-webpack, vinext, @vinext/cloudflare
+                      the app/ directory holds two Next.js route handlers for a
+                      Vercel/Cloudflare deployment. That is not the live host
+                      and has not been for some time.
+    vite, wrangler, @cloudflare/vite-plugin, @vitejs/plugin-react,
+    @vitejs/plugin-rsc
+                      build tooling for the same dormant path.
+
+Also unreachable from server.js: 35 of 61 modules in api/_lib, including
+recommendation.js (661 lines), ml-model.js (513), weekly-cycle.js (508),
+covariance.js (421), shadow-ledger.js (391). Many of those ARE exercised by
+npm run check and by the offline research scripts, so they are not dead — but
+none of them runs when the desk serves a card. Anyone reasoning about what the
+live site does should read only the 26 modules that server.js can reach.
 
 
 ================================================================================
