@@ -123,6 +123,22 @@ class RealtimeMarketEngine {
    * implied volatility for each survivor, and the underlying settlement file
    * only changes a few times a day.
    */
+  /**
+   * Was the estimate any good? Cached briefly -- it walks the whole ledger and
+   * the answer cannot change between two ticks.
+   */
+  signalCalibration() {
+    const fresh = this._calibAt && Date.now() - this._calibAt < 60_000;
+    if (fresh && this._calib) return this._calib;
+    try {
+      this._calib = require("./signal-record").calibration();
+      this._calibAt = Date.now();
+      return this._calib;
+    } catch (error) {
+      return { ok: false, reason: error.message };
+    }
+  }
+
   screenedContracts({ limit = 60, force = false } = {}) {
     const fresh = this._screenAt && Date.now() - this._screenAt < 60_000;
     if (fresh && !force && this._screened) return this._screened;
@@ -180,6 +196,7 @@ class RealtimeMarketEngine {
         },
         summary: this.ledger.getSummary(),
         accuracy: accuracy,
+        calibration: this.signalCalibration(),
         candidates: enriched,
         universe: universe,
         options: options,
@@ -327,7 +344,12 @@ class RealtimeMarketEngine {
           priceSource: card.priceSource, executable: card.executable,
           targetPrice: exits.profitTarget?.premium, stopPrice: exits.stop?.premium,
           probabilityOfProfitPct: card.odds?.probabilityOfProfitPct,
-          volatilityVerdict: card.odds?.volatility?.verdict
+          volatilityVerdict: card.odds?.volatility?.verdict,
+          // THE PREDICTION, stored with the signal so it can be held to it. The
+          // card says "70.5% chance of reaching it, usually about 1.2 days" and
+          // until now nothing recorded whether that was ever true.
+          estimatedTouchPct: card.odds?.timing?.probabilityOfTouchPct,
+          estimatedDaysToTarget: card.odds?.timing?.medianDaysIfItHappens
         });
         if (result.ok && result.status === "RECORDED") recorded += 1;
         else if (!result.ok) refused += 1;

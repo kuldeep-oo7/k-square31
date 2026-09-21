@@ -163,6 +163,8 @@ const server = http.createServer((req, res) => {
       options: engine.getOptionsUniverse(),
       // The whole listed chain, screened -- see contract-screener.js.
       screened: engine.screenedContracts(),
+      // Was the estimate any good? See signal-record.calibration().
+      calibration: engine.signalCalibration(),
       activePositions: engine.ledger.getActivePositions(),
       completedTrades: engine.ledger.getCompletedTrades(),
       archivedSignals: engine.ledger.getArchivedSignals ? engine.ledger.getArchivedSignals(50) : []

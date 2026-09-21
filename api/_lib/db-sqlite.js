@@ -108,6 +108,31 @@ class SqliteTradingDatabase {
         recorded_at TEXT NOT NULL
       );
 
+      -- EVERY MARK EVER TAKEN ON AN OPEN SIGNAL.
+      --
+      -- signals_lifecycle keeps the latest state of a position. It cannot
+      -- answer "how did it get there" -- whether a target was reached in one
+      -- clean move or after two round trips, how close the misses came, or what
+      -- the path looked like at the hour the estimate said it would arrive.
+      -- Without the path, the estimate can only ever be scored as hit or miss,
+      -- which throws away almost everything the session actually showed.
+      --
+      -- One row per signal per mark. It is the raw material for tuning any of
+      -- this later, so it stores the observation and its PROVENANCE, never a
+      -- derived number that would have to be trusted.
+      CREATE TABLE IF NOT EXISTS signal_marks (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        signal_id TEXT NOT NULL,
+        symbol TEXT NOT NULL,
+        price REAL NOT NULL,
+        price_source TEXT NOT NULL,
+        pnl_points REAL NOT NULL,
+        pnl_pct REAL NOT NULL,
+        fraction_of_target REAL,
+        hours_since_issue REAL NOT NULL,
+        recorded_at TEXT NOT NULL
+      );
+
       -- Immutable Forensic Audit Event Trail
       CREATE TABLE IF NOT EXISTS audit_events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -151,6 +176,7 @@ class SqliteTradingDatabase {
       CREATE INDEX IF NOT EXISTS idx_macro_recorded_at ON macro_snapshots(recorded_at);
       CREATE INDEX IF NOT EXISTS idx_signals_status ON signals_lifecycle(status);
       CREATE INDEX IF NOT EXISTS idx_signals_symbol ON signals_lifecycle(symbol);
+      CREATE INDEX IF NOT EXISTS idx_marks_signal ON signal_marks(signal_id, recorded_at);
     `);
     this.migrateSignalProvenance();
   }
@@ -177,7 +203,22 @@ class SqliteTradingDatabase {
       ["entry_executable", "INTEGER NOT NULL DEFAULT 0"],
       ["probability_of_profit_pct", "REAL"],
       ["volatility_verdict", "TEXT"],
-      ["expiry", "TEXT"]
+      ["expiry", "TEXT"],
+      // CALIBRATION. The desk tells you a target is 70.5% likely and usually
+      // reached in about 1.2 days. Nothing recorded whether it WAS, so the
+      // estimate could be wildly wrong forever and the track record would never
+      // notice. These columns store the prediction next to the outcome so the
+      // two can be compared -- which is the only way an estimate earns trust.
+      ["estimated_touch_pct", "REAL"],          // what we said the odds were
+      ["estimated_days_to_target", "REAL"],     // what we said the wait would be
+      ["target_hit_at", "TEXT"],                // when it actually got there
+      ["hours_to_target", "REAL"],              // how long it actually took
+      ["stop_hit_at", "TEXT"],
+      ["hours_to_stop", "REAL"],
+      ["max_price_seen", "REAL"],               // the best it ever offered
+      ["min_price_seen", "REAL"],               // the worst it ever offered
+      ["max_price_seen_at", "TEXT"],
+      ["marks_taken", "INTEGER NOT NULL DEFAULT 0"]
     ];
     for (const [name, type] of columns) {
       if (!existing.has(name)) {

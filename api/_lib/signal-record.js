@@ -124,15 +124,21 @@ function record(signal, { now = Date.now(), db = null } = {}) {
       entry_price, current_price, target1, target2, stop_loss, issued_at, closed_at,
       days_active, horizon_days, status, exit_reason, pnl_points, pnl_pct, pnl_rupees,
       created_at, updated_at, entry_price_source, entry_executable,
-      probability_of_profit_pct, volatility_verdict, expiry
-    ) VALUES (?, ?, ?, 'OPTION', 'BUY', ?, ?, ?, ?, ?, ?, ?, ?, ?, null, 0, ?, 'ACTIVE', null, 0, 0, 0, ?, ?, ?, ?, ?, ?, ?)
+      probability_of_profit_pct, volatility_verdict, expiry,
+      estimated_touch_pct, estimated_days_to_target, max_price_seen, min_price_seen, marks_taken
+    ) VALUES (?, ?, ?, 'OPTION', 'BUY', ?, ?, ?, ?, ?, ?, ?, ?, ?, null, 0, ?, 'ACTIVE', null, 0, 0, 0, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 0)
   `).run(
     id, symbol, `${symbol}${strike}${right}`, right, strike, lotSize,
     round2(entryPrice), round2(entryPrice),
     num(signal.targetPrice) ?? 0, num(signal.targetPrice) ?? 0, num(signal.stopPrice) ?? 0,
     iso, horizon, iso, iso,
     String(signal.priceSource), signal.executable === true ? 1 : 0,
-    num(signal.probabilityOfProfitPct), signal.volatilityVerdict || null, expiry
+    num(signal.probabilityOfProfitPct), signal.volatilityVerdict || null, expiry,
+    // THE PREDICTION, stored at the moment it was made. Without these two the
+    // desk can say "70.5% chance, usually about 1.2 days" forever and never once
+    // be held to it.
+    num(signal.estimatedTouchPct), num(signal.estimatedDaysToTarget),
+    round2(entryPrice), round2(entryPrice)
   );
   return { ok: true, status: "RECORDED", id };
 }
@@ -163,16 +169,47 @@ function markToMarket(quoteFor, { now = Date.now(), db = null } = {}) {
     const iso = new Date(now).toISOString();
     const daysActive = round2(Math.max(0, now - Date.parse(row.issued_at)) / 86400000);
 
+    // HOW FAR IT ACTUALLY GOT. A position that reached 96% of its target and
+    // fell back is a completely different result from one that never moved, and
+    // the old ledger recorded them identically -- both simply "ACTIVE".
+    const high = Math.max(num(row.max_price_seen) ?? row.entry_price, price);
+    const low = Math.min(num(row.min_price_seen) ?? row.entry_price, price);
+    const newHigh = high > (num(row.max_price_seen) ?? row.entry_price);
+
     // Only the mark and its consequences move. entry_price is never in this SET.
     handle.db.prepare(`
       UPDATE signals_lifecycle
-      SET current_price = ?, days_active = ?, pnl_points = ?, pnl_pct = ?, pnl_rupees = ?, updated_at = ?
+      SET current_price = ?, days_active = ?, pnl_points = ?, pnl_pct = ?, pnl_rupees = ?, updated_at = ?,
+          max_price_seen = ?, min_price_seen = ?, max_price_seen_at = ?, marks_taken = marks_taken + 1
       WHERE id = ?
     `).run(
       round2(price), daysActive, pnlPoints,
       round2((pnlPoints / row.entry_price) * 100),
-      Math.round(pnlPoints * row.lot_size), iso, row.id
+      Math.round(pnlPoints * row.lot_size), iso,
+      round2(high), round2(low), newHigh ? iso : (row.max_price_seen_at || iso), row.id
     );
+
+    // THE WHOLE PATH, not just where it ended up. Every mark is kept so the
+    // estimate can be scored later against what actually happened hour by hour,
+    // rather than only as a hit or a miss.
+    try {
+      const span = row.target1 > row.entry_price ? row.target1 - row.entry_price : null;
+      handle.db.prepare(`
+        INSERT INTO signal_marks (
+          signal_id, symbol, price, price_source, pnl_points, pnl_pct,
+          fraction_of_target, hours_since_issue, recorded_at
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
+      `).run(
+        row.id, row.symbol, round2(price), String(quote.source || "UNKNOWN"),
+        pnlPoints, round2((pnlPoints / row.entry_price) * 100),
+        span ? round2(pnlPoints / span, 4) : null,
+        round2(Math.max(0, now - Date.parse(row.issued_at)) / 3_600_000),
+        iso
+      );
+    } catch (error) {
+      // The mark itself already landed. Losing the path entry is a loss of
+      // detail, never a reason to drop the position update.
+    }
     marked += 1;
 
     const expired = row.expiry ? Date.parse(`${row.expiry}T15:30:00+05:30`) <= now : false;
@@ -182,11 +219,23 @@ function markToMarket(quoteFor, { now = Date.now(), db = null } = {}) {
     else if (expired) reason = "EXPIRED";
 
     if (reason) {
+      // HOW LONG IT ACTUALLY TOOK, against how long we said it would. Hours, not
+      // days, because most of these targets are reached inside a single session
+      // and a day count would round the whole answer away.
+      const hours = round2(Math.max(0, now - Date.parse(row.issued_at)) / 3_600_000);
       handle.db.prepare(`
         UPDATE signals_lifecycle
-        SET status = 'CLOSED', closed_at = ?, exit_reason = ?, exit_price_source = ?, updated_at = ?
+        SET status = 'CLOSED', closed_at = ?, exit_reason = ?, exit_price_source = ?, updated_at = ?,
+            target_hit_at = ?, hours_to_target = ?, stop_hit_at = ?, hours_to_stop = ?
         WHERE id = ?
-      `).run(iso, reason, quote.source || null, iso, row.id);
+      `).run(
+        iso, reason, quote.source || null, iso,
+        reason === "TARGET_HIT" ? iso : null,
+        reason === "TARGET_HIT" ? hours : null,
+        reason === "STOP_HIT" ? iso : null,
+        reason === "STOP_HIT" ? hours : null,
+        row.id
+      );
       closed += 1;
     }
   }
@@ -199,6 +248,119 @@ function markToMarket(quoteFor, { now = Date.now(), db = null } = {}) {
  * Absence is reported as absence: nulls rather than zeros. A win rate of 0% and
  * "nothing has closed yet" are different facts and must not render alike.
  */
+/**
+ * WAS THE ESTIMATE ANY GOOD?
+ *
+ * The desk tells you a target is 70.5% likely and usually reached in about 1.2
+ * days. Until now nothing recorded whether it was, so the estimate could have
+ * been wrong every single time and the track record would have looked the same.
+ *
+ * This compares what was PREDICTED at the moment of the signal against what the
+ * market actually did. Two questions, and they are different:
+ *
+ *   CALIBRATION   of everything we called 70% likely, did roughly 70% happen?
+ *                 An estimator can be well calibrated and still useless, but one
+ *                 that is badly calibrated is worse than none -- it is a number
+ *                 that sounds like knowledge.
+ *   TIMING        when it did happen, did it take as long as we said?
+ *                 A target that arrives in a fifth of the predicted time is
+ *                 being reached by noise, not by the move we described.
+ *
+ * Nothing here is reported until there is enough closed history to mean
+ * anything. A hit rate over three trades is an anecdote with a percent sign.
+ */
+/** Every observation ever taken on one signal, oldest first. */
+function markHistory(signalId, { db = null, limit = 500 } = {}) {
+  const handle = database(db);
+  return handle.db.prepare(
+    "SELECT * FROM signal_marks WHERE signal_id = ? ORDER BY recorded_at ASC LIMIT ?"
+  ).all(String(signalId), limit);
+}
+
+function calibration({ db = null, minimumSample = 10 } = {}) {
+  const handle = database(db);
+  const rows = handle.db.prepare(
+    "SELECT * FROM signals_lifecycle WHERE estimated_touch_pct IS NOT NULL"
+  ).all();
+  const settled = rows.filter((r) => r.status === "CLOSED");
+
+  if (settled.length < minimumSample) {
+    return {
+      ok: true,
+      hasEnoughHistory: false,
+      settled: settled.length,
+      open: rows.length - settled.length,
+      minimumSample,
+      note: `${settled.length} of the ${minimumSample} closed signals needed before an estimate can be judged. `
+        + "A hit rate over a handful of trades is an anecdote with a percent sign on it."
+    };
+  }
+
+  // Calibration by decile of predicted probability. Buckets with nothing in them
+  // are reported as empty rather than silently dropped, because a missing bucket
+  // and a bucket that failed look identical once they are gone.
+  const buckets = [];
+  for (let low = 0; low < 100; low += 20) {
+    const inBand = settled.filter((r) => r.estimated_touch_pct >= low && r.estimated_touch_pct < low + 20);
+    const hit = inBand.filter((r) => r.exit_reason === "TARGET_HIT").length;
+    buckets.push({
+      predictedBand: `${low}-${low + 20}%`,
+      signals: inBand.length,
+      predictedPct: inBand.length
+        ? round2(inBand.reduce((sum, r) => sum + r.estimated_touch_pct, 0) / inBand.length)
+        : null,
+      actualPct: inBand.length ? round2((100 * hit) / inBand.length) : null,
+      hit
+    });
+  }
+
+  const hits = settled.filter((r) => r.exit_reason === "TARGET_HIT");
+  const timed = hits.filter((r) => r.hours_to_target > 0 && r.estimated_days_to_target > 0);
+  const ratios = timed.map((r) => (r.hours_to_target / 24) / r.estimated_days_to_target).sort((a, b) => a - b);
+
+  const meanPredicted = round2(settled.reduce((sum, r) => sum + r.estimated_touch_pct, 0) / settled.length);
+  const actualHitPct = round2((100 * hits.length) / settled.length);
+
+  // How close did the ones that MISSED actually get? A book that repeatedly
+  // reaches 95% of its target is telling you the target is slightly too far,
+  // which is a fixable problem. One that never gets past 40% is telling you
+  // something else entirely.
+  const missed = settled.filter((r) => r.exit_reason !== "TARGET_HIT" && r.target1 > 0 && r.max_price_seen > 0);
+  const reach = missed.map((r) => (r.max_price_seen - r.entry_price) / (r.target1 - r.entry_price))
+    .filter((v) => Number.isFinite(v)).sort((a, b) => a - b);
+
+  return {
+    ok: true,
+    hasEnoughHistory: true,
+    settled: settled.length,
+    open: rows.length - settled.length,
+    predictedHitPct: meanPredicted,
+    actualHitPct,
+    calibrationGapPct: round2(actualHitPct - meanPredicted),
+    verdict: Math.abs(actualHitPct - meanPredicted) <= 10
+      ? "ESTIMATE_TRACKS_REALITY"
+      : actualHitPct < meanPredicted ? "ESTIMATE_IS_OPTIMISTIC" : "ESTIMATE_IS_PESSIMISTIC",
+    buckets,
+    timing: {
+      measured: timed.length,
+      medianEstimatedDays: timed.length
+        ? round2(timed.map((r) => r.estimated_days_to_target).sort((a, b) => a - b)[Math.floor(timed.length / 2)])
+        : null,
+      medianActualDays: timed.length
+        ? round2(timed.map((r) => r.hours_to_target / 24).sort((a, b) => a - b)[Math.floor(timed.length / 2)])
+        : null,
+      medianActualOverEstimated: ratios.length ? round2(ratios[Math.floor(ratios.length / 2)]) : null,
+      note: "Above 1.0 means it took longer than predicted; below means it arrived sooner."
+    },
+    nearMisses: {
+      measured: reach.length,
+      medianFractionOfTargetReached: reach.length ? round2(reach[Math.floor(reach.length / 2)]) : null,
+      reachedOver90Pct: reach.filter((v) => v >= 0.9).length,
+      note: "Of the signals that did NOT hit, how far toward the target they actually travelled."
+    }
+  };
+}
+
 function trackRecord({ db = null } = {}) {
   const handle = database(db);
   const rows = handle.db.prepare("SELECT * FROM signals_lifecycle").all();
@@ -355,5 +517,7 @@ function mergeRows(remoteRows, localRows) {
 module.exports = {
   MAX_BACKDATE_MS, REMOTE_PATH,
   accuracyView, backupStatus, database, markToMarket, mergeRows, record,
+  calibration,
+  markHistory,
   restoreFromRemote, signalId, syncToRemote, trackRecord
 };
