@@ -141,6 +141,20 @@
   .card-title-group h3 { font: 800 18px var(--mono); letter-spacing: -0.01em; margin: 2px 0; }
   .company-sub { font-size: 11px; color: var(--muted); margin-bottom: 2px; }
   .spot-line { font-size: 13px; color: var(--muted); }
+
+  /* The contract, in the exact form each broker's search expects. */
+  .broker-ids { margin: 8px 0 6px; padding: 8px 10px; border: 1px solid var(--line);
+    border-radius: 10px; background: rgba(255,255,255,0.02); }
+  .broker-ids-head { font: 700 9px var(--mono); letter-spacing: .08em; color: var(--muted); margin-bottom: 6px; }
+  .broker-id-row { display: flex; align-items: center; gap: 6px; margin-top: 4px; flex-wrap: wrap; }
+  .broker-id-tag { font: 700 9px var(--mono); color: var(--muted); min-width: 92px; letter-spacing: .04em; }
+  .broker-id-code { font: 700 12px var(--mono); color: var(--text, #e6e8f0); word-break: break-all; flex: 1 1 140px; }
+  .broker-id-copy { font: 700 9px var(--mono); letter-spacing: .06em; padding: 4px 9px; cursor: pointer;
+    border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--muted); }
+  .broker-id-copy:active { transform: translateY(1px); }
+  .broker-id-words { font: 600 10px var(--mono); color: var(--muted); margin-top: 6px;
+    padding-top: 6px; border-top: 1px dashed var(--line); }
+  @media (max-width: 420px) { .broker-id-tag { min-width: 100%; } }
   .spot-val { font: 700 13px var(--mono); color: var(--text); transition: color 0.3s; }
 
   /* Stats Grid */
@@ -797,6 +811,83 @@
   }
 
   // 2. Options Card (PURE RECOMMENDATION)
+  /**
+   * PASTE THIS INTO YOUR BROKER.
+   *
+   * The same contract has a different name at every broker, and this card
+   * used to print only one of them. Zerodha writes ASIANPAINT26SEP2460CE;
+   * Angel One writes ASIANPAINT29SEP262460CE. Pasting the Zerodha form into
+   * Angel One finds nothing, which is exactly what happened.
+   *
+   * Both are shown, each with its own copy button, plus the contract written
+   * out in words so it can be found by eye in any app.
+   */
+  // One listener for every copy button on the page, now and after any re-render.
+  document.addEventListener('click', function (event) {
+    var button = event.target && event.target.closest ? event.target.closest('.broker-id-copy') : null;
+    if (!button) return;
+    event.preventDefault();
+    k2Copy(button, button.getAttribute('data-copy') || '');
+  });
+
+  function k2Copy(button, text) {
+    var done = function () {
+      var was = button.textContent;
+      button.textContent = 'COPIED';
+      button.style.color = 'var(--green)';
+      setTimeout(function () { button.textContent = was; button.style.color = ''; }, 1400);
+    };
+    try {
+      if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(text).then(done, function () { k2CopyFallback(text, done); });
+        return;
+      }
+    } catch (err) { /* fall through */ }
+    k2CopyFallback(text, done);
+  }
+
+  // Clipboard API needs a secure context and permission, neither guaranteed
+  // on a phone browser. This works everywhere and is why the button never
+  // silently does nothing.
+  function k2CopyFallback(text, done) {
+    var box = document.createElement('textarea');
+    box.value = text;
+    box.setAttribute('readonly', '');
+    box.style.position = 'fixed';
+    box.style.opacity = '0';
+    document.body.appendChild(box);
+    box.select();
+    box.setSelectionRange(0, text.length);
+    try { document.execCommand('copy'); done(); } catch (err) { window.prompt('Copy this symbol:', text); }
+    document.body.removeChild(box);
+  }
+
+  function brokerIdBlock(opt) {
+    var ids = opt.brokerSymbols || {};
+    var zerodha = ids.zerodha || opt.tradingSymbol || '';
+    var angel = ids.angelOne || '';
+    var words = ids.description || '';
+    if (!zerodha && !angel) return '';
+    // The symbol travels in a data attribute and one delegated listener does the
+    // copying. Building an inline onclick means nesting a quoted symbol inside a
+    // quoted attribute inside a quoted string, and getting that wrong takes the
+    // whole page down rather than just this button.
+    var row = function (label, value) {
+      if (!value) return '';
+      return '<div class="broker-id-row">'
+        + '<span class="broker-id-tag">' + label + '</span>'
+        + '<code class="broker-id-code">' + value + '</code>'
+        + '<button class="broker-id-copy" type="button" data-copy="' + value + '">COPY</button>'
+        + '</div>';
+    };
+    return '<div class="broker-ids">'
+      + '<div class="broker-ids-head">PASTE INTO YOUR BROKER SEARCH</div>'
+      + row('ZERODHA · DHAN', zerodha)
+      + row('ANGEL ONE', angel)
+      + (words ? '<div class="broker-id-words">' + words + '</div>' : '')
+      + '</div>';
+  }
+
   function renderOptionCardHtml(opt) {
     var isCe = opt.optionType === 'CE';
     var isActionable = opt.action === 'BUY' || opt.action === 'ACCUMULATE' || opt.executiveVerdict === 'MUST_READ_AND_BUY';
@@ -941,6 +1032,7 @@
               ${opt.companyName ? `<div class="company-sub">${opt.companyName}</div>` : ''}
               <h3>${opt.tradingSymbol}</h3>
             </div>
+            ${brokerIdBlock(opt)}
             <div class="spot-line">
               Underlying Spot: <span class="spot-val">₹${fixed(opt.spotPrice)}</span> · Strike: ₹${opt.strike}
             </div>
