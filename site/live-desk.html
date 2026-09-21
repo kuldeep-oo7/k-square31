@@ -152,6 +152,23 @@
   .broker-id-copy { font: 700 9px var(--mono); letter-spacing: .06em; padding: 4px 9px; cursor: pointer;
     border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--muted); }
   .broker-id-copy:active { transform: translateY(1px); }
+  .calib-panel { border: 1px solid var(--line); border-radius: 12px; padding: 14px; margin-bottom: 18px;
+    background: rgba(255,255,255,0.02); }
+  .calib-empty { font: 600 12px/1.6 var(--mono); color: var(--muted); }
+  .calib-head { display: flex; flex-wrap: wrap; gap: 14px; align-items: baseline; margin-bottom: 12px; }
+  .calib-verdict { font: 800 13px var(--mono); letter-spacing: .04em; padding: 4px 10px; border-radius: 6px; }
+  .calib-ok { color: var(--green); background: var(--green-bg); }
+  .calib-warn { color: var(--amber); background: var(--amber-bg); }
+  .calib-pair { font: 700 12px var(--mono); color: var(--muted); }
+  .calib-pair b { color: #e6e8f0; font-size: 15px; }
+  .calib-table { width: 100%; border-collapse: collapse; margin-top: 8px; }
+  .calib-table th { font: 700 9px var(--mono); color: var(--muted); text-align: left;
+    padding: 5px 8px; border-bottom: 1px solid var(--line); letter-spacing: .06em; }
+  .calib-table td { font: 600 12px var(--mono); padding: 6px 8px; border-bottom: 1px solid rgba(255,255,255,0.04); }
+  .calib-bar { height: 6px; border-radius: 3px; background: rgba(255,255,255,0.07); position: relative; min-width: 90px; }
+  .calib-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; display: block; }
+  .calib-note { font: 500 11px/1.6 var(--mono); color: var(--muted); margin-top: 10px;
+    padding-top: 10px; border-top: 1px dashed var(--line); }
   .coverage-note { margin: 0 0 14px; padding: 10px 12px; border: 1px solid var(--line);
     border-left: 3px solid var(--amber); border-radius: 8px; background: rgba(255,179,0,0.05);
     font: 500 11px/1.6 var(--mono); color: var(--muted); grid-column: 1 / -1; }
@@ -296,6 +313,7 @@
     <button class="tab-btn" data-tab="purchased" style="background: rgba(41, 121, 255, 0.15); border-color: rgba(41, 121, 255, 0.4); color: #90caf9;">📦 Purchased Trades (<span id="count-purchased">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="accuracy" style="background: rgba(0, 230, 118, 0.15); border-color: rgba(0, 230, 118, 0.4); color: #a7f3d0;">⚙️ Settings &amp; Track Record (<span id="count-accuracy">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="ledger">📜 Closed Ledger</button>
+    <button class="tab-btn" data-tab="screened">🔬 Screened Chain (<span id="count-screened">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="k2lang">⚡ K²-Lang Sandbox</button>
   </div>
 
@@ -402,6 +420,11 @@
         <b id="scorecard-pf">&mdash;</b>
         <span style="font: 700 11px var(--mono); color: var(--muted); display: block; margin-top: 4px;">Gross Wins / Gross Losses</span>
       </div>
+    </div>
+
+    <h3 style="font-size: 16px; font-weight: 800; margin: 20px 0 10px;">🎯 Was The Estimate Any Good?</h3>
+    <div id="calibration-panel" class="calib-panel">
+      <div class="calib-empty">Waiting for the server&hellip;</div>
     </div>
 
     <h3 style="font-size: 16px; font-weight: 800; margin: 20px 0 10px;">📜 Audited Ledger of Closed / Removed Signals</h3>
@@ -522,6 +545,7 @@
   var optionsSubcontrols = document.getElementById('options-subcontrols');
   var accuracySection = document.getElementById('accuracy-section');
   var accuracyTbody = document.getElementById('accuracy-tbody');
+  var screenedCache = null;
   var ledgerTbody = document.getElementById('ledger-tbody');
   var ledgerSection = document.getElementById('ledger-section');
   var k2Section = document.getElementById('k2lang-section');
@@ -534,7 +558,10 @@
   }
 
   function fixed(val, d) {
-    return (val != null && isFinite(val)) ? Number(val).toFixed(d || 2) : '—';
+    // `d || 2` silently turned a request for ZERO decimals into two, for every
+    // caller, forever. Zero is a legitimate precision and is falsy.
+    var digits = Number.isFinite(d) ? d : 2;
+    return (val != null && isFinite(val)) ? Number(val).toFixed(digits) : '—';
   }
 
   // Whether the feed is actually working, in one line at the top of the page.
@@ -1341,6 +1368,159 @@
     }).join('');
   }
 
+  /**
+   * SHOW THE DESK BEING MARKED AGAINST ITS OWN FORECASTS.
+   *
+   * The win rate says how often a signal worked. It cannot say whether the
+   * PROBABILITY attached to that signal meant anything -- a desk that calls
+   * everything 80% and hits 25% has a win rate and no credibility, and until
+   * this panel existed those two looked the same from the outside.
+   *
+   * Nothing is rendered as a number until there is enough closed history to
+   * mean something. An empty state that says so is worth more than a figure
+   * computed from three trades.
+   */
+  /**
+   * THE WHOLE LISTED CHAIN, after the gates.
+   *
+   * The Calls & Puts tab shows one at-the-money contract per name -- 423 of the
+   * 35,313 NSE lists, chosen by proximity to spot, which is a default rather
+   * than a selection. This tab shows what happens when every listed contract is
+   * put through the gates instead: about nine in ten are refused, and the reason
+   * each was refused is printed rather than hidden.
+   *
+   * The column that matters is IV against realised. Paying 34% for movement a
+   * stock is actually delivering at 54% is a measurable edge on the buyer's
+   * side. It is not a promise -- a gap on news takes out a 70% trade without
+   * touching any of the mathematics -- but it is the one number here that was
+   * measured rather than assumed.
+   */
+  function renderScreened(screen) {
+    if (!screen) return '<div class="calib-empty">Waiting for the server&hellip;</div>';
+    if (screen.ok === false) {
+      return '<div class="calib-empty">Screen unavailable &mdash; ' + (screen.reason || 'unknown') + '.</div>';
+    }
+    var list = screen.contracts || [];
+    var r = screen.refused || {};
+    var refusedRows = [
+      ['Outside the usable expiry window', r.expiryWindow],
+      ['Too illiquid to exit', r.illiquid],
+      ['Outside the 0.25-0.75 delta band', r.deltaBand],
+      ['Premium under a rupee', r.tinyPremium],
+      ['Implied volatility would not solve', r.noIv],
+      ['Priced BELOW intrinsic (a settlement artefact)', r.belowIntrinsic]
+    ].filter(function (row) { return row[1] > 0; })
+     .map(function (row) { return '<li>' + row[0] + ' &mdash; <b>' + Number(row[1]).toLocaleString('en-IN') + '</b></li>'; })
+     .join('');
+
+    var head = '<div class="coverage-note">'
+      + '<strong>THE WHOLE CHAIN, SCREENED.</strong> '
+      + Number(screen.examined || 0).toLocaleString('en-IN') + ' listed contracts examined, <strong>'
+      + Number(screen.survived || 0).toLocaleString('en-IN') + ' survived</strong> &mdash; '
+      + (screen.examined ? (100 - (100 * screen.survived / screen.examined)).toFixed(1) : '0') + '% refused. '
+      + 'Ranked on variance risk premium, probability of touch, liquidity, moneyness, tenor and the '
+      + 'underlying&rsquo;s own read, at equal weight. Settlement file: ' + (screen.asOfSession || 'unknown') + '.'
+      + (refusedRows ? '<ul style="margin:8px 0 0 16px;padding:0">' + refusedRows + '</ul>' : '')
+      + '</div>';
+
+    if (!list.length) return head + '<div class="calib-empty">Nothing survived the gates.</div>';
+
+    var rows = list.map(function (c) {
+      var vrp = Number(c.varianceRiskPremium);
+      var cheap = vrp > 0 && vrp < 0.9;
+      return '<tr>'
+        + '<td><strong>' + c.symbol + '</strong> ' + c.strike + ' ' + c.optionType
+        +   '<div style="font:600 10px var(--mono);color:var(--muted)">' + c.expiry + ' &middot; ' + c.daysToExpiry + 'd left</div></td>'
+        + '<td>&#8377;' + fixed(c.premium) + '<div style="font:600 10px var(--mono);color:var(--muted)">x' + c.lotSize
+        +   ' = &#8377;' + (c.costPerLot == null ? '&mdash;' : Number(c.costPerLot).toLocaleString('en-IN')) + '</div></td>'
+        + '<td style="color:var(--green)">&#8377;' + fixed(c.targetPremium) + '</td>'
+        + '<td style="color:' + (cheap ? 'var(--green)' : 'var(--muted)') + '">'
+        +   fixed(c.impliedVol, 1) + '% vs ' + (c.realisedVol == null ? '&mdash;' : fixed(c.realisedVol, 1) + '%')
+        +   '<div style="font:700 10px var(--mono)">VRP ' + (vrp ? fixed(vrp, 2) : '&mdash;') + '</div></td>'
+        + '<td>' + (c.touchPct == null ? '&mdash;' : fixed(c.touchPct, 1) + '%')
+        +   '<div style="font:600 10px var(--mono);color:var(--muted)">~' + (c.medianDaysToTarget == null ? '?' : c.medianDaysToTarget) + 'd</div></td>'
+        + '<td>' + Number(c.volume).toLocaleString('en-IN')
+        +   '<div style="font:600 10px var(--mono);color:var(--muted)">OI ' + Number(c.openInterest).toLocaleString('en-IN') + '</div></td>'
+        + '<td><strong>' + fixed(c.screenScore, 1) + '</strong></td>'
+        + '</tr>';
+    }).join('');
+
+    return head + '<div class="table-wrap"><table class="desk-table"><thead><tr>'
+      + '<th>CONTRACT</th><th>BUY AT</th><th>SELL AT</th><th>IV vs REALISED</th>'
+      + '<th>P(TOUCH)</th><th>VOLUME</th><th>SCORE</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
+  }
+
+  function renderCalibration(cal) {
+    var panel = document.getElementById('calibration-panel');
+    if (!panel) return;
+
+    if (!cal || cal.ok === false) {
+      panel.innerHTML = '<div class="calib-empty">Calibration unavailable'
+        + (cal && cal.reason ? ' &mdash; ' + cal.reason : '') + '.</div>';
+      return;
+    }
+
+    if (!cal.hasEnoughHistory) {
+      panel.innerHTML = '<div class="calib-empty">'
+        + '<b style="color:var(--amber)">Not enough closed signals to grade the estimate yet.</b><br>'
+        + (cal.settled || 0) + ' closed, ' + (cal.open || 0) + ' still open, '
+        + (cal.minimumSample || 10) + ' needed.<br><br>'
+        + 'Every signal now stores the probability and the time-to-target it was issued with, '
+        + 'so once there are enough closed ones this panel will say whether those numbers were '
+        + 'worth anything. A hit rate over a handful of trades is an anecdote with a percent sign on it.'
+        + '</div>';
+      return;
+    }
+
+    var gap = Number(cal.calibrationGapPct);
+    var good = cal.verdict === 'ESTIMATE_TRACKS_REALITY';
+    var rows = (cal.buckets || []).filter(function (b) { return b.signals > 0; }).map(function (b) {
+      var predicted = Number(b.predictedPct) || 0;
+      var actual = Number(b.actualPct) || 0;
+      var honest = actual >= predicted - 10;
+      return '<tr>'
+        + '<td>' + b.predictedBand + '</td>'
+        + '<td>' + b.signals + '</td>'
+        + '<td>' + fixed(predicted, 1) + '%</td>'
+        + '<td style="color:' + (honest ? 'var(--green)' : 'var(--red)') + '">' + fixed(actual, 1) + '%</td>'
+        + '<td><div class="calib-bar">'
+        +   '<i style="width:' + Math.min(100, predicted) + '%;background:rgba(255,255,255,0.18)"></i>'
+        +   '<i style="width:' + Math.min(100, actual) + '%;background:' + (honest ? 'var(--green)' : 'var(--red)') + '"></i>'
+        + '</div></td>'
+        + '</tr>';
+    }).join('');
+
+    var t = cal.timing || {};
+    var nm = cal.nearMisses || {};
+    panel.innerHTML =
+      '<div class="calib-head">'
+      + '<span class="calib-verdict ' + (good ? 'calib-ok' : 'calib-warn') + '">'
+      +   String(cal.verdict || '').replace(/_/g, ' ') + '</span>'
+      + '<span class="calib-pair">said <b>' + fixed(cal.predictedHitPct, 1) + '%</b></span>'
+      + '<span class="calib-pair">actually <b>' + fixed(cal.actualHitPct, 1) + '%</b></span>'
+      + '<span class="calib-pair">gap <b style="color:' + (Math.abs(gap) <= 10 ? 'var(--green)' : 'var(--red)') + '">'
+      +   (gap > 0 ? '+' : '') + fixed(gap, 1) + '</b></span>'
+      + '<span class="calib-pair">over <b>' + cal.settled + '</b> closed</span>'
+      + '</div>'
+      + '<table class="calib-table"><thead><tr>'
+      +   '<th>WE SAID</th><th>SIGNALS</th><th>PREDICTED</th><th>ACTUAL</th><th>PREDICTED vs ACTUAL</th>'
+      + '</tr></thead><tbody>' + (rows || '<tr><td colspan="5">No populated bands yet.</td></tr>') + '</tbody></table>'
+      + '<div class="calib-note">'
+      +   '<b>TIME TO TARGET.</b> Predicted ' + (t.medianEstimatedDays == null ? '&mdash;' : fixed(t.medianEstimatedDays, 1) + ' days')
+      +   ', actually ' + (t.medianActualDays == null ? '&mdash;' : fixed(t.medianActualDays, 1) + ' days')
+      +   (t.medianActualOverEstimated == null ? '' : ' &nbsp;&middot;&nbsp; ratio <b>' + fixed(t.medianActualOverEstimated, 2)
+          + '</b> (above 1.0 took longer than promised)')
+      +   ' &nbsp;&middot;&nbsp; measured on ' + (t.measured || 0) + ' winners.'
+      +   '<br><b>THE ONES THAT MISSED.</b> '
+      +   (nm.measured ? nm.measured + ' of them travelled a median '
+          + Math.round(Number(nm.medianFractionOfTargetReached) * 100) + '% of the way to target, and '
+          + nm.reachedOver90Pct + ' got past 90%. A book that keeps reaching 95% says the target is slightly '
+          + 'too far; one that never passes 40% is saying something else entirely.'
+          : 'None measured yet.')
+      + '</div>';
+  }
+
   function renderAccuracy(acc) {
     if (!acc) return;
     accuracyCache = acc;
@@ -1433,6 +1613,12 @@
       return;
     }
 
+    if (activeTab === 'screened') {
+      cardsContainer.style.display = 'block';
+      cardsContainer.innerHTML = renderScreened(screenedCache);
+      return;
+    }
+
     if (activeTab === 'options') {
       optionsSubcontrols.style.display = 'flex';
       cardsContainer.style.display = 'grid';
@@ -1475,6 +1661,13 @@
     if (data && Array.isArray(data.universe)) universeCache = data.universe;
     if (data && Array.isArray(data.options)) optionsCache = data.options;
     if (data && data.accuracy) renderAccuracy(data.accuracy);
+    if (data && 'calibration' in data) renderCalibration(data.calibration);
+    if (data && 'screened' in data) {
+      screenedCache = data.screened;
+      var sc = document.getElementById('count-screened');
+      if (sc) sc.textContent = screenedCache && screenedCache.survived != null
+        ? Number(screenedCache.survived).toLocaleString('en-IN') : '—';
+    }
 
     var actionableCount = (universeCache || []).filter(function(x) { return x.action === 'BUY' || x.action === 'ACCUMULATE'; }).length;
     var elActionable = document.getElementById('count-actionable');
