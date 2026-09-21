@@ -419,6 +419,15 @@ class RealtimeMarketEngine {
    * one-day weekly while its symbol named the monthly.
    */
   async refreshLiveQuotes({ limit = 45 } = {}) {
+    // RE-ENTRANCY GUARD. These are sequential network calls on a 90-second
+    // timer: 45 chains at a second and a half each leaves very little margin,
+    // and one slow or rate-limited fetch pushes the cycle past the next tick.
+    // Two overlapping refreshes both write the quote cache, and the loser's
+    // writes are interleaved rather than rejected -- which fails silently, on a
+    // 512 MB box, in exactly the way everything else in this audit failed.
+    if (this._quoteRunning) return null;
+    this._quoteRunning = true;
+    const startedAt = Date.now();
     try {
       const live = require("./live-quotes");
       const reference = require("./fno-reference");
@@ -430,17 +439,33 @@ class RealtimeMarketEngine {
       const actionableSymbols = new Set(actionable.map((row) => row.symbol));
       const rest = universe.filter((row) => !actionableSymbols.has(row.symbol));
 
-      // Rotate through the rest of the universe so coverage is not permanently
-      // frozen on whichever names happened to be actionable at boot.
-      const room = Math.max(0, limit - actionable.length);
-      this._quoteCursor = Number.isFinite(this._quoteCursor) ? this._quoteCursor : 0;
-      const slice = [];
-      for (let i = 0; i < Math.min(room, rest.length); i += 1) {
-        slice.push(rest[(this._quoteCursor + i) % rest.length]);
-      }
-      if (rest.length) this._quoteCursor = (this._quoteCursor + slice.length) % rest.length;
+      // ROTATION CAPACITY MUST BE RESERVED, not left over.
+      //
+      // The first version of this took every actionable name first and gave the
+      // remainder to the rotation. Measured: 44 names are actionable, so with a
+      // window of 45 the rotation got ONE slot and the other 166 symbols needed
+      // 249 MINUTES to come round. That is not a rotation, it is the same bug
+      // with a bigger number.
+      //
+      // So both halves rotate against a reserved split. Actionable names take at
+      // most ACTIONABLE_SLOTS per cycle and cycle among themselves, which covers
+      // all 44 in two cycles -- three minutes -- and the rest of the universe
+      // gets the remaining 20, covering 166 names in about thirteen.
+      const ACTIONABLE_SLOTS = 25;
+      const takeRotating = (rows, cursorKey, count) => {
+        if (!rows.length || count <= 0) return { picked: [], cursor: 0 };
+        const start = Number.isFinite(this[cursorKey]) ? this[cursorKey] : 0;
+        const picked = [];
+        for (let i = 0; i < Math.min(count, rows.length); i += 1) {
+          picked.push(rows[(start + i) % rows.length]);
+        }
+        this[cursorKey] = (start + picked.length) % rows.length;
+        return { picked, cursor: this[cursorKey] };
+      };
 
-      const picks = [...actionable.slice(0, limit), ...slice];
+      const hot = takeRotating(actionable, "_actionableCursor", Math.min(ACTIONABLE_SLOTS, limit));
+      const slice = takeRotating(rest, "_quoteCursor", Math.max(0, limit - hot.picked.length)).picked;
+      const picks = [...hot.picked, ...slice];
       const requests = picks.map((row) => {
         // The expiry the card is written on. Passing none falls back to the
         // FRONT expiry, which for NIFTY is a weekly the card does not describe.
@@ -453,7 +478,8 @@ class RealtimeMarketEngine {
       const result = await live.refreshQuotes(requests);
       if (result.ok) {
         console.log(`[K² Live Quotes] ${result.refreshed}/${result.requested} chains from ${result.provider}`
-          + ` (${actionable.length} actionable + ${slice.length} rotating, cursor ${this._quoteCursor}/${rest.length})`);
+          + ` (${hot.picked.length} of ${actionable.length} actionable, ${slice.length} of ${rest.length} rotating,`
+          + ` cursors ${this._actionableCursor}/${this._quoteCursor}, ${Math.round((Date.now() - startedAt) / 100) / 10}s)`);
       }
 
       // The FUTURES price, for every listed name, because an Indian stock
@@ -478,6 +504,13 @@ class RealtimeMarketEngine {
     } catch (error) {
       console.error("Live quote refresh failed:", error.message);
       return null;
+    } finally {
+      const elapsed = Date.now() - startedAt;
+      if (elapsed > 85_000) {
+        console.warn(`[K² Live Quotes] a refresh took ${Math.round(elapsed / 1000)}s against a 90s timer;`
+          + " the window is too wide for this broker's rate limit");
+      }
+      this._quoteRunning = false;
     }
   }
 

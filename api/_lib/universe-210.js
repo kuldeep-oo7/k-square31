@@ -22,7 +22,7 @@ const { marketPhase: sessionPhase } = require("./live-quotes");
 const { liveFuture: liveFuturePrice } = require("./live-quotes");
 const { parityForward: parityImpliedForward } = require("./fno-reference");
 const { longOptionExits, verticalSpreadExits } = require("./exit-levels");
-const { tradeOdds } = require("./trade-odds");
+const { tradeOdds, yangZhangVol, parkinsonVol } = require("./trade-odds");
 const { impliedVolatility: solveImpliedVolatility } = require("./option-pricing");
 
 const COVERAGE_PATH = path.resolve(__dirname, "../../data/market-coverage.json");
@@ -1429,10 +1429,35 @@ class FnoUniverseEngine {
     // trade at a premium to the NIFTY surface; 1.25x is the conventional rule of
     // thumb and is declared as an assumption rather than presented as a
     // measurement.
+    //
+    // India VIX first, because it is the market's own forward-looking number.
+    // But it is NOT always present -- when the macro radar has not refreshed it
+    // is null, and a first version of this change made the whole index card
+    // depend on it, so NIFTY and BANKNIFTY rendered with no symbol and no price
+    // at all. A card must degrade to a worse MEASUREMENT, never to a literal and
+    // never to nothing.
+    //
+    // So: India VIX, else the index's own realised volatility from its cached
+    // daily bars, which is a measurement of the same quantity looking backwards
+    // instead of forwards. Each is labelled, so nobody has to guess which one
+    // produced the Greeks.
+    const indexRealised = (symbol) => {
+      const cached = getCachedBars(INDEX_BAR_TICKERS[symbol]);
+      const bars = cached?.bars;
+      if (!Array.isArray(bars) || bars.length < 20) return null;
+      const measured = yangZhangVol(bars.slice(-30)) || parkinsonVol(bars.slice(-30));
+      return Number.isFinite(measured) && measured > 0.03 && measured < 1.5 ? measured : null;
+    };
     const vixPct = Number(macroState?.indiaVix?.price);
-    const niftyVol = Number.isFinite(vixPct) && vixPct > 3 && vixPct < 90 ? vixPct / 100 : null;
-    const bankNiftyVol = niftyVol === null ? null : niftyVol * 1.25;
-    const indexVolBasis = niftyVol === null ? "NO_INDIA_VIX_AVAILABLE" : "INDIA_VIX";
+    const vixVol = Number.isFinite(vixPct) && vixPct > 3 && vixPct < 90 ? vixPct / 100 : null;
+    const niftyVol = vixVol ?? indexRealised("NIFTY");
+    // BANKNIFTY is not NIFTY. When India VIX is the source, 1.25x is the
+    // conventional premium and is declared as an assumption; when the source is
+    // realised volatility, BANKNIFTY's own bars are measured directly.
+    const bankNiftyVol = vixVol !== null ? vixVol * 1.25 : indexRealised("BANKNIFTY");
+    const indexVolBasis = vixVol !== null
+      ? "INDIA_VIX"
+      : (niftyVol !== null ? "REALISED_YANG_ZHANG_30D" : "NO_VOLATILITY_MEASURABLE");
 
     const niftyOpts = niftySpot && niftyListed && niftyVol !== null
       ? calculateOptions("NIFTY", niftySpot, niftyListed.lotSize || 65, true, niftyVol)
