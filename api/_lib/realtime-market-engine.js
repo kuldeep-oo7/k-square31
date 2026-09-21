@@ -127,6 +127,50 @@ class RealtimeMarketEngine {
    * Was the estimate any good? Cached briefly -- it walks the whole ledger and
    * the answer cannot change between two ticks.
    */
+  /**
+   * Write today's volatility surface for every name, so IV rank can exist.
+   *
+   * IV rank is the first thing any options trader screens on and this desk has
+   * never had it, for the simple reason that nobody kept the history. It cannot
+   * be back-filled -- the shape of a surface on a past session is not in any
+   * file here -- so the keeping starts now and the rank turns on by itself once
+   * there are enough sessions.
+   *
+   * Once per session, keyed on the session date, so running it every ninety
+   * seconds writes one row rather than nine hundred.
+   */
+  captureVolatilitySurface() {
+    try {
+      const reference = require("./fno-reference").loadReference();
+      if (!reference?.symbols) return { ok: false, reason: "NO_CONTRACT_REFERENCE" };
+      const sessionDate = new Date(Date.now() + 330 * 60_000).toISOString().slice(0, 10);
+      if (this._surfaceCapturedFor === sessionDate) return { ok: true, skipped: true, sessionDate };
+
+      const { surfaceFor } = require("./vol-surface");
+      const { recordSnapshot } = require("./iv-rank");
+      let written = 0, skipped = 0;
+      for (const symbol of Object.keys(reference.symbols)) {
+        try {
+          const shape = surfaceFor(symbol, { reference });
+          if (!shape.ok || !(shape.atmIvPct > 0)) { skipped += 1; continue; }
+          const out = recordSnapshot({
+            symbol, sessionDate, atmIvPct: shape.atmIvPct, frontExpiry: shape.frontExpiry,
+            termSlopePct: shape.termStructure?.available ? shape.termStructure.slopePct : null,
+            skewPoints: shape.skew?.available ? shape.skew.skewPoints : null,
+            underlyingPrice: reference.symbols[symbol]?.underlyingPrice ?? null
+          });
+          if (out.ok) written += 1; else skipped += 1;
+        } catch (error) { skipped += 1; }
+      }
+      this._surfaceCapturedFor = sessionDate;
+      console.log(`[K² Surface] stored ${written} implied volatilities for ${sessionDate} (${skipped} skipped)`);
+      return { ok: true, sessionDate, written, skipped };
+    } catch (error) {
+      console.error("Volatility surface capture failed:", error.message);
+      return { ok: false, reason: error.message };
+    }
+  }
+
   /** Row counts in the real tables, so "it is being recorded" can be checked. */
   storageReport() {
     const fresh = this._storeAt && Date.now() - this._storeAt < 60_000;
@@ -173,7 +217,15 @@ class RealtimeMarketEngine {
       // is the same defect as every other one in this audit: a number advertised
       // that the thing beside it does not contain. The payload now carries a
       // usable depth and says plainly how much of the list it is.
-      const result = screenContracts({ underlyingScores: scores, limit });
+      // IV rank is injected rather than imported, so the screener keeps no
+      // database dependency. It returns null until enough sessions are stored
+      // and the rank term stays neutral until then.
+      const ivRank = require("./iv-rank");
+      const ivRankFor = (symbol, currentIvPct) => {
+        try { return ivRank.ivRank(symbol, { todayIvPct: currentIvPct }); }
+        catch (error) { return null; }
+      };
+      const result = screenContracts({ underlyingScores: scores, limit, ivRankFor });
       this._screened = { ...result, shown: (result.contracts || []).length, limit };
       this._screenAt = Date.now();
       return this._screened;
@@ -694,6 +746,10 @@ class RealtimeMarketEngine {
     // So the mirror runs on its own clock, market open or shut, and only when
     // something actually changed.
     this.archiveTimer = setInterval(() => this.archiveLedger("timer"), 5 * 60 * 1000);
+    // One implied-volatility snapshot per session per name, which is what makes
+    // IV rank possible in three months' time. It self-skips once written.
+    this.captureVolatilitySurface();
+    this.surfaceTimer = setInterval(() => this.captureVolatilitySurface(), 30 * 60 * 1000);
 
     // And once more on the way out. Render sends SIGTERM before it kills the
     // container on a deploy, which is the last chance to save the session.
@@ -753,6 +809,7 @@ class RealtimeMarketEngine {
   stop() {
     if (this.timer) clearInterval(this.timer);
     if (this.archiveTimer) clearInterval(this.archiveTimer);
+    if (this.surfaceTimer) clearInterval(this.surfaceTimer);
     if (this.referenceTimer) clearInterval(this.referenceTimer);
     if (this.sessionTimer) clearInterval(this.sessionTimer);
     if (this.quoteTimer) clearInterval(this.quoteTimer);

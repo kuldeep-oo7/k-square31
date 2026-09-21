@@ -1461,6 +1461,17 @@
         +   '<div style="font:700 10px var(--mono)">VRP ' + (vrp ? fixed(vrp, 2) : '&mdash;') + '</div></td>'
         + '<td>' + (c.touchPct == null ? '&mdash;' : fixed(c.touchPct, 1) + '%')
         +   '<div style="font:600 10px var(--mono);color:var(--muted)">~' + (c.medianDaysToTarget == null ? '?' : c.medianDaysToTarget) + 'd</div></td>'
+        // How much of the premium decays away while you wait for that move, and
+        // what shape the surface is in. Neither was ever on a card.
+        + '<td style="color:' + (Number(c.thetaBurnPct) > 12 ? 'var(--red)' : 'var(--muted)') + '">'
+        +   (c.thetaBurnPct == null ? '&mdash;' : fixed(c.thetaBurnPct, 1) + '%')
+        +   '<div style="font:600 10px var(--mono);color:var(--muted)">decays waiting</div></td>'
+        + '<td style="font:600 10px var(--mono)">'
+        +   (c.termShape ? '<span style="color:' + (c.termShape === 'BACKWARDATION' ? 'var(--amber)' : 'var(--muted)') + '">'
+              + c.termShape.replace('BACKWARDATION', 'EVENT PRICED') + '</span>' : '&mdash;')
+        +   '<div style="color:var(--muted)">skew ' + (c.skewPoints == null ? '&mdash;' : fixed(c.skewPoints, 1) + ' ' + (c.skewShape || '')) + '</div>'
+        +   (c.ivRank == null ? '' : '<div style="color:var(--muted)">IV rank ' + fixed(c.ivRank, 0) + '</div>')
+        + '</td>'
         + '<td>' + Number(c.volume).toLocaleString('en-IN')
         +   '<div style="font:600 10px var(--mono);color:var(--muted)">OI ' + Number(c.openInterest).toLocaleString('en-IN') + '</div></td>'
         + '<td><strong>' + fixed(c.screenScore, 1) + '</strong></td>'
@@ -1469,7 +1480,7 @@
 
     return head + '<div class="table-wrap"><table class="desk-table"><thead><tr>'
       + '<th>CONTRACT</th><th>BUY AT</th><th>SELL AT &middot; NET</th><th>IV vs REALISED</th>'
-      + '<th>P(TOUCH)</th><th>VOLUME</th><th>SCORE</th>'
+      + '<th>P(TOUCH)</th><th>THETA BURN</th><th>SURFACE</th><th>VOLUME</th><th>SCORE</th>'
       + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
 

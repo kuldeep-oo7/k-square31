@@ -133,6 +133,32 @@ class SqliteTradingDatabase {
         recorded_at TEXT NOT NULL
       );
 
+      -- IMPLIED VOLATILITY, SESSION BY SESSION, PER UNDERLYING.
+      --
+      -- The desk compares a contract's implied volatility to the underlying's
+      -- REALISED volatility. That is one useful comparison and it is not the one
+      -- every options trader actually screens on, which is where implied sits in
+      -- its OWN history. 25% means nothing until you know the name has ranged
+      -- between 15% and 60%: the same number is cheap on one stock and dear on
+      -- another, and dear today on a stock that was at 18% all quarter.
+      --
+      -- IV rank cannot be computed from data nobody kept, so this is where the
+      -- keeping starts. One row per symbol per session; a year of it makes the
+      -- rank meaningful, and until there is enough the code says so rather than
+      -- ranking against three days.
+      CREATE TABLE IF NOT EXISTS iv_history (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        symbol TEXT NOT NULL,
+        session_date TEXT NOT NULL,
+        atm_iv_pct REAL NOT NULL,
+        front_expiry TEXT,
+        term_slope_pct REAL,
+        skew_points REAL,
+        underlying_price REAL,
+        recorded_at TEXT NOT NULL,
+        UNIQUE(symbol, session_date)
+      );
+
       -- Immutable Forensic Audit Event Trail
       CREATE TABLE IF NOT EXISTS audit_events (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -177,6 +203,7 @@ class SqliteTradingDatabase {
       CREATE INDEX IF NOT EXISTS idx_signals_status ON signals_lifecycle(status);
       CREATE INDEX IF NOT EXISTS idx_signals_symbol ON signals_lifecycle(symbol);
       CREATE INDEX IF NOT EXISTS idx_marks_signal ON signal_marks(signal_id, recorded_at);
+      CREATE INDEX IF NOT EXISTS idx_iv_symbol_date ON iv_history(symbol, session_date);
     `);
     this.migrateSignalProvenance();
   }

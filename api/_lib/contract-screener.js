@@ -32,6 +32,7 @@ const { europeanOption, impliedVolatility } = require("./option-pricing");
 const { getCachedBars } = require("./bar-cache");
 const { yangZhangVol, parkinsonVol, timeToTarget } = require("./trade-odds");
 const { roundTripCost, breakevenMovePct } = require("./trade-costs");
+const { surfaceFor, thetaBurn } = require("./vol-surface");
 
 const RISK_FREE = 0.065;
 
@@ -124,7 +125,24 @@ function scoreContract(row) {
     ? Math.max(0, Math.min(100, 100 - row.costAsPctOfGross * 8))
     : 60;
 
-  // 7. THE UNDERLYING'S OWN READ, supplied by the caller from the existing
+  // 7. HOW MUCH DECAYS AWAY WHILE YOU WAIT. The desk has computed theta on
+  //    every contract since it was written and never once asked the only
+  //    question that matters about it: if this is expected to reach its target
+  //    in 1.5 days, how much of what I paid burns off in those 1.5 days? A
+  //    contract that loses 26% of its premium waiting is a different trade from
+  //    one that loses 4%, and they were ranked identically.
+  parts.thetaBurn = Number.isFinite(row.burnPctOfPremium)
+    ? Math.max(0, Math.min(100, 100 - row.burnPctOfPremium * 4))
+    : 55;
+
+  // 8. WHERE IMPLIED VOLATILITY SITS IN ITS OWN HISTORY, which is the first
+  //    thing any options trader screens on and this desk has never had. Neutral
+  //    until enough sessions are stored, and it says so rather than guessing.
+  parts.ivRank = Number.isFinite(row.ivPercentile)
+    ? Math.max(0, Math.min(100, 100 - row.ivPercentile))   // low IV in its own range favours a BUYER
+    : 50;
+
+  // 9. THE UNDERLYING'S OWN READ, supplied by the caller from the existing
   //    scanner -- technicals, candlesticks, chart geometry, Hurst, GARCH and
   //    the matched-filter bank. Neutral when the name has not been scanned.
   parts.underlying = Number.isFinite(row.underlyingScore) ? row.underlyingScore : 50;
@@ -151,7 +169,11 @@ function screenContracts({
   bullish = {},
   now = Date.now(),
   gates = {},
-  limit = 60
+  limit = 60,
+  // Injected rather than required, so the screener has no database dependency
+  // and the suites can run it without one. Returns null until enough sessions
+  // of history exist, and the rank term stays neutral until it does.
+  ivRankFor = null
 } = {}) {
   const rules = { ...GATES, ...gates };
   if (!reference?.symbols) {
@@ -159,6 +181,16 @@ function screenContracts({
   }
 
   const volCache = new Map();
+  // Term structure and skew are properties of the UNDERLYING, not of a strike,
+  // so they are solved once per name rather than once per contract.
+  const surfaceCache = new Map();
+  const surface = (symbol) => {
+    if (!surfaceCache.has(symbol)) {
+      try { surfaceCache.set(symbol, surfaceFor(symbol, { reference, now })); }
+      catch (error) { surfaceCache.set(symbol, { ok: false, reason: error.message }); }
+    }
+    return surfaceCache.get(symbol);
+  };
   const refused = {
     expiryWindow: 0, illiquid: 0, tinyPremium: 0, noIv: 0,
     deltaBand: 0, belowIntrinsic: 0, noDirection: 0, noUnderlying: 0
@@ -241,6 +273,18 @@ function screenContracts({
 
           // NET of every charge and of crossing the spread, not the difference
           // between two mid prices multiplied by a lot.
+          const shape = surface(symbol);
+          // europeanOption returns theta PER DAY already -- verified against
+          // Hull, whose -4.31 per year is this module's -0.011796. Dividing by
+          // 365 again, which the first version of this did, understated the
+          // decay by a factor of 365 and made every contract look like it cost
+          // nothing to hold.
+          const burn = thetaBurn({
+            premium, thetaPerDay: Number(greeks?.theta),
+            daysToTarget: touch?.medianDaysIfItHappens, daysToExpiry
+          });
+          const rank = ivRankFor ? ivRankFor(symbol, impliedVol * 100) : null;
+
           const economics = roundTripCost({
             entryPremium: premium, exitPremium: targetPremium, lotSize: bucket.lotSize || entry.lotSize
           });
@@ -264,7 +308,7 @@ function screenContracts({
             varianceRiskPremium: realisedVol > 0 ? round(impliedVol / realisedVol, 2) : null,
             delta: round(delta, 3),
             gamma: round(greeks?.gamma, 6),
-            theta: round(greeks?.theta / 365, 3),
+            theta: round(greeks?.theta, 4),      // per DAY, as the pricer returns it
             vega: round(greeks?.vega, 4),
             volume, openInterest,
             breakeven: round(breakeven),
@@ -280,12 +324,33 @@ function screenContracts({
             totalCost: economics?.totalCost ?? null,
             costAsPctOfGross: economics?.costAsPctOfGross ?? null,
             breakevenPremiumMovePct: breakevenMove,
-            fillAssumption: economics?.fillAssumption ?? null
+            fillAssumption: economics?.fillAssumption ?? null,
+
+            // THE SHAPE OF THE SURFACE, which nothing here has ever read.
+            termShape: shape?.termStructure?.available ? shape.termStructure.shape : null,
+            termSlopePct: shape?.termStructure?.available ? shape.termStructure.slopePct : null,
+            termMeaning: shape?.termStructure?.available ? shape.termStructure.meaning : null,
+            skewPoints: shape?.skew?.available ? shape.skew.skewPoints : null,
+            skewShape: shape?.skew?.available ? shape.skew.shape : null,
+            skewMeaning: shape?.skew?.available ? shape.skew.meaning : null,
+
+            // WHAT DECAYS WHILE YOU WAIT.
+            thetaBurnPct: burn?.burnPctOfPremium ?? null,
+            thetaBurnRupees: burn?.premiumBurned ?? null,
+            thetaBurnUnderstated: burn?.understatedNearExpiry ?? null,
+
+            // WHERE IMPLIED SITS IN ITS OWN HISTORY.
+            ivRank: rank?.available ? rank.ivRank : null,
+            ivPercentile: rank?.available ? rank.ivPercentile : null,
+            ivRankReading: rank?.available ? rank.reading : (rank?.reason || "NOT_MEASURED"),
+            ivRankSessionsStored: rank?.sessionsStored ?? null
           };
           // Keep the raw realised value for scoring, then hand back percentages.
           const scored = scoreContract({
             ...row, impliedVol, realisedVol, delta,
-            costAsPctOfGross: economics?.costAsPctOfGross
+            costAsPctOfGross: economics?.costAsPctOfGross,
+            burnPctOfPremium: burn?.burnPctOfPremium,
+            ivPercentile: rank?.available ? rank.ivPercentile : null
           });
           survivors.push({ ...row, screenScore: scored.score, screenParts: scored.parts });
         }

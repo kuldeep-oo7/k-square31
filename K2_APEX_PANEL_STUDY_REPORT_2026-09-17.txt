@@ -1,7 +1,7 @@
 ================================================================================
 K2 APEX ENGINE — POOLED PANEL STUDY & SURVIVORSHIP-ADJUSTED BACKTEST
 Document Reference: K2-APEX-PANEL-STUDY-2026-09-17
-Execution Date: 2026-09-21T18:04:28.664Z
+Execution Date: 2026-09-21T18:08:50.572Z
 Symbols Tested: 97 NSE Large-Cap Equities
 Geometry Tested: Target +2.5%, Stop -1.5%, Horizon 5 Sessions
 Cost Model: Real Dated Statutory Costs via shadow-broker.js (STT, NSE, SEBI, GST)
@@ -25,7 +25,7 @@ Comparison over Identical Historical Windows:
   Validation               +1.7%                    -1.7%                  +3.4%
   Final Test               +0.4%                     -2.8%                   +3.2%
 
-Benchmark source: NIFTY_500_CRSLDX fetched 2026-09-21T18:04:28.450Z
+Benchmark source: NIFTY_500_CRSLDX fetched 2026-09-21T18:08:50.356Z
 Conclusion: read the Survivorship Gap column above. The universe outran the index
 by roughly 47 points in development, which is constituent survivorship and not skill.
 Benchmark every figure against the index, never against the sample's own return.
