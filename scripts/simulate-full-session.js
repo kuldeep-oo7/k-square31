@@ -60,7 +60,7 @@ const RISK_FREE = 0.065;
 // genuine article. Only the option chain is synthesised, because that is the
 // part we need to be able to move.
 // ---------------------------------------------------------------------------
-function buildChain(names, { spotFor, vol, expiryIso, lotSize = 500, volume = 5000, openInterest = 200000, now }) {
+function buildChain(names, { spotFor, vol, expiryIso, lotSize = 500, now }) {
   const years = Math.max(1 / 365, (Date.parse(`${expiryIso}T15:30:00+05:30`) - now) / (365 * DAY));
   const symbols = {};
   for (const symbol of names) {
@@ -68,10 +68,20 @@ function buildChain(names, { spotFor, vol, expiryIso, lotSize = 500, volume = 50
     const step = spot > 5000 ? 100 : spot > 1000 ? 20 : spot > 200 ? 10 : 5;
     const atm = Math.round(spot / step) * step;
     const callStrikes = [], putStrikes = [], liveStrikes = [], quotes = {};
-    for (let i = -6; i <= 6; i += 1) {
+    // A REALISTIC ladder, not a friendly one. Twenty-five strikes either side so
+    // the delta band has deep contracts to refuse, and liquidity that decays
+    // away from the money the way a real chain does -- because the first version
+    // of this fixture gave every contract 5,000 lots and 200,000 open interest,
+    // so the liquidity gate (which refuses 21,636 of 27,398 in production, by
+    // far the largest filter) could not fire even once. A simulation that
+    // defeats the gates does not test them.
+    for (let i = -25; i <= 25; i += 1) {
       const strike = atm + i * step;
       if (strike <= 0) continue;
       callStrikes.push(strike); putStrikes.push(strike); liveStrikes.push(strike);
+      const distance = Math.abs(i);
+      const volume = Math.max(1, Math.round(9000 * Math.exp(-distance / 4)));
+      const openInterest = Math.max(20, Math.round(400000 * Math.exp(-distance / 5)));
       for (const optionType of ["CE", "PE"]) {
         // Priced with the SAME Black-Scholes the desk uses, so the simulation
         // cannot pass by feeding the screener prices no model would produce.
@@ -129,8 +139,16 @@ const openChain = buildChain(NAMES, {
 });
 const first = screenContracts({ reference: openChain, now: clock, limit: 40 });
 
+const keptPct = (100 * first.survived) / first.examined;
 ok(`walked ${first.examined.toLocaleString("en-IN")} contracts and produced ${first.survived} candidates`,
   first.ok && first.survived > 0);
+ok(`and REFUSED ${(100 - keptPct).toFixed(1)}% of them, the same bar the unit suite holds it to`,
+  keptPct < 25,
+  `${keptPct.toFixed(1)}% survived; a chain built to defeat the gates must still be refused wholesale`);
+ok(`the liquidity gate bit hardest, as it does in production `
+  + `(${(first.refused.illiquid || 0).toLocaleString("en-IN")} refused for depth, `
+  + `${(first.refused.deltaBand || 0).toLocaleString("en-IN")} for delta)`,
+  first.refused.illiquid > 0 && first.refused.deltaBand > 0);
 ok("every candidate carries entry, target, expiry, lot size and provenance",
   first.contracts.every((c) => c.premium > 0 && c.targetPremium > c.premium && c.expiry && c.lotSize > 0 && c.priceSource));
 ok(`realised volatility came from the REAL bars, not a default `
@@ -260,8 +278,10 @@ ledger.markToMarket((p) => {
 }, { db, now: clock });
 
 const cal = ledger.calibration({ db, minimumSample: 10 });
-ok(`calibration graded the session: predicted ${cal.predictedHitPct}%, actual ${cal.actualHitPct}%, verdict ${cal.verdict}`,
-  cal.hasEnoughHistory === true && cal.verdict);
+ok(`calibration graded the session: predicted ${cal.predictedHitPct}%, actual ${cal.actualHitPct}%, `
+  + `verdict ${cal.verdict}  [FIXTURE: this file deliberately crashed every loser to 40% of entry, `
+  + `so the 'actual' is manufactured. What is being tested is that the GRADER catches it.]`,
+  cal.hasEnoughHistory === true && cal.verdict === "ESTIMATE_IS_OPTIMISTIC");
 ok("it reports the gap as a signed number rather than hiding it",
   Number.isFinite(cal.calibrationGapPct));
 ok(`and measures how far the losers travelled (median ${Math.round((cal.nearMisses.medianFractionOfTargetReached || 0) * 100)}% of target)`,
