@@ -26,6 +26,7 @@
 
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
+const path = require("node:path");
 const { CACHE_FILE } = require("../api/_lib/live-quotes");
 const reference = require("../api/_lib/fno-reference");
 
@@ -144,6 +145,82 @@ if (contractRef) {
   }
 } else {
   console.log("  - no contract reference cached; exchange cross-check skipped");
+}
+
+/**
+ * A CARD MUST NAME ONE CONTRACT, AND NAME IT THE WAY EACH BROKER DOES.
+ *
+ * The defect these guard against, found 2026-09-21 from a user's broker
+ * screenshots: the desk published NIFTY26SEP23400CE at Rs 90.75 with a delta of
+ * 0.58, while the contract that symbol names was trading near Rs 200. Three
+ * different contracts were involved in one card -- the premium came from the
+ * front WEEKLY expiry, the Greeks from a computed "last Thursday" on which
+ * nothing is listed, and the symbol from a hard-coded "26SEP" string. Pasted
+ * into Angel One the symbol found nothing at all, because Angel puts the day
+ * first and the year last.
+ */
+const { angelTradingSymbol, expiryTradingSuffix, tradableExpiry, loadReference } = reference;
+
+// 1. The Angel symbol builder is checked against Angel's OWN instrument master,
+//    not against a format someone believed was right.
+{
+  const masterPath = path.resolve(__dirname, "../.private/cache/angelone-instruments.json");
+  if (fs.existsSync(masterPath)) {
+    const master = JSON.parse(fs.readFileSync(masterPath, "utf8"));
+    let checked = 0, matched = 0;
+    const misses = [];
+    for (const [key, value] of Object.entries(master.options || {})) {
+      if (value.exchange !== "NFO") continue;
+      const [symbol, expiry, strike, optionType] = key.split("|");
+      checked += 1;
+      if (angelTradingSymbol(symbol, expiry, strike, optionType) === value.symbol) matched += 1;
+      else if (misses.length < 3) misses.push(`${key} -> ${angelTradingSymbol(symbol, expiry, strike, optionType)} but Angel says ${value.symbol}`);
+    }
+    if (checked > 1000) {
+      assert.equal(matched, checked,
+        `the Angel One symbol builder disagrees with Angel's instrument master on ${checked - matched} of ${checked} NSE contracts: ${misses.join("; ")}`);
+      console.log(`  ✓ Angel One symbols reproduce the broker's own instrument master exactly (${matched} NSE contracts)`);
+    }
+
+    // 2. NOTHING from BSE or MCX may enter the maps. They collide with NSE on a
+    //    key that has no exchange in it, and BFO is parsed last, so a BSE
+    //    contract with a different expiry and a different lot size silently wins.
+    const foreign = Object.values(master.options || {}).filter((v) => v.exchange && v.exchange !== "NFO").length
+      + Object.values(master.futures || {}).filter((v) => v.exchange && v.exchange !== "NFO").length;
+    if (Number(master.schemaVersion) >= 3) {
+      assert.equal(foreign, 0,
+        `${foreign} non-NSE contracts are cached in the instrument maps; BSE and MCX rows overwrite the NSE contract the desk actually trades`);
+      console.log("  ✓ The instrument cache holds NSE contracts only");
+    } else {
+      console.log(`  - instrument cache is schema ${master.schemaVersion}, predating the NSE-only filter; ${foreign} foreign rows present and it will be rebuilt`);
+    }
+  } else {
+    console.log("  - no Angel instrument master cached; broker symbol cross-check skipped");
+  }
+}
+
+// 3. The expiry label is the exchange's, weekly or monthly, never a literal.
+{
+  assert.equal(expiryTradingSuffix("2026-09-29", ["2026-09-22", "2026-09-29", "2026-10-06"]), "26SEP",
+    "the last expiry in its calendar month is the MONTHLY and takes the spelled-out form");
+  assert.equal(expiryTradingSuffix("2026-09-22", ["2026-09-22", "2026-09-29"]), "26922",
+    "an earlier expiry in the same month is a WEEKLY: year, single-character month, day");
+  assert.equal(expiryTradingSuffix("2026-10-06", ["2026-10-06", "2026-10-27"]), "26O06",
+    "October, November and December use O, N and D because two digits would not fit");
+  assert.equal(angelTradingSymbol("ASIANPAINT", "2026-09-29", 2460, "CE"), "ASIANPAINT29SEP262460CE");
+  assert.equal(angelTradingSymbol("NIFTY", "2026-09-29"), "NIFTY29SEP26FUT");
+  console.log("  ✓ Expiry labels follow the exchange's weekly and monthly conventions");
+}
+
+// 4. The chosen expiry must outlive the hold the card describes.
+{
+  const reference = loadReference();
+  if (reference?.symbols?.NIFTY) {
+    const chosen = tradableExpiry("NIFTY", { minDays: 7, reference });
+    assert.ok(chosen && chosen.days >= 7,
+      `the desk picked an expiry ${chosen ? chosen.days.toFixed(1) : "?"} days out for a five-session hold; a contract expiring tomorrow cannot carry a +2.5% and +5.0% target ladder`);
+    console.log(`  ✓ The expiry chosen for a five-session hold has ${chosen.days.toFixed(1)} days left (${chosen.expiry})`);
+  }
 }
 
 console.log("Contract identity tests passed: every contract matches the broker's own label, put-call parity rules out transposed calls and puts, and open interest and at-the-money prices agree with the NSE bhavcopy");

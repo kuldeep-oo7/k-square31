@@ -12,7 +12,10 @@ const {
   nearestListedStrike: nearestFnoStrike,
   adjacentListedStrike: adjacentFnoStrike,
   isListed: isFnoListed,
-  tradedQuote: tradedFnoQuote
+  tradedQuote: tradedFnoQuote,
+  tradableExpiry: tradableFnoExpiry,
+  expiryTradingSuffix: expiryFnoSuffix,
+  angelTradingSymbol: angelFnoSymbol
 } = require("./fno-reference");
 const { liveQuote: liveBrokerQuote } = require("./live-quotes");
 const { marketPhase: sessionPhase } = require("./live-quotes");
@@ -113,18 +116,30 @@ function getStrikeStep(spot) {
   return 100;
 }
 
+/**
+ * LAST-RESORT fallback for when the exchange contract file is unavailable.
+ *
+ * It computed the last THURSDAY. NSE has moved F&O expiry to TUESDAY, and the
+ * September 2026 contracts expire on the 29th -- so this returned 24 September,
+ * a date on which NOTHING is listed. Every theoretical price, every Greek and
+ * every reported implied volatility on the desk was computed against a contract
+ * that does not exist, using 3 days of life where the real contract had 8.
+ *
+ * The weekday is fixed here, but the real repair is that nothing on the live
+ * path uses this any more: the expiry now comes from the exchange's own listed
+ * set. This survives only for a cold start with no reference file, and its
+ * answer is labelled EXPIRY_ASSUMED wherever it is used.
+ */
 function getDaysToMonthlyExpiry(now = new Date()) {
   const year = now.getFullYear();
   const month = now.getMonth();
   const lastDay = new Date(year, month + 1, 0);
-  let lastThursday = lastDay.getDate();
+  let lastTuesday = lastDay.getDate();
   const dayOfWeek = lastDay.getDay();
-  if (dayOfWeek >= 4) {
-    lastThursday -= (dayOfWeek - 4);
-  } else {
-    lastThursday -= (dayOfWeek + 3);
-  }
-  const expiryDate = new Date(year, month, lastThursday, 15, 30, 0);
+  // Tuesday is day 2. Walk back to the most recent Tuesday on or before the
+  // last day of the month.
+  lastTuesday -= (dayOfWeek - 2 + 7) % 7;
+  const expiryDate = new Date(year, month, lastTuesday, 15, 30, 0);
   const diffMs = expiryDate.getTime() - now.getTime();
   const days = Math.max(1, Math.ceil(diffMs / (1000 * 60 * 60 * 24)));
   return { days, expiryDate, timeToExpiryYears: Math.max(1 / 365, days / 365) };
@@ -142,10 +157,38 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
   // any price, so inventing one produces a card with a premium, a breakeven and
   // a one-tap order link for a contract that does not exist.
   const contractRef = loadFnoReference();
-  const listedAtm = contractRef ? nearestFnoStrike(symbol, spot, { reference: contractRef }) : null;
+
+  // WHICH CONTRACT IS THIS CARD ABOUT? Until 2026-09-21 the honest answer was
+  // "three different ones at once".
+  //
+  //   the PREMIUM came from the exchange's FRONT expiry, which for NIFTY on that
+  //     day was 2026-09-22, a weekly with one day of life left;
+  //   the GREEKS, the implied volatility and the theoretical price came from
+  //     getDaysToMonthlyExpiry(), which returned 2026-09-24 -- the last Thursday
+  //     of the month, a date on which no NSE contract expires at all;
+  //   the TRADING SYMBOL was a hard-coded "26SEP", which a broker resolves to
+  //     the 29-September monthly.
+  //
+  // So the desk published NIFTY26SEP23400CE at Rs 90.75 with a delta of 0.58,
+  // while the contract that symbol names was trading near Rs 200. The one-tap
+  // order link could not have filled. Confirmed against the broker's own screen:
+  // NIFTY SEP 23350 CE last traded 173.65 while the card showed 88.05.
+  //
+  // ONE expiry is chosen here and everything below is built from it. It must
+  // also have enough life left to hold the trade the card describes -- a card
+  // that says "Day 1 of 5" and ladders targets at +2.5% and +5.0% cannot be
+  // written on a contract that expires tomorrow. That is not a smaller version
+  // of the right answer, it is a different trade.
+  const HOLD_CALENDAR_DAYS = 7;   // the 5-session hold, in calendar days
+  const chosenExpiry = contractRef
+    ? tradableFnoExpiry(symbol, { minDays: HOLD_CALENDAR_DAYS, reference: contractRef })
+    : null;
+  const listedExpiry = chosenExpiry ? chosenExpiry.expiry : null;
+  const listedAtm = contractRef
+    ? nearestFnoStrike(symbol, spot, { reference: contractRef, expiry: listedExpiry })
+    : null;
   const step = getStrikeStep(spot);
   const atmStrike = listedAtm ? listedAtm.strike : Math.round(spot / step) * step;
-  const listedExpiry = listedAtm ? listedAtm.expiry : null;
   const nextCall = listedAtm
     ? adjacentFnoStrike(symbol, atmStrike, 1, { reference: contractRef, expiry: listedExpiry, optionType: "CE" })
     : null;
@@ -159,7 +202,16 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     && isFnoListed(symbol, atmStrike, "CE", listedExpiry, contractRef)
     && isFnoListed(symbol, atmStrike, "PE", listedExpiry, contractRef);
 
-  const { timeToExpiryYears, days: daysToExpiry } = getDaysToMonthlyExpiry();
+  // Time to expiry belongs to the contract that was chosen above. Falling back
+  // to a computed weekday is what produced a 3-day tenor on an 8-day contract.
+  const assumedExpiry = getDaysToMonthlyExpiry();
+  const daysToExpiry = chosenExpiry && chosenExpiry.days > 0 ? chosenExpiry.days : assumedExpiry.days;
+  const timeToExpiryYears = Math.max(1 / 365, daysToExpiry / 365);
+  const expiryBasis = chosenExpiry ? "EXCHANGE_LISTED_EXPIRY" : "EXPIRY_ASSUMED_NO_CONTRACT_FILE";
+  // The exchange's own symbol for this expiry, monthly or weekly. Never a
+  // hard-coded month: on 1 October a pasted "26SEP" is wrong for all 210 names.
+  const expirySuffix = (chosenExpiry && chosenExpiry.suffix)
+    || expiryFnoSuffix(assumedExpiry.expiryDate.toISOString().slice(0, 10), []);
   // Volatility is an input, never a default. Substituting 0.22 whenever it was
   // missing meant an unmeasurable name still produced a confident premium, and
   // 22% is not a property of any particular stock.
@@ -421,8 +473,28 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     maxAcceptableSpreadPct: MAX_ACCEPTABLE_SPREAD_PCT,
     daysToExpiry,
     model: "BLACK_SCHOLES_MERTON",
+    // WHICH CONTRACT, IN EVERY LANGUAGE THAT MATTERS.
+    //
+    // The desk used to print one symbol, in Zerodha's monthly form, and label it
+    // "the trading symbol". Pasted into Angel One -- the broker this desk fetches
+    // its own quotes from -- it finds nothing, because Angel puts the DAY first
+    // and the year last. Reported by the user, reproduced exactly.
+    //
+    // So every card now carries both, plus the contract written out in words,
+    // which is the only form that cannot be mistyped into the wrong instrument.
+    expiry: listedExpiry,
+    expiryBasis,
+    brokerSymbols: {
+      zerodha: `${symbol}${expirySuffix}${atmStrike}CE`,
+      angelOne: listedExpiry ? angelFnoSymbol(symbol, listedExpiry, atmStrike, "CE") : null,
+      description: listedExpiry
+        ? `${symbol} ${listedExpiry} ${atmStrike} CE (NSE)`
+        : `${symbol} ${atmStrike} CE (NSE, expiry unconfirmed)`
+    },
     call: {
-      tradingSymbol: `${symbol}26SEP${atmStrike}CE`,
+      tradingSymbol: `${symbol}${expirySuffix}${atmStrike}CE`,
+      angelSymbol: listedExpiry ? angelFnoSymbol(symbol, listedExpiry, atmStrike, "CE") : null,
+      contractDescription: listedExpiry ? `${symbol} ${listedExpiry} ${atmStrike} CE` : null,
       strike: atmStrike,
       type: "CE",
       side: "BUY",
@@ -485,7 +557,9 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
       }
     },
     put: {
-      tradingSymbol: `${symbol}26SEP${atmStrike}PE`,
+      tradingSymbol: `${symbol}${expirySuffix}${atmStrike}PE`,
+      angelSymbol: listedExpiry ? angelFnoSymbol(symbol, listedExpiry, atmStrike, "PE") : null,
+      contractDescription: listedExpiry ? `${symbol} ${listedExpiry} ${atmStrike} PE` : null,
       strike: atmStrike,
       type: "PE",
       side: "BUY",
@@ -885,7 +959,16 @@ class FnoUniverseEngine {
         marketCap: meta.marketCap,
         rank: meta.rank,
         isBanned,
-        tradingSymbol: `${symbol}26SEPFUT`,
+        tradingSymbol: (() => {
+          const ref = loadFnoReference();
+          const chosen = ref ? tradableFnoExpiry(symbol, { minDays: 7, reference: ref }) : null;
+          return `${symbol}${chosen ? chosen.suffix : "26SEP"}FUT`;
+        })(),
+        angelSymbol: (() => {
+          const ref = loadFnoReference();
+          const chosen = ref ? tradableFnoExpiry(symbol, { minDays: 7, reference: ref }) : null;
+          return chosen ? angelFnoSymbol(symbol, chosen.expiry) : null;
+        })(),
         assetClass: "FUTURES",
         action: "STAND_ASIDE",
         spotPrice: spot,
@@ -963,6 +1046,17 @@ class FnoUniverseEngine {
       analyzed.basisNote = "Futures price and historical bars derived from NSE equity cash with cash-futures basis model; physical futures roll and margins not modeled.";
       analyzed.priceSource = priceSource;
       analyzed.hasObservedPrice = hasObservedPrice;
+      // The FUTURE's own identity, at both brokers. A futures row is a different
+      // product from an option card and keeps its own contract: no strike, no
+      // expiry-dated option symbol, no Greeks. The only thing the two share is
+      // that the exchange names the expiry, and neither may hard-code it.
+      analyzed.tradingSymbol = baseCandidate.tradingSymbol;
+      analyzed.angelSymbol = baseCandidate.angelSymbol ?? null;
+      analyzed.contractExpiry = (() => {
+        const ref = loadFnoReference();
+        const chosen = ref ? tradableFnoExpiry(symbol, { minDays: 7, reference: ref }) : null;
+        return chosen ? chosen.expiry : null;
+      })();
       analyzed.historicalBarsAreSynthetic = baseCandidate.historicalBarsAreSynthetic === true;
 
       if (baseCandidate.historicalBarsAreSynthetic) {
@@ -1311,13 +1405,40 @@ class FnoUniverseEngine {
     const reference = loadFnoReference();
     const niftySpot = fnoUnderlyingPrice("NIFTY", reference);
     const bankNiftySpot = fnoUnderlyingPrice("BANKNIFTY", reference);
-    const niftyListed = niftySpot ? nearestFnoStrike("NIFTY", niftySpot, { reference }) : null;
-    const bankNiftyListed = bankNiftySpot ? nearestFnoStrike("BANKNIFTY", bankNiftySpot, { reference }) : null;
-    const niftyOpts = niftySpot && niftyListed
-      ? calculateOptions("NIFTY", niftySpot, niftyListed.lotSize || 65, true, 0.13)
+    // The expiry these cards are written on -- the same choice calculateOptions
+    // makes internally -- so the strike ladder and the lot size come from the
+    // contract that will actually be priced, not from a weekly expiring
+    // tomorrow.
+    const niftyExpiry = reference ? tradableFnoExpiry("NIFTY", { minDays: 7, reference }) : null;
+    const bankNiftyExpiry = reference ? tradableFnoExpiry("BANKNIFTY", { minDays: 7, reference }) : null;
+    const niftyListed = niftySpot
+      ? nearestFnoStrike("NIFTY", niftySpot, { reference, expiry: niftyExpiry?.expiry || null })
       : null;
-    const bankNiftyOpts = bankNiftySpot && bankNiftyListed
-      ? calculateOptions("BANKNIFTY", bankNiftySpot, bankNiftyListed.lotSize || 30, true, 0.16)
+    const bankNiftyListed = bankNiftySpot
+      ? nearestFnoStrike("BANKNIFTY", bankNiftySpot, { reference, expiry: bankNiftyExpiry?.expiry || null })
+      : null;
+
+    // INDEX VOLATILITY WAS TWO LITERALS: 0.13 for NIFTY and 0.16 for BANKNIFTY,
+    // passed in as "volInput" and then echoed straight back out as the card's
+    // reported implied volatility. It was never solved from a price and never
+    // measured from anything -- the card said "IV 13" because someone typed 13.
+    //
+    // India VIX is the market's own 30-day implied volatility on NIFTY, it is
+    // already fetched, and it was sitting on the same screen reading 11.46 while
+    // the card claimed 13. BANKNIFTY is not NIFTY, and its options habitually
+    // trade at a premium to the NIFTY surface; 1.25x is the conventional rule of
+    // thumb and is declared as an assumption rather than presented as a
+    // measurement.
+    const vixPct = Number(macroState?.indiaVix?.price);
+    const niftyVol = Number.isFinite(vixPct) && vixPct > 3 && vixPct < 90 ? vixPct / 100 : null;
+    const bankNiftyVol = niftyVol === null ? null : niftyVol * 1.25;
+    const indexVolBasis = niftyVol === null ? "NO_INDIA_VIX_AVAILABLE" : "INDIA_VIX";
+
+    const niftyOpts = niftySpot && niftyListed && niftyVol !== null
+      ? calculateOptions("NIFTY", niftySpot, niftyListed.lotSize || 65, true, niftyVol)
+      : null;
+    const bankNiftyOpts = bankNiftySpot && bankNiftyListed && bankNiftyVol !== null
+      ? calculateOptions("BANKNIFTY", bankNiftySpot, bankNiftyListed.lotSize || 30, true, bankNiftyVol)
       : null;
 
     optionsList.push({
@@ -1325,6 +1446,17 @@ class FnoUniverseEngine {
       symbol: "NIFTY",
       companyName: "Nifty 50 Benchmark Index",
       tradingSymbol: niftyOpts ? niftyOpts.call.tradingSymbol : null,
+      // The contract, named the way each broker names it. One symbol was
+      // never enough: Zerodha's monthly form is not Angel One's, and a user
+      // pasting the card's symbol into Angel One finds nothing.
+      expiry: niftyOpts ? niftyOpts.expiry : null,
+      expiryBasis: niftyOpts ? niftyOpts.expiryBasis : null,
+      brokerSymbols: niftyOpts ? {
+        zerodha: niftyOpts.call.tradingSymbol,
+        angelOne: niftyOpts.call.angelSymbol,
+        description: niftyOpts.call.contractDescription
+      } : null,
+
       assetClass: "INDEX_OPTION",
       optionType: "CE",
       strike: niftyOpts ? niftyOpts.atmStrike : null,
@@ -1395,6 +1527,17 @@ class FnoUniverseEngine {
       symbol: "BANKNIFTY",
       companyName: "Bank Nifty Index",
       tradingSymbol: bankNiftyOpts ? bankNiftyOpts.call.tradingSymbol : null,
+      // The contract, named the way each broker names it. One symbol was
+      // never enough: Zerodha's monthly form is not Angel One's, and a user
+      // pasting the card's symbol into Angel One finds nothing.
+      expiry: bankNiftyOpts ? bankNiftyOpts.expiry : null,
+      expiryBasis: bankNiftyOpts ? bankNiftyOpts.expiryBasis : null,
+      brokerSymbols: bankNiftyOpts ? {
+        zerodha: bankNiftyOpts.call.tradingSymbol,
+        angelOne: bankNiftyOpts.call.angelSymbol,
+        description: bankNiftyOpts.call.contractDescription
+      } : null,
+
       assetClass: "INDEX_OPTION",
       optionType: "CE",
       strike: bankNiftyOpts ? bankNiftyOpts.atmStrike : null,
@@ -1464,7 +1607,20 @@ class FnoUniverseEngine {
       id: "OPT-NIFTY-PE",
       symbol: "NIFTY",
       companyName: "Nifty 50 Benchmark Index",
-      tradingSymbol: niftyOpts ? niftyOpts.put.tradingSymbol : "NIFTY26SEP25200PE",
+      // No invented fallback. "NIFTY26SEP25200PE" was a literal for a strike
+      // nothing had selected, on an expiry nothing had confirmed.
+      tradingSymbol: niftyOpts ? niftyOpts.put.tradingSymbol : null,
+      // The contract, named the way each broker names it. One symbol was
+      // never enough: Zerodha's monthly form is not Angel One's, and a user
+      // pasting the card's symbol into Angel One finds nothing.
+      expiry: niftyOpts ? niftyOpts.expiry : null,
+      expiryBasis: niftyOpts ? niftyOpts.expiryBasis : null,
+      brokerSymbols: niftyOpts ? {
+        zerodha: niftyOpts.put.tradingSymbol,
+        angelOne: niftyOpts.put.angelSymbol,
+        description: niftyOpts.put.contractDescription
+      } : null,
+
       assetClass: "INDEX_OPTION",
       optionType: "PE",
       strike: niftyOpts ? niftyOpts.atmStrike : 25200,
@@ -1506,6 +1662,17 @@ class FnoUniverseEngine {
           symbol: u.symbol,
           companyName: u.companyName,
           tradingSymbol: u.options.call.tradingSymbol,
+          // The contract, named the way each broker names it. One symbol was
+          // never enough: Zerodha's monthly form is not Angel One's, and a user
+          // pasting the card's symbol into Angel One finds nothing.
+          expiry: u.options ? u.options.expiry : null,
+          expiryBasis: u.options ? u.options.expiryBasis : null,
+          brokerSymbols: u.options ? {
+            zerodha: u.options.call.tradingSymbol,
+            angelOne: u.options.call.angelSymbol,
+            description: u.options.call.contractDescription
+          } : null,
+
           assetClass: "STOCK_OPTION",
           optionType: "CE",
           strike: u.options.call.strike,
@@ -1615,6 +1782,17 @@ class FnoUniverseEngine {
           symbol: u.symbol,
           companyName: u.companyName,
           tradingSymbol: u.options.put.tradingSymbol,
+          // The contract, named the way each broker names it. One symbol was
+          // never enough: Zerodha's monthly form is not Angel One's, and a user
+          // pasting the card's symbol into Angel One finds nothing.
+          expiry: u.options ? u.options.expiry : null,
+          expiryBasis: u.options ? u.options.expiryBasis : null,
+          brokerSymbols: u.options ? {
+            zerodha: u.options.put.tradingSymbol,
+            angelOne: u.options.put.angelSymbol,
+            description: u.options.put.contractDescription
+          } : null,
+
           assetClass: "STOCK_OPTION",
           optionType: "PE",
           strike: u.options.put.strike,

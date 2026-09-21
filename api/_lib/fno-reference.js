@@ -208,6 +208,112 @@ function nearestListedStrike(symbol, price, { expiry = null, optionType = "CE", 
   return { strike: best, expiry: chosenExpiry, listedCount: pool.length, lotSize: bucket.lotSize || entry.lotSize };
 }
 
+/**
+ * The exchange's own NFO trading symbol suffix for an expiry.
+ *
+ * WHY THIS EXISTS. The desk built every option and future symbol by pasting a
+ * HARD-CODED "26SEP" onto the strike. That is not a label, it is a guess, and on
+ * 2026-09-21 it was wrong on the contract the desk was loudest about: NIFTY's
+ * front listed expiry is 2026-09-22, a WEEKLY, and the card called it
+ * NIFTY26SEP23400CE, which a broker resolves to the 29-Sep monthly. The premium
+ * came from one contract and the order link pointed at another. It would also
+ * have silently become wrong for all 210 names on 1 October.
+ *
+ * NSE and Zerodha use two different shapes, and which one applies depends on
+ * whether the expiry is the last one listed in its own calendar month:
+ *
+ *   MONTHLY   SYMBOL + YY + MMM        NIFTY + 26 + SEP + 23400 + CE
+ *   WEEKLY    SYMBOL + YY + M + DD     NIFTY + 26 + 9 + 22 + 23400 + CE
+ *
+ * where the weekly month is a single character: 1-9 for January to September,
+ * then O, N and D, because 10, 11 and 12 would not fit in one place.
+ */
+const MONTH_NAMES = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+const WEEKLY_MONTH_CODES = "123456789OND";
+
+function expiryTradingSuffix(expiryIso, expiryList = []) {
+  const iso = String(expiryIso || "").slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  const year = Number(iso.slice(0, 4));
+  const monthIndex = Number(iso.slice(5, 7)) - 1;
+  const day = Number(iso.slice(8, 10));
+  if (!(monthIndex >= 0 && monthIndex <= 11)) return null;
+  const yy = String(year % 100).padStart(2, "0");
+
+  // Monthly means "the last expiry listed in this calendar month", which is a
+  // fact about the exchange's calendar, not about the day of the week. NSE has
+  // already moved this weekday once; reading it from the listed set survives the
+  // next move without a code change.
+  const sameMonth = (Array.isArray(expiryList) ? expiryList : [])
+    .map((value) => String(value).slice(0, 10))
+    .filter((value) => value.slice(0, 7) === iso.slice(0, 7))
+    .sort();
+  const isMonthly = sameMonth.length === 0 || sameMonth[sameMonth.length - 1] === iso;
+
+  if (isMonthly) return `${yy}${MONTH_NAMES[monthIndex]}`;
+  return `${yy}${WEEKLY_MONTH_CODES[monthIndex]}${String(day).padStart(2, "0")}`;
+}
+
+/**
+ * THE SAME CONTRACT HAS A DIFFERENT NAME AT EVERY BROKER.
+ *
+ * The desk emitted exactly one symbol and used it for every link. It happened to
+ * be Zerodha's monthly form. Pasted into Angel One -- which is the broker this
+ * desk actually fetches its live quotes from -- it finds nothing, because Angel
+ * puts the DAY first and the year last:
+ *
+ *   ZERODHA    SYMBOL + YY + MMM + STRIKE + CE/PE     ASIANPAINT26SEP2460CE
+ *   ANGEL ONE  SYMBOL + DD + MMM + YY + STRIKE + CE/PE  ASIANPAINT29SEP262460CE
+ *
+ * Both name the 29 September 2026 2460 call. Neither is wrong; showing only one
+ * of them and calling it "the trading symbol" is. The Angel form is verified
+ * against the instrument master the desk already downloads -- see
+ * scripts/test-contract-identity.js, which asserts this function reproduces
+ * every cached contract's symbol exactly rather than trusting the format.
+ */
+function angelTradingSymbol(symbol, expiryIso, strike = null, optionType = null) {
+  const iso = String(expiryIso || "").slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso) || !symbol) return null;
+  const monthIndex = Number(iso.slice(5, 7)) - 1;
+  if (!(monthIndex >= 0 && monthIndex <= 11)) return null;
+  const head = `${symbol}${iso.slice(8, 10)}${MONTH_NAMES[monthIndex]}${iso.slice(2, 4)}`;
+  if (strike === null || optionType === null) return `${head}FUT`;
+  // Strikes print without a trailing ".0"; a 2460 call is 2460CE, and a 2462.5
+  // call is 2462.5CE.
+  const strikeText = Number.isInteger(Number(strike)) ? String(Number(strike)) : String(Number(strike));
+  return `${head}${strikeText}${optionType}`;
+}
+
+/**
+ * The nearest listed expiry that still has enough life left to hold the trade.
+ *
+ * The front contract is not automatically the right one. On 2026-09-21 NIFTY's
+ * front expiry was the next day's weekly, while the card it fed said "Day 1 of
+ * 5" and carried a +2.5% and +5.0% target ladder. A contract that expires
+ * tomorrow cannot carry a five-session plan, and pricing one is not a smaller
+ * version of the right answer -- it is a different trade.
+ */
+function tradableExpiry(symbol, { minDays = 0, reference = loadReference(), now = Date.now() } = {}) {
+  const entry = reference?.symbols?.[symbol];
+  if (!entry) return null;
+  const list = (Array.isArray(entry.expiryList) ? entry.expiryList : [])
+    .map((value) => String(value).slice(0, 10))
+    .filter((value) => entry.expiries?.[value])
+    .sort();
+  if (!list.length) return null;
+  const chosen = list.find((value) => (Date.parse(`${value}T15:30:00+05:30`) - now) / 86400000 >= minDays);
+  const expiry = chosen || list[list.length - 1];
+  const days = (Date.parse(`${expiry}T15:30:00+05:30`) - now) / 86400000;
+  return {
+    expiry,
+    days,
+    isFrontExpiry: expiry === entry.frontExpiry,
+    skippedFront: Boolean(chosen) && chosen !== list[0],
+    suffix: expiryTradingSuffix(expiry, list),
+    expiryList: list
+  };
+}
+
 /** The next listed strike above (or below) a given one, for the short wing. */
 function adjacentListedStrike(symbol, strike, direction = 1, { expiry = null, optionType = "CE", requireLive = true, reference = loadReference() } = {}) {
   const entry = reference?.symbols?.[symbol];
@@ -295,6 +401,9 @@ function parityForward(symbol, expiry, { reference = loadReference(), rate = 0.0
 
 module.exports = {
   parityForward,
+  angelTradingSymbol,
+  expiryTradingSuffix,
+  tradableExpiry,
   CACHE_DIR,
   REFERENCE_FILE,
   adjacentListedStrike,

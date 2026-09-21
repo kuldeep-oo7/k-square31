@@ -198,6 +198,26 @@ async function refreshInstruments(provider, { timeoutMs = 180_000 } = {}) {
         if (!underlyings[name]) underlyings[name] = { token: String(row.token), exchange: "NSE", symbol: row.symbol };
         continue;
       }
+      // THIS DESK TRADES NSE. Every order link, every lot size, every strike
+      // ladder and the whole contract reference come from NSE, so anything that
+      // is not NFO must never enter these maps.
+      //
+      // It had no exchange filter and no exchange in its key, and the cache it
+      // built held 38,270 BSE option rows against 35,226 NSE ones, plus 636 MCX
+      // commodity rows. BFO is parsed after NFO, so for every contract listed on
+      // both exchanges the BSE row silently overwrote the NSE one -- 213 of the
+      // 210 tradeable names were affected, including DABUR, DIXON, BAJAJ-AUTO,
+      // COFORGE, GLENMARK, LUPIN, VOLTAS and ADANIPORTS.
+      //
+      // The consequences are not subtle. BSE lists different expiries (24-Sep
+      // where NSE lists 29-Sep), different lot sizes (CDSL 475 against NSE's
+      // own), a different symbol convention, and a far thinner book. So the desk
+      // could fetch a BSE quote, mark it as the NSE contract, print an NSE
+      // one-tap order link beside it, and hand the user a symbol that exists at
+      // NEITHER broker in that form. That is exactly what was reported: pasting
+      // the desk's symbol into Angel One returned nothing.
+      if (row.exch_seg !== "NFO") continue;
+
       if (type === "FUTSTK" || type === "FUTIDX") {
         const expiry = normaliseAngelExpiry(row.expiry);
         if (!expiry) continue;
@@ -283,7 +303,9 @@ const memo = {};
 // because the container happily kept serving a file written before futures
 // existed and every card quietly fell back to the end-of-day forward. Nothing
 // errored. Nothing was logged. The desk simply got worse.
-const INSTRUMENT_SCHEMA_VERSION = 2;
+// 3: NSE-only. Version 2 caches mixed NFO, BFO and MCX rows into one keyspace
+// with no exchange in the key, so they must be discarded rather than reused.
+const INSTRUMENT_SCHEMA_VERSION = 3;
 
 function loadInstruments(provider) {
   if (memo[provider]) return memo[provider];
