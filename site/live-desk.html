@@ -152,6 +152,8 @@
   .broker-id-copy { font: 700 9px var(--mono); letter-spacing: .06em; padding: 4px 9px; cursor: pointer;
     border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--muted); }
   .broker-id-copy:active { transform: translateY(1px); }
+  .broker-id-proof { font: 700 9px var(--mono); color: var(--green); letter-spacing: .03em; flex-basis: 100%; }
+  .broker-id-missing { font: 700 10px var(--mono); color: var(--red); letter-spacing: .04em; }
   .broker-id-words { font: 600 10px var(--mono); color: var(--muted); margin-top: 6px;
     padding-top: 6px; border-top: 1px dashed var(--line); }
   @media (max-width: 420px) { .broker-id-tag { min-width: 100%; } }
@@ -864,28 +866,61 @@
 
   function brokerIdBlock(opt) {
     var ids = opt.brokerSymbols || {};
-    var zerodha = ids.zerodha || opt.tradingSymbol || '';
+    // NO FALLBACK TO opt.tradingSymbol. That field is BUILT from a format; the
+    // fields here are only populated once a file somebody else wrote confirmed
+    // the contract exists. Falling back to the built one is precisely how an
+    // unverified string reaches the screen looking like a verified one.
+    var zerodha = ids.zerodha || '';
     var angel = ids.angelOne || '';
     var words = ids.description || '';
-    if (!zerodha && !angel) return '';
+    if (!ids.verified) return '';
     // The symbol travels in a data attribute and one delegated listener does the
     // copying. Building an inline onclick means nesting a quoted symbol inside a
     // quoted attribute inside a quoted string, and getting that wrong takes the
     // whole page down rather than just this button.
-    var row = function (label, value) {
-      if (!value) return '';
+    var row = function (label, value, proof) {
+      if (!value) {
+        // No symbol means no confirmed contract. Say that, rather than printing
+        // a correctly-shaped string nobody has checked.
+        return '<div class="broker-id-row">'
+          + '<span class="broker-id-tag">' + label + '</span>'
+          + '<span class="broker-id-missing">NOT LISTED &mdash; do not trade this</span>'
+          + '</div>';
+      }
       return '<div class="broker-id-row">'
         + '<span class="broker-id-tag">' + label + '</span>'
         + '<code class="broker-id-code">' + value + '</code>'
         + '<button class="broker-id-copy" type="button" data-copy="' + value + '">COPY</button>'
+        + (proof ? '<span class="broker-id-proof">' + proof + '</span>' : '')
         + '</div>';
     };
     return '<div class="broker-ids">'
       + '<div class="broker-ids-head">PASTE INTO YOUR BROKER SEARCH</div>'
-      + row('ZERODHA · DHAN', zerodha)
-      + row('ANGEL ONE', angel)
+      + row('ZERODHA · DHAN', zerodha, proofFor(ids, 'zerodha'))
+      + row('ANGEL ONE', angel, proofFor(ids, 'angelOne'))
       + expiryPlainLine(opt, zerodha, words)
       + '</div>';
+  }
+
+  /**
+   * WHERE THE SYMBOL CAME FROM, on the card.
+   *
+   * "A valid symbol" and "a correctly formatted string" look the same, so the
+   * card names the file that confirmed each one. The Angel symbol is READ from
+   * the broker's instrument master, so its token is shown -- that is the same
+   * token the desk uses to fetch the quote, which means the thing you are told
+   * to buy and the thing that was priced are provably one contract.
+   */
+  function proofFor(ids, which) {
+    var v = (ids && ids.verified) || {};
+    if (which === 'angelOne') {
+      if (!v.angelOne) return '';
+      var token = ids.angelToken ? ' · token ' + ids.angelToken : '';
+      return v.angelSource === 'BROKER_MASTER_STALE_SCHEMA'
+        ? '&#10003; broker file (refreshing)' + token
+        : '&#10003; broker instrument file' + token;
+    }
+    return v.zerodha ? '&#10003; NSE contract file' : '';
   }
 
   /**

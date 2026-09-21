@@ -331,6 +331,37 @@ function loadInstruments(provider) {
   } catch (error) { return null; }
 }
 
+/**
+ * THE BROKER'S OWN NAME FOR THIS CONTRACT, or nothing.
+ *
+ * Constructing a symbol from a format and printing it is not the same as
+ * knowing the contract exists. A correctly-shaped string for a contract that
+ * was never listed looks exactly like a correctly-shaped string for one that
+ * was, and the user finds out by searching their broker and getting nothing.
+ *
+ * This reads the symbol OUT of the instrument master the desk already
+ * downloads -- the same file, and the same row, that supplies the token used to
+ * fetch the quote. If the contract is not in it, this returns null and the card
+ * must say the contract is not listed rather than show a plausible guess.
+ */
+function angelContract(name, expiry, strike = null, optionType = null) {
+  const master = loadInstruments("angelone");
+  if (!master) return null;
+  const day = String(expiry || "").slice(0, 10);
+  if (!name || !/^\d{4}-\d{2}-\d{2}$/.test(day)) return null;
+  const row = strike === null || optionType === null
+    ? master.futures?.[`${name}|${day}`]
+    : master.options?.[`${name}|${day}|${Number(strike)}|${optionType}`];
+  if (!row?.symbol) return null;
+  return {
+    symbol: row.symbol,
+    token: row.token ? String(row.token) : null,
+    lotSize: Number(row.lotSize) || null,
+    exchange: row.exchange || null,
+    schemaStale: master.schemaStale === true
+  };
+}
+
 /** One normalised leg. `tradeable` is the field that matters. */
 function normaliseLeg(strike, optionType, market, greeks) {
   const bid = num(market?.bid_price ?? market?.bidPrice);
@@ -590,6 +621,7 @@ module.exports = {
   instrumentsAreStale,
   CREDENTIAL_PATHS, credentialFile,
   ANGEL_INSTRUMENTS, ANGEL_ROOT, CREDENTIALS_FILE, PROVIDERS, UPSTOX_INSTRUMENTS, UPSTOX_ROOT,
+  angelContract,
   angelOptionChain, credentialsFor, instrumentCachePath, loadInstruments,
   normaliseAngelExpiry, normaliseLeg, optionChain, quoteFromChain, refreshInstruments, status, upstoxOptionChain
 };

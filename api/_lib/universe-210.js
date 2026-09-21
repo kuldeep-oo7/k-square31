@@ -17,6 +17,7 @@ const {
   expiryTradingSuffix: expiryFnoSuffix,
   angelTradingSymbol: angelFnoSymbol
 } = require("./fno-reference");
+const { angelContract: angelListedContract } = require("./broker-feed");
 const { liveQuote: liveBrokerQuote } = require("./live-quotes");
 const { marketPhase: sessionPhase } = require("./live-quotes");
 const { liveFuture: liveFuturePrice } = require("./live-quotes");
@@ -148,6 +149,56 @@ function getDaysToMonthlyExpiry(now = new Date()) {
 /**
  * Institutional Black-Scholes Options Pricing with Greeks and Spreads
  */
+/**
+ * IS THIS A CONTRACT, OR JUST A CORRECTLY-SHAPED STRING?
+ *
+ * Those look identical on a card and the user finds out the difference by
+ * searching their broker and getting nothing back. So neither symbol here is
+ * trusted because it was BUILT; each is confirmed against a file somebody else
+ * wrote:
+ *
+ *   ANGEL ONE   the symbol is READ OUT of the instrument master the desk
+ *               downloads -- the same row, carrying the same token, that is used
+ *               to fetch the quote. If the contract is not in that file the
+ *               symbol is null and the card says NOT LISTED.
+ *   ZERODHA     there is no Zerodha instrument file here, so the symbol is
+ *               built to their documented convention and then the CONTRACT is
+ *               confirmed against the NSE bhavcopy, which is the authority on
+ *               what exists. A verified strike and expiry with a formatted name
+ *               is not a guess.
+ *
+ * `verified` says which of those actually happened, so nothing has to be taken
+ * on trust from this desk.
+ */
+function brokerIdentity(symbol, expiry, strike, optionType, suffix, reference) {
+  if (!expiry) {
+    return {
+      zerodha: null, angelOne: null, angelToken: null,
+      description: `${symbol} ${strike} ${optionType} — expiry not confirmed by the exchange file`,
+      verified: { zerodha: false, angelOne: false }, listed: false
+    };
+  }
+  const listed = isFnoListed(symbol, strike, optionType, expiry, reference);
+  const broker = angelListedContract(symbol, expiry, strike, optionType);
+  return {
+    zerodha: listed ? `${symbol}${suffix}${strike}${optionType}` : null,
+    angelOne: broker?.symbol || null,
+    angelToken: broker?.token || null,
+    angelLotSize: broker?.lotSize || null,
+    description: `${symbol} ${expiry} ${strike} ${optionType} (NSE)`,
+    verified: {
+      zerodha: Boolean(listed),
+      angelOne: Boolean(broker?.symbol),
+      angelSource: broker ? (broker.schemaStale ? "BROKER_MASTER_STALE_SCHEMA" : "BROKER_INSTRUMENT_MASTER") : null,
+      zerodhaSource: listed ? "NSE_CONTRACT_FILE" : null
+    },
+    listed: Boolean(listed) || Boolean(broker?.symbol),
+    unlistedReason: (listed || broker?.symbol)
+      ? null
+      : `Neither the NSE contract file nor the broker instrument master lists ${symbol} ${expiry} ${strike} ${optionType}.`
+  };
+}
+
 function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
   if (!Number.isFinite(spot) || spot <= 0) return null;
   // Strikes come from the exchange's own ladder whenever the contract reference
@@ -484,16 +535,10 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     // which is the only form that cannot be mistyped into the wrong instrument.
     expiry: listedExpiry,
     expiryBasis,
-    brokerSymbols: {
-      zerodha: `${symbol}${expirySuffix}${atmStrike}CE`,
-      angelOne: listedExpiry ? angelFnoSymbol(symbol, listedExpiry, atmStrike, "CE") : null,
-      description: listedExpiry
-        ? `${symbol} ${listedExpiry} ${atmStrike} CE (NSE)`
-        : `${symbol} ${atmStrike} CE (NSE, expiry unconfirmed)`
-    },
+    brokerSymbols: brokerIdentity(symbol, listedExpiry, atmStrike, "CE", expirySuffix, contractRef),
     call: {
       tradingSymbol: `${symbol}${expirySuffix}${atmStrike}CE`,
-      angelSymbol: listedExpiry ? angelFnoSymbol(symbol, listedExpiry, atmStrike, "CE") : null,
+      angelSymbol: (brokerIdentity(symbol, listedExpiry, atmStrike, "CE", expirySuffix, contractRef) || {}).angelOne,
       contractDescription: listedExpiry ? `${symbol} ${listedExpiry} ${atmStrike} CE` : null,
       strike: atmStrike,
       type: "CE",
@@ -556,9 +601,10 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
         iv: vol === null ? null : Math.round(vol * 1000) / 10
       }
     },
+    putBrokerSymbols: brokerIdentity(symbol, listedExpiry, atmStrike, "PE", expirySuffix, contractRef),
     put: {
       tradingSymbol: `${symbol}${expirySuffix}${atmStrike}PE`,
-      angelSymbol: listedExpiry ? angelFnoSymbol(symbol, listedExpiry, atmStrike, "PE") : null,
+      angelSymbol: (brokerIdentity(symbol, listedExpiry, atmStrike, "PE", expirySuffix, contractRef) || {}).angelOne,
       contractDescription: listedExpiry ? `${symbol} ${listedExpiry} ${atmStrike} PE` : null,
       strike: atmStrike,
       type: "PE",
@@ -1509,11 +1555,7 @@ class FnoUniverseEngine {
       // pasting the card's symbol into Angel One finds nothing.
       expiry: niftyOpts ? niftyOpts.expiry : null,
       expiryBasis: niftyOpts ? niftyOpts.expiryBasis : null,
-      brokerSymbols: niftyOpts ? {
-        zerodha: niftyOpts.call.tradingSymbol,
-        angelOne: niftyOpts.call.angelSymbol,
-        description: niftyOpts.call.contractDescription
-      } : null,
+      brokerSymbols: niftyOpts ? niftyOpts.brokerSymbols : null,
 
       assetClass: "INDEX_OPTION",
       optionType: "CE",
@@ -1590,11 +1632,7 @@ class FnoUniverseEngine {
       // pasting the card's symbol into Angel One finds nothing.
       expiry: bankNiftyOpts ? bankNiftyOpts.expiry : null,
       expiryBasis: bankNiftyOpts ? bankNiftyOpts.expiryBasis : null,
-      brokerSymbols: bankNiftyOpts ? {
-        zerodha: bankNiftyOpts.call.tradingSymbol,
-        angelOne: bankNiftyOpts.call.angelSymbol,
-        description: bankNiftyOpts.call.contractDescription
-      } : null,
+      brokerSymbols: bankNiftyOpts ? bankNiftyOpts.brokerSymbols : null,
 
       assetClass: "INDEX_OPTION",
       optionType: "CE",
@@ -1673,11 +1711,7 @@ class FnoUniverseEngine {
       // pasting the card's symbol into Angel One finds nothing.
       expiry: niftyOpts ? niftyOpts.expiry : null,
       expiryBasis: niftyOpts ? niftyOpts.expiryBasis : null,
-      brokerSymbols: niftyOpts ? {
-        zerodha: niftyOpts.put.tradingSymbol,
-        angelOne: niftyOpts.put.angelSymbol,
-        description: niftyOpts.put.contractDescription
-      } : null,
+      brokerSymbols: niftyOpts ? niftyOpts.putBrokerSymbols : null,
 
       assetClass: "INDEX_OPTION",
       optionType: "PE",
@@ -1725,11 +1759,10 @@ class FnoUniverseEngine {
           // pasting the card's symbol into Angel One finds nothing.
           expiry: u.options ? u.options.expiry : null,
           expiryBasis: u.options ? u.options.expiryBasis : null,
-          brokerSymbols: u.options ? {
-            zerodha: u.options.call.tradingSymbol,
-            angelOne: u.options.call.angelSymbol,
-            description: u.options.call.contractDescription
-          } : null,
+          // The VERIFIED identity, not a second copy assembled here. Building
+          // it again in the projection is how the card came to show a symbol
+          // that no file had confirmed.
+          brokerSymbols: u.options ? u.options.brokerSymbols : null,
 
           assetClass: "STOCK_OPTION",
           optionType: "CE",
@@ -1845,11 +1878,7 @@ class FnoUniverseEngine {
           // pasting the card's symbol into Angel One finds nothing.
           expiry: u.options ? u.options.expiry : null,
           expiryBasis: u.options ? u.options.expiryBasis : null,
-          brokerSymbols: u.options ? {
-            zerodha: u.options.put.tradingSymbol,
-            angelOne: u.options.put.angelSymbol,
-            description: u.options.put.contractDescription
-          } : null,
+          brokerSymbols: u.options ? u.options.putBrokerSymbols : null,
 
           assetClass: "STOCK_OPTION",
           optionType: "PE",
