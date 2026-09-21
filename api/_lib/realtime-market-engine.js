@@ -395,23 +395,66 @@ class RealtimeMarketEngine {
     }
   }
 
-  async refreshLiveQuotes({ limit = 12 } = {}) {
+  /**
+   * Put a REAL BOOK behind as many option cards as the broker will allow.
+   *
+   * This asked for 12 symbols. Twelve, out of 210 -- and always the same twelve,
+   * because it took the first actionable names and never moved on. So 396 of 423
+   * option cards were priced from the NSE settled file for the whole session,
+   * and the user's question was the right one: "how are you able to give me
+   * prices for 410 call and put options -- they are not even real". Measured at
+   * 20:55 on 2026-09-21: EXCHANGE_SETTLED_PRICE 396, BROKER_CLOSING_BOOK 24.
+   *
+   * The settled prices were never invented -- they are the exchange's own
+   * numbers and they were labelled as such on every card -- but a settled price
+   * from a previous session is not a price anyone can trade at now, and 423
+   * cards were being presented as though they stood on the same footing.
+   *
+   * Two changes. The window is wider, and it ROTATES: actionable names are
+   * refreshed every cycle because they are what the desk is recommending, and
+   * the rest of the universe is walked a slice at a time so that every symbol
+   * gets a real book within a few minutes instead of never. And the chain is
+   * fetched for the expiry the CARD is written on, not the front expiry -- for
+   * NIFTY those are different contracts, which is how a card came to quote a
+   * one-day weekly while its symbol named the monthly.
+   */
+  async refreshLiveQuotes({ limit = 45 } = {}) {
     try {
       const live = require("./live-quotes");
       const reference = require("./fno-reference");
       const contractRef = reference.loadReference();
       if (!contractRef) return null;
       const universe = fnoUniverseEngine.getUniverse(this.macroState);
-      const picks = universe
-        .filter((row) => row.action === "BUY" || row.action === "ACCUMULATE")
-        .slice(0, limit);
+
+      const actionable = universe.filter((row) => row.action === "BUY" || row.action === "ACCUMULATE");
+      const actionableSymbols = new Set(actionable.map((row) => row.symbol));
+      const rest = universe.filter((row) => !actionableSymbols.has(row.symbol));
+
+      // Rotate through the rest of the universe so coverage is not permanently
+      // frozen on whichever names happened to be actionable at boot.
+      const room = Math.max(0, limit - actionable.length);
+      this._quoteCursor = Number.isFinite(this._quoteCursor) ? this._quoteCursor : 0;
+      const slice = [];
+      for (let i = 0; i < Math.min(room, rest.length); i += 1) {
+        slice.push(rest[(this._quoteCursor + i) % rest.length]);
+      }
+      if (rest.length) this._quoteCursor = (this._quoteCursor + slice.length) % rest.length;
+
+      const picks = [...actionable.slice(0, limit), ...slice];
       const requests = picks.map((row) => {
-        const near = reference.nearestListedStrike(row.symbol, row.spotPrice, { reference: contractRef });
+        // The expiry the card is written on. Passing none falls back to the
+        // FRONT expiry, which for NIFTY is a weekly the card does not describe.
+        const chosen = reference.tradableExpiry(row.symbol, { minDays: 7, reference: contractRef });
+        const expiry = chosen ? chosen.expiry : null;
+        const near = reference.nearestListedStrike(row.symbol, row.spotPrice, { reference: contractRef, expiry });
         return near ? { symbol: row.symbol, expiry: near.expiry, referencePrice: row.spotPrice } : null;
       }).filter(Boolean);
       if (!requests.length) return null;
       const result = await live.refreshQuotes(requests);
-      if (result.ok) console.log(`[K² Live Quotes] ${result.refreshed}/${result.requested} chains from ${result.provider}`);
+      if (result.ok) {
+        console.log(`[K² Live Quotes] ${result.refreshed}/${result.requested} chains from ${result.provider}`
+          + ` (${actionable.length} actionable + ${slice.length} rotating, cursor ${this._quoteCursor}/${rest.length})`);
+      }
 
       // The FUTURES price, for every listed name, because an Indian stock
       // option is priced off its future and the cash share is off by as much as
@@ -465,7 +508,14 @@ class RealtimeMarketEngine {
     // that mark them.
     this.ledgerTimer = setInterval(() => this.recordSignals(), 90 * 1000);
     this.sessionTimer = setInterval(() => this.maintainBrokerSessions(), 60 * 60 * 1000);
-    this.referenceTimer = setInterval(() => this.refreshContractReference(), 6 * 60 * 60 * 1000);
+    // Every 90 minutes, not every 6 hours. NSE publishes the bhavcopy AFTER the
+    // close, so a 6-hour timer can leave the desk on a settlement file several
+    // sessions old -- on 2026-09-21 it was still serving 2026-09-18 prices to
+    // 396 of 423 cards, which is the stalest thing on the desk and the reason
+    // the settled premiums did not match a broker screen. The fetch walks back
+    // from today and skips weekends and holidays with a 404, so asking more
+    // often costs one cheap request and cannot get it wrong.
+    this.referenceTimer = setInterval(() => this.refreshContractReference(), 90 * 60 * 1000);
     this.pollTickCycle();
     this.timer = setInterval(() => this.pollTickCycle(), pollIntervalMs);
     console.log(`[K² Realtime Engine] Active. Polling interval: ${pollIntervalMs}ms`);
