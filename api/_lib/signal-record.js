@@ -298,9 +298,19 @@ function storageReport({ db = null } = {}) {
       trades: { rows: count("trades"), holds: "Closed executions with realised profit and loss." },
       audit_events: { rows: count("audit_events"), holds: "Every refusal and every guard that fired, with its reason." },
       ticks_history: { rows: count("ticks_history"), holds: "Underlying prices with the technical read attached at that moment." },
-      macro_snapshots: { rows: count("macro_snapshots"), holds: "India VIX and the macro gate, session by session." }
+      macro_snapshots: { rows: count("macro_snapshots"), holds: "India VIX and the macro gate, session by session." },
+      iv_history: {
+        rows: count("iv_history"),
+        holds: "One implied-volatility surface per name per session -- at-the-money IV, term structure slope "
+          + "and skew. This cannot be back-filled, so IV rank only becomes possible from the day the keeping "
+          + "started. It turns on by itself once there are thirty sessions."
+      }
     },
     oldestSignal: first("signals_lifecycle", "issued_at"),
+    volatilityHistory: (() => {
+      try { return require("./iv-rank").historyDepth({ db: handle }); }
+      catch (error) { return null; }
+    })(),
     oldestMark: first("signal_marks", "recorded_at"),
     durableArchive: {
       configured: google.googleStoreConfigured(),
