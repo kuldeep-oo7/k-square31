@@ -94,6 +94,31 @@ PROVEN (measured, reproducible, tested):
     prices: a wilder stock raises P(touch) AND shortens time to target, a
     dropped feed leaves the last real mark alone, and a loss is recorded as
     exactly (exit - entry) x lot.
+  - `node scripts/verify-equations.js`, wired into npm run check, holds 32
+    results against references OUTSIDE this codebase — Hull's published option
+    values and Greeks, published normal-CDF values, analytic identities, and
+    Monte Carlo run on a PRNG whose own moments are asserted before it is
+    trusted. Three things it settled that were previously assumed:
+      * forecastGarch11Volatility returns DECIMALS while
+        calculateCornishFisherRisk in the SAME FILE returns PERCENT. Reading one
+        convention off its neighbour is what made a correct module look broken.
+      * it is not a fitted GARCH. alpha and beta are hard-coded at 0.08/0.88 —
+        the standard daily-equity pair — so persistence is 0.96 for every
+        instrument on the desk. Only omega is fitted, by Engle variance
+        targeting, which forces long-run variance to equal sample variance
+        exactly. The tests assert that identity. No maximum-likelihood claim is
+        made and none would survive.
+      * THE HURST ESTIMATOR WAS FINE AND THE TEST WAS WRONG. Classical R/S
+        de-means every window with that window's own mean, so a deterministic
+        drift is removed before the range is taken: a strongly TRENDING random
+        walk reads 0.5, correctly. R/S measures autocorrelation in the
+        INCREMENTS, not slope. Driven with AR(1) increments it separates
+        cleanly — 0.465 / 0.575 / 0.721 — and a pure drift does not move it at
+        all. The LEVEL runs high on 67 bars because of the Anis-Lloyd
+        finite-sample bias, which is why only the cross-sectional ORDER is used.
+        On the real universe it carries 162 distinct values with an IQR of
+        0.156. If you ever think a statistic is broken, check that you are
+        testing it against the right null before you touch it.
 
 NOT PROVEN — THE SIGNAL DOES NOT HAVE A MEASURED EDGE:
   - Pre-registered out-of-sample test: 112 symbols never touched in development,
@@ -522,6 +547,67 @@ CRASHES AND CAPACITY
   - The same option chain was serialised twice: nested on every universe row and
     again as the array the page renders from.
 
+COMPUTED AND THEN THROWN AWAY — the 2026-09-21 audit
+
+  Four things the desk calculated correctly and never used. None of them
+  errored, crashed or failed a test. All four were found the same way: by
+  measuring the DISTRIBUTION of an output across the whole universe and asking
+  why it had the shape it had. Not one was found by reading code for bugs.
+
+  - THE CHART-PATTERN ENGINE WAS NEVER CONNECTED. chart-patterns.js returns
+    `primaryPattern`; unified-quant-scanner.js read `dominantPattern`, a key
+    that file has never emitted. Optional chaining resolved 309 lines of
+    working geometry to NONE on every symbol, silently, forever. The PREVIOUS
+    AUDIT READ THAT ZERO AS EVIDENCE and concluded the detector found nothing,
+    then declared it inactive. Reconnected, the same 212 symbols report 102
+    patterns. THE TEST THAT SEPARATES THE TWO CASES: feed the detector a
+    textbook shape you drew yourself. It returned patterns: [DOUBLE_BOTTOM] and
+    dominantPattern: NONE in the same object, which tells you in one run that
+    the detector works and the wire is cut.
+  - THE NEURAL SCORE WAS A SATURATED CONSTANT. Four matched-filter activations
+    were summed RAW with positive weights totalling 1.35, and a pooled LeakyReLU
+    output is effectively non-negative — 1.3 to 12.6 here. So rawZ never went
+    negative once across 212 names (minimum +0.470), the sigmoid lived on
+    [0.615, 1.0], and neuralAlphaScore had a median of 97 with 26 distinct
+    values against a clamp at 98.
+  - SO THE RANKING HAD BEEN REPOINTED AT THE WRONG QUANTITY. universe-210
+    ranked the neural percentile on `rawActivationScore`, the peak MAGNITUDE of
+    whichever filter fired hardest — no direction in it at all; a stock
+    collapsing on huge volume produces a large one. That percentile is 35% of
+    the composite AND the hard BUY gate at >= 75. The old and new rankings
+    correlate at Spearman -0.04 and their top quartiles overlap at exactly
+    chance, which is the measurement of how wrong it was. WATCH FOR THIS SHAPE:
+    a workaround is evidence that somebody already hit the bug and routed around
+    it. Follow the workaround back to what it was avoiding.
+  - THE MOTIF ARGMAX COMPARED INCOMMENSURABLE SCALES. The four kernels have
+    different weight norms — INSTITUTIONAL_ABSORPTION 2.53 against
+    VOLATILITY_SQUEEZE 1.65 — so argmax over their raw outputs asked which
+    kernel contains the biggest numbers. It answered INSTITUTIONAL_ABSORPTION
+    for 201 of 212, and predictedRegime read INSTITUTIONAL_ACCUMULATION on 95%
+    of the desk. Dividing by ||w|| is the standard matched-filter normalisation
+    and the only way a filter bank can be compared with itself.
+  - A QUARTER OF THE SCORE WAS STILL A STEP FUNCTION. The GARCH term mapped a
+    three-bucket label {65, 85, 40} cut at 15% and 28%, while the forecast
+    behind it had 202 distinct values. Two names either side of 28.0% scored 45
+    points apart, and that one step drove 61% of the cross-sectional spread of
+    the non-neural terms. Same binarisation already removed from Hurst, left
+    behind on the term next to it.
+  - TWO INPUTS NOBODY MEASURED, GIVEN CONFIDENT DEFAULTS. VPIN resolves for 2 of
+    212 names and the other 210 were defaulted to 0.20. sentimentScore was
+    hard-coded 0.65 with no news feed anywhere in the system. Both now
+    contribute exactly zero when unmeasured.
+  - AND THE FIX MADE A FIFTH VISIBLE. A cold Render container has no bars and
+    falls back to a synthetic linear ramp with a sine ripple, which a pattern
+    detector correctly reads as a double top — so the live desk briefly showed
+    DOUBLE_TOP on 199 cards. The candlestick, regime and CVaR had been reported
+    off that same sine wave all along. Every bar-derived reading is now
+    suppressed on synthetic rows.
+
+  WHAT WAS DELIBERATELY NOT CHANGED: no kernel, no kernel weight, no convolution
+  and no pooling. Replacing hand-chosen numbers with different hand-chosen
+  numbers on a signal that has never been validated is not a fix, and there is
+  no ledger evidence yet to judge it by.
+
 WRONG INPUT, RIGHT FORMULA — the 2026-09-20 audit
   - OPTIONS WERE PRICED AGAINST THE CASH SHARE, NOT THE FUTURE. The single
     largest correctness defect found to date. An Indian stock option is an
@@ -669,11 +755,35 @@ not set.
   2. CLOSED 2026-09-20. The durable backup is live and verified from Render.
   3. Render free tier: spin-down and ephemeral disk. $7/month fixes both.
   4. The TOTP secret is exposed and should be re-enrolled.
-  5. The CNN is untrained. VPIN returns null — and is now REMOVED from the
-     score rather than silently counted as a constant. The chart-pattern
-     detector runs but no symbol currently reports a dominant pattern, so it is
-     also out of the weighting and declared in `inactiveComponents`. If either
-     is ever implemented, put it back explicitly.
+  5. SUPERSEDED 2026-09-21. The chart-pattern detector was never broken, only
+     disconnected, and is now live and weighted — see the defect catalogue. VPIN
+     genuinely cannot be computed from daily bars and is skipped, not defaulted.
+     There is still NO TRAINED MODEL anywhere on the deployed desk: the "1D-CNN"
+     is a hand-written matched-filter bank, which is a real signal-processing
+     method but is not deep learning, and ml-model.js and upside.js are
+     unreachable from server.js. Describe this desk as classical quant plus
+     classical technical analysis. Do not call it AI.
+  8. THE OPEN-SOURCE ANSWER. Walking the require() graph from server.js, the
+     deployed desk reaches NO external package at runtime — zero. playwright is
+     used by 3 test scripts; @vercel/blob only by store.js and blob-smoke.js,
+     neither reachable, on a suspended Vercel account; next, react, react-dom,
+     react-server-dom-webpack, vinext, @vinext/cloudflare and the vite/wrangler
+     tooling all serve the app/ directory, which is a Vercel/Cloudflare
+     deployment path that is not the live host. Removing the six framework
+     packages is provably safe for `node server.js` and for npm run check —
+     nothing in the repo outside node_modules and dist imports any of them —
+     and would cut Render's install time and memory, which matters on a 512 MB
+     instance. IT WAS DELIBERATELY NOT DONE ON 2026-09-21 because the change
+     triggers a fresh npm install on Render and the market was 60 minutes from
+     opening. Do it after a close, then verify with `npm run check` AND an
+     actual `node server.js` boot, not by reasoning. Restoring it is one
+     install command.
+  9. 35 of 61 modules in api/_lib are unreachable from server.js, including
+     recommendation.js (661 lines), ml-model.js (513), weekly-cycle.js (508),
+     covariance.js (421). Many ARE exercised by npm run check and by the offline
+     research scripts, so they are not dead — but none of them runs when the
+     desk serves a card. When reasoning about live behaviour, read only the 26
+     modules server.js can reach. `scripts/` is not the desk.
   6. The signal has no measured edge. The paper ledger exists to settle this
      with evidence rather than argument. Let it run before believing anything.
      NOTE: everything recorded BEFORE 2026-09-20 evening was priced off the cash
