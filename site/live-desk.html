@@ -1416,11 +1416,16 @@
      .map(function (row) { return '<li>' + row[0] + ' &mdash; <b>' + Number(row[1]).toLocaleString('en-IN') + '</b></li>'; })
      .join('');
 
+    var shown = list.length;
+    var survived = Number(screen.survived || 0);
     var head = '<div class="coverage-note">'
-      + '<strong>THE WHOLE CHAIN, SCREENED.</strong> '
-      + Number(screen.examined || 0).toLocaleString('en-IN') + ' listed contracts examined, <strong>'
-      + Number(screen.survived || 0).toLocaleString('en-IN') + ' survived</strong> &mdash; '
-      + (screen.examined ? (100 - (100 * screen.survived / screen.examined)).toFixed(1) : '0') + '% refused. '
+      + '<strong>SHOWING THE TOP ' + shown.toLocaleString('en-IN') + ' BY SCORE</strong>, out of '
+      + survived.toLocaleString('en-IN') + ' that cleared every gate, from '
+      + Number(screen.examined || 0).toLocaleString('en-IN') + ' listed contracts examined &mdash; '
+      + (screen.examined ? (100 - (100 * survived / screen.examined)).toFixed(1) : '0') + '% refused. '
+      + (survived > shown
+          ? 'The remaining ' + (survived - shown).toLocaleString('en-IN') + ' scored lower than every row below. '
+          : '')
       + 'Ranked on variance risk premium, probability of touch, liquidity, moneyness, tenor and the '
       + 'underlying&rsquo;s own read, at equal weight. Settlement file: ' + (screen.asOfSession || 'unknown') + '.'
       + (refusedRows ? '<ul style="margin:8px 0 0 16px;padding:0">' + refusedRows + '</ul>' : '')
@@ -1676,8 +1681,12 @@
     if (data && 'screened' in data) {
       screenedCache = data.screened;
       var sc = document.getElementById('count-screened');
-      if (sc) sc.textContent = screenedCache && screenedCache.survived != null
-        ? Number(screenedCache.survived).toLocaleString('en-IN') : '—';
+      // The badge counts ROWS YOU CAN SEE. It read 2,029 while the table
+      // held 60, which is advertising a number the screen does not contain.
+      if (sc) {
+        var rows = screenedCache && screenedCache.contracts ? screenedCache.contracts.length : null;
+        sc.textContent = rows == null ? '—' : Number(rows).toLocaleString('en-IN');
+      }
     }
 
     var actionableCount = (universeCache || []).filter(function(x) { return x.action === 'BUY' || x.action === 'ACCUMULATE'; }).length;

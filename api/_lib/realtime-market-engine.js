@@ -139,7 +139,7 @@ class RealtimeMarketEngine {
     }
   }
 
-  screenedContracts({ limit = 60, force = false } = {}) {
+  screenedContracts({ limit = 250, force = false } = {}) {
     const fresh = this._screenAt && Date.now() - this._screenAt < 60_000;
     if (fresh && !force && this._screened) return this._screened;
     try {
@@ -155,7 +155,13 @@ class RealtimeMarketEngine {
       // actually delivering -- and that is a statement about how much a stock
       // moves, not which way. Filtering to calls only would be asserting a
       // directional view this desk has never validated.
-      this._screened = screenContracts({ underlyingScores: scores, limit });
+      // `limit` caps what TRAVELS to the browser, not what was screened. The
+      // banner reported 2,029 survivors while the table held 60 of them, which
+      // is the same defect as every other one in this audit: a number advertised
+      // that the thing beside it does not contain. The payload now carries a
+      // usable depth and says plainly how much of the list it is.
+      const result = screenContracts({ underlyingScores: scores, limit });
+      this._screened = { ...result, shown: (result.contracts || []).length, limit };
       this._screenAt = Date.now();
       return this._screened;
     } catch (error) {
@@ -183,7 +189,17 @@ class RealtimeMarketEngine {
       const enriched = this.getEnrichedCandidates();
       const universe = this.getUniverse();
       const options = this.getOptionsUniverse();
-      const screened = this.screenedContracts();
+
+      // The screened chain is 146 KB and only recomputes once a minute, but the
+      // tick fires every five seconds -- so broadcasting it every time would
+      // push about 1.7 MB a minute per connected client to say the same thing
+      // twelve times. It goes out only when it has actually changed; the browser
+      // keeps the last one it was given, and a client that connects mid-minute
+      // gets the current list from /api/state on load.
+      const screenedNow = this.screenedContracts();
+      const changed = this._screenAt !== this._screenBroadcastAt;
+      const screened = changed ? screenedNow : undefined;
+      if (changed) this._screenBroadcastAt = this._screenAt;
       const accuracy = this.ledger.getSignalsAccuracy ? this.ledger.getSignalsAccuracy() : null;
 
       // Broadcast updated snapshot to all connected clients
@@ -200,6 +216,8 @@ class RealtimeMarketEngine {
         candidates: enriched,
         universe: universe,
         options: options,
+        // `undefined` is dropped by JSON.stringify, so an unchanged screen
+        // simply does not appear in the message and the browser keeps its copy.
         screened,
         activePositions: this.ledger.getActivePositions(),
         completedTrades: this.ledger.getCompletedTrades(),
