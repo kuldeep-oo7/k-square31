@@ -1434,8 +1434,10 @@
       + (survived > shown
           ? 'The remaining ' + (survived - shown).toLocaleString('en-IN') + ' scored lower than every row below. '
           : '')
-      + 'Ranked on variance risk premium, probability of touch, liquidity, moneyness, tenor and the '
-      + 'underlying&rsquo;s own read, at equal weight. Settlement file: ' + (screen.asOfSession || 'unknown') + '.'
+      + 'Ranked on variance risk premium, probability of touch, liquidity, moneyness, tenor, cost efficiency '
+      + 'and the underlying&rsquo;s own read, at equal weight. Settlement file: ' + (screen.asOfSession || 'unknown') + '. '
+      + '<strong>NET is after brokerage, STT at 0.15%, exchange, stamp and GST</strong> &mdash; the spread is '
+      + 'extra and is only known where a live book was seen.'
       + (refusedRows ? '<ul style="margin:8px 0 0 16px;padding:0">' + refusedRows + '</ul>' : '')
       + '</div>';
 
@@ -1449,7 +1451,11 @@
         +   '<div style="font:600 10px var(--mono);color:var(--muted)">' + c.expiry + ' &middot; ' + c.daysToExpiry + 'd left</div></td>'
         + '<td>&#8377;' + fixed(c.premium) + '<div style="font:600 10px var(--mono);color:var(--muted)">x' + c.lotSize
         +   ' = &#8377;' + (c.costPerLot == null ? '&mdash;' : Number(c.costPerLot).toLocaleString('en-IN')) + '</div></td>'
-        + '<td style="color:var(--green)">&#8377;' + fixed(c.targetPremium) + '</td>'
+        + '<td style="color:var(--green)">&#8377;' + fixed(c.targetPremium)
+        +   '<div style="font:600 10px var(--mono);color:var(--muted)">net &#8377;'
+        +   (c.netProfit == null ? '&mdash;' : Number(c.netProfit).toLocaleString('en-IN'))
+        +   (c.costAsPctOfGross == null ? '' : ' &middot; costs ' + fixed(c.costAsPctOfGross, 1) + '%')
+        +   '</div></td>'
         + '<td style="color:' + (cheap ? 'var(--green)' : 'var(--muted)') + '">'
         +   fixed(c.impliedVol, 1) + '% vs ' + (c.realisedVol == null ? '&mdash;' : fixed(c.realisedVol, 1) + '%')
         +   '<div style="font:700 10px var(--mono)">VRP ' + (vrp ? fixed(vrp, 2) : '&mdash;') + '</div></td>'
@@ -1462,7 +1468,7 @@
     }).join('');
 
     return head + '<div class="table-wrap"><table class="desk-table"><thead><tr>'
-      + '<th>CONTRACT</th><th>BUY AT</th><th>SELL AT</th><th>IV vs REALISED</th>'
+      + '<th>CONTRACT</th><th>BUY AT</th><th>SELL AT &middot; NET</th><th>IV vs REALISED</th>'
       + '<th>P(TOUCH)</th><th>VOLUME</th><th>SCORE</th>'
       + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
   }

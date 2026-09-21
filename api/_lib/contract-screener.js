@@ -31,6 +31,7 @@ const { loadReference, tradedQuote } = require("./fno-reference");
 const { europeanOption, impliedVolatility } = require("./option-pricing");
 const { getCachedBars } = require("./bar-cache");
 const { yangZhangVol, parkinsonVol, timeToTarget } = require("./trade-odds");
+const { roundTripCost, breakevenMovePct } = require("./trade-costs");
 
 const RISK_FREE = 0.065;
 
@@ -114,7 +115,16 @@ function scoreContract(row) {
     ? 100
     : Math.max(0, 100 - Math.abs(row.daysToExpiry - 22) * 3);
 
-  // 6. THE UNDERLYING'S OWN READ, supplied by the caller from the existing
+  // 6. WHAT IT COSTS TO GET IN AND OUT. A 50% target on a Rs 2.41 premium with
+  //    a 3% spread hands back 8.7% of the gain in costs and needs the premium to
+  //    move 3.7% before it is even level, where the same target on a liquid
+  //    Rs 30 contract costs under 2%. Ranking those two identically is how a
+  //    desk recommends the more expensive trade while calling it the cheaper one.
+  parts.costEfficiency = Number.isFinite(row.costAsPctOfGross)
+    ? Math.max(0, Math.min(100, 100 - row.costAsPctOfGross * 8))
+    : 60;
+
+  // 7. THE UNDERLYING'S OWN READ, supplied by the caller from the existing
   //    scanner -- technicals, candlesticks, chart geometry, Hurst, GARCH and
   //    the matched-filter bank. Neutral when the name has not been scanned.
   parts.underlying = Number.isFinite(row.underlyingScore) ? row.underlyingScore : 50;
@@ -229,6 +239,15 @@ function screenContracts({
             ? timeToTarget({ spot: forward, target: moveNeeded, volatility: realisedVol, daysAvailable: daysToExpiry })
             : null;
 
+          // NET of every charge and of crossing the spread, not the difference
+          // between two mid prices multiplied by a lot.
+          const economics = roundTripCost({
+            entryPremium: premium, exitPremium: targetPremium, lotSize: bucket.lotSize || entry.lotSize
+          });
+          const breakevenMove = breakevenMovePct({
+            entryPremium: premium, lotSize: bucket.lotSize || entry.lotSize
+          });
+
           const row = {
             symbol, expiry, strike, optionType,
             premium: round(premium),
@@ -254,10 +273,20 @@ function screenContracts({
             touchPct: touch?.probabilityOfTouchPct ?? null,
             medianDaysToTarget: touch?.medianDaysIfItHappens ?? null,
             underlyingScore: Number(underlyingScores[symbol]),
-            costPerLot: bucket.lotSize ? round(premium * bucket.lotSize) : null
+            costPerLot: bucket.lotSize ? round(premium * bucket.lotSize) : null,
+            // What actually lands in an account.
+            grossProfit: economics?.grossProfit ?? null,
+            netProfit: economics?.netProfit ?? null,
+            totalCost: economics?.totalCost ?? null,
+            costAsPctOfGross: economics?.costAsPctOfGross ?? null,
+            breakevenPremiumMovePct: breakevenMove,
+            fillAssumption: economics?.fillAssumption ?? null
           };
           // Keep the raw realised value for scoring, then hand back percentages.
-          const scored = scoreContract({ ...row, impliedVol, realisedVol, delta });
+          const scored = scoreContract({
+            ...row, impliedVol, realisedVol, delta,
+            costAsPctOfGross: economics?.costAsPctOfGross
+          });
           survivors.push({ ...row, screenScore: scored.score, screenParts: scored.parts });
         }
       }
