@@ -1448,16 +1448,49 @@ class FnoUniverseEngine {
       const measured = yangZhangVol(bars.slice(-30)) || parkinsonVol(bars.slice(-30));
       return Number.isFinite(measured) && measured > 0.03 && measured < 1.5 ? measured : null;
     };
+    // THIRD SOURCE, and the one that is almost always available: solve the
+    // volatility out of the contract's OWN settled premium. Measured on the
+    // live host, neither India VIX nor the ^NSEI bars were present -- the macro
+    // radar had not refreshed and the index bar ingest had never run -- so the
+    // two sources above both returned null and the index cards deployed blank
+    // a second time. The exchange's settlement file, however, is the same file
+    // that supplies the strike ladder, so if there is a card at all there is a
+    // premium to invert.
+    const indexImpliedFromSettled = (symbol, spot, expiryIso, days) => {
+      if (!(spot > 0) || !expiryIso || !(days > 0)) return null;
+      const near = nearestFnoStrike(symbol, spot, { reference, expiry: expiryIso });
+      if (!near) return null;
+      const bucket = reference?.symbols?.[symbol]?.expiries?.[expiryIso];
+      const forward = Number(bucket?.futuresPrice) > 0 ? Number(bucket.futuresPrice) : spot;
+      for (const optionType of ["CE", "PE"]) {
+        const quote = tradedFnoQuote(symbol, near.strike, optionType, expiryIso, reference);
+        const premium = Number(quote?.price);
+        if (!(premium > 0)) continue;
+        const solved = solveImpliedVolatility({
+          underlyingPrice: forward, strike: near.strike, timeToExpiryYears: days / 365,
+          riskFreeRate: 0.065, dividendYield: 0, optionType, model: "BSM"
+        }, premium);
+        const iv = Number(solved?.iv);
+        if (Number.isFinite(iv) && iv > 0.03 && iv < 1.5) return iv;
+      }
+      return null;
+    };
+
     const vixPct = Number(macroState?.indiaVix?.price);
     const vixVol = Number.isFinite(vixPct) && vixPct > 3 && vixPct < 90 ? vixPct / 100 : null;
-    const niftyVol = vixVol ?? indexRealised("NIFTY");
+    const niftyVol = vixVol
+      ?? indexRealised("NIFTY")
+      ?? indexImpliedFromSettled("NIFTY", niftySpot, niftyExpiry?.expiry, niftyExpiry?.days);
     // BANKNIFTY is not NIFTY. When India VIX is the source, 1.25x is the
     // conventional premium and is declared as an assumption; when the source is
     // realised volatility, BANKNIFTY's own bars are measured directly.
-    const bankNiftyVol = vixVol !== null ? vixVol * 1.25 : indexRealised("BANKNIFTY");
+    const bankNiftyVol = vixVol !== null
+      ? vixVol * 1.25
+      : (indexRealised("BANKNIFTY")
+        ?? indexImpliedFromSettled("BANKNIFTY", bankNiftySpot, bankNiftyExpiry?.expiry, bankNiftyExpiry?.days));
     const indexVolBasis = vixVol !== null
       ? "INDIA_VIX"
-      : (niftyVol !== null ? "REALISED_YANG_ZHANG_30D" : "NO_VOLATILITY_MEASURABLE");
+      : (niftyVol !== null ? "MEASURED_FROM_BARS_OR_SETTLED_PREMIUM" : "NO_VOLATILITY_MEASURABLE");
 
     const niftyOpts = niftySpot && niftyListed && niftyVol !== null
       ? calculateOptions("NIFTY", niftySpot, niftyListed.lotSize || 65, true, niftyVol)

@@ -547,6 +547,43 @@ CRASHES AND CAPACITY
   - The same option chain was serialised twice: nested on every universe row and
     again as the array the page renders from.
 
+CONTRACT IDENTITY — the defect that would have cost money (2026-09-21 evening)
+
+  Found from a user's broker screenshots, not from the code. The desk published
+  NIFTY26SEP23400CE at Rs 90.75 while the broker showed that contract near
+  Rs 200, and the symbol found nothing at all in Angel One.
+
+  - ONE CARD NAMED THREE CONTRACTS. The premium came from the FRONT expiry (a
+    one-day NIFTY weekly), the Greeks and implied volatility from
+    getDaysToMonthlyExpiry() -- which computes the last THURSDAY and returned a
+    date NOTHING is listed on, because NSE expiry is now TUESDAY -- and the
+    symbol from a hard-coded "26SEP". Every Greek and every IV on the whole desk
+    used 3 days of life on contracts that had 8. Never compute an expiry; read
+    it from the exchange file, and require it to outlive the hold the card
+    describes.
+  - THE INSTRUMENT CACHE WAS 52% NOT-NSE. broker-feed keyed on
+    name|expiry|strike|type with no exchange, and the Angel master ships NFO,
+    BFO and MCX together: 35,226 NSE options against 38,270 BSE and 636 MCX.
+    BFO parses last, so BSE contracts -- different expiries, different lot sizes
+    -- silently overwrote NSE ones across 213 symbols. Always filter
+    exch_seg === "NFO".
+  - EVERY BROKER NAMES THE CONTRACT DIFFERENTLY. Zerodha monthly is
+    SYM+YY+MMM+strike; Zerodha weekly is SYM+YY+M+DD+strike with O/N/D for the
+    last three months; Angel One is SYM+DD+MMM+YY+strike. Showing one and
+    calling it "the trading symbol" is what sent the user hunting. Cards now
+    carry both plus the contract in words.
+  - 396 OF 423 PREMIUMS WERE THE SETTLED FILE, and the file was three sessions
+    old. Not fabricated -- the exchange's own numbers, correctly labelled -- but
+    not tradeable, and shown beside 24 real books as though equal.
+    refreshLiveQuotes asked for TWELVE symbols out of 210 and always the same
+    twelve. THEN THE FIX WAS ITSELF STARVED: giving the rotation what was left
+    after 44 actionable names left ONE slot and a 249-minute cycle. Reserve
+    capacity explicitly; a bigger number in front of the same structure is not
+    a fix.
+  - AND A CARD MUST DEGRADE TO A WORSE MEASUREMENT, NEVER TO NOTHING. Making
+    index volatility depend on India VIX deployed three completely blank index
+    cards the moment the macro radar reported null.
+
 COMPUTED AND THEN THROWN AWAY — the 2026-09-21 audit
 
   Four things the desk calculated correctly and never used. None of them
@@ -778,7 +815,17 @@ not set.
      opening. Do it after a close, then verify with `npm run check` AND an
      actual `node server.js` boot, not by reasoning. Restoring it is one
      install command.
-  9. 35 of 61 modules in api/_lib are unreachable from server.js, including
+  9. STILL OPEN, and both are the user's call rather than a defect:
+       (a) Cards labelled EXPENSIVE or RICH still say MUST READ & BUY. The
+           variance risk premium is computed, displayed and gates NOTHING --
+           BRITANNIA at IV 22.3% against realised 14.9% was recommended, as was
+           CIPLA at 23% against 16.1%. Buying volatility that the desk itself
+           has just called expensive needs a decision, not a patch.
+       (b) The card's "CONV1D FILTER SCORE" label now misnames what it ranks.
+           Since 2026-09-21 the percentile ranks rawZ, the fused signal, not the
+           matched-filter activation. One string, but it is a claim about
+           provenance and it is currently false.
+  10. 35 of 61 modules in api/_lib are unreachable from server.js, including
      recommendation.js (661 lines), ml-model.js (513), weekly-cycle.js (508),
      covariance.js (421). Many ARE exercised by npm run check and by the offline
      research scripts, so they are not dead — but none of them runs when the

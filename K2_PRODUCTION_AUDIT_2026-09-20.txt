@@ -576,6 +576,126 @@ that knows almost nothing, and it must look like it knows nothing.
 
 
 ================================================================================
+PART 3F — THE CARD NAMED THREE CONTRACTS AT ONCE (2026-09-21, evening)
+================================================================================
+
+Found from twelve broker screenshots the user took during Monday's session. This
+is the most serious defect in the document, because unlike every other entry it
+would have cost real money at the moment of execution.
+
+THE DESK PUBLISHED: NIFTY26SEP23400CE at Rs 90.75, delta 0.58, "MUST READ & BUY".
+THE BROKER SHOWED:  NIFTY SEP 23350 CE last traded at Rs 173.65.
+
+The one-tap order link carried a limit of Rs 90.75 for a contract trading near
+Rs 200. It could not have filled. And pasted into Angel One the symbol returned
+nothing at all.
+
+FOUR FAULTS, EACH ALONE ENOUGH
+
+  1. THE EXPIRY WAS THREE DIFFERENT DATES ON ONE CARD.
+       the PREMIUM came from the exchange's FRONT expiry -- for NIFTY, the
+         2026-09-22 weekly, with ONE DAY of life left;
+       the GREEKS, the implied volatility and the theoretical price came from
+         getDaysToMonthlyExpiry(), which computed the LAST THURSDAY of the month
+         and returned 2026-09-24 -- a date on which NOTHING IS LISTED, because
+         NSE has moved F&O expiry to TUESDAY and September 2026 expires on the
+         29th;
+       the SYMBOL was a hard-coded string, "26SEP", which a broker resolves to
+         the 29-September monthly.
+
+     So every theoretical price, every Greek and every reported implied
+     volatility on the whole desk -- not just the indices -- was computed with
+     3 days of life on contracts that had 8. And a card that said "Day 1 of 5"
+     with targets at +2.5% and +5.0% was written on a contract expiring the next
+     morning, which is not a smaller version of the right trade. It is a
+     different trade.
+
+     Fixed: one expiry, chosen from the exchange's own listed set, and it must
+     outlive the hold the card describes. NIFTY moves onto 2026-09-29 and prices
+     at 171.10 against the broker's 173.65.
+
+  2. THE INSTRUMENT CACHE WAS MOSTLY NOT NSE.
+     broker-feed.js keyed contracts on name|expiry|strike|type with NO EXCHANGE
+     in the key and no exchange filter. Measured in the cache on disk:
+
+         NSE  (NFO)   35,226 options    659 futures
+         BSE  (BFO)   38,270 options    638 futures
+         MCX             636 options      8 futures
+
+     BFO is parsed after NFO, so for every contract listed on both exchanges the
+     BSE row SILENTLY OVERWROTE the NSE one. 213 symbols affected, including
+     DABUR, DIXON, BAJAJ-AUTO, COFORGE, GLENMARK, LUPIN, VOLTAS and ADANIPORTS.
+     BSE lists different expiries -- 24-Sep where NSE lists 29-Sep -- and
+     different lot sizes -- CDSL 475. The desk could therefore fetch a BSE quote,
+     mark it as the NSE contract, and print an NSE order link beside it.
+
+     Fixed: NSE only, schema bumped to 3 so every older cache is rebuilt.
+
+  3. THE SAME CONTRACT HAS A DIFFERENT NAME AT EVERY BROKER, and the desk showed
+     one. For the 29 September 2026 ASIANPAINT 2460 call:
+
+         Zerodha / Dhan   SYM + YY + MMM + strike      ASIANPAINT26SEP2460CE
+         Zerodha WEEKLY   SYM + YY + M + DD + strike   NIFTY2692223400CE
+         Angel One        SYM + DD + MMM + YY + strike ASIANPAINT29SEP262460CE
+
+     Angel One is the broker this desk fetches its own quotes from, and its
+     symbol was never shown. Every card now carries both forms plus the contract
+     written out in words. The Angel builder is verified against Angel's own
+     instrument master: 35,226 NSE contracts, ZERO mismatches -- and the weekly
+     form is handled, so 1 October does not silently break all 210 names.
+
+  4. INDEX VOLATILITY WAS TWO LITERALS. NIFTY was passed 0.13 and BANKNIFTY 0.16
+     as "volInput", and calculateOptions echoes that straight back out as the
+     card's reported implied volatility: the card said "IV 13" because someone
+     typed 13. India VIX was on the same screen reading 11.46.
+
+     Fixed, then fixed again: the first attempt made the card DEPEND on India
+     VIX, which is null whenever the macro radar has not refreshed, and three
+     index cards deployed completely blank. A card must degrade to a worse
+     MEASUREMENT, never to a literal and never to nothing. India VIX first, then
+     the index's own realised volatility from its cached bars, labelled either
+     way.
+
+
+================================================================================
+PART 3G — HOW MANY OF THE 423 PRICES WERE REAL
+================================================================================
+
+The user asked, in as many words, how the desk can quote 410 call and put
+options when they are not real. It is the right question and the answer was
+measured rather than argued. On the live host at 20:55:
+
+    EXCHANGE_SETTLED_PRICE     396 of 423 cards
+    BROKER_CLOSING_BOOK         24
+    bid and ask both present    24
+    flagged executable           0
+
+THE PREMIUMS WERE NEVER INVENTED. They are the exchange's own settled numbers
+and every card carried its source. But a settlement price from a previous
+session is not a price anyone can trade at, and 423 cards were being presented
+as though they stood on the same footing. The settlement file itself was from
+2026-09-18 -- three sessions stale.
+
+TWO CAUSES.
+
+  refreshLiveQuotes asked for TWELVE symbols out of 210, and always the SAME
+  twelve, because it took the first actionable names and never moved on.
+
+  The contract reference refreshed every 6 hours, and NSE publishes the bhavcopy
+  only AFTER the close, so the desk could sit several sessions behind.
+
+Fixed to a rotating window of 45 chains a cycle and a 90-minute reference
+refresh. The first attempt at the rotation was itself starved -- it gave the
+rotation whatever was LEFT after 44 actionable names, which was one slot, so the
+other 166 symbols needed 249 minutes to come round. Capacity is now reserved:
+25 actionable and 20 rotating, covering all 44 actionable names in three minutes
+and the rest of the universe in thirteen.
+
+    THE LESSON, AGAIN: a bigger number in front of the same structure is not a
+    fix. Measure the coverage the change actually produces.
+
+
+================================================================================
 PART 4 — WILL IT SURVIVE MARKET HOURS
 ================================================================================
 
