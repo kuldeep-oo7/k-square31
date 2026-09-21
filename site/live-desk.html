@@ -884,7 +884,41 @@
       + '<div class="broker-ids-head">PASTE INTO YOUR BROKER SEARCH</div>'
       + row('ZERODHA · DHAN', zerodha)
       + row('ANGEL ONE', angel)
-      + (words ? '<div class="broker-id-words">' + words + '</div>' : '')
+      + expiryPlainLine(opt, zerodha, words)
+      + '</div>';
+  }
+
+  /**
+   * SAY THE EXPIRY IN WORDS, because the symbol does not.
+   *
+   * "NIFTY26SEP23400CE" reads like the 26th of September, and there is no
+   * expiry on the 26th -- NSE lists the 22nd and the 29th. The 26 is the YEAR.
+   * Zerodha's own developer forum is explicit: a monthly symbol is
+   * NIFTY21MAY15300CE, where 21 is the year, the month is spelled out, and there
+   * is NO DAY IN IT AT ALL. Weeklies are the ones that carry a day, in a
+   * different shape: BANKNIFTY1921425000CE, year 19, month 2, day 14.
+   *
+   * Both forms are correct and both are unreadable, so the card stops relying on
+   * anyone decoding them and prints the date plainly underneath.
+   */
+  function expiryPlainLine(opt, zerodha, fallbackWords) {
+    var iso = (opt.expiry || '').slice(0, 10);
+    if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+      return fallbackWords ? '<div class="broker-id-words">' + fallbackWords + '</div>' : '';
+    }
+    var DAYS = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    var MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+    var d = new Date(iso + 'T00:00:00Z');
+    var pretty = DAYS[d.getUTCDay()] + ' ' + d.getUTCDate() + ' ' + MONTHS[d.getUTCMonth()] + ' ' + d.getUTCFullYear();
+    // Only explain the year-first quirk when the symbol actually contains it.
+    var yy = String(d.getUTCFullYear() % 100);
+    var looksLikeADay = zerodha && zerodha.indexOf(yy + MONTHS[d.getUTCMonth()].toUpperCase()) !== -1;
+    return '<div class="broker-id-words">'
+      + '<strong>Expires ' + pretty + '</strong>'
+      + (looksLikeADay
+          ? ' &nbsp;·&nbsp; the &quot;' + yy + '&quot; in the Zerodha symbol is the YEAR ' + d.getUTCFullYear()
+            + ', not the day &mdash; a monthly symbol carries no day at all'
+          : '')
       + '</div>';
   }
 
