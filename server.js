@@ -161,6 +161,8 @@ const server = http.createServer((req, res) => {
       // shape while staying available in the engine.
       universe: engine.getUniverse().map(({ options, ...row }) => row),
       options: engine.getOptionsUniverse(),
+      // The whole listed chain, screened -- see contract-screener.js.
+      screened: engine.screenedContracts(),
       activePositions: engine.ledger.getActivePositions(),
       completedTrades: engine.ledger.getCompletedTrades(),
       archivedSignals: engine.ledger.getArchivedSignals ? engine.ledger.getArchivedSignals(50) : []
