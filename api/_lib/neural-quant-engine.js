@@ -23,6 +23,28 @@ function round(val, digits = 2) {
   return Math.round((val + Number.EPSILON) * f) / f;
 }
 
+/**
+ * The L2 norm of each kernel's weight tensor.
+ *
+ * WHY THIS EXISTS. The four filters do not have comparable weight magnitudes:
+ * INSTITUTIONAL_ABSORPTION carries [1.0, 1.4, 1.8] on the volume channel and
+ * norms to 2.53, while VOLATILITY_SQUEEZE norms to 1.65. Taking the argmax over
+ * their RAW outputs therefore asks which kernel contains the largest numbers,
+ * not which motif is present -- and it answered INSTITUTIONAL_ABSORPTION for 201
+ * of 212 live symbols, so `predictedRegime` read INSTITUTIONAL_ACCUMULATION for
+ * 95% of the desk. That is a constant printed as a prediction.
+ *
+ * Dividing each activation by ||w|| is the standard matched-filter
+ * normalisation and is what makes the comparison meaningful. No weight, no
+ * kernel, no convolution and no pooling changes -- only the scale on which the
+ * four outputs are compared with each other.
+ */
+function kernelNorm(kernel) {
+  let sum = 0;
+  for (const channel of kernel.weights) for (const w of channel) sum += w * w;
+  return Math.sqrt(sum) || 1;
+}
+
 function sigmoid(x) {
   return 1 / (1 + Math.exp(-Math.max(-15, Math.min(15, x))));
 }
@@ -220,22 +242,28 @@ function evaluateNeuralAlpha({ bars, quantFactors = {}, sentimentScore = 0.50 } 
   // 2. MaxPool1D
   const pooled = maxPool1D(convOut);
 
-  // Find most active CNN motif
+  // Find the most active motif, comparing NORMALISED activations. See
+  // kernelNorm: on raw outputs this argmax simply returned whichever kernel had
+  // the largest weights.
+  const normFor = Object.fromEntries(CONV_KERNELS.map((k) => [k.name, kernelNorm(k)]));
   let bestMotif = pooled[0];
+  let bestNorm = (pooled[0]?.maxVal || 0) / (normFor[pooled[0]?.kernel] || 1);
   for (const p of pooled) {
-    if (p.maxVal > bestMotif.maxVal) {
-      bestMotif = p;
-    }
+    const scaled = (Number(p.maxVal) || 0) / (normFor[p.kernel] || 1);
+    if (scaled > bestNorm) { bestMotif = p; bestNorm = scaled; }
   }
 
   // 3. Dense Layer Factor Fusion:
-  // Quantitative Factor normalizations:
-  const hurst = Number(quantFactors.hurst || 0.50);
-  const vpin = Number(quantFactors.vpin || 0.20);
-  const er = Number(quantFactors.er || 0.50);
-  const ouHalfLife = Number(quantFactors.halfLife || 5);
-  const garchVol = Number(quantFactors.garchVol || 0.18);
-  const kyleLambda = Number(quantFactors.kyleLambda || 1.0);
+  // Quantitative Factor normalizations. A factor that was not measured must
+  // contribute NOTHING, not a plausible-looking default: substituting 0.20 for
+  // an unmeasured VPIN adds the same +0.175 to all 212 names, which ranks
+  // nobody and pushes every score toward the top of the sigmoid.
+  const has = (v) => Number.isFinite(Number(v));
+  const hurst = has(quantFactors.hurst) ? Number(quantFactors.hurst) : 0.50;
+  const vpin = has(quantFactors.vpin) ? Number(quantFactors.vpin) : null;
+  const er = has(quantFactors.er) ? Number(quantFactors.er) : 0.40;
+  const garchVol = has(quantFactors.garchVol) ? Number(quantFactors.garchVol) : 0.18;
+  const kyleLambda = has(quantFactors.kyleLambda) ? Number(quantFactors.kyleLambda) : 1.0;
 
   // Weighted Linear Combination in Dense Output Node:
   // - High Hurst (> 0.55) & High ER (> 0.50) favor momentum
@@ -244,19 +272,46 @@ function evaluateNeuralAlpha({ bars, quantFactors = {}, sentimentScore = 0.50 } 
   // - Moderate GARCH (12% - 24%) provides optimal range expansion without panic risk
   let z = 0.0;
 
-  // CNN Visual Activations contribution (40% weight)
-  const momAct = (pooled.find(p => p.kernel === "MOMENTUM_BREAKOUT")?.maxVal || 0) * 0.45;
-  const revAct = (pooled.find(p => p.kernel === "MEAN_REVERSION_SPRING")?.maxVal || 0) * 0.35;
-  const sqzAct = (pooled.find(p => p.kernel === "VOLATILITY_SQUEEZE")?.maxVal || 0) * 0.25;
-  const absAct = (pooled.find(p => p.kernel === "INSTITUTIONAL_ABSORPTION")?.maxVal || 0) * 0.30;
+  // CNN matched-filter contribution.
+  //
+  // THE SATURATION THIS REPLACES, measured across 212 live symbols: the four
+  // activations were summed RAW with positive weights totalling 1.35. A pooled
+  // LeakyReLU output is effectively non-negative and here ran from 1.3 to 12.6,
+  // so the block alone contributed roughly +2 to +10 to z. rawZ never once went
+  // negative (minimum 0.470), the sigmoid ran from 0.615 to 1.0, and
+  // neuralAlphaScore had a median of 97 and only 26 distinct values across the
+  // whole universe while clamped at 98. It was a constant wearing a probability's
+  // clothing -- which is why the ranking downstream had been quietly repointed at
+  // the raw activation magnitude instead.
+  //
+  // A filter bank reports WHICH motif is present, not how loud the tape is. So
+  // each activation is expressed as its deviation from the bank's own mean,
+  // divided by the bank's own spread. That is signed, scale-free and bounded in
+  // practice to about +/-1.6, which is the same order as the quant terms it is
+  // fused with. Every kernel, every weight, the convolution and the pooling are
+  // untouched: only the strictly-additive magnitude is removed.
+  const NORMS = Object.fromEntries(CONV_KERNELS.map((k) => [k.name, kernelNorm(k)]));
+  const actOf = (name) => (Number(pooled.find(p => p.kernel === name)?.maxVal) || 0) / NORMS[name];
+  const rawActs = CONV_KERNELS.map((k) => actOf(k.name));
+  const actMean = rawActs.reduce((a, b) => a + b, 0) / rawActs.length;
+  const actSpread = Math.sqrt(rawActs.reduce((a, v) => a + (v - actMean) ** 2, 0) / rawActs.length) || 1;
+  const dev = (name) => (actOf(name) - actMean) / actSpread;
+
+  const momAct = dev("MOMENTUM_BREAKOUT") * 0.45;
+  const revAct = dev("MEAN_REVERSION_SPRING") * 0.35;
+  const sqzAct = dev("VOLATILITY_SQUEEZE") * 0.25;
+  const absAct = dev("INSTITUTIONAL_ABSORPTION") * 0.30;
   z += (momAct + revAct + sqzAct + absAct);
 
   // Quant Factor Fusion contribution (45% weight)
   z += (hurst - 0.50) * 4.0;          // Hurst contribution (-0.8 to +0.8)
   z += (er - 0.40) * 2.0;             // Kaufman efficiency ratio
-  z -= (vpin - 0.25) * 3.5;           // Penalize toxic order flow
-  z -= Math.max(0, kyleLambda - 2.5) * 0.5; // Penalize heavy price impact
-  z += (sentimentScore - 0.50) * 1.5; // Sentiment contribution
+  if (vpin !== null) z -= (vpin - 0.25) * 3.5;   // Penalize toxic order flow
+  z -= Math.max(0, kyleLambda - 2.5) * 0.5;      // Penalize heavy price impact
+  // Sentiment defaults to 0.50, which contributes exactly zero. There is no
+  // news feed wired into this desk; anything other than neutral here would be
+  // an opinion typed into a model and read back out as evidence.
+  z += (has(sentimentScore) ? Number(sentimentScore) - 0.50 : 0) * 1.5;
 
   // Volatility conditioning
   if (garchVol > 0.35) z -= 1.2; // High volatility penalty
@@ -284,13 +339,22 @@ function evaluateNeuralAlpha({ bars, quantFactors = {}, sentimentScore = 0.50 } 
 
   return {
     rawZ: round(z, 4),
+    // The peak activation MAGNITUDE. Kept for display and diagnosis only. It
+    // carries no direction -- a stock collapsing on huge volume registers a
+    // large one -- so nothing may rank on it. See universe-210.
     rawActivationScore: round(bestMotif.maxVal, 4),
+    vpinApplied: vpin !== null,
     neuralAlphaScore: alphaScore,
     predictedRegime: regime,
     convConfidence: confidence,
     salientMotif: bestMotif.kernel,
     peakActivation: round(bestMotif.maxVal, 3),
-    cnnMotifs: pooled.map(p => ({ motif: p.kernel, intensity: round(p.maxVal, 2) }))
+    normalisedPeak: round(bestNorm, 4),
+    cnnMotifs: pooled.map(p => ({
+      motif: p.kernel,
+      intensity: round(p.maxVal, 2),
+      normalised: round((Number(p.maxVal) || 0) / (normFor[p.kernel] || 1), 3)
+    }))
   };
 }
 

@@ -992,8 +992,22 @@ class FnoUniverseEngine {
     if (eligible.length > 0) {
       const nEligible = eligible.length;
 
-      // 1. Cross-sectional ranking for convolutional matched filter activations:
-      eligible.sort((a, b) => (Number(a.rawActivationScore) || 0) - (Number(b.rawActivationScore) || 0));
+      // 1. Cross-sectional ranking of the neural signal.
+      //
+      // THIS RANKED THE WRONG QUANTITY until 2026-09-21. It sorted on
+      // `rawActivationScore`, the peak output of whichever matched filter fired
+      // hardest -- a MAGNITUDE with no direction in it. A stock collapsing on
+      // enormous volume produces a large one. The engine's actual signal is the
+      // fused pre-sigmoid score `rawZ`, which carries Hurst, the efficiency
+      // ratio, liquidity and the signed filter contrast. Measured across 212
+      // live symbols the two rank each other at Spearman -0.04: they are not
+      // the same thing and their top quartiles overlap at exactly chance.
+      //
+      // rawZ is ranked rather than neuralAlphaScore because the sigmoid is
+      // monotone -- the order is identical -- but the score is rounded to an
+      // integer and ties 212 names onto 64 values, while rawZ has 212 distinct
+      // ones. Ranking the continuous quantity wastes no resolution.
+      eligible.sort((a, b) => (Number(a.rawZ) || 0) - (Number(b.rawZ) || 0));
       eligible.forEach((item, idx) => {
         const pct = Math.max(5, Math.min(98, Math.round(((idx + 0.5) / nEligible) * 100)));
         item.neuralScore = pct;
