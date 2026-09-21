@@ -269,6 +269,55 @@ function markToMarket(quoteFor, { now = Date.now(), db = null } = {}) {
  * Nothing here is reported until there is enough closed history to mean
  * anything. A hit rate over three trades is an anecdote with a percent sign.
  */
+/**
+ * WHERE EVERY NUMBER IS STORED, counted rather than described.
+ *
+ * "Trust me, it is being recorded" is worth nothing. This reports the actual
+ * row counts in the actual tables, the file they live in, and whether the
+ * durable archive has ever succeeded from this host -- so the claim can be
+ * checked instead of believed.
+ */
+function storageReport({ db = null } = {}) {
+  const handle = database(db);
+  const count = (table) => {
+    try { return handle.db.prepare(`SELECT COUNT(*) AS n FROM ${table}`).get().n; }
+    catch (error) { return null; }
+  };
+  const first = (table, column) => {
+    try { return handle.db.prepare(`SELECT MIN(${column}) AS v FROM ${table}`).get().v; }
+    catch (error) { return null; }
+  };
+  const backup = backupStatus();
+  const google = require("./google-store");
+  return {
+    ok: true,
+    databaseFile: handle.file || handle.dbPath || require("./db-sqlite").DB_PATH || null,
+    tables: {
+      signals_lifecycle: { rows: count("signals_lifecycle"), holds: "One row per contract the desk showed: entry, target, stop, the predicted probability and predicted days, and how it ended." },
+      signal_marks: { rows: count("signal_marks"), holds: "One row per observation on an open signal: the price, where the price came from, and how far toward target it had travelled." },
+      trades: { rows: count("trades"), holds: "Closed executions with realised profit and loss." },
+      audit_events: { rows: count("audit_events"), holds: "Every refusal and every guard that fired, with its reason." },
+      ticks_history: { rows: count("ticks_history"), holds: "Underlying prices with the technical read attached at that moment." },
+      macro_snapshots: { rows: count("macro_snapshots"), holds: "India VIX and the macro gate, session by session." }
+    },
+    oldestSignal: first("signals_lifecycle", "issued_at"),
+    oldestMark: first("signal_marks", "recorded_at"),
+    durableArchive: {
+      configured: google.googleStoreConfigured(),
+      lastAttemptAt: backup?.attemptedAt || null,
+      lastResult: backup?.ok === null ? "NEVER_ATTEMPTED" : (backup?.ok ? "OK" : "FAILED"),
+      detail: backup?.detail || null,
+      why: "Render wipes the disk on every deploy, so the SQLite file above is temporary. "
+        + "The archive is the copy that survives, and it is mirrored every five minutes and again on shutdown."
+    },
+    howToSee: [
+      "Settings & Track Record -- the calibration panel and the audited ledger of closed signals.",
+      "Closed Ledger -- every realised trade with entry, exit and profit.",
+      "/api/state -- the whole payload this page is drawn from, as JSON."
+    ]
+  };
+}
+
 /** Every observation ever taken on one signal, oldest first. */
 function markHistory(signalId, { db = null, limit = 500 } = {}) {
   const handle = database(db);
@@ -519,5 +568,6 @@ module.exports = {
   accuracyView, backupStatus, database, markToMarket, mergeRows, record,
   calibration,
   markHistory,
+  storageReport,
   restoreFromRemote, signalId, syncToRemote, trackRecord
 };

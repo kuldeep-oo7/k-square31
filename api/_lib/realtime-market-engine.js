@@ -127,6 +127,19 @@ class RealtimeMarketEngine {
    * Was the estimate any good? Cached briefly -- it walks the whole ledger and
    * the answer cannot change between two ticks.
    */
+  /** Row counts in the real tables, so "it is being recorded" can be checked. */
+  storageReport() {
+    const fresh = this._storeAt && Date.now() - this._storeAt < 60_000;
+    if (fresh && this._store) return this._store;
+    try {
+      this._store = require("./signal-record").storageReport();
+      this._storeAt = Date.now();
+      return this._store;
+    } catch (error) {
+      return { ok: false, reason: error.message };
+    }
+  }
+
   signalCalibration() {
     const fresh = this._calibAt && Date.now() - this._calibAt < 60_000;
     if (fresh && this._calib) return this._calib;
@@ -213,6 +226,7 @@ class RealtimeMarketEngine {
         summary: this.ledger.getSummary(),
         accuracy: accuracy,
         calibration: this.signalCalibration(),
+        storage: this.storageReport(),
         candidates: enriched,
         universe: universe,
         options: options,
@@ -372,6 +386,44 @@ class RealtimeMarketEngine {
         if (result.ok && result.status === "RECORDED") recorded += 1;
         else if (!result.ok) refused += 1;
       }
+
+      // EVERYTHING SHOWN ON THE SCREEN GETS RECORDED, not only the 423 cards.
+      //
+      // The screened chain is what the desk now puts in front of you, and until
+      // this loop existed not one of those contracts was written down. So the
+      // list could be right or wrong forever and the ledger would never know --
+      // the same failure as an estimate nobody scores.
+      //
+      // Recording the whole shown list rather than a hand-picked few is also the
+      // only way calibration arrives in weeks instead of years: 250 rows a
+      // session is a sample worth grading, where a dozen is not.
+      let screenedRecorded = 0, screenedRefused = 0;
+      try {
+        const screen = this.screenedContracts();
+        for (const c of (screen.contracts || [])) {
+          if (!(c.premium > 0) || !(c.targetPremium > 0)) { screenedRefused += 1; continue; }
+          const out = ledger.record({
+            symbol: c.symbol, strike: c.strike, right: c.optionType, expiry: c.expiry,
+            entryPrice: c.premium, lotSize: c.lotSize,
+            priceSource: c.priceSource || "EXCHANGE_SETTLED_PRICE",
+            executable: false,
+            targetPrice: c.targetPremium,
+            // Half the premium, which is the same convention the cards use.
+            stopPrice: Math.round((c.premium / 2) * 100) / 100,
+            probabilityOfProfitPct: c.touchPct,
+            volatilityVerdict: c.varianceRiskPremium == null ? null
+              : (c.varianceRiskPremium < 0.9 ? "CHEAP" : c.varianceRiskPremium > 1.1 ? "RICH" : "FAIR"),
+            estimatedTouchPct: c.touchPct,
+            estimatedDaysToTarget: c.medianDaysToTarget
+          });
+          if (out.ok && out.status === "RECORDED") screenedRecorded += 1;
+          else if (!out.ok) screenedRefused += 1;
+        }
+      } catch (error) {
+        console.error("Screened-chain recording failed:", error.message);
+      }
+      recorded += screenedRecorded;
+      refused += screenedRefused;
 
       // Mark the open book against whatever the desk can currently observe.
       const priceFor = (position) => {

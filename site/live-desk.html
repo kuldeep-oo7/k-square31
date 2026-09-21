@@ -309,8 +309,8 @@
 
   <!-- Main Navigation Tabs -->
   <div class="tabs-nav">
-    <button class="tab-btn active" data-tab="actionable">⭐ Recommended Buys (<span id="count-actionable">&mdash;</span>)</button>
-    <button class="tab-btn tab-new" data-tab="screened">🔬 Best Contracts, Whole Chain (<span id="count-screened">&mdash;</span>)</button>
+    <button class="tab-btn" data-tab="actionable">⭐ Recommended Buys (<span id="count-actionable">&mdash;</span>)</button>
+    <button class="tab-btn tab-new active" data-tab="screened">🔬 Best Contracts, Whole Chain (<span id="count-screened">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="options">📞 One Strike Per Name (<span id="count-options">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="universe">🌐 All 210 F&amp;O Radar (<span id="count-univ">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="purchased" style="background: rgba(41, 121, 255, 0.15); border-color: rgba(41, 121, 255, 0.4); color: #90caf9;">📦 Purchased Trades (<span id="count-purchased">&mdash;</span>)</button>
@@ -424,6 +424,11 @@
       </div>
     </div>
 
+    <h3 style="font-size: 16px; font-weight: 800; margin: 20px 0 10px;">💾 Where Every Number Is Stored</h3>
+    <div id="storage-panel" class="calib-panel">
+      <div class="calib-empty">Waiting for the server&hellip;</div>
+    </div>
+
     <h3 style="font-size: 16px; font-weight: 800; margin: 20px 0 10px;">🎯 Was The Estimate Any Good?</h3>
     <div id="calibration-panel" class="calib-panel">
       <div class="calib-empty">Waiting for the server&hellip;</div>
@@ -516,7 +521,9 @@
 
 <script>
 (function() {
-  var activeTab = 'actionable';
+  // The desk opens on the SHORTLIST. It used to open on the futures tab, so
+  // the first thing anyone saw was the list that had passed no gates at all.
+  var activeTab = 'screened';
   var universeSubFilter = 'actionable';
   var optionsSubFilter = 'actionable';
   var universeViewMode = 'cards';
@@ -549,6 +556,7 @@
   var accuracyTbody = document.getElementById('accuracy-tbody');
   var screenedCache = null;
   var calibrationCache = null;
+  var storageCache = null;
   var ledgerTbody = document.getElementById('ledger-tbody');
   var ledgerSection = document.getElementById('ledger-section');
   var k2Section = document.getElementById('k2lang-section');
@@ -1459,6 +1467,57 @@
       + '</tr></thead><tbody>' + rows + '</tbody></table></div>';
   }
 
+  /**
+   * "IT IS BEING RECORDED" IS WORTH NOTHING UNLESS YOU CAN CHECK IT.
+   *
+   * So this prints the real row counts from the real tables, the file they sit
+   * in, and whether the durable archive has ever actually succeeded from this
+   * host -- not a reassurance, a count. If the numbers here are zero then
+   * nothing is being stored, and the panel says so rather than looking healthy.
+   */
+  function renderStorage(store) {
+    var panel = document.getElementById('storage-panel');
+    if (!panel) return;
+    if (!store || store.ok === false) {
+      panel.innerHTML = '<div class="calib-empty">Storage report unavailable'
+        + (store && store.reason ? ' &mdash; ' + store.reason : '') + '.</div>';
+      return;
+    }
+
+    var t = store.tables || {};
+    var rows = Object.keys(t).map(function (name) {
+      var n = t[name].rows;
+      var empty = !n;
+      return '<tr>'
+        + '<td><code style="font:700 11px var(--mono)">' + name + '</code></td>'
+        + '<td style="color:' + (empty ? 'var(--muted)' : 'var(--green)') + '"><strong>'
+        +   (n == null ? 'n/a' : Number(n).toLocaleString('en-IN')) + '</strong></td>'
+        + '<td style="font:500 11px var(--mono);color:var(--muted)">' + t[name].holds + '</td>'
+        + '</tr>';
+    }).join('');
+
+    var a = store.durableArchive || {};
+    var archiveOk = a.lastResult === 'OK';
+    var archiveColour = archiveOk ? 'var(--green)' : (a.configured ? 'var(--amber)' : 'var(--red)');
+
+    panel.innerHTML =
+      '<table class="calib-table"><thead><tr>'
+      +   '<th>TABLE</th><th>ROWS</th><th>WHAT IT HOLDS</th>'
+      + '</tr></thead><tbody>' + rows + '</tbody></table>'
+      + '<div class="calib-note">'
+      +   '<b>FILE.</b> <code style="font:600 11px var(--mono)">' + (store.databaseFile || 'unknown') + '</code>'
+      +   (store.oldestSignal ? ' &nbsp;&middot;&nbsp; oldest signal ' + String(store.oldestSignal).slice(0, 16).replace('T', ' ') : '')
+      +   '<br><b style="color:' + archiveColour + '">DURABLE ARCHIVE.</b> '
+      +   (a.configured ? 'Configured. ' : '<b style="color:var(--red)">NOT CONFIGURED.</b> ')
+      +   'Last attempt: ' + (a.lastAttemptAt ? String(a.lastAttemptAt).slice(0, 16).replace('T', ' ') : 'never')
+      +   ' &mdash; <b style="color:' + archiveColour + '">' + (a.lastResult || 'UNKNOWN') + '</b>'
+      +   (a.detail ? ' (' + a.detail + ')' : '')
+      +   '<br><span style="color:var(--muted)">' + (a.why || '') + '</span>'
+      +   '<br><br><b>HOW TO SEE IT.</b><br>'
+      +   (store.howToSee || []).map(function (line) { return '&nbsp;&nbsp;&middot; ' + line; }).join('<br>')
+      + '</div>';
+  }
+
   function renderCalibration(cal) {
     var panel = document.getElementById('calibration-panel');
     if (!panel) return;
@@ -1613,6 +1672,7 @@
       // it reads "waiting for the server" no matter how long the server has
       // been running.
       renderCalibration(calibrationCache);
+      renderStorage(storageCache);
       return;
     }
 
@@ -1677,6 +1737,10 @@
     if (data && 'calibration' in data) {
       calibrationCache = data.calibration;
       renderCalibration(calibrationCache);
+    }
+    if (data && 'storage' in data) {
+      storageCache = data.storage;
+      renderStorage(storageCache);
     }
     if (data && 'screened' in data) {
       screenedCache = data.screened;

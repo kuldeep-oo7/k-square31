@@ -165,6 +165,7 @@ const server = http.createServer((req, res) => {
       screened: engine.screenedContracts(),
       // Was the estimate any good? See signal-record.calibration().
       calibration: engine.signalCalibration(),
+      storage: engine.storageReport(),
       activePositions: engine.ledger.getActivePositions(),
       completedTrades: engine.ledger.getCompletedTrades(),
       archivedSignals: engine.ledger.getArchivedSignals ? engine.ledger.getArchivedSignals(50) : []

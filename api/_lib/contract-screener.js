@@ -232,6 +232,11 @@ function screenContracts({
           const row = {
             symbol, expiry, strike, optionType,
             premium: round(premium),
+            // PROVENANCE, so a row that reaches the ledger says where its price
+            // came from. A settlement price NSE derived for a contract that did
+            // not trade is a different fact from one somebody actually paid.
+            priceSource: quote.traded ? "EXCHANGE_TRADED_PRICE" : "EXCHANGE_SETTLED_PRICE",
+            tradedToday: quote.traded === true,
             forward: round(forward),
             lotSize: bucket.lotSize || entry.lotSize || null,
             daysToExpiry: round(daysToExpiry, 1),
