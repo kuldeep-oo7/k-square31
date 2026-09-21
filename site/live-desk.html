@@ -71,9 +71,11 @@
   .pill-blue { border-color: rgba(41, 121, 255, 0.4); color: var(--blue); }
 
   /* Tabs / Navigation */
-  .tabs-nav { display: flex; gap: 8px; overflow-x: auto; padding-bottom: 8px; margin-bottom: 16px; scrollbar-width: none; }
+  .tabs-nav { display: flex; flex-wrap: wrap; gap: 8px; padding-bottom: 8px; margin-bottom: 16px; }
   .tabs-nav::-webkit-scrollbar { display: none; }
   .tab-btn { background: var(--panel); border: 1px solid var(--line); color: var(--muted); padding: 8px 16px; border-radius: 999px; font: 700 12px var(--mono); white-space: nowrap; cursor: pointer; transition: all 0.2s; display: inline-flex; align-items: center; gap: 6px; }
+  .tab-new { border-color: var(--green); color: var(--green); }
+  .tab-new.active { background: var(--green); color: #0c0d14; border-color: var(--green); }
   .tab-btn.active, .tab-btn:hover { background: var(--purple); color: #0c0d14; border-color: var(--purple); font-weight: 800; }
   .tab-badge { background: rgba(0,0,0,0.25); padding: 2px 6px; border-radius: 10px; font-size: 10px; }
 
@@ -308,12 +310,12 @@
   <!-- Main Navigation Tabs -->
   <div class="tabs-nav">
     <button class="tab-btn active" data-tab="actionable">⭐ Recommended Buys (<span id="count-actionable">&mdash;</span>)</button>
-    <button class="tab-btn" data-tab="options">📞 Calls &amp; Puts (<span id="count-options">&mdash;</span>)</button>
+    <button class="tab-btn tab-new" data-tab="screened">🔬 Best Contracts, Whole Chain (<span id="count-screened">&mdash;</span>)</button>
+    <button class="tab-btn" data-tab="options">📞 One Strike Per Name (<span id="count-options">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="universe">🌐 All 210 F&amp;O Radar (<span id="count-univ">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="purchased" style="background: rgba(41, 121, 255, 0.15); border-color: rgba(41, 121, 255, 0.4); color: #90caf9;">📦 Purchased Trades (<span id="count-purchased">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="accuracy" style="background: rgba(0, 230, 118, 0.15); border-color: rgba(0, 230, 118, 0.4); color: #a7f3d0;">⚙️ Settings &amp; Track Record (<span id="count-accuracy">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="ledger">📜 Closed Ledger</button>
-    <button class="tab-btn" data-tab="screened">🔬 Screened Chain (<span id="count-screened">&mdash;</span>)</button>
     <button class="tab-btn" data-tab="k2lang">⚡ K²-Lang Sandbox</button>
   </div>
 
@@ -546,6 +548,7 @@
   var accuracySection = document.getElementById('accuracy-section');
   var accuracyTbody = document.getElementById('accuracy-tbody');
   var screenedCache = null;
+  var calibrationCache = null;
   var ledgerTbody = document.getElementById('ledger-tbody');
   var ledgerSection = document.getElementById('ledger-section');
   var k2Section = document.getElementById('k2lang-section');
@@ -1600,6 +1603,11 @@
     if (activeTab === 'accuracy') {
       accuracySection.style.display = 'block';
       if (accuracyCache) renderAccuracy(accuracyCache);
+      // The panel lives inside a hidden section, so it has to be drawn when the
+      // tab opens as well as when the feed ticks -- otherwise the first look at
+      // it reads "waiting for the server" no matter how long the server has
+      // been running.
+      renderCalibration(calibrationCache);
       return;
     }
 
@@ -1661,7 +1669,10 @@
     if (data && Array.isArray(data.universe)) universeCache = data.universe;
     if (data && Array.isArray(data.options)) optionsCache = data.options;
     if (data && data.accuracy) renderAccuracy(data.accuracy);
-    if (data && 'calibration' in data) renderCalibration(data.calibration);
+    if (data && 'calibration' in data) {
+      calibrationCache = data.calibration;
+      renderCalibration(calibrationCache);
+    }
     if (data && 'screened' in data) {
       screenedCache = data.screened;
       var sc = document.getElementById('count-screened');
