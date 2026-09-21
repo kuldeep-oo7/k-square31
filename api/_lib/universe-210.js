@@ -1587,7 +1587,26 @@ class FnoUniverseEngine {
             formatted: (u.options.call.currentPrice >= u.options.call.entryPrice ? "+₹" : "-₹") + Math.abs(Math.round((u.options.call.currentPrice - u.options.call.entryPrice) * u.options.call.lotSize)).toLocaleString("en-IN")
           },
           strategy: u.options.spread,
-          greeks: u.options.call.greeks
+          greeks: u.options.call.greeks,
+          // The technical read, carried onto the CARD. These were computed on
+          // every universe row and never copied here, so the thing the user
+          // actually looks at showed no chart pattern, no candlestick and no
+          // regime while the engines behind it were running fine. Null on a row
+          // with no verified history, which is the truthful answer, not "RANGE".
+          technicals: {
+            chartPattern: u.chartPattern ?? null,
+            chartPatternBias: u.chartPatternBias ?? null,
+            candlestickPattern: u.candlestickPattern ?? null,
+            candlestickSummary: u.candlestickSummary ?? null,
+            neuralMotif: u.neuralMotif ?? null,
+            neuralRegime: u.neuralRegime ?? null,
+            garchRegime: u.garchRegime ?? null,
+            garchVol: u.garchVol ?? null,
+            componentScores: u.componentScores ?? null,
+            componentWeights: u.componentWeights ?? null,
+            inactiveComponents: u.inactiveComponents ?? null,
+            unavailableReason: u.technicalReadingsUnavailable ?? null
+          }
         });
 
         // Also add Put Option contract for full market coverage
@@ -1687,7 +1706,26 @@ class FnoUniverseEngine {
             maxRisk: "₹0",
             breakeven: "N/A"
           },
-          greeks: u.options.put.greeks
+          greeks: u.options.put.greeks,
+          // The technical read, carried onto the CARD. These were computed on
+          // every universe row and never copied here, so the thing the user
+          // actually looks at showed no chart pattern, no candlestick and no
+          // regime while the engines behind it were running fine. Null on a row
+          // with no verified history, which is the truthful answer, not "RANGE".
+          technicals: {
+            chartPattern: u.chartPattern ?? null,
+            chartPatternBias: u.chartPatternBias ?? null,
+            candlestickPattern: u.candlestickPattern ?? null,
+            candlestickSummary: u.candlestickSummary ?? null,
+            neuralMotif: u.neuralMotif ?? null,
+            neuralRegime: u.neuralRegime ?? null,
+            garchRegime: u.garchRegime ?? null,
+            garchVol: u.garchVol ?? null,
+            componentScores: u.componentScores ?? null,
+            componentWeights: u.componentWeights ?? null,
+            inactiveComponents: u.inactiveComponents ?? null,
+            unavailableReason: u.technicalReadingsUnavailable ?? null
+          }
         });
       }
     });
