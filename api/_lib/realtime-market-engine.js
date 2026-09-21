@@ -540,6 +540,37 @@ class RealtimeMarketEngine {
     // Paper-trade the desk's own signals, on the same cadence as the quotes
     // that mark them.
     this.ledgerTimer = setInterval(() => this.recordSignals(), 90 * 1000);
+
+    // THE PAPER RECORD MUST SURVIVE A DEPLOY, and it was not surviving.
+    //
+    // Render wipes the disk every time the code changes. The archive mirror was
+    // only ever called from inside recordSignals(), which RETURNS EARLY when the
+    // market is closed -- so anything recorded during a session and not followed
+    // by another change before the close was never written anywhere durable, and
+    // the next deploy destroyed it. Measured on 2026-09-21: the desk showed one
+    // closed trade and ten tracked positions during the session, and by the
+    // evening the ledger read zero signals, zero trades, no track record, with
+    // backup.attemptedAt still null.
+    //
+    // A track record that a deploy can erase is not a track record, and the one
+    // question this desk exists to answer -- do the signals make money -- cannot
+    // be answered until this holds.
+    //
+    // So the mirror runs on its own clock, market open or shut, and only when
+    // something actually changed.
+    this.archiveTimer = setInterval(() => this.archiveLedger("timer"), 5 * 60 * 1000);
+
+    // And once more on the way out. Render sends SIGTERM before it kills the
+    // container on a deploy, which is the last chance to save the session.
+    if (!this._shutdownHooked) {
+      this._shutdownHooked = true;
+      const onExit = (signal) => {
+        console.log(`[K² Ledger] ${signal} received, mirroring the ledger before shutdown`);
+        this.archiveLedger("shutdown").finally(() => process.exit(0));
+      };
+      process.once("SIGTERM", () => onExit("SIGTERM"));
+      process.once("SIGINT", () => onExit("SIGINT"));
+    }
     this.sessionTimer = setInterval(() => this.maintainBrokerSessions(), 60 * 60 * 1000);
     // Every 90 minutes, not every 6 hours. NSE publishes the bhavcopy AFTER the
     // close, so a 6-hour timer can leave the desk on a settlement file several
@@ -554,8 +585,39 @@ class RealtimeMarketEngine {
     console.log(`[K² Realtime Engine] Active. Polling interval: ${pollIntervalMs}ms`);
   }
 
+  /**
+   * Mirror the ledger to the durable archive when, and only when, it changed.
+   *
+   * Writing unconditionally every five minutes would burn the Apps Script quota
+   * on a desk that mostly sits still, so the row count and the latest update
+   * stamp are compared first. `reason` travels into the log so a failure can be
+   * traced to the clock, the close, or the shutdown that caused it.
+   */
+  async archiveLedger(reason = "timer") {
+    try {
+      const ledger = require("./signal-record");
+      const record = ledger.trackRecord();
+      const fingerprint = `${record?.totalSignals ?? 0}|${record?.winCount ?? 0}|${record?.lossCount ?? 0}`;
+      if (reason === "timer" && fingerprint === this._archivedFingerprint) return { ok: true, skipped: true };
+      if (fingerprint === "0|0|0" && reason !== "shutdown") return { ok: true, skipped: true, empty: true };
+
+      const sync = await ledger.syncToRemote();
+      if (sync.ok) {
+        this._archivedFingerprint = fingerprint;
+        console.log(`[K² Ledger] archived ${sync.positions} rows (${reason})`);
+      } else if (sync.reason !== "GOOGLE_STORE_NOT_CONFIGURED") {
+        console.error(`[K² Ledger] archive failed (${reason}): ${sync.reason}`);
+      }
+      return sync;
+    } catch (error) {
+      console.error("Ledger archive failed:", error.message);
+      return { ok: false, reason: error.message };
+    }
+  }
+
   stop() {
     if (this.timer) clearInterval(this.timer);
+    if (this.archiveTimer) clearInterval(this.archiveTimer);
     if (this.referenceTimer) clearInterval(this.referenceTimer);
     if (this.sessionTimer) clearInterval(this.sessionTimer);
     if (this.quoteTimer) clearInterval(this.quoteTimer);

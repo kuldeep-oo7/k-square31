@@ -152,6 +152,10 @@
   .broker-id-copy { font: 700 9px var(--mono); letter-spacing: .06em; padding: 4px 9px; cursor: pointer;
     border: 1px solid var(--line); border-radius: 6px; background: rgba(255,255,255,0.05); color: var(--muted); }
   .broker-id-copy:active { transform: translateY(1px); }
+  .coverage-note { margin: 0 0 14px; padding: 10px 12px; border: 1px solid var(--line);
+    border-left: 3px solid var(--amber); border-radius: 8px; background: rgba(255,179,0,0.05);
+    font: 500 11px/1.6 var(--mono); color: var(--muted); grid-column: 1 / -1; }
+  .coverage-note strong { color: var(--amber); }
   .broker-id-proof { font: 700 9px var(--mono); color: var(--green); letter-spacing: .03em; flex-basis: 100%; }
   .broker-id-missing { font: 700 10px var(--mono); color: var(--red); letter-spacing: .04em; }
   .broker-id-words { font: 600 10px var(--mono); color: var(--muted); margin-top: 6px;
@@ -243,7 +247,7 @@
   <!-- Search Bar -->
   <div class="search-bar-wrap">
     <span class="search-icon">🔍</span>
-    <input type="text" id="universe-search" placeholder="Instant Search 210 Equities &amp; 423 Options (e.g. RELIANCE, ABB, NIFTY, 25400CE...)" class="search-box">
+    <input type="text" id="universe-search" placeholder="Search 210 F&amp;O names (e.g. RELIANCE, ABB, NIFTY, ASIANPAINT)" class="search-box">
   </div>
 
   <!-- Metric Tiles -->
@@ -299,7 +303,7 @@
   <div class="sub-filters" id="options-subcontrols" style="display: none;">
     <div class="sub-pills">
       <button class="sub-btn active" data-sub-opt="actionable">⭐ Actionable (Spreads)</button>
-      <button class="sub-btn" data-sub-opt="all">All 423 Contracts</button>
+      <button class="sub-btn" data-sub-opt="all">All Contracts On This Desk</button>
       <button class="sub-btn" data-sub-opt="ce">📈 Calls (CE)</button>
       <button class="sub-btn" data-sub-opt="pe">📉 Puts (PE)</button>
       <button class="sub-btn" data-sub-opt="indices">⚡ Indices (NIFTY / BANKNIFTY)</button>
@@ -957,6 +961,44 @@
       + '</div>';
   }
 
+  /**
+   * SAY WHAT THIS LIST IS, because the number never moves and that looks wrong.
+   *
+   * It is 423 every single day, and it will be: 210 F&O names plus two indices,
+   * one at-the-money call and one put each, on one expiry. NSE lists 35,313
+   * option contracts, so this is about 1.2% of them -- ASIANPAINT alone has 53
+   * listed call strikes on the September expiry and this desk shows one.
+   *
+   * What DOES move with the market is which strike each card picks: ASIANPAINT
+   * went 2460 to 2440 and RELIANCE 1230 to 1290 within one session as the
+   * underlyings moved. The contents change; the count cannot. Calling that
+   * "whole market coverage" was wrong and the desk should not imply it.
+   */
+  // Counted from the NSE contract file on 2026-09-21. It drifts a little as
+  // strikes are added, so it is a scale, not a precision claim.
+  var NSE_LISTED_OPTIONS = 35313;
+
+  function coverageNote(options) {
+    var list = Array.isArray(options) ? options : [];
+    var names = {};
+    var expiries = {};
+    for (var i = 0; i < list.length; i++) {
+      if (list[i].symbol) names[list[i].symbol] = 1;
+      if (list[i].expiry) expiries[list[i].expiry] = 1;
+    }
+    var nameCount = Object.keys(names).length;
+    var expiryList = Object.keys(expiries).sort();
+    return '<div class="coverage-note">'
+      + '<strong>WHAT THIS LIST IS.</strong> One at-the-money call and one put for each of '
+      + nameCount + ' names, on the nearest expiry with enough life left to hold the trade'
+      + (expiryList.length ? ' (' + expiryList.join(', ') + ')' : '') + '. '
+      + 'That is <strong>' + list.length + ' contracts of the ' + NSE_LISTED_OPTIONS.toLocaleString('en-IN')
+      + ' NSE lists</strong>, ' + (list.length / NSE_LISTED_OPTIONS * 100).toFixed(2) + '%. '
+      + 'The count does not move because it is names &times; 2 by construction &mdash; what moves with the '
+      + 'market is <em>which strike</em> each card picks. This is not whole-market coverage.'
+      + '</div>';
+  }
+
   function renderOptionCardHtml(opt) {
     var isCe = opt.optionType === 'CE';
     var isActionable = opt.action === 'BUY' || opt.action === 'ACCUMULATE' || opt.executiveVerdict === 'MUST_READ_AND_BUY';
@@ -1395,7 +1437,7 @@
       optionsSubcontrols.style.display = 'flex';
       cardsContainer.style.display = 'grid';
       var filteredOptions = filterItems(optionsCache);
-      cardsContainer.innerHTML = filteredOptions.map(renderOptionCardHtml).join('');
+      cardsContainer.innerHTML = coverageNote(optionsCache) + filteredOptions.map(renderOptionCardHtml).join('');
       return;
     }
 
