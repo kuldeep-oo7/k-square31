@@ -771,7 +771,25 @@
     var capital = p.capitalPerUnit * qty;
     var reward = p.rewardPerUnitAtTarget1 * qty;
     var risk = p.riskPerUnit * qty;
+    // Where the limit came from and whether the market has run away from it.
+    // A limit 3% below the market is not wrong, but waiting all day for a fill
+    // that is not coming is, and the card never said which was happening.
+    var lv = item.levels;
+    var drift = lv && Number.isFinite(Number(lv.driftFromAnchorPct)) ? Number(lv.driftFromAnchorPct) : null;
+    var frozenLine = lv && lv.frozen
+      ? '<div class="sizing-note" style="border-top:none;padding-top:0;margin-top:0;margin-bottom:8px">'
+        + '<b style="color:var(--green)">LIMIT FIXED FOR TODAY.</b> Decided at '
+        + String(lv.decidedAt || '').slice(11, 16) + ' from an anchor of &#8377;' + fixed(lv.anchorPrice)
+        + ' (' + String(lv.anchorSource || '').replace(/_/g, ' ').toLowerCase() + '). It will not move again today.'
+        + (drift === null ? ''
+            : ' The market has since moved <b style="color:' + (Math.abs(drift) > 2 ? 'var(--amber)' : 'var(--muted)')
+              + '">' + (drift > 0 ? '+' : '') + fixed(drift, 2) + '%</b> from that anchor'
+              + (Math.abs(drift) > 2 ? ' &mdash; this limit may not fill today.' : '.'))
+        + '</div>'
+      : '';
+
     return '<div class="sizing">'
+      + frozenLine
       + '<div class="sizing-head">YOUR SIZE &mdash; futures here are sold by the UNIT, not by the lot</div>'
       + '<div class="sizing-row">'
       +   '<label>Quantity</label>'

@@ -133,6 +133,33 @@ class SqliteTradingDatabase {
         recorded_at TEXT NOT NULL
       );
 
+      -- THE LEVELS, FROZEN FOR THE SESSION.
+      --
+      -- entryPrice was computed as spot x 0.992 on every render. Spot moves
+      -- every tick, so the "BUY AT" on a card moved with it: ASHOKLEY showed
+      -- 160.46 at 09:19, 159.91 at 11:08 and 160.30 at 16:26 on the same day,
+      -- for the same signal. A limit price that chases the market is not a plan
+      -- -- it can never be relied on, and it quietly rewrites the trade you
+      -- thought you were in every time you look at it.
+      --
+      -- A level is decided ONCE per symbol per session and then it is a fact.
+      -- The anchor it was derived from is stored beside it so the number can be
+      -- audited rather than taken on trust.
+      CREATE TABLE IF NOT EXISTS session_levels (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        symbol TEXT NOT NULL,
+        session_date TEXT NOT NULL,
+        instrument TEXT NOT NULL,
+        anchor_price REAL NOT NULL,
+        anchor_source TEXT NOT NULL,
+        entry_price REAL NOT NULL,
+        target1 REAL NOT NULL,
+        target2 REAL NOT NULL,
+        stop_loss REAL NOT NULL,
+        issued_at TEXT NOT NULL,
+        UNIQUE(symbol, session_date, instrument)
+      );
+
       -- IMPLIED VOLATILITY, SESSION BY SESSION, PER UNDERLYING.
       --
       -- The desk compares a contract's implied volatility to the underlying's
@@ -204,6 +231,7 @@ class SqliteTradingDatabase {
       CREATE INDEX IF NOT EXISTS idx_signals_symbol ON signals_lifecycle(symbol);
       CREATE INDEX IF NOT EXISTS idx_marks_signal ON signal_marks(signal_id, recorded_at);
       CREATE INDEX IF NOT EXISTS idx_iv_symbol_date ON iv_history(symbol, session_date);
+      CREATE INDEX IF NOT EXISTS idx_levels_symbol_date ON session_levels(symbol, session_date);
     `);
     this.migrateSignalProvenance();
   }

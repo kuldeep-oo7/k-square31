@@ -24,6 +24,7 @@ const { liveFuture: liveFuturePrice } = require("./live-quotes");
 const { parityForward: parityImpliedForward } = require("./fno-reference");
 const { longOptionExits, verticalSpreadExits } = require("./exit-levels");
 const { tradeOdds, yangZhangVol, parkinsonVol } = require("./trade-odds");
+const { anchoredLevels } = require("./session-levels");
 const { impliedVolatility: solveImpliedVolatility } = require("./option-pricing");
 
 const COVERAGE_PATH = path.resolve(__dirname, "../../data/market-coverage.json");
@@ -984,11 +985,32 @@ class FnoUniverseEngine {
         else lotSize = 100;
       }
 
-      // Entry, Targets, Stop Loss
-      const entryPrice = spot ? Math.round((spot * 0.992) * 100) / 100 : 0;
-      const target1 = spot ? Math.round((entryPrice * 1.025) * 100) / 100 : 0;
-      const target2 = spot ? Math.round((entryPrice * 1.050) * 100) / 100 : 0;
-      const stopLoss = spot ? Math.round((entryPrice * 0.985) * 100) / 100 : 0;
+      // ENTRY, TARGETS AND STOP -- DECIDED ONCE, THEN FROZEN FOR THE SESSION.
+      //
+      // These were recomputed from spot on every render, so they moved with the
+      // market: ASHOKLEY showed a limit of 160.46 at 09:19, 159.91 at 11:08 and
+      // 160.30 at 16:26, all on the same day for the same signal. Each number
+      // was arithmetically correct, which is precisely why it survived every
+      // audit -- the question asked was always "is this computed correctly" and
+      // never "would this still be the same in an hour".
+      //
+      // A limit that chases the market cannot be placed with any confidence. It
+      // is now anchored on the first price observed in the session and does not
+      // move again, and the anchor travels with it so the number can be checked.
+      const frozen = spot
+        ? (() => {
+          try {
+            return anchoredLevels({
+              symbol, instrument: "FUTURES", anchorPrice: spot,
+              anchorSource: priceSource || "OBSERVED_PRICE"
+            });
+          } catch (error) { return null; }
+        })()
+        : null;
+      const entryPrice = frozen ? frozen.entryPrice : (spot ? Math.round((spot * 0.992) * 100) / 100 : 0);
+      const target1 = frozen ? frozen.target1 : (spot ? Math.round((entryPrice * 1.025) * 100) / 100 : 0);
+      const target2 = frozen ? frozen.target2 : (spot ? Math.round((entryPrice * 1.050) * 100) / 100 : 0);
+      const stopLoss = frozen ? frozen.stopLoss : (spot ? Math.round((entryPrice * 0.985) * 100) / 100 : 0);
       const capitalRequired = spot ? Math.round(entryPrice * lotSize) : 0;
       const pnlRupees = spot ? Math.round((spot - entryPrice) * lotSize * 100) / 100 : 0;
 
@@ -1128,6 +1150,18 @@ class FnoUniverseEngine {
       analyzed.tradingSymbol = baseCandidate.tradingSymbol;
       analyzed.angelSymbol = baseCandidate.angelSymbol ?? null;
       analyzed.perUnit = perUnit;
+      // Where the frozen levels came from, so a limit that is now far from the
+      // market explains itself rather than looking stale or wrong.
+      analyzed.levels = frozen ? {
+        frozen: true,
+        anchorPrice: frozen.anchorPrice,
+        anchorSource: frozen.anchorSource,
+        decidedAt: frozen.issuedAt,
+        sessionDate: frozen.sessionDate,
+        driftFromAnchorPct: frozen.driftFromAnchorPct,
+        note: "Decided once at the first price seen this session and held there. "
+          + "It will not move again today, so the limit you place is the limit the desk meant."
+      } : null;
       analyzed.contractExpiry = (() => {
         const ref = loadFnoReference();
         const chosen = ref ? tradableFnoExpiry(symbol, { minDays: 7, reference: ref }) : null;
