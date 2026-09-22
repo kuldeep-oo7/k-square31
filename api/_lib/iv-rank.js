@@ -144,6 +144,76 @@ function ivRank(symbol, { db = null, todayIvPct = null, windowSessions = IDEAL_S
   };
 }
 
+const REMOTE_PATH = "k2/iv-history.json";
+
+/**
+ * THE HISTORY MUST OUTLIVE THE DISK, or it can never reach thirty sessions.
+ *
+ * Render wipes the container's disk on every deploy. The signal ledger was
+ * already mirrored to a durable archive for exactly that reason -- and this
+ * table was not, so every single deploy reset the implied-volatility history to
+ * zero. Thirty sessions were unreachable: the code would have counted to two or
+ * three, been wiped, and started again, for as long as anyone kept deploying.
+ * Measured on the live host this morning: 216 rows written locally, 0 rows on
+ * Render.
+ *
+ * A feature that resets whenever the code changes is not a slow feature. It is
+ * a broken one, and it would have looked like patience.
+ */
+async function syncHistoryToRemote({ db = null } = {}) {
+  const google = require("./google-store");
+  if (!google.googleStoreConfigured()) return { ok: false, reason: "GOOGLE_STORE_NOT_CONFIGURED" };
+  const handle = database(db);
+  try {
+    const rows = handle.db.prepare(
+      "SELECT symbol, session_date, atm_iv_pct, front_expiry, term_slope_pct, skew_points, underlying_price, recorded_at FROM iv_history"
+    ).all();
+    const remote = await google.readGoogleDocument(REMOTE_PATH, null);
+
+    // Union by (symbol, session). A past session is a fact and is never
+    // rewritten by a later run; only genuinely new sessions are added.
+    const merged = new Map();
+    for (const row of (remote?.data?.rows || [])) merged.set(`${row.symbol}|${row.session_date}`, row);
+    for (const row of rows) {
+      const key = `${row.symbol}|${row.session_date}`;
+      if (!merged.has(key)) merged.set(key, row);
+    }
+    const out = [...merged.values()];
+    await google.writeGoogleDocument(REMOTE_PATH, { version: 1, rows: out }, remote?.etag);
+    return { ok: true, stored: out.length, added: out.length - (remote?.data?.rows || []).length };
+  } catch (error) {
+    return { ok: false, reason: error.message };
+  }
+}
+
+/** Pull the history back after a deploy wiped the disk. */
+async function restoreHistoryFromRemote({ db = null } = {}) {
+  const google = require("./google-store");
+  if (!google.googleStoreConfigured()) return { ok: false, reason: "GOOGLE_STORE_NOT_CONFIGURED" };
+  const handle = database(db);
+  try {
+    const remote = await google.readGoogleDocument(REMOTE_PATH, null);
+    const rows = remote?.data?.rows || [];
+    if (!rows.length) return { ok: true, restored: 0, reason: "ARCHIVE_EMPTY" };
+    const insert = handle.db.prepare(`
+      INSERT INTO iv_history (symbol, session_date, atm_iv_pct, front_expiry, term_slope_pct, skew_points, underlying_price, recorded_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?)
+      ON CONFLICT(symbol, session_date) DO NOTHING
+    `);
+    let restored = 0;
+    for (const row of rows) {
+      if (!row?.symbol || !row?.session_date || !(Number(row.atm_iv_pct) > 0)) continue;
+      insert.run(String(row.symbol), String(row.session_date).slice(0, 10), Number(row.atm_iv_pct),
+        row.front_expiry || null, row.term_slope_pct ?? null, row.skew_points ?? null,
+        row.underlying_price ?? null, row.recorded_at || new Date().toISOString());
+      restored += 1;
+    }
+    return { ok: true, restored, sessions: new Set(rows.map((r) => r.session_date)).size };
+  } catch (error) {
+    return { ok: false, reason: error.message };
+  }
+}
+
 /** How much history exists, so the desk can say when the rank becomes usable. */
 function historyDepth({ db = null } = {}) {
   const handle = database(db);
@@ -162,4 +232,8 @@ function historyDepth({ db = null } = {}) {
   };
 }
 
-module.exports = { recordSnapshot, ivRank, historyDepth, MINIMUM_SESSIONS, IDEAL_SESSIONS };
+module.exports = {
+  recordSnapshot, ivRank, historyDepth,
+  syncHistoryToRemote, restoreHistoryFromRemote, REMOTE_PATH,
+  MINIMUM_SESSIONS, IDEAL_SESSIONS
+};

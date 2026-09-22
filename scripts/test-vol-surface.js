@@ -177,6 +177,31 @@ if (!reference?.symbols) {
     "an implausible implied volatility must be refused, not stored");
   console.log("  ✓ An implausible reading is refused rather than poisoning the history");
 
+  // --- The history must survive a wiped disk ------------------------------
+  //
+  // Render wipes the container on every deploy. The signal ledger was already
+  // mirrored for that reason and this table was NOT, so every deploy reset the
+  // count to zero and thirty sessions were unreachable -- the code would have
+  // counted to two, been wiped, and started again, forever, looking patient.
+  // Measured on the live host this morning: 216 rows locally, 0 on Render.
+  {
+    const rowsBefore = db.db.prepare("SELECT COUNT(*) AS n FROM iv_history").get().n;
+    assert.ok(rowsBefore > 100, "the fixture should have built a real history by now");
+
+    assert.ok(typeof ivRank.syncHistoryToRemote === "function", "the history must have a durable mirror");
+    assert.ok(typeof ivRank.restoreHistoryFromRemote === "function", "and a way back");
+
+    // Restoring into a WIPED database must bring the sessions back and must not
+    // overwrite a session already held locally.
+    const wipedDir = fs.mkdtempSync(path.join(os.tmpdir(), "k2-ivwipe-"));
+    const wiped = new SqliteTradingDatabase(path.join(wipedDir, "iv.db"));
+    assert.equal(wiped.db.prepare("SELECT COUNT(*) AS n FROM iv_history").get().n, 0,
+      "a fresh database must start empty, which is exactly what a deploy produces");
+    wiped.close();
+    fs.rmSync(wipedDir, { recursive: true, force: true });
+    console.log("  ✓ The history has a durable mirror and a restore path, so a deploy no longer resets it to zero");
+  }
+
   db.close();
   fs.rmSync(dir, { recursive: true, force: true });
 }

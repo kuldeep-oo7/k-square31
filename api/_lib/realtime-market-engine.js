@@ -162,8 +162,22 @@ class RealtimeMarketEngine {
           if (out.ok) written += 1; else skipped += 1;
         } catch (error) { skipped += 1; }
       }
-      this._surfaceCapturedFor = sessionDate;
+      // ONLY mark the session done if something was actually written. The first
+      // version set this unconditionally, so a run where every symbol failed --
+      // a stale reference, a half-built cache -- would mark the day captured and
+      // never try again. A failure that disables its own retry is the worst kind.
+      if (written > 0) this._surfaceCapturedFor = sessionDate;
       console.log(`[K² Surface] stored ${written} implied volatilities for ${sessionDate} (${skipped} skipped)`);
+
+      // And mirror it, because this table lives on a disk Render wipes on every
+      // deploy. Without this the history resets to zero every time the code
+      // changes and thirty sessions are unreachable forever.
+      if (written > 0) {
+        require("./iv-rank").syncHistoryToRemote().then((sync) => {
+          if (sync.ok) console.log(`[K² Surface] archived ${sync.stored} sessions (${sync.added} new)`);
+          else if (sync.reason !== "GOOGLE_STORE_NOT_CONFIGURED") console.error(`[K² Surface] archive failed: ${sync.reason}`);
+        }).catch(() => {});
+      }
       return { ok: true, sessionDate, written, skipped };
     } catch (error) {
       console.error("Volatility surface capture failed:", error.message);
@@ -575,6 +589,15 @@ class RealtimeMarketEngine {
       this.fundamentalsTimer = setInterval(() => this.refreshFundamentals(), 12 * 60 * 60 * 1000);
       const restored = await require("./signal-record").restoreFromRemote();
       if (restored.ok) console.log(`[K² Ledger] restored ${restored.positions} positions from the durable store`);
+
+      // The implied-volatility history has to come back too, or every deploy
+      // restarts the thirty-session count from nothing.
+      const surface = await require("./iv-rank").restoreHistoryFromRemote();
+      if (surface.ok && surface.restored) {
+        console.log(`[K² Surface] restored ${surface.restored} rows across ${surface.sessions} sessions`);
+      }
+      // Now that the reference and the history are both in place, capture today.
+      this.captureVolatilitySurface();
     } catch (error) {
       // A failed bootstrap leaves the desk on exchange settled prices, which is
       // a labelled and honest state, so it must never take the server down.
@@ -748,8 +771,12 @@ class RealtimeMarketEngine {
     this.archiveTimer = setInterval(() => this.archiveLedger("timer"), 5 * 60 * 1000);
     // One implied-volatility snapshot per session per name, which is what makes
     // IV rank possible in three months' time. It self-skips once written.
+    // EVERY THREE MINUTES, not every thirty. A Render free instance sleeps after
+    // fifteen minutes of no traffic, so a half-hourly timer can never fire on
+    // one -- the container is gone before it comes round. The session-date guard
+    // makes the repeat almost free: it returns immediately once the day is done.
     this.captureVolatilitySurface();
-    this.surfaceTimer = setInterval(() => this.captureVolatilitySurface(), 30 * 60 * 1000);
+    this.surfaceTimer = setInterval(() => this.captureVolatilitySurface(), 3 * 60 * 1000);
 
     // And once more on the way out. Render sends SIGTERM before it kills the
     // container on a deploy, which is the last chance to save the session.
