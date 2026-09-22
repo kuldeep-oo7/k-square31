@@ -48,10 +48,19 @@ function round2(value) {
  * Pass `entrySpreadPct` when a real book is known, and the fill is modelled at
  * the touch rather than the middle.
  */
-function roundTripCost({ entryPremium, exitPremium, lotSize, lots = 1, entrySpreadPct = null, exitSpreadPct = null }) {
+function roundTripCost({ entryPremium, exitPremium, lotSize, lots = 1, quantity: explicitQuantity = null, entrySpreadPct = null, exitSpreadPct = null }) {
   const entry = Number(entryPremium), exit = Number(exitPremium), lot = Number(lotSize);
-  if (!(entry > 0) || !(exit > 0) || !(lot > 0)) return null;
-  const quantity = lot * Math.max(1, Math.round(lots));
+  if (!(entry > 0) || !(exit > 0)) return null;
+  // QUANTITY MAY NOT BE A WHOLE LOT. NSE options must be traded in exchange
+  // lots, but futures on some platforms are sold in any quantity at all -- a
+  // real book shows ASHOKLEY bought in 50 where the exchange lot is 5,000, and
+  // SBIN in 70 where the lot is 750. Forcing everything through lotSize x lots
+  // made the capital figure on those rows meaningless: it quoted Rs 8,02,300 for
+  // a position somebody was taking for about Rs 8,000.
+  const quantity = Number(explicitQuantity) > 0
+    ? Math.round(Number(explicitQuantity))
+    : (lot > 0 ? lot * Math.max(1, Math.round(lots)) : null);
+  if (!(quantity > 0)) return null;
 
   // Crossing the spread. Buying lifts the offer and selling hits the bid, so a
   // round trip pays the WHOLE spread, not half of it -- half on the way in and
@@ -110,15 +119,15 @@ function roundTripCost({ entryPremium, exitPremium, lotSize, lots = 1, entrySpre
  * This is the number that ought to sit beside every entry price and never has.
  * A contract bought at 30.38 does not become profitable at 30.39.
  */
-function breakevenPremium({ entryPremium, lotSize, lots = 1, spreadPct = null, tolerance = 0.0001 }) {
+function breakevenPremium({ entryPremium, lotSize, lots = 1, quantity = null, spreadPct = null, tolerance = 0.0001 }) {
   const entry = Number(entryPremium);
-  if (!(entry > 0) || !(Number(lotSize) > 0)) return null;
+  if (!(entry > 0) || !(Number(lotSize) > 0 || Number(quantity) > 0)) return null;
   // Costs depend on the exit price, which depends on the costs, so it is solved
   // rather than stated. Monotone and well behaved; a dozen steps is plenty.
   let low = entry, high = entry * 3;
   for (let i = 0; i < 60; i += 1) {
     const mid = (low + high) / 2;
-    const result = roundTripCost({ entryPremium: entry, exitPremium: mid, lotSize, lots, entrySpreadPct: spreadPct });
+    const result = roundTripCost({ entryPremium: entry, exitPremium: mid, lotSize, lots, quantity, entrySpreadPct: spreadPct });
     if (!result) return null;
     if (Math.abs(result.netProfit) < tolerance * result.capitalRequired) return round2(mid);
     if (result.netProfit > 0) high = mid; else low = mid;
@@ -127,10 +136,47 @@ function breakevenPremium({ entryPremium, lotSize, lots = 1, spreadPct = null, t
 }
 
 /** The same, expressed as the percentage move the premium has to make. */
-function breakevenMovePct({ entryPremium, lotSize, lots = 1, spreadPct = null }) {
-  const be = breakevenPremium({ entryPremium, lotSize, lots, spreadPct });
+function breakevenMovePct({ entryPremium, lotSize, lots = 1, quantity = null, spreadPct = null }) {
+  const be = breakevenPremium({ entryPremium, lotSize, lots, quantity, spreadPct });
   const entry = Number(entryPremium);
   return be && entry > 0 ? round2((100 * (be - entry)) / entry) : null;
 }
 
-module.exports = { CHARGES, roundTripCost, breakevenPremium, breakevenMovePct };
+/**
+ * The trade sized the way a person actually takes it, rather than the way the
+ * exchange packages it.
+ *
+ * Options must be traded in whole lots -- an order screen for COALINDIA 415 PE
+ * shows "Quantity 1350, 1 lot" and will not accept 1,349. Futures on some
+ * platforms are not packaged at all and are sold by the unit. So `tradeable`
+ * says which regime a contract is in, what one unit costs, and what the caller's
+ * own quantity would cost -- instead of quoting a lot nobody is buying.
+ */
+function sizeTrade({ price, lotSize, quantity = null, wholeLotsOnly = true, target = null, stop = null }) {
+  const unit = Number(price);
+  const lot = Number(lotSize) > 0 ? Number(lotSize) : null;
+  if (!(unit > 0)) return null;
+
+  const wanted = Number(quantity) > 0 ? Math.round(Number(quantity)) : null;
+  const qty = wholeLotsOnly
+    ? (lot ? lot * Math.max(1, Math.round((wanted || lot) / lot)) : wanted)
+    : (wanted || 1);
+  if (!(qty > 0)) return null;
+
+  return {
+    quantity: qty,
+    wholeLotsOnly,
+    exchangeLotSize: lot,
+    lotsCovered: lot ? round2(qty / lot) : null,
+    pricePerUnit: round2(unit),
+    capitalRequired: round2(unit * qty),
+    capitalPerUnit: round2(unit),
+    profitAtTarget: Number(target) > 0 ? round2((Number(target) - unit) * qty) : null,
+    lossAtStop: Number(stop) > 0 ? round2((unit - Number(stop)) * qty) : null,
+    note: wholeLotsOnly
+      ? `Exchange lot is ${lot ?? "unknown"}; an order must be a whole multiple of it.`
+      : "Sold by the unit on this platform, so any quantity is valid."
+  };
+}
+
+module.exports = { CHARGES, roundTripCost, breakevenPremium, breakevenMovePct, sizeTrade };

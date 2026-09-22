@@ -992,6 +992,35 @@ class FnoUniverseEngine {
       const capitalRequired = spot ? Math.round(entryPrice * lotSize) : 0;
       const pnlRupees = spot ? Math.round((spot - entryPrice) * lotSize * 100) / 100 : 0;
 
+      // PER UNIT, because a whole exchange lot is not how everyone trades this.
+      //
+      // The card has always quoted one NSE lot: ASHOKLEY at Rs 8,14,950 for
+      // 5,000 units, SBIN at Rs 7,45,725 for 750. A real book shows the same
+      // names being bought in 50 and in 70 -- that platform sells futures by the
+      // unit and does not package them at all. Quoting a lot nobody is buying
+      // makes the only number on the card that answers "what does this cost me"
+      // wrong by two orders of magnitude.
+      //
+      // Options are different and stay lot-bound: an order screen for COALINDIA
+      // 415 PE reads "Quantity 1350, 1 lot" and will not accept 1,349. The
+      // distinction is the exchange's, not a preference, so it travels with the
+      // row rather than being assumed by whatever reads it.
+      const perUnit = spot ? {
+        entry: entryPrice,
+        target1, target2, stopLoss,
+        capitalPerUnit: entryPrice,
+        rewardPerUnitAtTarget1: Math.round((target1 - entryPrice) * 100) / 100,
+        riskPerUnit: Math.round((entryPrice - stopLoss) * 100) / 100,
+        rewardToRisk: entryPrice > stopLoss
+          ? Math.round(((target1 - entryPrice) / (entryPrice - stopLoss)) * 100) / 100
+          : null,
+        exchangeLotSize: lotSize,
+        capitalForOneExchangeLot: capitalRequired,
+        wholeLotsOnly: false,
+        note: "Futures on a per-unit platform: buy any quantity. Capital is simply "
+          + "quantity x entry, and the risk and reward below are PER UNIT."
+      } : null;
+
       // Fundamentals and Event Risk Overlay
       const fund = getCachedFundamentals(symbol);
       const earningsVeto = fund?.events?.insideTradingWeek === true;
@@ -1098,6 +1127,7 @@ class FnoUniverseEngine {
       // that the exchange names the expiry, and neither may hard-code it.
       analyzed.tradingSymbol = baseCandidate.tradingSymbol;
       analyzed.angelSymbol = baseCandidate.angelSymbol ?? null;
+      analyzed.perUnit = perUnit;
       analyzed.contractExpiry = (() => {
         const ref = loadFnoReference();
         const chosen = ref ? tradableFnoExpiry(symbol, { minDays: 7, reference: ref }) : null;

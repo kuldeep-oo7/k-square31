@@ -171,6 +171,20 @@
   .calib-bar i { position: absolute; left: 0; top: 0; bottom: 0; border-radius: 3px; display: block; }
   .calib-note { font: 500 11px/1.6 var(--mono); color: var(--muted); margin-top: 10px;
     padding-top: 10px; border-top: 1px dashed var(--line); }
+  .sizing { margin: 10px 0; padding: 10px 12px; border: 1px solid var(--line);
+    border-left: 3px solid var(--green); border-radius: 10px; background: rgba(0,230,118,0.04); }
+  .sizing-head { font: 700 9px var(--mono); letter-spacing: .06em; color: var(--green); margin-bottom: 8px; }
+  .sizing-row { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; margin-bottom: 8px; }
+  .sizing-row label { font: 700 10px var(--mono); color: var(--muted); }
+  .sizing-qty { width: 104px; padding: 6px 8px; border-radius: 8px; border: 1px solid var(--line);
+    background: var(--panel2, rgba(255,255,255,0.05)); color: #e6e8f0; font: 800 14px var(--mono); }
+  .sizing-unit { font: 600 10px var(--mono); color: var(--muted); }
+  .sizing-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; }
+  .sizing-grid small { display: block; font: 700 8px var(--mono); color: var(--muted); letter-spacing: .05em; }
+  .sizing-grid b { font: 800 14px var(--mono); }
+  .sizing-note { font: 600 10px var(--mono); color: var(--muted); margin-top: 8px;
+    padding-top: 8px; border-top: 1px dashed var(--line); }
+  @media (max-width: 520px) { .sizing-grid { grid-template-columns: repeat(2, 1fr); } }
   .coverage-note { margin: 0 0 14px; padding: 10px 12px; border: 1px solid var(--line);
     border-left: 3px solid var(--amber); border-radius: 8px; background: rgba(255,179,0,0.05);
     font: 500 11px/1.6 var(--mono); color: var(--muted); grid-column: 1 / -1; }
@@ -724,6 +738,61 @@
   }
 
   // 1. Current Recommended Stocks Card (PURE & CLEAN RECOMMENDATION)
+  // The quantity the user actually trades, remembered between renders. Futures
+  // on their platform are sold by the unit, so the exchange lot is a fact about
+  // the exchange and not about the order they are going to place.
+  var deskQuantity = (function () {
+    try { return Number(localStorage.getItem("k2DeskQuantity")) || 0; }
+    catch (err) { return 0; }
+  })();
+
+  function setDeskQuantity(value) {
+    deskQuantity = Math.max(0, Math.round(Number(value) || 0));
+    try { localStorage.setItem("k2DeskQuantity", String(deskQuantity)); } catch (err) { /* private mode */ }
+    updateView();
+  }
+
+  /**
+   * WHAT THIS COSTS YOU, at the size you actually take.
+   *
+   * The card quoted one NSE lot and nothing else: ASHOKLEY at Rs 8,14,950 for
+   * 5,000 units, SBIN at Rs 7,45,725 for 750. A real position book shows those
+   * same names bought in 50 and in 70, because that platform sells futures by
+   * the unit. Quoting a lot nobody is buying made the one number that answers
+   * "what does this cost me" wrong by two orders of magnitude.
+   *
+   * Options are not like this and are not changed: an order screen for
+   * COALINDIA 415 PE reads "Quantity 1350, 1 lot" and will not accept 1,349.
+   */
+  function sizingBlock(item) {
+    var p = item.perUnit;
+    if (!p || !(p.entry > 0)) return '';
+    var qty = deskQuantity > 0 ? deskQuantity : 1;
+    var capital = p.capitalPerUnit * qty;
+    var reward = p.rewardPerUnitAtTarget1 * qty;
+    var risk = p.riskPerUnit * qty;
+    return '<div class="sizing">'
+      + '<div class="sizing-head">YOUR SIZE &mdash; futures here are sold by the UNIT, not by the lot</div>'
+      + '<div class="sizing-row">'
+      +   '<label>Quantity</label>'
+      +   '<input class="sizing-qty" type="number" min="1" step="1" value="' + qty + '" '
+      +     'data-qty-input="1" inputmode="numeric">'
+      +   '<span class="sizing-unit">units &middot; 1 unit = &#8377;' + fixed(p.capitalPerUnit) + '</span>'
+      + '</div>'
+      + '<div class="sizing-grid">'
+      +   '<div><small>CAPITAL</small><b>&#8377;' + Math.round(capital).toLocaleString('en-IN') + '</b></div>'
+      +   '<div><small>REWARD AT TARGET 1</small><b style="color:var(--green)">+&#8377;'
+      +     Math.round(reward).toLocaleString('en-IN') + '</b></div>'
+      +   '<div><small>RISK AT STOP</small><b style="color:var(--red)">&minus;&#8377;'
+      +     Math.round(risk).toLocaleString('en-IN') + '</b></div>'
+      +   '<div><small>REWARD : RISK</small><b>' + (p.rewardToRisk == null ? '&mdash;' : p.rewardToRisk) + '</b></div>'
+      + '</div>'
+      + '<div class="sizing-note">One full exchange lot is ' + Number(p.exchangeLotSize).toLocaleString('en-IN')
+      +   ' units &mdash; &#8377;' + Number(p.capitalForOneExchangeLot).toLocaleString('en-IN')
+      +   '. You do not have to buy one.</div>'
+      + '</div>';
+  }
+
   function renderCardHtml(item) {
     var isBuy = item.action === 'BUY';
     var isAcc = item.action === 'ACCUMULATE';
@@ -844,9 +913,11 @@
           </div>
         `}
 
+        ${sizingBlock(item)}
+
         <div class="grid-stats">
-          <div><small>Lot Qty</small><b>${item.lotSize}</b></div>
-          <div><small>Capital Req.</small><b>₹${item.capitalRequired ? Number(item.capitalRequired).toLocaleString('en-IN') : '—'}</b></div>
+          <div><small>Exchange Lot</small><b>${item.lotSize}</b></div>
+          <div><small>One Full Lot</small><b>₹${item.capitalRequired ? Number(item.capitalRequired).toLocaleString('en-IN') : '—'}</b></div>
           <div><small>Conv1D Filter Score</small><b>${neuralScore}%</b></div>
         </div>
 
@@ -866,6 +937,17 @@
    * Both are shown, each with its own copy button, plus the contract written
    * out in words so it can be found by eye in any app.
    */
+  // Quantity changes are debounced: every keystroke re-renders the whole card
+  // list, and doing that on each digit of "270" makes the field feel broken.
+  var qtyTimer = null;
+  document.addEventListener('input', function (event) {
+    var box = event.target;
+    if (!box || !box.getAttribute || !box.getAttribute('data-qty-input')) return;
+    var value = box.value;
+    clearTimeout(qtyTimer);
+    qtyTimer = setTimeout(function () { setDeskQuantity(value); }, 450);
+  });
+
   // One listener for every copy button on the page, now and after any re-render.
   document.addEventListener('click', function (event) {
     var button = event.target && event.target.closest ? event.target.closest('.broker-id-copy') : null;

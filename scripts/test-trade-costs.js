@@ -107,6 +107,50 @@ console.log("Starting trade cost test suite...");
   console.log("  ✓ Nonsense inputs return null rather than a plausible-looking zero");
 }
 
+// --- 8. A whole exchange lot is not how everyone trades -------------------
+//
+// The card quoted one NSE lot and nothing else: ASHOKLEY at Rs 8,14,950 for
+// 5,000 units, SBIN at Rs 7,45,725 for 750. A real position book shows those
+// same names bought in 50 and in 70, because that platform sells futures by the
+// unit. The one number that answers "what does this cost me" was wrong by two
+// orders of magnitude.
+{
+  const { sizeTrade } = require("../api/_lib/trade-costs");
+
+  // Futures, sold by the unit: the quantity asked for is the quantity taken.
+  const byUnit = sizeTrade({ price: 162.99, lotSize: 5000, quantity: 50, wholeLotsOnly: false, target: 167, stop: 160 });
+  assert.equal(byUnit.quantity, 50, "a per-unit platform must take the quantity asked for");
+  assert.ok(Math.abs(byUnit.capitalRequired - 8149.5) < 1,
+    `50 units at 162.99 is Rs 8,149.50, got ${byUnit.capitalRequired}`);
+  assert.equal(byUnit.exchangeLotSize, 5000, "the exchange lot is still reported, as a fact about the exchange");
+  console.log(`  ✓ 50 ASHOKLEY units cost Rs ${byUnit.capitalRequired.toLocaleString("en-IN")}, `
+    + "not the Rs 8,14,950 a full lot would");
+
+  // Options, where the exchange will not accept a partial lot.
+  const byLot = sizeTrade({ price: 1.15, lotSize: 1350, quantity: 500, wholeLotsOnly: true });
+  assert.equal(byLot.quantity, 1350, `asking for 500 of a 1350 lot must round to a whole lot, got ${byLot.quantity}`);
+  assert.equal(byLot.lotsCovered, 1);
+  assert.ok(/whole multiple/.test(byLot.note), "and must say why");
+  console.log(`  ✓ An option order for 500 becomes ${byLot.quantity} (1 lot), because the exchange will not take 500`);
+
+  // Rounding must go to the NEAREST lot, not silently to one.
+  assert.equal(sizeTrade({ price: 1.15, lotSize: 1350, quantity: 2600, wholeLotsOnly: true }).quantity, 2700);
+  console.log("  ✓ 2,600 rounds to 2,700 (two lots), not down to one");
+
+  // Costs must follow the real quantity, not the lot.
+  const small = roundTripCost({ entryPremium: 162.99, exitPremium: 167, quantity: 50 });
+  const full = roundTripCost({ entryPremium: 162.99, exitPremium: 167, lotSize: 5000 });
+  assert.equal(small.quantity, 50);
+  assert.equal(full.quantity, 5000);
+  assert.ok(small.grossProfit < full.grossProfit / 50,
+    "the smaller position must earn proportionally less, and pay a bigger share of the fixed Rs 40 brokerage");
+  console.log(`  ✓ Costs follow the real size: 50 units nets Rs ${small.netProfit} where 5,000 nets `
+    + `Rs ${full.netProfit.toLocaleString("en-IN")} -- the flat brokerage bites far harder on the small one`);
+
+  assert.equal(sizeTrade({ price: 0, lotSize: 100, quantity: 10 }), null);
+  console.log("  ✓ It refuses a zero price rather than sizing nothing");
+}
+
 console.log("ALL trade cost tests passed: charges are the published ones on the correct sides, the spread is "
   + "modelled as the larger cost it usually is, breakeven sits above the entry rather than at it, and a cheap "
   + "contract with a wide book is correctly shown to be the expensive one.");
