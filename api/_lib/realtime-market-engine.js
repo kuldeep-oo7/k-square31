@@ -173,10 +173,17 @@ class RealtimeMarketEngine {
       // deploy. Without this the history resets to zero every time the code
       // changes and thirty sessions are unreachable forever.
       if (written > 0) {
+        // A BEAT LATER, not immediately. The mirror was failing with "fetch
+        // failed" when fired straight after two hundred surface computations on
+        // a 512 MB box -- the transport, not the payload, which gzips to under
+        // fifteen kilobytes. Letting the heap settle first costs twenty seconds
+        // and removes the collision.
+        setTimeout(() => {
         require("./iv-rank").syncHistoryToRemote().then((sync) => {
           if (sync.ok) console.log(`[K² Surface] archived ${sync.stored} sessions (${sync.added} new)`);
           else if (sync.reason !== "GOOGLE_STORE_NOT_CONFIGURED") console.error(`[K² Surface] archive failed: ${sync.reason}`);
         }).catch(() => {});
+        }, 20_000).unref?.();
       }
       return { ok: true, sessionDate, written, skipped };
     } catch (error) {
