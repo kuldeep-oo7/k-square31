@@ -305,6 +305,12 @@ function storageReport({ db = null } = {}) {
       audit_events: { rows: count("audit_events"), holds: "Every refusal and every guard that fired, with its reason." },
       ticks_history: { rows: count("ticks_history"), holds: "Underlying prices with the technical read attached at that moment." },
       macro_snapshots: { rows: count("macro_snapshots"), holds: "India VIX and the macro gate, session by session." },
+      session_levels: {
+        rows: count("session_levels"),
+        holds: "The entry, target and stop for each symbol, decided once at the first price of the "
+          + "session and frozen. Before this the limit was recomputed from spot on every render and "
+          + "moved all day -- three different prices for one signal."
+      },
       iv_history: {
         rows: count("iv_history"),
         holds: "One implied-volatility surface per name per session -- at-the-money IV, term structure slope "
