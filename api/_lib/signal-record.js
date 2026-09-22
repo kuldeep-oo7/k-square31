@@ -59,6 +59,12 @@ function backupStatus() {
   return { ...lastBackup };
 }
 
+let lastRestore = { attemptedAt: null, ok: null, detail: "No restore attempted yet on this host." };
+function noteRestore(ok, detail) {
+  lastRestore = { attemptedAt: new Date().toISOString(), ok, detail };
+}
+function restoreStatus() { return { ...lastRestore }; }
+
 function noteBackup(ok, detail) {
   lastBackup = { attemptedAt: new Date().toISOString(), ok, detail };
   return lastBackup;
@@ -314,9 +320,20 @@ function storageReport({ db = null } = {}) {
     oldestMark: first("signal_marks", "recorded_at"),
     durableArchive: {
       configured: google.googleStoreConfigured(),
+      // WRITE and READ are reported separately and the write is the one that
+      // matters. A restore proves the archive is reachable; only a write proves
+      // anything recorded today will still exist after the next deploy.
       lastAttemptAt: backup?.attemptedAt || null,
       lastResult: backup?.ok === null ? "NEVER_ATTEMPTED" : (backup?.ok ? "OK" : "FAILED"),
       detail: backup?.detail || null,
+      read: (() => {
+        const r = restoreStatus();
+        return {
+          lastAttemptAt: r.attemptedAt,
+          lastResult: r.ok === null ? "NEVER_ATTEMPTED" : (r.ok ? "OK" : "FAILED"),
+          detail: r.detail
+        };
+      })(),
       why: "Render wipes the disk on every deploy, so the SQLite file above is temporary. "
         + "The archive is the copy that survives, and it is mirrored every five minutes and again on shutdown."
     },
@@ -534,7 +551,7 @@ async function restoreFromRemote({ db = null } = {}) {
     const rows = remote?.data?.rows;
     if (!Array.isArray(rows) || !rows.length) {
       // Reaching the store and finding it empty still proves the link works.
-      noteBackup(true, "Reached the archive; nothing stored there yet.");
+      noteRestore(true, "Reached the archive; nothing stored there yet.");
       return { ok: false, reason: "NOTHING_STORED_REMOTELY" };
     }
     const columns = new Set(handle.db.prepare("PRAGMA table_info(signals_lifecycle)").all().map((c) => c.name));
@@ -550,7 +567,12 @@ async function restoreFromRemote({ db = null } = {}) {
       ).run(...names.map((k) => row[k]));
       restored += 1;
     }
-    noteBackup(true, `Restored ${restored} rows from the archive.`);
+    // A RESTORE IS A READ. It must not set the flag that says the backup works,
+    // which is exactly what it was doing: the panel read "ARCHIVE: OK" on a host
+    // whose WRITE path had never once been exercised, because the ledger mirror
+    // skips while the ledger is empty and the ledger has been empty every time.
+    // Durability needs the write to work, and only a write can prove it.
+    noteRestore(true, `Restored ${restored} rows from the archive.`);
     return { ok: true, positions: restored };
   } catch (error) {
     noteBackup(false, `Restore failed: ${error.message}`);
@@ -575,7 +597,7 @@ function mergeRows(remoteRows, localRows) {
 
 module.exports = {
   MAX_BACKDATE_MS, REMOTE_PATH,
-  accuracyView, backupStatus, database, markToMarket, mergeRows, record,
+  accuracyView, backupStatus, restoreStatus, database, markToMarket, mergeRows, record,
   calibration,
   markHistory,
   storageReport,

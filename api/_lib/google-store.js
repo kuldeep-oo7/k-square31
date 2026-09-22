@@ -105,13 +105,21 @@ async function requestGoogle(action, payload = {}, { attempts = 3 } = {}) {
       // Anything the script or the protocol SAID is final.
       if (error instanceof GoogleStoreConflictError) throw error;
       if (/returned \d{3}/.test(error.message) || /rejected the request/.test(error.message)) throw error;
+      // "fetch failed" is Node's opaque wrapper. The reason it actually failed
+      // -- ECONNRESET, ETIMEDOUT, EPROTO, a DNS fault -- is on error.cause, and
+      // without it a diagnosis is guesswork. Three deploys were spent guessing.
+      const cause = error?.cause;
+      const detail = cause
+        ? `${cause.code || cause.name || "cause"}${cause.message && cause.message !== error.message ? ": " + cause.message : ""}`
+        : null;
+      error.k2Detail = detail ? `${error.message} (${detail})` : error.message;
       lastError = error;
       if (attempt < attempts) {
         await new Promise((resolve) => setTimeout(resolve, 1500 * attempt));
       }
     }
   }
-  throw new Error(`${lastError?.message || "unknown transport failure"} after ${attempts} attempts`);
+  throw new Error(`${lastError?.k2Detail || lastError?.message || "unknown transport failure"} after ${attempts} attempts`);
 }
 
 async function readGoogleDocuments(entries) {

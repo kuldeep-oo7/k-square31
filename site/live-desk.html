@@ -1538,11 +1538,17 @@
                     + '</b> ' + (store.volatilityHistory.archive.detail || '')
                   : '')
             : '')
-      +   '<br><b style="color:' + archiveColour + '">DURABLE ARCHIVE.</b> '
-      +   (a.configured ? 'Configured. ' : '<b style="color:var(--red)">NOT CONFIGURED.</b> ')
+      +   '<br><b style="color:' + archiveColour + '">DURABLE ARCHIVE &mdash; WRITE.</b> '
+      +   (a.configured ? '' : '<b style="color:var(--red)">NOT CONFIGURED.</b> ')
       +   'Last attempt: ' + (a.lastAttemptAt ? String(a.lastAttemptAt).slice(0, 16).replace('T', ' ') : 'never')
       +   ' &mdash; <b style="color:' + archiveColour + '">' + (a.lastResult || 'UNKNOWN') + '</b>'
       +   (a.detail ? ' (' + a.detail + ')' : '')
+      +   '<br><span style="color:var(--muted)">This is the one that matters. A restore only proves the '
+      +   'archive is reachable; only a WRITE proves anything recorded today survives the next deploy.</span>'
+      +   (a.read
+            ? '<br><b>DURABLE ARCHIVE &mdash; READ.</b> ' + (a.read.lastResult || 'UNKNOWN')
+              + (a.read.detail ? ' (' + a.read.detail + ')' : '')
+            : '')
       +   '<br><span style="color:var(--muted)">' + (a.why || '') + '</span>'
       +   '<br><br><b>HOW TO SEE IT.</b><br>'
       +   (store.howToSee || []).map(function (line) { return '&nbsp;&nbsp;&middot; ' + line; }).join('<br>')
