@@ -144,7 +144,8 @@ function ivRank(symbol, { db = null, todayIvPct = null, windowSessions = IDEAL_S
   };
 }
 
-const REMOTE_PATH = "k2/iv-history.json";
+const REMOTE_INDEX = "k2/iv-sessions.json";
+const sessionPath = (day) => `k2/iv-session-${String(day).slice(0, 10)}.json`;
 
 // CONFIGURED AND WORKING ARE DIFFERENT FACTS, and this project has already
 // shipped a desk that claimed durability it did not have. So the outcome of the
@@ -154,74 +155,90 @@ let lastArchive = { attemptedAt: null, ok: null, detail: "No archive attempted y
 function archiveStatus() { return { ...lastArchive }; }
 
 /**
- * THE HISTORY MUST OUTLIVE THE DISK, or it can never reach thirty sessions.
+ * ONE SMALL DOCUMENT PER SESSION, not one growing document for all of them.
  *
- * Render wipes the container's disk on every deploy. The signal ledger was
- * already mirrored to a durable archive for exactly that reason -- and this
- * table was not, so every single deploy reset the implied-volatility history to
- * zero. Thirty sessions were unreachable: the code would have counted to two or
- * three, been wiped, and started again, for as long as anyone kept deploying.
- * Measured on the live host this morning: 216 rows written locally, 0 rows on
- * Render.
+ * The first design mirrored the whole table in a single write. It failed on the
+ * live host three times in a row with "fetch failed" -- fast each time, so not a
+ * timeout, and reads through the identical transport had always worked. The
+ * distinguishing feature of the write was its SIZE, and a payload that grows
+ * with the history is a payload that breaks later even if it works today: by
+ * session thirty it would have been thirty times bigger.
  *
- * A feature that resets whenever the code changes is not a slow feature. It is
- * a broken one, and it would have looked like patience.
+ * A session is written once and never rewritten, so it wants its own document.
+ * Each one holds a single day for ~215 names -- a couple of kilobytes gzipped --
+ * and the write is O(1) in the size of the history rather than O(n). A tiny
+ * index lists which days exist, so the restore knows what to ask for.
+ *
+ * This is the better design even if size turns out not to have been the cause:
+ * re-uploading a year of history to add one day was always wasteful.
  */
-async function syncHistoryToRemote({ db = null } = {}) {
+async function syncHistoryToRemote({ db = null, sessionDate = null } = {}) {
   const google = require("./google-store");
   if (!google.googleStoreConfigured()) return { ok: false, reason: "GOOGLE_STORE_NOT_CONFIGURED" };
   const handle = database(db);
   try {
-    const rows = handle.db.prepare(
-      "SELECT symbol, session_date, atm_iv_pct, front_expiry, term_slope_pct, skew_points, underlying_price, recorded_at FROM iv_history"
-    ).all();
-    const remote = await google.readGoogleDocument(REMOTE_PATH, null);
+    const day = sessionDate
+      ? String(sessionDate).slice(0, 10)
+      : handle.db.prepare("SELECT MAX(session_date) AS d FROM iv_history").get()?.d;
+    if (!day) return { ok: true, stored: 0, reason: "NOTHING_TO_ARCHIVE" };
 
-    // Union by (symbol, session). A past session is a fact and is never
-    // rewritten by a later run; only genuinely new sessions are added.
-    const merged = new Map();
-    for (const row of (remote?.data?.rows || [])) merged.set(`${row.symbol}|${row.session_date}`, row);
-    for (const row of rows) {
-      const key = `${row.symbol}|${row.session_date}`;
-      if (!merged.has(key)) merged.set(key, row);
-    }
-    const out = [...merged.values()];
-    await google.writeGoogleDocument(REMOTE_PATH, { version: 1, rows: out }, remote?.etag);
-    const sessions = new Set(out.map((r) => r.session_date)).size;
+    const rows = handle.db.prepare(
+      "SELECT symbol, atm_iv_pct, front_expiry, term_slope_pct, skew_points, underlying_price FROM iv_history WHERE session_date = ?"
+    ).all(day);
+    if (!rows.length) return { ok: true, stored: 0, reason: "NOTHING_TO_ARCHIVE" };
+
+    // The day itself. Written once; a past session is a fact and is not revised.
+    const existing = await google.readGoogleDocument(sessionPath(day), null);
+    await google.writeGoogleDocument(sessionPath(day), { version: 1, sessionDate: day, rows }, existing?.etag);
+
+    // And the index, which stays small forever.
+    const index = await google.readGoogleDocument(REMOTE_INDEX, null);
+    const days = new Set(index?.data?.sessions || []);
+    days.add(day);
+    const sessions = [...days].sort();
+    await google.writeGoogleDocument(REMOTE_INDEX, { version: 1, sessions }, index?.etag);
+
     lastArchive = {
-      attemptedAt: new Date().toISOString(), ok: true, sessions,
-      detail: `Wrote ${out.length} rows across ${sessions} sessions to the archive.`
+      attemptedAt: new Date().toISOString(), ok: true, sessions: sessions.length,
+      detail: `Wrote ${rows.length} rows for ${day}; ${sessions.length} sessions archived.`
     };
-    return { ok: true, stored: out.length, added: out.length - (remote?.data?.rows || []).length, sessions };
+    return { ok: true, stored: rows.length, sessionDate: day, sessions: sessions.length };
   } catch (error) {
     lastArchive = { attemptedAt: new Date().toISOString(), ok: false, sessions: null, detail: `Write failed: ${error.message}` };
     return { ok: false, reason: error.message };
   }
 }
 
-/** Pull the history back after a deploy wiped the disk. */
+/** Pull every archived session back after a deploy wiped the disk. */
 async function restoreHistoryFromRemote({ db = null } = {}) {
   const google = require("./google-store");
   if (!google.googleStoreConfigured()) return { ok: false, reason: "GOOGLE_STORE_NOT_CONFIGURED" };
   const handle = database(db);
   try {
-    const remote = await google.readGoogleDocument(REMOTE_PATH, null);
-    const rows = remote?.data?.rows || [];
-    if (!rows.length) return { ok: true, restored: 0, reason: "ARCHIVE_EMPTY" };
+    const index = await google.readGoogleDocument(REMOTE_INDEX, null);
+    const sessions = index?.data?.sessions || [];
+    if (!sessions.length) return { ok: true, restored: 0, sessions: 0, reason: "ARCHIVE_EMPTY" };
+
     const insert = handle.db.prepare(`
       INSERT INTO iv_history (symbol, session_date, atm_iv_pct, front_expiry, term_slope_pct, skew_points, underlying_price, recorded_at)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?)
       ON CONFLICT(symbol, session_date) DO NOTHING
     `);
-    let restored = 0;
-    for (const row of rows) {
-      if (!row?.symbol || !row?.session_date || !(Number(row.atm_iv_pct) > 0)) continue;
-      insert.run(String(row.symbol), String(row.session_date).slice(0, 10), Number(row.atm_iv_pct),
-        row.front_expiry || null, row.term_slope_pct ?? null, row.skew_points ?? null,
-        row.underlying_price ?? null, row.recorded_at || new Date().toISOString());
-      restored += 1;
+    let restored = 0, days = 0;
+    for (const day of sessions) {
+      const doc = await google.readGoogleDocument(sessionPath(day), null);
+      const rows = doc?.data?.rows || [];
+      if (!rows.length) continue;
+      days += 1;
+      for (const row of rows) {
+        if (!row?.symbol || !(Number(row.atm_iv_pct) > 0)) continue;
+        insert.run(String(row.symbol), String(day).slice(0, 10), Number(row.atm_iv_pct),
+          row.front_expiry || null, row.term_slope_pct ?? null, row.skew_points ?? null,
+          row.underlying_price ?? null, new Date().toISOString());
+        restored += 1;
+      }
     }
-    return { ok: true, restored, sessions: new Set(rows.map((r) => r.session_date)).size };
+    return { ok: true, restored, sessions: days };
   } catch (error) {
     return { ok: false, reason: error.message };
   }
@@ -248,6 +265,6 @@ function historyDepth({ db = null } = {}) {
 
 module.exports = {
   recordSnapshot, ivRank, historyDepth,
-  syncHistoryToRemote, restoreHistoryFromRemote, archiveStatus, REMOTE_PATH,
+  syncHistoryToRemote, restoreHistoryFromRemote, archiveStatus, REMOTE_INDEX, sessionPath,
   MINIMUM_SESSIONS, IDEAL_SESSIONS
 };
