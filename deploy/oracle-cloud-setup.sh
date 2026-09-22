@@ -18,13 +18,24 @@
 # with a real disk that persists, it never sleeps, there is no monthly hour cap,
 # and it does not expire the way an AWS or GCP free tier does.
 #
-#   2-4 ARM cores, 12-24 GB RAM, 200 GB persistent storage, 10 TB egress.
-#   The desk peaks at 238 MB. It will not notice the machine.
+# WHICH SHAPE TO ASK FOR, from Oracle's own Always Free resource reference:
 #
-# THE ONE REAL CATCH, said plainly: Ampere ARM capacity is shared per region and
-# Oracle does not guarantee you can claim it. "Out of capacity" on your first
-# try is normal -- retry, or pick a different home region at signup. A card is
-# required for identity only and Always Free resources are not billed.
+#   VM.Standard.A1.Flex    2 OCPU / 12 GB total   ARM. Best, but Oracle HALVED
+#                          this on 15 June 2026 (it was 4/24) and capacity is
+#                          shared per region -- "out of host capacity" on a
+#                          first attempt is normal, not a mistake you made.
+#   VM.Standard.E2.1.Micro 1/8 OCPU / 1 GB, x2    AMD. Smaller, and almost
+#                          always actually available.
+#   Block storage          200 GB across both, boot volume 50 GB by default.
+#
+# TAKE THE ARM SHAPE IF YOU CAN GET IT. If it says out of capacity, take the
+# AMD micro instead and do not wait: this desk holds about 550 MB and Ubuntu
+# minimal about 180 MB, so 1 GB fits with roughly 290 MB to spare. The script
+# adds a 2 GB swap file either way, because the memory pressure here is BURSTY
+# -- the screener walks 27,536 contracts in a third of a second -- rather than
+# sustained, and swap absorbs a burst without ever being touched at rest.
+#
+# A card is taken for identity only. Always Free resources are not billed.
 #
 # USAGE, on a fresh Ubuntu 24.04 ARM instance:
 #   curl -fsSL <this file> -o setup.sh && bash setup.sh
@@ -59,7 +70,26 @@ fi
 cd "$APP_DIR"
 npm install --omit=dev --no-audit --no-fund
 
-say "4/7  Private directory for credentials and the ledger"
+say "4/8  Swap, so a 1 GB micro survives the screener"
+# The screener walks the whole listed option chain in a burst. On a 1 GB AMD
+# micro that burst is the difference between running and being killed by the
+# OOM reaper -- which is exactly how the desk died on an 8 GB laptop tonight,
+# unattended, in under an hour. Swap costs nothing at rest.
+if [ ! -f /swapfile ] && [ "$(free -m | awk '/^Mem:/{print $2}')" -lt 3000 ]; then
+  sudo fallocate -l 2G /swapfile || sudo dd if=/dev/zero of=/swapfile bs=1M count=2048
+  sudo chmod 600 /swapfile
+  sudo mkswap /swapfile >/dev/null
+  sudo swapon /swapfile
+  grep -q '/swapfile' /etc/fstab || echo '/swapfile none swap sw 0 0' | sudo tee -a /etc/fstab >/dev/null
+  # Prefer real memory; touch swap only under genuine pressure.
+  echo 'vm.swappiness=10' | sudo tee /etc/sysctl.d/99-k2-swap.conf >/dev/null
+  sudo sysctl -p /etc/sysctl.d/99-k2-swap.conf >/dev/null
+  echo "   2 GB swap added"
+else
+  echo "   swap already present, or the machine is large enough not to need it"
+fi
+
+say "5/8  Private directory for credentials and the ledger"
 # THIS IS THE WHOLE POINT. On Render this directory vanished on every deploy.
 # Here it is on a disk that persists across restarts, reboots and code updates,
 # so the paper record accumulates instead of resetting.
@@ -79,7 +109,13 @@ ENVEOF
   echo "   created .private/production.env — FILL IT IN before starting"
 fi
 
-say "5/7  systemd service, so it restarts itself and survives a reboot"
+say "6/8  systemd service, so it restarts itself and survives a reboot"
+# Size the heap to the machine rather than assuming. On a 1 GB micro a default
+# V8 ceiling can exceed the box itself, so the process grows until the kernel
+# kills it -- which looks like a crash and is really a mis-sized heap.
+TOTAL_MB="$(free -m | awk '/^Mem:/{print $2}')"
+if [ "$TOTAL_MB" -lt 1500 ]; then HEAP_MB=420; else HEAP_MB=1024; fi
+echo "   ${TOTAL_MB} MB of RAM detected -> node heap capped at ${HEAP_MB} MB"
 sudo tee /etc/systemd/system/k2desk.service >/dev/null <<UNITEOF
 [Unit]
 Description=K2 Quantitative Range Desk
@@ -94,7 +130,7 @@ EnvironmentFile=-${APP_DIR}/.private/production.env
 Environment=NODE_ENV=production
 Environment=PORT=${PORT}
 Environment=TZ=Asia/Kolkata
-ExecStart=/usr/bin/node --max-old-space-size=1024 ${APP_DIR}/server.js
+ExecStart=/usr/bin/node --max-old-space-size=${HEAP_MB} ${APP_DIR}/server.js
 Restart=always
 RestartSec=5
 StandardOutput=journal
@@ -107,7 +143,7 @@ UNITEOF
 sudo systemctl daemon-reload
 sudo systemctl enable k2desk
 
-say "6/7  Firewall"
+say "7/8  Firewall"
 # Oracle also has a cloud-level security list. Open the same port THERE, in the
 # console, under Networking -> Virtual Cloud Networks -> your VCN -> Security
 # Lists -> Ingress Rules, or the port will look closed however open it is here.
@@ -117,7 +153,7 @@ sudo iptables -I INPUT -p tcp --dport "${PORT}" -j ACCEPT 2>/dev/null || true
 sudo netfilter-persistent save >/dev/null 2>&1 || true
 yes | sudo ufw enable >/dev/null 2>&1 || true
 
-say "7/7  Start"
+say "8/8  Start"
 sudo systemctl restart k2desk
 sleep 6
 sudo systemctl --no-pager --lines=12 status k2desk || true
