@@ -29,12 +29,25 @@ const liveQuotes = require("../api/_lib/live-quotes");
 const signalRecord = require("../api/_lib/signal-record");
 
 const realPhase = liveQuotes.marketPhase;
+const realLiveQuote = liveQuotes.liveQuote;
 const realRecord = signalRecord.record;
 const realMark = signalRecord.markToMarket;
 const realSync = signalRecord.syncToRemote;
 
 const collected = [];
 liveQuotes.marketPhase = () => ({ open: true, phase: "OPEN", reason: "FORCED_BY_TEST" });
+
+// A LIVE BOOK MUST BE STUBBED TOO, now that the screener refuses a settled
+// price during a session. That refusal is correct -- it is the fix for a desk
+// that quoted yesterday's close as today's entry and was 248% wrong on one row
+// -- but it means forcing the market open without also supplying a book tests a
+// state production never reaches. During a real session there IS a book.
+const reference = require("../api/_lib/fno-reference").loadReference();
+liveQuotes.liveQuote = (symbol, expiry, strike, optionType) => {
+  const settled = Number(reference?.symbols?.[symbol]?.expiries?.[expiry]?.quotes?.[`${strike}|${optionType}`]?.price);
+  if (!(settled > 0)) return null;
+  return { bid: settled * 0.99, ask: settled * 1.01, freshness: "REALTIME", ageSeconds: 3 };
+};
 signalRecord.record = (signal) => {
   collected.push(signal);
   return { ok: true, status: "RECORDED", id: `TEST-${collected.length}` };
@@ -85,6 +98,19 @@ try {
   const sources = [...new Set(fromScreen.map((s) => s.priceSource))];
   console.log(`  ✓ Every screened row carries its price source (${sources.join(", ")})`);
 
+  // And during a session that source must be a BOOK, never the settlement file.
+  // The property that matters is that NOTHING came from the settlement file --
+  // not which broker label it carries. The card path writes LIVE_BROKER_QUOTE
+  // and the screener writes BROKER_REALTIME, and a contract can appear in both,
+  // so matching on one prefix tested the label rather than the fact.
+  const settled = fromScreen.filter((s) => /EXCHANGE_SETTLED|EXCHANGE_TRADED/.test(s.priceSource));
+  assert.equal(settled.length, 0,
+    `${settled.length} contracts were recorded during an OPEN session at a settlement price: `
+    + `${settled.slice(0, 3).map((s) => `${s.symbol} ${s.strike}${s.right}`).join(", ")}. `
+    + "Yesterday's close is not today's entry.");
+  console.log(`  ✓ Not one was priced from the settlement file; sources were `
+    + `${[...new Set(fromScreen.map((s) => s.priceSource))].join(", ")}`);
+
   // 5. Entry, target and stop must all be present and correctly ordered, or the
   //    position can never close.
   for (const s of fromScreen) {
@@ -108,6 +134,7 @@ try {
     + `${fromScreen.length} from the screened chain)`);
 } finally {
   liveQuotes.marketPhase = realPhase;
+  liveQuotes.liveQuote = realLiveQuote;
   signalRecord.record = realRecord;
   signalRecord.markToMarket = realMark;
   signalRecord.syncToRemote = realSync;

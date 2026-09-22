@@ -170,6 +170,11 @@ function screenContracts({
   now = Date.now(),
   gates = {},
   limit = 60,
+  // The live book, injected so this module keeps no broker dependency. Given
+  // one, a contract is priced at the MID OF THE REAL BOOK; without one it falls
+  // back to the exchange settlement price and says so on the row.
+  liveQuoteFor = null,
+  marketOpen = null,
   // Injected rather than required, so the screener has no database dependency
   // and the suites can run it without one. Returns null until enough sessions
   // of history exist, and the rank term stays neutral until it does.
@@ -193,7 +198,8 @@ function screenContracts({
   };
   const refused = {
     expiryWindow: 0, illiquid: 0, tinyPremium: 0, noIv: 0,
-    deltaBand: 0, belowIntrinsic: 0, noDirection: 0, noUnderlying: 0
+    deltaBand: 0, belowIntrinsic: 0, noDirection: 0, noUnderlying: 0,
+    staleDuringSession: 0
   };
   let examined = 0;
   const survivors = [];
@@ -232,8 +238,34 @@ function screenContracts({
           const openInterest = Number(quote.openInterest) || 0;
           if (volume < rules.minVolume || openInterest < rules.minOpenInterest) { refused.illiquid += 1; continue; }
 
-          const premium = Number(quote.price);
+          // THE PRICE MUST BE TODAY'S, NOT YESTERDAY'S.
+          //
+          // This screener priced every contract from the settlement file and
+          // never once looked at the live book. Measured against a broker screen
+          // at 10:32 on 2026-09-22, while the desk was showing these very rows:
+          //
+          //   JINDALSTEL 1140 PE   desk 15.15   market 13.60    +11%
+          //   COALINDIA  415 PE    desk  4.00   market  1.15   +248%
+          //   LTM       4300 PE    desk 85.80   market 208.75    -59%
+          //
+          // Every one was the previous session's close. And because the premium
+          // feeds everything downstream, the implied volatility, the variance
+          // risk premium, the probability of touch, the theta burn and the net
+          // profit on those rows were all computed on a price that no longer
+          // existed. A contract that had fallen 74% still showed yesterday's
+          // number as an entry.
+          const book = liveQuoteFor ? liveQuoteFor(symbol, expiry, strike, optionType) : null;
+          const liveMid = book && book.bid > 0 && book.ask > 0 ? (book.bid + book.ask) / 2 : null;
+          const premium = liveMid !== null ? liveMid : Number(quote.price);
+          const priceIsLive = liveMid !== null;
+          const spreadPct = book && book.bid > 0 && book.ask > 0 && liveMid > 0
+            ? (100 * (book.ask - book.bid)) / liveMid
+            : null;
           if (!(premium >= rules.minPremium)) { refused.tinyPremium += 1; continue; }
+          // During market hours a settled price is not an entry price. If the
+          // session is open and no live book was seen, the contract is refused
+          // rather than quoted at yesterday's close.
+          if (marketOpen === true && !priceIsLive) { refused.staleDuringSession += 1; continue; }
 
           // NSE derives a settlement price for contracts that did not trade, and
           // 972 of them came out BELOW intrinsic value last time this was
@@ -286,10 +318,14 @@ function screenContracts({
           const rank = ivRankFor ? ivRankFor(symbol, impliedVol * 100) : null;
 
           const economics = roundTripCost({
-            entryPremium: premium, exitPremium: targetPremium, lotSize: bucket.lotSize || entry.lotSize
+            entryPremium: premium, exitPremium: targetPremium,
+            lotSize: bucket.lotSize || entry.lotSize,
+            // Where a real book was seen, the fill crosses it. This is the
+            // larger of the two costs and no schedule lists it.
+            entrySpreadPct: spreadPct
           });
           const breakevenMove = breakevenMovePct({
-            entryPremium: premium, lotSize: bucket.lotSize || entry.lotSize
+            entryPremium: premium, lotSize: bucket.lotSize || entry.lotSize, spreadPct
           });
 
           const row = {
@@ -298,7 +334,15 @@ function screenContracts({
             // PROVENANCE, so a row that reaches the ledger says where its price
             // came from. A settlement price NSE derived for a contract that did
             // not trade is a different fact from one somebody actually paid.
-            priceSource: quote.traded ? "EXCHANGE_TRADED_PRICE" : "EXCHANGE_SETTLED_PRICE",
+            priceSource: priceIsLive
+              ? `BROKER_${book.freshness || "BOOK"}`
+              : (quote.traded ? "EXCHANGE_TRADED_PRICE" : "EXCHANGE_SETTLED_PRICE"),
+            priceIsLive,
+            bid: book?.bid ?? null,
+            ask: book?.ask ?? null,
+            spreadPct: spreadPct === null ? null : round(spreadPct, 2),
+            quoteAgeSeconds: book?.ageSeconds ?? null,
+            settledPrice: round(Number(quote.price)),
             tradedToday: quote.traded === true,
             forward: round(forward),
             lotSize: bucket.lotSize || entry.lotSize || null,
@@ -366,6 +410,9 @@ function screenContracts({
     refused,
     gates: rules,
     asOfSession: reference.session || null,
+    pricedLive: survivors.filter((c) => c.priceIsLive).length,
+    pricedFromSettlement: survivors.filter((c) => !c.priceIsLive).length,
+    marketOpen,
     contracts: survivors.slice(0, limit)
   };
 }

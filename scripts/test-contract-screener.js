@@ -126,4 +126,56 @@ if (!reference?.symbols) {
   console.log(`  ✓ Tightening liquidity cuts the list from ${result.survived.toLocaleString("en-IN")} to ${strict.survived.toLocaleString("en-IN")}`);
 }
 
+// --- 3. A settled price is not an entry price during a session --------------
+//
+// Measured against a broker screen at 10:32 on 2026-09-22, while the desk was
+// showing these very rows: JINDALSTEL 1140 PE desk 15.15 / market 13.60,
+// COALINDIA 415 PE desk 4.00 / market 1.15, LTM 4300 PE desk 85.80 / market
+// 208.75. Every one was the previous session's close, and because the premium
+// feeds the implied volatility, the variance risk premium, the touch
+// probability, the theta burn and the net profit, every derived number on those
+// rows was computed on a price that no longer existed.
+if (reference?.symbols) {
+  const closed = screenContracts({ reference, limit: 10, marketOpen: false });
+  assert.ok(closed.survived > 0, "with the market shut, settled prices are the only prices and must be used");
+  assert.ok(closed.contracts.every((c) => c.priceIsLive === false),
+    "with no live book injected, every row must declare itself NOT live");
+  assert.ok(closed.contracts.every((c) => /EXCHANGE_/.test(c.priceSource)),
+    "and must name the settlement file as its source");
+  console.log(`  ✓ Market shut: ${closed.survived} rows priced from settlement, every one labelled as such`);
+
+  const open = screenContracts({ reference, limit: 10, marketOpen: true });
+  assert.equal(open.survived, 0,
+    `${open.survived} contracts survived with the session OPEN and no live book; a settled price `
+    + "is not an entry price during market hours");
+  assert.ok(open.refused.staleDuringSession > 0, "and the refusal must be counted and named");
+  console.log(`  ✓ Market open, no live book: all ${open.refused.staleDuringSession.toLocaleString("en-IN")} `
+    + "refused rather than quoted at yesterday's close");
+
+  // With a book, it must price from the BOOK and not from the file.
+  const sym = Object.keys(reference.symbols)[0];
+  let sawMid = null;
+  const withBook = screenContracts({
+    reference, limit: 10, marketOpen: true,
+    liveQuoteFor: (symbol, expiry, strike, optionType) => {
+      const bucket = reference.symbols[symbol]?.expiries?.[expiry];
+      const settled = Number(bucket?.quotes?.[`${strike}|${optionType}`]?.price);
+      if (!(settled > 0)) return null;
+      // A book HALF the settled price -- the COALINDIA case, exaggerated.
+      const mid = settled / 2;
+      sawMid = mid;
+      return { bid: mid * 0.98, ask: mid * 1.02, freshness: "REALTIME", ageSeconds: 4 };
+    }
+  });
+  assert.ok(withBook.survived > 0, "with a live book the screen must produce rows again");
+  assert.ok(withBook.contracts.every((c) => c.priceIsLive === true), "every row must be marked live");
+  for (const c of withBook.contracts) {
+    assert.ok(Math.abs(c.premium - c.settledPrice / 2) < 0.02,
+      `${c.symbol} priced at ${c.premium} when the book said ${c.settledPrice / 2}; it used the file, not the book`);
+    assert.ok(c.spreadPct > 0, "a live row must carry the spread it will have to cross");
+    assert.ok(c.bid > 0 && c.ask > c.bid, "and the book it came from");
+  }
+  console.log(`  ✓ With a live book every row prices from the BOOK, not the file, and carries its spread`);
+}
+
 console.log("ALL contract screener tests passed: it walks the whole listed chain, refuses the overwhelming majority, every gate bites, and every survivor carries the numbers needed to act on it.");

@@ -246,7 +246,21 @@ class RealtimeMarketEngine {
         try { return ivRank.ivRank(symbol, { todayIvPct: currentIvPct }); }
         catch (error) { return null; }
       };
-      const result = screenContracts({ underlyingScores: scores, limit, ivRankFor });
+      // THE LIVE BOOK. The screener priced every contract off the settlement
+      // file and never once looked at a real quote, so during a session it was
+      // showing yesterday's close as today's entry -- 248% wrong on one of the
+      // rows it was recommending. Now it prices from the book where one exists
+      // and refuses the contract outright when the session is open and one does
+      // not, rather than quoting a price nobody can trade at.
+      const live = require("./live-quotes");
+      const phase = live.marketPhase();
+      const liveQuoteFor = (symbol, expiry, strike, optionType) => {
+        try { return live.liveQuote(symbol, expiry, strike, optionType); }
+        catch (error) { return null; }
+      };
+      const result = screenContracts({
+        underlyingScores: scores, limit, ivRankFor, liveQuoteFor, marketOpen: phase.open === true
+      });
       this._screened = { ...result, shown: (result.contracts || []).length, limit };
       this._screenAt = Date.now();
       return this._screened;

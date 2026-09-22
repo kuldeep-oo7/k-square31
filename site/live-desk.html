@@ -1434,8 +1434,21 @@
       + (survived > shown
           ? 'The remaining ' + (survived - shown).toLocaleString('en-IN') + ' scored lower than every row below. '
           : '')
-      + 'Ranked on variance risk premium, probability of touch, liquidity, moneyness, tenor, cost efficiency '
-      + 'and the underlying&rsquo;s own read, at equal weight. Settlement file: ' + (screen.asOfSession || 'unknown') + '. '
+      + 'Ranked on variance risk premium, probability of touch, liquidity, moneyness, tenor, cost efficiency, '
+      + 'theta burn, IV rank and the underlying&rsquo;s own read, at equal weight. '
+      // WHERE THE PRICES CAME FROM, said before anything else, because a
+      // settled price shown during a session is yesterday's close wearing
+      // today's clothes -- and it was wrong by 248% on one of these rows.
+      + (screen.pricedLive != null
+          ? '<br><strong style="color:' + (screen.pricedLive > 0 ? 'var(--green)' : 'var(--amber)') + '">PRICES: '
+            + Number(screen.pricedLive).toLocaleString('en-IN') + ' from a LIVE BOOK, '
+            + Number(screen.pricedFromSettlement || 0).toLocaleString('en-IN') + ' from the '
+            + (screen.asOfSession || 'last') + ' settlement file.</strong> '
+            + (screen.marketOpen
+                ? 'The session is open, so a settled price is not an entry price and those contracts are refused.'
+                : 'The market is shut; settled prices are the only prices there are, and nothing here is executable.')
+          : 'Settlement file: ' + (screen.asOfSession || 'unknown') + '. ')
+      + ' '
       + '<strong>NET is after brokerage, STT at 0.15%, exchange, stamp and GST</strong> &mdash; the spread is '
       + 'extra and is only known where a live book was seen.'
       + (refusedRows ? '<ul style="margin:8px 0 0 16px;padding:0">' + refusedRows + '</ul>' : '')
