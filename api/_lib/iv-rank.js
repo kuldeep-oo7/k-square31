@@ -146,6 +146,13 @@ function ivRank(symbol, { db = null, todayIvPct = null, windowSessions = IDEAL_S
 
 const REMOTE_PATH = "k2/iv-history.json";
 
+// CONFIGURED AND WORKING ARE DIFFERENT FACTS, and this project has already
+// shipped a desk that claimed durability it did not have. So the outcome of the
+// last real call is recorded and reported, rather than inferred from the fact
+// that credentials exist.
+let lastArchive = { attemptedAt: null, ok: null, detail: "No archive attempted yet on this host.", sessions: null };
+function archiveStatus() { return { ...lastArchive }; }
+
 /**
  * THE HISTORY MUST OUTLIVE THE DISK, or it can never reach thirty sessions.
  *
@@ -180,8 +187,14 @@ async function syncHistoryToRemote({ db = null } = {}) {
     }
     const out = [...merged.values()];
     await google.writeGoogleDocument(REMOTE_PATH, { version: 1, rows: out }, remote?.etag);
-    return { ok: true, stored: out.length, added: out.length - (remote?.data?.rows || []).length };
+    const sessions = new Set(out.map((r) => r.session_date)).size;
+    lastArchive = {
+      attemptedAt: new Date().toISOString(), ok: true, sessions,
+      detail: `Wrote ${out.length} rows across ${sessions} sessions to the archive.`
+    };
+    return { ok: true, stored: out.length, added: out.length - (remote?.data?.rows || []).length, sessions };
   } catch (error) {
+    lastArchive = { attemptedAt: new Date().toISOString(), ok: false, sessions: null, detail: `Write failed: ${error.message}` };
     return { ok: false, reason: error.message };
   }
 }
@@ -226,6 +239,7 @@ function historyDepth({ db = null } = {}) {
     firstSession: row.firstDay, lastSession: row.lastDay,
     sessionsNeeded: MINIMUM_SESSIONS,
     usable: row.sessions >= MINIMUM_SESSIONS,
+    archive: archiveStatus(),
     note: row.sessions >= MINIMUM_SESSIONS
       ? `${row.sessions} sessions stored; IV rank is live.`
       : `${row.sessions} of ${MINIMUM_SESSIONS} sessions. IV rank turns on automatically once there are enough.`
@@ -234,6 +248,6 @@ function historyDepth({ db = null } = {}) {
 
 module.exports = {
   recordSnapshot, ivRank, historyDepth,
-  syncHistoryToRemote, restoreHistoryFromRemote, REMOTE_PATH,
+  syncHistoryToRemote, restoreHistoryFromRemote, archiveStatus, REMOTE_PATH,
   MINIMUM_SESSIONS, IDEAL_SESSIONS
 };

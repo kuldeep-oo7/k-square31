@@ -1529,6 +1529,14 @@
               + 'IV RANK HISTORY.</b> ' + store.volatilityHistory.note
               + ' &nbsp;&middot;&nbsp; ' + store.volatilityHistory.symbols + ' names, first session '
               + (store.volatilityHistory.firstSession || '&mdash;')
+              + (store.volatilityHistory.archive
+                  ? ' &nbsp;&middot;&nbsp; mirror <b style="color:'
+                    + (store.volatilityHistory.archive.ok === true ? 'var(--green)'
+                       : store.volatilityHistory.archive.ok === false ? 'var(--red)' : 'var(--amber)')
+                    + '">' + (store.volatilityHistory.archive.ok === true ? 'OK'
+                       : store.volatilityHistory.archive.ok === false ? 'FAILED' : 'NOT YET')
+                    + '</b> ' + (store.volatilityHistory.archive.detail || '')
+                  : '')
             : '')
       +   '<br><b style="color:' + archiveColour + '">DURABLE ARCHIVE.</b> '
       +   (a.configured ? 'Configured. ' : '<b style="color:var(--red)">NOT CONFIGURED.</b> ')
