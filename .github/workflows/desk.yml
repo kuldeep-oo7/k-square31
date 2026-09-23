@@ -140,6 +140,13 @@ jobs:
       - name: Build the page and freeze the day's levels
         run: node scripts/publish-static-desk.js
 
+      - name: Put the prices on the run page
+        # The one view that needs nothing from anybody: no Pages plan, no Apps
+        # Script re-deploy, no second account. GitHub renders this as markdown on
+        # the run page, and the GitHub mobile app opens it from anywhere.
+        continue-on-error: true
+        run: node scripts/write-run-summary.js
+
       - name: Publish to the Google Sheet
         # The Sheet is the part that is readable from a phone in an office on
         # the other side of the world, and the part that cannot be suspended.
