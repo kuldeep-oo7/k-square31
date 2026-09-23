@@ -110,6 +110,11 @@ cat <<DONEEOF
   normal and is not a mistake you made. It republishes on every build, which is
   every twenty minutes through the session.
 
+  ONE MORE STEP, AND IT IS NOT OPTIONAL: the clock. GitHub's own scheduler
+  started nothing between 09:13 and 14:13 IST on the first day, so the builds
+  are started from outside GitHub instead. Five minutes, free:
+    deploy/CLOCK.md
+
   The private view, which already works and needs no URL at all:
     https://github.com/${SOURCE_REPO}/actions/workflows/desk.yml
     -> newest run -> the table at the top. Opens in the GitHub mobile app.
