@@ -100,8 +100,15 @@ console.log("session freeze:");
   const { fillState } = require("./publish-static-desk");
   check("at the limit reads as fillable", fillState(100, 100).word === "AT OR BELOW LIMIT");
   check("below the limit reads as fillable", fillState(100, 88).word === "AT OR BELOW LIMIT");
-  check("half a percent above is still at the limit", fillState(100, 100.5).word === "AT THE LIMIT");
-  check("twenty percent above says it will not fill", /WILL NOT FILL/.test(fillState(100, 120).word));
+  check("within a tick of the limit reads as at the limit", fillState(100, 100.05).word === "AT THE LIMIT");
+  // The real case that exposed the old 1% tolerance: LT futures on 2026-09-23,
+  // price 3,904.80 against a buy limit of 3,873.56. That is 0.8% ABOVE the
+  // limit -- an order resting there does not fill -- and the page said
+  // "AT THE LIMIT" on every futures row, because every futures limit is placed
+  // exactly 0.8% under the price when it is set.
+  check("LT at 3904.80 over a 3873.56 limit is WAITING, not at the limit",
+    fillState(3873.56, 3904.8).word === "WAITING — needs a 0.8% dip");
+  check("twenty percent above says how far it has to fall", fillState(100, 120).word === "WAITING — needs a 16.7% dip");
   check("a missing price says so instead of reading as fillable", fillState(100, null).word === "NO PRICE");
   check("an empty string is not a price of zero either", fillState(100, "").word === "NO PRICE");
   check("and drift refuses a missing current price", driftPct(100, null) === null && driftPct(100, "") === null);

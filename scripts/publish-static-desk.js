@@ -63,10 +63,16 @@ function fillState(limit, now) {
   // sitting far below your limit, which is what Number(null) === 0 produces.
   if (l === null || p === null || l <= 0) return { word: "NO PRICE", tone: "" };
   const gap = ((p - l) / l) * 100;
+  // A BUY limit fills only when the price comes DOWN to it. The first version
+  // called anything within 1% "AT THE LIMIT" -- and every futures row sits 0.8%
+  // above its limit at the moment it is set, by design, because the limit is
+  // placed under the price to catch a dip. So every futures row read as
+  // fillable when not one of them was. Within a tick or two is "at the limit";
+  // anything more is waiting, and says how far the price has to fall.
   if (gap <= 0) return { word: "AT OR BELOW LIMIT", tone: "up" };
-  if (gap <= 1) return { word: "AT THE LIMIT", tone: "up" };
-  if (gap <= 5) return { word: `${gap.toFixed(1)}% ABOVE`, tone: "" };
-  return { word: `${gap.toFixed(1)}% ABOVE — WILL NOT FILL`, tone: "down" };
+  if (gap <= 0.1) return { word: "AT THE LIMIT", tone: "up" };
+  const dip = ((p - l) / p) * 100;
+  return { word: `WAITING — needs a ${dip.toFixed(1)}% dip`, tone: dip > 5 ? "down" : "" };
 }
 
 async function build({ limit = 40, futuresLimit = 25, ledgerFile, forceFreeze = null } = {}) {
@@ -208,7 +214,13 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, forceFreeze = 
 }
 
 function page(d) {
-  const optRows = d.options.map((c) => {
+  // Calls, puts and futures are three different trades, and they were asked
+  // for as three separate things: "you have mixed up the call and put and the
+  // futures ... keep it separate". One long page with the futures under forty
+  // option rows meant the futures were effectively not on it.
+  const calls = d.options.filter((c) => c.right === "CE");
+  const puts = d.options.filter((c) => c.right === "PE");
+  const optionRows = (list) => list.map((c) => {
     const state = fillState(c.buy, c.now);
     return `
       <tr>
@@ -225,6 +237,15 @@ function page(d) {
         <td class="num">${esc(c.score)}</td>
       </tr>`;
   }).join("");
+
+  const optionTable = (list, empty) => `
+<div class="wrap"><table>
+  <thead><tr>
+    <th>CONTRACT</th><th class="num">BUY LIMIT</th><th class="num">SELL &middot; NET</th><th class="num">STOP</th>
+    <th class="num">NOW</th>
+    <th class="num">IV / REALISED</th><th class="num">P(TOUCH)</th><th class="num">DECAY</th><th class="num">SCORE</th>
+  </tr></thead><tbody>${optionRows(list) || `<tr><td colspan="9">${empty}</td></tr>`}</tbody>
+</table></div>`;
 
   const futRows = d.futures.map((r) => {
     const state = fillState(r.buy, r.spot);
@@ -292,6 +313,20 @@ function page(d) {
   code { font-size:10px; color:var(--text); word-break:break-all }
   .up { color:var(--green) } .down { color:var(--red) }
   tr:last-child td { border-bottom:none }
+  /* Three tabs, no JavaScript: a radio button per tab, and CSS shows the pane
+     whose button is checked. Works on any phone, with scripts off, forever. */
+  .desk > input { position:absolute; opacity:0; pointer-events:none }
+  .tabs { position:sticky; top:0; z-index:5; display:flex; gap:8px; padding:10px 0; background:var(--bg) }
+  .tabs label { flex:1; text-align:center; padding:12px 6px; border:1px solid var(--line); border-radius:10px;
+                cursor:pointer; font-weight:700; letter-spacing:.05em; color:var(--muted); background:var(--panel) }
+  .tabs label span { display:inline-block; margin-left:6px; padding:0 8px; border-radius:99px;
+                     background:var(--line); color:var(--text); font-weight:400 }
+  .pane { display:none }
+  .pane h2 { margin-top:8px }
+  #v-fut:checked ~ .pane-fut, #v-ce:checked ~ .pane-ce, #v-pe:checked ~ .pane-pe { display:block }
+  #v-fut:checked ~ .tabs .t-fut { color:var(--bg); background:var(--amber); border-color:var(--amber) }
+  #v-ce:checked ~ .tabs .t-ce { color:var(--bg); background:var(--green); border-color:var(--green) }
+  #v-pe:checked ~ .tabs .t-pe { color:var(--bg); background:var(--red); border-color:var(--red) }
 </style></head><body>
 
 <h1>K&sup2; Desk</h1>
@@ -300,30 +335,45 @@ function page(d) {
 
 <div class="note ${d.levelsFrozen ? "frozen" : ""}">${freezeNote}</div>
 
-<div class="note">
+<main class="desk">
+  <input type="radio" name="view" id="v-fut" checked>
+  <input type="radio" name="view" id="v-ce">
+  <input type="radio" name="view" id="v-pe">
+
+  <nav class="tabs">
+    <label for="v-fut" class="t-fut">FUTURES <span>${d.futures.length}</span></label>
+    <label for="v-ce" class="t-ce">CALLS <span>${calls.length}</span></label>
+    <label for="v-pe" class="t-pe">PUTS <span>${puts.length}</span></label>
+  </nav>
+
+  <section class="pane pane-fut">
+    <h2>Futures &mdash; buy per unit, not per lot</h2>
+    <div class="wrap"><table>
+      <thead><tr>
+        <th>SYMBOL</th><th class="num">BUY LIMIT</th><th class="num">TARGET 1 &middot; 2</th>
+        <th class="num">STOP</th><th class="num">NOW</th><th class="num">1 UNIT</th><th class="num">R : R</th>
+      </tr></thead><tbody>${futRows || '<tr><td colspan="7">No futures cleared the hurdle on this build.</td></tr>'}</tbody>
+    </table></div>
+  </section>
+
+  <section class="pane pane-ce">
+    <h2>Calls &mdash; you BUY the call, it pays if the stock RISES</h2>
+    ${optionTable(calls, "No calls cleared every gate on this build.")}
+  </section>
+
+  <section class="pane pane-pe">
+    <h2>Puts &mdash; you BUY the put, it pays if the stock FALLS</h2>
+    ${optionTable(puts, "No puts cleared every gate on this build.")}
+  </section>
+</main>
+
+<div class="note" style="margin-top:20px">
   <b>WHERE THESE PRICES COME FROM.</b> ${liveNote}${brokerNote}
   This page is a <b>snapshot</b>, rebuilt on a schedule &mdash; it is not a live feed.
   <b>Check the price on your broker before placing anything.</b>
   Net figures are after brokerage, STT at 0.15%, exchange, stamp and GST; the
   spread is extra and is only known where a live book was seen.
 </div>
-
-<h2>Calls &amp; Puts &mdash; the shortlist</h2>
-<div class="wrap"><table>
-  <thead><tr>
-    <th>CONTRACT</th><th class="num">BUY LIMIT</th><th class="num">SELL &middot; NET</th><th class="num">STOP</th>
-    <th class="num">NOW</th>
-    <th class="num">IV / REALISED</th><th class="num">P(TOUCH)</th><th class="num">DECAY</th><th class="num">SCORE</th>
-  </tr></thead><tbody>${optRows || '<tr><td colspan="9">Nothing cleared the gates on this build.</td></tr>'}</tbody>
-</table></div>
-
-<h2>Futures &mdash; priced per unit, not per lot</h2>
-<div class="wrap"><table>
-  <thead><tr>
-    <th>SYMBOL</th><th class="num">BUY LIMIT</th><th class="num">TARGET 1 &middot; 2</th>
-    <th class="num">STOP</th><th class="num">NOW</th><th class="num">1 UNIT</th><th class="num">R : R</th>
-  </tr></thead><tbody>${futRows || '<tr><td colspan="7">No futures cleared the hurdle on this build.</td></tr>'}</tbody>
-</table></div>
 
 <div class="note" style="margin-top:20px;border-left-color:var(--red)">
   <b>WHAT THIS DOES NOT ESTABLISH.</b> That any of it makes money. The paper ledger

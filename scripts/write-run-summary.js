@@ -45,9 +45,12 @@ function gap(limit, now) {
   const p = Number(now);
   if (!Number.isFinite(l) || !Number.isFinite(p) || l <= 0) return "no price";
   const pct = ((p - l) / l) * 100;
+  // Same rule as the page: a buy limit fills only when the price comes DOWN to
+  // it. The old 1% tolerance marked every futures row ✅ at the moment it was
+  // set, because every futures limit sits 0.8% under the price by design.
   if (pct <= 0) return "**at or below** ✅";
-  if (pct <= 1) return "**at limit** ✅";
-  return pct.toFixed(1) + "% above";
+  if (pct <= 0.1) return "**at limit** ✅";
+  return "waiting — needs a " + (((p - l) / p) * 100).toFixed(1) + "% dip";
 }
 
 function main() {
@@ -102,23 +105,9 @@ function main() {
     lines.push("");
   }
 
-  lines.push("## Calls & puts");
-  lines.push("");
-  if (!d.options.length) {
-    lines.push("_Nothing cleared the gates on this build._");
-  } else {
-    lines.push("| Contract | Buy limit | Sell | Stop | Now | Per lot | Net |");
-    lines.push("|---|--:|--:|--:|--:|--:|--:|");
-    for (const c of d.options) {
-      lines.push("| `" + c.zerodha + "`<br>" + c.daysLeft + "d left"
-        + " | **" + rupee(c.buy) + "** | " + rupee(c.sell) + " | " + rupee(c.stop)
-        + " | " + rupee(c.now) + "<br>" + gap(c.buy, c.now)
-        + " | " + rupee(c.costPerLot) + " | " + rupee(c.netProfit) + " |");
-    }
-  }
-  lines.push("");
-
-  lines.push("## Futures — per unit, not per lot");
+  // Futures first, then calls, then puts: three different trades, kept apart,
+  // in the order the money is actually on them.
+  lines.push("## Futures — per unit, not per lot (" + d.futures.length + ")");
   lines.push("");
   if (!d.futures.length) {
     lines.push("_Nothing cleared the hurdle on this build._");
@@ -133,6 +122,28 @@ function main() {
     }
   }
   lines.push("");
+
+  const optionSection = (title, list, empty) => {
+    lines.push("## " + title + " (" + list.length + ")");
+    lines.push("");
+    if (!list.length) {
+      lines.push("_" + empty + "_");
+    } else {
+      lines.push("| Contract | Buy limit | Sell | Stop | Now | Per lot | Net |");
+      lines.push("|---|--:|--:|--:|--:|--:|--:|");
+      for (const c of list) {
+        lines.push("| `" + c.zerodha + "`<br>" + c.daysLeft + "d left"
+          + " | **" + rupee(c.buy) + "** | " + rupee(c.sell) + " | " + rupee(c.stop)
+          + " | " + rupee(c.now) + "<br>" + gap(c.buy, c.now)
+          + " | " + rupee(c.costPerLot) + " | " + rupee(c.netProfit) + " |");
+      }
+    }
+    lines.push("");
+  };
+  optionSection("Calls — pays if the stock RISES", d.options.filter((c) => c.right === "CE"),
+    "No calls cleared every gate on this build.");
+  optionSection("Puts — pays if the stock FALLS", d.options.filter((c) => c.right === "PE"),
+    "No puts cleared every gate on this build.");
   lines.push("---");
   lines.push("");
   lines.push("Net figures are after brokerage, STT at 0.15% on the sell side, exchange charges, "
