@@ -162,6 +162,45 @@ jobs:
         continue-on-error: true
         run: node scripts/publish-to-sheet.js
 
+      - name: Mirror the page to the public URL
+        # GitHub Pages cannot serve THIS repository -- asked directly, the API
+        # said "Your current plan does not support GitHub Pages for this
+        # repository" (422), because Pages needs a public repo on GitHub Free
+        # and this one holds the strategy.
+        #
+        # So only the BUILT PAGE goes to a second, public repository, which
+        # Pages will serve. index.html is self-contained: no code, no data
+        # files, no ledger, no commit history from here. If the deploy key is
+        # not configured this step says so and changes nothing.
+        continue-on-error: true
+        env:
+          MIRROR_KEY: ${{ secrets.K2_MIRROR_DEPLOY_KEY }}
+          MIRROR_REPO: ${{ vars.K2_MIRROR_REPO }}
+        run: |
+          if [ -z "$MIRROR_KEY" ]; then
+            echo "no mirror deploy key configured; the page was not published to a public URL"
+            exit 0
+          fi
+          REPO="${MIRROR_REPO:-kuldeep-oo7/k2-desk}"
+          mkdir -p ~/.ssh
+          printf '%s\n' "$MIRROR_KEY" > ~/.ssh/id_ed25519
+          chmod 600 ~/.ssh/id_ed25519
+          ssh-keyscan -t ed25519 github.com >> ~/.ssh/known_hosts 2>/dev/null
+          rm -rf /tmp/k2mirror
+          git clone --depth 1 "git@github.com:${REPO}.git" /tmp/k2mirror
+          cp docs/index.html /tmp/k2mirror/index.html
+          : > /tmp/k2mirror/.nojekyll
+          cd /tmp/k2mirror
+          git config user.name "k2-desk-bot"
+          git config user.email "noreply@users.noreply.github.com"
+          git add -A
+          if git diff --cached --quiet; then
+            echo "public page unchanged"
+          else
+            git commit -q -m "desk: $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M IST')"
+            git push -q && echo "published to https://$(echo "$REPO" | cut -d/ -f1).github.io/$(echo "$REPO" | cut -d/ -f2)/"
+          fi
+
       - name: Commit it
         run: |
           git config user.name "k2-desk-bot"
