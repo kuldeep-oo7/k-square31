@@ -48,6 +48,10 @@ else
 fi
 
 say "2/5  Today's page, so the URL works the moment it is switched on"
+# The build bot commits a fresh page every twenty minutes; the copy on this
+# laptop is whatever was here when it was last pulled. Pull first, or the first
+# thing the public URL shows is a stale page.
+git pull -q --rebase origin main 2>/dev/null || echo "     (could not pull; publishing the local copy -- the next build replaces it)"
 if [ ! -f docs/index.html ]; then
   echo "     docs/index.html is missing -- building it first"
   node scripts/publish-static-desk.js
