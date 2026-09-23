@@ -189,6 +189,29 @@ async function appendRecommendationAuditToGoogle(audit) {
   return requestGoogle("appendRecommendationAudit", { audit });
 }
 
+/**
+ * Does the DEPLOYED Apps Script know this action?
+ *
+ * The .gs file in this repository is not necessarily the .gs that is deployed;
+ * a web app serves the version that was published, and publishing is a manual
+ * step somebody has to remember. appendDailyRecommendations has existed in the
+ * source since it was written and has never once been called, so there is no
+ * evidence either way about the live deployment.
+ *
+ * An empty payload settles it without writing anything: a current deployment
+ * answers ok with nothing appended, a stale one answers "Invalid action".
+ */
+async function probeGoogleAction(action) {
+  if (!googleStoreConfigured()) return { supported: false, reason: "not configured" };
+  try {
+    await requestGoogle(action, { recommendations: [], signals: [], holdings: [] }, { attempts: 1 });
+    return { supported: true, reason: null };
+  } catch (error) {
+    if (/Invalid action/i.test(error.message)) return { supported: false, reason: "the deployed Apps Script does not have this action" };
+    return { supported: null, reason: error.message };
+  }
+}
+
 async function listGoogleTabs() {
   if (!googleStoreConfigured()) throw new Error("Google Sheets operational store is not configured");
   return requestGoogle("listTabs", {});
@@ -220,6 +243,7 @@ module.exports = {
   appendStockFundamentalsToGoogle,
   appendTradeSignalsToGoogle,
   listGoogleTabs,
+  probeGoogleAction,
   decodeDocument,
   encodeDocument,
   googleStoreConfigured,

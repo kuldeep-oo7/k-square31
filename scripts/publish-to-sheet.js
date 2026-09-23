@@ -139,14 +139,41 @@ function futureTickets(data) {
   const documentPath = "k2/desk-" + data.sessionDate + ".json";
   try {
     const existing = await store.readGoogleDocument(documentPath, null);
-    await store.writeGoogleDocument(documentPath, data, existing.etag);
-    console.log("google sheet: wrote " + documentPath + " ("
-      + data.options.length + " options, " + data.futures.length + " futures)");
+    const written = await store.writeGoogleDocument(documentPath, data, existing.etag);
+    // READ IT BACK. On this project "ARCHIVE: OK" once meant a READ had
+    // succeeded while the write had never been attempted at all, and the gap
+    // was found on the day the ledger was needed. A write that is not read back
+    // is a claim, not a fact.
+    const back = await store.readGoogleDocument(documentPath, null);
+    const landed = back?.data?.builtAt === data.builtAt
+      && (back?.data?.options?.length ?? -1) === data.options.length;
+    console.log("google sheet: wrote " + documentPath + " v" + written.etag + " ("
+      + data.options.length + " options, " + data.futures.length + " futures) -- "
+      + (landed ? "read back and identical" : "READ BACK DID NOT MATCH; treat this document as unwritten"));
   } catch (error) {
     console.log("google sheet: could not write " + documentPath + " --", error.message);
   }
 
-  // 2. The order tickets, once a session, at the moment the levels froze.
+  // 2. What the DEPLOYED Apps Script supports, and which tabs exist. Printed on
+  //    every run because the answer is a property of a deployment nobody here
+  //    controls, and a silent "Invalid action" at 09:30 would cost the day.
+  try {
+    const tabs = await store.listGoogleTabs();
+    console.log("google sheet: tabs -- " + (tabs.tabs || [])
+      .map((t) => t.name + "(" + t.totalRows + ")").join(", "));
+  } catch (error) {
+    console.log("google sheet: could not list tabs --", error.message);
+  }
+  const probe = await store.probeGoogleAction("appendDailyRecommendations");
+  console.log("google sheet: appendDailyRecommendations supported = " + probe.supported
+    + (probe.reason ? " (" + probe.reason + ")" : ""));
+  if (probe.supported === false) {
+    console.log("google sheet: the deployed Apps Script is older than google-sheets/K2MarketArchive.gs. "
+      + "Re-deploy it (Extensions > Apps Script > Deploy > Manage deployments > Edit > New version) "
+      + "or the order tickets cannot be written.");
+  }
+
+  // 3. The order tickets, once a session, at the moment the levels froze.
   let ledger = null;
   try { ledger = JSON.parse(fs.readFileSync(LEDGER_FILE, "utf8")); } catch { ledger = null; }
 
