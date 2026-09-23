@@ -22,12 +22,11 @@
 # So the instrument master is cached for the trading day -- it only changes once
 # a day -- which turns every run after the first into well under a minute.
 #
-# At every twenty minutes through the session that is ~21 runs a day, billed at
-# the one-minute granularity GitHub rounds to, which lands near 900 minutes a
-# month against the 2,000 cap. Every fifteen minutes would be ~1,150 and would
-# still fit, but the headroom is what stops a bad week from blocking the month.
-# The levels are FROZEN for the session anyway (see scripts/session-freeze.js),
-# so a faster cadence would only refresh the "NOW" column.
+# Budget with the outside clock: 21 dispatches a day at ~2 billed minutes, plus
+# eight backstop gates at one minute each when they stand down, is near 50
+# minutes a day and 1,050 a month against the 2,000 cap. The levels are FROZEN
+# for the session anyway (see scripts/session-freeze.js), so a faster cadence
+# would only refresh the "NOW" column.
 #
 # ONE TRAP, and it is why this commits on every run: GitHub disables a scheduled
 # workflow after 60 days with no commit activity on the default branch, and the
@@ -43,25 +42,29 @@
 name: Build the desk
 
 on:
+  # THE CLOCK IS NOT GITHUB'S. Measured on 2026-09-23, the first day this ran:
+  # the schedule was set for every twenty minutes through the session, and
+  # GitHub started NOTHING between 09:13 and 14:13 IST. It then fired runs at
+  # 19:46, 20:14 and 20:35 IST that match no slot at all, hours after the close.
+  # GitHub's own documentation allows exactly this -- "If the load is
+  # sufficiently high enough, some queued jobs may be dropped" -- and
+  # independent reports through 2026 describe delays growing past four hours.
+  #
+  # A trading desk cannot have a best-effort clock. The PRIMARY clock is
+  # therefore outside GitHub: cron-job.org, free, scheduled directly in
+  # Asia/Kolkata, calling the workflow_dispatch API. A dispatch starts a run
+  # straight away instead of waiting in the queue behind everyone else's cron.
+  # Setup: deploy/CLOCK.md.
+  #
+  # What is left below is a BACKSTOP for the day the outside clock fails:
+  # hourly, off the hour. The gate job skips a scheduled run whenever a build
+  # already landed in the last twelve minutes, so the two clocks cannot
+  # double-bill a month that only has 2,000 minutes in it.
   schedule:
-    # NSE trades 09:15-15:30 IST, which is 03:45-10:00 UTC. GitHub cron is UTC
-    # only. Every twenty minutes through the session, weekdays.
-    #
-    # NOT ON THE HOUR, deliberately. GitHub's own documentation: "The schedule
-    # event can be delayed during periods of high loads of GitHub Actions
-    # workflow runs. High load times include the start of every hour." An
-    # obvious */20 puts one run in three into exactly that window. Minutes 3, 23
-    # and 43 sit in the quiet part of the hour, and 04:03 UTC is 09:33 IST --
-    # eighteen minutes after the bell, which is also late enough that the levels
-    # freeze against a settled price rather than the opening auction.
-    - cron: "3,23,43 4-9 * * 1-5"
-    # Two minutes before the bell, so the page is not yesterday's when you open
-    # it at 09:00. It freezes nothing -- there is no traded price yet.
-    - cron: "43 3 * * 1-5"
-    # Just after the close, and again once the settlement figures are final.
-    - cron: "3 10 * * 1-5"
-    - cron: "23 10 * * 1-5"
-  workflow_dispatch:        # and a button, for when you want it now
+    - cron: "43 3 * * 1-5"       # 09:13 IST, pre-open
+    - cron: "13 4-9 * * 1-5"     # 09:43 to 14:43 IST, hourly
+    - cron: "3 10 * * 1-5"       # 15:33 IST, after the close
+  workflow_dispatch:        # the outside clock, and a button for when you want it now
 
 permissions:
   contents: write           # to commit the rebuilt page and the session ledger
@@ -74,7 +77,42 @@ concurrency:
   cancel-in-progress: false
 
 jobs:
+  gate:
+    # Only a scheduled run asks this question; a dispatch from the outside clock
+    # skips it, and a skipped job is not billed. So the check costs a minute
+    # only when the backstop fires -- which is the only time it is needed.
+    if: github.event_name == 'schedule'
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    outputs:
+      go: ${{ steps.check.outputs.go }}
+    steps:
+      - id: check
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+          BRANCH: ${{ github.ref_name }}
+        run: |
+          last=$(gh api "repos/$REPO/commits?path=docs/data.json&sha=$BRANCH&per_page=1"                    --jq '.[0].commit.committer.date' 2>/dev/null || true)
+          if [ -z "$last" ]; then
+            echo "go=true" >> "$GITHUB_OUTPUT"
+            echo "no previous build found -- building"
+            exit 0
+          fi
+          age=$(( $(date -u +%s) - $(date -u -d "$last" +%s) ))
+          if [ "$age" -lt 720 ]; then
+            echo "go=false" >> "$GITHUB_OUTPUT"
+            echo "backstop standing down: the last build landed $((age / 60)) min ago, so the outside clock is working"
+          else
+            echo "go=true" >> "$GITHUB_OUTPUT"
+            echo "backstop building: the last build is $((age / 60)) min old, so the outside clock has gone quiet"
+          fi
+
   build:
+    needs: gate
+    # Build when the gate was skipped (a dispatch), when it said go, or when it
+    # FAILED -- a broken check must never be the reason the desk went dark.
+    if: ${{ !cancelled() && (needs.gate.result != 'success' || needs.gate.outputs.go == 'true') }}
     runs-on: ubuntu-latest
     timeout-minutes: 10     # a hung fetch must not eat the month's budget
 
