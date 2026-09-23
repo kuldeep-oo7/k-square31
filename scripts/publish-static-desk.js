@@ -210,7 +210,30 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   const { tradableExpiry } = require("../api/_lib/fno-reference");
   const brokers = require("../api/_lib/broker-feed");
   const ledgerLib = require("./paper-ledger");
+  /**
+   * FUTURES COME ONLY FROM YOUR JOURNAL.
+   *
+   * Asked for, verbatim: "in the futures I need you from the excel file we are
+   * using ... you need to give me only from that". The engine still scores
+   * every NSE stock future -- a cross-section of 210 is a steadier yardstick for
+   * "top quarter" than 101 -- but only names in data/journal-symbols.json (the
+   * SCREENER sheet of journal (1).xlsx, read by scripts/import-journal-excel.py)
+   * can appear on the futures tab. Options are unaffected: they come from every
+   * F&O name the exchange lists.
+   */
+  const journalList = (() => {
+    try { return JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "data", "journal-symbols.json"), "utf8")).symbols || []; }
+    catch { return []; }
+  })();
+  const journalSet = new Set(journalList.map((s) => String(s).toUpperCase()));
+  const universeSymbols = new Set(universe.map((r) => r.symbol));
+  const journalStatus = {
+    total: journalSet.size,
+    tradeable: [...journalSet].filter((s) => universeSymbols.has(s)).length,
+    noLongerFutures: [...journalSet].filter((s) => !universeSymbols.has(s)).sort()
+  };
   const futuresPicked = universe
+    .filter((r) => journalSet.size === 0 || journalSet.has(r.symbol))
     .filter((r) => (r.action === "BUY" || r.action === "ACCUMULATE") && r.perUnit)
     .sort((a, b) => (b.compositeScore || 0) - (a.compositeScore || 0))
     .slice(0, futuresLimit)
@@ -450,6 +473,7 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     survived: screen.survived ?? 0,
     brokerCheck,
     quoteStatus,
+    journalStatus,
     forwardStatus,
     optionsOnLiveForward: options.filter((c) => c.forwardSource === "LIVE").length,
     banList: { tradeDate: fnoUniverseEngine.banTradeDate || null, symbols: [...bannedSet].sort(),
@@ -744,6 +768,9 @@ function page(d) {
 
   <section class="pane pane-fut">
     <h2>Futures &mdash; buy per unit, not per lot</h2>
+    ${d.journalStatus ? `<div class="sub" style="margin:-4px 0 10px">Only names from your journal (journal (1).xlsx):
+      ${esc(d.journalStatus.tradeable)} of its ${esc(d.journalStatus.total)} still trade as futures on NSE${d.journalStatus.noLongerFutures.length
+        ? ` &mdash; the other ${esc(d.journalStatus.noLongerFutures.length)} were removed from F&amp;O and have no futures contract: ${esc(d.journalStatus.noLongerFutures.join(", "))}` : ""}.</div>` : ""}
     <div class="wrap"><table>
       <thead><tr>
         <th>SYMBOL</th><th class="num">BUY LIMIT</th><th class="num">TARGET 1 &middot; 2</th>
