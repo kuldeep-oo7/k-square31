@@ -120,6 +120,32 @@ function futureTickets(data) {
   }));
 }
 
+/**
+ * The same ticket, folded into the older K2_TRADE_LEDGER shape.
+ *
+ * That tab has no column for the broker symbol, which is the single field you
+ * actually retype into the broker app -- so it goes in Signal ID, which is
+ * free text and otherwise unused here. Losing it would make the row useless.
+ */
+function asTradeSignal(ticket) {
+  const risk = Number(ticket.entryTrigger) - Number(ticket.stopLoss);
+  const reward = Number(ticket.targetRung1) - Number(ticket.entryTrigger);
+  return {
+    signalId: ticket.tradingSymbol,
+    symbol: ticket.symbol,
+    side: ticket.assetClass,
+    action: ticket.action,
+    entryPrice: ticket.entryTrigger,
+    targetPrice: ticket.targetRung1,
+    stopLossPrice: ticket.stopLoss,
+    riskReward: risk > 0 ? Math.round((reward / risk) * 100) / 100 : 0,
+    convictionPct: 0,
+    sizeMultiplier: 1,
+    metaDecision: "TAKE",
+    outcome: "PENDING"
+  };
+}
+
 (async () => {
   loadEnvFile();
   const store = require("../api/_lib/google-store");
@@ -164,13 +190,29 @@ function futureTickets(data) {
   } catch (error) {
     console.log("google sheet: could not list tabs --", error.message);
   }
-  const probe = await store.probeGoogleAction("appendDailyRecommendations");
-  console.log("google sheet: appendDailyRecommendations supported = " + probe.supported
-    + (probe.reason ? " (" + probe.reason + ")" : ""));
-  if (probe.supported === false) {
-    console.log("google sheet: the deployed Apps Script is older than google-sheets/K2MarketArchive.gs. "
-      + "Re-deploy it (Extensions > Apps Script > Deploy > Manage deployments > Edit > New version) "
-      + "or the order tickets cannot be written.");
+  // WRITE TO WHATEVER IS ACTUALLY DEPLOYED, and prefer the richer tab when it
+  // is there. Measured on 2026-09-23: appendDailyRecommendations answered
+  // "Invalid action", so the live web app predates it. Requiring a re-deploy
+  // before the desk could write a readable row would have meant no rows at all
+  // on the morning it was needed, for a reason nobody would see until 09:30.
+  const routes = [
+    { action: "appendDailyRecommendations", tab: "K2_DAILY_RECOMMENDATIONS", shape: "full order ticket" },
+    { action: "appendTradeSignals", tab: "K2_TRADE_LEDGER", shape: "entry, target and stop" }
+  ];
+  let route = null;
+  for (const candidate of routes) {
+    const probe = await store.probeGoogleAction(candidate.action);
+    console.log("google sheet: " + candidate.action + " -> " + candidate.tab
+      + " supported = " + probe.supported + (probe.reason ? " (" + probe.reason + ")" : ""));
+    if (probe.supported === true && route === null) route = candidate;
+  }
+  if (route === null) {
+    console.log("google sheet: the deployed Apps Script has NO append action. Re-deploy "
+      + "google-sheets/K2MarketArchive.gs (Extensions > Apps Script > Deploy > Manage "
+      + "deployments > Edit > New version). The snapshot document was still written.");
+  } else if (route.action !== "appendDailyRecommendations") {
+    console.log("google sheet: falling back to " + route.tab + " (" + route.shape
+      + "). Re-deploying the Apps Script would unlock the fuller ticket.");
   }
 
   // 3. The order tickets, once a session, at the moment the levels froze.
@@ -198,14 +240,21 @@ function futureTickets(data) {
     process.exit(0);
   }
 
+  if (route === null) {
+    console.log("google sheet: " + tickets.length + " tickets are ready but there is no action to write them with.");
+    process.exit(0);
+  }
+
   try {
-    const appended = await store.appendDailyRecommendationsToGoogle(tickets);
+    const appended = route.action === "appendDailyRecommendations"
+      ? await store.appendDailyRecommendationsToGoogle(tickets)
+      : await store.appendTradeSignalsToGoogle(tickets.map(asTradeSignal));
     // Marked published only AFTER the append returned ok. If it threw, the flag
     // stays unset and the next build tries again rather than losing the day.
     ledger.sheetPublishedAt = new Date().toISOString();
     fs.writeFileSync(LEDGER_FILE, JSON.stringify(ledger, null, 1));
     console.log("google sheet: appended " + (appended.appended ?? tickets.length)
-      + " order tickets to " + (appended.sheet || "K2_DAILY_RECOMMENDATIONS")
+      + " order tickets to " + (appended.sheet || route.tab)
       + " for " + data.sessionDate + ".");
   } catch (error) {
     console.log("google sheet: tickets could not be appended --", error.message);
