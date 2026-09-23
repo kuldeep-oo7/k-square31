@@ -117,7 +117,7 @@ function openSession({ now = Date.now(), canFreeze = false, file = LEDGER_FILE }
   }
 
   function save() {
-    if (!canFreeze) return { written: false, reason: "market was not open; nothing was frozen" };
+    if (!canFreeze) return { written: false, reason: "no live exchange book was seen; nothing was frozen" };
     fs.mkdirSync(path.dirname(file), { recursive: true });
     fs.writeFileSync(file, JSON.stringify(ledger, null, 1));
     return { written: true, options: Object.keys(ledger.options).length, futures: Object.keys(ledger.futures).length };

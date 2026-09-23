@@ -166,12 +166,20 @@ jobs:
         run: |
           git config user.name "k2-desk-bot"
           git config user.email "noreply@users.noreply.github.com"
+          # REBASE FIRST, ON A CLEAN TREE. Rebasing AFTER committing meant
+          # replaying this run's docs/levels.json onto whatever landed while the
+          # build was running, and the session ledger is the one file where a
+          # swallowed conflict is unrecoverable: a mangled ledger is a mangled
+          # set of buy limits for the rest of the day. The concurrency group
+          # stops two scheduled runs overlapping but not a run racing a push
+          # from a laptop, which happened twice this morning.
+          git stash push --include-untracked --quiet -- docs/ || true
+          git pull --rebase --quiet origin "${GITHUB_REF_NAME}"
+          git stash pop --quiet || git checkout --theirs -- docs/ 2>/dev/null || true
           git add docs/
           if git diff --cached --quiet; then
             echo "nothing changed this run"
           else
             git commit -m "desk: rebuilt $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M IST')"
-            # Another run may have landed while this one was building.
-            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
             git push
           fi

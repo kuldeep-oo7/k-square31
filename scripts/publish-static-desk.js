@@ -79,11 +79,6 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, forceFreeze = 
   const reference = loadReference();
   const phase = live.marketPhase();
 
-  // A level is only frozen against a price that traded. Before the bell there
-  // is no such price, so the build is advisory and writes nothing down.
-  const canFreeze = forceFreeze === null ? phase.open === true : forceFreeze === true;
-  const session = openSession({ canFreeze, file: ledgerFile });
-
   const universe = fnoUniverseEngine.getUniverse(macro) || [];
   const scores = {};
   for (const row of universe) {
@@ -95,6 +90,25 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, forceFreeze = 
     liveQuoteFor: (s, e, k, t) => { try { return live.liveQuote(s, e, k, t); } catch (err) { return null; } },
     marketOpen: phase.open === true
   });
+
+  /**
+   * A LEVEL IS ONLY FROZEN AGAINST A PRICE THAT TRADED.
+   *
+   * The clock is not enough evidence. marketPhase() knows weekends and the
+   * session hours and nothing else -- it has no NSE holiday calendar -- so on a
+   * trading holiday a 09:33 run sees a weekday inside the window, reports OPEN,
+   * and would freeze the whole day against yesterday's settlement file. Which
+   * is exactly what the do-not-freeze-before-the-bell rule exists to prevent,
+   * arriving through a door that rule does not cover.
+   *
+   * So the gate is evidence, not inference: freeze only once the exchange has
+   * actually priced something live. That single condition covers the holiday,
+   * the broker login being absent, and the feed being down -- all of which look
+   * identical from the clock and identical to each other.
+   */
+  const sawLiveBook = Number(screen.pricedLive) > 0;
+  const canFreeze = forceFreeze === null ? (phase.open === true && sawLiveBook) : forceFreeze === true;
+  const session = openSession({ canFreeze, file: ledgerFile });
 
   const options = (screen.contracts || []).map((c) => {
     const zerodha = `${c.symbol}${String(c.expiry).slice(2, 4)}${MONTHS[Number(String(c.expiry).slice(5, 7)) - 1]}${c.strike}${c.optionType}`;
@@ -162,6 +176,13 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, forceFreeze = 
     builtAtIst: istStamp(),
     sessionDate: session.sessionDate,
     levelsFrozen: session.canFreeze,
+    // Naming the reason matters: "the market is closed" and "nobody logged in
+    // to the broker" produce the same empty screen and need different fixes.
+    freezeBlockedBecause: session.canFreeze ? null
+      : phase.open !== true
+        ? `The market is ${String(phase.phase).toLowerCase()}.`
+        : "The market says it is open, but not one contract came back with a live exchange book "
+          + "-- an NSE holiday, or no broker session. The clock alone is not evidence.",
     levelsOpenedAtIst: session.ledger.openedAtIst,
     freezeTally: session.tally,
     ledgerWritten: saved,
@@ -219,10 +240,10 @@ function page(d) {
        however far the market runs. ${esc(d.freezeTally.carried)} carried from earlier in the session,
        ${esc(d.freezeTally.frozenThisBuild)} set on this build. The <b>NOW</b> column is the only
        number that changes &mdash; it tells you whether the market has come to your limit yet.`
-    : `<b>THESE LEVELS ARE INDICATIVE, NOT FIXED.</b> The market is
-       ${esc(d.marketPhase).toLowerCase()}, so there is no traded price to anchor them to and
-       nothing has been written down. They will be set once &mdash; and then held all day &mdash;
-       on the first build after the opening bell.`;
+    : `<b>THESE LEVELS ARE INDICATIVE, NOT FIXED.</b> ${esc(d.freezeBlockedBecause)}
+       There is no traded price to anchor them to, so nothing has been written down.
+       They are set once &mdash; and then held all day &mdash; on the first build that
+       sees a live exchange book.`;
 
   return `<!doctype html>
 <html lang="en"><head>
