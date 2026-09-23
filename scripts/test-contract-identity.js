@@ -79,6 +79,11 @@ console.log(`  ✓ All ${labelled} contracts match the broker's own instrument l
 const bySymbol = {};
 for (const [key, row] of entries) {
   if (!(row.bid > 0 && row.ask > 0)) continue;
+  // A mid inside a spread wider than a quarter of itself is not a price, and a
+  // handful of them bend the regression without saying anything about which
+  // leg is which. Measured 2026-09-23: IDEA's six tight strikes sat exactly on
+  // slope -1.005; four quotes with 40-163% spreads dragged it to -1.161.
+  if ((row.ask - row.bid) / ((row.ask + row.bid) / 2) > 0.25) continue;
   const [symbol, , strike, right] = key.split("|");
   bySymbol[symbol] = bySymbol[symbol] || {};
   bySymbol[symbol][strike] = bySymbol[symbol][strike] || {};
@@ -116,8 +121,20 @@ const contractRef = reference.loadReference();
 if (contractRef) {
   let oiCompared = 0, oiAgreed = 0;
   const atmDiffs = [];
+  // Compare like with like. The quote cache is refreshed a few chains at a
+  // time, so it holds books from several sessions at once -- measured on
+  // 2026-09-23: 9,328 from that day, 953 from the 19th, 143 from the 18th and
+  // 59 from the 22nd. Open interest from last Friday's book will not match
+  // tonight's exchange file, and that says nothing about contract identity.
+  const MON = { JAN: "01", FEB: "02", MAR: "03", APR: "04", MAY: "05", JUN: "06",
+                JUL: "07", AUG: "08", SEP: "09", OCT: "10", NOV: "11", DEC: "12" };
+  const bookSession = (row) => {
+    const m = String(row.exchangeFeedTime || "").match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4})/);
+    return m ? `${m[3]}-${MON[m[2].toUpperCase()]}-${m[1].padStart(2, "0")}` : null;
+  };
   for (const [key, row] of entries) {
     if (!(row.bid > 0 && row.ask > 0)) continue;
+    if (bookSession(row) !== contractRef.session) continue;
     const [symbol, expiry, strike, right] = key.split("|");
     const exchange = reference.tradedQuote(symbol, Number(strike), right, expiry, contractRef);
     if (!exchange) continue;

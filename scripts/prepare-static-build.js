@@ -50,6 +50,32 @@ async function step(label, fn) {
     return `${reference.symbolCount} symbols, session ${reference.session}`;
   });
 
+  // TODAY'S F&O BAN LIST, FROM NSE, EVERY BUILD.
+  //
+  // During a ban (open interest above 95% of the market-wide limit) NSE allows
+  // only positions that REDUCE exposure -- a fresh buy is refused and penalised.
+  // The desk read its ban list from data/market-coverage.json, which nothing on
+  // the build server ever refreshed: measured on 2026-09-23 it was six days old
+  // and missed LICHSGFIN, banned for the 24 September session. A banned stock on
+  // the buy list is an order that cannot be placed.
+  await step("F&O ban list for today", async () => {
+    const { fetchSecurityBanList, banStateForSession } = require("../api/_lib/bhavcopy");
+    const { sessionDateFor } = require("./session-freeze");
+    const ban = await fetchSecurityBanList();
+    if (!ban.available) throw new Error("NSE ban list unavailable: " + (ban.error || "unknown"));
+    const session = sessionDateFor();
+    const record = {
+      tradeDate: ban.tradeDate || null,
+      symbols: [...(ban.symbols || [])].sort(),
+      verifiedForSession: banStateForSession(ban, session) === true ? session : null,
+      source: ban.source, fetchedAt: ban.fetchedAt
+    };
+    const file = path.resolve(__dirname, "..", ".private", "cache", "fo-ban.json");
+    fs.mkdirSync(path.dirname(file), { recursive: true });
+    fs.writeFileSync(file, JSON.stringify(record, null, 1));
+    return record.symbols.length + " banned for " + (record.tradeDate || "?") + ": " + (record.symbols.join(", ") || "none");
+  });
+
   await step("broker instrument master", async () => {
     const brokers = require("../api/_lib/broker-feed");
     const result = await brokers.refreshInstruments("angelone");

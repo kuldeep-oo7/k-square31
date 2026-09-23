@@ -77,6 +77,15 @@ function feedDate(text) {
   return month ? `${m[3]}-${month}-${m[1].padStart(2, "0")}` : null;
 }
 
+/** Angel's exchange clock as an instant: "23-Sep-2026 15:40:06" is IST. */
+function feedMs(text) {
+  const m = String(text || "").match(/^(\d{1,2})-([A-Za-z]{3})-(\d{4}) (\d{2}):(\d{2}):(\d{2})/);
+  if (!m) return null;
+  const month = MONTHS[m[2].toUpperCase()];
+  if (!month) return null;
+  return Date.parse(`${m[3]}-${month}-${m[1].padStart(2, "0")}T${m[4]}:${m[5]}:${m[6]}+05:30`);
+}
+
 // One implementation of the normal CDF in the codebase, not two that can drift.
 const { normalCdf } = require("../api/_lib/trade-odds");
 
@@ -115,6 +124,36 @@ function firstPassage({ from, to, sigma, tradingDays }) {
 function sessionTradingDaysLeft(now) {
   const left = (sessionCloseMs(istDate(now)) - now) / 3_600_000;
   return Math.max(0, Math.min(SESSION_TRADING_HOURS, left)) / SESSION_TRADING_HOURS;
+}
+
+/**
+ * STOCK DERIVATIVES ARE PHYSICALLY SETTLED; INDEX ONES ARE NOT.
+ *
+ * An in-the-money stock option or a stock future still open at expiry becomes a
+ * delivery of shares -- for a bought put, an obligation to DELIVER shares you
+ * may not own -- and exchanges charge delivery margins from four trading days
+ * before expiry, rising every day after (Zerodha, "policy on physical
+ * settlement", verified 2026-09-23). Index contracts settle in cash and carry
+ * none of it.
+ *
+ * So a stock trade is taken off at the close of the fourth weekday before
+ * expiry: the last day it can be held without the delivery obligation starting.
+ * Holidays are not in this count, which can only make the date EARLIER in
+ * trading days, never later.
+ */
+const INDEX_UNDERLYINGS = new Set(["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "NIFTYNXT50", "SENSEX", "BANKEX"]);
+function isIndexUnderlying(symbol) { return INDEX_UNDERLYINGS.has(String(symbol || "").toUpperCase()); }
+function exitByDate(expiryIso, weekdaysBefore = 4) {
+  const iso = String(expiryIso || "").slice(0, 10);
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
+  let d = new Date(`${iso}T00:00:00Z`);
+  let counted = 0;
+  while (counted < weekdaysBefore) {
+    d = new Date(d.getTime() - 86_400_000);
+    const w = d.getUTCDay();
+    if (w !== 0 && w !== 6) counted += 1;
+  }
+  return d.toISOString().slice(0, 10);
 }
 
 /**
@@ -255,6 +294,9 @@ function settle(trade, now) {
   const at = new Date(now).toISOString();
   if (trade.status === "WAITING" && now >= sessionCloseMs(trade.sessionDate)) {
     close(trade, "UNFILLED", null, new Date(sessionCloseMs(trade.sessionDate)).toISOString());
+  } else if (trade.status === "OPEN" && trade.expiry && !isIndexUnderlying(trade.symbol)
+    && now >= sessionCloseMs(exitByDate(trade.expiry))) {
+    close(trade, "TIME_EXIT", trade.last ?? trade.buy, new Date(sessionCloseMs(exitByDate(trade.expiry))).toISOString());
   } else if (trade.status === "OPEN" && trade.expiry && now >= sessionCloseMs(trade.expiry)) {
     close(trade, "EXPIRED", trade.last ?? 0, new Date(sessionCloseMs(trade.expiry)).toISOString());
   } else if (trade.status === "OPEN" && trade.kind === "FUT" && trade.sessionsHeld >= FUTURES_MAX_SESSIONS) {
@@ -374,7 +416,7 @@ function summarize(open, closed) {
       open: o.filter((t) => t.status === "OPEN").length,
       target: wins.length,
       stop: c.filter((t) => t.status === "STOP").length,
-      expired: c.filter((t) => t.status === "EXPIRED" || t.status === "TIMED_OUT").length,
+      expired: c.filter((t) => t.status === "EXPIRED" || t.status === "TIMED_OUT" || t.status === "TIME_EXIT").length,
       unfilled: c.filter((t) => t.status === "UNFILLED").length,
       hitRatePct: resolved ? round((wins.length / resolved) * 100, 1) : null,
       resolved,
@@ -390,6 +432,6 @@ function summarize(open, closed) {
 
 module.exports = {
   LEDGER_DIR, FUTURES_MAX_SESSIONS,
-  feedDate, firstPassage, sessionTradingDaysLeft,
+  feedDate, feedMs, firstPassage, sessionTradingDaysLeft, exitByDate, isIndexUnderlying,
   tradeFromLevel, observe, settle, openLedger, summarize
 };

@@ -50,6 +50,49 @@ function round(value, dp = 2) {
 }
 
 /**
+ * THE CONTRACT, NAMED THE WAY THE BROKER LISTS IT.
+ *
+ * Searching "TATA POWER 380 PE" in the broker app returns three contracts --
+ * SEP, OCT and NOV -- and the page's headline said only "TATAPOWER 380 PE",
+ * with the month buried in a small code underneath. So the headline is now the
+ * broker's own search text ("TATAPOWER OCT 380 PE"), with both brokers'
+ * symbols, the weekday it expires, and -- for a stock contract -- the day to
+ * be out by, because stock derivatives are physically settled.
+ *
+ * The Zerodha symbol comes from fno-reference's expiryTradingSuffix, which
+ * knows monthly from weekly by the exchange's own calendar. The page used to
+ * build every option symbol in MONTHLY form, which names the wrong contract
+ * for any weekly index option.
+ */
+const WEEKDAYS = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+function contractNames(symbol, expiry, strike, right, reference) {
+  const { expiryTradingSuffix, angelTradingSymbol } = require("../api/_lib/fno-reference");
+  const { exitByDate, isIndexUnderlying } = require("./paper-ledger");
+  const iso = String(expiry || "").slice(0, 10);
+  const suffix = expiryTradingSuffix(iso, reference?.symbols?.[symbol]?.expiryList || []) || "";
+  const monthly = /^\d{2}[A-Z]{3}$/.test(suffix);
+  const d = new Date(`${iso}T00:00:00Z`);
+  const mon = MONTHS[d.getUTCMonth()];
+  const isFut = !right;
+  const strikeText = isFut ? "" : String(Number(strike));
+  const when = monthly ? mon : `${d.getUTCDate()} ${mon} (weekly)`;
+  const pretty = (x) => {
+    const y = new Date(`${x}T00:00:00Z`);
+    const m = MONTHS[y.getUTCMonth()];
+    return `${WEEKDAYS[y.getUTCDay()]} ${y.getUTCDate()} ${m.charAt(0)}${m.slice(1).toLowerCase()}`;
+  };
+  const exitBy = isIndexUnderlying(symbol) ? null : exitByDate(iso);
+  return {
+    display: isFut ? `${symbol} ${when} FUT` : `${symbol} ${when} ${strikeText} ${right}`,
+    zerodha: isFut ? `${symbol}${suffix}FUT` : `${symbol}${suffix}${strikeText}${right}`,
+    angel: isFut ? angelTradingSymbol(symbol, iso) : angelTradingSymbol(symbol, iso, strike, right),
+    expiryText: pretty(iso),
+    exitBy,
+    exitByText: exitBy ? pretty(exitBy) : null
+  };
+}
+
+/**
  * Where the live price sits relative to the limit that was frozen this morning.
  *
  * This is the column that was missing. A frozen limit is only half an answer:
@@ -91,10 +134,58 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     if (Number.isFinite(Number(row.compositeScore))) scores[row.symbol] = Number(row.compositeScore);
   }
 
+  /**
+   * THE FORWARD HAS TO BE AS LIVE AS THE PREMIUM.
+   *
+   * The screener solves implied volatility, delta and the odds of reaching the
+   * target from the option's price AND the forward it is priced against. The
+   * price was live; the forward was the settlement file's, i.e. yesterday's. On
+   * a quiet day that error is small. On 4 June 2024 NIFTY fell 5.9% -- priced
+   * against yesterday's forward, every put's jump would have been booked as a
+   * volatility spike, and every delta and probability on the page with it.
+   *
+   * So every futures contract the screener could use is priced live first. An
+   * expiry with no future of its own (an index weekly) is moved by the same
+   * ratio its monthly future moved since the settlement.
+   */
+  const brokersForForward = require("../api/_lib/broker-feed");
+  const forwardRequests = [];
+  for (const [symbol, entry] of Object.entries(reference?.symbols || {})) {
+    for (const expiry of Object.keys(entry.expiries || {})) {
+      const days = (Date.parse(`${expiry}T15:30:00+05:30`) - Date.now()) / 86400000;
+      if (days >= 0 && days <= 75) forwardRequests.push({ kind: "FUT", symbol, expiry });
+    }
+  }
+  let forwardQuotes = {};
+  let forwardStatus = null;
+  try {
+    const r = await brokersForForward.contractQuotes(forwardRequests);
+    forwardQuotes = r.quotes || {};
+    forwardStatus = { requested: r.requested, resolved: r.resolved, priced: Object.keys(forwardQuotes).length, reason: r.reason || null };
+  } catch (error) {
+    forwardStatus = { requested: forwardRequests.length, priced: 0, reason: error.message };
+  }
+  const forwardFor = (symbol, expiry, settled) => {
+    const own = forwardQuotes[`${symbol}|${expiry}`];
+    if (own && own.ltp > 0) return own.ltp;
+    // No future for this expiry: move the settled forward by what the nearest
+    // live future of the same name did since its own settlement.
+    const entry = reference?.symbols?.[symbol];
+    for (const [exp, bucket] of Object.entries(entry?.expiries || {}).sort()) {
+      const q = forwardQuotes[`${symbol}|${exp}`];
+      const settledThere = Number(bucket.futuresPrice);
+      if (q && q.ltp > 0 && settledThere > 0 && settled > 0) return settled * (q.ltp / settledThere);
+    }
+    return null;
+  };
+  const bannedSet = fnoUniverseEngine.banned instanceof Set ? fnoUniverseEngine.banned : new Set();
+
   const screen = screenContracts({
     reference, underlyingScores: scores, limit,
     liveQuoteFor: (s, e, k, t) => { try { return live.liveQuote(s, e, k, t); } catch (err) { return null; } },
-    marketOpen: phase.open === true
+    marketOpen: phase.open === true,
+    banned: bannedSet,
+    forwardFor
   });
 
   /**
@@ -125,14 +216,17 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   let quoteStatus = null;
   try {
     const result = await brokers.contractQuotes([
-      ...futuresPicked.filter((f) => f.expiry).map((f) => ({ kind: "FUT", symbol: f.row.symbol, expiry: f.expiry })),
+      // Futures already priced for the forwards are not asked for twice.
+      ...futuresPicked.filter((f) => f.expiry && !forwardQuotes[`${f.row.symbol}|${f.expiry}`])
+        .map((f) => ({ kind: "FUT", symbol: f.row.symbol, expiry: f.expiry })),
       ...(screen.contracts || []).map((c) => ({ kind: "OPT", symbol: c.symbol, expiry: c.expiry, strike: c.strike, optionType: c.optionType })),
       ...(ledger ? ledger.open.map(asRequest) : [])
     ]);
-    quotes = result.quotes || {};
+    quotes = { ...forwardQuotes, ...(result.quotes || {}) };
     quoteStatus = { ok: result.ok, reason: result.reason || null, requested: result.requested,
       resolved: result.resolved, priced: Object.keys(quotes).length, failures: result.failures || [] };
   } catch (error) {
+    quotes = { ...forwardQuotes };
     quoteStatus = { ok: false, reason: error.message };
   }
   const quoteFor = (x) => quotes[brokers.contractKey(x)] || null;
@@ -157,7 +251,8 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   const session = openSession({ canFreeze, file: ledgerFile });
 
   const options = (screen.contracts || []).map((c) => {
-    const zerodha = `${c.symbol}${String(c.expiry).slice(2, 4)}${MONTHS[Number(String(c.expiry).slice(5, 7)) - 1]}${c.strike}${c.optionType}`;
+    const names = contractNames(c.symbol, c.expiry, c.strike, c.optionType, reference);
+    const zerodha = names.zerodha;
     const nowPrice = round(c.premium);
     const levels = session.level("options", zerodha, () => {
       if (!Number.isFinite(Number(c.premium)) || Number(c.premium) <= 0) return null;
@@ -176,6 +271,8 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     if (!levels) return null;
     return {
       symbol: c.symbol, strike: c.strike, right: c.optionType, expiry: c.expiry, zerodha,
+      display: names.display, angel: names.angel, expiryText: names.expiryText,
+      exitBy: names.exitBy, exitByText: names.exitByText,
       buy: levels.buy, sell: levels.sell, stop: levels.stop,
       now: nowPrice, drift: driftPct(levels.buy, nowPrice),
       frozen: levels.frozen, frozenAtIst: levels.frozenAtIst, frozenAt: levels.frozenAt || null,
@@ -185,7 +282,8 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
       iv: c.impliedVol, rv: c.realisedVol, vrp: c.varianceRiskPremium,
       touchPct: c.touchPct, daysToTarget: c.medianDaysToTarget, daysLeft: c.daysToExpiry,
       thetaBurnPct: c.thetaBurnPct, term: c.termShape, skew: c.skewPoints,
-      priceSource: c.priceSource, priceIsLive: c.priceIsLive, score: c.screenScore
+      priceSource: c.priceSource, priceIsLive: c.priceIsLive, score: c.screenScore,
+      forward: c.forward ?? null, forwardSource: c.forwardSource || null
     };
   }).filter(Boolean);
 
@@ -207,9 +305,18 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   const { ENTRY_DISCOUNT, TARGET_1, TARGET_2, STOP } = require("../api/_lib/session-levels");
   const futures = futuresPicked.map(({ row: r, expiry }) => {
     const fq = expiry ? quoteFor({ kind: "FUT", symbol: r.symbol, expiry }) : null;
-    const liveNow = Boolean(fq) && phase.open === true && ledgerLib.feedDate(fq.exchangeFeedTime) === session.sessionDate;
+    // LIVE MEANS FRESH, not merely "from today". During a market-wide circuit
+    // breaker halt (10/15/20% on NIFTY or Sensex) the last print sits frozen
+    // while the clock runs; a quote forty minutes old is today's, and is not a
+    // price anyone can trade at. Ten minutes is generous for an instrument that
+    // prints every second, and short of any halt.
+    const feedAt = fq ? ledgerLib.feedMs(fq.exchangeFeedTime) : null;
+    const liveNow = Boolean(fq) && phase.open === true
+      && ledgerLib.feedDate(fq.exchangeFeedTime) === session.sessionDate
+      && feedAt !== null && Date.now() - feedAt <= 10 * 60_000;
     const nowPrice = round(fq ? fq.ltp : r.spotPrice);
     const nowSource = fq ? (liveNow ? "FUTURES_LIVE" : "FUTURES_LAST_TRADED") : "CASH_SPOT_FALLBACK";
+    const nowAtText = fq?.exchangeFeedTime ? String(fq.exchangeFeedTime).slice(12, 17) : null;
     // Measured, never assumed: Yang-Zhang realised volatility over the right
     // window, from the same trade-odds pass that scored the row. No volatility,
     // no expected time -- a made-up estimate is worse than an honest blank.
@@ -234,10 +341,12 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     if (!levels) return null;
     const risk = round(levels.buy - levels.stop);
     const reward = round(levels.target1 - levels.buy);
+    const fnames = contractNames(r.symbol, levels.expiry || expiry, null, null, reference);
     return {
+      display: fnames.display, expiryText: fnames.expiryText, exitBy: fnames.exitBy, exitByText: fnames.exitByText,
       symbol: r.symbol, tradingSymbol: levels.tradingSymbol || r.tradingSymbol,
       angelSymbol: levels.angelSymbol || null, expiry: levels.expiry || expiry,
-      spot: nowPrice, nowSource,
+      spot: nowPrice, nowSource, nowAtText,
       buy: levels.buy, target1: levels.target1, target2: levels.target2, stop: levels.stop,
       anchor: levels.anchor, anchorSource: levels.anchorSource || null, drift: driftPct(levels.buy, nowPrice),
       frozen: levels.frozen, frozenAtIst: levels.frozenAtIst, frozenAt: levels.frozenAt || null,
@@ -331,6 +440,10 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     survived: screen.survived ?? 0,
     brokerCheck,
     quoteStatus,
+    forwardStatus,
+    optionsOnLiveForward: options.filter((c) => c.forwardSource === "LIVE").length,
+    banList: { tradeDate: fnoUniverseEngine.banTradeDate || null, symbols: [...bannedSet].sort(),
+      refusedContracts: screen.refused?.banned ?? null },
     track,
     ledgerError,
     // Futures on today's list that the session froze without: their contract
@@ -354,9 +467,9 @@ function page(d) {
     const state = fillState(c.buy, c.now);
     return `
       <tr>
-        <td><b>${esc(c.symbol)} ${esc(c.strike)} ${esc(c.right)}</b>
-          <div class="sub"><code>${esc(c.zerodha)}</code></div>
-          <div class="sub">${esc(c.expiry)} &middot; ${esc(c.daysLeft)}d left</div></td>
+        <td><b class="name">${esc(c.display || (c.symbol + " " + c.strike + " " + c.right))}</b>
+          <div class="sub">Zerodha <code>${esc(c.zerodha)}</code>${c.angel ? ` &middot; Angel <code>${esc(c.angel)}</code>` : ""}</div>
+          <div class="sub">expires ${esc(c.expiryText || c.expiry)} &middot; ${esc(round(c.daysLeft, 1))}d left${c.exitByText ? ` &middot; <b class="warn">exit by ${esc(c.exitByText)}</b>` : ""}</div></td>
         <td class="num"><b>${money(c.buy)}</b><div class="sub">&times;${esc(c.lotSize)} = ${money(c.costPerLot)}</div></td>
         <td class="num up"><b>${money(c.sell)}</b><div class="sub">net ${money(c.netProfit)}</div></td>
         <td class="num down">${money(c.stop)}</td>
@@ -382,7 +495,7 @@ function page(d) {
   // looked exactly like a row priced on the right one.
   const SOURCE_LABEL = {
     FUTURES_LIVE: "futures, live",
-    FUTURES_LAST_TRADED: "futures, last traded",
+    FUTURES_LAST_TRADED: "futures, last trade &mdash; NOT live",
     CASH_SPOT_FALLBACK: "CASH price &mdash; no futures quote"
   };
   const futRows = d.futures.map((r) => {
@@ -394,11 +507,13 @@ function page(d) {
       : "";
     return `
       <tr>
-        <td><b>${esc(r.symbol)}</b><div class="sub"><code>${esc(r.tradingSymbol)}</code></div>${r.angelSymbol ? `<div class="sub">Angel <code>${esc(r.angelSymbol)}</code></div>` : ""}</td>
+        <td><b class="name">${esc(r.display || r.symbol)}</b>
+          <div class="sub">Zerodha <code>${esc(r.tradingSymbol)}</code>${r.angelSymbol ? ` &middot; Angel <code>${esc(r.angelSymbol)}</code>` : ""}</div>
+          ${r.expiryText ? `<div class="sub">expires ${esc(r.expiryText)}${r.exitByText ? ` &middot; <b class="warn">exit or roll by ${esc(r.exitByText)}</b>` : ""}</div>` : ""}</td>
         <td class="num"><b>${money(r.buy)}</b>${expLine ? `<div class="sub">expected: ${expLine}</div>` : ""}</td>
         <td class="num up">${money(r.target1)}<div class="sub">${money(r.target2)}</div></td>
         <td class="num down">${money(r.stop)}</td>
-        <td class="num">${money(r.spot)}<div class="sub ${state.tone}">${esc(state.word)}</div><div class="sub ${r.nowSource === "CASH_SPOT_FALLBACK" ? "down" : ""}">${SOURCE_LABEL[r.nowSource] || ""}</div></td>
+        <td class="num">${money(r.spot)}<div class="sub ${state.tone}">${esc(state.word)}</div><div class="sub ${r.nowSource === "FUTURES_LIVE" ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div></td>
         <td class="num">${money(r.perUnitCapital)}<div class="sub">per unit</div></td>
         <td class="num">${esc(r.rewardToRisk)}<div class="sub">+${money(r.rewardPerUnit)} / &minus;${money(r.riskPerUnit)}</div></td>
       </tr>`;
@@ -509,6 +624,27 @@ function page(d) {
          Until this is fixed the options table stays empty during market hours, because a
          settled price is never quoted as a live one.`;
 
+  // The two facts behind every option row that a reader cannot otherwise see:
+  // which stocks were left out because NSE forbids fresh positions in them, and
+  // whether the options were priced against today's futures or yesterday's.
+  const ban = d.banList;
+  // A ban list dated before the session being traded is yesterday's news: NSE
+  // publishes the next session's list each evening, so an older date means the
+  // fetch failed and a stock may have entered the ban since.
+  const banStale = ban && ban.tradeDate && d.sessionDate && ban.tradeDate < d.sessionDate;
+  const banNote = banStale
+    ? ` <b class="down">F&amp;O ban list is from ${esc(ban.tradeDate)}, not today &mdash; it may be missing a stock
+         that entered the ban since. Check NSE before trading.</b> Excluded on that list: ${esc((ban.symbols || []).join(", ") || "none")}.`
+    : ban
+    ? (ban.symbols?.length
+      ? ` <b>F&amp;O ban${ban.tradeDate ? " for " + esc(ban.tradeDate) : ""}:</b> ${esc(ban.symbols.join(", "))} &mdash;
+         left out entirely, because NSE allows only exits in a banned stock.`
+      : ` <b>F&amp;O ban${ban.tradeDate ? " for " + esc(ban.tradeDate) : ""}:</b> none.`)
+    : ` <b class="down">F&amp;O ban list not checked on this build &mdash; confirm on NSE before trading.</b>`;
+  const forwardNote = d.options.length
+    ? ` ${esc(d.optionsOnLiveForward ?? 0)} of ${esc(d.options.length)} options priced against the live futures price.`
+    : "";
+
   const liveNote = d.pricedLive > 0
     ? `<b class="up">${d.pricedLive}</b> priced from a live broker book, <b>${d.pricedFromSettlement}</b> from the ${esc(d.settlementFile)} settlement file.`
     : `All prices are from the <b>${esc(d.settlementFile)}</b> settlement file. The market was ${esc(d.marketPhase).toLowerCase()} when this was built, so nothing here is executable right now.`;
@@ -549,6 +685,8 @@ function page(d) {
   .sub { font-size:10px; color:var(--muted); margin-top:2px }
   code { font-size:10px; color:var(--text); word-break:break-all }
   .up { color:var(--green) } .down { color:var(--red) }
+  .name { font-size:15px; letter-spacing:.02em }
+  .warn { color:var(--amber) }
   tr:last-child td { border-bottom:none }
   /* Three tabs, no JavaScript: a radio button per tab, and CSS shows the pane
      whose button is checked. Works on any phone, with scripts off, forever. */
@@ -620,7 +758,7 @@ function page(d) {
 </main>
 
 <div class="note" style="margin-top:20px">
-  <b>WHERE THESE PRICES COME FROM.</b> ${liveNote}${brokerNote}
+  <b>WHERE THESE PRICES COME FROM.</b> ${liveNote}${forwardNote}${brokerNote}${banNote}
   This page is a <b>snapshot</b>, rebuilt on a schedule &mdash; it is not a live feed.
   <b>Check the price on your broker before placing anything.</b>
   Net figures are after brokerage, STT at 0.15%, exchange, stamp and GST; the

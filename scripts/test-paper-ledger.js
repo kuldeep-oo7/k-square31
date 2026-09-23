@@ -126,16 +126,38 @@ console.log("paper ledger:");
   L.settle(f, at("15:40"));
   check("a futures trade held twenty sessions is TIMED_OUT at the last price", f.status === "TIMED_OUT" && f.exitPrice === 100.4);
 
+  // An INDEX option settles in cash, so it may be held to expiry.
   const o = L.tradeFromLevel({
-    kind: "CE", symbol: "JINDALSTEL", contract: "JINDALSTEL26OCT1180CE", expiry: "2026-10-27",
-    strike: 1180, optionType: "CE", lotSize: 625,
+    kind: "CE", symbol: "NIFTY", contract: "NIFTY26OCT26000CE", expiry: "2026-10-27",
+    strike: 26000, optionType: "CE", lotSize: 75,
     buy: 32, target: 48, stop: 16, sessionDate: "2026-09-24", shownAt: new Date(at("09:33")).toISOString()
   });
   o.status = "OPEN"; o.filledAt = o.shownAt; o.last = 0;
+  L.settle(o, Date.parse("2026-10-21T15:31:00+05:30"));
+  check("an index option is NOT taken off early: it is cash-settled", o.status === "OPEN");
   L.settle(o, Date.parse("2026-10-27T15:31:00+05:30"));
-  check("an option still open at expiry is EXPIRED", o.status === "EXPIRED");
+  check("an index option still open at expiry is EXPIRED", o.status === "EXPIRED");
   check("expiring worthless loses the whole premium and the buy charges",
-    o.pnl.netPerLot === -(32 * 625) - 20 && o.pnl.basis === "NET");
+    o.pnl.netPerLot === -(32 * 75) - 20 && o.pnl.basis === "NET");
+
+  // A STOCK option is physically settled: taken off before delivery margins.
+  const so = L.tradeFromLevel({
+    kind: "PE", symbol: "TATAPOWER", contract: "TATAPOWER26OCT380PE", expiry: "2026-10-27",
+    strike: 380, optionType: "PE", lotSize: 1450,
+    buy: 12.75, target: 19.13, stop: 6.38, sessionDate: "2026-09-24", shownAt: new Date(at("09:33")).toISOString()
+  });
+  so.status = "OPEN"; so.filledAt = so.shownAt; so.last = 14.2;
+  check("exit-by for a Tuesday 27 Oct expiry is Wednesday 21 Oct", L.exitByDate("2026-10-27") === "2026-10-21");
+  L.settle(so, Date.parse("2026-10-21T15:00:00+05:30"));
+  check("a stock option is still open before the close of its exit-by day", so.status === "OPEN");
+  L.settle(so, Date.parse("2026-10-21T15:31:00+05:30"));
+  check("a stock option is TIME_EXIT at the last price when delivery margins begin",
+    so.status === "TIME_EXIT" && so.exitPrice === 14.2);
+
+  const sf = futTrade();
+  sf.status = "OPEN"; sf.filledAt = new Date(at("09:53")).toISOString(); sf.last = 100.9;
+  L.settle(sf, Date.parse("2026-10-21T15:31:00+05:30"));
+  check("a stock FUTURE is taken off too -- futures are physically settled as well", sf.status === "TIME_EXIT");
 
   const w = L.tradeFromLevel({
     kind: "CE", symbol: "JINDALSTEL", contract: "JINDALSTEL26OCT1180CE", expiry: "2026-10-27",

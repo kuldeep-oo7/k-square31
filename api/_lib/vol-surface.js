@@ -46,7 +46,9 @@ function ivAt(bucket, forward, strike, optionType, years) {
   if (premium < intrinsic) return null;
   const solved = impliedVolatility({
     underlyingPrice: forward, strike, timeToExpiryYears: years,
-    riskFreeRate: RISK_FREE, dividendYield: 0, optionType, model: "BSM"
+    riskFreeRate: RISK_FREE, dividendYield: 0, optionType,
+    // A futures price is priced with Black-76; only a spot price takes BSM.
+    model: Number(bucket.futuresPrice) > 0 ? "BLACK76" : "BSM"
   }, premium);
   const iv = Number(solved?.iv);
   return iv > 0.03 && iv < 3 ? iv : null;
@@ -81,7 +83,8 @@ function strikeAtDelta(bucket, forward, years, optionType, targetDelta = 0.25) {
     if (!(iv > 0)) continue;
     const greeks = europeanOption({
       underlyingPrice: forward, strike, timeToExpiryYears: years,
-      riskFreeRate: RISK_FREE, dividendYield: 0, volatility: iv, optionType, model: "BSM"
+      riskFreeRate: RISK_FREE, dividendYield: 0, volatility: iv, optionType,
+      model: Number(bucket.futuresPrice) > 0 ? "BLACK76" : "BSM"
     });
     const delta = Math.abs(Number(greeks?.delta));
     if (!Number.isFinite(delta)) continue;

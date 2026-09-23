@@ -43,6 +43,11 @@ const GATES = {
   minVolume: 100,          // it traded today, in size somebody else wanted
   minOpenInterest: 500,    // there is a book to get out into
   minPremium: 1.0,         // a 40-paise option cannot be exited at a sane spread
+  // A mid inside a 40% spread is not a price anyone can trade at. Measured over
+  // 900 survivors with a live book on 2026-09-23: median spread 3.5%, 90th
+  // percentile 8.5%, worst 38.8%. Scoring already kept the top 40 under 4%, but
+  // nothing guaranteed it; a buy limit at the mid of a junk quote never fills.
+  maxSpreadPct: 10,
   minDelta: 0.25,          // not a lottery ticket
   maxDelta: 0.75,          // not a stock substitute with option decay attached
   minIv: 0.05,
@@ -178,7 +183,16 @@ function screenContracts({
   // Injected rather than required, so the screener has no database dependency
   // and the suites can run it without one. Returns null until enough sessions
   // of history exist, and the rank term stays neutral until it does.
-  ivRankFor = null
+  ivRankFor = null,
+  // Symbols in the exchange's F&O ban. During a ban only positions that REDUCE
+  // exposure are allowed, so a buy shown here would be an order NSE refuses.
+  banned = null,
+  // The live forward for (symbol, expiry), injected like liveQuoteFor. Without
+  // it the forward is the settlement file's -- yesterday's -- which is right
+  // before the bell and wrong the moment the stock moves: the option price is
+  // live, and solving it against yesterday's forward books the whole day's move
+  // as implied volatility.
+  forwardFor = null
 } = {}) {
   const rules = { ...GATES, ...gates };
   if (!reference?.symbols) {
@@ -199,12 +213,19 @@ function screenContracts({
   const refused = {
     expiryWindow: 0, illiquid: 0, tinyPremium: 0, noIv: 0,
     deltaBand: 0, belowIntrinsic: 0, noDirection: 0, noUnderlying: 0,
-    staleDuringSession: 0
+    staleDuringSession: 0, banned: 0, wideSpread: 0
   };
   let examined = 0;
   const survivors = [];
 
+  const bannedSet = banned instanceof Set ? banned : new Set(Array.isArray(banned) ? banned : []);
   for (const [symbol, entry] of Object.entries(reference.symbols)) {
+    if (bannedSet.has(symbol)) {
+      for (const bucket of Object.values(entry.expiries || {})) {
+        refused.banned += (bucket.callStrikes?.length || 0) + (bucket.putStrikes?.length || 0);
+      }
+      continue;
+    }
     for (const [expiry, bucket] of Object.entries(entry.expiries || {})) {
       const daysToExpiry = (Date.parse(`${expiry}T15:30:00+05:30`) - now) / 86400000;
       if (!(daysToExpiry >= rules.minDaysToExpiry && daysToExpiry <= rules.maxDaysToExpiry)) {
@@ -214,9 +235,20 @@ function screenContracts({
       // Price off the FORWARD. For an F&O name the market's forward is the
       // future, and using the cash level instead moved at-the-money implied
       // volatility by more than seven points when this desk last got it wrong.
-      const forward = Number(bucket.futuresPrice) > 0
+      const settledForward = Number(bucket.futuresPrice) > 0
         ? Number(bucket.futuresPrice)
         : Number(entry.underlyingPrice);
+      const liveForward = forwardFor ? Number(forwardFor(symbol, expiry, settledForward)) : NaN;
+      const forward = liveForward > 0 ? liveForward : settledForward;
+      const forwardSource = liveForward > 0 ? "LIVE" : "SETTLEMENT";
+      // BLACK-76 ON A FUTURES PRICE, BSM ONLY ON A SPOT PRICE. option-pricing.js
+      // says so in its first line; this passed the future to BSM with no
+      // dividend, which grows an already-carried price at the interest rate a
+      // second time. Measured on 2026-09-23: TATAPOWER OCT 380 PE solved to 19.10%
+      // implied volatility instead of 15.58%, delta -0.619 instead of -0.691, and
+      // 2.75 vol points of error on average across the whole shortlist -- enough
+      // to tilt every put towards "expensive" and every call towards "cheap".
+      const pricingModel = liveForward > 0 || Number(bucket.futuresPrice) > 0 ? "BLACK76" : "BSM";
       if (!(forward > 0)) continue;
 
       const years = daysToExpiry / 365;
@@ -262,6 +294,7 @@ function screenContracts({
             ? (100 * (book.ask - book.bid)) / liveMid
             : null;
           if (!(premium >= rules.minPremium)) { refused.tinyPremium += 1; continue; }
+          if (spreadPct !== null && spreadPct > rules.maxSpreadPct) { refused.wideSpread += 1; continue; }
           // During market hours a settled price is not an entry price. If the
           // session is open and no live book was seen, the contract is refused
           // rather than quoted at yesterday's close.
@@ -277,7 +310,7 @@ function screenContracts({
 
           const solved = impliedVolatility({
             underlyingPrice: forward, strike, timeToExpiryYears: years,
-            riskFreeRate: RISK_FREE, dividendYield: 0, optionType, model: "BSM"
+            riskFreeRate: RISK_FREE, dividendYield: 0, optionType, model: pricingModel
           }, premium);
           const impliedVol = Number(solved?.iv);
           if (!(impliedVol > rules.minIv && impliedVol < rules.maxIv)) { refused.noIv += 1; continue; }
@@ -285,7 +318,7 @@ function screenContracts({
           const greeks = europeanOption({
             underlyingPrice: forward, strike, timeToExpiryYears: years,
             riskFreeRate: RISK_FREE, dividendYield: 0, volatility: impliedVol,
-            optionType, model: "BSM"
+            optionType, model: pricingModel
           });
           const delta = Number(greeks?.delta);
           if (!(Math.abs(delta) >= rules.minDelta && Math.abs(delta) <= rules.maxDelta)) {
@@ -345,6 +378,7 @@ function screenContracts({
             settledPrice: round(Number(quote.price)),
             tradedToday: quote.traded === true,
             forward: round(forward),
+            forwardSource,
             lotSize: bucket.lotSize || entry.lotSize || null,
             daysToExpiry: round(daysToExpiry, 1),
             impliedVol: round(impliedVol * 100, 1),

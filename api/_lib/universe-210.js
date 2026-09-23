@@ -316,9 +316,15 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
   })();
   const pricingUnderlying = pricing.price;
   const pricingBasis = pricing.basis;
+  // A futures price or a parity forward already carries the interest rate, so
+  // it is priced with Black-76; only the cash spot fallback takes BSM. Passing a
+  // forward to BSM grows it at the rate a second time (option-pricing.js line
+  // one says which model takes which), measured at 2.75 vol points of error on
+  // average across a real shortlist.
+  const pricingModel = pricingBasis === "CASH_SPOT_NO_FUTURE_AVAILABLE" ? "BSM" : "BLACK76";
 
   const callBsm = europeanOption({
-    model: "BSM",
+    model: pricingModel,
     underlyingPrice: pricingUnderlying,
     strike: atmStrike,
     timeToExpiryYears,
@@ -329,7 +335,7 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
   });
 
   const putBsm = europeanOption({
-    model: "BSM",
+    model: pricingModel,
     underlyingPrice: pricingUnderlying,
     strike: atmStrike,
     timeToExpiryYears,
@@ -730,7 +736,7 @@ function indexDaysToListedExpiry(opts) {
   return getDaysToMonthlyExpiry().days;
 }
 
-function indexOdds(symbol, { underlying, strike, premium, daysToExpiry, isBullish = true }) {
+function indexOdds(symbol, { underlying, strike, premium, daysToExpiry, isBullish = true, pricingBasis = null }) {
   const ticker = INDEX_BAR_TICKERS[symbol];
   if (!ticker) return { available: false, reason: "NO_INDEX_TICKER_MAPPED" };
   const cached = getCachedBars(ticker);
@@ -742,7 +748,8 @@ function indexOdds(symbol, { underlying, strike, premium, daysToExpiry, isBullis
   const years = daysToExpiry / 365;
   const solved = solveImpliedVolatility({
     underlyingPrice: underlying, strike, timeToExpiryYears: years,
-    riskFreeRate: 0.065, dividendYield: 0, optionType: isBullish ? "CE" : "PE", model: "BSM"
+    riskFreeRate: 0.065, dividendYield: 0, optionType: isBullish ? "CE" : "PE",
+    model: pricingBasis && pricingBasis !== "CASH_SPOT_NO_FUTURE_AVAILABLE" ? "BLACK76" : "BSM"
   }, premium);
   return tradeOdds({
     spot: underlying,
@@ -773,9 +780,27 @@ class FnoUniverseEngine {
         const coverage = JSON.parse(fs.readFileSync(COVERAGE_PATH, "utf8"));
         this.symbols = coverage.futuresSymbols || [];
         this.banned = new Set(coverage.bannedSymbols || []);
+        this.banTradeDate = coverage.banTradeDate || null;
       }
     } catch (e) {
       console.warn("Could not load coverage:", e.message);
+    }
+
+    // A FRESHER BAN LIST WINS. data/market-coverage.json is committed and only
+    // changes when someone runs refresh-market-coverage.js; the static build
+    // fetches NSE's list on every run into .private/cache/fo-ban.json. Measured
+    // on 2026-09-23 the committed list was six days old and missed LICHSGFIN.
+    try {
+      const freshFile = path.resolve(__dirname, "../../.private/cache/fo-ban.json");
+      if (fs.existsSync(freshFile)) {
+        const fresh = JSON.parse(fs.readFileSync(freshFile, "utf8"));
+        if (Array.isArray(fresh.symbols) && fresh.tradeDate && (!this.banTradeDate || fresh.tradeDate >= this.banTradeDate)) {
+          this.banned = new Set(fresh.symbols);
+          this.banTradeDate = fresh.tradeDate;
+        }
+      }
+    } catch (e) {
+      console.warn("Could not load the fresh ban list:", e.message);
     }
 
     // 2. Load Nifty 500 Metadata
@@ -1446,7 +1471,9 @@ class FnoUniverseEngine {
           if (premium < intrinsic - 0.01) return null;
           const solved = solveImpliedVolatility({
             underlyingPrice: oddsUnderlying, strike, timeToExpiryYears: years,
-            riskFreeRate: 0.065, dividendYield: 0, optionType: bullish ? "CE" : "PE", model: "BSM"
+            riskFreeRate: 0.065, dividendYield: 0, optionType: bullish ? "CE" : "PE",
+            // oddsUnderlying is the front future when one is listed, else spot.
+            model: oddsUnderlying !== spot ? "BLACK76" : "BSM"
           }, premium);
           return solved?.available && solved.iv > 0 ? solved.iv : null;
         })();
@@ -1578,7 +1605,8 @@ class FnoUniverseEngine {
         if (!(premium > 0)) continue;
         const solved = solveImpliedVolatility({
           underlyingPrice: forward, strike: near.strike, timeToExpiryYears: days / 365,
-          riskFreeRate: 0.065, dividendYield: 0, optionType, model: "BSM"
+          riskFreeRate: 0.065, dividendYield: 0, optionType,
+          model: Number(bucket?.futuresPrice) > 0 ? "BLACK76" : "BSM"
         }, premium);
         const iv = Number(solved?.iv);
         if (Number.isFinite(iv) && iv > 0.03 && iv < 1.5) return iv;
@@ -1636,6 +1664,7 @@ class FnoUniverseEngine {
       legExits: niftyOpts && niftyOpts.call ? niftyOpts.call.exits || null : null,
       odds: niftyOpts && niftyOpts.call ? indexOdds("NIFTY", {
         underlying: niftyOpts.pricingUnderlying,
+        pricingBasis: niftyOpts.pricingBasis,
         strike: niftyOpts.call.strike,
         premium: niftyOpts.call.premium,
         // The LISTED expiry, not the monthly one. NIFTY options expire WEEKLY:
@@ -1713,6 +1742,7 @@ class FnoUniverseEngine {
       legExits: bankNiftyOpts && bankNiftyOpts.call ? bankNiftyOpts.call.exits || null : null,
       odds: bankNiftyOpts && bankNiftyOpts.call ? indexOdds("BANKNIFTY", {
         underlying: bankNiftyOpts.pricingUnderlying,
+        pricingBasis: bankNiftyOpts.pricingBasis,
         strike: bankNiftyOpts.call.strike,
         premium: bankNiftyOpts.call.premium,
         // The LISTED expiry, not the monthly one. NIFTY options expire WEEKLY:
