@@ -83,3 +83,26 @@ clock fired: every row shows the time and the status GitHub returned.
 21 builds a day × about 2 billed minutes, plus the backstop's one-minute checks,
 is near **1,050 minutes a month** against the 2,000 a private repository gets
 free. cron-job.org is free.
+
+## Before 10 March 2028 — one header to add
+
+The first real test run (2026-09-23, 22:05 IST) returned `204 No Content` and
+started a build within the same second. GitHub's reply also carried:
+
+```
+x-github-api-version-selected: 2022-11-28
+Deprecation: Tue, 10 Mar 2026 00:00:00 GMT
+Sunset: Fri, 10 Mar 2028 00:00:00 GMT
+```
+
+With no version header, GitHub answers with the 2022-11-28 API, which is already
+deprecated and is switched off on **10 March 2028**. Before then, add a fourth
+header to the cron-job.org job:
+
+| Key | Value |
+|---|---|
+| `X-GitHub-Api-Version` | `2026-03-10` |
+
+and run TEST RUN again. On that version GitHub's documentation lists the success
+code as `200` rather than `204` -- both mean it worked. If this is missed, the
+failure-notification email set up on the job is the warning.
