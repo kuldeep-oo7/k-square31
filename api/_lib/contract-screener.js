@@ -287,9 +287,20 @@ function screenContracts({
           // existed. A contract that had fallen 74% still showed yesterday's
           // number as an entry.
           const book = liveQuoteFor ? liveQuoteFor(symbol, expiry, strike, optionType) : null;
-          const liveMid = book && book.bid > 0 && book.ask > 0 ? (book.bid + book.ask) / 2 : null;
-          const premium = liveMid !== null ? liveMid : Number(quote.price);
-          const priceIsLive = liveMid !== null;
+          // In session, only an EXECUTABLE book is a price: a book fetched half an
+          // hour ago is today's and still not tradeable (live-quotes classifies it
+          // CLOSING_BOOK with executable false). Books without the flag -- injected
+          // test books -- are taken at their word.
+          const usableBook = book && book.bid > 0 && book.ask > 0 && !(marketOpen === true && book.executable === false);
+          const liveMid = usableBook ? (book.bid + book.ask) / 2 : null;
+          // SAME MOMENT ON BOTH SIDES. With the market shut the forward is the
+          // settlement file's, so the premium must be too; pricing a 15:30 closing
+          // book against a settlement forward moved TATAPOWER OCT 380 PE by 1.3 vol
+          // points. The closing book is still used below -- for its SPREAD, the
+          // only real spread measurement available in the evening.
+          const priceFromBook = liveMid !== null && marketOpen !== false;
+          const premium = priceFromBook ? liveMid : Number(quote.price);
+          const priceIsLive = priceFromBook;
           const spreadPct = book && book.bid > 0 && book.ask > 0 && liveMid > 0
             ? (100 * (book.ask - book.bid)) / liveMid
             : null;

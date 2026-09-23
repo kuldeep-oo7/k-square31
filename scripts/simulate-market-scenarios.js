@@ -226,6 +226,9 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     console.log("  09:13 pre-open");
     check("before the bell nothing is frozen, and the page says INDICATIVE", pre.data.levelsFrozen === false && /INDICATIVE, NOT FIXED/.test(pre.html));
     check("the track record records nothing before the bell", (pre.data.track?.tally?.added ?? 0) === 0);
+    check("before the bell every option is priced against the SETTLEMENT forward, the same moment as its premium",
+      pre.data.options.length > 0 && pre.data.options.every((c) => c.forwardSource === "SETTLEMENT"),
+      `${pre.data.options.length} options`);
 
     const b = await runBuild("thu-0933-normal-freeze", { ...normal, clock: ist("2026-09-24", "09:33") }, dayBook);
     const d = b.data;

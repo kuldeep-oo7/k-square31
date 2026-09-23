@@ -149,11 +149,21 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
    * ratio its monthly future moved since the settlement.
    */
   const brokersForForward = require("../api/_lib/broker-feed");
+  // SAME MOMENT ON BOTH SIDES. The live forward is only right against a live
+  // premium, and premiums are live only while the session is open (the
+  // screener refuses settled prices in session). After the close the premium is
+  // the settlement file's, so the forward must be too: solving a settlement
+  // premium against a 15:40 futures print moved TATAPOWER OCT 380 PE from 15.6%
+  // to 16.9% implied vol on 2026-09-23 -- the same defect as before, smaller.
+  // And only the expiries the screener can use (7 to 60 days), which is what
+  // keeps this inside Angel's one-request-a-second /quote limit.
   const forwardRequests = [];
-  for (const [symbol, entry] of Object.entries(reference?.symbols || {})) {
-    for (const expiry of Object.keys(entry.expiries || {})) {
-      const days = (Date.parse(`${expiry}T15:30:00+05:30`) - Date.now()) / 86400000;
-      if (days >= 0 && days <= 75) forwardRequests.push({ kind: "FUT", symbol, expiry });
+  if (phase.open === true) {
+    for (const [symbol, entry] of Object.entries(reference?.symbols || {})) {
+      for (const expiry of Object.keys(entry.expiries || {})) {
+        const days = (Date.parse(`${expiry}T15:30:00+05:30`) - Date.now()) / 86400000;
+        if (days >= 7 && days <= 60) forwardRequests.push({ kind: "FUT", symbol, expiry });
+      }
     }
   }
   let forwardQuotes = {};
@@ -641,9 +651,10 @@ function page(d) {
          left out entirely, because NSE allows only exits in a banned stock.`
       : ` <b>F&amp;O ban${ban.tradeDate ? " for " + esc(ban.tradeDate) : ""}:</b> none.`)
     : ` <b class="down">F&amp;O ban list not checked on this build &mdash; confirm on NSE before trading.</b>`;
-  const forwardNote = d.options.length
-    ? ` ${esc(d.optionsOnLiveForward ?? 0)} of ${esc(d.options.length)} options priced against the live futures price.`
-    : "";
+  const forwardNote = !d.options.length ? ""
+    : d.optionsOnLiveForward > 0
+      ? ` ${esc(d.optionsOnLiveForward)} of ${esc(d.options.length)} options priced against the live futures price.`
+      : " Premiums and the futures prices they are measured against both come from that same settlement file, so they describe the same moment.";
 
   const liveNote = d.pricedLive > 0
     ? `<b class="up">${d.pricedLive}</b> priced from a live broker book, <b>${d.pricedFromSettlement}</b> from the ${esc(d.settlementFile)} settlement file.`

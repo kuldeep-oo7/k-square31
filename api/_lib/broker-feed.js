@@ -645,7 +645,7 @@ function contractKey(contract) {
   return `${symbol}|${expiry}|${Number(contract?.strike)}|${String(contract?.optionType || "").toUpperCase()}`;
 }
 
-async function contractQuotes(contracts, { timeoutMs = 20_000, batchSize = 50 } = {}) {
+async function contractQuotes(contracts, { timeoutMs = 20_000, batchSize = 50, minIntervalMs = 1100 } = {}) {
   const credentials = credentialsFor("angelone");
   if (!credentials) return { ok: false, reason: "NOT_CONFIGURED_NO_CREDENTIALS", quotes: {} };
   const instruments = loadInstruments("angelone");
@@ -666,6 +666,12 @@ async function contractQuotes(contracts, { timeoutMs = 20_000, batchSize = 50 } 
   const failures = [];
   for (let i = 0; i < tokens.length; i += batchSize) {
     const batch = tokens.slice(i, i + batchSize);
+    // ONE REQUEST PER SECOND. Angel cut /quote from 10 requests a second to 1,
+    // raising the batch to 50 symbols (SmartAPI forum, "Live Market Data API -
+    // /quote Endpoint ... 1 Request Per Second Rate Limit"). Thirteen batches
+    // back to back got through on 2026-09-23; that was the limit being loosely
+    // enforced, not the code being compliant.
+    if (i > 0) await new Promise((resolve) => setTimeout(resolve, minIntervalMs));
     try {
       const response = await fetch(`${ANGEL_ROOT}/rest/secure/angelbroking/market/v1/quote`, {
         method: "POST",
