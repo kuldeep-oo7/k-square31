@@ -166,20 +166,32 @@ jobs:
         run: |
           git config user.name "k2-desk-bot"
           git config user.email "noreply@users.noreply.github.com"
-          # REBASE FIRST, ON A CLEAN TREE. Rebasing AFTER committing meant
-          # replaying this run's docs/levels.json onto whatever landed while the
-          # build was running, and the session ledger is the one file where a
-          # swallowed conflict is unrecoverable: a mangled ledger is a mangled
-          # set of buy limits for the rest of the day. The concurrency group
-          # stops two scheduled runs overlapping but not a run racing a push
-          # from a laptop, which happened twice this morning.
-          git stash push --include-untracked --quiet -- docs/ || true
-          git pull --rebase --quiet origin "${GITHUB_REF_NAME}"
-          git stash pop --quiet || git checkout --theirs -- docs/ 2>/dev/null || true
+          # NO REBASE AT ALL, because there is nothing here worth merging.
+          #
+          # Rebasing AFTER committing replayed this run's docs/levels.json onto
+          # whatever landed mid-build, with the failure swallowed by || true --
+          # and the session ledger is the one file where a swallowed conflict is
+          # unrecoverable, because a mangled ledger is a mangled set of buy
+          # limits for the rest of the day. Rebasing BEFORE committing then
+          # failed outright on its first run: npm install had touched
+          # package-lock.json, so the tree was not clean and git refused.
+          #
+          # Both attempts were solving a problem this job does not have. The
+          # working tree already holds the freshly built docs/, and the remote
+          # tip is authoritative for everything else. Moving HEAD to the remote
+          # tip without touching the working tree, then staging only docs/,
+          # produces a clean commit on top of whatever landed -- with no merge,
+          # no conflict and nothing to swallow. Files outside docs/ are left
+          # unstaged and die with the runner.
+          git fetch --quiet origin "${GITHUB_REF_NAME}"
+          git reset --soft "origin/${GITHUB_REF_NAME}"
           git add docs/
           if git diff --cached --quiet; then
             echo "nothing changed this run"
           else
             git commit -m "desk: rebuilt $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M IST')"
-            git push
+            # One retry: a push can still lose a race with a laptop. A second
+            # failure is left LOUD rather than swallowed -- the next run rebuilds
+            # from the remote tip anyway, so a lost push costs one snapshot.
+            git push || { git fetch --quiet origin "${GITHUB_REF_NAME}"; git reset --soft "origin/${GITHUB_REF_NAME}"; git add docs/; git commit -m "desk: rebuilt $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M IST')"; git push; }
           fi
