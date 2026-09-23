@@ -46,13 +46,21 @@ on:
   schedule:
     # NSE trades 09:15-15:30 IST, which is 03:45-10:00 UTC. GitHub cron is UTC
     # only. Every twenty minutes through the session, weekdays.
-    - cron: "*/20 4-9 * * 1-5"
-    # Once before the bell, so the page is not yesterday's when you open it at
-    # 09:00. It freezes nothing -- there is no traded price yet to freeze to.
-    - cron: "40 3 * * 1-5"
-    # The close itself, and once after it so the settlement figures are final.
-    - cron: "0 10 * * 1-5"
-    - cron: "15 10 * * 1-5"
+    #
+    # NOT ON THE HOUR, deliberately. GitHub's own documentation: "The schedule
+    # event can be delayed during periods of high loads of GitHub Actions
+    # workflow runs. High load times include the start of every hour." An
+    # obvious */20 puts one run in three into exactly that window. Minutes 3, 23
+    # and 43 sit in the quiet part of the hour, and 04:03 UTC is 09:33 IST --
+    # eighteen minutes after the bell, which is also late enough that the levels
+    # freeze against a settled price rather than the opening auction.
+    - cron: "3,23,43 4-9 * * 1-5"
+    # Two minutes before the bell, so the page is not yesterday's when you open
+    # it at 09:00. It freezes nothing -- there is no traded price yet.
+    - cron: "43 3 * * 1-5"
+    # Just after the close, and again once the settlement figures are final.
+    - cron: "3 10 * * 1-5"
+    - cron: "23 10 * * 1-5"
   workflow_dispatch:        # and a button, for when you want it now
 
 permissions:
