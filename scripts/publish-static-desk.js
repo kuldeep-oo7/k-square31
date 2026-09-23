@@ -75,7 +75,7 @@ function fillState(limit, now) {
   return { word: `WAITING — needs a ${dip.toFixed(1)}% dip`, tone: dip > 5 ? "down" : "" };
 }
 
-async function build({ limit = 40, futuresLimit = 25, ledgerFile, forceFreeze = null } = {}) {
+async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, forceFreeze = null } = {}) {
   const { fnoUniverseEngine } = require("../api/_lib/universe-210");
   const { screenContracts } = require("../api/_lib/contract-screener");
   const { loadReference } = require("../api/_lib/fno-reference");
@@ -96,6 +96,46 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, forceFreeze = 
     liveQuoteFor: (s, e, k, t) => { try { return live.liveQuote(s, e, k, t); } catch (err) { return null; } },
     marketOpen: phase.open === true
   });
+
+  /**
+   * ONE QUOTE CALL FOR EVERYTHING THAT NEEDS A PRICE.
+   *
+   * Three things need live prices, and they are fetched together: the futures
+   * that are about to be anchored, the options that are about to be frozen
+   * (their day range is the paper ledger's starting line), and every trade the
+   * ledger is still tracking -- including ones that have since dropped off
+   * today's shortlist, which nothing else on this page would ever price again.
+   */
+  const { tradableExpiry } = require("../api/_lib/fno-reference");
+  const brokers = require("../api/_lib/broker-feed");
+  const ledgerLib = require("./paper-ledger");
+  const futuresPicked = universe
+    .filter((r) => (r.action === "BUY" || r.action === "ACCUMULATE") && r.perUnit)
+    .sort((a, b) => (b.compositeScore || 0) - (a.compositeScore || 0))
+    .slice(0, futuresLimit)
+    .map((r) => ({ row: r, expiry: tradableExpiry(r.symbol, { minDays: 7, reference })?.expiry || null }));
+
+  let ledger = null;
+  let ledgerError = null;
+  try { ledger = ledgerLib.openLedger(ledgerDir ? { dir: ledgerDir } : {}); }
+  catch (error) { ledgerError = error.message; }
+
+  const asRequest = (t) => ({ kind: t.kind === "FUT" ? "FUT" : "OPT", symbol: t.symbol, expiry: t.expiry, strike: t.strike, optionType: t.optionType });
+  let quotes = {};
+  let quoteStatus = null;
+  try {
+    const result = await brokers.contractQuotes([
+      ...futuresPicked.filter((f) => f.expiry).map((f) => ({ kind: "FUT", symbol: f.row.symbol, expiry: f.expiry })),
+      ...(screen.contracts || []).map((c) => ({ kind: "OPT", symbol: c.symbol, expiry: c.expiry, strike: c.strike, optionType: c.optionType })),
+      ...(ledger ? ledger.open.map(asRequest) : [])
+    ]);
+    quotes = result.quotes || {};
+    quoteStatus = { ok: result.ok, reason: result.reason || null, requested: result.requested,
+      resolved: result.resolved, priced: Object.keys(quotes).length, failures: result.failures || [] };
+  } catch (error) {
+    quoteStatus = { ok: false, reason: error.message };
+  }
+  const quoteFor = (x) => quotes[brokers.contractKey(x)] || null;
 
   /**
    * A LEVEL IS ONLY FROZEN AGAINST A PRICE THAT TRADED.
@@ -138,7 +178,8 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, forceFreeze = 
       symbol: c.symbol, strike: c.strike, right: c.optionType, expiry: c.expiry, zerodha,
       buy: levels.buy, sell: levels.sell, stop: levels.stop,
       now: nowPrice, drift: driftPct(levels.buy, nowPrice),
-      frozen: levels.frozen, frozenAtIst: levels.frozenAtIst,
+      frozen: levels.frozen, frozenAtIst: levels.frozenAtIst, frozenAt: levels.frozenAt || null,
+      priceSourceAtFreeze: levels.priceSourceAtFreeze || null,
       lotSize: c.lotSize, costPerLot: c.costPerLot,
       netProfit: c.netProfit, costPct: c.costAsPctOfGross,
       iv: c.impliedVol, rv: c.realisedVol, vrp: c.varianceRiskPremium,
@@ -148,32 +189,113 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, forceFreeze = 
     };
   }).filter(Boolean);
 
-  const futures = universe
-    .filter((r) => (r.action === "BUY" || r.action === "ACCUMULATE") && r.perUnit)
-    .sort((a, b) => (b.compositeScore || 0) - (a.compositeScore || 0))
-    .slice(0, futuresLimit)
-    .map((r) => {
-      const nowPrice = round(r.spotPrice);
-      const levels = session.level("futures", r.symbol, () => {
-        if (!Number.isFinite(Number(r.entryPrice))) return null;
-        return {
-          buy: round(r.entryPrice), target1: round(r.target1), target2: round(r.target2),
-          stop: round(r.stopLoss), anchor: round(r.spotPrice),
-          tradingSymbol: r.tradingSymbol, lotSize: r.lotSize, symbol: r.symbol
-        };
-      });
-      if (!levels) return null;
+  /**
+   * FUTURES ARE PRICED ON THE FUTURES CONTRACT, NOT ON THE SHARE.
+   *
+   * Measured on 2026-09-23: LT's October future last traded at 3,946.40 while
+   * this page anchored on the cash close of 3,904.80 and printed the result
+   * next to the symbol LT26OCTFUT. A buy limit of 3,873.56 on that contract was
+   * 1.85% under its price, not the 0.8% the page claimed, and the NOW column
+   * would never have matched the broker app. The level rules are unchanged --
+   * 0.8% under the anchor, targets 2.5% and 5% over the entry, stop 1.5% under
+   * it, from session-levels.js -- only the anchor is now the right instrument.
+   *
+   * A level is frozen only on a live quote for that contract, from today's
+   * session. Without one it is shown on the cash price, labelled as such, and
+   * never written down.
+   */
+  const { ENTRY_DISCOUNT, TARGET_1, TARGET_2, STOP } = require("../api/_lib/session-levels");
+  const futures = futuresPicked.map(({ row: r, expiry }) => {
+    const fq = expiry ? quoteFor({ kind: "FUT", symbol: r.symbol, expiry }) : null;
+    const liveNow = Boolean(fq) && phase.open === true && ledgerLib.feedDate(fq.exchangeFeedTime) === session.sessionDate;
+    const nowPrice = round(fq ? fq.ltp : r.spotPrice);
+    const nowSource = fq ? (liveNow ? "FUTURES_LIVE" : "FUTURES_LAST_TRADED") : "CASH_SPOT_FALLBACK";
+    // Measured, never assumed: Yang-Zhang realised volatility over the right
+    // window, from the same trade-odds pass that scored the row. No volatility,
+    // no expected time -- a made-up estimate is worse than an honest blank.
+    const sigma = Number(r.odds?.realizedVolPct) > 0 ? Number(r.odds.realizedVolPct) / 100 : null;
+    const levels = session.level("futures", r.symbol, () => {
+      if (!(nowPrice > 0)) return null;
+      const buy = round(nowPrice * ENTRY_DISCOUNT);
+      const target1 = round(buy * TARGET_1);
       return {
-        symbol: r.symbol, tradingSymbol: levels.tradingSymbol || r.tradingSymbol,
-        spot: nowPrice, buy: levels.buy, target1: levels.target1, target2: levels.target2, stop: levels.stop,
-        anchor: levels.anchor, drift: driftPct(levels.buy, nowPrice),
-        frozen: levels.frozen, frozenAtIst: levels.frozenAtIst,
-        perUnitCapital: r.perUnit?.capitalPerUnit,
-        riskPerUnit: r.perUnit?.riskPerUnit, rewardPerUnit: r.perUnit?.rewardPerUnitAtTarget1,
-        rewardToRisk: r.perUnit?.rewardToRisk,
-        exchangeLot: r.lotSize, score: r.compositeScore
+        buy, target1, target2: round(buy * TARGET_2), stop: round(buy * STOP),
+        anchor: nowPrice, anchorSource: nowSource,
+        tradingSymbol: r.tradingSymbol, angelSymbol: fq?.tradingSymbol || r.angelSymbol || null,
+        expiry, lotSize: r.lotSize, symbol: r.symbol,
+        expected: sigma ? {
+          fill: ledgerLib.firstPassage({ from: nowPrice, to: buy, sigma, tradingDays: ledgerLib.sessionTradingDaysLeft(Date.now()) }),
+          target: ledgerLib.firstPassage({ from: buy, to: target1, sigma, tradingDays: ledgerLib.FUTURES_MAX_SESSIONS }),
+          sigmaPct: round(sigma * 100, 1),
+          basis: "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+        } : null
       };
-    }).filter(Boolean);
+    }, { mayFreeze: forceFreeze === true ? Boolean(fq) : liveNow });
+    if (!levels) return null;
+    const risk = round(levels.buy - levels.stop);
+    const reward = round(levels.target1 - levels.buy);
+    return {
+      symbol: r.symbol, tradingSymbol: levels.tradingSymbol || r.tradingSymbol,
+      angelSymbol: levels.angelSymbol || null, expiry: levels.expiry || expiry,
+      spot: nowPrice, nowSource,
+      buy: levels.buy, target1: levels.target1, target2: levels.target2, stop: levels.stop,
+      anchor: levels.anchor, anchorSource: levels.anchorSource || null, drift: driftPct(levels.buy, nowPrice),
+      frozen: levels.frozen, frozenAtIst: levels.frozenAtIst, frozenAt: levels.frozenAt || null,
+      expected: levels.expected || null,
+      perUnitCapital: levels.buy,
+      riskPerUnit: risk, rewardPerUnit: reward,
+      rewardToRisk: risk > 0 ? round(reward / risk) : null,
+      exchangeLot: r.lotSize, score: r.compositeScore
+    };
+  }).filter(Boolean);
+
+  /**
+   * THE TRACK RECORD. Every frozen level is a hypothetical order from the
+   * moment it was shown; every running one is marked against the market on
+   * every build. See scripts/paper-ledger.js for the rules, all of which
+   * resolve an ambiguity against the record rather than for it.
+   */
+  let track = null;
+  if (ledger) {
+    try {
+      for (const c of options) {
+        if (!c.frozen) continue;
+        ledger.add(ledgerLib.tradeFromLevel({
+          kind: c.right, symbol: c.symbol, contract: c.zerodha, expiry: c.expiry,
+          strike: c.strike, optionType: c.right, lotSize: c.lotSize,
+          buy: c.buy, target: c.sell, stop: c.stop,
+          sessionDate: session.sessionDate, shownAt: c.frozenAt,
+          anchorSource: c.priceSourceAtFreeze || c.priceSource,
+          expected: {
+            fill: { note: "limit at the live mid when shown" },
+            target: { probabilityPct: c.touchPct ?? null, medianDays: c.daysToTarget ?? null, daysBasis: "CALENDAR" }
+          }
+        }), quoteFor({ kind: "OPT", symbol: c.symbol, expiry: c.expiry, strike: c.strike, optionType: c.right }));
+      }
+      for (const f of futures) {
+        if (!f.frozen) continue;
+        ledger.add(ledgerLib.tradeFromLevel({
+          kind: "FUT", symbol: f.symbol, contract: f.tradingSymbol, expiry: f.expiry, lotSize: f.exchangeLot,
+          buy: f.buy, target: f.target1, target2: f.target2, stop: f.stop,
+          sessionDate: session.sessionDate, shownAt: f.frozenAt, anchorSource: f.anchorSource,
+          expected: f.expected
+        }), quoteFor({ kind: "FUT", symbol: f.symbol, expiry: f.expiry }));
+      }
+      ledger.markAll((t) => quoteFor(asRequest(t)));
+      const ledgerSaved = ledger.save();
+      const closed = ledger.allClosed();
+      track = {
+        summary: ledgerLib.summarize(ledger.open, closed),
+        open: ledger.open,
+        recentClosed: closed.slice().sort((a, b) => String(b.closedAt).localeCompare(String(a.closedAt))).slice(0, 60),
+        totalClosed: closed.length,
+        tally: ledger.tally,
+        saved: ledgerSaved
+      };
+    } catch (error) {
+      ledgerError = error.message;
+    }
+  }
 
   const saved = session.save();
 
@@ -208,6 +330,9 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, forceFreeze = 
     examined: screen.examined ?? 0,
     survived: screen.survived ?? 0,
     brokerCheck,
+    quoteStatus,
+    track,
+    ledgerError,
     options,
     futures
   };
@@ -247,19 +372,121 @@ function page(d) {
   </tr></thead><tbody>${optionRows(list) || `<tr><td colspan="9">${empty}</td></tr>`}</tbody>
 </table></div>`;
 
+  // Where NOW came from, in words, on every row -- because the cash price and
+  // the futures price differ by the carry, and a row priced on the wrong one
+  // looked exactly like a row priced on the right one.
+  const SOURCE_LABEL = {
+    FUTURES_LIVE: "futures, live",
+    FUTURES_LAST_TRADED: "futures, last traded",
+    CASH_SPOT_FALLBACK: "CASH price &mdash; no futures quote"
+  };
   const futRows = d.futures.map((r) => {
     const state = fillState(r.buy, r.spot);
+    const exp = r.expected;
+    const fillMinutes = exp?.fill ? Math.round(exp.fill.medianTradingDays * 375) : null;
+    const expLine = exp?.fill && exp?.target
+      ? `fill ${esc(exp.fill.probabilityPct)}% today (~${esc(fillMinutes)} min) &middot; target ${esc(exp.target.probabilityPct)}% in ~${esc(round(exp.target.medianTradingDays, 1))} sessions`
+      : "";
     return `
       <tr>
-        <td><b>${esc(r.symbol)}</b><div class="sub"><code>${esc(r.tradingSymbol)}</code></div></td>
-        <td class="num"><b>${money(r.buy)}</b></td>
+        <td><b>${esc(r.symbol)}</b><div class="sub"><code>${esc(r.tradingSymbol)}</code></div>${r.angelSymbol ? `<div class="sub">Angel <code>${esc(r.angelSymbol)}</code></div>` : ""}</td>
+        <td class="num"><b>${money(r.buy)}</b>${expLine ? `<div class="sub">expected: ${expLine}</div>` : ""}</td>
         <td class="num up">${money(r.target1)}<div class="sub">${money(r.target2)}</div></td>
         <td class="num down">${money(r.stop)}</td>
-        <td class="num">${money(r.spot)}<div class="sub ${state.tone}">${esc(state.word)}</div></td>
+        <td class="num">${money(r.spot)}<div class="sub ${state.tone}">${esc(state.word)}</div><div class="sub ${r.nowSource === "CASH_SPOT_FALLBACK" ? "down" : ""}">${SOURCE_LABEL[r.nowSource] || ""}</div></td>
         <td class="num">${money(r.perUnitCapital)}<div class="sub">per unit</div></td>
         <td class="num">${esc(r.rewardToRisk)}<div class="sub">+${money(r.rewardPerUnit)} / &minus;${money(r.riskPerUnit)}</div></td>
       </tr>`;
   }).join("");
+
+  // ---- the track record tab -------------------------------------------------
+  const t = d.track;
+  const when = (iso) => (iso ? esc(istStamp(Date.parse(iso)).replace(" IST", "")) : "&mdash;");
+  const hrs = (h) => (h === null || h === undefined ? "&mdash;" : Number(h) < 24 ? `${esc(h)} h` : `${esc(round(h / 24, 1))} d`);
+  const KIND = { FUT: "FUTURE", CE: "CALL", PE: "PUT" };
+  const OUTCOME = {
+    TARGET: '<b class="up">TARGET ✓</b>', STOP: '<b class="down">STOP ✗</b>',
+    EXPIRED: "EXPIRED", TIMED_OUT: "TIMED OUT", UNFILLED: '<span class="sub">UNFILLED</span>',
+    WAITING: "waiting for fill", OPEN: '<b>OPEN</b>'
+  };
+  const expectedText = (x) => {
+    const e = x.expected;
+    if (!e?.target) return "&mdash;";
+    const days = e.target.medianTradingDays !== undefined
+      ? `${esc(round(e.target.medianTradingDays, 1))} sessions`
+      : e.target.medianDays !== null && e.target.medianDays !== undefined ? `${esc(e.target.medianDays)} days` : "?";
+    return `${esc(e.target.probabilityPct ?? "?")}% &middot; ~${days}`;
+  };
+  const summaryRow = (label, s) => s ? `
+      <tr><td><b>${label}</b></td>
+        <td class="num">${esc(s.shown)}</td><td class="num">${esc(s.waiting)}</td><td class="num">${esc(s.open)}</td>
+        <td class="num up">${esc(s.target)}</td><td class="num down">${esc(s.stop)}</td><td class="num">${esc(s.expired)}</td>
+        <td class="num">${esc(s.unfilled)}</td>
+        <td class="num"><b>${s.hitRatePct === null ? "&mdash;" : esc(s.hitRatePct) + "%"}</b><div class="sub">of ${esc(s.resolved)} finished</div></td>
+        <td class="num">${s.expectedHitRatePct === null ? "&mdash;" : esc(s.expectedHitRatePct) + "%"}</td>
+        <td class="num">${hrs(s.medianHoursToFill)}</td><td class="num">${hrs(s.medianHoursToTarget)}</td>
+        <td class="num ${Number(s.avgReturnPct) >= 0 ? "up" : "down"}">${s.avgReturnPct === null ? "&mdash;" : esc(s.avgReturnPct) + "%"}</td>
+        <td class="num ${Number(s.totalNetPerLot) >= 0 ? "up" : "down"}">${s.totalNetPerLot === null ? "&mdash;" : money(s.totalNetPerLot)}</td>
+      </tr>` : "";
+  const openRows = (t?.open || []).slice().sort((a, b) => String(b.shownAt).localeCompare(String(a.shownAt))).map((x) => `
+      <tr>
+        <td><b>${esc(x.contract)}</b><div class="sub">${esc(KIND[x.kind] || x.kind)}</div></td>
+        <td class="num">${when(x.shownAt)}</td>
+        <td class="num"><b>${money(x.buy)}</b></td><td class="num up">${money(x.target)}</td><td class="num down">${money(x.stop)}</td>
+        <td class="num">${OUTCOME[x.status] || esc(x.status)}${x.filledAt ? `<div class="sub">filled after ${hrs(x.hoursToFill)}</div>` : ""}</td>
+        <td class="num">${money(x.last)}<div class="sub">${x.filledAt ? `best ${money(x.best)} &middot; worst ${money(x.worst)}` : ""}</div></td>
+        <td class="num">${expectedText(x)}</td>
+      </tr>`).join("");
+  const closedRows = (t?.recentClosed || []).map((x) => `
+      <tr>
+        <td><b>${esc(x.contract)}</b><div class="sub">${esc(KIND[x.kind] || x.kind)} &middot; shown ${when(x.shownAt)}</div></td>
+        <td class="num">${OUTCOME[x.status] || esc(x.status)}<div class="sub">${when(x.closedAt)}</div></td>
+        <td class="num">${hrs(x.hoursToFill)}</td>
+        <td class="num">${hrs(x.hoursFillToExit)}</td>
+        <td class="num">${expectedText(x)}</td>
+        <td class="num ${Number(x.pnl?.perUnit) >= 0 ? "up" : "down"}">${x.pnl ? `${money(x.pnl.perUnit)} <div class="sub">${esc(x.pnl.pct)}% ${esc(x.pnl.basis)}${x.pnl.netPerLot !== undefined && x.pnl.netPerLot !== null ? ` &middot; net ${money(x.pnl.netPerLot)}/lot` : ""}</div>` : "&mdash;"}</td>
+      </tr>`).join("");
+  const trackCount = (t?.open?.length || 0) + (t?.totalClosed || 0);
+  const trackPane = !t
+    ? `<div class="note" style="border-left-color:var(--red)"><b>THE TRACK RECORD COULD NOT BE UPDATED ON THIS BUILD.</b> ${esc(d.ledgerError || "No ledger.")}</div>`
+    : `
+    <div class="wrap"><table>
+      <thead><tr>
+        <th></th><th class="num">SHOWN</th><th class="num">WAITING</th><th class="num">OPEN</th>
+        <th class="num">TARGET ✓</th><th class="num">STOP ✗</th><th class="num">EXPIRED</th><th class="num">UNFILLED</th>
+        <th class="num">HIT RATE</th><th class="num">EXPECTED</th>
+        <th class="num">TIME TO FILL</th><th class="num">FILL &rarr; TARGET</th>
+        <th class="num">AVG RETURN</th><th class="num">NET / LOT</th>
+      </tr></thead><tbody>
+        ${summaryRow("FUTURES", t.summary.FUT)}${summaryRow("CALLS", t.summary.CE)}${summaryRow("PUTS", t.summary.PE)}${summaryRow("ALL", t.summary.ALL)}
+      </tbody>
+    </table></div>
+    <div class="sub" style="margin:6px 0 18px">Hit rate counts only trades that filled and then finished. EXPECTED is what the desk
+      predicted for those same trades when it showed them &mdash; when the two disagree, the prediction is wrong, and this is where it shows.
+      Futures returns are GROSS per unit; options are NET of every charge per lot.</div>
+
+    <h2>Running now (${esc(t.open.length)})</h2>
+    <div class="wrap"><table>
+      <thead><tr><th>CONTRACT</th><th class="num">SHOWN</th><th class="num">BUY</th><th class="num">TARGET</th><th class="num">STOP</th>
+        <th class="num">STATUS</th><th class="num">LAST</th><th class="num">EXPECTED TARGET</th></tr></thead>
+      <tbody>${openRows || '<tr><td colspan="8">Nothing running. The first trades are recorded when the day&rsquo;s levels freeze, on the first build that sees a live exchange book.</td></tr>'}</tbody>
+    </table></div>
+
+    <h2>Finished (latest ${esc(t.recentClosed.length)} of ${esc(t.totalClosed)})</h2>
+    <div class="wrap"><table>
+      <thead><tr><th>CONTRACT</th><th class="num">OUTCOME</th><th class="num">TIME TO FILL</th><th class="num">FILL &rarr; EXIT</th>
+        <th class="num">EXPECTED</th><th class="num">RESULT</th></tr></thead>
+      <tbody>${closedRows || '<tr><td colspan="6">Nothing has finished yet.</td></tr>'}</tbody>
+    </table></div>
+
+    <div class="note" style="margin-top:14px">
+      <b>HOW THIS IS SCORED.</b> Every price this page freezes is bought on paper at the moment it is shown. Each build then
+      checks the market, using the day&rsquo;s high and low so a move between two builds is not missed. Every ambiguity counts
+      <i>against</i> the record: a target and a stop in the same window is a stop; a target in the same window as the fill is not
+      counted; a gap through the stop exits at the open; a fill is always at the limit, never better; a price from before the
+      level was shown can never fill it. Unfilled day orders die at 15:30. Futures are held at most 20 sessions; options until expiry.
+      <b>Stored</b> in the private repository under <code>docs/ledger/</code>, committed on every build, and copied to the Google Sheet.
+    </div>`;
 
   const bc = d.brokerCheck;
   const brokerNote = !bc
@@ -323,7 +550,15 @@ function page(d) {
                      background:var(--line); color:var(--text); font-weight:400 }
   .pane { display:none }
   .pane h2 { margin-top:8px }
-  #v-fut:checked ~ .pane-fut, #v-ce:checked ~ .pane-ce, #v-pe:checked ~ .pane-pe { display:block }
+  #v-fut:checked ~ .pane-fut, #v-ce:checked ~ .pane-ce, #v-pe:checked ~ .pane-pe,
+  #v-trk:checked ~ .pane-trk { display:block }
+  #v-trk:checked ~ .tabs .t-trk { color:var(--bg); background:#40c4ff; border-color:#40c4ff }
+  /* Four tabs on a 360px phone: tighter, never wrapping into two rows. */
+  @media (max-width: 480px) {
+    .tabs { gap:4px }
+    .tabs label { font-size:11px; padding:10px 2px; letter-spacing:0 }
+    .tabs label span { margin-left:3px; padding:0 5px }
+  }
   #v-fut:checked ~ .tabs .t-fut { color:var(--bg); background:var(--amber); border-color:var(--amber) }
   #v-ce:checked ~ .tabs .t-ce { color:var(--bg); background:var(--green); border-color:var(--green) }
   #v-pe:checked ~ .tabs .t-pe { color:var(--bg); background:var(--red); border-color:var(--red) }
@@ -339,11 +574,13 @@ function page(d) {
   <input type="radio" name="view" id="v-fut" checked>
   <input type="radio" name="view" id="v-ce">
   <input type="radio" name="view" id="v-pe">
+  <input type="radio" name="view" id="v-trk">
 
   <nav class="tabs">
     <label for="v-fut" class="t-fut">FUTURES <span>${d.futures.length}</span></label>
     <label for="v-ce" class="t-ce">CALLS <span>${calls.length}</span></label>
     <label for="v-pe" class="t-pe">PUTS <span>${puts.length}</span></label>
+    <label for="v-trk" class="t-trk">TRACK <span>${trackCount}</span></label>
   </nav>
 
   <section class="pane pane-fut">
@@ -364,6 +601,11 @@ function page(d) {
   <section class="pane pane-pe">
     <h2>Puts &mdash; you BUY the put, it pays if the stock FALLS</h2>
     ${optionTable(puts, "No puts cleared every gate on this build.")}
+  </section>
+
+  <section class="pane pane-trk">
+    <h2>Track record &mdash; every price shown, bought on paper the moment it appeared</h2>
+    ${trackPane}
   </section>
 </main>
 

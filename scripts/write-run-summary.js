@@ -105,6 +105,27 @@ function main() {
     lines.push("");
   }
 
+  // The track record, one line per kind, before the prices: whether the desk has
+  // been right is the first thing worth knowing about today's list.
+  if (d.track && d.track.summary) {
+    const s = d.track.summary;
+    const line = (label, x) => "| " + label + " | " + x.shown + " | " + x.open + " | " + x.target + " | " + x.stop
+      + " | " + (x.expired + x.unfilled) + " | " + (x.hitRatePct === null ? "—" : x.hitRatePct + "%")
+      + " | " + (x.expectedHitRatePct === null ? "—" : x.expectedHitRatePct + "%") + " |";
+    lines.push("## Track record — every price shown, bought on paper");
+    lines.push("");
+    lines.push("| | Shown | Open | Target ✓ | Stop ✗ | Expired / unfilled | Hit rate | Expected |");
+    lines.push("|---|--:|--:|--:|--:|--:|--:|--:|");
+    lines.push(line("Futures", s.FUT));
+    lines.push(line("Calls", s.CE));
+    lines.push(line("Puts", s.PE));
+    lines.push(line("**All**", s.ALL));
+    lines.push("");
+  } else if (d.ledgerError) {
+    lines.push("❌ **Track record not updated on this build:** " + d.ledgerError);
+    lines.push("");
+  }
+
   // Futures first, then calls, then puts: three different trades, kept apart,
   // in the order the money is actually on them.
   lines.push("## Futures — per unit, not per lot (" + d.futures.length + ")");

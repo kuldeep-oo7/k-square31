@@ -616,7 +616,111 @@ function quoteFromChain(chain, strike, optionType) {
   return chain.chain.find((leg) => leg.strike === wanted && leg.optionType === side) || null;
 }
 
+/**
+ * LIVE QUOTES FOR ANY LIST OF CONTRACTS, FUTURES AND OPTIONS MIXED.
+ *
+ * Two jobs need this and neither was possible before. The paper ledger has to
+ * mark every contract it is tracking -- including ones that have since dropped
+ * out of today's shortlist, which angelOptionChain (a window around a price)
+ * cannot reach. And a futures level has to be anchored on the FUTURES price:
+ * measured on 2026-09-23, LT's September future last traded at 3,929 while the
+ * desk anchored on the cash close of 3,904.80, and quoted the result against
+ * the October contract, which trades higher still.
+ *
+ * Angel's quote endpoint takes up to fifty tokens of any kind in one request,
+ * so the whole book is one or two calls however it is mixed.
+ *
+ * `high` and `low` are the DAY's range, and they are the reason this exists
+ * rather than a last-price lookup: a scheduled build sees the market every
+ * twenty minutes, and a target touched at 10:07 and given back by 10:20 is
+ * invisible to a last price but not to the day's high.
+ *
+ * Keys: futures `SYMBOL|YYYY-MM-DD`, options `SYMBOL|YYYY-MM-DD|STRIKE|CE|PE`,
+ * the same keys the instrument master uses.
+ */
+function contractKey(contract) {
+  const symbol = String(contract?.symbol || "").toUpperCase();
+  const expiry = String(contract?.expiry || "").slice(0, 10);
+  if (contract?.kind === "FUT") return `${symbol}|${expiry}`;
+  return `${symbol}|${expiry}|${Number(contract?.strike)}|${String(contract?.optionType || "").toUpperCase()}`;
+}
+
+async function contractQuotes(contracts, { timeoutMs = 20_000, batchSize = 50 } = {}) {
+  const credentials = credentialsFor("angelone");
+  if (!credentials) return { ok: false, reason: "NOT_CONFIGURED_NO_CREDENTIALS", quotes: {} };
+  const instruments = loadInstruments("angelone");
+  if (!instruments) return { ok: false, reason: "INSTRUMENTS_NOT_CACHED", quotes: {} };
+
+  const byToken = new Map();
+  let unresolved = 0;
+  for (const contract of Array.isArray(contracts) ? contracts : []) {
+    const key = contractKey(contract);
+    const row = contract?.kind === "FUT" ? instruments.futures?.[key] : instruments.options?.[key];
+    if (!row?.token) { unresolved += 1; continue; }
+    byToken.set(String(row.token), { key, tradingSymbol: row.symbol || null });
+  }
+  if (!byToken.size) return { ok: false, reason: "NO_CONTRACT_RESOLVED", quotes: {}, unresolved };
+
+  const tokens = [...byToken.keys()];
+  const quotes = {};
+  const failures = [];
+  for (let i = 0; i < tokens.length; i += batchSize) {
+    const batch = tokens.slice(i, i + batchSize);
+    try {
+      const response = await fetch(`${ANGEL_ROOT}/rest/secure/angelbroking/market/v1/quote`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json", Accept: "application/json",
+          "X-UserType": "USER", "X-SourceID": "WEB",
+          "X-PrivateKey": credentials.apiKey,
+          "X-ClientLocalIP": "127.0.0.1", "X-ClientPublicIP": "127.0.0.1", "X-MACAddress": "00:00:00:00:00:00",
+          Authorization: `Bearer ${credentials.accessToken}`
+        },
+        body: JSON.stringify({ mode: "FULL", exchangeTokens: { NFO: batch } }),
+        signal: AbortSignal.timeout(timeoutMs)
+      });
+      if (!response.ok) { failures.push(`HTTP_${response.status}`); continue; }
+      const payload = await response.json();
+      for (const row of payload?.data?.fetched || []) {
+        const wanted = byToken.get(String(row.symbolToken));
+        const last = num(row.ltp);
+        if (!wanted || !(last > 0)) continue;
+        quotes[wanted.key] = {
+          key: wanted.key,
+          tradingSymbol: row.tradingSymbol || wanted.tradingSymbol,
+          ltp: last,
+          open: num(row.open),
+          high: num(row.high),
+          low: num(row.low),
+          // Angel's "close" is the PREVIOUS session's close, not today's.
+          previousClose: num(row.close),
+          volume: num(row.tradeVolume),
+          openInterest: num(row.opnInterest),
+          // The exchange's clock, "23-Sep-2026 15:40:06" in IST. When we asked
+          // is not when the exchange priced it; after the close they differ by
+          // hours, and only this one says which session the price belongs to.
+          exchangeFeedTime: row.exchFeedTime || null,
+          exchangeTradeTime: row.exchTradeTime || null,
+          provider: "angelone", source: "ANGELONE_SMARTAPI_QUOTE"
+        };
+      }
+    } catch (error) {
+      failures.push(error.message);
+    }
+  }
+  return {
+    ok: Object.keys(quotes).length > 0,
+    quotes,
+    requested: Array.isArray(contracts) ? contracts.length : 0,
+    resolved: byToken.size,
+    unresolved,
+    failures
+  };
+}
+
 module.exports = {
+  contractKey,
+  contractQuotes,
   futuresQuotes,
   instrumentsAreStale,
   CREDENTIAL_PATHS, credentialFile,

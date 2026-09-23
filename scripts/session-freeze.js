@@ -96,7 +96,7 @@ function openSession({ now = Date.now(), canFreeze = false, file = LEDGER_FILE }
    * stored numbers are returned unchanged however far the market has moved,
    * which is the entire point.
    */
-  function level(bucket, key, compute) {
+  function level(bucket, key, compute, { mayFreeze = true } = {}) {
     const book = ledger[bucket];
     const existing = book[key];
     if (existing) { tally.carried += 1; return { ...existing, frozen: true, fresh: false }; }
@@ -104,8 +104,17 @@ function openSession({ now = Date.now(), canFreeze = false, file = LEDGER_FILE }
     const computed = compute();
     if (!computed) return null;
 
-    const stamped = { ...computed, frozenAtIst: istStamp(now), frozenAtSpot: computed.reference ?? null };
-    if (!canFreeze) {
+    const stamped = {
+      ...computed,
+      // The exact moment it was shown -- the paper ledger's clock starts here.
+      frozenAt: new Date(now).toISOString(),
+      frozenAtIst: istStamp(now),
+      frozenAtSpot: computed.reference ?? null
+    };
+    // `mayFreeze` is the caller saying THIS level is not fit to be held all day
+    // even though the session is: a futures level whose contract quote did not
+    // come back would otherwise be frozen on the cash price and never corrected.
+    if (!canFreeze || !mayFreeze) {
       // Indicative only: it is shown, it is labelled, it is not written down,
       // and tomorrow's first real build will compute it against a live price.
       tally.indicative += 1;

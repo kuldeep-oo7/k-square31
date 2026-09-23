@@ -180,6 +180,31 @@ function asTradeSignal(ticket) {
     console.log("google sheet: could not write " + documentPath + " --", error.message);
   }
 
+  // 1b. The track record, as documents: the running trades and this month's
+  //     finished ones. Git holds the primary copy (docs/ledger/, committed every
+  //     build); this is the second copy, somewhere a repository accident cannot
+  //     reach.
+  try {
+    const ledgerDir = path.join(DOCS, "ledger");
+    const files = fs.existsSync(ledgerDir)
+      ? fs.readdirSync(ledgerDir).filter((f) => f === "open.json" || /^closed-\d{4}-\d{2}\.json$/.test(f))
+      : [];
+    const month = "closed-" + String(data.sessionDate).slice(0, 7) + ".json";
+    for (const f of files.filter((f) => f === "open.json" || f === month)) {
+      const body = JSON.parse(fs.readFileSync(path.join(ledgerDir, f), "utf8"));
+      const docPath = "k2/ledger-" + f;
+      const existing = await store.readGoogleDocument(docPath, null);
+      await store.writeGoogleDocument(docPath, body, existing.etag);
+      const back = await store.readGoogleDocument(docPath, null);
+      const n = (body.trades || []).length;
+      console.log("google sheet: wrote " + docPath + " (" + n + " trades) -- "
+        + ((back?.data?.trades || []).length === n ? "read back and identical" : "READ BACK DID NOT MATCH"));
+    }
+    if (!files.length) console.log("google sheet: no ledger files yet -- nothing has been frozen and tracked");
+  } catch (error) {
+    console.log("google sheet: could not back up the track record --", error.message);
+  }
+
   // 2. What the DEPLOYED Apps Script supports, and which tabs exist. Printed on
   //    every run because the answer is a property of a deployment nobody here
   //    controls, and a silent "Invalid action" at 09:30 would cost the day.
