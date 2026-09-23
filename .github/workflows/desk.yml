@@ -1,0 +1,162 @@
+# THE DESK, WITHOUT A SERVER.
+#
+# Everything that went wrong with hosting this came from one assumption: that a
+# trading desk needs a machine running all day. It does not. The work measures
+# one second; the fetching around it is a minute; and the output is a list of
+# prices. A list of prices is a FILE.
+#
+# So this builds the file on a schedule, writes it to a Google Sheet, and
+# commits it. There is no uptime to lose, no 512 MB ceiling, no fifteen-minute
+# sleep, no monthly instance-hour cap, and no laptop that has to stay open in a
+# dark house.
+#
+# ---------------------------------------------------------------------------
+# WHAT THE BUDGET ACTUALLY IS, because getting this wrong is what suspended the
+# last host. This repository is PRIVATE, and on GitHub Free a private repository
+# gets 2,000 Linux minutes a month; when they are gone and there is no payment
+# method on file, workflows are BLOCKED for the rest of the month. (Actions is
+# free and unmetered only on PUBLIC repositories.)
+#
+# Measured on this machine: the option build itself is ONE SECOND. The cost is
+# the Angel One instrument master, which took 78.8s to fetch, plus npm install.
+# So the instrument master is cached for the trading day -- it only changes once
+# a day -- which turns every run after the first into well under a minute.
+#
+# At every twenty minutes through the session that is ~21 runs a day, billed at
+# the one-minute granularity GitHub rounds to, which lands near 900 minutes a
+# month against the 2,000 cap. Every fifteen minutes would be ~1,150 and would
+# still fit, but the headroom is what stops a bad week from blocking the month.
+# The levels are FROZEN for the session anyway (see scripts/session-freeze.js),
+# so a faster cadence would only refresh the "NOW" column.
+#
+# ONE TRAP, and it is why this commits on every run: GitHub disables a scheduled
+# workflow after 60 days with no commit activity on the default branch, and the
+# only warning is an email. Because each run commits the rebuilt page, the
+# schedule keeps itself alive.
+#
+# NOT GITHUB PAGES. Asked for directly, the API answered: "Your current plan
+# does not support GitHub Pages for this repository" (HTTP 422). Pages needs a
+# public repository on GitHub Free, and this repository holds the strategy. The
+# page is therefore committed to docs/ for the record, and the thing you
+# actually READ on a phone is the Google Sheet.
+
+name: Build the desk
+
+on:
+  schedule:
+    # NSE trades 09:15-15:30 IST, which is 03:45-10:00 UTC. GitHub cron is UTC
+    # only. Every twenty minutes through the session, weekdays.
+    - cron: "*/20 4-9 * * 1-5"
+    # Once before the bell, so the page is not yesterday's when you open it at
+    # 09:00. It freezes nothing -- there is no traded price yet to freeze to.
+    - cron: "40 3 * * 1-5"
+    # The close itself, and once after it so the settlement figures are final.
+    - cron: "0 10 * * 1-5"
+    - cron: "15 10 * * 1-5"
+  workflow_dispatch:        # and a button, for when you want it now
+
+permissions:
+  contents: write           # to commit the rebuilt page and the session ledger
+
+concurrency:
+  # A run must never overlap the previous one: two jobs committing the same
+  # file is a merge conflict that silently stops the schedule. And two jobs
+  # freezing the same session ledger is the moving-price bug all over again.
+  group: desk-build
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10     # a hung fetch must not eat the month's budget
+
+    env:
+      TZ: Asia/Kolkata
+      # Read straight from the environment by api/_lib/google-store.js. Note the
+      # exact spelling -- these names are checked by googleStoreConfigured() and
+      # a near-miss disables the Sheet silently, with a green build.
+      K2_GOOGLE_SHEETS_WEB_APP_URL: ${{ secrets.K2_GOOGLE_SHEETS_WEB_APP_URL }}
+      K2_GOOGLE_SHEETS_ARCHIVE_SECRET: ${{ secrets.K2_GOOGLE_SHEETS_ARCHIVE_SECRET }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+          cache: npm
+
+      - name: Today's date in India
+        # Every cache key and every session boundary in this desk is an IST
+        # date. The runner is UTC, and between 00:00 and 05:30 UTC the two
+        # disagree -- which is exactly the window the pre-open build runs in.
+        run: echo "IST_DATE=$(TZ=Asia/Kolkata date +%Y-%m-%d)" >> "$GITHUB_ENV"
+
+      - name: Restore today's exchange data
+        # The instrument master is 4.7 MB and takes 78.8s to fetch; it changes
+        # once a day. Keying on the IST date means the first run of the morning
+        # pays for it and every run after that gets it free. An exact hit also
+        # skips the save, so this is one ~23 MB cache entry per trading day.
+        uses: actions/cache@v4
+        with:
+          path: .private/cache
+          key: k2-desk-cache-${{ env.IST_DATE }}
+          restore-keys: k2-desk-cache-
+
+      - name: Install
+        run: npm install --omit=dev --no-audit --no-fund
+
+      - name: Broker credentials
+        # ONE secret holding .private/brokers.json verbatim, because that is the
+        # file api/_lib/broker-auth.js actually reads. The four-separate-
+        # variables version of this step was wrong in a way that would never
+        # have shown up as an error: the code looks for ANGELONE_MPIN, not
+        # ANGEL_ONE_PASSWORD, so every quote would have quietly fallen back to
+        # the settlement file while the build stayed green.
+        #
+        # With no secret set the desk still builds, from the exchange settlement
+        # file alone, and the page says so rather than implying the prices are
+        # executable.
+        env:
+          K2_BROKERS_JSON: ${{ secrets.K2_BROKERS_JSON }}
+        run: |
+          mkdir -p .private/cache
+          if [ -n "$K2_BROKERS_JSON" ]; then
+            printf '%s' "$K2_BROKERS_JSON" > .private/brokers.json
+            chmod 600 .private/brokers.json
+            node -e 'JSON.parse(require("fs").readFileSync(".private/brokers.json","utf8"))' \
+              && echo "broker credentials present and parse as JSON"
+          else
+            echo "no broker credentials configured; prices will come from the settlement file"
+          fi
+
+      - name: Fetch the exchange contract file, the instrument master and today's bars
+        # A brand-new runner has none of this. Every step inside is non-fatal:
+        # a snapshot that admits what it is beats a blank page, and beats a
+        # confident page built on nothing.
+        continue-on-error: true
+        run: node scripts/prepare-static-build.js
+
+      - name: Build the page and freeze the day's levels
+        run: node scripts/publish-static-desk.js
+
+      - name: Publish to the Google Sheet
+        # The Sheet is the part that is readable from a phone in an office on
+        # the other side of the world, and the part that cannot be suspended.
+        # It must never be able to fail the build that produced the prices.
+        continue-on-error: true
+        run: node scripts/publish-to-sheet.js
+
+      - name: Commit it
+        run: |
+          git config user.name "k2-desk-bot"
+          git config user.email "noreply@users.noreply.github.com"
+          git add docs/
+          if git diff --cached --quiet; then
+            echo "nothing changed this run"
+          else
+            git commit -m "desk: rebuilt $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M IST')"
+            # Another run may have landed while this one was building.
+            git pull --rebase --autostash origin "${GITHUB_REF_NAME}" || true
+            git push
+          fi

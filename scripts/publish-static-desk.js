@@ -1,0 +1,321 @@
+"use strict";
+
+/**
+ * THE DESK WITHOUT A SERVER.
+ *
+ * Everything that has gone wrong with hosting this comes from one assumption:
+ * that a trading desk needs a machine running all day. It does not. The work is
+ * a few seconds of computation on a settlement file and a live option chain, and
+ * the output is a list of prices. A list of prices is a FILE.
+ *
+ * So this produces the file, on a schedule, on a machine that is destroyed
+ * afterwards. There is no uptime to lose, no 512 MB ceiling, no fifteen-minute
+ * sleep, no monthly hour cap and no laptop that has to stay open in a dark
+ * house.
+ *
+ * WHAT IT WRITES:
+ *   docs/levels.json  the session ledger: the buy limit, target and stop for
+ *                     every contract, FROZEN the first time that contract
+ *                     qualified today and never recomputed after. See
+ *                     scripts/session-freeze.js for why this is the load-
+ *                     bearing file and not an implementation detail.
+ *   docs/data.json    the whole snapshot as data, for the Google Sheet and for
+ *                     anything else that wants to read it.
+ *   docs/index.html   one self-contained page, readable on a phone.
+ *
+ * WHAT IT DOES NOT DO: pretend the numbers are live when they are not. Every
+ * page says when it was built and where each price came from, because a
+ * scheduled job is by definition a snapshot, and a snapshot presented as a live
+ * quote is the defect this project spent a week removing.
+ */
+
+const fs = require("node:fs");
+const path = require("node:path");
+const { openSession, driftPct, istStamp, numeric } = require("./session-freeze");
+
+const OUT_DIR = path.resolve(__dirname, "..", "docs");
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+
+function money(value) {
+  return Number.isFinite(Number(value)) ? "₹" + Number(value).toLocaleString("en-IN") : "—";
+}
+function esc(text) {
+  return String(text ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
+}
+function round(value, dp = 2) {
+  const n = numeric(value);
+  if (n === null) return null;
+  const f = 10 ** dp;
+  return Math.round(n * f) / f;
+}
+
+/**
+ * Where the live price sits relative to the limit that was frozen this morning.
+ *
+ * This is the column that was missing. A frozen limit is only half an answer:
+ * the other half is whether the market has come to it, and saying so in one
+ * word is the difference between a list of prices and an instruction.
+ */
+function fillState(limit, now) {
+  const l = numeric(limit);
+  const p = numeric(now);
+  // numeric(), not Number(): a contract with no quote must not be reported as
+  // sitting far below your limit, which is what Number(null) === 0 produces.
+  if (l === null || p === null || l <= 0) return { word: "NO PRICE", tone: "" };
+  const gap = ((p - l) / l) * 100;
+  if (gap <= 0) return { word: "AT OR BELOW LIMIT", tone: "up" };
+  if (gap <= 1) return { word: "AT THE LIMIT", tone: "up" };
+  if (gap <= 5) return { word: `${gap.toFixed(1)}% ABOVE`, tone: "" };
+  return { word: `${gap.toFixed(1)}% ABOVE — WILL NOT FILL`, tone: "down" };
+}
+
+async function build({ limit = 40, futuresLimit = 25, ledgerFile, forceFreeze = null } = {}) {
+  const { fnoUniverseEngine } = require("../api/_lib/universe-210");
+  const { screenContracts } = require("../api/_lib/contract-screener");
+  const { loadReference } = require("../api/_lib/fno-reference");
+  const live = require("../api/_lib/live-quotes");
+
+  const macro = { severity: "NORMAL", shieldActive: false };
+  const reference = loadReference();
+  const phase = live.marketPhase();
+
+  // A level is only frozen against a price that traded. Before the bell there
+  // is no such price, so the build is advisory and writes nothing down.
+  const canFreeze = forceFreeze === null ? phase.open === true : forceFreeze === true;
+  const session = openSession({ canFreeze, file: ledgerFile });
+
+  const universe = fnoUniverseEngine.getUniverse(macro) || [];
+  const scores = {};
+  for (const row of universe) {
+    if (Number.isFinite(Number(row.compositeScore))) scores[row.symbol] = Number(row.compositeScore);
+  }
+
+  const screen = screenContracts({
+    reference, underlyingScores: scores, limit,
+    liveQuoteFor: (s, e, k, t) => { try { return live.liveQuote(s, e, k, t); } catch (err) { return null; } },
+    marketOpen: phase.open === true
+  });
+
+  const options = (screen.contracts || []).map((c) => {
+    const zerodha = `${c.symbol}${String(c.expiry).slice(2, 4)}${MONTHS[Number(String(c.expiry).slice(5, 7)) - 1]}${c.strike}${c.optionType}`;
+    const nowPrice = round(c.premium);
+    const levels = session.level("options", zerodha, () => {
+      if (!Number.isFinite(Number(c.premium)) || Number(c.premium) <= 0) return null;
+      return {
+        buy: round(c.premium),
+        sell: round(c.targetPremium),
+        stop: round(Number(c.premium) / 2),
+        lotSize: c.lotSize,
+        expiry: c.expiry,
+        strike: c.strike,
+        right: c.optionType,
+        symbol: c.symbol,
+        priceSourceAtFreeze: c.priceSource
+      };
+    });
+    if (!levels) return null;
+    return {
+      symbol: c.symbol, strike: c.strike, right: c.optionType, expiry: c.expiry, zerodha,
+      buy: levels.buy, sell: levels.sell, stop: levels.stop,
+      now: nowPrice, drift: driftPct(levels.buy, nowPrice),
+      frozen: levels.frozen, frozenAtIst: levels.frozenAtIst,
+      lotSize: c.lotSize, costPerLot: c.costPerLot,
+      netProfit: c.netProfit, costPct: c.costAsPctOfGross,
+      iv: c.impliedVol, rv: c.realisedVol, vrp: c.varianceRiskPremium,
+      touchPct: c.touchPct, daysToTarget: c.medianDaysToTarget, daysLeft: c.daysToExpiry,
+      thetaBurnPct: c.thetaBurnPct, term: c.termShape, skew: c.skewPoints,
+      priceSource: c.priceSource, priceIsLive: c.priceIsLive, score: c.screenScore
+    };
+  }).filter(Boolean);
+
+  const futures = universe
+    .filter((r) => (r.action === "BUY" || r.action === "ACCUMULATE") && r.perUnit)
+    .sort((a, b) => (b.compositeScore || 0) - (a.compositeScore || 0))
+    .slice(0, futuresLimit)
+    .map((r) => {
+      const nowPrice = round(r.spotPrice);
+      const levels = session.level("futures", r.symbol, () => {
+        if (!Number.isFinite(Number(r.entryPrice))) return null;
+        return {
+          buy: round(r.entryPrice), target1: round(r.target1), target2: round(r.target2),
+          stop: round(r.stopLoss), anchor: round(r.spotPrice),
+          tradingSymbol: r.tradingSymbol, lotSize: r.lotSize, symbol: r.symbol
+        };
+      });
+      if (!levels) return null;
+      return {
+        symbol: r.symbol, tradingSymbol: levels.tradingSymbol || r.tradingSymbol,
+        spot: nowPrice, buy: levels.buy, target1: levels.target1, target2: levels.target2, stop: levels.stop,
+        anchor: levels.anchor, drift: driftPct(levels.buy, nowPrice),
+        frozen: levels.frozen, frozenAtIst: levels.frozenAtIst,
+        perUnitCapital: r.perUnit?.capitalPerUnit,
+        riskPerUnit: r.perUnit?.riskPerUnit, rewardPerUnit: r.perUnit?.rewardPerUnitAtTarget1,
+        rewardToRisk: r.perUnit?.rewardToRisk,
+        exchangeLot: r.lotSize, score: r.compositeScore
+      };
+    }).filter(Boolean);
+
+  const saved = session.save();
+
+  return {
+    builtAt: new Date().toISOString(),
+    builtAtIst: istStamp(),
+    sessionDate: session.sessionDate,
+    levelsFrozen: session.canFreeze,
+    levelsOpenedAtIst: session.ledger.openedAtIst,
+    freezeTally: session.tally,
+    ledgerWritten: saved,
+    marketPhase: phase.phase,
+    settlementFile: reference?.session || null,
+    pricedLive: screen.pricedLive ?? 0,
+    pricedFromSettlement: screen.pricedFromSettlement ?? 0,
+    examined: screen.examined ?? 0,
+    survived: screen.survived ?? 0,
+    options,
+    futures
+  };
+}
+
+function page(d) {
+  const optRows = d.options.map((c) => {
+    const state = fillState(c.buy, c.now);
+    return `
+      <tr>
+        <td><b>${esc(c.symbol)} ${esc(c.strike)} ${esc(c.right)}</b>
+          <div class="sub"><code>${esc(c.zerodha)}</code></div>
+          <div class="sub">${esc(c.expiry)} &middot; ${esc(c.daysLeft)}d left</div></td>
+        <td class="num"><b>${money(c.buy)}</b><div class="sub">&times;${esc(c.lotSize)} = ${money(c.costPerLot)}</div></td>
+        <td class="num up"><b>${money(c.sell)}</b><div class="sub">net ${money(c.netProfit)}</div></td>
+        <td class="num down">${money(c.stop)}</td>
+        <td class="num">${money(c.now)}<div class="sub ${state.tone}">${esc(state.word)}</div></td>
+        <td class="num">${esc(c.iv)}% / ${esc(c.rv)}%<div class="sub">VRP ${esc(c.vrp)}</div></td>
+        <td class="num">${esc(c.touchPct)}%<div class="sub">~${esc(c.daysToTarget)}d</div></td>
+        <td class="num ${Number(c.thetaBurnPct) > 12 ? "down" : ""}">${esc(c.thetaBurnPct)}%</td>
+        <td class="num">${esc(c.score)}</td>
+      </tr>`;
+  }).join("");
+
+  const futRows = d.futures.map((r) => {
+    const state = fillState(r.buy, r.spot);
+    return `
+      <tr>
+        <td><b>${esc(r.symbol)}</b><div class="sub"><code>${esc(r.tradingSymbol)}</code></div></td>
+        <td class="num"><b>${money(r.buy)}</b></td>
+        <td class="num up">${money(r.target1)}<div class="sub">${money(r.target2)}</div></td>
+        <td class="num down">${money(r.stop)}</td>
+        <td class="num">${money(r.spot)}<div class="sub ${state.tone}">${esc(state.word)}</div></td>
+        <td class="num">${money(r.perUnitCapital)}<div class="sub">per unit</div></td>
+        <td class="num">${esc(r.rewardToRisk)}<div class="sub">+${money(r.rewardPerUnit)} / &minus;${money(r.riskPerUnit)}</div></td>
+      </tr>`;
+  }).join("");
+
+  const liveNote = d.pricedLive > 0
+    ? `<b class="up">${d.pricedLive}</b> priced from a live broker book, <b>${d.pricedFromSettlement}</b> from the ${esc(d.settlementFile)} settlement file.`
+    : `All prices are from the <b>${esc(d.settlementFile)}</b> settlement file. The market was ${esc(d.marketPhase).toLowerCase()} when this was built, so nothing here is executable right now.`;
+
+  const freezeNote = d.levelsFrozen
+    ? `<b>BUY, SELL AND STOP ARE FIXED FOR TODAY.</b> They were set at
+       <b>${esc(d.levelsOpenedAtIst || "the first build after the open")}</b> and they do not move again,
+       however far the market runs. ${esc(d.freezeTally.carried)} carried from earlier in the session,
+       ${esc(d.freezeTally.frozenThisBuild)} set on this build. The <b>NOW</b> column is the only
+       number that changes &mdash; it tells you whether the market has come to your limit yet.`
+    : `<b>THESE LEVELS ARE INDICATIVE, NOT FIXED.</b> The market is
+       ${esc(d.marketPhase).toLowerCase()}, so there is no traded price to anchor them to and
+       nothing has been written down. They will be set once &mdash; and then held all day &mdash;
+       on the first build after the opening bell.`;
+
+  return `<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>K&sup2; Desk</title>
+<style>
+  :root { color-scheme: dark; --bg:#0c0d14; --panel:#14161f; --line:#262a40; --muted:#8e93a6;
+          --text:#e6e8f0; --green:#00e676; --red:#ff5252; --amber:#ffb300; }
+  * { box-sizing:border-box }
+  body { margin:0; background:var(--bg); color:var(--text);
+         font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; padding:14px }
+  h1 { font-size:18px; margin:0 0 4px } h2 { font-size:15px; margin:26px 0 8px }
+  .stamp { color:var(--muted); font-size:12px; margin-bottom:14px }
+  .note { border:1px solid var(--line); border-left:3px solid var(--amber); border-radius:8px;
+          padding:10px 12px; margin-bottom:16px; font-size:12px; line-height:1.6; color:var(--muted) }
+  .note.frozen { border-left-color:var(--green) }
+  .wrap { overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--panel) }
+  table { border-collapse:collapse; width:100%; min-width:760px }
+  th { text-align:left; font-size:9px; letter-spacing:.06em; color:var(--muted);
+       padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap }
+  td { padding:9px 10px; border-bottom:1px solid rgba(255,255,255,.05); vertical-align:top }
+  .num { text-align:right; white-space:nowrap }
+  .sub { font-size:10px; color:var(--muted); margin-top:2px }
+  code { font-size:10px; color:var(--text); word-break:break-all }
+  .up { color:var(--green) } .down { color:var(--red) }
+  tr:last-child td { border-bottom:none }
+</style></head><body>
+
+<h1>K&sup2; Desk</h1>
+<div class="stamp">Built ${esc(d.builtAtIst)} &middot; session ${esc(d.sessionDate)} &middot; market ${esc(d.marketPhase)} &middot;
+  ${esc(Number(d.examined).toLocaleString("en-IN"))} contracts examined, ${esc(Number(d.survived).toLocaleString("en-IN"))} cleared every gate</div>
+
+<div class="note ${d.levelsFrozen ? "frozen" : ""}">${freezeNote}</div>
+
+<div class="note">
+  <b>WHERE THESE PRICES COME FROM.</b> ${liveNote}
+  This page is a <b>snapshot</b>, rebuilt on a schedule &mdash; it is not a live feed.
+  <b>Check the price on your broker before placing anything.</b>
+  Net figures are after brokerage, STT at 0.15%, exchange, stamp and GST; the
+  spread is extra and is only known where a live book was seen.
+</div>
+
+<h2>Calls &amp; Puts &mdash; the shortlist</h2>
+<div class="wrap"><table>
+  <thead><tr>
+    <th>CONTRACT</th><th class="num">BUY LIMIT</th><th class="num">SELL &middot; NET</th><th class="num">STOP</th>
+    <th class="num">NOW</th>
+    <th class="num">IV / REALISED</th><th class="num">P(TOUCH)</th><th class="num">DECAY</th><th class="num">SCORE</th>
+  </tr></thead><tbody>${optRows || '<tr><td colspan="9">Nothing cleared the gates on this build.</td></tr>'}</tbody>
+</table></div>
+
+<h2>Futures &mdash; priced per unit, not per lot</h2>
+<div class="wrap"><table>
+  <thead><tr>
+    <th>SYMBOL</th><th class="num">BUY LIMIT</th><th class="num">TARGET 1 &middot; 2</th>
+    <th class="num">STOP</th><th class="num">NOW</th><th class="num">1 UNIT</th><th class="num">R : R</th>
+  </tr></thead><tbody>${futRows || '<tr><td colspan="7">No futures cleared the hurdle on this build.</td></tr>'}</tbody>
+</table></div>
+
+<div class="note" style="margin-top:20px;border-left-color:var(--red)">
+  <b>WHAT THIS DOES NOT ESTABLISH.</b> That any of it makes money. The paper ledger
+  has no closed trades yet, so nothing here has a measured hit rate &mdash; the ranking
+  is built on things that were measured, which is not the same as an edge that was
+  proven. Size accordingly.
+</div>
+
+</body></html>`;
+}
+
+async function main() {
+  const data = await build();
+  fs.mkdirSync(OUT_DIR, { recursive: true });
+  fs.writeFileSync(path.join(OUT_DIR, "data.json"), JSON.stringify(data, null, 1));
+  fs.writeFileSync(path.join(OUT_DIR, "index.html"), page(data));
+  // GitHub Pages will not serve a directory containing an underscore path
+  // without this, and the failure is a silent 404 rather than an error.
+  fs.writeFileSync(path.join(OUT_DIR, ".nojekyll"), "");
+  console.log(`built ${data.options.length} option rows and ${data.futures.length} futures rows`);
+  console.log(`  ${data.pricedLive} live, ${data.pricedFromSettlement} from the ${data.settlementFile} settlement file`);
+  console.log(`  levels: ${data.freezeTally.carried} carried, ${data.freezeTally.frozenThisBuild} frozen now, ` +
+              `${data.freezeTally.indicative} indicative — ${data.ledgerWritten.written ? "ledger written" : data.ledgerWritten.reason}`);
+  console.log(`  -> docs/index.html, docs/data.json, docs/levels.json`);
+  return data;
+}
+
+module.exports = { build, page, fillState, main };
+
+// Exported above so a test can drive build() twice and prove the levels did not
+// move. Run directly, it is still just a build.
+if (require.main === module) {
+  main().then(() => process.exit(0)).catch((error) => {
+    console.error("static build failed:", error.message);
+    process.exit(1);
+  });
+}

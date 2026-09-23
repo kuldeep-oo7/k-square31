@@ -169,6 +169,31 @@ async function appendStockFundamentalsToGoogle(fundamentals) {
   return requestGoogle("appendStockFundamentals", { fundamentals });
 }
 
+/**
+ * The order tickets for the day, appended to the tab the phone reads.
+ *
+ * The Apps Script has supported this action since it was written; nothing on
+ * this side ever called it, so the tab it fills has been empty the whole time.
+ * That is the gap this closes -- no redeploy of the script is needed, only a
+ * caller.
+ */
+async function appendDailyRecommendationsToGoogle(recommendations) {
+  if (!googleStoreConfigured() || !Array.isArray(recommendations) || !recommendations.length) {
+    return { ok: false, appended: 0 };
+  }
+  return requestGoogle("appendDailyRecommendations", { recommendations });
+}
+
+async function appendRecommendationAuditToGoogle(audit) {
+  if (!googleStoreConfigured() || !audit) return { ok: false, appended: 0 };
+  return requestGoogle("appendRecommendationAudit", { audit });
+}
+
+async function listGoogleTabs() {
+  if (!googleStoreConfigured()) throw new Error("Google Sheets operational store is not configured");
+  return requestGoogle("listTabs", {});
+}
+
 async function queryGoogleCapabilities() {
   if (!process.env.K2_GOOGLE_SHEETS_WEB_APP_URL) return { ok: false, error: "URL not configured" };
   const response = await fetch(canonicalWebAppUrl(process.env.K2_GOOGLE_SHEETS_WEB_APP_URL), {
@@ -190,8 +215,11 @@ module.exports = {
   GoogleStoreConflictError,
   appendMacroRadarToGoogle,
   appendPortfolioAuditToGoogle,
+  appendDailyRecommendationsToGoogle,
+  appendRecommendationAuditToGoogle,
   appendStockFundamentalsToGoogle,
   appendTradeSignalsToGoogle,
+  listGoogleTabs,
   decodeDocument,
   encodeDocument,
   googleStoreConfigured,
