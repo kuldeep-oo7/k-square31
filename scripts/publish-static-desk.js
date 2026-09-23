@@ -333,6 +333,11 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     quoteStatus,
     track,
     ledgerError,
+    // Futures on today's list that the session froze without: their contract
+    // quote did not come back live, so they are shown on a fallback price and
+    // are NOT in the track record yet. Said out loud, or the record just looks
+    // shorter than the list for no stated reason.
+    untrackedFutures: session.canFreeze ? futures.filter((f) => !f.frozen).map((f) => f.symbol) : [],
     options,
     futures
   };
@@ -464,6 +469,11 @@ function page(d) {
     <div class="sub" style="margin:6px 0 18px">Hit rate counts only trades that filled and then finished. EXPECTED is what the desk
       predicted for those same trades when it showed them &mdash; when the two disagree, the prediction is wrong, and this is where it shows.
       Futures returns are GROSS per unit; options are NET of every charge per lot.</div>
+
+    ${(d.untrackedFutures || []).length ? `<div class="note" style="border-left-color:var(--red)">
+      <b>${esc(d.untrackedFutures.length)} FUTURES ON TODAY&rsquo;S LIST ARE NOT BEING TRACKED YET:</b>
+      ${esc(d.untrackedFutures.join(", "))}. No live quote for their contract came back, so their levels are not frozen
+      and they are shown on a fallback price. Each is added the first time its contract is priced live.</div>` : ""}
 
     <h2>Running now (${esc(t.open.length)})</h2>
     <div class="wrap"><table>
