@@ -90,6 +90,18 @@ function main() {
   }
   lines.push("");
 
+  // Said separately from the line above, because "no live book" has two causes
+  // and only one of them is fixable: the login failed, or nothing is trading.
+  if (d.brokerCheck) {
+    const at = new Date(Date.parse(d.brokerCheck.checkedAt) + 330 * 60_000).toISOString().slice(11, 16) + " IST";
+    lines.push(d.brokerCheck.ok
+      ? "✅ **Broker login OK** from the build server at " + at + " — a NIFTY quote came back."
+      : "❌ **Broker login FAILED** at " + at + " (stage " + d.brokerCheck.stage + ": " + d.brokerCheck.reason
+        + (d.brokerCheck.message ? " — " + d.brokerCheck.message : "")
+        + "). Until this is fixed the options table stays empty during market hours.");
+    lines.push("");
+  }
+
   lines.push("## Calls & puts");
   lines.push("");
   if (!d.options.length) {

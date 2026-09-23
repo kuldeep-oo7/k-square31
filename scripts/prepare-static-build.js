@@ -63,6 +63,53 @@ async function step(label, fn) {
     return `${result.retried} fetched, ${result.remaining} still missing`;
   });
 
+  // THE LOGIN, ON EVERY BUILD, WHETHER OR NOT THE MARKET IS OPEN.
+  //
+  // Live quotes are only fetched in session, so without this the first time
+  // anything logged in to Angel One from a GitHub server would have been 09:33
+  // on a trading morning -- the worst possible moment to learn that it does not
+  // work. The rules allow it (Angel One, from 1 April 2026: "For APIs other than
+  // Orders & GTT, using a static IP is not mandatory"), but a rule is not a
+  // measurement. One login and one four-leg quote settles it.
+  //
+  // The answer is written where the page can show it, because an empty options
+  // table looks identical whether the login failed or the exchange is shut for
+  // a holiday, and the two need completely different fixes.
+  await step("broker login and one live quote", async () => {
+    const checkFile = path.resolve(__dirname, "..", ".private", "cache", "broker-check.json");
+    const record = (result) => {
+      fs.mkdirSync(path.dirname(checkFile), { recursive: true });
+      fs.writeFileSync(checkFile, JSON.stringify({ checkedAt: new Date().toISOString(), ...result }));
+    };
+    const auth = require("../api/_lib/broker-auth");
+    if (!auth.credentialFile()) {
+      record({ ok: false, stage: "CREDENTIALS", reason: "NO_BROKER_CREDENTIALS" });
+      throw new Error("no broker credentials on this runner");
+    }
+    const session = await auth.angelEnsureSession();
+    if (!session.ok) {
+      const why = session.message || session.detail || null;
+      record({ ok: false, stage: "LOGIN", reason: session.reason, message: why });
+      throw new Error("login refused: " + session.reason + (why ? " -- " + why : ""));
+    }
+    const { tradableExpiry } = require("../api/_lib/fno-reference");
+    const front = tradableExpiry("NIFTY", { minDays: 0 });
+    const brokers = require("../api/_lib/broker-feed");
+    const chain = front ? await brokers.angelOptionChain("NIFTY", front.expiry, { strikesEitherSide: 1 }) : null;
+    if (!chain?.ok) {
+      const why = chain?.reason || "NO_NIFTY_EXPIRY_IN_REFERENCE";
+      record({ ok: false, stage: "QUOTE", reason: why, message: chain?.message || null });
+      throw new Error("logged in, but the quote was refused: " + why);
+    }
+    const leg = chain.chain.find((l) => Number(l.lastPrice) > 0) || chain.chain[0] || null;
+    record({
+      ok: true, stage: "QUOTE", expiry: front.expiry, legs: chain.strikeCount,
+      sample: leg ? { strike: leg.strike, type: leg.optionType, lastPrice: leg.lastPrice } : null
+    });
+    return "logged in from this runner and priced " + chain.strikeCount + " NIFTY " + front.expiry + " legs"
+      + (leg ? " (" + leg.strike + leg.optionType + " last " + leg.lastPrice + ")" : "");
+  });
+
   await step("live option quotes", async () => {
     const live = require("../api/_lib/live-quotes");
     const phase = live.marketPhase();

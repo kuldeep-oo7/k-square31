@@ -171,6 +171,15 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, forceFreeze = 
 
   const saved = session.save();
 
+  // What scripts/prepare-static-build.js found when it tried to log in. Carried
+  // onto the page because "no options" has two causes that look identical from
+  // the outside -- the login failed, or the exchange simply is not trading --
+  // and only one of them is something you can fix.
+  let brokerCheck = null;
+  try {
+    brokerCheck = JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", ".private", "cache", "broker-check.json"), "utf8"));
+  } catch { brokerCheck = null; }
+
   return {
     builtAt: new Date().toISOString(),
     builtAtIst: istStamp(),
@@ -192,6 +201,7 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, forceFreeze = 
     pricedFromSettlement: screen.pricedFromSettlement ?? 0,
     examined: screen.examined ?? 0,
     survived: screen.survived ?? 0,
+    brokerCheck,
     options,
     futures
   };
@@ -229,6 +239,17 @@ function page(d) {
         <td class="num">${esc(r.rewardToRisk)}<div class="sub">+${money(r.rewardPerUnit)} / &minus;${money(r.riskPerUnit)}</div></td>
       </tr>`;
   }).join("");
+
+  const bc = d.brokerCheck;
+  const brokerNote = !bc
+    ? ""
+    : bc.ok
+      ? ` <b class="up">Broker login OK</b> from the build server at ${esc(istStamp(Date.parse(bc.checkedAt)))}
+         &mdash; a NIFTY quote came back.`
+      : ` <b class="down">Broker login FAILED</b> at ${esc(istStamp(Date.parse(bc.checkedAt)))}
+         (stage ${esc(bc.stage)}: ${esc(bc.reason)}${bc.message ? " &mdash; " + esc(bc.message) : ""}).
+         Until this is fixed the options table stays empty during market hours, because a
+         settled price is never quoted as a live one.`;
 
   const liveNote = d.pricedLive > 0
     ? `<b class="up">${d.pricedLive}</b> priced from a live broker book, <b>${d.pricedFromSettlement}</b> from the ${esc(d.settlementFile)} settlement file.`
@@ -280,7 +301,7 @@ function page(d) {
 <div class="note ${d.levelsFrozen ? "frozen" : ""}">${freezeNote}</div>
 
 <div class="note">
-  <b>WHERE THESE PRICES COME FROM.</b> ${liveNote}
+  <b>WHERE THESE PRICES COME FROM.</b> ${liveNote}${brokerNote}
   This page is a <b>snapshot</b>, rebuilt on a schedule &mdash; it is not a live feed.
   <b>Check the price on your broker before placing anything.</b>
   Net figures are after brokerage, STT at 0.15%, exchange, stamp and GST; the
