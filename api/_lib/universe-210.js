@@ -209,6 +209,12 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
   // any price, so inventing one produces a card with a premium, a breakeven and
   // a one-tap order link for a contract that does not exist.
   const contractRef = loadFnoReference();
+  // NO LISTED OPTIONS, NO OPTION CARD. The watch list now includes stocks NSE
+  // removed from F&O -- 78 of them on 2026-09-24 -- and for those the exchange
+  // lists no option at any strike. Falling through to the step table below
+  // built a card for each: a strike, a premium and an order link for 78
+  // contracts that do not exist. test-no-fabricated-values caught it.
+  if (contractRef && !contractRef.symbols?.[symbol]) return null;
 
   // WHICH CONTRACT IS THIS CARD ABOUT? Until 2026-09-21 the honest answer was
   // "three different ones at once".
@@ -779,11 +785,32 @@ class FnoUniverseEngine {
       if (fs.existsSync(COVERAGE_PATH)) {
         const coverage = JSON.parse(fs.readFileSync(COVERAGE_PATH, "utf8"));
         this.symbols = coverage.futuresSymbols || [];
+        this.fnoCoverage = new Set(coverage.futuresSymbols || []);
         this.banned = new Set(coverage.bannedSymbols || []);
         this.banTradeDate = coverage.banTradeDate || null;
       }
     } catch (e) {
       console.warn("Could not load coverage:", e.message);
+    }
+
+    // THE WATCH LIST IS THE USER'S WORKBOOK. "This 288 you need to watch" --
+    // NSE_FO_Symbols_Auto_Update.xlsm, imported by scripts/import-watchlist-
+    // excel.py into data/watchlist.json. It is wider than NSE's F&O list: 78 of
+    // its 285 stocks no longer have a futures contract and are watched on the
+    // share price, and each row says which it is (fnoListed). Without the file
+    // the engine falls back to NSE's own F&O list, as before.
+    try {
+      const watchFile = path.resolve(__dirname, "../../data/watchlist.json");
+      if (fs.existsSync(watchFile)) {
+        const watch = JSON.parse(fs.readFileSync(watchFile, "utf8"));
+        const stocks = (watch.stocks || []).map((x) => String(x.symbol || x).toUpperCase()).filter(Boolean);
+        if (stocks.length) {
+          this.symbols = [...new Set(stocks)];
+          this.watchlistSource = watch.source || "data/watchlist.json";
+        }
+      }
+    } catch (e) {
+      console.warn("Could not load the watch list:", e.message);
     }
 
     // A FRESHER BAN LIST WINS. data/market-coverage.json is committed and only
@@ -1081,10 +1108,18 @@ class FnoUniverseEngine {
         marketCap: meta.marketCap,
         rank: meta.rank,
         isBanned,
+        // Whether NSE lists a futures contract for this name TODAY, from the
+        // exchange's own contract file. A watched name without one has no
+        // futures symbol, no lot and no expiry -- and none is invented: the
+        // fallback "26SEP" here printed LT26SEPFUT in October, and a symbol for
+        // a contract that does not exist at all for the 78 names NSE removed.
+        fnoListed: Boolean(loadFnoReference()?.symbols?.[symbol]),
+        exchangeLot: loadFnoReference()?.symbols?.[symbol] ? (listedLot || null) : null,
         tradingSymbol: (() => {
           const ref = loadFnoReference();
-          const chosen = ref ? tradableFnoExpiry(symbol, { minDays: 7, reference: ref }) : null;
-          return `${symbol}${chosen ? chosen.suffix : "26SEP"}FUT`;
+          if (!ref?.symbols?.[symbol]) return null;
+          const chosen = tradableFnoExpiry(symbol, { minDays: 7, reference: ref });
+          return chosen ? `${symbol}${chosen.suffix}FUT` : null;
         })(),
         angelSymbol: (() => {
           const ref = loadFnoReference();
@@ -1174,6 +1209,10 @@ class FnoUniverseEngine {
       // that the exchange names the expiry, and neither may hard-code it.
       analyzed.tradingSymbol = baseCandidate.tradingSymbol;
       analyzed.angelSymbol = baseCandidate.angelSymbol ?? null;
+      // Carried explicitly, like the symbols above: the analyzed row is built
+      // field by field, so anything not copied here never reaches the page.
+      analyzed.fnoListed = baseCandidate.fnoListed === true;
+      analyzed.exchangeLot = baseCandidate.exchangeLot ?? null;
       analyzed.perUnit = perUnit;
       // Where the frozen levels came from, so a limit that is now far from the
       // market explains itself rather than looking stale or wrong.
@@ -1507,7 +1546,9 @@ class FnoUniverseEngine {
         analyzed.pnlRupees = Math.round((spot - entryPrice) * lotSize * 100) / 100;
         analyzed.strategy = {
           name: finalAction === "BUY" ? "Futures Apex Momentum" : "Futures Support Accumulation",
-          primary: `BUY ${analyzed.symbol}26SEPFUT (Lot ${lotSize}) @ ₹${entryPrice}`,
+          primary: analyzed.tradingSymbol
+            ? `BUY ${analyzed.tradingSymbol} (Lot ${lotSize}) @ ₹${entryPrice}`
+            : `BUY ${analyzed.symbol} (share -- no NSE futures contract) @ ₹${entryPrice}`,
           hedge: `Hard Stop Loss @ ₹${stopLoss}`,
           maxRisk: `₹${Math.round((entryPrice - stopLoss) * lotSize).toLocaleString("en-IN")}`,
           breakeven: `₹${entryPrice}`

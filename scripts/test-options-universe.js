@@ -12,7 +12,15 @@ console.log("Starting Full-Market Options & Signal Accuracy test suite...");
 // 1. Test Whole Market Options Universe
 const options = fnoUniverseEngine.getOptionsUniverse();
 assert(Array.isArray(options), "Options universe must be an array");
-assert(options.length >= 420, `Expected at least 420 option contracts across 210 stocks + indices, got: ${options.length}`);
+// A call AND a put for every watched stock the exchange lists options on. This
+// said "at least 420 across 210 stocks", which was the whole NSE F&O list; the
+// engine now watches the user's own 285-stock workbook, where 207 names have
+// listed options and 78 are share-only -- for which inventing a strike was the
+// bug test-no-fabricated-values caught.
+const listedStocks = fnoUniverseEngine.getUniverse({ severity: "NORMAL", shieldActive: false }).filter((r) => r.fnoListed).length;
+assert(listedStocks > 150, `Expected well over 150 watched stocks with listed options, got ${listedStocks}`);
+assert(options.length >= 2 * listedStocks,
+  `Expected a call and a put for each of the ${listedStocks} watched stocks with listed options, got: ${options.length}`);
 console.log(`  ✓ Whole Market Options coverage verified (${options.length} Call & Put contracts generated)`);
 
 // 2. Check Index Options (NIFTY & BANKNIFTY)

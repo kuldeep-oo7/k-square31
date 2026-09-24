@@ -69,6 +69,15 @@ function contractNames(symbol, expiry, strike, right, reference) {
   const { expiryTradingSuffix, angelTradingSymbol } = require("../api/_lib/fno-reference");
   const { exitByDate, isIndexUnderlying } = require("./paper-ledger");
   const iso = String(expiry || "").slice(0, 10);
+  // A watched name with no NSE futures contract has no expiry at all: it is the
+  // share, and is named as the share. Formatting a missing date is what crashed
+  // the first build with the 288 watch list.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) {
+    return {
+      display: `${symbol} (share)`, zerodha: symbol, angel: `${symbol}-EQ`,
+      expiryText: null, exitBy: null, exitByText: null
+    };
+  }
   const suffix = expiryTradingSuffix(iso, reference?.symbols?.[symbol]?.expiryList || []) || "";
   const monthly = /^\d{2}[A-Z]{3}$/.test(suffix);
   const d = new Date(`${iso}T00:00:00Z`);
@@ -211,29 +220,28 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   const brokers = require("../api/_lib/broker-feed");
   const ledgerLib = require("./paper-ledger");
   /**
-   * FUTURES COME ONLY FROM YOUR JOURNAL.
+   * FUTURES: YOUR 288.
    *
-   * Asked for, verbatim: "in the futures I need you from the excel file we are
-   * using ... you need to give me only from that". The engine still scores
-   * every NSE stock future -- a cross-section of 210 is a steadier yardstick for
-   * "top quarter" than 101 -- but only names in data/journal-symbols.json (the
-   * SCREENER sheet of journal (1).xlsx, read by scripts/import-journal-excel.py)
-   * can appear on the futures tab. Options are unaffected: they come from every
-   * F&O name the exchange lists.
+   * "This 288 you need to watch." The engine now watches the 285 stocks of
+   * NSE_FO_Symbols_Auto_Update.xlsm (data/watchlist.json) and every one of them
+   * can reach the futures tab. 207 still have an NSE futures contract; 78 were
+   * removed from F&O and exist only as shares; a few are symbols NSE no longer
+   * lists at all -- mergers, renames, a typo -- and are named on the page.
    */
-  const journalList = (() => {
-    try { return JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "data", "journal-symbols.json"), "utf8")).symbols || []; }
-    catch { return []; }
+  const watchFile = (() => {
+    try { return JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "data", "watchlist.json"), "utf8")); }
+    catch { return null; }
   })();
-  const journalSet = new Set(journalList.map((s) => String(s).toUpperCase()));
-  const universeSymbols = new Set(universe.map((r) => r.symbol));
-  const journalStatus = {
-    total: journalSet.size,
-    tradeable: [...journalSet].filter((s) => universeSymbols.has(s)).length,
-    noLongerFutures: [...journalSet].filter((s) => !universeSymbols.has(s)).sort()
-  };
+  const priced = (r) => r.priceSource === "NSE_YAHOO_BARS" && r.hasObservedPrice !== false;
+  const watchStatus = watchFile ? {
+    source: watchFile.source,
+    stocks: universe.length,
+    withFutures: universe.filter((r) => r.fnoListed).length,
+    shareOnly: universe.filter((r) => !r.fnoListed && priced(r)).length,
+    notListed: universe.filter((r) => !r.fnoListed && !priced(r)).map((r) => r.symbol).sort(),
+    indices: (watchFile.indices || []).map((x) => x.symbol)
+  } : null;
   const futuresPicked = universe
-    .filter((r) => journalSet.size === 0 || journalSet.has(r.symbol))
     .filter((r) => (r.action === "BUY" || r.action === "ACCUMULATE") && r.perUnit)
     .sort((a, b) => (b.compositeScore || 0) - (a.compositeScore || 0))
     .slice(0, futuresLimit)
@@ -244,13 +252,18 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   try { ledger = ledgerLib.openLedger(ledgerDir ? { dir: ledgerDir } : {}); }
   catch (error) { ledgerError = error.message; }
 
-  const asRequest = (t) => ({ kind: t.kind === "FUT" ? "FUT" : "OPT", symbol: t.symbol, expiry: t.expiry, strike: t.strike, optionType: t.optionType });
+  // A futures trade is marked on the instrument its level was anchored to: the
+  // share (priceBasis SHARE) or the NSE contract.
+  const asRequest = (t) => (t.kind === "FUT" && t.priceBasis === "SHARE"
+    ? { kind: "EQ", symbol: t.symbol }
+    : { kind: t.kind === "FUT" ? "FUT" : "OPT", symbol: t.symbol, expiry: t.expiry, strike: t.strike, optionType: t.optionType });
   let quotes = {};
   let quoteStatus = null;
   try {
     const result = await brokers.contractQuotes([
       // Futures already priced for the forwards are not asked for twice.
-      ...futuresPicked.filter((f) => f.expiry && !forwardQuotes[`${f.row.symbol}|${f.expiry}`])
+      ...futuresPicked.map((f) => ({ kind: "EQ", symbol: f.row.symbol })),
+      ...futuresPicked.filter((f) => f.row.fnoListed && f.expiry && !forwardQuotes[`${f.row.symbol}|${f.expiry}`])
         .map((f) => ({ kind: "FUT", symbol: f.row.symbol, expiry: f.expiry })),
       ...(screen.contracts || []).map((c) => ({ kind: "OPT", symbol: c.symbol, expiry: c.expiry, strike: c.strike, optionType: c.optionType })),
       ...(ledger ? ledger.open.map(asRequest) : [])
@@ -321,38 +334,44 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   }).filter(Boolean);
 
   /**
-   * FUTURES ARE PRICED ON THE FUTURES CONTRACT, NOT ON THE SHARE.
+   * WHICH PRICE A FUTURES LEVEL IS ANCHORED TO.
    *
-   * Measured on 2026-09-23: LT's October future last traded at 3,946.40 while
-   * this page anchored on the cash close of 3,904.80 and printed the result
-   * next to the symbol LT26OCTFUT. A buy limit of 3,873.56 on that contract was
-   * 1.85% under its price, not the 0.8% the page claimed, and the NOW column
-   * would never have matched the broker app. The level rules are unchanged --
-   * 0.8% under the anchor, targets 2.5% and 5% over the entry, stop 1.5% under
-   * it, from session-levels.js -- only the anchor is now the right instrument.
+   * SHARE (the default): the live NSE share price. The user trades futures on a
+   * platform that sells them PER UNIT -- odd quantities like 33 or 420, which no
+   * NSE futures contract allows -- and that lists names with no NSE futures at
+   * all; both say it prices off the share. It is also the only price that exists
+   * for the 78 watched names NSE removed from F&O, and the basis every level the
+   * desk issued before 2026-09-23 was built on.
    *
-   * A level is frozen only on a live quote for that contract, from today's
-   * session. Without one it is shown on the cash price, labelled as such, and
-   * never written down.
+   * CONTRACT: the NSE futures contract, which runs about 1% above the share for
+   * next month (LT: share 3,929.90, October future 3,945.80 on 2026-09-24).
+   * Set K2_FUTURES_ANCHOR=CONTRACT if the platform quotes the contract.
+   *
+   * Either way the other price is printed on the row, so the two can be
+   * compared against the broker's own screen. A level is frozen only on a quote
+   * that is live and fresh (exchange stamp under ten minutes old): during a
+   * circuit-breaker halt the last print freezes while the clock runs.
    */
+  const ANCHOR = String(process.env.K2_FUTURES_ANCHOR || "SHARE").toUpperCase() === "CONTRACT" ? "CONTRACT" : "SHARE";
   const { ENTRY_DISCOUNT, TARGET_1, TARGET_2, STOP } = require("../api/_lib/session-levels");
+  const isFresh = (q) => {
+    if (!q) return false;
+    const at = ledgerLib.feedMs(q.exchangeFeedTime);
+    return phase.open === true && ledgerLib.feedDate(q.exchangeFeedTime) === session.sessionDate
+      && at !== null && Date.now() - at <= 10 * 60_000;
+  };
   const futures = futuresPicked.map(({ row: r, expiry }) => {
-    const fq = expiry ? quoteFor({ kind: "FUT", symbol: r.symbol, expiry }) : null;
-    // LIVE MEANS FRESH, not merely "from today". During a market-wide circuit
-    // breaker halt (10/15/20% on NIFTY or Sensex) the last print sits frozen
-    // while the clock runs; a quote forty minutes old is today's, and is not a
-    // price anyone can trade at. Ten minutes is generous for an instrument that
-    // prints every second, and short of any halt.
-    const feedAt = fq ? ledgerLib.feedMs(fq.exchangeFeedTime) : null;
-    const liveNow = Boolean(fq) && phase.open === true
-      && ledgerLib.feedDate(fq.exchangeFeedTime) === session.sessionDate
-      && feedAt !== null && Date.now() - feedAt <= 10 * 60_000;
-    const nowPrice = round(fq ? fq.ltp : r.spotPrice);
-    const nowSource = fq ? (liveNow ? "FUTURES_LIVE" : "FUTURES_LAST_TRADED") : "CASH_SPOT_FALLBACK";
-    const nowAtText = fq?.exchangeFeedTime ? String(fq.exchangeFeedTime).slice(12, 17) : null;
-    // Measured, never assumed: Yang-Zhang realised volatility over the right
-    // window, from the same trade-odds pass that scored the row. No volatility,
-    // no expected time -- a made-up estimate is worse than an honest blank.
+    const sq = quoteFor({ kind: "EQ", symbol: r.symbol });
+    const fq = r.fnoListed && expiry ? quoteFor({ kind: "FUT", symbol: r.symbol, expiry }) : null;
+    const anchorQuote = ANCHOR === "CONTRACT" && fq ? fq : sq;
+    const liveNow = isFresh(anchorQuote);
+    const nowPrice = round(anchorQuote ? anchorQuote.ltp : r.spotPrice);
+    const nowSource = anchorQuote
+      ? (anchorQuote === fq ? "FUTURES" : "SHARE") + "_" + (liveNow ? "LIVE" : "LAST_TRADED")
+      : "SHARE_CLOSE_FROM_HISTORY";
+    const nowAtText = anchorQuote?.exchangeFeedTime ? String(anchorQuote.exchangeFeedTime).slice(12, 17) : null;
+    const referencePrice = anchorQuote === fq ? (sq ? round(sq.ltp) : null) : (fq ? round(fq.ltp) : null);
+    const referenceKind = anchorQuote === fq ? "share" : (fq ? "future" : null);
     const sigma = Number(r.odds?.realizedVolPct) > 0 ? Number(r.odds.realizedVolPct) / 100 : null;
     const levels = session.level("futures", r.symbol, () => {
       if (!(nowPrice > 0)) return null;
@@ -360,7 +379,7 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
       const target1 = round(buy * TARGET_1);
       return {
         buy, target1, target2: round(buy * TARGET_2), stop: round(buy * STOP),
-        anchor: nowPrice, anchorSource: nowSource,
+        anchor: nowPrice, anchorSource: nowSource, priceBasis: anchorQuote === fq ? "CONTRACT" : "SHARE",
         tradingSymbol: r.tradingSymbol, angelSymbol: fq?.tradingSymbol || r.angelSymbol || null,
         expiry, lotSize: r.lotSize, symbol: r.symbol,
         expected: sigma ? {
@@ -370,7 +389,7 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
           basis: "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
         } : null
       };
-    }, { mayFreeze: forceFreeze === true ? Boolean(fq) : liveNow });
+    }, { mayFreeze: forceFreeze === true ? Boolean(anchorQuote) : liveNow });
     if (!levels) return null;
     const risk = round(levels.buy - levels.stop);
     const reward = round(levels.target1 - levels.buy);
@@ -379,7 +398,9 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
       display: fnames.display, expiryText: fnames.expiryText, exitBy: fnames.exitBy, exitByText: fnames.exitByText,
       symbol: r.symbol, tradingSymbol: levels.tradingSymbol || r.tradingSymbol,
       angelSymbol: levels.angelSymbol || null, expiry: levels.expiry || expiry,
-      spot: nowPrice, nowSource, nowAtText,
+      spot: nowPrice, nowSource, nowAtText, fnoListed: r.fnoListed === true,
+      priceBasis: levels.priceBasis || (anchorQuote === fq ? "CONTRACT" : "SHARE"),
+      referencePrice, referenceKind,
       buy: levels.buy, target1: levels.target1, target2: levels.target2, stop: levels.stop,
       anchor: levels.anchor, anchorSource: levels.anchorSource || null, drift: driftPct(levels.buy, nowPrice),
       frozen: levels.frozen, frozenAtIst: levels.frozenAtIst, frozenAt: levels.frozenAt || null,
@@ -417,11 +438,12 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
       for (const f of futures) {
         if (!f.frozen) continue;
         ledger.add(ledgerLib.tradeFromLevel({
-          kind: "FUT", symbol: f.symbol, contract: f.tradingSymbol, expiry: f.expiry, lotSize: f.exchangeLot,
+          kind: "FUT", symbol: f.symbol, contract: f.tradingSymbol || (f.symbol + " (share)"),
+          expiry: f.fnoListed ? f.expiry : null, lotSize: f.exchangeLot, priceBasis: f.priceBasis,
           buy: f.buy, target: f.target1, target2: f.target2, stop: f.stop,
           sessionDate: session.sessionDate, shownAt: f.frozenAt, anchorSource: f.anchorSource,
           expected: f.expected
-        }), quoteFor({ kind: "FUT", symbol: f.symbol, expiry: f.expiry }));
+        }), quoteFor(f.priceBasis === "SHARE" ? { kind: "EQ", symbol: f.symbol } : { kind: "FUT", symbol: f.symbol, expiry: f.expiry }));
       }
       ledger.markAll((t) => quoteFor(asRequest(t)));
       const ledgerSaved = ledger.save();
@@ -473,7 +495,8 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     survived: screen.survived ?? 0,
     brokerCheck,
     quoteStatus,
-    journalStatus,
+    watchStatus,
+    futuresAnchor: ANCHOR,
     forwardStatus,
     optionsOnLiveForward: options.filter((c) => c.forwardSource === "LIVE").length,
     banList: { tradeDate: fnoUniverseEngine.banTradeDate || null, symbols: [...bannedSet].sort(),
@@ -530,7 +553,9 @@ function page(d) {
   const SOURCE_LABEL = {
     FUTURES_LIVE: "futures, live",
     FUTURES_LAST_TRADED: "futures, last trade &mdash; NOT live",
-    CASH_SPOT_FALLBACK: "CASH price &mdash; no futures quote"
+    SHARE_LIVE: "share, live",
+    SHARE_LAST_TRADED: "share, last trade &mdash; NOT live",
+    SHARE_CLOSE_FROM_HISTORY: "share, last close &mdash; NOT live"
   };
   const futRows = d.futures.map((r) => {
     const state = fillState(r.buy, r.spot);
@@ -541,13 +566,21 @@ function page(d) {
       : "";
     return `
       <tr>
-        <td><b class="name">${esc(r.display || r.symbol)}</b>
-          <div class="sub">Zerodha <code>${esc(r.tradingSymbol)}</code>${r.angelSymbol ? ` &middot; Angel <code>${esc(r.angelSymbol)}</code>` : ""}</div>
-          ${r.expiryText ? `<div class="sub">expires ${esc(r.expiryText)}${r.exitByText ? ` &middot; <b class="warn">exit or roll by ${esc(r.exitByText)}</b>` : ""}</div>` : ""}</td>
+        <td>${r.priceBasis === "CONTRACT"
+          ? `<b class="name">${esc(r.display || r.symbol)}</b>
+             <div class="sub">Zerodha <code>${esc(r.tradingSymbol)}</code>${r.angelSymbol ? ` &middot; Angel <code>${esc(r.angelSymbol)}</code>` : ""}</div>`
+          : `<b class="name">${esc(r.symbol)}</b>
+             <div class="sub">levels on the share price</div>
+             ${r.tradingSymbol
+               ? `<div class="sub">NSE future: Zerodha <code>${esc(r.tradingSymbol)}</code>${r.angelSymbol ? ` &middot; Angel <code>${esc(r.angelSymbol)}</code>` : ""}</div>`
+               : `<div class="sub">no NSE futures contract &mdash; share only</div>`}`}
+          ${r.expiryText ? `<div class="sub">future expires ${esc(r.expiryText)}${r.exitByText ? ` &middot; <b class="warn">exit or roll by ${esc(r.exitByText)}</b>` : ""}</div>` : ""}</td>
         <td class="num"><b>${money(r.buy)}</b>${expLine ? `<div class="sub">expected: ${expLine}</div>` : ""}</td>
         <td class="num up">${money(r.target1)}<div class="sub">${money(r.target2)}</div></td>
         <td class="num down">${money(r.stop)}</td>
-        <td class="num">${money(r.spot)}<div class="sub ${state.tone}">${esc(state.word)}</div><div class="sub ${r.nowSource === "FUTURES_LIVE" ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div></td>
+        <td class="num">${money(r.spot)}<div class="sub ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.referencePrice
+          ? `<div class="sub">${r.referenceKind === "future" ? "NSE future" : "share"} ${money(r.referencePrice)}</div>`
+          : (r.fnoListed === false ? `<div class="sub">no NSE futures contract</div>` : "")}</td>
         <td class="num">${money(r.perUnitCapital)}<div class="sub">per unit</div></td>
         <td class="num">${esc(r.rewardToRisk)}<div class="sub">+${money(r.rewardPerUnit)} / &minus;${money(r.riskPerUnit)}</div></td>
       </tr>`;
@@ -768,9 +801,13 @@ function page(d) {
 
   <section class="pane pane-fut">
     <h2>Futures &mdash; buy per unit, not per lot</h2>
-    ${d.journalStatus ? `<div class="sub" style="margin:-4px 0 10px">Only names from your journal (journal (1).xlsx):
-      ${esc(d.journalStatus.tradeable)} of its ${esc(d.journalStatus.total)} still trade as futures on NSE${d.journalStatus.noLongerFutures.length
-        ? ` &mdash; the other ${esc(d.journalStatus.noLongerFutures.length)} were removed from F&amp;O and have no futures contract: ${esc(d.journalStatus.noLongerFutures.join(", "))}` : ""}.</div>` : ""}
+    ${d.watchStatus ? `<div class="sub" style="margin:-4px 0 10px">Watching your ${esc(d.watchStatus.stocks)} stocks
+      (${esc(d.watchStatus.source)}): ${esc(d.watchStatus.withFutures)} have an NSE futures contract,
+      ${esc(d.watchStatus.shareOnly)} are share-only (removed from F&amp;O)${d.watchStatus.notListed.length
+        ? `, and ${esc(d.watchStatus.notListed.length)} have no price yet under that symbol &mdash; merged, renamed or
+           misspelt, or history not fetched yet: ${esc(d.watchStatus.notListed.join(", "))}` : ""}.
+      Levels are anchored on the <b>${d.futuresAnchor === "CONTRACT" ? "NSE futures contract" : "share price"}</b>;
+      the other price is shown under NOW to compare with your platform.</div>` : ""}
     <div class="wrap"><table>
       <thead><tr>
         <th>SYMBOL</th><th class="num">BUY LIMIT</th><th class="num">TARGET 1 &middot; 2</th>

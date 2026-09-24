@@ -195,7 +195,13 @@ async function refreshInstruments(provider, { timeoutMs = 180_000 } = {}) {
       if (!name) continue;
       if ((type === "" || type === undefined) && row.exch_seg === "NSE") {
         // Cash equity rows carry no instrumenttype on this feed.
-        if (!underlyings[name]) underlyings[name] = { token: String(row.token), exchange: "NSE", symbol: row.symbol };
+        // NSE lists several series for one company (-EQ, -BE, -BL ...), and the
+        // first row seen was kept whatever it was. The ordinary share is -EQ;
+        // a later -EQ row replaces anything kept before it.
+        const isEq = String(row.symbol || "").endsWith("-EQ");
+        if (!underlyings[name] || (isEq && !String(underlyings[name].symbol || "").endsWith("-EQ"))) {
+          underlyings[name] = { token: String(row.token), exchange: "NSE", symbol: row.symbol };
+        }
         continue;
       }
       // THIS DESK TRADES NSE. Every order link, every lot size, every strike
@@ -641,6 +647,7 @@ function quoteFromChain(chain, strike, optionType) {
 function contractKey(contract) {
   const symbol = String(contract?.symbol || "").toUpperCase();
   const expiry = String(contract?.expiry || "").slice(0, 10);
+  if (contract?.kind === "EQ") return `${symbol}|EQ`;
   if (contract?.kind === "FUT") return `${symbol}|${expiry}`;
   return `${symbol}|${expiry}|${Number(contract?.strike)}|${String(contract?.optionType || "").toUpperCase()}`;
 }
@@ -651,13 +658,19 @@ async function contractQuotes(contracts, { timeoutMs = 20_000, batchSize = 50, m
   const instruments = loadInstruments("angelone");
   if (!instruments) return { ok: false, reason: "INSTRUMENTS_NOT_CACHED", quotes: {} };
 
+  // Keyed by exchange AND token: the same token number can exist on two
+  // exchanges, and a share (NSE) is a different segment from its derivatives
+  // (NFO). Angel's quote call takes several exchanges in one request.
   const byToken = new Map();
   let unresolved = 0;
   for (const contract of Array.isArray(contracts) ? contracts : []) {
     const key = contractKey(contract);
-    const row = contract?.kind === "FUT" ? instruments.futures?.[key] : instruments.options?.[key];
+    const row = contract?.kind === "EQ" ? instruments.underlyings?.[String(contract.symbol || "").toUpperCase()]
+      : contract?.kind === "FUT" ? instruments.futures?.[key]
+      : instruments.options?.[key];
     if (!row?.token) { unresolved += 1; continue; }
-    byToken.set(String(row.token), { key, tradingSymbol: row.symbol || null });
+    const exchange = contract?.kind === "EQ" ? "NSE" : "NFO";
+    byToken.set(`${exchange}:${row.token}`, { key, exchange, token: String(row.token), tradingSymbol: row.symbol || null });
   }
   if (!byToken.size) return { ok: false, reason: "NO_CONTRACT_RESOLVED", quotes: {}, unresolved };
 
@@ -682,13 +695,20 @@ async function contractQuotes(contracts, { timeoutMs = 20_000, batchSize = 50, m
           "X-ClientLocalIP": "127.0.0.1", "X-ClientPublicIP": "127.0.0.1", "X-MACAddress": "00:00:00:00:00:00",
           Authorization: `Bearer ${credentials.accessToken}`
         },
-        body: JSON.stringify({ mode: "FULL", exchangeTokens: { NFO: batch } }),
+        body: JSON.stringify({
+          mode: "FULL",
+          exchangeTokens: batch.reduce((acc, id) => {
+            const { exchange, token } = byToken.get(id);
+            (acc[exchange] = acc[exchange] || []).push(token);
+            return acc;
+          }, {})
+        }),
         signal: AbortSignal.timeout(timeoutMs)
       });
       if (!response.ok) { failures.push(`HTTP_${response.status}`); continue; }
       const payload = await response.json();
       for (const row of payload?.data?.fetched || []) {
-        const wanted = byToken.get(String(row.symbolToken));
+        const wanted = byToken.get(`${row.exchange}:${row.symbolToken}`);
         const last = num(row.ltp);
         if (!wanted || !(last > 0)) continue;
         quotes[wanted.key] = {

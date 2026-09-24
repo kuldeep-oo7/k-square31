@@ -161,7 +161,7 @@ function exitByDate(expiryIso, weekdaysBefore = 4) {
  * complete order -- a trade with no stop or no target cannot be scored.
  */
 function tradeFromLevel({ kind, symbol, contract, expiry, strike = null, optionType = null, lotSize = null,
-  buy, target, target2 = null, stop, sessionDate, shownAt, anchorSource, expected }) {
+  buy, target, target2 = null, stop, sessionDate, shownAt, anchorSource, expected, priceBasis = null }) {
   if (!(buy > 0) || !(target > 0) || !(stop > 0) || !sessionDate || !shownAt) return null;
   return {
     id: `${sessionDate}|${kind}|${contract}`,
@@ -169,6 +169,9 @@ function tradeFromLevel({ kind, symbol, contract, expiry, strike = null, optionT
     sessionDate, shownAt,
     buy: round(buy), target: round(target), target2: target2 === null ? null : round(target2), stop: round(stop),
     anchorSource: anchorSource || null,
+    // Which instrument the level was anchored to, and so which one marks it:
+    // SHARE or CONTRACT for futures; null for options.
+    priceBasis: priceBasis || null,
     expected: expected || null,
     status: "WAITING",
     filledAt: null, hoursToFill: null,

@@ -85,7 +85,7 @@ async function step(label, fn) {
   await step("price history for the technical read", async () => {
     const { fnoUniverseEngine } = require("../api/_lib/universe-210");
     if (typeof fnoUniverseEngine.retryMissingBars !== "function") return "not available";
-    const result = await fnoUniverseEngine.retryMissingBars({ limit: 210 });
+    const result = await fnoUniverseEngine.retryMissingBars({ limit: 300 });
     return `${result.retried} fetched, ${result.remaining} still missing`;
   });
 
