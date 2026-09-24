@@ -33,6 +33,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
+const { isNseHoliday } = require("../api/_lib/nse-holidays");
 
 const DOCS = path.resolve(__dirname, "..", "docs");
 const RUNNING = new Set(["WAITING", "OPEN"]);
@@ -103,11 +104,19 @@ function checkLivePath(data, nowMs = Date.now()) {
   // not an outage -- and the page already says so. With no quotes at all
   // nothing is proven, and the checks stand.
   const lastPrint = data?.quoteStatus?.lastExchangeDate || null;
-  const exchangeShut = inSession && lastPrint !== null && lastPrint < today;
+  const feedSaysShut = inSession && lastPrint !== null && lastPrint < today;
+  // ...and the exchange's own calendar is asked too, because a feed FROZEN on
+  // yesterday's prints looks exactly like a holiday -- the one outage this gate
+  // exists to catch. Both must agree the exchange is shut. For a year NSE's
+  // list does not cover yet (null), the feed is trusted and the log says so.
+  const calendar = isNseHoliday(today);
+  const exchangeShut = feedSaysShut && calendar !== false;
   const problems = [];
   if (inSession) {
     if (!data.brokerCheck?.ok) problems.push(`in session and the Angel One login FAILED: ${data.brokerCheck?.stage || "?"} ${data.brokerCheck?.reason || ""}`.trim());
-    if (!exchangeShut) {
+    if (feedSaysShut && calendar === false) {
+      problems.push(`the feed has printed nothing since ${lastPrint}, but NSE lists ${today} as a trading day -- the feed is frozen, not a holiday`);
+    } else if (!exchangeShut) {
       if (!(Number(data.pricedLive) > 0)) {
         problems.push(`in session and not one contract was priced from a live book: ${data.freezeBlockedBecause || "no reason given"}`);
       } else if (data.levelsFrozen !== true) {
@@ -117,7 +126,7 @@ function checkLivePath(data, nowMs = Date.now()) {
       }
     }
   }
-  return { inSession, exchangeShut, lastPrint, problems };
+  return { inSession, exchangeShut, calendar, lastPrint, problems };
 }
 
 module.exports = { checkDatabase, checkLivePath };
@@ -136,6 +145,6 @@ if (require.main === module) {
     process.exit(1);
   }
   console.log("healthy: the database agrees with itself" + (live.exchangeShut
-    ? `; the exchange has not traded today (last print ${live.lastPrint}) -- a holiday, so there is nothing live to check`
+    ? `; the exchange has not traded today (last print ${live.lastPrint}) and ${live.calendar === true ? "NSE lists today as a holiday" : "NSE's calendar does not cover this year yet"} -- nothing live to check`
     : live.inSession ? "; Angel One is logged in, prices are live and levels are frozen" : ""));
 }
