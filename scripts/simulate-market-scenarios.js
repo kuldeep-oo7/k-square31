@@ -50,6 +50,7 @@ const { europeanOption, impliedVolatility } = require("../api/_lib/option-pricin
 const { loadReference } = require("../api/_lib/fno-reference");
 const { fnoUniverseEngine } = require("../api/_lib/universe-210");
 
+const health = require("./check-desk-health");
 const realNow = Date.now;
 const realPhase = live.marketPhase;
 const REF = loadReference();
@@ -193,7 +194,13 @@ fs.mkdirSync(PAGES, { recursive: true });
 
 async function runBuild(name, state, dayBook, { banned = null } = {}) {
   const market = makeMarket(state, dayBook);
-  Date.now = () => state.clock;
+  // The clock MOVES while a build runs, a millisecond per reading, as a real
+  // one does. A clock that stood still hid the 2026-09-24 bug: the ledger was
+  // opened, then the levels frozen a few seconds later, and 37 trades were
+  // stamped filled before they were shown. With a frozen clock the two moments
+  // were identical and nothing could be seen.
+  let ticks = 0;
+  Date.now = () => state.clock + (ticks += 1);
   live.marketPhase = (n) => realPhase(n ?? state.clock);
   live.liveQuote = (s, e, k, t) => market.book(s, e, k, t);
   brokers.contractQuotes = async (list) => {
@@ -343,6 +350,13 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("the page says NOT live, with the time of the last trade", /NOT live at 13:30/.test(halted.html));
     const held = halted.data.futures.filter((x) => frozenFri.has(x.symbol));
     check("levels frozen at 09:33 are held through the halt", held.length > 0 && held.every((x) => x.buy === frozenFri.get(x.symbol)), `${held.length} compared`);
+    // The login is pinned OK here so the alarm has to come from the prices, not
+    // from whatever broker-check file this machine happens to hold.
+    const alarm = health.checkLivePath({ ...halted.data, brokerCheck: { ok: true } }, ist("2026-09-25", "13:45"));
+    check("the production gate turns this run RED -- nothing is live in market hours, and somebody must hear it",
+      alarm.inSession && alarm.problems.length > 0, alarm.problems[0] || "no alarm");
+    const calm = health.checkLivePath({ ...d, brokerCheck: { ok: true } }, ist("2026-09-25", "09:53"));
+    check("while the same gate stays green on the morning's live build", calm.problems.length === 0, calm.problems[0] || "green");
   }
 
   // ======================== Mon 28 Sep: EXPIRY EVE ==============================
@@ -355,12 +369,19 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("nothing expiring tomorrow is on the page", sepRows.length === 0, `${sepRows.length} found`);
     check("the futures shown are the NEXT month's", b.data.futures.length > 0 && b.data.futures.every((x) => String(x.expiry) > "2026-09-29"),
       `${b.data.futures.length} rows`);
-    // The daily price history on disk ends on the settlement date; this
-    // simulation moves the clock but not the history, and the universe rightly
-    // refuses to issue futures on bars several sessions old.
-    const refusals = fnoUniverseEngine.getUniverse({ severity: "NORMAL", shieldActive: false })
-      .filter((r) => (r.status || r.finalStatus) === "STALE_DATA_REFUSAL").length;
-    check("few futures on Monday is the STALE-DATA guard working, not a fault", refusals > 150, `${refusals} refused on stale history`);
+    // The simulation moves the clock but not the history on disk, so how many
+    // rows are stale here depends on the day the history was last fetched.
+    // What must hold whatever that day is: the guard refuses EXACTLY the rows
+    // whose bars are more than five days old at this clock -- no more, no fewer.
+    // (This used to assert that most rows were refused, which was only true
+    // while the build never refreshed history; it has since 2026-09-24.)
+    const STATUS_BEFORE_STALE = ["SEBI_FO_BAN", "NO_OBSERVED_PRICE", "NO_MARKET_HISTORY"];
+    const judged = fnoUniverseEngine.getUniverse({ severity: "NORMAL", shieldActive: false })
+      .filter((r) => !STATUS_BEFORE_STALE.includes(r.status || r.finalStatus));
+    const staleRows = judged.filter((r) => (r.barsAgeDays || 0) > 5);
+    const misjudged = judged.filter((r) => ((r.barsAgeDays || 0) > 5) !== ((r.status || r.finalStatus) === "STALE_DATA_REFUSAL"));
+    check("the stale-history guard refuses exactly the rows older than five days, no more and no fewer",
+      judged.length > 100 && misjudged.length === 0, `${staleRows.length} stale of ${judged.length} judged, ${misjudged.length} misjudged`);
     check("the page shows the October exit-by date, Wednesday 21 October", /exit (or roll )?by Wed 21 Oct/.test(b.html));
   }
 
@@ -405,6 +426,9 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
   console.log(`\nTRACK TAB after the week: shown ${s.shown}, open ${s.open}, target ${s.target}, stop ${s.stop}, expired/exit ${s.expired}, unfilled ${s.unfilled}`);
   check("every trade the week produced is accounted for on the TRACK tab", s.shown === s.waiting + s.open + s.target + s.stop + s.expired + s.unfilled);
   check("the TRACK tab renders the finished trades", /Finished \(latest/.test(last.html) && (s.target + s.stop + s.unfilled + s.expired === 0 || /TARGET|STOP|UNFILLED/.test(last.html)));
+  const db = health.checkDatabase({ ledgerDir: LEDGER_DIR, levelsFile: LEDGER_FILE });
+  check("the whole week's database passes the production health gate: no fill before its show, no duplicate, levels in order",
+    db.trades > 0 && db.problems.length === 0, db.problems.slice(0, 2).join("; ") || `${db.trades} trades checked`);
 
   Date.now = realNow;
   live.marketPhase = realPhase;

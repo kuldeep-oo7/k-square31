@@ -29,7 +29,6 @@ const { impliedVolatility: solveImpliedVolatility } = require("./option-pricing"
 
 const COVERAGE_PATH = path.resolve(__dirname, "../../data/market-coverage.json");
 const NIFTY500_PATH = path.resolve(__dirname, "../../data/nifty500-constituents.csv");
-const KNOWN_PRICES_PATH = path.resolve(__dirname, "../../exports/GM_Global_Complete_Portfolio_All_51_Positions.csv");
 
 // Standardized NSE lot size mapping for F&O universe
 const LOT_SIZES = {
@@ -483,7 +482,14 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
     : contractRef ? "NO_TRADED_PRICE" : "THEORETICAL_BSM_NO_REFERENCE";
 
   const legPriced = callPremium !== null && putPremium !== null
-    && strikesAreListed !== false && spreadAcceptable;
+    && strikesAreListed !== false && spreadAcceptable
+    // The desk's own model must have priced the pair as well, because the
+    // card states its risk in that model's Greeks -- and unpricedReason below
+    // already refuses on exactly these two conditions. Without them, the day
+    // after POLICYBZR fell 36% (2026-09-24, one-day GARCH volatility at the
+    // 200% ceiling) the card showed the exchange premium with no delta at all:
+    // a number the desk could not describe, presented as priced.
+    && callBsm.available && putBsm.available;
   // Both wings priced AND the resulting vertical must actually be a debit
   // spread. With real traded prices an illiquid wing can print at or above the
   // at-the-money leg -- a stale or thin tick -- which makes the net debit zero
@@ -773,7 +779,6 @@ class FnoUniverseEngine {
     this.symbols = [];
     this.banned = new Set();
     this.nifty500Map = new Map();
-    this.knownPrices = new Map();
     this.barsCache = new Map();
     this.ingestor = null;
     this.loadData();
@@ -852,23 +857,6 @@ class FnoUniverseEngine {
     } catch (e) {
       console.warn("Could not load Nifty 500:", e.message);
     }
-
-    // 3. Load Known Portfolio Mark Prices
-    try {
-      if (fs.existsSync(KNOWN_PRICES_PATH)) {
-        const lines = fs.readFileSync(KNOWN_PRICES_PATH, "utf8").split("\n").filter(Boolean);
-        lines.slice(1).forEach((line) => {
-          const matches = line.match(/"([^"]*)"/g);
-          if (matches && matches.length >= 10) {
-            const sym = matches[1].replace(/"/g, "").trim();
-            const markPrice = Number(matches[9].replace(/"/g, ""));
-            if (Number.isFinite(markPrice) && markPrice > 0) {
-              this.knownPrices.set(sym, markPrice);
-            }
-          }
-        });
-      }
-    } catch (e) {}
 
     // 4. Load Pre-existing Real Bar Cache from Disk
     try {
@@ -982,8 +970,13 @@ class FnoUniverseEngine {
 
       // Price and bar provenance resolution:
       // Priority 1: Genuine market bars from disk cache or live provider feed
-      // Priority 2: Genuine portfolio mark from GM Complete Portfolio snapshot
-      // Priority 3: Unpriced / awaiting feed (strictly declared; no synthetic fallback price tables)
+      // Priority 2: Unpriced / awaiting feed (strictly declared; no synthetic fallback price tables)
+      //
+      // There is NO GM Global price here any more. A 31 Aug 2026 export of the
+      // GM portfolio used to sit between these two as a fallback, stamped
+      // hasObservedPrice: true -- a weeks-old price presented as an observation
+      // for any name whose history failed to load. GM Global is where futures
+      // are traded by hand; nothing is read from it (user instruction, 2026-09-24).
       const cachedBars = this.barsCache.get(symbol) || getCachedBars(symbol)?.bars;
       const hasRealBars = Array.isArray(cachedBars) && cachedBars.length >= 10;
 
@@ -1000,12 +993,6 @@ class FnoUniverseEngine {
         hasObservedPrice = Number.isFinite(spot) && spot > 0;
         historicalBars = cachedBars;
         historicalBarsAreSynthetic = false;
-      } else if (this.knownPrices.has(symbol)) {
-        spot = this.knownPrices.get(symbol);
-        priceSource = "PORTFOLIO_MARK";
-        hasObservedPrice = Number.isFinite(spot) && spot > 0;
-        historicalBars = this.generateHistoricalSeries(spot, 30);
-        historicalBarsAreSynthetic = true;
       } else {
         // Deterministic placeholder so the row and contract structures can render
         // while awaiting live bar ingestion. Strictly marked hasObservedPrice: false

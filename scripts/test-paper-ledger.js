@@ -197,6 +197,21 @@ console.log("paper ledger:");
   fs.rmSync(dir, { recursive: true, force: true });
 }
 
+// --- the clock never runs backwards -----------------------------------------
+{
+  // 2026-09-24, found by the production health gate: the build opened the
+  // ledger a few seconds before it froze the levels and marked with the
+  // OPENING clock, so 37 trades shown and filled in the same build were
+  // stamped filled 2.6-6.4 seconds before they existed.
+  const t = futTrade();                                                  // shown 09:33:00
+  L.observe(t, q(99.1, 99.3, 99.1, "09:33"), at("09:33") - 4565);        // a clock 4.6 s older
+  check("a mark carrying a clock from before the show fills AT the show, never before",
+    t.status === "OPEN" && t.filledAt === t.shownAt && t.hoursToFill === 0);
+  check("and the mark itself is not stamped before the show either", t.lastAt === t.shownAt);
+  L.observe(t, q(99.4, 99.6, 99.1, "09:53"), at("09:53"));
+  check("a later mark still carries its own time", t.lastAt === new Date(at("09:53")).toISOString());
+}
+
 // --- the expected-time maths ------------------------------------------------
 {
   const up = L.firstPassage({ from: 100, to: 100.8, sigma: 0.25, tradingDays: 1 });

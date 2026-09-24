@@ -276,6 +276,20 @@ async function runApexPanelStudy() {
     { trials: SEARCH_TRIALS }
   );
 
+  // THE HEADLINE FOLLOWS THE PRE-REGISTERED RULE, NOT THE LIBRARY'S GATE.
+  //
+  // panelVerdict judges the VALIDATION window only, as documented. The rule
+  // fixed in advance (K2_PREREGISTERED_OUT_OF_SAMPLE_PROTOCOL.txt, section 3)
+  // decides on the UNTOUCHED final test: mean > 0 AND cluster-robust t >= the
+  // hurdle AND at least 200 fills, "there is no third outcome". This report
+  // used to print "Edge Confirmed: YES" from the validation gate while the
+  // final test beneath it read t 0.747, p 0.455 -- a headline claiming an edge
+  // the pre-registered test had rejected.
+  const preregisteredPass = Boolean(finStats
+    && Number(finStats.n) >= 200
+    && Number(finStats.meanPct) > 0
+    && Number(finStats.tStat) >= verdict.selectionHurdleTStat);
+
   // 4. Generate Formal Audit Report Text
   const reportText = `================================================================================
 K2 APEX ENGINE — POOLED PANEL STUDY & SURVIVORSHIP-ADJUSTED BACKTEST
@@ -323,14 +337,15 @@ Two-Sided p-Value        ${devStats?.pValue != null ? devStats.pValue : "--"}   
 4. STATISTICAL VERDICT & REPRODUCIBILITY
 ----------------------------------------
 Selection Hurdle: t >= ${verdict.selectionHurdleTStat} (expected maximum of ${verdict.trialsConsidered} configurations, Bailey/Lopez de Prado)
-Final Panel Verdict: ${verdict.verdict}
-Edge Confirmed: ${verdict.edgeConfirmed ? "YES" : "NO"}
+Validation gate (panelVerdict, validation window only): ${verdict.verdict}
+Pre-registered verdict (untouched final test, protocol section 3): ${preregisteredPass ? "PASS" : "FAIL"}
+Edge Confirmed: ${preregisteredPass ? "YES" : "NO"}
 Analysis:
-  Validation (out-of-sample): t ${valStats?.tStat ?? "--"}, deflated ${valStats?.tStat != null && deflatedTStat(valStats.tStat, SEARCH_TRIALS) != null ? deflatedTStat(valStats.tStat, SEARCH_TRIALS).toFixed(2) : "--"} against a ${verdict.selectionHurdleTStat} hurdle. ${valStats?.tStat >= verdict.selectionHurdleTStat ? "Clears it." : "Does not clear it."}
+  Validation (out-of-sample): t ${valStats?.tStat ?? "--"} against a ${verdict.selectionHurdleTStat} hurdle (${valStats?.tStat != null && deflatedTStat(valStats.tStat, SEARCH_TRIALS) != null ? deflatedTStat(valStats.tStat, SEARCH_TRIALS).toFixed(2) : "--"} above it after deflation). ${valStats?.tStat >= verdict.selectionHurdleTStat ? "Clears it." : "Does not clear it."}
   Final test (untouched):     t ${finStats?.tStat ?? "--"}, p ${finStats?.pValue ?? "--"}. ${finStats?.tStat >= verdict.selectionHurdleTStat ? "Clears it." : "DOES NOT clear it."}
 
-  The verdict above speaks about VALIDATION ONLY, which is what panelVerdict is
-  documented to do. It is not a statement about the final test. Per-fill return
+  "Edge Confirmed" applies the pre-registered rule to the untouched final test.
+  The validation gate above it speaks about the validation window only. Per-fill return
   decays across the three windows (${devStats?.meanPct ?? "--"}%, ${valStats?.meanPct ?? "--"}%, ${finStats?.meanPct ?? "--"}%) and the
   forward window is not statistically distinguishable from zero. Read this as a
   signal that passed one out-of-sample gate and has not yet passed a second.

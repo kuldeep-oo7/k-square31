@@ -27,7 +27,7 @@
 const assert = require("node:assert/strict");
 const fs = require("node:fs");
 const path = require("node:path");
-const { CACHE_FILE } = require("../api/_lib/live-quotes");
+const { CACHE_FILE, parseExchangeClock } = require("../api/_lib/live-quotes");
 const reference = require("../api/_lib/fno-reference");
 
 const MONTHS = { JAN: 1, FEB: 2, MAR: 3, APR: 4, MAY: 5, JUN: 6, JUL: 7, AUG: 8, SEP: 9, OCT: 10, NOV: 11, DEC: 12 };
@@ -76,6 +76,13 @@ console.log(`  ✓ All ${labelled} contracts match the broker's own instrument l
 // Calls and puts swapped would give +1. This is the check that survives every
 // label in the system agreeing with every other label while all of them are
 // wrong together.
+//
+// PER EXPIRY, AND AT THE SAME MOMENT. Parity holds inside one expiry, against
+// that expiry's forward, at one instant. Keyed on symbol and strike alone, the
+// check paired a 29-Sep call stamped 19 Sep with a 27-Oct put stamped 24 Sep
+// (ADANIENSOL, measured 2026-09-24, slope -0.830 on the Nifty's worst day of
+// the month) -- a failure that said nothing about which leg is which.
+const PAIR_WINDOW_MS = 5 * 60_000;
 const bySymbol = {};
 for (const [key, row] of entries) {
   if (!(row.bid > 0 && row.ask > 0)) continue;
@@ -84,16 +91,18 @@ for (const [key, row] of entries) {
   // leg is which. Measured 2026-09-23: IDEA's six tight strikes sat exactly on
   // slope -1.005; four quotes with 40-163% spreads dragged it to -1.161.
   if ((row.ask - row.bid) / ((row.ask + row.bid) / 2) > 0.25) continue;
-  const [symbol, , strike, right] = key.split("|");
-  bySymbol[symbol] = bySymbol[symbol] || {};
-  bySymbol[symbol][strike] = bySymbol[symbol][strike] || {};
-  bySymbol[symbol][strike][right] = (row.bid + row.ask) / 2;
+  const [symbol, expiry, strike, right] = key.split("|");
+  const chain = `${symbol} ${expiry}`;
+  bySymbol[chain] = bySymbol[chain] || {};
+  bySymbol[chain][strike] = bySymbol[chain][strike] || {};
+  bySymbol[chain][strike][right] = { mid: (row.bid + row.ask) / 2, at: parseExchangeClock(row.exchangeFeedTime) };
 }
 let regressed = 0;
 for (const [symbol, strikes] of Object.entries(bySymbol)) {
   const points = Object.entries(strikes)
-    .filter(([, v]) => v.CE > 0 && v.PE > 0)
-    .map(([strike, v]) => [Number(strike), v.CE - v.PE]);
+    .filter(([, v]) => v.CE?.mid > 0 && v.PE?.mid > 0
+      && Number.isFinite(v.CE.at) && Number.isFinite(v.PE.at) && Math.abs(v.CE.at - v.PE.at) <= PAIR_WINDOW_MS)
+    .map(([strike, v]) => [Number(strike), v.CE.mid - v.PE.mid]);
   if (points.length < 6) continue;
   const n = points.length;
   const mx = points.reduce((a, p) => a + p[0], 0) / n;
@@ -138,7 +147,15 @@ if (contractRef) {
     const [symbol, expiry, strike, right] = key.split("|");
     const exchange = reference.tradedQuote(symbol, Number(strike), right, expiry, contractRef);
     if (!exchange) continue;
-    if (exchange.openInterest > 0 && row.openInterest > 0) {
+    // Identity is judged where one trade cannot move the figure 5%. Measured on
+    // 2026-09-24, the heaviest day of the month: with every contract counted,
+    // 89.3% agreed (median gap 0.00%, but a 3-lot contract moves 50% on one
+    // trade); from 50 lots open, 97.9%. And some of the broker's open interest
+    // is simply a day old -- RBLBANK 395 CE read 19,050 at 15:40, exactly NSE's
+    // 23-Sep figure, against 209,550 on the 24th. The desk's own liquidity gate
+    // reads NSE's file (fno-reference.js), never this field.
+    const lotSize = Number(contractRef.symbols?.[symbol]?.lotSize) || 1;
+    if (exchange.openInterest >= 50 * lotSize && row.openInterest > 0) {
       oiCompared += 1;
       if (Math.abs(row.openInterest - exchange.openInterest) / exchange.openInterest < 0.05) oiAgreed += 1;
     }

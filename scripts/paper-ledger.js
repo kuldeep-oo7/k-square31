@@ -225,7 +225,12 @@ function observe(trade, quote, now) {
   if (trade.status !== "WAITING" && trade.status !== "OPEN") return trade;
   const price = Number(quote?.ltp);
   if (!(price > 0)) return trade;
-  const at = new Date(now).toISOString();
+  // Never before the moment it was shown. The build opened the ledger a few
+  // seconds before it froze the levels, so a trade shown and filled in the same
+  // build was stamped filled 2.6-6.4 seconds BEFORE it existed -- 37 records on
+  // 2026-09-24, found by the integrity check. Whatever clock a caller passes,
+  // the audit trail cannot run backwards.
+  const at = new Date(Math.max(Number(now), Date.parse(trade.shownAt) || 0)).toISOString();
   const date = feedDate(quote.exchangeFeedTime) || istDate(now);
   const dayHigh = Number(quote.high) > 0 ? Number(quote.high) : price;
   const dayLow = Number(quote.low) > 0 ? Number(quote.low) : price;

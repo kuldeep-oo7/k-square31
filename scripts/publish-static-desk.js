@@ -270,7 +270,11 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     ]);
     quotes = { ...forwardQuotes, ...(result.quotes || {}) };
     quoteStatus = { ok: result.ok, reason: result.reason || null, requested: result.requested,
-      resolved: result.resolved, priced: Object.keys(quotes).length, failures: result.failures || [] };
+      resolved: result.resolved, priced: Object.keys(quotes).length, failures: result.failures || [],
+      // The newest exchange print among every quote this build received. On an
+      // NSE holiday it is a previous session's date -- which is how the health
+      // gate tells a shut exchange from a broken feed without a holiday table.
+      lastExchangeDate: Object.values(quotes).map((q) => ledgerLib.feedDate(q?.exchangeFeedTime)).filter(Boolean).sort().pop() || null };
   } catch (error) {
     quotes = { ...forwardQuotes };
     quoteStatus = { ok: false, reason: error.message };
@@ -445,7 +449,9 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
           expected: f.expected
         }), quoteFor(f.priceBasis === "SHARE" ? { kind: "EQ", symbol: f.symbol } : { kind: "FUT", symbol: f.symbol, expiry: f.expiry }));
       }
-      ledger.markAll((t) => quoteFor(asRequest(t)));
+      // Marked at the moment of marking -- after the levels were frozen -- not
+      // at the moment the ledger was opened, which was before.
+      ledger.markAll((t) => quoteFor(asRequest(t)), Date.now());
       const ledgerSaved = ledger.save();
       const closed = ledger.allClosed();
       track = {

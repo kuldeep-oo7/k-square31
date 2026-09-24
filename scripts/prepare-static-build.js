@@ -82,11 +82,16 @@ async function step(label, fn) {
     return result?.optionCount ? `${result.optionCount} option contracts` : "cached";
   });
 
+  // EVERY NAME WHOSE HISTORY IS BEHIND THE LATEST SESSION, not only the names
+  // with none. Fetching only the missing ones left the whole watch list on the
+  // bars of the first run for as long as the cache lived (see bar-cache.js).
   await step("price history for the technical read", async () => {
     const { fnoUniverseEngine } = require("../api/_lib/universe-210");
-    if (typeof fnoUniverseEngine.retryMissingBars !== "function") return "not available";
-    const result = await fnoUniverseEngine.retryMissingBars({ limit: 300 });
-    return `${result.retried} fetched, ${result.remaining} still missing`;
+    const { refreshStaleBars } = require("../api/_lib/bar-cache");
+    const r = await refreshStaleBars(fnoUniverseEngine.symbols || []);
+    const ends = Object.entries(r.endsOn).sort(([a], [b]) => b.localeCompare(a)).map(([d, n]) => `${n} end ${d}`).join(", ");
+    return `${r.due} behind the latest session: ${r.refreshed} refreshed, ${r.failed} kept as they were`
+      + (r.notReached ? `, ${r.notReached} not reached in time` : "") + ` (${r.seconds}s). History now: ${ends}`;
   });
 
   // THE LOGIN, ON EVERY BUILD, WHETHER OR NOT THE MARKET IS OPEN.

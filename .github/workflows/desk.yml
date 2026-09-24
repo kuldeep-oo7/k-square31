@@ -64,6 +64,15 @@ on:
     - cron: "43 3 * * 1-5"       # 09:13 IST, pre-open
     - cron: "13 4-9 * * 1-5"     # 09:43 to 14:43 IST, hourly
     - cron: "3 10 * * 1-5"       # 15:33 IST, after the close
+    # THE EVENING, for the day's settlement prices. NSE's own server dates the
+    # F&O settlement file (Last-Modified, read 2026-09-24): 22 Sep at 18:52 IST,
+    # 23 Sep at 18:40, 24 Sep at 19:08. Every build between the 15:30 close and
+    # then prices options on the PREVIOUS day's file -- on 24 Sep, a day the
+    # Nifty fell 1.6%, that was the page all evening. These two are the page
+    # for tonight and for planning tomorrow; the levels themselves are still
+    # frozen from live books in the session.
+    - cron: "13 14 * * 1-5"      # 19:43 IST
+    - cron: "43 15 * * 1-5"      # 21:13 IST, the same again if the file was late
   workflow_dispatch:        # the outside clock, and a button for when you want it now
 
 permissions:
@@ -136,17 +145,30 @@ jobs:
         # Every cache key and every session boundary in this desk is an IST
         # date. The runner is UTC, and between 00:00 and 05:30 UTC the two
         # disagree -- which is exactly the window the pre-open build runs in.
-        run: echo "IST_DATE=$(TZ=Asia/Kolkata date +%Y-%m-%d)" >> "$GITHUB_ENV"
+        #
+        # IST_HALF splits the day at the 15:30 close, so the evening build that
+        # fetches the day's price history can keep it: a cache can never be
+        # changed once written, and one key per day meant the only history kept
+        # was the morning's.
+        run: |
+          echo "IST_DATE=$(TZ=Asia/Kolkata date +%Y-%m-%d)" >> "$GITHUB_ENV"
+          if [ "$(TZ=Asia/Kolkata date +%H%M)" -ge 1530 ]; then echo "IST_HALF=pm" >> "$GITHUB_ENV"; else echo "IST_HALF=am" >> "$GITHUB_ENV"; fi
 
       - name: Restore today's exchange data
         # The instrument master is 4.7 MB and takes 78.8s to fetch; it changes
-        # once a day. Keying on the IST date means the first run of the morning
-        # pays for it and every run after that gets it free. An exact hit also
-        # skips the save, so this is one ~23 MB cache entry per trading day.
-        uses: actions/cache@v4
+        # once a day. Keying on the IST date and half means the first run of
+        # each half pays for it and every run after that gets it free: two
+        # ~23 MB entries a trading day, evicted by GitHub after a week unused.
+        #
+        # RESTORE and SAVE are separate steps now, for one reason in GitHub's
+        # own words: the combined action saves "if the job completes
+        # successfully" -- and the health gate at the end exists to fail jobs.
+        # A red run must not also throw away the history it just fetched.
+        id: desk-cache
+        uses: actions/cache/restore@v4
         with:
           path: .private/cache
-          key: k2-desk-cache-${{ env.IST_DATE }}
+          key: k2-desk-cache-${{ env.IST_DATE }}-${{ env.IST_HALF }}
           restore-keys: k2-desk-cache-
 
       - name: Install
@@ -255,13 +277,19 @@ jobs:
           #
           # Both attempts were solving a problem this job does not have. The
           # working tree already holds the freshly built docs/, and the remote
-          # tip is authoritative for everything else. Moving HEAD to the remote
-          # tip without touching the working tree, then staging only docs/,
-          # produces a clean commit on top of whatever landed -- with no merge,
-          # no conflict and nothing to swallow. Files outside docs/ are left
-          # unstaged and die with the runner.
+          # tip is authoritative for everything else. Moving HEAD AND THE INDEX
+          # to the remote tip without touching the working tree, then staging
+          # only docs/, produces a clean commit on top of whatever landed --
+          # with no merge, no conflict and nothing to swallow. Files outside
+          # docs/ are left unstaged and die with the runner.
+          #
+          # --mixed, NEVER --soft. --soft moves HEAD but keeps this run's index,
+          # which is the CODE AS IT WAS CHECKED OUT; a fix pushed while this run
+          # was building would have been silently reverted by this commit, and
+          # every build after it would have run the old code. (Found in the
+          # 2026-09-24 audit; no commit had hit it yet.)
           git fetch --quiet origin "${GITHUB_REF_NAME}"
-          git reset --soft "origin/${GITHUB_REF_NAME}"
+          git reset --mixed --quiet "origin/${GITHUB_REF_NAME}"
           git add docs/
           if git diff --cached --quiet; then
             echo "nothing changed this run"
@@ -270,5 +298,25 @@ jobs:
             # One retry: a push can still lose a race with a laptop. A second
             # failure is left LOUD rather than swallowed -- the next run rebuilds
             # from the remote tip anyway, so a lost push costs one snapshot.
-            git push || { git fetch --quiet origin "${GITHUB_REF_NAME}"; git reset --soft "origin/${GITHUB_REF_NAME}"; git add docs/; git commit -m "desk: rebuilt $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M IST')"; git push; }
+            git push || { git fetch --quiet origin "${GITHUB_REF_NAME}"; git reset --mixed --quiet "origin/${GITHUB_REF_NAME}"; git add docs/; git commit -m "desk: rebuilt $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M IST')"; git push; }
           fi
+
+      - name: Keep this half-day's exchange data for the next build
+        # Only on a miss: a cache cannot be overwritten, and on an exact hit
+        # there is nothing new to keep. Before the gate, so a red run still
+        # keeps it; never fatal, because losing a cache costs one slow build.
+        if: ${{ !cancelled() && steps.desk-cache.outputs.cache-hit != 'true' }}
+        continue-on-error: true
+        uses: actions/cache/save@v4
+        with:
+          path: .private/cache
+          key: ${{ steps.desk-cache.outputs.cache-primary-key }}
+
+      - name: Health gate -- fail loudly, never quietly
+        # LAST, and after the commit, so an unhealthy run has still saved its
+        # ledger; and with no continue-on-error, because this is the one step
+        # whose whole job is to turn the run red. Every failure it looks for
+        # used to produce a green run: a broker login that failed, a session
+        # that priced nothing live or never froze, a ledger that disagrees with
+        # itself. See scripts/check-desk-health.js.
+        run: node scripts/check-desk-health.js
