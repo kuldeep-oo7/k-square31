@@ -243,6 +243,25 @@ function observe(trade, quote, now) {
     return trade;
   }
 
+  // A PRICE IS ONLY NEWS IF IT TRADED IN THIS SESSION.
+  //
+  // The feed's clock says when the quote was SENT, not when the contract last
+  // TRADED. Measured on 2026-09-25: at 09:13, before options trade at all, the
+  // quotes for 63 open option trades carried the PREVIOUS day's full open,
+  // high and low under a today-dated feed stamp. The ledger read that as a new
+  // session, replayed yesterday's range -- including lows from before the
+  // trades were even shown -- and stopped BAJFINANCE 1000 PE at 10.15, a price
+  // it never traded at that day (NSE: open 31.10, low 29.75). During the
+  // session the same contracts send open/high/low of 0 and a last trade from
+  // an earlier day, or the never-traded stamp 01-Jan-1970, until they trade.
+  // So when the quote says when it last traded, a last trade before this
+  // session means there is nothing new to mark. (The 1970 stamp sorts before
+  // every real date, so it is skipped too.)
+  if (quote.exchangeTradeTime !== undefined) {
+    const tradedOn = feedDate(quote.exchangeTradeTime);
+    if (!tradedOn || tradedOn < date) return trade;
+  }
+
   let hi, lo, gapOpen = null;
   if (!o) {
     // First sight: nothing before this moment can count.

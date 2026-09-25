@@ -178,7 +178,9 @@ function makeMarket(state, dayBook) {
         if (!(price > 0)) continue;
         const rng2 = withRange(key, price);
         out[key] = { key, ltp: +price.toFixed(2), open: +rng2.open.toFixed(2), high: +rng2.high.toFixed(2), low: +rng2.low.toFixed(2),
-          previousClose: null, exchangeFeedTime: feedStamp(feedAt), tradingSymbol: key.replace(/\|/g, "") };
+          previousClose: null, exchangeFeedTime: feedStamp(feedAt),
+          // Angel sends the last TRADE time too; a quote here is a trade at the feed time.
+          exchangeTradeTime: feedStamp(feedAt), tradingSymbol: key.replace(/\|/g, "") };
       }
       return out;
     }

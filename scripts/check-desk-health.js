@@ -134,10 +134,13 @@ module.exports = { checkDatabase, checkLivePath };
 if (require.main === module) {
   const databaseOnly = process.argv.includes("--database-only");
   const db = checkDatabase();
-  const live = databaseOnly ? { inSession: false, problems: [] } : checkLivePath(readJson(path.join(DOCS, "data.json"), null));
+  const liveData = databaseOnly ? null : readJson(path.join(DOCS, "data.json"), null);
+  const live = databaseOnly ? { inSession: false, problems: [] } : checkLivePath(liveData);
   const problems = [...db.problems, ...live.problems];
   console.log(`desk health: ${db.trades} trades (${db.open} open, ${db.closed} closed), ${db.levels} frozen levels, `
-    + (databaseOnly ? "database only" : live.inSession ? "live-path checks ON (market open)" : "live-path checks off (market closed)"));
+    + (databaseOnly ? "database only"
+      : live.inSession ? "live-path checks ON (market open)"
+      : `live-path checks off (${liveData?.marketPhase === "OPEN" ? "market open, before the 09:40 window" : `market ${String(liveData?.marketPhase || "state unknown").toLowerCase()}`})`));
   if (problems.length) {
     console.log(`UNHEALTHY -- ${problems.length} problem(s):`);
     for (const p of problems.slice(0, 40)) console.log("  - " + p);

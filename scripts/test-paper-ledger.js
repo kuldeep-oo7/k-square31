@@ -212,6 +212,37 @@ console.log("paper ledger:");
   check("a later mark still carries its own time", t.lastAt === new Date(at("09:53")).toISOString());
 }
 
+// --- yesterday's range is not today's (the 2026-09-25 pre-open incident) -----
+{
+  // BAJFINANCE 26 OCT 1000 PE exactly as recorded: shown and filled at 09:54
+  // on 24 Sep at 28.83; its day had opened near 10.15 BEFORE it was shown.
+  const t = L.tradeFromLevel({
+    kind: "PE", symbol: "BAJFINANCE", contract: "BAJFINANCE26OCT1000PE", expiry: "2026-10-27",
+    strike: 1000, optionType: "PE", lotSize: 750, buy: 28.83, target: 43.24, stop: 14.42,
+    sessionDate: "2026-09-24", shownAt: "2026-09-24T04:24:39.935Z", anchorSource: "BROKER_REALTIME"
+  });
+  Object.assign(t, { status: "OPEN", filledAt: t.shownAt, hoursToFill: 0, best: 41.5, worst: 28.83,
+    last: 35.8, obs: { date: "2026-09-24", high: 41.5, low: 10.15, last: 35.8 } });
+  // 09:13, pre-open: yesterday's whole range under a today-dated feed stamp.
+  L.observe(t, { ltp: 35.9, open: 10.15, high: 41.5, low: 10.15,
+    exchangeFeedTime: "25-Sep-2026 09:13:00", exchangeTradeTime: "24-Sep-2026 15:29:58" }, at("09:13", "2026-09-25"));
+  check("a pre-open quote carrying yesterday's range cannot stop a trade", t.status === "OPEN" && t.obs.date === "2026-09-24");
+  // 10:05, the contract's first real prints of the day (NSE: open 31.10, low 29.75).
+  L.observe(t, { ltp: 32.25, open: 31.1, high: 33.9, low: 29.75,
+    exchangeFeedTime: "25-Sep-2026 10:05:16", exchangeTradeTime: "25-Sep-2026 10:04:23" }, at("10:05", "2026-09-25"));
+  check("today's real prints are marked as today's session", t.status === "OPEN" && t.obs.date === "2026-09-25" && t.obs.low === 29.75);
+  // A contract that has never traded sends the 01-Jan-1970 stamp: nothing to mark.
+  const marks = t.marks;
+  L.observe(t, { ltp: 5, open: 0, high: 0, low: 0,
+    exchangeFeedTime: "25-Sep-2026 10:25:00", exchangeTradeTime: "01-Jan-1970 05:30:00" }, at("10:25", "2026-09-25"));
+  check("a never-traded stamp is not a price", t.status === "OPEN" && t.marks === marks && t.last === 32.25);
+  // Yesterday's unfilled day order still expires, traded or not.
+  const w = futTrade();
+  L.observe(w, { ltp: 100.5, open: 0, high: 0, low: 0,
+    exchangeFeedTime: "25-Sep-2026 09:13:00", exchangeTradeTime: "24-Sep-2026 15:29:58" }, at("09:13", "2026-09-25"));
+  check("yesterday's unfilled limit still expires at the next session", w.status === "UNFILLED");
+}
+
 // --- the expected-time maths ------------------------------------------------
 {
   const up = L.firstPassage({ from: 100, to: 100.8, sigma: 0.25, tradingDays: 1 });
