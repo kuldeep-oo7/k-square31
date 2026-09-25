@@ -159,6 +159,7 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   // geometries in all three splits (PANEL_STUDY_ROUND3.txt: "a measured,
   // reliably NEGATIVE expectancy" -- betting on falls in a market with positive
   // drift). So: calls on the names it rates a buy, no puts, nothing on the rest.
+  const sectorOf = new Map(universe.map((r) => [r.symbol, r.sector || null]));
   const bullish = {};
   for (const row of universe) {
     if (row.action === "BUY" || row.action === "ACCUMULATE") bullish[row.symbol] = true;
@@ -368,6 +369,9 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
         return {
           lotSize: lot, costPerLot: lot ? round(levels.buy * lot) : null,
           netProfit: atTarget?.netProfit ?? null, netLossAtStop: atStop?.netProfit ?? null,
+          breakEvenPct: atTarget?.netProfit > 0 && atStop?.netProfit < 0
+            ? round(100 * Math.abs(atStop.netProfit) / (atTarget.netProfit + Math.abs(atStop.netProfit)), 1) : null,
+          sector: sectorOf.get(c.symbol) || null,
           costPct: atTarget?.costAsPctOfGross ?? null
         };
       })(),
@@ -514,7 +518,11 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
       minGainAtTarget: round((levels.target1 - levels.buy) * GM_MIN_UNITS),
       riskPerUnit: risk, rewardPerUnit: reward,
       rewardToRisk: risk > 0 ? round(reward / risk) : null,
-      exchangeLot: r.lotSize, score: r.compositeScore,
+      exchangeLot: r.lotSize, score: r.compositeScore, sector: r.sector || null,
+      // THE WIN RATE THIS TRADE NEEDS TO BREAK EVEN: loss / (win + loss), from
+      // its own levels, before GM's charges. "Expectancy, not a required win
+      // rate" (Global Trading Atlas, 28): a rate of wins means nothing without it.
+      breakEvenPct: (levels.target1 - levels.stop) > 0 ? round(100 * (levels.buy - levels.stop) / (levels.target1 - levels.stop), 1) : null,
       ...(() => {
         const res = resultsFor(r.symbol);
         const exitBy = fnames.exitBy || null;
@@ -649,6 +657,20 @@ function page(d) {
   // futures ... keep it separate". One long page with the futures under forty
   // option rows meant the futures were effectively not on it.
   const calls = d.options.filter((c) => c.right === "CE");
+  // IF YOU TAKE EVERY ROW: the money, the loss if every stop hits, and where the
+  // rows cluster -- rows in one sector tend to fall together ("correlated
+  // drawdowns", Global Trading Atlas, 29). A stop is not a cap on loss: a price
+  // can gap through it (29), so the stop total is a floor on the damage.
+  const allRowsBox = (rows, capital, loss, unit) => {
+    if (!rows.length) return "";
+    const sectors = {};
+    for (const r of rows) sectors[r.sector || "Unknown"] = (sectors[r.sector || "Unknown"] || 0) + 1;
+    const top = Object.entries(sectors).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${esc(k)} ${esc(v)}`).join(", ");
+    return `<div class="sub" style="margin:-4px 0 10px">If you take every row here (${esc(unit)}): <b>${money(capital)}</b> in total;
+      if every stop is hit, <b class="down">&minus;${money(loss)}</b> &mdash; more if prices gap through the stops.
+      Most rows are in: ${top}. Rows in one sector tend to fall together.</div>`;
+  };
+  const sumOf = (rows, f) => rows.reduce((a, r) => a + (Number(f(r)) || 0), 0);
   const puts = d.options.filter((c) => c.right === "PE");
   // The results date, in one of three honest states (api/_lib/nse-results.js).
   const resultsLine = (r) => {
@@ -674,7 +696,7 @@ function page(d) {
         <td class="num down">${money(c.stop)}${c.netLossAtStop !== null && c.netLossAtStop !== undefined ? `<div class="sub down">net &minus;${money(Math.abs(c.netLossAtStop))} a lot</div>` : ""}</td>
         <td class="num">${money(c.now)}<div class="sub ${state.tone}">${esc(state.word)}</div></td>
         <td class="num">${esc(c.iv)}% / ${esc(c.rv)}%<div class="sub">VRP ${esc(c.vrp)}</div></td>
-        <td class="num">${esc(c.touchPct)}%<div class="sub">~${esc(c.daysToTarget)}d</div></td>
+        <td class="num">${esc(c.touchPct)}%<div class="sub">~${esc(c.daysToTarget)}d</div>${c.breakEvenPct !== null && c.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(c.breakEvenPct)}% wins to break even</div>` : ""}</td>
         <td class="num ${Number(c.thetaBurnPct) > 12 ? "down" : ""}">${esc(c.thetaBurnPct)}%</td>
         <td class="num">${esc(c.score)}</td>
       </tr>`;
@@ -725,7 +747,7 @@ function page(d) {
           ? `<div class="sub">${r.referenceKind === "future" ? "NSE future" : "share"} ${money(r.referencePrice)}</div>`
           : (r.fnoListed === false ? `<div class="sub">no NSE futures contract</div>` : "")}</td>
         <td class="num">${money(r.minCapital)}<div class="sub">${esc(r.minUnits)} units</div><div class="sub down">stop &minus;${money(r.minLossAtStop)}</div><div class="sub up">target +${money(r.minGainAtTarget)}</div></td>
-        <td class="num">${esc(r.rewardToRisk)}<div class="sub">+${money(r.rewardPerUnit)} / &minus;${money(r.riskPerUnit)}</div></td>
+        <td class="num">${esc(r.rewardToRisk)}<div class="sub">+${money(r.rewardPerUnit)} / &minus;${money(r.riskPerUnit)}</div>${r.breakEvenPct !== null && r.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(r.breakEvenPct)}% wins to break even</div>` : ""}</td>
       </tr>`;
   }).join("");
 
@@ -947,7 +969,8 @@ function page(d) {
   </nav>
 
   <section class="pane pane-fut">
-    <h2>Futures &mdash; buy per unit, not per lot</h2>
+    <h2>Futures &mdash; ${esc(d.gmMinUnits || 20)} units each (GM Global's minimum)</h2>
+    ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`)}
     ${d.watchStatus ? `<div class="sub" style="margin:-4px 0 10px">Watching your ${esc(d.watchStatus.stocks)} stocks
       (${esc(d.watchStatus.source)}): ${esc(d.watchStatus.withFutures)} have an NSE futures contract,
       ${esc(d.watchStatus.shareOnly)} are share-only (removed from F&amp;O)${d.watchStatus.notListed.length
@@ -977,6 +1000,7 @@ function page(d) {
 
   <section class="pane pane-ce">
     <h2>Calls &mdash; you BUY the call, it pays if the stock RISES</h2>
+    ${allRowsBox(calls, sumOf(calls, (c) => c.costPerLot), sumOf(calls, (c) => Math.abs(c.netLossAtStop)), "one lot each")}
     ${d.optionsDirection ? `<div class="sub" style="margin:-4px 0 10px">Only on the ${esc(d.optionsDirection.names)} stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
     ${optionTable(calls, "No calls cleared every gate on this build.")}
   </section>

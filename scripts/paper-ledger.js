@@ -35,6 +35,9 @@
  *     the fill and a stop in the same window: the stop IS counted;
  *   - a gap down through the stop exits at the open, not at the stop;
  *   - a fill is always at the limit, never at a better price;
+ *   - a fill or a target counts only when the price trades THROUGH the level; a
+ *     print exactly at it is not proof of a fill (Global Trading Atlas, 32). A
+ *     stop, the harsh side, still counts on a touch;
  *   - a price low from BEFORE the level was shown can never fill it -- the day's
  *     range is only counted from the moment the trade was recorded.
  *
@@ -288,7 +291,11 @@ function observe(trade, quote, now) {
   trade.marks += 1;
 
   if (trade.status === "WAITING") {
-    if (lo <= trade.buy) {
+    // THROUGH the limit, not merely touching it: "a simulated touch at a limit
+    // price does not establish that an order had queue priority or sufficient
+    // available volume" (Global Trading Atlas, 32). A touch counted as a fill
+    // flattered the record every time the low printed exactly at the limit.
+    if (lo < trade.buy) {
       trade.status = "OPEN";
       trade.filledAt = at;
       trade.hoursToFill = hoursBetween(trade.shownAt, at);
@@ -305,8 +312,11 @@ function observe(trade, quote, now) {
   // OPEN
   trade.best = Math.max(trade.best ?? trade.buy, hi);
   trade.worst = Math.min(trade.worst ?? trade.buy, lo);
+  // The stop counts on a touch (the harsh reading); the target, like the buy,
+  // only when the price trades THROUGH it -- a sell limit resting at the target
+  // is not filled by one print at that price.
   const stopHit = lo <= trade.stop;
-  const targetHit = hi >= trade.target;
+  const targetHit = hi > trade.target;
   if (stopHit) {
     // Both in one window is a stop. A gap through the stop exits at the open.
     close(trade, "STOP", gapOpen !== null && gapOpen < trade.stop ? gapOpen : trade.stop, at);

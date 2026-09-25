@@ -243,6 +243,23 @@ console.log("paper ledger:");
   check("yesterday's unfilled limit still expires at the next session", w.status === "UNFILLED");
 }
 
+// --- a touch is not a fill (Global Trading Atlas, 32) ------------------------
+{
+  const t = futTrade();                                                   // buy 99.2, target 101.68
+  L.observe(t, q(99.2, 99.5, 99.2, "09:53"), at("09:53"));                 // low prints exactly AT the limit
+  check("a low exactly at the buy limit is not a fill", t.status === "WAITING");
+  L.observe(t, q(99.15, 99.5, 99.15, "10:13"), at("10:13"));              // one tick through
+  check("one tick through the limit is", t.status === "OPEN" && t.buy === 99.2);
+  L.observe(t, q(101.6, 101.68, 99.15, "11:13"), at("11:13"));            // high exactly AT the target
+  check("a high exactly at the target is not a target", t.status === "OPEN");
+  L.observe(t, q(101.7, 101.75, 99.15, "12:13"), at("12:13"));            // through it
+  check("a trade through the target is", t.status === "TARGET" && t.exitPrice === 101.68);
+  const s2 = futTrade();
+  L.observe(s2, q(99.1, 99.3, 99.1, "09:53"), at("09:53"));               // filled
+  L.observe(s2, q(97.8, 99.3, 97.71, "10:13"), at("10:13"));              // low exactly AT the stop
+  check("but a stop touched is a stop -- the harsh reading stays", s2.status === "STOP");
+}
+
 // --- the expected-time maths ------------------------------------------------
 {
   const up = L.firstPassage({ from: 100, to: 100.8, sigma: 0.25, tradingDays: 1 });

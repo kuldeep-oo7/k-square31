@@ -308,6 +308,21 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       d.futures.every((x) => x.minUnits === 20 && Math.abs(x.minCapital - Math.round(x.buy * 20 * 100) / 100) < 0.02
         && Math.abs(x.minLossAtStop - Math.round((x.buy - x.stop) * 20 * 100) / 100) < 0.02 && x.minGainAtTarget > 0)
         && /GM MIN \(20 UNITS\)/.test(b.html));
+    // WHAT A ROW NEEDS TO PAY, and what taking all of them risks (Global Trading
+    // Atlas 28-29: expectancy, not win rate; a stop is not a loss cap; rows in
+    // one sector fall together).
+    const be = (loss, win) => Math.round(1000 * loss / (win + loss)) / 10;
+    const beOff = [
+      ...d.futures.filter((x) => !(Math.abs(x.breakEvenPct - be(x.buy - x.stop, x.target1 - x.buy)) < 0.051)),
+      ...d.options.filter((x) => !(Math.abs(x.breakEvenPct - be(Math.abs(x.netLossAtStop), x.netProfit)) < 0.051))
+    ];
+    check("every row says the win rate it needs to break even, worked from its own levels",
+      d.futures.length > 0 && d.options.length > 0 && beOff.length === 0
+        && (b.html.match(/needs [\d.]+% wins to break even/g) || []).length === d.futures.length + d.options.length,
+      `${beOff.length} rows off`);
+    check("each tab totals every row -- the capital, and the loss if every stop is hit -- and warns a gap can cost more",
+      (b.html.match(/If you take every row here/g) || []).length === 2 && /more if prices gap through the stops/.test(b.html)
+        && /Rows in one sector tend to fall together/.test(b.html));
     const o = d.options[0];
     check(`option names read like the broker's search (${o.display})`, /^[A-Z&-]+ [A-Z]{3} \d+(\.\d+)? (CE|PE)$/.test(o.display) || /\(weekly\)/.test(o.display));
     check("every stock option carries an exit-by date before its expiry",
