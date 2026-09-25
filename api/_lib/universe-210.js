@@ -808,10 +808,20 @@ class FnoUniverseEngine {
       const watchFile = path.resolve(__dirname, "../../data/watchlist.json");
       if (fs.existsSync(watchFile)) {
         const watch = JSON.parse(fs.readFileSync(watchFile, "utf8"));
-        const stocks = (watch.stocks || []).map((x) => String(x.symbol || x).toUpperCase()).filter(Boolean);
+        // Each row under the symbol NSE trades it as TODAY (nse-symbols.js):
+        // AMARAJABAT is ARE&M, GUJGASLTD is GUJENERGY. Without NSE's lists
+        // (not yet fetched) the rows are taken as written, as before.
+        const { loadNseSymbols, resolveWatchSymbol } = require("./nse-symbols");
+        const nse = loadNseSymbols();
+        const resolved = (watch.stocks || []).map((x) => resolveWatchSymbol(x, nse)).filter((r) => r.symbol);
+        const stocks = resolved.map((r) => r.symbol);
         if (stocks.length) {
           this.symbols = [...new Set(stocks)];
           this.watchlistSource = watch.source || "data/watchlist.json";
+          this.watchRows = resolved.length;
+          this.watchRenames = resolved.filter((r) => r.from).map((r) => ({ from: r.from, to: r.symbol, how: r.how }));
+          this.watchUnlisted = nse ? resolved.filter((r) => r.unlisted).map((r) => r.symbol) : null;
+          this.watchSymbolsAsOf = nse ? (nse.listedModified || nse.fetchedAt) : null;
         }
       }
     } catch (e) {

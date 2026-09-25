@@ -285,6 +285,10 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     withFutures: universe.filter((r) => r.fnoListed).length,
     shareOnly: universe.filter((r) => !r.fnoListed && priced(r)).length,
     notListed: universe.filter((r) => !r.fnoListed && !priced(r)).map((r) => r.symbol).sort(),
+    rows: fnoUniverseEngine.watchRows ?? null,
+    renamed: fnoUniverseEngine.watchRenames || [],
+    unlistedOnNse: fnoUniverseEngine.watchUnlisted ?? null,
+    symbolsAsOf: fnoUniverseEngine.watchSymbolsAsOf || null,
     indices: (watchFile.indices || []).map((x) => x.symbol)
   } : null;
   const futuresPicked = universe
@@ -1055,8 +1059,13 @@ ${feedAlarm}
     ${d.watchStatus ? `<div class="sub" style="margin:-4px 0 10px">Watching your ${esc(d.watchStatus.stocks)} stocks
       (${esc(d.watchStatus.source)}): ${esc(d.watchStatus.withFutures)} have an NSE futures contract,
       ${esc(d.watchStatus.shareOnly)} are share-only (removed from F&amp;O)${d.watchStatus.notListed.length
-        ? `, and ${esc(d.watchStatus.notListed.length)} have no price yet under that symbol &mdash; merged, renamed or
-           misspelt, or history not fetched yet: ${esc(d.watchStatus.notListed.join(", "))}` : ""}.
+        ? `, and ${esc(d.watchStatus.notListed.length)} ${d.watchStatus.notListed.length === 1 ? "has" : "have"} no price${d.watchStatus.unlistedOnNse
+          ? (d.watchStatus.unlistedOnNse.length === d.watchStatus.notListed.length
+            ? " &mdash; no longer listed on NSE (merged or delisted)"
+            : ` &mdash; ${esc(d.watchStatus.unlistedOnNse.length)} no longer listed on NSE (merged or delisted), the rest not fetched yet`)
+          : " yet under that symbol &mdash; merged, renamed or misspelt, or history not fetched yet"}: ${esc(d.watchStatus.notListed.join(", "))}` : ""}.${(d.watchStatus.renamed || []).length
+        ? ` Followed to the symbol NSE trades them as today: ${d.watchStatus.renamed.map((x) => `${esc(x.from)} &rarr; ${esc(x.to)}`).join(", ")}
+           (NSE's own symbol-change file, or your workbook's Yahoo ticker where NSE lists it; duplicates counted once).` : ""}
       ${(() => {
         const bases = new Set((d.futures || []).filter((r) => r.fnoListed).map((r) => r.priceBasis));
         const main = d.futuresAnchor === "CONTRACT" ? "NSE futures contract" : "share price";

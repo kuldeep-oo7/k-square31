@@ -76,6 +76,16 @@ async function step(label, fn) {
     return record.symbols.length + " banned for " + (record.tradeDate || "?") + ": " + (record.symbols.join(", ") || "none");
   });
 
+  // WHICH SYMBOLS NSE LISTS, AND WHAT RENAMED ONES BECAME (api/_lib/nse-symbols.js).
+  // Before anything loads the watch list: the universe reads this when it is
+  // first required, and a renamed company must be watched under its new name.
+  await step("NSE listed symbols and symbol changes", async () => {
+    const { refreshNseSymbols } = require("../api/_lib/nse-symbols");
+    const r = await refreshNseSymbols();
+    if (!r.ok) throw new Error(`not read: ${r.reason}`);
+    return `${r.listed.length} listed (file of ${r.listedModified || "?"}), ${Object.keys(r.changes).length} symbol changes on record`;
+  });
+
   // RESULTS DATES, from NSE's own board-meeting filings (api/_lib/nse-results.js).
   // A failure is recorded as a failure, so the desk says "unknown" rather than
   // treating an unread calendar as a quiet one.
