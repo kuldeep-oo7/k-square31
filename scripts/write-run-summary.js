@@ -111,10 +111,10 @@ function main() {
     const s = d.track.summary;
     const line = (label, x) => "| " + label + " | " + x.shown + " | " + x.open + " | " + x.target + " | " + x.stop
       + " | " + (x.expired + x.unfilled) + " | " + (x.hitRatePct === null ? "—" : x.hitRatePct + "%")
-      + " | " + (x.expectedHitRatePct === null ? "—" : x.expectedHitRatePct + "%") + " |";
+      + " | " + (x.randomHitRatePct === null || x.randomHitRatePct === undefined ? "—" : x.randomHitRatePct + "%") + " |";
     lines.push("## Track record — every price shown, bought on paper");
     lines.push("");
-    lines.push("| | Shown | Open | Target ✓ | Stop ✗ | Expired / unfilled | Hit rate | Expected |");
+    lines.push("| | Shown | Open | Target ✓ | Stop ✗ | Expired / unfilled | Hit rate | If random (break-even) |");
     lines.push("|---|--:|--:|--:|--:|--:|--:|--:|");
     lines.push(line("Futures", s.FUT));
     lines.push(line("Calls", s.CE));

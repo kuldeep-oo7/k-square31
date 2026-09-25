@@ -402,6 +402,11 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
           netProfit: atTarget?.netProfit ?? null, netLossAtStop: atStop?.netProfit ?? null,
           breakEvenPct: atTarget?.netProfit > 0 && atStop?.netProfit < 0
             ? round(100 * Math.abs(atStop.netProfit) / (atTarget.netProfit + Math.abs(atStop.netProfit)), 1) : null,
+          // WITH NO TREND, roughly: a fairly priced premium is close to a fair
+          // game, so the target (+50%) and the stop (-50%) come first about
+          // equally often and what is left is the charges. Rough: it ignores
+          // discounting and moves in implied volatility.
+          noTrendNet: atTarget && atStop ? -round((atTarget.totalCost + atStop.totalCost) / 2) : null,
           sector: sectorOf.get(c.symbol) || null,
           costPct: atTarget?.costAsPctOfGross ?? null
         };
@@ -718,7 +723,7 @@ function page(d) {
   // rows cluster -- rows in one sector tend to fall together ("correlated
   // drawdowns", Global Trading Atlas, 29). A stop is not a cap on loss: a price
   // can gap through it (29), so the stop total is a floor on the damage.
-  const allRowsBox = (rows, capital, loss, unit) => {
+  const allRowsBox = (rows, capital, loss, unit, extra = "") => {
     if (!rows.length) return "";
     const sectors = {};
     for (const r of rows) sectors[r.sector || "Unknown"] = (sectors[r.sector || "Unknown"] || 0) + 1;
@@ -726,7 +731,7 @@ function page(d) {
     const stocks = new Set(rows.map((r) => r.symbol)).size;
     return `<div class="sub" style="margin:-4px 0 10px">If you take every row here (${esc(unit)}): <b>${money(capital)}</b> in total;
       if every stop is hit, <b class="down">&minus;${money(loss)}</b> &mdash; more if prices gap through the stops.
-      ${stocks < rows.length ? `These ${esc(rows.length)} rows are on <b>${esc(stocks)} stocks</b>: several strikes of one stock are one bet, not several. ` : ""}Most rows are in: ${top}. Rows in one sector tend to fall together.</div>`;
+      ${stocks < rows.length ? `These ${esc(rows.length)} rows are on <b>${esc(stocks)} stocks</b>: several strikes of one stock are one bet, not several. ` : ""}Most rows are in: ${top}. Rows in one sector tend to fall together.${extra ? ` ${extra}` : ""}</div>`;
   };
   const sumOf = (rows, f) => rows.reduce((a, r) => a + (Number(f(r)) || 0), 0);
   const puts = d.options.filter((c) => c.right === "PE");
@@ -756,7 +761,7 @@ function page(d) {
         <td class="num down">${money(c.stop)}${c.netLossAtStop !== null && c.netLossAtStop !== undefined ? `<div class="sub down">net &minus;${money(Math.abs(c.netLossAtStop))} a lot</div>` : ""}</td>
         <td class="num">${money(c.now)}<div class="sub ${state.tone}">${esc(state.word)}</div></td>
         <td class="num">${esc(c.iv)}% / ${esc(c.rv)}%<div class="sub">VRP ${esc(c.vrp)}</div></td>
-        <td class="num">${esc(c.touchPct)}%<div class="sub">~${esc(c.daysToTarget)}d</div>${c.breakEvenPct !== null && c.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(c.breakEvenPct)}% wins to break even</div>` : ""}</td>
+        <td class="num">${esc(c.touchPct)}%<div class="sub">touch, ~${esc(c.daysToTarget)}d &mdash; ignores the stop</div>${c.breakEvenPct !== null && c.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(c.breakEvenPct)}% wins to break even</div>` : ""}${c.noTrendNet !== null && c.noTrendNet !== undefined ? `<div class="sub down">no trend: about &minus;${money(Math.abs(c.noTrendNet))} a lot</div>` : ""}</td>
         <td class="num ${Number(c.thetaBurnPct) > 12 ? "down" : ""}">${esc(c.thetaBurnPct)}%</td>
         <td class="num">${esc(c.score)}</td>
       </tr>`;
@@ -787,7 +792,7 @@ function page(d) {
     const fillMinutes = exp?.fill ? Math.round(exp.fill.medianTradingDays * 375) : null;
     const expLine = [
       exp?.fill ? (exp.fill.atLimit ? "at the limit now" : `fill ${esc(exp.fill.probabilityPct)}% by the close (~${esc(fillMinutes)} min)`) : null,
-      exp?.target ? `target ${esc(exp.target.probabilityPct)}% in ~${esc(round(exp.target.medianTradingDays, 1))} sessions` : null
+      exp?.target ? `touches the target at some point: ${esc(exp.target.probabilityPct)}% (~${esc(round(exp.target.medianTradingDays, 1))} sessions; ignores the stop)` : null
     ].filter(Boolean).join(" &middot; ");
     return `
       <tr>
@@ -835,7 +840,7 @@ function page(d) {
         <td class="num up">${esc(s.target)}</td><td class="num down">${esc(s.stop)}</td><td class="num">${esc(s.expired)}</td>
         <td class="num">${esc(s.unfilled)}</td>
         <td class="num"><b>${s.hitRatePct === null ? "&mdash;" : esc(s.hitRatePct) + "%"}</b><div class="sub">of ${esc(s.resolved)} finished${Number(s.resolvedBets) < Number(s.resolved) ? ` (${esc(s.resolvedBets)} separate bets)` : ""}${Number(s.resolvedBets ?? s.resolved) < 30 ? " &mdash; too few to judge" : ""}</div></td>
-        <td class="num">${s.expectedHitRatePct === null ? "&mdash;" : esc(s.expectedHitRatePct) + "%"}</td>
+        <td class="num">${s.randomHitRatePct === null || s.randomHitRatePct === undefined ? "&mdash;" : esc(s.randomHitRatePct) + "%"}${s.expectedHitRatePct !== null && s.expectedHitRatePct !== undefined ? `<div class="sub">touch odds said ${esc(s.expectedHitRatePct)}%</div>` : ""}</td>
         <td class="num">${hrs(s.medianHoursToFill)}</td><td class="num">${hrs(s.medianHoursToTarget)}</td>
         <td class="num ${Number(s.avgReturnPct) >= 0 ? "up" : "down"}">${s.avgReturnPct === null ? "&mdash;" : esc(s.avgReturnPct) + "%"}</td>
         <td class="num ${Number(label === "FUTURES" ? t?.futuresPer20?.rupees : s.totalNetPerLot) >= 0 ? "up" : "down"}">${label === "FUTURES"
@@ -868,15 +873,16 @@ function page(d) {
       <thead><tr>
         <th></th><th class="num">SHOWN</th><th class="num">WAITING</th><th class="num">OPEN</th>
         <th class="num">TARGET ✓</th><th class="num">STOP ✗</th><th class="num">EXPIRED</th><th class="num">UNFILLED</th>
-        <th class="num">HIT RATE</th><th class="num">EXPECTED</th>
+        <th class="num">HIT RATE</th><th class="num">IF RANDOM</th>
         <th class="num">TIME TO FILL</th><th class="num">FILL &rarr; TARGET</th>
         <th class="num">AVG RETURN</th><th class="num">NET / LOT &middot; FUTURES AT 20 UNITS</th>
       </tr></thead><tbody>
         ${summaryRow("FUTURES", t.summary.FUT)}${summaryRow("CALLS", t.summary.CE)}${summaryRow("PUTS", t.summary.PE)}${summaryRow("ALL", t.summary.ALL)}
       </tbody>
     </table></div>
-    <div class="sub" style="margin:6px 0 18px">Hit rate counts only trades that filled and then finished. EXPECTED is what the desk
-      predicted for those same trades when it showed them &mdash; when the two disagree, the prediction is wrong, and this is where it shows.
+    <div class="sub" style="margin:6px 0 18px">Hit rate counts only trades that filled and then finished. IF RANDOM is how often
+      the target would come before the stop if prices moved at random &mdash; each trade's break-even, before charges. Only a hit rate
+      above it, over enough separate bets, is evidence of an edge. The touch odds the desk showed ignore the stop, so they always run higher.
       Futures returns are GROSS per unit; options are NET of every charge per lot.</div>
 
     ${(d.untrackedFutures || []).length ? `<div class="note" style="border-left-color:var(--red)">
@@ -887,14 +893,14 @@ function page(d) {
     <h2>Running now (${esc(t.open.length)})</h2>
     <div class="wrap"><table>
       <thead><tr><th>CONTRACT</th><th class="num">SHOWN</th><th class="num">BUY</th><th class="num">TARGET</th><th class="num">STOP</th>
-        <th class="num">STATUS</th><th class="num">LAST</th><th class="num">EXPECTED TARGET</th></tr></thead>
+        <th class="num">STATUS</th><th class="num">LAST</th><th class="num">TOUCH ODDS (IGNORE STOP)</th></tr></thead>
       <tbody>${openRows || '<tr><td colspan="8">Nothing running. The first trades are recorded when the day&rsquo;s levels freeze, on the first build that sees a live exchange book.</td></tr>'}</tbody>
     </table></div>
 
     <h2>Finished (latest ${esc(t.recentClosed.length)} of ${esc(t.totalClosed)})</h2>
     <div class="wrap"><table>
       <thead><tr><th>CONTRACT</th><th class="num">OUTCOME</th><th class="num">TIME TO FILL</th><th class="num">FILL &rarr; EXIT</th>
-        <th class="num">EXPECTED</th><th class="num">RESULT</th></tr></thead>
+        <th class="num">TOUCH ODDS</th><th class="num">RESULT</th></tr></thead>
       <tbody>${closedRows || '<tr><td colspan="6">Nothing has finished yet.</td></tr>'}</tbody>
     </table></div>
 
@@ -1055,7 +1061,10 @@ ${feedAlarm}
 
   <section class="pane pane-fut">
     <h2>Futures &mdash; ${esc(d.gmMinUnits || 20)} units each (GM Global's minimum)</h2>
-    ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`)}
+    ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`,
+      `<b>With no trend, a row's target comes before its stop at most as often as its break-even (about 37.5%)</b> &mdash; a price with no trend is a fair game &mdash;
+       so before GM's charges these rows make money only if the BUY signal works. That signal failed its pre-registered final test
+       (1,205 trades, t = 0.75; panel study, 24 Sep 2026).`)}
     ${d.watchStatus ? `<div class="sub" style="margin:-4px 0 10px">Watching your ${esc(d.watchStatus.stocks)} stocks
       (${esc(d.watchStatus.source)}): ${esc(d.watchStatus.withFutures)} have an NSE futures contract,
       ${esc(d.watchStatus.shareOnly)} are share-only (removed from F&amp;O)${d.watchStatus.notListed.length
@@ -1090,7 +1099,11 @@ ${feedAlarm}
 
   <section class="pane pane-ce">
     <h2>Calls &mdash; you BUY the call, it pays if the stock RISES</h2>
-    ${allRowsBox(calls, sumOf(calls, (c) => c.costPerLot), sumOf(calls, (c) => Math.abs(c.netLossAtStop)), "one lot each")}
+    ${allRowsBox(calls, sumOf(calls, (c) => c.costPerLot), sumOf(calls, (c) => Math.abs(c.netLossAtStop)), "one lot each",
+      calls.length ? `<b>With no trend and fairly priced options, a call is expected to lose about its charges</b>:
+       about &minus;${money(Math.abs(sumOf(calls, (c) => c.noTrendNet)))} across all ${esc(calls.length)} rows, one lot each.
+       ${esc(calls.filter((c) => Number(c.vrp) > 1).length)} of ${esc(calls.length)} are priced above the stock&rsquo;s own recent movement (implied above realised), which makes it worse.
+       They make money only if the BUY signal works, and it failed its pre-registered final test (1,205 trades, t = 0.75; panel study, 24 Sep 2026).` : "")}
     ${d.optionsDirection ? `<div class="sub" style="margin:-4px 0 10px">Only on the ${esc(d.optionsDirection.names)} stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
     ${optionTable(calls, "No calls cleared every gate on this build.")}
   </section>

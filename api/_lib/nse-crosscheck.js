@@ -208,23 +208,25 @@ async function crossCheck(requests, { ours, session = null, fetchImpl = fetch, p
 }
 
 /**
- * A rotating sample of the page's rows: `perSide` from the futures tab (the
- * instrument each level froze on) and `perSide` from the options tab, moved
- * on every 20-minute slot so a day of builds walks the whole page.
+ * A rotating sample of the page's rows: `futuresPer` from the futures tab (the
+ * instrument each level froze on) and `optionsPer` from the options tab, moved
+ * on every 20-minute slot so a day of builds walks the whole page. Options get
+ * more: with no row limit there are ~160 of them, and one NSE chain read
+ * covers every strike of a stock, so twelve cost about as much as four.
  */
-function sampleRows({ futures = [], options = [], perSide = 4, nowMs = Date.now() } = {}) {
+function sampleRows({ futures = [], options = [], futuresPer = 4, optionsPer = 12, nowMs = Date.now() } = {}) {
   const slot = Math.floor(nowMs / (20 * 60_000));
-  const pick = (list) => {
+  const pick = (list, per) => {
     if (!list.length) return [];
-    const start = (slot * perSide) % list.length;
-    return Array.from({ length: Math.min(perSide, list.length) }, (_, i) => list[(start + i) % list.length]);
+    const start = (slot * per) % list.length;
+    return Array.from({ length: Math.min(per, list.length) }, (_, i) => list[(start + i) % list.length]);
   };
   const fut = futures.map((f) => (f.priceBasis === "CONTRACT" && f.expiry
     ? { kind: "FUT", symbol: f.symbol, expiry: f.expiry } : { kind: "EQ", symbol: f.symbol }))
     .sort((a, b) => label(a).localeCompare(label(b)));
   const opt = options.map((o) => ({ kind: "OPT", symbol: o.symbol, expiry: o.expiry, strike: o.strike, optionType: o.right || o.optionType }))
     .sort((a, b) => label(a).localeCompare(label(b)));
-  return [...pick(fut), ...pick(opt)];
+  return [...pick(fut, futuresPer), ...pick(opt, optionsPer)];
 }
 
 module.exports = { TOLERANCE, feedDay, label, urlFor, nseFigures, compareOne, summarise, crossCheck, sampleRows };

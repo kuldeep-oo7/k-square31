@@ -337,12 +337,19 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       d.futures.length > 0 && d.options.length > 0 && beOff.length === 0
         && (b.html.match(/needs [\d.]+% wins to break even/g) || []).length === d.futures.length + d.options.length,
       `${beOff.length} rows off`);
+    // EXPECTANCY, NOT TOUCH ODDS: the odds that ignore the stop say so, and
+    // each tab says what the rows are worth if prices have no trend.
+    check("touch odds that ignore the stop say so, on every futures and option row",
+      (b.html.match(/ignores the stop/g) || []).length >= d.options.length + d.futures.filter((x) => x.expected?.target).length);
+    check("each tab says what its rows are worth with no trend: futures at break-even, calls about minus their charges",
+      /target comes before its stop at most as often as its break-even/.test(b.html) && /a call is expected to lose about its charges/.test(b.html)
+        && d.options.every((x) => x.noTrendNet < 0), `${d.options.filter((x) => !(x.noTrendNet < 0)).length} option rows without it`);
     check("each tab totals every row -- the capital, and the loss if every stop is hit -- and warns a gap can cost more",
       (b.html.match(/If you take every row here/g) || []).length === 2 && /more if prices gap through the stops/.test(b.html)
         && /Rows in one sector tend to fall together/.test(b.html));
     const fcd = d.feedCheck || {};
-    check("the build checks a sample of its own rows against NSE -- 4 futures, 4 options -- and each is the same contract",
-      fcd.checked === true && fcd.identityCompared === Math.min(4, d.futures.length) + Math.min(4, d.options.length)
+    check("the build checks a sample of its own rows against NSE -- 4 futures, 12 options -- and each is the same contract",
+      fcd.checked === true && fcd.identityCompared === Math.min(4, d.futures.length) + Math.min(12, d.options.length)
         && fcd.wrongContract.length === 0 && /Checked against NSE's own site/.test(b.html) && !/DO NOT TRADE THESE ROWS/.test(b.html),
       JSON.stringify({ ...fcd, rows: undefined }));
     const o = d.options[0];
@@ -549,6 +556,8 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
   console.log(`\nTRACK TAB after the week: shown ${s.shown}, open ${s.open}, target ${s.target}, stop ${s.stop}, expired/exit ${s.expired}, unfilled ${s.unfilled}`);
   check("every trade the week produced is accounted for on the TRACK tab", s.shown === s.waiting + s.open + s.target + s.stop + s.expired + s.unfilled);
   check("under 30 finished trades a hit rate is labelled too few to judge", s.resolved >= 30 || /too few to judge/.test(last.html));
+  check("TRACK compares the hit rate with the random-price break-even, not with touch odds",
+    /IF RANDOM/.test(last.html) && (s.resolved === 0 || (s.randomHitRatePct > 0 && s.randomHitRatePct < 100)), `${s.randomHitRatePct}`);
   check("futures results are shown in the user's size: 20 units, in rupees",
     !last.data.track.futuresPer20 || (last.data.track.futuresPer20.units === 20 && /at 20 units, gross/.test(last.html)));
   check("the TRACK tab renders the finished trades", /Finished \(latest/.test(last.html) && (s.target + s.stop + s.unfilled + s.expired === 0 || /TARGET|STOP|UNFILLED/.test(last.html)));

@@ -480,6 +480,17 @@ function summarize(open, closed) {
       // judges a hit rate on this count.
       resolvedBets: new Set(filledClosed.map((t) => `${t.sessionDate}|${t.symbol}|${t.kind}`)).size,
       expectedHitRatePct: expectedTarget.length ? round(expectedTarget.reduce((a, b) => a + b, 0) / expectedTarget.length, 1) : null,
+      // IF PRICES MOVED AT RANDOM: how often the target would come before the
+      // stop. A price with no trend is a fair game, and a fair game stopped at
+      // the target or the stop has an expected result of zero, so the target
+      // comes first at most (buy - stop) / (target - stop) of the time -- the
+      // break-even. The ledger's own rules (stop on a touch, target only
+      // through, a gap exits at the open) can only make it lower. This, not the
+      // touch odds, is what a hit rate has to beat to show an edge.
+      randomHitRatePct: (() => {
+        const v = filledClosed.filter((t) => t.target > t.stop).map((t) => (100 * (t.buy - t.stop)) / (t.target - t.stop));
+        return v.length ? round(v.reduce((a, b) => a + b, 0) / v.length, 1) : null;
+      })(),
       medianHoursToFill: round(median([...o, ...c].map((t) => t.hoursToFill).filter((h) => h !== null)), 1),
       medianHoursToTarget: round(median(wins.map((t) => t.hoursFillToExit)), 1),
       avgReturnPct: pnl.length ? round(pnl.reduce((a, b) => a + b, 0) / pnl.length, 2) : null,

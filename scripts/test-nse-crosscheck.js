@@ -125,10 +125,10 @@ const good = [angel(393.55, 392, "25-Sep-2026 15:58:17"), angel(987.8, 986.3), a
   // ---- the rotating sample ----
   const futures = [{ symbol: "BEL", priceBasis: "CONTRACT", expiry: "2026-10-27" }, { symbol: "IEX", priceBasis: "SHARE", expiry: "2026-10-27" },
     { symbol: "SBIN", priceBasis: "CONTRACT", expiry: "2026-10-27" }, { symbol: "TCS", priceBasis: "SHARE", expiry: null }, { symbol: "WIPRO", priceBasis: "CONTRACT", expiry: "2026-10-27" }];
-  const options = Array.from({ length: 6 }, (_, i) => ({ symbol: "HAVELLS", expiry: "2026-10-27", strike: 1000 + 20 * i, right: "CE" }));
+  const options = Array.from({ length: 30 }, (_, i) => ({ symbol: "HAVELLS", expiry: "2026-10-27", strike: 1000 + 20 * i, right: "CE" }));
   const s0 = fc.sampleRows({ futures, options, nowMs: 0 });
-  check("each build samples 4 from the futures tab and 4 from the options tab", s0.length === 8
-    && s0.filter((r) => r.kind === "OPT").length === 4);
+  check("each build samples 4 from the futures tab and 12 from the options tab", s0.length === 16
+    && s0.filter((r) => r.kind === "OPT").length === 12);
   check("a futures row is checked on the instrument its level froze on: the contract, or the share",
     s0.some((r) => r.kind === "FUT" && r.symbol === "BEL") && s0.some((r) => r.kind === "EQ" && r.symbol === "IEX"));
   const seen = new Set();
