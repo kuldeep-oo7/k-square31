@@ -37,7 +37,10 @@ const INDICES = new Set(["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "NIFTYN
 // already 2.5%.
 const TOLERANCE = { EQ: { pct: 1, abs: 0 }, FUT: { pct: 1, abs: 0 }, OPT: { pct: 10, abs: 0.15 } };
 
-const num = (v) => (Number.isFinite(Number(v)) ? Number(v) : null);
+// Missing is missing: Number(null) is 0, and an option leg without its
+// "change" would otherwise put its previous close at its last price -- a false
+// "different contract" and a red build.
+const num = (v) => (v === null || v === undefined || v === "" || !Number.isFinite(Number(v)) ? null : Number(v));
 const round2 = (v) => Math.round(v * 100) / 100;
 const nseDate = (iso) => { const [y, m, d] = String(iso).slice(0, 10).split("-"); return `${d}-${MON[Number(m) - 1]}-${y}`; };
 

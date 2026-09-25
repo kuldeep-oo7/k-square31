@@ -46,6 +46,10 @@ check("the exchange clock is read as a date; the never-traded 1970 stamp stays 1
 
 const opt = fc.nseFigures(REQ.havells, NSE["HAVELLS|2026-10-27"]);
 check("an option's previous close is NSE's last price less its change (48.00 - 3.65 = 44.35)", opt && opt.prevClose === 44.35, JSON.stringify(opt));
+const noChange = fc.nseFigures(REQ.havells, { records: { data: [{ strikePrice: 1060, CE: { lastPrice: 48 } }] } });
+check("an option leg without its change has no known previous close -- never its last price, which would read as a wrong contract",
+  noChange && noChange.prevClose === null && fc.compareOne(REQ.havells, angel(48, 44.35), noChange, SESSION).identity === "NO_PREVIOUS_CLOSE",
+  JSON.stringify(noChange));
 const fut = fc.nseFigures(REQ.sbinOct, NSE.SBIN);
 check("a future is found by its own expiry, not the first one in NSE's list", fut && fut.prevClose === 986.3 && fut.last === 987.8, JSON.stringify(fut));
 

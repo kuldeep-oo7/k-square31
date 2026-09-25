@@ -34,6 +34,9 @@ function getCachedFundamentals(rawSymbol, maxAgeMs = 24 * 60 * 60 * 1000) {
     const data = JSON.parse(fs.readFileSync(file, "utf8"));
     if (!data || !data.fetchedAt) return null;
     if (Date.now() - new Date(data.fetchedAt).getTime() > maxAgeMs) return null;
+    // Scored from the stored metrics on every read: a record fetched under an
+    // older scoring rule is scored by the rule as it is now.
+    if (data.available !== false && data.metrics) data.balanceSheetScore = balanceSheetScore(data.metrics);
     return data;
   } catch (e) {
     return null;
@@ -119,14 +122,24 @@ function earningsWindow(calendarEvents, nowMs) {
 
 // One number in [-1, 1]: positive means the balance sheet supports being long
 // through a weekly gap, negative means it is the better short.
+// A metric Yahoo did not report. Number(null) is 0, so the old test
+// Number.isFinite(Number(x)) passed every missing metric as a real zero: a
+// missing current ratio scored -0.83, a missing return on equity 0, a missing
+// debt-to-equity +1 (no debt at all). Yahoo reports neither return on equity nor
+// current ratio for most NSE stocks (ACC.NS, RELIANCE.NS: empty objects, read
+// 2026-09-25; AAPL has both) -- 257 of 277 names -- so the "renormalise over
+// what is available" below never happened, and 95 names were kept under the
+// +4 threshold by values nobody measured.
+const known = (v) => v !== null && v !== undefined && v !== "" && Number.isFinite(Number(v));
+
 function balanceSheetScore(metrics) {
   if (!metrics) return 0;
   const parts = [
-    [0.3, Number.isFinite(Number(metrics.returnOnEquity)) ? clamp(Number(metrics.returnOnEquity) * 5) : null],
-    [0.2, Number.isFinite(Number(metrics.profitMargin)) ? clamp(Number(metrics.profitMargin) * 8) : null],
-    [0.2, Number.isFinite(Number(metrics.debtToEquity)) ? clamp((80 - Number(metrics.debtToEquity)) / 80) : null],
-    [0.15, Number.isFinite(Number(metrics.currentRatio)) ? clamp((Number(metrics.currentRatio) - 1) / 1.2) : null],
-    [0.15, Number.isFinite(Number(metrics.revenueGrowth)) ? clamp(Number(metrics.revenueGrowth) * 6) : null]
+    [0.3, known(metrics.returnOnEquity) ? clamp(Number(metrics.returnOnEquity) * 5) : null],
+    [0.2, known(metrics.profitMargin) ? clamp(Number(metrics.profitMargin) * 8) : null],
+    [0.2, known(metrics.debtToEquity) ? clamp((80 - Number(metrics.debtToEquity)) / 80) : null],
+    [0.15, known(metrics.currentRatio) ? clamp((Number(metrics.currentRatio) - 1) / 1.2) : null],
+    [0.15, known(metrics.revenueGrowth) ? clamp(Number(metrics.revenueGrowth) * 6) : null]
   ];
   // H-1: Filter out missing metrics so available weights renormalise accurately to 1.0
   const available = parts.filter(([, score]) => score !== null && Number.isFinite(score));
