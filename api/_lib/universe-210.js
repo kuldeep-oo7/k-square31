@@ -1341,7 +1341,9 @@ class FnoUniverseEngine {
       const isBanned = analyzed.isBanned;
       const hasObservedPrice = analyzed.hasObservedPrice;
       const isSynthetic = analyzed.historicalBarsAreSynthetic;
-      const isStale = (analyzed.barsAgeDays || 0) > 5;
+      // Unknown age is stale: (null || 0) > 5 used to call a price with no
+      // dated bar behind it fresh.
+      const isStale = analyzed.barsAgeDays === null || analyzed.barsAgeDays === undefined || analyzed.barsAgeDays > 5;
       const advRupees = analyzed.advRupees || 0;
       const isLiquid = advRupees >= 50_000_000;
       const spot = analyzed.spotPrice;
