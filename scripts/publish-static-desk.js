@@ -143,6 +143,21 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     if (Number.isFinite(Number(row.compositeScore))) scores[row.symbol] = Number(row.compositeScore);
   }
 
+  // ONE SIDE PER STOCK, AND ONLY THE SIDE THE DESK HAS A VIEW ON. The user,
+  // 2026-09-25: "buying a bull or buying a bear does not matter -- I want to
+  // earn money". The options list used to rank calls and puts on the same names
+  // by cheapness alone (9 of 18 stocks carried both that morning; 7 were the
+  // same strike), so the two sides cancelled -- on 24 Sep calls lost 13.8% while
+  // puts made 14.4%. The desk's view is long-only: BUY or ACCUMULATE. It has no
+  // bearish verdict, and its own measured short side lost money in all 24
+  // geometries in all three splits (PANEL_STUDY_ROUND3.txt: "a measured,
+  // reliably NEGATIVE expectancy" -- betting on falls in a market with positive
+  // drift). So: calls on the names it rates a buy, no puts, nothing on the rest.
+  const bullish = {};
+  for (const row of universe) {
+    if (row.action === "BUY" || row.action === "ACCUMULATE") bullish[row.symbol] = true;
+  }
+
   /**
    * THE FORWARD HAS TO BE AS LIVE AS THE PREMIUM.
    *
@@ -200,7 +215,7 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   const bannedSet = fnoUniverseEngine.banned instanceof Set ? fnoUniverseEngine.banned : new Set();
 
   const screen = screenContracts({
-    reference, underlyingScores: scores, limit,
+    reference, underlyingScores: scores, limit, bullish, requireView: true,
     liveQuoteFor: (s, e, k, t) => { try { return live.liveQuote(s, e, k, t); } catch (err) { return null; } },
     marketOpen: phase.open === true,
     banned: bannedSet,
@@ -340,23 +355,25 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   /**
    * WHICH PRICE A FUTURES LEVEL IS ANCHORED TO.
    *
-   * SHARE (the default): the live NSE share price. The user trades futures on a
-   * platform that sells them PER UNIT -- odd quantities like 33 or 420, which no
-   * NSE futures contract allows -- and that lists names with no NSE futures at
-   * all; both say it prices off the share. It is also the only price that exists
-   * for the 78 watched names NSE removed from F&O, and the basis every level the
-   * desk issued before 2026-09-23 was built on.
+   * CONTRACT (the default since 2026-09-25): the NSE futures contract. The
+   * platform the user trades futures on (GM Global) quotes EXACTLY the NSE
+   * futures price -- measured against NSE's own 24-Sep files, 6 names of 6 to
+   * the paisa, change column included: LT 3,859.80 = NSE September future
+   * 3,859.80 (share 3,858.40); BOSCHLTD 47,960 = future 47,960 (share 47,750);
+   * LTF 279.90 = future 279.90 (share 282.00). The share is off the platform by
+   * the basis, which ran from -1.1% to +1.0% for October that day -- the size
+   * of the whole entry discount.
    *
-   * CONTRACT: the NSE futures contract, which runs about 1% above the share for
-   * next month (LT: share 3,929.90, October future 3,945.80 on 2026-09-24).
-   * Set K2_FUTURES_ANCHOR=CONTRACT if the platform quotes the contract.
+   * SHARE (K2_FUTURES_ANCHOR=SHARE): the live NSE share price, the basis before
+   * that measurement, and still the only price for the watched names NSE
+   * removed from F&O, which have no contract and stay on the share either way.
    *
    * Either way the other price is printed on the row, so the two can be
    * compared against the broker's own screen. A level is frozen only on a quote
    * that is live and fresh (exchange stamp under ten minutes old): during a
    * circuit-breaker halt the last print freezes while the clock runs.
    */
-  const ANCHOR = String(process.env.K2_FUTURES_ANCHOR || "SHARE").toUpperCase() === "CONTRACT" ? "CONTRACT" : "SHARE";
+  const ANCHOR = String(process.env.K2_FUTURES_ANCHOR || "CONTRACT").toUpperCase() === "SHARE" ? "SHARE" : "CONTRACT";
   const { ENTRY_DISCOUNT, TARGET_1, TARGET_2, STOP } = require("../api/_lib/session-levels");
   const isFresh = (q) => {
     if (!q) return false;
@@ -367,15 +384,24 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   const futures = futuresPicked.map(({ row: r, expiry }) => {
     const sq = quoteFor({ kind: "EQ", symbol: r.symbol });
     const fq = r.fnoListed && expiry ? quoteFor({ kind: "FUT", symbol: r.symbol, expiry }) : null;
+    // What a quote says on the row: its price, where it came from, when, and
+    // the OTHER instrument's price beside it for comparison.
+    const view = (q) => {
+      const live = isFresh(q);
+      return {
+        live,
+        price: round(q ? q.ltp : r.spotPrice),
+        source: q ? (q === fq ? "FUTURES" : "SHARE") + "_" + (live ? "LIVE" : "LAST_TRADED") : "SHARE_CLOSE_FROM_HISTORY",
+        atText: q?.exchangeFeedTime ? String(q.exchangeFeedTime).slice(12, 17) : null,
+        referencePrice: q === fq ? (sq ? round(sq.ltp) : null) : (fq ? round(fq.ltp) : null),
+        referenceKind: q === fq ? "share" : (fq ? "future" : null)
+      };
+    };
     const anchorQuote = ANCHOR === "CONTRACT" && fq ? fq : sq;
-    const liveNow = isFresh(anchorQuote);
-    const nowPrice = round(anchorQuote ? anchorQuote.ltp : r.spotPrice);
-    const nowSource = anchorQuote
-      ? (anchorQuote === fq ? "FUTURES" : "SHARE") + "_" + (liveNow ? "LIVE" : "LAST_TRADED")
-      : "SHARE_CLOSE_FROM_HISTORY";
-    const nowAtText = anchorQuote?.exchangeFeedTime ? String(anchorQuote.exchangeFeedTime).slice(12, 17) : null;
-    const referencePrice = anchorQuote === fq ? (sq ? round(sq.ltp) : null) : (fq ? round(fq.ltp) : null);
-    const referenceKind = anchorQuote === fq ? "share" : (fq ? "future" : null);
+    const anchorView = view(anchorQuote);
+    const liveNow = anchorView.live;
+    const nowPrice = anchorView.price;
+    const nowSource = anchorView.source;
     const sigma = Number(r.odds?.realizedVolPct) > 0 ? Number(r.odds.realizedVolPct) / 100 : null;
     const levels = session.level("futures", r.symbol, () => {
       if (!(nowPrice > 0)) return null;
@@ -395,6 +421,13 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
       };
     }, { mayFreeze: forceFreeze === true ? Boolean(anchorQuote) : liveNow });
     if (!levels) return null;
+    // A ROW IS SHOWN ON THE INSTRUMENT ITS LEVELS WERE FROZEN ON. A level frozen
+    // on the share is carried for the rest of its session even after the
+    // anchor moves to the contract (and the reverse); pricing its NOW off the
+    // other instrument would set a futures price against a share-price limit
+    // -- the "two prices for one row" the user objected to on 2026-09-22.
+    const shownQuote = levels.priceBasis === "SHARE" ? sq : levels.priceBasis === "CONTRACT" ? fq : anchorQuote;
+    const shown = shownQuote === anchorQuote ? anchorView : view(shownQuote);
     const risk = round(levels.buy - levels.stop);
     const reward = round(levels.target1 - levels.buy);
     const fnames = contractNames(r.symbol, levels.expiry || expiry, null, null, reference);
@@ -402,11 +435,11 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
       display: fnames.display, expiryText: fnames.expiryText, exitBy: fnames.exitBy, exitByText: fnames.exitByText,
       symbol: r.symbol, tradingSymbol: levels.tradingSymbol || r.tradingSymbol,
       angelSymbol: levels.angelSymbol || null, expiry: levels.expiry || expiry,
-      spot: nowPrice, nowSource, nowAtText, fnoListed: r.fnoListed === true,
+      spot: shown.price, nowSource: shown.source, nowAtText: shown.atText, fnoListed: r.fnoListed === true,
       priceBasis: levels.priceBasis || (anchorQuote === fq ? "CONTRACT" : "SHARE"),
-      referencePrice, referenceKind,
+      referencePrice: shown.referencePrice, referenceKind: shown.referenceKind,
       buy: levels.buy, target1: levels.target1, target2: levels.target2, stop: levels.stop,
-      anchor: levels.anchor, anchorSource: levels.anchorSource || null, drift: driftPct(levels.buy, nowPrice),
+      anchor: levels.anchor, anchorSource: levels.anchorSource || null, drift: driftPct(levels.buy, shown.price),
       frozen: levels.frozen, frozenAtIst: levels.frozenAtIst, frozenAt: levels.frozenAt || null,
       expected: levels.expected || null,
       perUnitCapital: levels.buy,
@@ -505,6 +538,7 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     futuresAnchor: ANCHOR,
     forwardStatus,
     optionsOnLiveForward: options.filter((c) => c.forwardSource === "LIVE").length,
+    optionsDirection: { rule: "CALLS_ON_BUY_OR_ACCUMULATE_ONLY", names: Object.keys(bullish).length },
     banList: { tradeDate: fnoUniverseEngine.banTradeDate || null, symbols: [...bannedSet].sort(),
       refusedContracts: screen.refused?.banned ?? null },
     track,
@@ -812,8 +846,14 @@ function page(d) {
       ${esc(d.watchStatus.shareOnly)} are share-only (removed from F&amp;O)${d.watchStatus.notListed.length
         ? `, and ${esc(d.watchStatus.notListed.length)} have no price yet under that symbol &mdash; merged, renamed or
            misspelt, or history not fetched yet: ${esc(d.watchStatus.notListed.join(", "))}` : ""}.
-      Levels are anchored on the <b>${d.futuresAnchor === "CONTRACT" ? "NSE futures contract" : "share price"}</b>;
-      the other price is shown under NOW to compare with your platform.</div>` : ""}
+      ${(() => {
+        const bases = new Set((d.futures || []).filter((r) => r.fnoListed).map((r) => r.priceBasis));
+        const main = d.futuresAnchor === "CONTRACT" ? "NSE futures contract" : "share price";
+        return bases.size > 1
+          ? `Levels are anchored on the <b>${main}</b>; rows frozen earlier this session on the other price keep it until the session ends, and each row says which.`
+          : `Levels are anchored on the <b>${bases.has("SHARE") ? "share price" : bases.has("CONTRACT") ? "NSE futures contract" : main}</b>.`;
+      })()}
+      Share-only names stay on the share. The other price is shown under NOW to compare with your platform.</div>` : ""}
     <div class="wrap"><table>
       <thead><tr>
         <th>SYMBOL</th><th class="num">BUY LIMIT</th><th class="num">TARGET 1 &middot; 2</th>
@@ -824,12 +864,15 @@ function page(d) {
 
   <section class="pane pane-ce">
     <h2>Calls &mdash; you BUY the call, it pays if the stock RISES</h2>
+    ${d.optionsDirection ? `<div class="sub" style="margin:-4px 0 10px">Only on the ${esc(d.optionsDirection.names)} stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
     ${optionTable(calls, "No calls cleared every gate on this build.")}
   </section>
 
   <section class="pane pane-pe">
     <h2>Puts &mdash; you BUY the put, it pays if the stock FALLS</h2>
-    ${optionTable(puts, "No puts cleared every gate on this build.")}
+    ${optionTable(puts, d.optionsDirection
+      ? "No puts, by design. The desk has no bearish view, and when its own history was tested, betting on falls lost money in all 24 set-ups across all three test periods (PANEL_STUDY_ROUND3). Puts come back only if a bearish signal proves itself."
+      : "No puts cleared every gate on this build.")}
   </section>
 
   <section class="pane pane-trk">
@@ -848,9 +891,10 @@ function page(d) {
 
 <div class="note" style="margin-top:20px;border-left-color:var(--red)">
   <b>WHAT THIS DOES NOT ESTABLISH.</b> That any of it makes money. The paper ledger
-  has no closed trades yet, so nothing here has a measured hit rate &mdash; the ranking
-  is built on things that were measured, which is not the same as an edge that was
-  proven. Size accordingly.
+  has ${esc(d.track?.summary?.ALL?.resolved ?? 0)} resolved trade(s) so far &mdash; far too few for a measured hit
+  rate &mdash; and the one test fixed in advance, on data never used to build the
+  rule, did not find an edge. The ranking is built on things that were measured,
+  which is not the same as an edge that was proven. Size accordingly.
 </div>
 
 </body></html>`;

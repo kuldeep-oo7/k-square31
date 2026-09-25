@@ -172,6 +172,10 @@ function screenContracts({
   reference = loadReference(),
   underlyingScores = {},
   bullish = {},
+  // With requireView, a name with no boolean in `bullish` gets NO contract at
+  // all, instead of both sides: one side per stock, and only where the desk
+  // has a view (user decision, 2026-09-25).
+  requireView = false,
   now = Date.now(),
   gates = {},
   limit = 60,
@@ -220,9 +224,17 @@ function screenContracts({
 
   const bannedSet = banned instanceof Set ? banned : new Set(Array.isArray(banned) ? banned : []);
   for (const [symbol, entry] of Object.entries(reference.symbols)) {
+    // The ban first: it is the exchange's rule, and it must be counted as the
+    // reason even for a name the desk has no view on.
     if (bannedSet.has(symbol)) {
       for (const bucket of Object.values(entry.expiries || {})) {
         refused.banned += (bucket.callStrikes?.length || 0) + (bucket.putStrikes?.length || 0);
+      }
+      continue;
+    }
+    if (requireView && typeof bullish[symbol] !== "boolean") {
+      for (const bucket of Object.values(entry.expiries || {})) {
+        refused.noDirection += (bucket.callStrikes?.length || 0) + (bucket.putStrikes?.length || 0);
       }
       continue;
     }

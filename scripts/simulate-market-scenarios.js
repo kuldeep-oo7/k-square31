@@ -265,19 +265,31 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("every option's implied vol on the page is the market's own, to half a point", errs.length > 0 && worstIv < 0.5,
       `worst ${worstIv.toFixed(2)} vol pts over ${errs.length} options`);
     check("every option priced against the LIVE forward, none against yesterday's", d.options.every((c) => c.forwardSource === "LIVE"));
+    // The anchor is the NSE futures CONTRACT (the user's platform quotes it
+    // exactly, measured 2026-09-24); share-only names stay on the share.
     const f = d.futures.find((x) => x.fnoListed) || d.futures[0];
-    const liveShare = b.market.shareOf(f.symbol);
-    check(`futures NOW is the live SHARE price (${f.symbol})`, Math.abs(f.spot - liveShare) < 0.02, `page ${f.spot} vs market ${liveShare.toFixed(2)}`);
-    check(`${f.symbol}'s buy limit is 0.8% under that price`, Math.abs(f.buy - Math.round(liveShare * 0.992 * 100) / 100) < 0.02, `${f.buy}`);
-    check("that NOW price is printed on the page", b.html.includes(Number(f.spot).toLocaleString("en-IN")));
-    check("futures NOW is labelled live, with its time", /share, live at \d\d:\d\d/.test(b.html));
     const liveFut = b.market.forwardOf(f.symbol, f.expiry);
-    check(`and the NSE future's own price is shown beside it for comparison (${f.symbol})`,
-      f.referenceKind === "future" && Math.abs(f.referencePrice - liveFut) < 0.02, `future ${f.referencePrice}`);
+    check(`futures NOW is the live CONTRACT price (${f.symbol})`, Math.abs(f.spot - liveFut) < 0.02, `page ${f.spot} vs market ${liveFut.toFixed(2)}`);
+    check(`${f.symbol}'s buy limit is 0.8% under that price`, Math.abs(f.buy - Math.round(liveFut * 0.992 * 100) / 100) < 0.02, `${f.buy}`);
+    check("that NOW price is printed on the page", b.html.includes(Number(f.spot).toLocaleString("en-IN")));
+    check("futures NOW is labelled live, with its time", /futures, live at \d\d:\d\d/.test(b.html));
+    check(`and the share's own price is shown beside it for comparison (${f.symbol})`,
+      f.referenceKind === "share" && Math.abs(f.referencePrice - b.market.shareOf(f.symbol)) < 0.02, `share ${f.referencePrice}`);
+    check("every F&O row is anchored on its contract, every share-only row on the share",
+      d.futures.every((x) => x.priceBasis === (x.fnoListed ? "CONTRACT" : "SHARE")),
+      JSON.stringify(d.futures.reduce((a, x) => (a[`${x.fnoListed ? "F&O" : "share-only"}:${x.priceBasis}`] = (a[`${x.fnoListed ? "F&O" : "share-only"}:${x.priceBasis}`] || 0) + 1, a), {})));
     const shareOnly = d.futures.filter((x) => x.fnoListed === false);
     check("share-only names are watched and never given an invented futures symbol",
       shareOnly.every((x) => !x.tradingSymbol) && /no NSE futures contract/.test(b.html) || shareOnly.length === 0,
       `${shareOnly.length} share-only rows`);
+    // ONE SIDE PER STOCK (user decision 2026-09-25): calls only, and only on
+    // the names the desk rates BUY or ACCUMULATE; its measured short side loses.
+    const buyNames = new Set(fnoUniverseEngine.getUniverse({ severity: "NORMAL", shieldActive: false })
+      .filter((r) => r.action === "BUY" || r.action === "ACCUMULATE").map((r) => r.symbol));
+    check("every option on the page is a CALL on a stock the desk rates BUY or ACCUMULATE",
+      d.options.length > 0 && d.options.every((x) => x.right === "CE" && buyNames.has(x.symbol)),
+      `${d.options.length} options, ${d.options.filter((x) => x.right === "PE").length} puts, ${d.options.filter((x) => !buyNames.has(x.symbol)).length} off-view`);
+    check("and the PUTS tab says why it is empty, instead of just being blank", /No puts, by design/.test(b.html));
     const o = d.options[0];
     check(`option names read like the broker's search (${o.display})`, /^[A-Z&-]+ [A-Z]{3} \d+(\.\d+)? (CE|PE)$/.test(o.display) || /\(weekly\)/.test(o.display));
     check("every stock option carries an exit-by date before its expiry",
@@ -338,7 +350,8 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     const oldWorst = sample.length ? Math.max(...sample) : null;
     console.log(`         the OLD code on this morning: implied vol off by up to ${oldWorst === null ? "n/a (most would not even solve)" : oldWorst.toFixed(1) + " vol points"}`);
     check("levels freeze again on the GAPPED prices, not yesterday's",
-      d.levelsFrozen && d.futures.filter((x) => x.frozen).every((x) => Math.abs(x.anchor - b.market.shareOf(x.symbol)) < 0.05));
+      d.levelsFrozen && d.futures.filter((x) => x.frozen).every((x) => Math.abs(x.anchor
+        - (x.priceBasis === "CONTRACT" ? b.market.forwardOf(x.symbol, x.expiry) : b.market.shareOf(x.symbol))) < 0.05));
     const frozenFri = new Map(d.futures.map((x) => [x.symbol, x.buy]));
 
     // 13:30 the war escalates: NIFTY down 10% on the day, the market-wide
@@ -365,7 +378,15 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
   console.log("\nMon 28 Sep -- EXPIRY EVE (September contracts expire tomorrow), relief rally +3%");
   dayBook = new Map();
   {
-    const b = await runBuild("mon-0933-expiry-eve", { indexMove: -0.029, idioScale: 0.01, ivMult: 0.85, spreadPct: 0.02, clock: ist("2026-09-28", "09:33") }, dayBook);
+    // Monday's levels freeze on the SHARE -- the basis before 2026-09-25 --
+    // so that the switch to the contract can be tested mid-session below.
+    process.env.K2_FUTURES_ANCHOR = "SHARE";
+    let b;
+    try {
+      b = await runBuild("mon-0933-expiry-eve", { indexMove: -0.029, idioScale: 0.01, ivMult: 0.85, spreadPct: 0.02, clock: ist("2026-09-28", "09:33") }, dayBook);
+    } finally {
+      delete process.env.K2_FUTURES_ANCHOR;
+    }
     const sepRows = [...b.data.options, ...b.data.futures].filter((x) => String(x.expiry) === "2026-09-29");
     console.log(`  09:33 -> ${b.data.futures.length} futures, ${b.data.options.length} options`);
     check("nothing expiring tomorrow is on the page", sepRows.length === 0, `${sepRows.length} found`);
@@ -385,6 +406,37 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("the stale-history guard refuses exactly the rows older than five days, no more and no fewer",
       judged.length > 100 && misjudged.length === 0, `${staleRows.length} stale of ${judged.length} judged, ${misjudged.length} misjudged`);
     check("the page shows the October exit-by date, Wednesday 21 October", /exit (or roll )?by Wed 21 Oct/.test(b.html));
+
+    // THE SWITCH, MID-SESSION. The desk now anchors on the contract, but the
+    // levels frozen at 09:33 on the share are carried until the session ends.
+    // A carried row must stay on the instrument it froze on -- NOW included --
+    // or a futures price is set against a share-price limit.
+    const sw = await runBuild("mon-1113-anchor-switched", { indexMove: -0.029, idioScale: 0.01, ivMult: 0.85, spreadPct: 0.02, clock: ist("2026-09-28", "11:13") }, dayBook);
+    const carried = sw.data.futures.filter((x) => x.frozen && x.fnoListed);
+    check("after the switch, rows frozen on the share keep the share basis, NOW included",
+      carried.length > 0 && carried.every((x) => x.priceBasis === "SHARE" && /^SHARE_/.test(x.nowSource)
+        && Math.abs(x.spot - sw.market.shareOf(x.symbol)) < 0.02 && x.referenceKind === "future"),
+      `${carried.length} carried rows`);
+    check("and their levels did not move", carried.every((x) => x.buy === (b.data.futures.find((y) => y.symbol === x.symbol) || {}).buy));
+    check("the page says the share basis for those rows, not the new default",
+      /anchored on the <b>share price<\/b>/.test(sw.html) && /levels on the share price/.test(sw.html));
+  }
+
+  // ======================== F&O BAN =============================================
+  // On Monday, while the history on disk is still recent enough for the desk to
+  // hold views: with options shown only where it has one, a day on which every
+  // name is refused as stale has nothing on the page to ban.
+  console.log("\nF&O BAN -- Monday afternoon, a stock on the page enters the ban");
+  {
+    const probe = await runBuild("ban-probe", { ...normal, clock: ist("2026-09-28", "13:33") }, new Map());
+    const target = probe.data.options[0]?.symbol || probe.data.futures[0]?.symbol;
+    check("the stock chosen for the ban really was on the page first", Boolean(target), target || "none");
+    const b = await runBuild("ban-applied", { ...normal, clock: ist("2026-09-28", "13:40") }, new Map(), { banned: [target] });
+    const leaked = [...b.data.options, ...b.data.futures].filter((x) => x.symbol === target);
+    check(`${target} in the ban appears nowhere on the page`, leaked.length === 0 && !new RegExp(`>${target} `).test(b.html.split('class="pane pane-trk"')[0]),
+      `${leaked.length} rows`);
+    check("the ban is refused inside the screener, not hidden afterwards", (b.data.banList?.refusedContracts ?? 0) > 0,
+      `${b.data.banList?.refusedContracts} contracts refused`);
   }
 
   // ======================== Tue 29 Sep: EXPIRY DAY ==============================
@@ -406,20 +458,6 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("nothing freezes on a holiday", b.data.levelsFrozen === false);
     check("and the page says why, instead of trusting the clock", /not one contract came back with a live exchange book/.test(b.html));
     check("no paper trades are recorded", (b.data.track?.tally?.added ?? 0) === 0);
-  }
-
-  // ======================== F&O BAN =============================================
-  console.log("\nF&O BAN -- a stock on Thursday's list enters the ban");
-  {
-    const probe = await runBuild("ban-probe", { ...normal, clock: ist("2026-10-01", "09:33") }, new Map());
-    const target = probe.data.options[0]?.symbol || probe.data.futures[0]?.symbol;
-    check("the stock chosen for the ban really was on the page first", Boolean(target), target || "none");
-    const b = await runBuild("ban-applied", { ...normal, clock: ist("2026-10-01", "09:40") }, new Map(), { banned: [target] });
-    const leaked = [...b.data.options, ...b.data.futures].filter((x) => x.symbol === target);
-    check(`${target} in the ban appears nowhere on the page`, leaked.length === 0 && !new RegExp(`>${target} `).test(b.html.split('class="pane pane-trk"')[0]),
-      `${leaked.length} rows`);
-    check("the ban is refused inside the screener, not hidden afterwards", (b.data.banList?.refusedContracts ?? 0) > 0,
-      `${b.data.banList?.refusedContracts} contracts refused`);
   }
 
   // ======================== the whole week, on the TRACK tab ===================

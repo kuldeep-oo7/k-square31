@@ -178,4 +178,22 @@ if (reference?.symbols) {
   console.log(`  ✓ With a live book every row prices from the BOOK, not the file, and carries its spread`);
 }
 
+// ONE SIDE PER STOCK, ONLY WHERE THE DESK HAS A VIEW (user decision 2026-09-25).
+{
+  const all = screenContracts({ reference, limit: 400 });
+  const names = [...new Set(all.contracts.map((c) => c.symbol))];
+  assert.ok(names.length >= 2, "need at least two names with survivors to test direction");
+  const [up, down] = names;
+  const directed = screenContracts({ reference, limit: 400, bullish: { [up]: true, [down]: false }, requireView: true });
+  const bySymbol = (s) => directed.contracts.filter((c) => c.symbol === s);
+  assert.ok(directed.contracts.every((c) => c.symbol === up || c.symbol === down),
+    "with requireView, a name with no view must get no contract at all");
+  assert.ok(bySymbol(up).every((c) => c.optionType === "CE"), `${up} is read as rising: calls only`);
+  assert.ok(bySymbol(down).every((c) => c.optionType === "PE"), `${down} is read as falling: puts only`);
+  assert.ok(directed.refused.noDirection > 0, "the names without a view are counted as refused, not silently dropped");
+  const loose = screenContracts({ reference, limit: 400, bullish: { [up]: true } });
+  assert.ok(loose.contracts.some((c) => c.symbol !== up), "without requireView the old behaviour holds: names with no view keep both sides");
+  console.log(`  ✓ One side per stock: ${up} calls only, ${down} puts only, every other name refused (${directed.refused.noDirection} contracts)`);
+}
+
 console.log("ALL contract screener tests passed: it walks the whole listed chain, refuses the overwhelming majority, every gate bites, and every survivor carries the numbers needed to act on it.");
