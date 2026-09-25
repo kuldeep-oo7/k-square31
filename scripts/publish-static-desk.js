@@ -168,7 +168,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
   const universe = fnoUniverseEngine.getUniverse(macro) || [];
   const scores = {};
   for (const row of universe) {
-    if (Number.isFinite(Number(row.compositeScore))) scores[row.symbol] = Number(row.compositeScore);
+    if (numeric(row.compositeScore) !== null) scores[row.symbol] = numeric(row.compositeScore);
   }
 
   // ONE SIDE PER STOCK, AND ONLY THE SIDE THE DESK HAS A VIEW ON. The user,
@@ -399,7 +399,11 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       // prices on one row, which the user has called out before.
       ...(() => {
         const lot = Number(levels.lotSize || c.lotSize) || null;
-        const spread = Number.isFinite(Number(c.spreadPct)) ? Number(c.spreadPct) : null;
+        // numeric(), not Number(): with no live book the screener's spread is
+        // null, and Number(null) is 0 -- which made every after-hours row a
+        // "known" 0% spread (154 of 154 on 25 Sep, 18:24) and understated its
+        // costs (SUNPHARMA 1860 CE: -77 a lot, charges only).
+        const spread = numeric(c.spreadPct);
         const atTarget = lot ? roundTripCost({ entryPremium: levels.buy, exitPremium: levels.sell, lotSize: lot, entrySpreadPct: spread }) : null;
         const atStop = lot ? roundTripCost({ entryPremium: levels.buy, exitPremium: levels.stop, lotSize: lot, entrySpreadPct: spread }) : null;
         return {
@@ -435,8 +439,8 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
         // DECAY for the same trade: theta per day (recovered from the screener's
         // own figure) times the days to THIS sell, as a share of THIS buy.
         const screenerWait = Number(c.medianDaysToTarget) > 0 ? Number(c.medianDaysToTarget) : Number(c.daysToExpiry);
-        const thetaPerDay = Number.isFinite(Number(c.thetaBurnPct)) && Number(c.premium) > 0 && screenerWait > 0
-          ? (Number(c.thetaBurnPct) / 100) * Number(c.premium) / screenerWait : null;
+        const thetaPerDay = numeric(c.thetaBurnPct) !== null && Number(c.premium) > 0 && screenerWait > 0
+          ? (numeric(c.thetaBurnPct) / 100) * Number(c.premium) / screenerWait : null;
         const wait = t && t.medianDaysIfItHappens > 0 ? t.medianDaysIfItHappens : Number(c.daysToExpiry);
         return {
           touchPct: t ? round(t.probabilityOfTouchPct, 1) : null,
@@ -620,7 +624,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
         // Futures in the size the user actually trades on GM: 20 units, gross
         // (GM's own charges are not known here).
         futuresPer20: (() => {
-          const fut = closed.filter((x) => x.kind === "FUT" && x.pnl && Number.isFinite(Number(x.pnl.perUnit)));
+          const fut = closed.filter((x) => x.kind === "FUT" && x.pnl && numeric(x.pnl.perUnit) !== null);
           return fut.length ? { trades: fut.length, rupees: round(fut.reduce((a, x) => a + Number(x.pnl.perUnit) * GM_MIN_UNITS, 0)), units: GM_MIN_UNITS } : null;
         })(),
         open: ledger.open,
@@ -873,7 +877,7 @@ function page(d) {
         <td class="num">${hrs(x.hoursToFill)}</td>
         <td class="num">${hrs(x.hoursFillToExit)}</td>
         <td class="num">${expectedText(x)}</td>
-        <td class="num ${Number(x.pnl?.perUnit) >= 0 ? "up" : "down"}">${x.pnl ? `${money(x.pnl.perUnit)} <div class="sub">${esc(x.pnl.pct)}% ${esc(x.pnl.basis)}${x.pnl.netPerLot !== undefined && x.pnl.netPerLot !== null ? ` &middot; net ${money(x.pnl.netPerLot)}/lot` : ""}${x.kind === "FUT" && Number.isFinite(Number(x.pnl.perUnit)) ? ` &middot; ${money(round(Number(x.pnl.perUnit) * (d.gmMinUnits || 20)))} at ${esc(d.gmMinUnits || 20)} units` : ""}</div>` : "&mdash;"}</td>
+        <td class="num ${Number(x.pnl?.perUnit) >= 0 ? "up" : "down"}">${x.pnl ? `${money(x.pnl.perUnit)} <div class="sub">${esc(x.pnl.pct)}% ${esc(x.pnl.basis)}${x.pnl.netPerLot !== undefined && x.pnl.netPerLot !== null ? ` &middot; net ${money(x.pnl.netPerLot)}/lot` : ""}${x.kind === "FUT" && numeric(x.pnl.perUnit) !== null ? ` &middot; ${money(round(Number(x.pnl.perUnit) * (d.gmMinUnits || 20)))} at ${esc(d.gmMinUnits || 20)} units` : ""}</div>` : "&mdash;"}</td>
       </tr>`).join("");
   const trackCount = (t?.open?.length || 0) + (t?.totalClosed || 0);
   const trackPane = !t

@@ -580,6 +580,11 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
         && wrong.html.includes(fw.wrongContract[0].split(":")[0]), JSON.stringify(fw.wrongContract));
     const gate = health.checkLivePath({ ...wrong.data, brokerCheck: { ok: true } }, ist("2026-09-24", "10:13"));
     check("and the production gate turns that build RED", gate.problems.some((p) => /WHICH contract/.test(p)), gate.problems.join(" | ") || "green");
+    const noBook = await runBuild("thu-1613-after-close-no-book", { ...normal, clock: ist("2026-09-24", "16:13"), noBooks: true }, new Map(),
+      { ledgerFile: path.join(tmp, "nobook-levels.json"), ledgerDir: path.join(tmp, "nobook-ledger") });
+    check("after the close with no order book, no row claims a known spread, and its costs say the spread is extra",
+      noBook.data.options.length > 0 && noBook.data.options.every((x) => x.spreadKnown === false) && /plus the spread/.test(noBook.html),
+      `${noBook.data.options.filter((x) => x.spreadKnown !== false).length} of ${noBook.data.options.length} claim a spread`);
     const down = await runBuild("thu-1033-nse-down", { ...normal, clock: ist("2026-09-24", "10:33"), nseDown: true }, new Map(), own);
     const quiet = health.checkLivePath({ ...down.data, brokerCheck: { ok: true } }, ist("2026-09-24", "10:33"));
     check("NSE unreachable: the page says NOT checked, and the gate stays green",
