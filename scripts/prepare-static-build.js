@@ -86,6 +86,14 @@ async function step(label, fn) {
     return `${Object.keys(record.symbols).length} results meetings filed for the next ${record.days} days (${record.rows} filings read)`;
   });
 
+  // INDIA VIX AND NIFTY from NSE, every build (the engine had a hard-coded 12.5).
+  await step("India VIX and Nifty from NSE", async () => {
+    const { refreshMarketContext } = require("../api/_lib/nse-market-context");
+    const r = await refreshMarketContext();
+    if (!r.ok) throw new Error(`not read: ${r.reason}`);
+    return `India VIX ${r.indiaVix} (${r.indiaVixChangePct}%), Nifty ${r.nifty} (${r.niftyChangePct}%) at ${r.nseTimestamp}`;
+  });
+
   // BALANCE SHEETS (Yahoo quoteSummary), once a day. The ranking's balance-sheet
   // rule read a cache the serverless build never filled, so it could not fire.
   await step("balance sheets (Yahoo, daily)", async () => {

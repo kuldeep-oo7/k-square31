@@ -79,7 +79,8 @@ function isTradingSession(date) {
 function calculateDynamicHorizon(annualizedVolPct, targetPct = 0.025, vix = 12.5) {
   const vol = Number.isFinite(annualizedVolPct) && annualizedVolPct > 0.05 ? annualizedVolPct : 0.22;
   const dailyVol = vol / Math.sqrt(252);
-  const vixMultiplier = Math.max(0.75, Math.min(1.75, (Number(vix) || 12.5) / 14.0));
+  // An unknown VIX is NEUTRAL (x1), not a pretend 12.5.
+  const vixMultiplier = Number(vix) > 0 ? Math.max(0.75, Math.min(1.75, Number(vix) / 14.0)) : 1;
   const driftEfficiency = 0.65 * vixMultiplier;
   
   // Calculate raw trading sessions required
@@ -1142,7 +1143,9 @@ class FnoUniverseEngine {
         analyzed = analyzeCandidate({
           ...baseCandidate,
           macroState: macroState || { severity: "NORMAL", shieldActive: false },
-          macroRadar: { indiaVix: { price: 12.5 } }
+          // The REAL India VIX when the build read it from NSE (nse-market-context.js);
+          // it used to be the literal 12.5 on every build, the crash day included.
+          macroRadar: { indiaVix: { price: Number(macroState?.indiaVix?.price) > 0 ? Number(macroState.indiaVix.price) : null } }
         });
       } else {
         analyzed = {
@@ -1392,18 +1395,20 @@ class FnoUniverseEngine {
 
       // Signal Provenance & Dynamic Trading-Day Horizon
       const volNum = parseFloat(analyzed.garchVol) / 100 || 0.22;
-      const vixVal = macroState?.indiaVix?.price || 12.5;
+      const vixVal = Number(macroState?.indiaVix?.price) > 0 ? Number(macroState.indiaVix.price) : null;
       const dynamicHorizon = calculateDynamicHorizon(volNum, 0.025, vixVal);
 
-      const issuedDate = new Date(Date.now() - (3.5 * 3600 * 1000));
+      // When this row was actually computed. It used to be "now minus 3.5 hours"
+      // labelled "Today at 09:15 AM" whatever the time -- an invented timestamp.
+      const issuedDate = new Date();
       analyzed.issuedAt = issuedDate.toISOString();
-      analyzed.issuedAtFormatted = "Today at 09:15 AM";
-      analyzed.daysActive = 0.3;
+      analyzed.issuedAtFormatted = new Date(issuedDate.getTime() + 330 * 60_000).toISOString().slice(11, 16) + " IST";
+      analyzed.daysActive = 0;   // computed just now; it used to be a literal 0.3
       analyzed.dynamicHorizon = dynamicHorizon;
       analyzed.horizonDays = dynamicHorizon.tradingDays;
       analyzed.targetEstDate = dynamicHorizon.targetDateStr;
       analyzed.targetEstFormatted = dynamicHorizon.formattedHorizon;
-      analyzed.daysActiveFormatted = `0.3d of ${dynamicHorizon.tradingDays} Trading Days (Target by ${dynamicHorizon.targetDateStr})`;
+      analyzed.daysActiveFormatted = `0d of ${dynamicHorizon.tradingDays} Trading Days (Target by ${dynamicHorizon.targetDateStr})`;
 
       // Follow-Trade P&L tracking
       const pnlPerUnit = (isActionable && spot && entryPrice) ? (spot - entryPrice) : 0;

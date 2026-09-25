@@ -136,7 +136,10 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   const { loadReference } = require("../api/_lib/fno-reference");
   const live = require("../api/_lib/live-quotes");
 
-  const macro = { severity: "NORMAL", shieldActive: false };
+  // India VIX from NSE, read by prepare-static-build.js (null if unread).
+  const marketContext = require("../api/_lib/nse-market-context").loadMarketContext();
+  const macro = { severity: "NORMAL", shieldActive: false,
+    indiaVix: marketContext ? { price: marketContext.indiaVix, source: "NSE allIndices", at: marketContext.nseTimestamp } : null };
   const reference = loadReference();
   const phase = live.marketPhase();
 
@@ -611,6 +614,10 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     forwardStatus,
     optionsOnLiveForward: options.filter((c) => c.forwardSource === "LIVE").length,
     optionsDirection: { rule: "CALLS_ON_BUY_OR_ACCUMULATE_ONLY", names: Object.keys(bullish).length },
+    marketContext: marketContext
+      ? { ok: true, indiaVix: marketContext.indiaVix, indiaVixChangePct: marketContext.indiaVixChangePct,
+          nifty: marketContext.nifty, niftyChangePct: marketContext.niftyChangePct, at: marketContext.nseTimestamp }
+      : { ok: false },
     resultsCalendar: resultsCal
       ? { ok: true, fetchedAt: resultsCal.fetchedAt, days: resultsCal.days, meetings: Object.keys(resultsCal.symbols || {}).length,
           refusedOptionContracts: screen.refused?.resultsBeforeExit ?? 0 }
@@ -911,7 +918,9 @@ function page(d) {
 
 <h1>K&sup2; Desk</h1>
 <div class="stamp">Built ${esc(d.builtAtIst)} &middot; session ${esc(d.sessionDate)} &middot; market ${esc(d.marketPhase)} &middot;
-  ${esc(Number(d.examined).toLocaleString("en-IN"))} contracts examined, ${esc(Number(d.survived).toLocaleString("en-IN"))} cleared every gate</div>
+  ${esc(Number(d.examined).toLocaleString("en-IN"))} contracts examined, ${esc(Number(d.survived).toLocaleString("en-IN"))} cleared every gate${d.marketContext?.ok
+    ? ` &middot; India VIX <b>${esc(d.marketContext.indiaVix)}</b> (${esc(d.marketContext.indiaVixChangePct)}%) &middot; Nifty ${esc(Number(d.marketContext.nifty).toLocaleString("en-IN"))} (${esc(d.marketContext.niftyChangePct)}%), NSE ${esc(String(d.marketContext.at || "").slice(12, 17))}`
+    : " &middot; India VIX not read this build"}</div>
 
 <div class="note ${d.levelsFrozen ? "frozen" : ""}">${freezeNote}</div>
 

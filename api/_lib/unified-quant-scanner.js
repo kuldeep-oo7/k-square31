@@ -92,7 +92,7 @@ function analyzeCandidate({
   historicalBars = [],
   strategy = null,
   macroState = { severity: "NORMAL", shieldActive: false },
-  macroRadar = { indiaVix: { price: 12.5 } }
+  macroRadar = { indiaVix: { price: null } }   // unknown unless a caller measured it
 }) {
   const spot = Number(currentLtp || entryPrice);
 
@@ -140,7 +140,9 @@ function analyzeCandidate({
   // 6. K²-Lang Quantitative Rule Verification
   const k2Context = {
     MACRO_GATE: macroState.severity,
-    INDIA_VIX: Number(macroRadar.indiaVix?.price || 12.5),
+    // Real VIX or NaN (unknown), never a pretend 12.5; an unknown VIX fails
+    // the REQUIRE rather than passing it.
+    INDIA_VIX: Number(macroRadar?.indiaVix?.price) > 0 ? Number(macroRadar.indiaVix.price) : NaN,
     HURST: hurst,
     VPIN: vpin.vpin,
     ER: er,
