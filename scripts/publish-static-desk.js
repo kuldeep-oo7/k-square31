@@ -31,7 +31,7 @@
 
 const fs = require("node:fs");
 const path = require("node:path");
-const { openSession, driftPct, istStamp, numeric } = require("./session-freeze");
+const { openSession, driftPct, istStamp, numeric, sessionDateFor } = require("./session-freeze");
 
 const OUT_DIR = path.resolve(__dirname, "..", "docs");
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -108,6 +108,18 @@ function contractNames(symbol, expiry, strike, right, reference) {
  * the other half is whether the market has come to it, and saying so in one
  * word is the difference between a list of prices and an instruction.
  */
+/**
+ * A level that is not frozen is not an order, so it is never "waiting" for a
+ * fill: it is a preview, placed this far under the price it was worked from.
+ */
+function previewState(limit, now) {
+  const l = numeric(limit);
+  const p = numeric(now);
+  if (l === null || p === null || l <= 0) return { word: "NO PRICE", tone: "" };
+  const under = ((p - l) / p) * 100;
+  return { word: under > 0 ? `PREVIEW, not an order — ${under.toFixed(1)}% under the last price` : "PREVIEW, not an order", tone: "" };
+}
+
 function fillState(limit, now) {
   const l = numeric(limit);
   const p = numeric(now);
@@ -127,7 +139,12 @@ function fillState(limit, now) {
   return { word: `WAITING — needs a ${dip.toFixed(1)}% dip`, tone: dip > 5 ? "down" : "" };
 }
 
-async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, forceFreeze = null } = {}) {
+// NO CAP ON ROWS. Every contract that clears every gate is shown. Until
+// 2026-09-25 the page kept the top 40 options and 25 futures and hid the rest
+// -- 122 of 162 calls that had cleared every gate, beside a header saying 162
+// had. The user: "if it is passing all of this then it is a good one ... why
+// we have to force it to cut down". A limit can still be passed for tests.
+async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, ledgerDir, forceFreeze = null } = {}) {
   const { fnoUniverseEngine } = require("../api/_lib/universe-210");
   const { screenContracts } = require("../api/_lib/contract-screener");
   const { roundTripCost } = require("../api/_lib/trade-costs");
@@ -327,9 +344,19 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
    */
   const sawLiveBook = Number(screen.pricedLive) > 0;
   const canFreeze = forceFreeze === null ? (phase.open === true && sawLiveBook) : forceFreeze === true;
-  const session = openSession({ canFreeze, file: ledgerFile });
+  const sessionDateNow = sessionDateFor(Date.now());
+  const sessionOver = Date.now() >= ledgerLib.sessionCloseMs(sessionDateNow);
+  const nextSession = sessionOver || !ledgerLib.isTradingDate(sessionDateNow) ? ledgerLib.nextTradingDate(sessionDateNow) : sessionDateNow;
+  const session = openSession({ canFreeze, sessionOver, file: ledgerFile });
 
-  const options = (screen.contracts || []).map((c) => {
+  // Each stock's strikes together, stocks in the order of their best contract:
+  // several strikes of one stock are ONE bet, and the page should read so.
+  const stockRank = new Map();
+  for (const c of screen.contracts || []) if (!stockRank.has(c.symbol)) stockRank.set(c.symbol, stockRank.size);
+  const byStock = (screen.contracts || []).map((c, i) => ({ c, i }))
+    .sort((a, b) => stockRank.get(a.c.symbol) - stockRank.get(b.c.symbol) || a.i - b.i).map((x) => x.c);
+
+  const options = byStock.map((c) => {
     const names = contractNames(c.symbol, c.expiry, c.strike, c.optionType, reference);
     const zerodha = names.zerodha;
     const nowPrice = round(c.premium);
@@ -626,6 +653,10 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     builtAtIst: istStamp(),
     sessionDate: session.sessionDate,
     levelsFrozen: session.canFreeze,
+    // After 15:30 the day's levels are history and every row is a preview for
+    // the next trading session (session-freeze.js).
+    sessionOver,
+    nextSession,
     // Naming the reason matters: "the market is closed" and "nobody logged in
     // to the broker" produce the same empty screen and need different fixes.
     freezeBlockedBecause: session.canFreeze ? null
@@ -688,9 +719,10 @@ function page(d) {
     const sectors = {};
     for (const r of rows) sectors[r.sector || "Unknown"] = (sectors[r.sector || "Unknown"] || 0) + 1;
     const top = Object.entries(sectors).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${esc(k)} ${esc(v)}`).join(", ");
+    const stocks = new Set(rows.map((r) => r.symbol)).size;
     return `<div class="sub" style="margin:-4px 0 10px">If you take every row here (${esc(unit)}): <b>${money(capital)}</b> in total;
       if every stop is hit, <b class="down">&minus;${money(loss)}</b> &mdash; more if prices gap through the stops.
-      Most rows are in: ${top}. Rows in one sector tend to fall together.</div>`;
+      ${stocks < rows.length ? `These ${esc(rows.length)} rows are on <b>${esc(stocks)} stocks</b>: several strikes of one stock are one bet, not several. ` : ""}Most rows are in: ${top}. Rows in one sector tend to fall together.</div>`;
   };
   const sumOf = (rows, f) => rows.reduce((a, r) => a + (Number(f(r)) || 0), 0);
   const puts = d.options.filter((c) => c.right === "PE");
@@ -706,11 +738,13 @@ function page(d) {
     if (r.resultsStatus === "UNKNOWN") return `<div class="sub down">results calendar unavailable today</div>`;
     return "";
   };
-  const optionRows = (list) => list.map((c) => {
-    const state = fillState(c.buy, c.now);
+  const optionRows = (list) => list.map((c, i) => {
+    const state = c.frozen ? fillState(c.buy, c.now) : previewState(c.buy, c.now);
+    const sameStock = i > 0 && list[i - 1].symbol === c.symbol;
     return `
       <tr>
-        <td><b class="name">${esc(c.display || (c.symbol + " " + c.strike + " " + c.right))}</b>
+        <td><b class="name">${esc(c.display || (c.symbol + " " + c.strike + " " + c.right))}</b>${sameStock
+          ? `<div class="sub warn">another strike of ${esc(c.symbol)} &mdash; the same bet as the row above</div>` : ""}
           <div class="sub">Zerodha <code>${esc(c.zerodha)}</code>${c.angel ? ` &middot; Angel <code>${esc(c.angel)}</code>` : ""}</div>
           <div class="sub">expires ${esc(c.expiryText || c.expiry)} &middot; ${esc(round(c.daysLeft, 1))}d left${c.exitByText ? ` &middot; <b class="warn">exit by ${esc(c.exitByText)}</b>` : ""}</div>${resultsLine(c)}</td>
         <td class="num"><b>${money(c.buy)}</b><div class="sub">&times;${esc(c.lotSize)} = ${money(c.costPerLot)}</div></td>
@@ -744,7 +778,7 @@ function page(d) {
     SHARE_CLOSE_FROM_HISTORY: "share, last close &mdash; NOT live"
   };
   const futRows = d.futures.map((r) => {
-    const state = fillState(r.buy, r.spot);
+    const state = r.frozen ? fillState(r.buy, r.spot) : previewState(r.buy, r.spot);
     const exp = r.expected;
     const fillMinutes = exp?.fill ? Math.round(exp.fill.medianTradingDays * 375) : null;
     const expLine = [
@@ -796,7 +830,7 @@ function page(d) {
         <td class="num">${esc(s.shown)}</td><td class="num">${esc(s.waiting)}</td><td class="num">${esc(s.open)}</td>
         <td class="num up">${esc(s.target)}</td><td class="num down">${esc(s.stop)}</td><td class="num">${esc(s.expired)}</td>
         <td class="num">${esc(s.unfilled)}</td>
-        <td class="num"><b>${s.hitRatePct === null ? "&mdash;" : esc(s.hitRatePct) + "%"}</b><div class="sub">of ${esc(s.resolved)} finished${Number(s.resolved) < 30 ? " &mdash; too few to judge" : ""}</div></td>
+        <td class="num"><b>${s.hitRatePct === null ? "&mdash;" : esc(s.hitRatePct) + "%"}</b><div class="sub">of ${esc(s.resolved)} finished${Number(s.resolvedBets) < Number(s.resolved) ? ` (${esc(s.resolvedBets)} separate bets)` : ""}${Number(s.resolvedBets ?? s.resolved) < 30 ? " &mdash; too few to judge" : ""}</div></td>
         <td class="num">${s.expectedHitRatePct === null ? "&mdash;" : esc(s.expectedHitRatePct) + "%"}</td>
         <td class="num">${hrs(s.medianHoursToFill)}</td><td class="num">${hrs(s.medianHoursToTarget)}</td>
         <td class="num ${Number(s.avgReturnPct) >= 0 ? "up" : "down"}">${s.avgReturnPct === null ? "&mdash;" : esc(s.avgReturnPct) + "%"}</td>
@@ -924,7 +958,13 @@ function page(d) {
     ? `<b class="up">${d.pricedLive}</b> priced from a live broker book, <b>${d.pricedFromSettlement}</b> from the ${esc(d.settlementFile)} settlement file.`
     : `All prices are from the <b>${esc(d.settlementFile)}</b> settlement file. The market was ${esc(d.marketPhase).toLowerCase()} when this was built, so nothing here is executable right now.`;
 
-  const freezeNote = d.levelsFrozen
+  const nextText = d.nextSession ? new Date(`${d.nextSession}T00:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }) : "the next session";
+  const freezeNote = d.sessionOver
+    ? `<b>THE SESSION IS OVER. THESE ROWS ARE PREVIEWS, NOT ORDERS.</b> Today's buy limits were day orders and
+       ended at 15:30 &mdash; what became of each is on <b>TRACK</b>. Every row below is worked from the last
+       prices, for <b>${esc(nextText)}</b>. The real levels are fixed on that session's first build that sees
+       a live exchange book, and can differ from these.`
+    : d.levelsFrozen
     ? `<b>BUY, SELL AND STOP ARE FIXED FOR TODAY.</b> They were set at
        <b>${esc(d.levelsOpenedAtIst || "the first build after the open")}</b> and they do not move again,
        however far the market runs. ${esc(d.freezeTally.carried)} carried from earlier in the session,

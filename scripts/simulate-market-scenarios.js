@@ -352,6 +352,16 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("nothing on the page expires inside a week", d.options.every((c) => c.daysLeft >= 7));
     check("every frozen level became a paper trade", d.track.tally.added === d.options.length + d.futures.filter((x) => x.frozen).length,
       `${d.track.tally.added} recorded`);
+    // NO CAP: every contract that cleared every gate is on the page (the page
+    // once kept 40 of 162 beside a header saying 162 had cleared).
+    check("every contract that cleared every gate is on the page -- none held back by a row limit",
+      d.options.length === d.survived && d.survived > 40, `${d.options.length} shown of ${d.survived} cleared`);
+    const strikesOf = new Map();
+    d.options.forEach((c, i) => strikesOf.set(c.symbol, [...(strikesOf.get(c.symbol) || []), i]));
+    check("each stock's strikes sit together, and every extra strike says it is the same bet",
+      [...strikesOf.values()].every((ix) => ix[ix.length - 1] - ix[0] === ix.length - 1)
+        && (b.html.match(/another strike of/g) || []).length === d.options.length - strikesOf.size,
+      `${strikesOf.size} stocks, ${(b.html.match(/another strike of/g) || []).length} marks`);
     frozenBuysDay1 = new Map(d.futures.map((x) => [x.symbol, x.buy]));
   }
   {
@@ -383,6 +393,14 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("futures limits never reached are UNFILLED at 15:30, not carried as orders", unfilled >= 0 && b.data.track.open.every((t) => t.status !== "WAITING"),
       `${unfilled} unfilled`);
     check("the TRACK tab shows them", /UNFILLED/.test(b.html));
+    // After the close the day's levels are history; every row is a preview for
+    // the next session, and none of them says WAITING as if it were an order.
+    const bd = b.data;
+    check("after the close no row is shown as today's live order: all previews, for the next session",
+      bd.sessionOver === true && bd.nextSession === "2026-09-25" && bd.futures.every((x) => !x.frozen) && bd.options.every((x) => !x.frozen)
+        && /THE SESSION IS OVER/.test(b.html) && /PREVIEW, not an order/.test(b.html)
+        && !/WAITING &mdash; needs|WAITING — needs/.test(b.html.split('class="pane pane-trk"')[0]),
+      `sessionOver ${bd.sessionOver}, next ${bd.nextSession}, frozen ${bd.futures.filter((x) => x.frozen).length + bd.options.filter((x) => x.frozen).length}`);
   }
 
   // ======================== Fri 25 Sep: WAR / NEWS ==============================

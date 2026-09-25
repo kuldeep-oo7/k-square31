@@ -76,6 +76,21 @@ console.log("session freeze:");
   check("and nothing reaches the disk", result.written === false && fs.existsSync(closedFile) === false);
 }
 
+// 3b. After the close the day's levels are history. They were day orders; a
+//     page that kept showing them read as live orders "WAITING" for a fill
+//     (25 Sep 2026, 17:21). Nothing is carried, nothing is frozen, and the
+//     file keeps the day's record untouched.
+{
+  const before = fs.readFileSync(LEDGER, "utf8");
+  const after = openSession({ canFreeze: true, sessionOver: true, file: LEDGER });
+  let recomputed = false;
+  const lvl = after.level("options", "RELIANCE25SEP1400CE", () => { recomputed = true; return { buy: 31.0, sell: 44.0, stop: 15.5 }; });
+  check("after the close a level frozen this morning is NOT shown as today's order", recomputed === true && lvl.buy === 31.0 && lvl.frozen === false);
+  check("nothing freezes after the close, even when the caller would allow it", after.canFreeze === false && after.tally.frozenThisBuild === 0);
+  const saved = after.save();
+  check("and the day's record on disk is untouched", saved.written === false && fs.readFileSync(LEDGER, "utf8") === before);
+}
+
 // 4. A new trading day starts clean. Yesterday's limits must not leak into it.
 {
   const tomorrow = Date.now() + 24 * 60 * 60 * 1000;

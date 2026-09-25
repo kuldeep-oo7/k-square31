@@ -73,10 +73,18 @@ function readLedger(file) {
  * When it is false the session is advisory: levels are computed so the page is
  * not blank, they are labelled indicative, and nothing is written down.
  */
-function openSession({ now = Date.now(), canFreeze = false, file = LEDGER_FILE } = {}) {
+function openSession({ now = Date.now(), canFreeze: wanted = false, sessionOver = false, file = LEDGER_FILE } = {}) {
   const today = sessionDateFor(now);
   const previous = readLedger(file);
-  const carried = previous && previous.sessionDate === today ? previous : null;
+  // Once the session is over its levels are history: they were day orders and
+  // ended at 15:30. Showing them after the close as "WAITING" read as live
+  // orders -- 14 futures and 7 calls on 25 Sep, beside a note saying nothing
+  // had been written down. So after the close nothing is carried and nothing
+  // is frozen: every row is a preview for the next session, and what became of
+  // today's levels is on TRACK. The file itself is untouched (save() writes
+  // only when freezing).
+  const canFreeze = wanted && !sessionOver;
+  const carried = previous && previous.sessionDate === today && !sessionOver ? previous : null;
 
   const ledger = {
     sessionDate: today,

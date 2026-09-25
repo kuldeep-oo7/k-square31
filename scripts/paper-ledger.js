@@ -91,6 +91,7 @@ function feedMs(text) {
 
 // One implementation of the normal CDF in the codebase, not two that can drift.
 const { normalCdf } = require("../api/_lib/trade-odds");
+const { isNseHoliday } = require("../api/_lib/nse-holidays");
 
 /**
  * How likely a price is to TOUCH a level within a window, and the median time
@@ -146,15 +147,32 @@ function sessionTradingDaysLeft(now) {
  */
 const INDEX_UNDERLYINGS = new Set(["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "NIFTYNXT50", "SENSEX", "BANKEX"]);
 function isIndexUnderlying(symbol) { return INDEX_UNDERLYINGS.has(String(symbol || "").toUpperCase()); }
-function exitByDate(expiryIso, weekdaysBefore = 4) {
+/** A weekday that NSE's own calendar does not list as a holiday. */
+function isTradingDate(iso) {
+  const w = new Date(`${iso}T00:00:00Z`).getUTCDay();
+  return w !== 0 && w !== 6 && isNseHoliday(iso) !== true;
+}
+
+/** The first trading date strictly after `iso`. */
+function nextTradingDate(iso) {
+  let d = new Date(`${String(iso).slice(0, 10)}T00:00:00Z`);
+  do { d = new Date(d.getTime() + 86_400_000); } while (!isTradingDate(d.toISOString().slice(0, 10)));
+  return d.toISOString().slice(0, 10);
+}
+
+// Counted in TRADING days: "if a trading holiday falls during the expiry week,
+// the margin collection schedule will move up by one trading day" (Zerodha,
+// policy on physical settlement, read 2026-09-25). Counting weekdays put the
+// December 2026 exit on 23 Dec when 25 Dec is an NSE holiday and the delivery
+// margin already starts on the 22nd.
+function exitByDate(expiryIso, tradingDaysBefore = 4) {
   const iso = String(expiryIso || "").slice(0, 10);
   if (!/^\d{4}-\d{2}-\d{2}$/.test(iso)) return null;
   let d = new Date(`${iso}T00:00:00Z`);
   let counted = 0;
-  while (counted < weekdaysBefore) {
+  while (counted < tradingDaysBefore) {
     d = new Date(d.getTime() - 86_400_000);
-    const w = d.getUTCDay();
-    if (w !== 0 && w !== 6) counted += 1;
+    if (isTradingDate(d.toISOString().slice(0, 10))) counted += 1;
   }
   return d.toISOString().slice(0, 10);
 }
@@ -457,6 +475,10 @@ function summarize(open, closed) {
       unfilled: c.filter((t) => t.status === "UNFILLED").length,
       hitRatePct: resolved ? round((wins.length / resolved) * 100, 1) : null,
       resolved,
+      // SEPARATE BETS, not trades: seven strikes of one stock shown on one day
+      // win or lose together, so they are one result, not seven. The page
+      // judges a hit rate on this count.
+      resolvedBets: new Set(filledClosed.map((t) => `${t.sessionDate}|${t.symbol}|${t.kind}`)).size,
       expectedHitRatePct: expectedTarget.length ? round(expectedTarget.reduce((a, b) => a + b, 0) / expectedTarget.length, 1) : null,
       medianHoursToFill: round(median([...o, ...c].map((t) => t.hoursToFill).filter((h) => h !== null)), 1),
       medianHoursToTarget: round(median(wins.map((t) => t.hoursFillToExit)), 1),
@@ -469,6 +491,6 @@ function summarize(open, closed) {
 
 module.exports = {
   LEDGER_DIR, FUTURES_MAX_SESSIONS,
-  feedDate, feedMs, firstPassage, sessionTradingDaysLeft, exitByDate, isIndexUnderlying,
+  feedDate, feedMs, firstPassage, sessionTradingDaysLeft, exitByDate, isIndexUnderlying, isTradingDate, nextTradingDate, sessionCloseMs,
   tradeFromLevel, observe, settle, openLedger, summarize
 };

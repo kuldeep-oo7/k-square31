@@ -148,6 +148,13 @@ console.log("paper ledger:");
   });
   so.status = "OPEN"; so.filledAt = so.shownAt; so.last = 14.2;
   check("exit-by for a Tuesday 27 Oct expiry is Wednesday 21 Oct", L.exitByDate("2026-10-27") === "2026-10-21");
+  // Counted in NSE trading days (Zerodha: "if a trading holiday falls during
+  // the expiry week, the margin collection schedule will move up by one
+  // trading day"). 25 Dec 2026 is an NSE holiday.
+  check("exit-by for the 29 Dec expiry skips the 25 Dec holiday: Tue 22 Dec, not Wed 23",
+    L.exitByDate("2026-12-29") === "2026-12-22", L.exitByDate("2026-12-29"));
+  check("the next session after Fri 25 Sep is Mon 28 Sep; after Thu 1 Oct (2 Oct is a holiday) it is Mon 5 Oct",
+    L.nextTradingDate("2026-09-25") === "2026-09-28" && L.nextTradingDate("2026-10-01") === "2026-10-05");
   L.settle(so, Date.parse("2026-10-21T15:00:00+05:30"));
   check("a stock option is still open before the close of its exit-by day", so.status === "OPEN");
   L.settle(so, Date.parse("2026-10-21T15:31:00+05:30"));
@@ -194,6 +201,14 @@ console.log("paper ledger:");
   const summary = L.summarize(again.open, again.allClosed());
   check("the summary counts one stop and one still waiting", summary.ALL.stop === 1 && summary.ALL.waiting === 1);
   check("hit rate is 0 of 1 resolved, not 0 of 2 shown", summary.ALL.hitRatePct === 0 && summary.ALL.resolved === 1);
+  {
+    // Seven strikes of one stock shown on one day are ONE bet.
+    const t = (strike, status) => ({ kind: "CE", symbol: "DIVISLAB", sessionDate: "2026-09-25", contract: `DIVISLAB26OCT${strike}CE`,
+      status, filledAt: "2026-09-25T05:00:00.000Z", pnl: { pct: status === "TARGET" ? 50 : -50 } });
+    const bets = L.summarize([], [t(6000, "STOP"), t(6100, "STOP"), t(6200, "STOP"), { ...t(900, "TARGET"), symbol: "M&M" }]);
+    check("strikes of one stock on one day count as one bet: 4 trades, 2 separate bets", bets.ALL.resolved === 4 && bets.ALL.resolvedBets === 2,
+      JSON.stringify({ resolved: bets.ALL.resolved, bets: bets.ALL.resolvedBets }));
+  }
   fs.rmSync(dir, { recursive: true, force: true });
 }
 
