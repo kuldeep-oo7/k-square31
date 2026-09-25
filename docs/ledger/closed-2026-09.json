@@ -961,60 +961,6 @@
    "pnl": null
   },
   {
-   "id": "2026-09-24|PE|BAJFINANCE26OCT1000PE",
-   "kind": "PE",
-   "symbol": "BAJFINANCE",
-   "contract": "BAJFINANCE26OCT1000PE",
-   "expiry": "2026-10-27",
-   "strike": 1000,
-   "optionType": "PE",
-   "lotSize": 750,
-   "sessionDate": "2026-09-24",
-   "shownAt": "2026-09-24T04:24:39.935Z",
-   "buy": 28.83,
-   "target": 43.24,
-   "target2": null,
-   "stop": 14.42,
-   "anchorSource": "BROKER_REALTIME",
-   "priceBasis": null,
-   "expected": {
-    "fill": {
-     "note": "limit at the live mid when shown"
-    },
-    "target": {
-     "probabilityPct": 49.4,
-     "medianDays": 11.3,
-     "daysBasis": "CALENDAR"
-    }
-   },
-   "status": "STOP",
-   "filledAt": "2026-09-24T04:24:39.935Z",
-   "hoursToFill": 0,
-   "closedAt": "2026-09-25T03:43:50.487Z",
-   "exitPrice": 10.15,
-   "exitReason": "STOP",
-   "hoursFillToExit": 23.32,
-   "sessionsHeld": 1,
-   "best": 41.5,
-   "worst": 10.15,
-   "last": 35.9,
-   "lastAt": "2026-09-25T03:43:50.487Z",
-   "marks": 24,
-   "obs": {
-    "date": "2026-09-25",
-    "high": 41.5,
-    "low": 10.15,
-    "last": 35.9
-   },
-   "pnl": {
-    "perUnit": -18.68,
-    "pct": -64.79,
-    "basis": "NET",
-    "perLot": -14010,
-    "netPerLot": -14081.56
-   }
-  },
-  {
    "id": "2026-09-24|FUT|JINDALSTEL26OCTFUT",
    "kind": "FUT",
    "symbol": "JINDALSTEL",
@@ -1163,60 +1109,6 @@
     "perUnit": -2.11,
     "pct": -1.5,
     "basis": "GROSS"
-   }
-  },
-  {
-   "id": "2026-09-24|PE|BHARTIARTL26OCT1820PE",
-   "kind": "PE",
-   "symbol": "BHARTIARTL",
-   "contract": "BHARTIARTL26OCT1820PE",
-   "expiry": "2026-10-27",
-   "strike": 1820,
-   "optionType": "PE",
-   "lotSize": 475,
-   "sessionDate": "2026-09-24",
-   "shownAt": "2026-09-24T04:04:56.996Z",
-   "buy": 27.13,
-   "target": 40.69,
-   "target2": null,
-   "stop": 13.57,
-   "anchorSource": "BROKER_REALTIME",
-   "priceBasis": null,
-   "expected": {
-    "fill": {
-     "note": "limit at the live mid when shown"
-    },
-    "target": {
-     "probabilityPct": 60.7,
-     "medianDays": 8.1,
-     "daysBasis": "CALENDAR"
-    }
-   },
-   "status": "TARGET",
-   "filledAt": "2026-09-24T04:04:56.996Z",
-   "hoursToFill": 0,
-   "closedAt": "2026-09-25T04:04:43.424Z",
-   "exitPrice": 40.69,
-   "exitReason": "TARGET",
-   "hoursFillToExit": 24,
-   "sessionsHeld": 1,
-   "best": 41,
-   "worst": 25,
-   "last": 36.1,
-   "lastAt": "2026-09-25T04:04:43.424Z",
-   "marks": 26,
-   "obs": {
-    "date": "2026-09-25",
-    "high": 41,
-    "low": 25,
-    "last": 36.1
-   },
-   "pnl": {
-    "perUnit": 13.56,
-    "pct": 49.98,
-    "basis": "NET",
-    "perLot": 6441,
-    "netPerLot": 6350.88
    }
   }
  ]
