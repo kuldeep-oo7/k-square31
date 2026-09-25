@@ -176,6 +176,12 @@ function screenContracts({
   // all, instead of both sides: one side per stock, and only where the desk
   // has a view (user decision, 2026-09-25).
   requireView = false,
+  // Results dates (api/_lib/nse-results.js): symbol -> {status, date}. An
+  // option whose ANNOUNCED results fall on or before the day it must be exited
+  // is refused: the volatility collapse after results is a structural loss for
+  // a buyer, whatever the direction. exitByFor(symbol, expiry) -> ISO date.
+  resultsFor = null,
+  exitByFor = null,
   now = Date.now(),
   gates = {},
   limit = 60,
@@ -217,7 +223,7 @@ function screenContracts({
   const refused = {
     expiryWindow: 0, illiquid: 0, tinyPremium: 0, noIv: 0,
     deltaBand: 0, belowIntrinsic: 0, noDirection: 0, noUnderlying: 0,
-    staleDuringSession: 0, banned: 0, wideSpread: 0
+    staleDuringSession: 0, banned: 0, wideSpread: 0, resultsBeforeExit: 0
   };
   let examined = 0;
   const survivors = [];
@@ -238,10 +244,16 @@ function screenContracts({
       }
       continue;
     }
+    const results = resultsFor ? resultsFor(symbol) : null;
     for (const [expiry, bucket] of Object.entries(entry.expiries || {})) {
       const daysToExpiry = (Date.parse(`${expiry}T15:30:00+05:30`) - now) / 86400000;
       if (!(daysToExpiry >= rules.minDaysToExpiry && daysToExpiry <= rules.maxDaysToExpiry)) {
         refused.expiryWindow += (bucket.callStrikes?.length || 0) + (bucket.putStrikes?.length || 0);
+        continue;
+      }
+      const exitBy = exitByFor ? exitByFor(symbol, expiry) : expiry;
+      if (results?.status === "ANNOUNCED" && results.date <= exitBy) {
+        refused.resultsBeforeExit += (bucket.callStrikes?.length || 0) + (bucket.putStrikes?.length || 0);
         continue;
       }
       // Price off the FORWARD. For an F&O name the market's forward is the
@@ -418,6 +430,8 @@ function screenContracts({
             touchPct: touch?.probabilityOfTouchPct ?? null,
             medianDaysToTarget: touch?.medianDaysIfItHappens ?? null,
             underlyingScore: Number(underlyingScores[symbol]),
+            // Results after the exit date are allowed and shown; unknown is said, never assumed clear.
+            resultsStatus: results ? results.status : null, resultsDate: results?.date || null,
             costPerLot: bucket.lotSize ? round(premium * bucket.lotSize) : null,
             // What actually lands in an account.
             grossProfit: economics?.grossProfit ?? null,

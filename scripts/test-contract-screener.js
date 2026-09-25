@@ -196,4 +196,28 @@ if (reference?.symbols) {
   console.log(`  ✓ One side per stock: ${up} calls only, ${down} puts only, every other name refused (${directed.refused.noDirection} contracts)`);
 }
 
+// RESULTS BEFORE THE EXIT DATE (2026-09-25): refused for an option buyer.
+{
+  const base = screenContracts({ reference, limit: 400 });
+  const sym = base.contracts[0]?.symbol;
+  assert.ok(sym, "need a name with survivors");
+  const expiries = [...new Set(base.contracts.filter((c) => c.symbol === sym).map((c) => c.expiry))];
+  const exitByFor = (s, e) => { const d = new Date(Date.parse(`${e}T00:00:00Z`) - 6 * 86400000); return d.toISOString().slice(0, 10); };
+  const before = exitByFor(sym, expiries[0]);
+  const refusedRun = screenContracts({ reference, limit: 400, exitByFor,
+    resultsFor: (s) => (s === sym ? { status: "ANNOUNCED", date: before } : { status: "NOT_ANNOUNCED" }) });
+  assert.ok(refusedRun.contracts.every((c) => !(c.symbol === sym && c.expiry === expiries[0])),
+    `${sym}: results on ${before}, on or before the ${expiries[0]} exit date, must refuse those options`);
+  assert.ok(refusedRun.refused.resultsBeforeExit > 0, "and the refusal is counted");
+  const after = screenContracts({ reference, limit: 400, exitByFor,
+    resultsFor: (s) => (s === sym ? { status: "ANNOUNCED", date: "2099-01-01" } : { status: "NOT_ANNOUNCED" }) });
+  const kept = after.contracts.filter((c) => c.symbol === sym);
+  assert.ok(kept.length > 0 && kept.every((c) => c.resultsStatus === "ANNOUNCED" && c.resultsDate === "2099-01-01"),
+    "results after the exit date are allowed, and the row says when they are");
+  const unknown = screenContracts({ reference, limit: 400, exitByFor, resultsFor: () => ({ status: "UNKNOWN" }) });
+  assert.ok(unknown.contracts.length > 0 && unknown.contracts.every((c) => c.resultsStatus === "UNKNOWN"),
+    "a calendar that could not be read refuses nothing and claims nothing");
+  console.log(`  ✓ Results on or before the exit date refuse the option (${refusedRun.refused.resultsBeforeExit} ${sym} contracts); after it, allowed and labelled; unknown claims nothing`);
+}
+
 console.log("ALL contract screener tests passed: it walks the whole listed chain, refuses the overwhelming majority, every gate bites, and every survivor carries the numbers needed to act on it.");

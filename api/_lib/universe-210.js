@@ -5,6 +5,18 @@ const path = require("node:path");
 const { analyzeCandidate } = require("./unified-quant-scanner");
 const { getCachedBars, StaggeredBarIngestor, CACHE_DIR: BARS_CACHE_DIR } = require("./bar-cache");
 const { getCachedFundamentals } = require("./fundamentals");
+const { loadResultsCalendar, insideTradingWeek } = require("./nse-results");
+
+// RESULTS INSIDE THIS TRADING WEEK, FROM NSE'S OWN FILINGS. The earnings veto
+// below read only Yahoo's fundamentals cache, which the serverless build never
+// refreshed: on 2026-09-25 not one of 285 names had a date and the veto could
+// not fire. The NSE calendar (nse-results.js, refreshed every build) now feeds
+// it too. Read at most once a minute, not once per name.
+let resultsMemo = { at: -Infinity, cal: null };
+function nseResultsThisWeek(symbol, now = Date.now()) {
+  if (Math.abs(now - resultsMemo.at) > 60_000) resultsMemo = { at: now, cal: loadResultsCalendar({ now }) };
+  return insideTradingWeek(resultsMemo.cal?.symbols?.[symbol]?.date, now);
+}
 const { europeanOption } = require("./option-pricing");
 const {
   loadReference: loadFnoReference,
@@ -1071,7 +1083,7 @@ class FnoUniverseEngine {
 
       // Fundamentals and Event Risk Overlay
       const fund = getCachedFundamentals(symbol);
-      const earningsVeto = fund?.events?.insideTradingWeek === true;
+      const earningsVeto = fund?.events?.insideTradingWeek === true || nseResultsThisWeek(symbol);
       const balanceScore = fund?.balanceSheetScore ?? 0;
 
       const baseCandidate = {
@@ -1311,7 +1323,7 @@ class FnoUniverseEngine {
     })();
     results.forEach((analyzed) => {
       const fund = getCachedFundamentals(analyzed.symbol);
-      const earningsVeto = fund?.events?.insideTradingWeek === true;
+      const earningsVeto = fund?.events?.insideTradingWeek === true || nseResultsThisWeek(analyzed.symbol);
       const isBanned = analyzed.isBanned;
       const hasObservedPrice = analyzed.hasObservedPrice;
       const isSynthetic = analyzed.historicalBarsAreSynthetic;

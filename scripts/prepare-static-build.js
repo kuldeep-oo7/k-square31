@@ -76,6 +76,16 @@ async function step(label, fn) {
     return record.symbols.length + " banned for " + (record.tradeDate || "?") + ": " + (record.symbols.join(", ") || "none");
   });
 
+  // RESULTS DATES, from NSE's own board-meeting filings (api/_lib/nse-results.js).
+  // A failure is recorded as a failure, so the desk says "unknown" rather than
+  // treating an unread calendar as a quiet one.
+  await step("results dates from NSE", async () => {
+    const { refreshResultsCalendar } = require("../api/_lib/nse-results");
+    const record = await refreshResultsCalendar();
+    if (!record.ok) throw new Error(`NSE calendar not read: ${record.reason}`);
+    return `${Object.keys(record.symbols).length} results meetings filed for the next ${record.days} days (${record.rows} filings read)`;
+  });
+
   await step("broker instrument master", async () => {
     const brokers = require("../api/_lib/broker-feed");
     const result = await brokers.refreshInstruments("angelone");

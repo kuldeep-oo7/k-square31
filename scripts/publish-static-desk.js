@@ -214,8 +214,15 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   };
   const bannedSet = fnoUniverseEngine.banned instanceof Set ? fnoUniverseEngine.banned : new Set();
 
+  // RESULTS DATES from NSE's filings (api/_lib/nse-results.js). null = the
+  // calendar could not be read today, and every row then says "unknown".
+  const { loadResultsCalendar, resultsStatus } = require("../api/_lib/nse-results");
+  const resultsCal = loadResultsCalendar();
+  const resultsFor = (symbol) => resultsStatus(resultsCal, symbol);
+  const ledgerDates = require("./paper-ledger");
+  const exitByFor = (symbol, expiry) => (ledgerDates.isIndexUnderlying(symbol) ? expiry : ledgerDates.exitByDate(expiry));
   const screen = screenContracts({
-    reference, underlyingScores: scores, limit, bullish, requireView: true,
+    reference, underlyingScores: scores, limit, bullish, requireView: true, resultsFor, exitByFor,
     liveQuoteFor: (s, e, k, t) => { try { return live.liveQuote(s, e, k, t); } catch (err) { return null; } },
     marketOpen: phase.open === true,
     banned: bannedSet,
@@ -348,7 +355,8 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
       touchPct: c.touchPct, daysToTarget: c.medianDaysToTarget, daysLeft: c.daysToExpiry,
       thetaBurnPct: c.thetaBurnPct, term: c.termShape, skew: c.skewPoints,
       priceSource: c.priceSource, priceIsLive: c.priceIsLive, score: c.screenScore,
-      forward: c.forward ?? null, forwardSource: c.forwardSource || null
+      forward: c.forward ?? null, forwardSource: c.forwardSource || null,
+      resultsStatus: c.resultsStatus || null, resultsDate: c.resultsDate || null
     };
   }).filter(Boolean);
 
@@ -445,7 +453,13 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
       perUnitCapital: levels.buy,
       riskPerUnit: risk, rewardPerUnit: reward,
       rewardToRisk: risk > 0 ? round(reward / risk) : null,
-      exchangeLot: r.lotSize, score: r.compositeScore
+      exchangeLot: r.lotSize, score: r.compositeScore,
+      ...(() => {
+        const res = resultsFor(r.symbol);
+        const exitBy = fnames.exitBy || null;
+        return { resultsStatus: res.status, resultsDate: res.date || null,
+          resultsBeforeExit: res.status === "ANNOUNCED" && exitBy ? res.date <= exitBy : null };
+      })()
     };
   }).filter(Boolean);
 
@@ -539,6 +553,10 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     forwardStatus,
     optionsOnLiveForward: options.filter((c) => c.forwardSource === "LIVE").length,
     optionsDirection: { rule: "CALLS_ON_BUY_OR_ACCUMULATE_ONLY", names: Object.keys(bullish).length },
+    resultsCalendar: resultsCal
+      ? { ok: true, fetchedAt: resultsCal.fetchedAt, days: resultsCal.days, meetings: Object.keys(resultsCal.symbols || {}).length,
+          refusedOptionContracts: screen.refused?.resultsBeforeExit ?? 0 }
+      : { ok: false },
     banList: { tradeDate: fnoUniverseEngine.banTradeDate || null, symbols: [...bannedSet].sort(),
       refusedContracts: screen.refused?.banned ?? null },
     track,
@@ -560,13 +578,25 @@ function page(d) {
   // option rows meant the futures were effectively not on it.
   const calls = d.options.filter((c) => c.right === "CE");
   const puts = d.options.filter((c) => c.right === "PE");
+  // The results date, in one of three honest states (api/_lib/nse-results.js).
+  const resultsLine = (r) => {
+    const when = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+    if (r.resultsStatus === "ANNOUNCED") {
+      return r.resultsBeforeExit
+        ? `<div class="sub"><b class="warn">results ${esc(when(r.resultsDate))} &mdash; before the exit date: expect a gap</b></div>`
+        : `<div class="sub">results ${esc(when(r.resultsDate))}</div>`;
+    }
+    if (r.resultsStatus === "NOT_ANNOUNCED") return `<div class="sub">results date not announced yet</div>`;
+    if (r.resultsStatus === "UNKNOWN") return `<div class="sub down">results calendar unavailable today</div>`;
+    return "";
+  };
   const optionRows = (list) => list.map((c) => {
     const state = fillState(c.buy, c.now);
     return `
       <tr>
         <td><b class="name">${esc(c.display || (c.symbol + " " + c.strike + " " + c.right))}</b>
           <div class="sub">Zerodha <code>${esc(c.zerodha)}</code>${c.angel ? ` &middot; Angel <code>${esc(c.angel)}</code>` : ""}</div>
-          <div class="sub">expires ${esc(c.expiryText || c.expiry)} &middot; ${esc(round(c.daysLeft, 1))}d left${c.exitByText ? ` &middot; <b class="warn">exit by ${esc(c.exitByText)}</b>` : ""}</div></td>
+          <div class="sub">expires ${esc(c.expiryText || c.expiry)} &middot; ${esc(round(c.daysLeft, 1))}d left${c.exitByText ? ` &middot; <b class="warn">exit by ${esc(c.exitByText)}</b>` : ""}</div>${resultsLine(c)}</td>
         <td class="num"><b>${money(c.buy)}</b><div class="sub">&times;${esc(c.lotSize)} = ${money(c.costPerLot)}</div></td>
         <td class="num up"><b>${money(c.sell)}</b><div class="sub">net ${money(c.netProfit)}</div></td>
         <td class="num down">${money(c.stop)}</td>
@@ -614,7 +644,7 @@ function page(d) {
              ${r.tradingSymbol
                ? `<div class="sub">NSE future: Zerodha <code>${esc(r.tradingSymbol)}</code>${r.angelSymbol ? ` &middot; Angel <code>${esc(r.angelSymbol)}</code>` : ""}</div>`
                : `<div class="sub">no NSE futures contract &mdash; share only</div>`}`}
-          ${r.expiryText ? `<div class="sub">future expires ${esc(r.expiryText)}${r.exitByText ? ` &middot; <b class="warn">exit or roll by ${esc(r.exitByText)}</b>` : ""}</div>` : ""}</td>
+          ${r.expiryText ? `<div class="sub">future expires ${esc(r.expiryText)}${r.exitByText ? ` &middot; <b class="warn">exit or roll by ${esc(r.exitByText)}</b>` : ""}</div>` : ""}${resultsLine(r)}</td>
         <td class="num"><b>${money(r.buy)}</b>${expLine ? `<div class="sub">expected: ${expLine}</div>` : ""}</td>
         <td class="num up">${money(r.target1)}<div class="sub">${money(r.target2)}</div></td>
         <td class="num down">${money(r.stop)}</td>
@@ -860,6 +890,12 @@ function page(d) {
         <th class="num">STOP</th><th class="num">NOW</th><th class="num">1 UNIT</th><th class="num">R : R</th>
       </tr></thead><tbody>${futRows || '<tr><td colspan="7">No futures cleared the hurdle on this build.</td></tr>'}</tbody>
     </table></div>
+    <div class="sub" style="margin-top:8px">${d.resultsCalendar?.ok
+      ? `Results dates are NSE's own board-meeting filings, read ${esc(String(d.resultsCalendar.fetchedAt).slice(0, 10))}:
+         ${esc(d.resultsCalendar.meetings)} results meetings filed for the next ${esc(d.resultsCalendar.days)} days. Companies must file at least
+         two working days before the meeting (SEBI LODR Regulation 29), so &ldquo;not announced&rdquo; does not mean &ldquo;no results&rdquo;.
+         Options whose results fall on or before their exit date are not listed (${esc(d.resultsCalendar.refusedOptionContracts)} contracts refused).`
+      : `<b class="down">NSE's results calendar could not be read for this build</b> &mdash; results dates are unknown, and no option was filtered for them.`}</div>
   </section>
 
   <section class="pane pane-ce">
