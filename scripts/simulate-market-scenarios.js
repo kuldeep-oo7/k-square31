@@ -290,6 +290,15 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       d.options.length > 0 && d.options.every((x) => x.right === "CE" && buyNames.has(x.symbol)),
       `${d.options.length} options, ${d.options.filter((x) => x.right === "PE").length} puts, ${d.options.filter((x) => !buyNames.has(x.symbol)).length} off-view`);
     check("and the PUTS tab says why it is empty, instead of just being blank", /No puts, by design/.test(b.html));
+    // THE MONEY ON A ROW COMES FROM THAT ROW'S OWN LEVELS (25 Sep: ASTRAL showed
+    // cost at the live price beside a frozen buy), and in the user's real sizes.
+    check("every option's cost per lot is its own buy x lot, and the loss at its stop is shown",
+      d.options.every((x) => Math.abs(x.costPerLot - Math.round(x.buy * x.lotSize * 100) / 100) < 0.01 && x.netLossAtStop < 0 && x.netProfit > 0),
+      `${d.options.filter((x) => Math.abs(x.costPerLot - Math.round(x.buy * x.lotSize * 100) / 100) >= 0.01).length} rows off`);
+    check("every futures row shows GM's 20-unit minimum: capital, loss at stop, gain at target",
+      d.futures.every((x) => x.minUnits === 20 && Math.abs(x.minCapital - Math.round(x.buy * 20 * 100) / 100) < 0.02
+        && Math.abs(x.minLossAtStop - Math.round((x.buy - x.stop) * 20 * 100) / 100) < 0.02 && x.minGainAtTarget > 0)
+        && /GM MIN \(20 UNITS\)/.test(b.html));
     const o = d.options[0];
     check(`option names read like the broker's search (${o.display})`, /^[A-Z&-]+ [A-Z]{3} \d+(\.\d+)? (CE|PE)$/.test(o.display) || /\(weekly\)/.test(o.display));
     check("every stock option carries an exit-by date before its expiry",

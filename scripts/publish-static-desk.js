@@ -130,6 +130,8 @@ function fillState(limit, now) {
 async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, forceFreeze = null } = {}) {
   const { fnoUniverseEngine } = require("../api/_lib/universe-210");
   const { screenContracts } = require("../api/_lib/contract-screener");
+  const { roundTripCost } = require("../api/_lib/trade-costs");
+  const GM_MIN_UNITS = Number(process.env.K2_GM_MIN_UNITS) > 0 ? Number(process.env.K2_GM_MIN_UNITS) : 20;
   const { loadReference } = require("../api/_lib/fno-reference");
   const live = require("../api/_lib/live-quotes");
 
@@ -349,8 +351,22 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
       now: nowPrice, drift: driftPct(levels.buy, nowPrice),
       frozen: levels.frozen, frozenAtIst: levels.frozenAtIst, frozenAt: levels.frozenAt || null,
       priceSourceAtFreeze: levels.priceSourceAtFreeze || null,
-      lotSize: c.lotSize, costPerLot: c.costPerLot,
-      netProfit: c.netProfit, costPct: c.costAsPctOfGross,
+      // THE MONEY ON A ROW COMES FROM THAT ROW'S OWN LEVELS. These used to be
+      // the screener's figures at the CURRENT premium while buy, sell and stop
+      // were the FROZEN ones -- ASTRAL OCT 1400 CE read "41.53 x 425 = 16,745"
+      // on 25 Sep, which is 425 x the live 39.40; at 41.53 it costs 17,650. Two
+      // prices on one row, which the user has called out before.
+      ...(() => {
+        const lot = Number(levels.lotSize || c.lotSize) || null;
+        const spread = Number.isFinite(Number(c.spreadPct)) ? Number(c.spreadPct) : null;
+        const atTarget = lot ? roundTripCost({ entryPremium: levels.buy, exitPremium: levels.sell, lotSize: lot, entrySpreadPct: spread }) : null;
+        const atStop = lot ? roundTripCost({ entryPremium: levels.buy, exitPremium: levels.stop, lotSize: lot, entrySpreadPct: spread }) : null;
+        return {
+          lotSize: lot, costPerLot: lot ? round(levels.buy * lot) : null,
+          netProfit: atTarget?.netProfit ?? null, netLossAtStop: atStop?.netProfit ?? null,
+          costPct: atTarget?.costAsPctOfGross ?? null
+        };
+      })(),
       iv: c.impliedVol, rv: c.realisedVol, vrp: c.varianceRiskPremium,
       touchPct: c.touchPct, daysToTarget: c.medianDaysToTarget, daysLeft: c.daysToExpiry,
       thetaBurnPct: c.thetaBurnPct, term: c.termShape, skew: c.skewPoints,
@@ -451,6 +467,13 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
       frozen: levels.frozen, frozenAtIst: levels.frozenAtIst, frozenAt: levels.frozenAt || null,
       expected: levels.expected || null,
       perUnitCapital: levels.buy,
+      // GM Global's smallest futures order is 20 units (the user, 2026-09-25:
+      // "I need to purchase minimum 20"). Before GM's own charges, which are
+      // not known here.
+      minUnits: GM_MIN_UNITS,
+      minCapital: round(levels.buy * GM_MIN_UNITS),
+      minLossAtStop: round((levels.buy - levels.stop) * GM_MIN_UNITS),
+      minGainAtTarget: round((levels.target1 - levels.buy) * GM_MIN_UNITS),
       riskPerUnit: risk, rewardPerUnit: reward,
       rewardToRisk: risk > 0 ? round(reward / risk) : null,
       exchangeLot: r.lotSize, score: r.compositeScore,
@@ -598,8 +621,8 @@ function page(d) {
           <div class="sub">Zerodha <code>${esc(c.zerodha)}</code>${c.angel ? ` &middot; Angel <code>${esc(c.angel)}</code>` : ""}</div>
           <div class="sub">expires ${esc(c.expiryText || c.expiry)} &middot; ${esc(round(c.daysLeft, 1))}d left${c.exitByText ? ` &middot; <b class="warn">exit by ${esc(c.exitByText)}</b>` : ""}</div>${resultsLine(c)}</td>
         <td class="num"><b>${money(c.buy)}</b><div class="sub">&times;${esc(c.lotSize)} = ${money(c.costPerLot)}</div></td>
-        <td class="num up"><b>${money(c.sell)}</b><div class="sub">net ${money(c.netProfit)}</div></td>
-        <td class="num down">${money(c.stop)}</td>
+        <td class="num up"><b>${money(c.sell)}</b><div class="sub">net +${money(c.netProfit)} a lot</div></td>
+        <td class="num down">${money(c.stop)}${c.netLossAtStop !== null && c.netLossAtStop !== undefined ? `<div class="sub down">net &minus;${money(Math.abs(c.netLossAtStop))} a lot</div>` : ""}</td>
         <td class="num">${money(c.now)}<div class="sub ${state.tone}">${esc(state.word)}</div></td>
         <td class="num">${esc(c.iv)}% / ${esc(c.rv)}%<div class="sub">VRP ${esc(c.vrp)}</div></td>
         <td class="num">${esc(c.touchPct)}%<div class="sub">~${esc(c.daysToTarget)}d</div></td>
@@ -651,7 +674,7 @@ function page(d) {
         <td class="num">${money(r.spot)}<div class="sub ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.referencePrice
           ? `<div class="sub">${r.referenceKind === "future" ? "NSE future" : "share"} ${money(r.referencePrice)}</div>`
           : (r.fnoListed === false ? `<div class="sub">no NSE futures contract</div>` : "")}</td>
-        <td class="num">${money(r.perUnitCapital)}<div class="sub">per unit</div></td>
+        <td class="num">${money(r.minCapital)}<div class="sub">${esc(r.minUnits)} units</div><div class="sub down">stop &minus;${money(r.minLossAtStop)}</div><div class="sub up">target +${money(r.minGainAtTarget)}</div></td>
         <td class="num">${esc(r.rewardToRisk)}<div class="sub">+${money(r.rewardPerUnit)} / &minus;${money(r.riskPerUnit)}</div></td>
       </tr>`;
   }).join("");
@@ -887,7 +910,7 @@ function page(d) {
     <div class="wrap"><table>
       <thead><tr>
         <th>SYMBOL</th><th class="num">BUY LIMIT</th><th class="num">TARGET 1 &middot; 2</th>
-        <th class="num">STOP</th><th class="num">NOW</th><th class="num">1 UNIT</th><th class="num">R : R</th>
+        <th class="num">STOP</th><th class="num">NOW</th><th class="num">GM MIN (20 UNITS)</th><th class="num">R : R</th>
       </tr></thead><tbody>${futRows || '<tr><td colspan="7">No futures cleared the hurdle on this build.</td></tr>'}</tbody>
     </table></div>
     <div class="sub" style="margin-top:8px">${d.resultsCalendar?.ok
