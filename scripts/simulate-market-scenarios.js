@@ -556,6 +556,9 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
   console.log(`\nTRACK TAB after the week: shown ${s.shown}, open ${s.open}, target ${s.target}, stop ${s.stop}, expired/exit ${s.expired}, unfilled ${s.unfilled}`);
   check("every trade the week produced is accounted for on the TRACK tab", s.shown === s.waiting + s.open + s.target + s.stop + s.expired + s.unfilled);
   check("under 30 finished trades a hit rate is labelled too few to judge", s.resolved >= 30 || /too few to judge/.test(last.html));
+  check("a loss is written -₹ everywhere on the page, never ₹-", !/₹-\d/.test(last.html));
+  check("a kind with no target yet shows no time to target, not 0 h",
+    ["FUT", "CE", "PE"].every((k) => last.data.track.summary[k].target > 0 || last.data.track.summary[k].medianHoursToTarget === null));
   check("TRACK compares the hit rate with the random-price break-even, not with touch odds",
     /IF RANDOM/.test(last.html) && (s.resolved === 0 || (s.randomHitRatePct > 0 && s.randomHitRatePct < 100)), `${s.randomHitRatePct}`);
   check("futures results are shown in the user's size: 20 units, in rupees",

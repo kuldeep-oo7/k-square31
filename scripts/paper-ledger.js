@@ -57,6 +57,9 @@ const MONTHS = { JAN: "01", FEB: "02", MAR: "03", APR: "04", MAY: "05", JUN: "06
                  JUL: "07", AUG: "08", SEP: "09", OCT: "10", NOV: "11", DEC: "12" };
 
 function round(value, dp = 2) {
+  // Number(null) is 0: without this line an empty median ("no targets yet")
+  // came back as 0 and TRACK read "FILL -> TARGET 0 h".
+  if (value === null || value === undefined || value === "") return null;
   const n = Number(value);
   if (!Number.isFinite(n)) return null;
   const f = 10 ** dp;

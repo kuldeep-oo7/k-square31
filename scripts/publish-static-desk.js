@@ -37,7 +37,12 @@ const OUT_DIR = path.resolve(__dirname, "..", "docs");
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 
 function money(value) {
-  return Number.isFinite(Number(value)) ? "₹" + Number(value).toLocaleString("en-IN") : "—";
+  // A missing amount is a dash, never "₹0" (Number(null) is 0), and a loss is
+  // written "−₹3,725.8" as everywhere else on the page, not "₹-3,725.8".
+  if (value === null || value === undefined || value === "") return "—";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "—";
+  return (n < 0 ? "−₹" : "₹") + Math.abs(n).toLocaleString("en-IN");
 }
 function esc(text) {
   return String(text ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
@@ -407,6 +412,10 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
           // equally often and what is left is the charges. Rough: it ignores
           // discounting and moves in implied volatility.
           noTrendNet: atTarget && atStop ? -round((atTarget.totalCost + atStop.totalCost) / 2) : null,
+          // Without a live book the bid-ask spread is unknown and not in any
+          // net figure here (after the close it was -77 a lot on SUNPHARMA 1860
+          // CE, charges only). Say so rather than let it read as the whole cost.
+          spreadKnown: atTarget ? atTarget.spreadKnown === true : null,
           sector: sectorOf.get(c.symbol) || null,
           costPct: atTarget?.costAsPctOfGross ?? null
         };
@@ -761,7 +770,7 @@ function page(d) {
         <td class="num down">${money(c.stop)}${c.netLossAtStop !== null && c.netLossAtStop !== undefined ? `<div class="sub down">net &minus;${money(Math.abs(c.netLossAtStop))} a lot</div>` : ""}</td>
         <td class="num">${money(c.now)}<div class="sub ${state.tone}">${esc(state.word)}</div></td>
         <td class="num">${esc(c.iv)}% / ${esc(c.rv)}%<div class="sub">VRP ${esc(c.vrp)}</div></td>
-        <td class="num">${esc(c.touchPct)}%<div class="sub">touch, ~${esc(c.daysToTarget)}d &mdash; ignores the stop</div>${c.breakEvenPct !== null && c.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(c.breakEvenPct)}% wins to break even</div>` : ""}${c.noTrendNet !== null && c.noTrendNet !== undefined ? `<div class="sub down">no trend: about &minus;${money(Math.abs(c.noTrendNet))} a lot</div>` : ""}</td>
+        <td class="num">${esc(c.touchPct)}%<div class="sub">touch, ~${esc(c.daysToTarget)}d &mdash; ignores the stop</div>${c.breakEvenPct !== null && c.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(c.breakEvenPct)}% wins to break even</div>` : ""}${c.noTrendNet !== null && c.noTrendNet !== undefined ? `<div class="sub down">no trend: about &minus;${money(Math.abs(c.noTrendNet))} a lot${c.spreadKnown === false ? ", plus the spread" : ""}</div>` : ""}</td>
         <td class="num ${Number(c.thetaBurnPct) > 12 ? "down" : ""}">${esc(c.thetaBurnPct)}%</td>
         <td class="num">${esc(c.score)}</td>
       </tr>`;
@@ -792,8 +801,9 @@ function page(d) {
     const fillMinutes = exp?.fill ? Math.round(exp.fill.medianTradingDays * 375) : null;
     const expLine = [
       exp?.fill ? (exp.fill.atLimit ? "at the limit now" : `fill ${esc(exp.fill.probabilityPct)}% by the close (~${esc(fillMinutes)} min)`) : null,
-      exp?.target ? `touches the target at some point: ${esc(exp.target.probabilityPct)}% (~${esc(round(exp.target.medianTradingDays, 1))} sessions; ignores the stop)` : null
-    ].filter(Boolean).join(" &middot; ");
+      exp?.target ? `touch odds ${esc(exp.target.probabilityPct)}% (~${esc(round(exp.target.medianTradingDays, 1))} sessions)` : null,
+      exp?.target ? "&mdash; ignores the stop" : null
+    ].filter(Boolean).map((line) => `<div class="sub">${line}</div>`).join("");
     return `
       <tr>
         <td>${r.priceBasis === "CONTRACT"
@@ -805,7 +815,7 @@ function page(d) {
                ? `<div class="sub">NSE future: Zerodha <code>${esc(r.tradingSymbol)}</code>${r.angelSymbol ? ` &middot; Angel <code>${esc(r.angelSymbol)}</code>` : ""}</div>`
                : `<div class="sub">no NSE futures contract &mdash; share only</div>`}`}
           ${r.expiryText ? `<div class="sub">future expires ${esc(r.expiryText)}${r.exitByText ? ` &middot; <b class="warn">exit or roll by ${esc(r.exitByText)}</b>` : ""}</div>` : ""}${resultsLine(r)}</td>
-        <td class="num"><b>${money(r.buy)}</b>${expLine ? `<div class="sub">expected: ${expLine}</div>` : ""}</td>
+        <td class="num"><b>${money(r.buy)}</b>${expLine}</td>
         <td class="num up">${money(r.target1)}<div class="sub">${money(r.target2)}</div></td>
         <td class="num down">${money(r.stop)}</td>
         <td class="num">${money(r.spot)}<div class="sub ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.referencePrice
@@ -969,11 +979,22 @@ function page(d) {
     : `All prices are from the <b>${esc(d.settlementFile)}</b> settlement file. The market was ${esc(d.marketPhase).toLowerCase()} when this was built, so nothing here is executable right now.`;
 
   const nextText = d.nextSession ? new Date(`${d.nextSession}T00:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }) : "the next session";
+  // The options are priced from a settlement file OLDER than the last session
+  // that traded: between the close and the evening NSE publishes the day's file
+  // (18:40-19:08 IST, measured), the calls tab shows the previous session's
+  // prices while the futures tab already shows today's last trades.
+  const lastTraded = d.quoteStatus?.lastExchangeDate || null;
+  const optionsOnOldFile = d.pricedLive === 0 && d.settlementFile && lastTraded && d.settlementFile < lastTraded;
+  const oldFileNote = optionsOnOldFile
+    ? `<div class="sub warn" style="margin:-4px 0 10px">These calls are priced from NSE&rsquo;s <b>${esc(d.settlementFile)}</b> settlement file,
+        a session older than today&rsquo;s last trades (${esc(lastTraded)}). NSE publishes the ${esc(lastTraded)} file after about 19:00 IST,
+        and the next build after that uses it. The futures tab already uses today&rsquo;s last trades.</div>`
+    : "";
   const freezeNote = d.sessionOver
     ? `<b>THE SESSION IS OVER. THESE ROWS ARE PREVIEWS, NOT ORDERS.</b> Today's buy limits were day orders and
        ended at 15:30 &mdash; what became of each is on <b>TRACK</b>. Every row below is worked from the last
-       prices, for <b>${esc(nextText)}</b>. The real levels are fixed on that session's first build that sees
-       a live exchange book, and can differ from these.`
+       prices${optionsOnOldFile ? ` (the calls from the ${esc(d.settlementFile)} settlement file until NSE publishes today&rsquo;s)` : ""}, for <b>${esc(nextText)}</b>.
+       The real levels are fixed on that session's first build that sees a live exchange book, and can differ from these.`
     : d.levelsFrozen
     ? `<b>BUY, SELL AND STOP ARE FIXED FOR TODAY.</b> They were set at
        <b>${esc(d.levelsOpenedAtIst || "the first build after the open")}</b> and they do not move again,
@@ -1008,7 +1029,7 @@ function page(d) {
   td { padding:9px 10px; border-bottom:1px solid rgba(255,255,255,.05); vertical-align:top }
   .num { text-align:right; white-space:nowrap }
   .sub { font-size:10px; color:var(--muted); margin-top:2px }
-  code { font-size:10px; color:var(--text); word-break:break-all }
+  code { font-size:10px; color:var(--text); white-space:nowrap }
   .up { color:var(--green) } .down { color:var(--red) }
   .name { font-size:15px; letter-spacing:.02em }
   .warn { color:var(--amber) }
@@ -1101,10 +1122,12 @@ ${feedAlarm}
     <h2>Calls &mdash; you BUY the call, it pays if the stock RISES</h2>
     ${allRowsBox(calls, sumOf(calls, (c) => c.costPerLot), sumOf(calls, (c) => Math.abs(c.netLossAtStop)), "one lot each",
       calls.length ? `<b>With no trend and fairly priced options, a call is expected to lose about its charges</b>:
-       about &minus;${money(Math.abs(sumOf(calls, (c) => c.noTrendNet)))} across all ${esc(calls.length)} rows, one lot each.
+       about &minus;${money(Math.abs(sumOf(calls, (c) => c.noTrendNet)))} across all ${esc(calls.length)} rows, one lot each${calls.some((c) => c.spreadKnown === false)
+         ? `, <b>plus the bid-ask spread</b>, which is not known without a live book (${esc(calls.filter((c) => c.spreadKnown === false).length)} of these rows)` : ""}.
        ${esc(calls.filter((c) => Number(c.vrp) > 1).length)} of ${esc(calls.length)} are priced above the stock&rsquo;s own recent movement (implied above realised), which makes it worse.
        They make money only if the BUY signal works, and it failed its pre-registered final test (1,205 trades, t = 0.75; panel study, 24 Sep 2026).` : "")}
     ${d.optionsDirection ? `<div class="sub" style="margin:-4px 0 10px">Only on the ${esc(d.optionsDirection.names)} stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
+    ${oldFileNote}
     ${optionTable(calls, "No calls cleared every gate on this build.")}
   </section>
 

@@ -206,6 +206,11 @@ console.log("paper ledger:");
     const t = (strike, status) => ({ kind: "CE", symbol: "DIVISLAB", sessionDate: "2026-09-25", contract: `DIVISLAB26OCT${strike}CE`,
       status, filledAt: "2026-09-25T05:00:00.000Z", pnl: { pct: status === "TARGET" ? 50 : -50 } });
     const bets = L.summarize([], [t(6000, "STOP"), t(6100, "STOP"), t(6200, "STOP"), { ...t(900, "TARGET"), symbol: "M&M" }]);
+    check("with no target yet, the time to target is unknown -- not 0 hours", bets.CE.medianHoursToTarget === null || bets.CE.target > 0,
+      String(bets.CE.medianHoursToTarget));
+    const noWins = L.summarize([], [t(6000, "STOP")]);
+    check("a stop-only record has no time to target (null), where Number(null) used to make it 0", noWins.CE.medianHoursToTarget === null,
+      String(noWins.CE.medianHoursToTarget));
     check("strikes of one stock on one day count as one bet: 4 trades, 2 separate bets", bets.ALL.resolved === 4 && bets.ALL.resolvedBets === 2,
       JSON.stringify({ resolved: bets.ALL.resolved, bets: bets.ALL.resolvedBets }));
   }
