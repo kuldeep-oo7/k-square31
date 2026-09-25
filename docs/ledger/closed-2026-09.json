@@ -1207,6 +1207,60 @@
     "pct": -1.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-09-24|FUT|BDL26OCTFUT",
+   "kind": "FUT",
+   "symbol": "BDL",
+   "contract": "BDL26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 425,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 1162.62,
+   "target": 1191.69,
+   "target2": 1220.75,
+   "stop": 1145.18,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": {
+    "fill": {
+     "probabilityPct": 67.9,
+     "medianTradingDays": 0.18
+    },
+    "target": {
+     "probabilityPct": 77,
+     "medianTradingDays": 2.11
+    },
+    "sigmaPct": 31.4,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T08:25:12.081Z",
+   "hoursToFill": 4.34,
+   "closedAt": "2026-09-25T07:24:36.720Z",
+   "exitPrice": 1145.18,
+   "exitReason": "STOP",
+   "hoursFillToExit": 22.99,
+   "sessionsHeld": 1,
+   "best": 1166.7,
+   "worst": 1144,
+   "last": 1145.2,
+   "lastAt": "2026-09-25T07:24:36.720Z",
+   "marks": 36,
+   "obs": {
+    "date": "2026-09-25",
+    "high": 1166.7,
+    "low": 1144,
+    "last": 1145.2
+   },
+   "pnl": {
+    "perUnit": -17.44,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
