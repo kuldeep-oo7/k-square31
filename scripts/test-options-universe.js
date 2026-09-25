@@ -26,7 +26,13 @@ console.log(`  ✓ Whole Market Options coverage verified (${options.length} Cal
 // 2. Check Index Options (NIFTY & BANKNIFTY)
 const niftyCe = options.find(o => o.id === "OPT-NIFTY-CE");
 assert(niftyCe, "NIFTY CE option contract must be present");
-assert(niftyCe.executiveVerdict === "MUST_READ_AND_BUY", "NIFTY CE must be MUST_READ_AND_BUY");
+// The index cards are REFERENCE cards: the desk has no index direction model, so
+// they may not claim a buy. This asserted "MUST_READ_AND_BUY" -- a verdict typed
+// into the code with a fixed score of 78 and a fake +Rs 417.50 P&L beside it.
+assert(niftyCe.executiveVerdict === "IGNORE" && niftyCe.status === "INDEX_REFERENCE",
+  `NIFTY CE must not claim a buy with no model behind it (got ${niftyCe.executiveVerdict}/${niftyCe.status})`);
+assert(niftyCe.compositeScore === null && niftyCe.followPnl === null,
+  "an index card carries no invented score or P&L");
 // Lot size is whatever the exchange lists, not a constant. This asserted 25
 // while the NSE F&O bhavcopy for the same session carried 65, so the test was
 // defending a figure that understated the money at risk on every NIFTY card.
