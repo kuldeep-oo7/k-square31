@@ -564,6 +564,12 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
       const closed = ledger.allClosed();
       track = {
         summary: ledgerLib.summarize(ledger.open, closed),
+        // Futures in the size the user actually trades on GM: 20 units, gross
+        // (GM's own charges are not known here).
+        futuresPer20: (() => {
+          const fut = closed.filter((x) => x.kind === "FUT" && x.pnl && Number.isFinite(Number(x.pnl.perUnit)));
+          return fut.length ? { trades: fut.length, rupees: round(fut.reduce((a, x) => a + Number(x.pnl.perUnit) * GM_MIN_UNITS, 0)), units: GM_MIN_UNITS } : null;
+        })(),
         open: ledger.open,
         recentClosed: closed.slice().sort((a, b) => String(b.closedAt).localeCompare(String(a.closedAt))).slice(0, 60),
         totalClosed: closed.length,
@@ -614,6 +620,7 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     forwardStatus,
     optionsOnLiveForward: options.filter((c) => c.forwardSource === "LIVE").length,
     optionsDirection: { rule: "CALLS_ON_BUY_OR_ACCUMULATE_ONLY", names: Object.keys(bullish).length },
+    gmMinUnits: GM_MIN_UNITS,
     marketContext: marketContext
       ? { ok: true, indiaVix: marketContext.indiaVix, indiaVixChangePct: marketContext.indiaVixChangePct,
           nifty: marketContext.nifty, niftyChangePct: marketContext.niftyChangePct, at: marketContext.nseTimestamp }
@@ -745,11 +752,13 @@ function page(d) {
         <td class="num">${esc(s.shown)}</td><td class="num">${esc(s.waiting)}</td><td class="num">${esc(s.open)}</td>
         <td class="num up">${esc(s.target)}</td><td class="num down">${esc(s.stop)}</td><td class="num">${esc(s.expired)}</td>
         <td class="num">${esc(s.unfilled)}</td>
-        <td class="num"><b>${s.hitRatePct === null ? "&mdash;" : esc(s.hitRatePct) + "%"}</b><div class="sub">of ${esc(s.resolved)} finished</div></td>
+        <td class="num"><b>${s.hitRatePct === null ? "&mdash;" : esc(s.hitRatePct) + "%"}</b><div class="sub">of ${esc(s.resolved)} finished${Number(s.resolved) < 30 ? " &mdash; too few to judge" : ""}</div></td>
         <td class="num">${s.expectedHitRatePct === null ? "&mdash;" : esc(s.expectedHitRatePct) + "%"}</td>
         <td class="num">${hrs(s.medianHoursToFill)}</td><td class="num">${hrs(s.medianHoursToTarget)}</td>
         <td class="num ${Number(s.avgReturnPct) >= 0 ? "up" : "down"}">${s.avgReturnPct === null ? "&mdash;" : esc(s.avgReturnPct) + "%"}</td>
-        <td class="num ${Number(s.totalNetPerLot) >= 0 ? "up" : "down"}">${s.totalNetPerLot === null ? "&mdash;" : money(s.totalNetPerLot)}</td>
+        <td class="num ${Number(label === "FUTURES" ? t?.futuresPer20?.rupees : s.totalNetPerLot) >= 0 ? "up" : "down"}">${label === "FUTURES"
+          ? (t?.futuresPer20 ? `${money(t.futuresPer20.rupees)}<div class="sub">at ${esc(t.futuresPer20.units)} units, gross</div>` : "&mdash;")
+          : (s.totalNetPerLot === null ? "&mdash;" : money(s.totalNetPerLot))}</td>
       </tr>` : "";
   const openRows = (t?.open || []).slice().sort((a, b) => String(b.shownAt).localeCompare(String(a.shownAt))).map((x) => `
       <tr>
@@ -767,7 +776,7 @@ function page(d) {
         <td class="num">${hrs(x.hoursToFill)}</td>
         <td class="num">${hrs(x.hoursFillToExit)}</td>
         <td class="num">${expectedText(x)}</td>
-        <td class="num ${Number(x.pnl?.perUnit) >= 0 ? "up" : "down"}">${x.pnl ? `${money(x.pnl.perUnit)} <div class="sub">${esc(x.pnl.pct)}% ${esc(x.pnl.basis)}${x.pnl.netPerLot !== undefined && x.pnl.netPerLot !== null ? ` &middot; net ${money(x.pnl.netPerLot)}/lot` : ""}</div>` : "&mdash;"}</td>
+        <td class="num ${Number(x.pnl?.perUnit) >= 0 ? "up" : "down"}">${x.pnl ? `${money(x.pnl.perUnit)} <div class="sub">${esc(x.pnl.pct)}% ${esc(x.pnl.basis)}${x.pnl.netPerLot !== undefined && x.pnl.netPerLot !== null ? ` &middot; net ${money(x.pnl.netPerLot)}/lot` : ""}${x.kind === "FUT" && Number.isFinite(Number(x.pnl.perUnit)) ? ` &middot; ${money(round(Number(x.pnl.perUnit) * (d.gmMinUnits || 20)))} at ${esc(d.gmMinUnits || 20)} units` : ""}</div>` : "&mdash;"}</td>
       </tr>`).join("");
   const trackCount = (t?.open?.length || 0) + (t?.totalClosed || 0);
   const trackPane = !t
@@ -779,7 +788,7 @@ function page(d) {
         <th class="num">TARGET ✓</th><th class="num">STOP ✗</th><th class="num">EXPIRED</th><th class="num">UNFILLED</th>
         <th class="num">HIT RATE</th><th class="num">EXPECTED</th>
         <th class="num">TIME TO FILL</th><th class="num">FILL &rarr; TARGET</th>
-        <th class="num">AVG RETURN</th><th class="num">NET / LOT</th>
+        <th class="num">AVG RETURN</th><th class="num">NET / LOT &middot; FUTURES AT 20 UNITS</th>
       </tr></thead><tbody>
         ${summaryRow("FUTURES", t.summary.FUT)}${summaryRow("CALLS", t.summary.CE)}${summaryRow("PUTS", t.summary.PE)}${summaryRow("ALL", t.summary.ALL)}
       </tbody>
