@@ -18,10 +18,12 @@ const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML,
 async function refreshMarketContext({ file = CACHE_FILE } = {}) {
   let record;
   try {
-    const home = await fetch("https://www.nseindia.com/market-data/live-market-indices", { headers: { "User-Agent": UA, Accept: "text/html" } });
+    // NSE stalls some cloud addresses instead of refusing them; a stall must
+    // cost seconds, not the build (Node's own wait is minutes).
+    const home = await fetch("https://www.nseindia.com/market-data/live-market-indices", { headers: { "User-Agent": UA, Accept: "text/html" }, signal: AbortSignal.timeout(15_000) });
     const cookie = (home.headers.getSetCookie?.() || []).map((c) => c.split(";")[0]).join("; ");
     const res = await fetch("https://www.nseindia.com/api/allIndices", { headers: { "User-Agent": UA, Accept: "application/json", Cookie: cookie,
-      Referer: "https://www.nseindia.com/market-data/live-market-indices" } });
+      Referer: "https://www.nseindia.com/market-data/live-market-indices" }, signal: AbortSignal.timeout(15_000) });
     if (!res.ok) throw new Error(`NSE answered HTTP ${res.status}`);
     const body = await res.json();
     const row = (name) => (body?.data || []).find((r) => r.index === name) || null;

@@ -75,7 +75,7 @@ function resultsBySymbol(rows, today) {
 
 async function nseCookie() {
   const res = await fetch("https://www.nseindia.com/companies-listing/corporate-filings-event-calendar",
-    { headers: { "User-Agent": UA, Accept: "text/html" } });
+    { headers: { "User-Agent": UA, Accept: "text/html" }, signal: AbortSignal.timeout(15_000) });
   return (res.headers.getSetCookie?.() || []).map((c) => c.split(";")[0]).join("; ");
 }
 
@@ -93,7 +93,7 @@ async function refreshResultsCalendar({ now = Date.now(), days = 60, file = CACH
     const cookie = await nseCookie();
     const url = `https://www.nseindia.com/api/corporate-board-meetings?index=equities&from_date=${from}&to_date=${to}`;
     const res = await fetch(url, { headers: { "User-Agent": UA, Accept: "application/json", Cookie: cookie,
-      Referer: "https://www.nseindia.com/companies-listing/corporate-filings-event-calendar" } });
+      Referer: "https://www.nseindia.com/companies-listing/corporate-filings-event-calendar" }, signal: AbortSignal.timeout(15_000) });
     if (!res.ok) throw new Error(`NSE answered HTTP ${res.status}`);
     const body = await res.json();
     const rows = Array.isArray(body) ? body : body?.data;

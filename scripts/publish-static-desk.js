@@ -910,7 +910,8 @@ function page(d) {
       ? (fc.wrongContract?.length
         ? ` <b class="down">Checked against NSE at ${esc(fcAt)}: ${esc(fc.wrongContract.length)} of ${esc(fc.identityCompared)} sampled contracts are a DIFFERENT contract on NSE.</b>`
         : ` <b class="up">Checked against NSE's own site</b> at ${esc(fcAt)}: ${esc(fc.sameContract)} of ${esc(fc.identityCompared)} sampled
-           contracts are the same contract on both (the same previous close)${fc.worstGapPct !== null && fc.worstGapPct !== undefined ? `, last prices within ${esc(fc.worstGapPct)}%` : ""}.`)
+           contracts are the same contract on both (the same previous close)${fc.worstGapPct === 0 ? ", last prices identical"
+             : fc.worstGapPct !== null && fc.worstGapPct !== undefined ? `, last prices within ${esc(fc.worstGapPct)}%` : ""}.`)
         + (fc.priceOff?.length ? ` <b class="warn">Price differs from NSE's:</b> ${esc(fc.priceOff.join("; "))}.` : "")
       : ` Not checked against NSE on this build (${esc(fc.reason || "reason unknown")}).`;
   const feedAlarm = fc?.checked && fc.wrongContract?.length

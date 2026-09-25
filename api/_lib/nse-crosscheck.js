@@ -149,16 +149,37 @@ function summarise(rows, extra = {}) {
   };
 }
 
-async function readNse(requests, { fetchImpl = fetch, pauseMs = 300 } = {}) {
-  const home = await fetchImpl("https://www.nseindia.com/option-chain", { headers: { "User-Agent": UA, Accept: "text/html" } });
-  const cookie = (home?.headers?.getSetCookie?.() || []).map((c) => c.split(";")[0]).join("; ");
+// A request that has not answered in `ms` has failed. NSE stalls some cloud
+// addresses rather than refusing them, and Node's own wait for headers is five
+// minutes: nine stalled reads would outlast the job's 10-minute limit, and a
+// killed job is a red build -- the one thing an unreachable NSE must never
+// cause. The signal tears the request down; the race covers a fetch that
+// ignores it.
+function timed(start, ms, what) {
+  let timer;
+  const signal = AbortSignal.timeout(ms);
+  return Promise.race([
+    Promise.resolve().then(() => start(signal)),
+    new Promise((_, reject) => { timer = setTimeout(() => reject(new Error(`${what}: no answer in ${ms / 1000}s`)), ms); })
+  ]).finally(() => clearTimeout(timer));
+}
+
+async function readNse(requests, { fetchImpl = fetch, pauseMs = 300, timeoutMs = 8_000, budgetMs = 30_000 } = {}) {
+  const started = Date.now();
+  const cookie = await timed(async (signal) => {
+    const home = await fetchImpl("https://www.nseindia.com/option-chain", { headers: { "User-Agent": UA, Accept: "text/html" }, signal });
+    return (home?.headers?.getSetCookie?.() || []).map((c) => c.split(";")[0]).join("; ");
+  }, timeoutMs, "NSE home page");
   const replies = new Map();
   for (const r of requests) {
     const url = urlFor(r);
     if (replies.has(url)) continue;
+    if (Date.now() - started > budgetMs) { replies.set(url, { error: `not asked: the ${budgetMs / 1000}s budget was spent` }); continue; }
     try {
-      const res = await fetchImpl(url, { headers: { "User-Agent": UA, Accept: "application/json", Cookie: cookie, Referer: "https://www.nseindia.com/" } });
-      replies.set(url, res.ok ? await res.json() : { error: `HTTP ${res.status}` });
+      replies.set(url, await timed(async (signal) => {
+        const res = await fetchImpl(url, { headers: { "User-Agent": UA, Accept: "application/json", Cookie: cookie, Referer: "https://www.nseindia.com/" }, signal });
+        return res.ok ? res.json() : { error: `HTTP ${res.status}` };
+      }, timeoutMs, "NSE"));
     } catch (error) {
       replies.set(url, { error: error.message });
     }
@@ -172,14 +193,14 @@ async function readNse(requests, { fetchImpl = fetch, pauseMs = 300 } = {}) {
  * ours:     async (requests) => array of Angel One quotes, aligned with requests
  * session:  the newest exchange date among the build's quotes ("2026-09-25")
  */
-async function crossCheck(requests, { ours, session = null, fetchImpl = fetch, pauseMs = 300, now = () => Date.now() } = {}) {
+async function crossCheck(requests, { ours, session = null, fetchImpl = fetch, pauseMs = 300, timeoutMs = 8_000, budgetMs = 30_000, now = () => Date.now() } = {}) {
   const sample = (requests || []).filter((r) => r && r.symbol && ["EQ", "FUT", "OPT"].includes(r.kind));
   if (!sample.length) return { checked: false, reason: "nothing on the page to compare", sampled: 0 };
   let ourQuotes;
-  try { ourQuotes = await ours(sample); } catch (error) { return { checked: false, reason: `Angel One re-quote failed: ${error.message}`, sampled: sample.length }; }
+  try { ourQuotes = await timed(() => ours(sample), 3 * timeoutMs, "Angel One re-quote"); } catch (error) { return { checked: false, reason: `Angel One re-quote failed: ${error.message}`, sampled: sample.length }; }
   const angelAt = new Date(now()).toISOString();
   let replies;
-  try { replies = await readNse(sample, { fetchImpl, pauseMs }); } catch (error) { return { checked: false, reason: `NSE not reached: ${error.message}`, sampled: sample.length }; }
+  try { replies = await readNse(sample, { fetchImpl, pauseMs, timeoutMs, budgetMs }); } catch (error) { return { checked: false, reason: `NSE not reached: ${error.message}`, sampled: sample.length }; }
   const nseAt = new Date(now()).toISOString();
   const errors = [...new Set([...replies.values()].filter((b) => b && b.error).map((b) => b.error))];
   const rows = sample.map((r, i) => compareOne(r, ourQuotes?.[i] || null, nseFigures(r, replies.get(urlFor(r))), session));

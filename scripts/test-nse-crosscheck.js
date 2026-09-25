@@ -103,6 +103,25 @@ const good = [angel(393.55, 392, "25-Sep-2026 15:58:17"), angel(987.8, 986.3), a
   check("NSE refusing every request is NOT CHECKED too, and says why", refused.checked === false && refused.nseErrors.includes("HTTP 403"),
     JSON.stringify({ ...refused, rows: undefined }));
 
+  // A STALL, not a refusal: NSE holds some cloud addresses open instead of
+  // answering. These fetches never settle and ignore their abort signal, the
+  // worst case; the check must still come back, quickly, as not checked.
+  const never = () => new Promise(() => {});
+  let t0 = Date.now();
+  const stalled = await fc.crossCheck(reqs, { ours: async () => good, session: SESSION, fetchImpl: never, pauseMs: 0, timeoutMs: 200, budgetMs: 500 });
+  check("NSE stalling on the first request: not checked, and back in well under a second",
+    stalled.checked === false && /no answer/.test(stalled.reason) && Date.now() - t0 < 1500, `${stalled.reason} in ${Date.now() - t0} ms`);
+  const home = fakeNse();
+  const apiStalls = async (url, init) => (url.includes("/api/") ? never() : home(url, init));
+  t0 = Date.now();
+  const slow = await fc.crossCheck([...reqs, { kind: "EQ", symbol: "IPCALAB" }, { kind: "FUT", symbol: "BEL", expiry: "2026-10-27" }],
+    { ours: async () => [...good, null, null], session: SESSION, fetchImpl: apiStalls, pauseMs: 0, timeoutMs: 200, budgetMs: 500 });
+  check("every quote stalling: the budget stops the asking -- not checked, back in about a second",
+    slow.checked === false && slow.nseErrors.some((e) => /budget/.test(e)) && Date.now() - t0 < 2000,
+    `${JSON.stringify(slow.nseErrors)} in ${Date.now() - t0} ms`);
+  const hungAngel = await fc.crossCheck(reqs, { ours: never, session: SESSION, fetchImpl: fakeNse(), pauseMs: 0, timeoutMs: 100 });
+  check("our own feed stalling on the re-quote is not checked too", hungAngel.checked === false && /Angel One re-quote failed/.test(hungAngel.reason), hungAngel.reason);
+
   // ---- the rotating sample ----
   const futures = [{ symbol: "BEL", priceBasis: "CONTRACT", expiry: "2026-10-27" }, { symbol: "IEX", priceBasis: "SHARE", expiry: "2026-10-27" },
     { symbol: "SBIN", priceBasis: "CONTRACT", expiry: "2026-10-27" }, { symbol: "TCS", priceBasis: "SHARE", expiry: null }, { symbol: "WIPRO", priceBasis: "CONTRACT", expiry: "2026-10-27" }];
