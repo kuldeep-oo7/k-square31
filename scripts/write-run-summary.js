@@ -128,18 +128,19 @@ function main() {
 
   // Futures first, then calls, then puts: three different trades, kept apart,
   // in the order the money is actually on them.
-  lines.push("## Futures — per unit, not per lot (" + d.futures.length + ")");
+  lines.push("## Futures — GM minimum 20 units (" + d.futures.length + ")");
   lines.push("");
   if (!d.futures.length) {
     lines.push("_Nothing cleared the hurdle on this build._");
   } else {
-    lines.push("| Symbol | Buy limit | Target 1 | Target 2 | Stop | Now | 1 unit | R:R |");
-    lines.push("|---|--:|--:|--:|--:|--:|--:|--:|");
+    lines.push("| Symbol | Buy limit | Target 1 | Target 2 | Stop | Now | 20 units | At stop | At target | R:R |");
+    lines.push("|---|--:|--:|--:|--:|--:|--:|--:|--:|--:|");
     for (const r of d.futures) {
       lines.push("| `" + r.tradingSymbol + "`"
         + " | **" + rupee(r.buy) + "** | " + rupee(r.target1) + " | " + rupee(r.target2)
         + " | " + rupee(r.stop) + " | " + rupee(r.spot) + "<br>" + gap(r.buy, r.spot)
-        + " | " + rupee(r.perUnitCapital) + " | " + (r.rewardToRisk ?? "—") + " |");
+        + " | " + rupee(r.minCapital ?? r.perUnitCapital) + " | −" + rupee(r.minLossAtStop) + " | +" + rupee(r.minGainAtTarget)
+        + " | " + (r.rewardToRisk ?? "—") + " |");
     }
   }
   lines.push("");
@@ -150,13 +151,13 @@ function main() {
     if (!list.length) {
       lines.push("_" + empty + "_");
     } else {
-      lines.push("| Contract | Buy limit | Sell | Stop | Now | Per lot | Net |");
-      lines.push("|---|--:|--:|--:|--:|--:|--:|");
+      lines.push("| Contract | Buy limit | Sell | Stop | Now | Per lot | Net at sell | Net at stop |");
+      lines.push("|---|--:|--:|--:|--:|--:|--:|--:|");
       for (const c of list) {
         lines.push("| `" + c.zerodha + "`<br>" + c.daysLeft + "d left"
           + " | **" + rupee(c.buy) + "** | " + rupee(c.sell) + " | " + rupee(c.stop)
           + " | " + rupee(c.now) + "<br>" + gap(c.buy, c.now)
-          + " | " + rupee(c.costPerLot) + " | " + rupee(c.netProfit) + " |");
+          + " | " + rupee(c.costPerLot) + " | +" + rupee(c.netProfit) + " | " + (c.netLossAtStop != null ? "−" + rupee(Math.abs(c.netLossAtStop)) : "—") + " |");
       }
     }
     lines.push("");
@@ -164,7 +165,9 @@ function main() {
   optionSection("Calls — pays if the stock RISES", d.options.filter((c) => c.right === "CE"),
     "No calls cleared every gate on this build.");
   optionSection("Puts — pays if the stock FALLS", d.options.filter((c) => c.right === "PE"),
-    "No puts cleared every gate on this build.");
+    d.optionsDirection
+      ? "No puts, by design: the desk has no bearish view, and betting on falls lost money in all 24 tested set-ups."
+      : "No puts cleared every gate on this build.");
   lines.push("---");
   lines.push("");
   lines.push("Net figures are after brokerage, STT at 0.15% on the sell side, exchange charges, "

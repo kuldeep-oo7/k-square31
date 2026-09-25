@@ -380,9 +380,19 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
         const t = Number(c.forward) > 0 && vol > 0 && level > 0
           ? timeToTarget({ spot: Number(c.forward), target: level, volatility: vol, daysAvailable: Number(c.daysToExpiry) })
           : null;
-        return { touchPct: t ? round(t.probabilityOfTouchPct, 1) : null, daysToTarget: t ? round(t.medianDaysIfItHappens, 1) : null };
+        // DECAY for the same trade: theta per day (recovered from the screener's
+        // own figure) times the days to THIS sell, as a share of THIS buy.
+        const screenerWait = Number(c.medianDaysToTarget) > 0 ? Number(c.medianDaysToTarget) : Number(c.daysToExpiry);
+        const thetaPerDay = Number.isFinite(Number(c.thetaBurnPct)) && Number(c.premium) > 0 && screenerWait > 0
+          ? (Number(c.thetaBurnPct) / 100) * Number(c.premium) / screenerWait : null;
+        const wait = t && t.medianDaysIfItHappens > 0 ? t.medianDaysIfItHappens : Number(c.daysToExpiry);
+        return {
+          touchPct: t ? round(t.probabilityOfTouchPct, 1) : null,
+          daysToTarget: t ? round(t.medianDaysIfItHappens, 1) : null,
+          thetaBurnPct: thetaPerDay !== null && levels.buy > 0 && wait > 0 ? round((100 * thetaPerDay * wait) / levels.buy, 2) : null
+        };
       })(), daysLeft: c.daysToExpiry,
-      thetaBurnPct: c.thetaBurnPct, term: c.termShape, skew: c.skewPoints,
+      term: c.termShape, skew: c.skewPoints,
       priceSource: c.priceSource, priceIsLive: c.priceIsLive, score: c.screenScore,
       forward: c.forward ?? null, forwardSource: c.forwardSource || null,
       resultsStatus: c.resultsStatus || null, resultsDate: c.resultsDate || null
@@ -478,7 +488,19 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
       buy: levels.buy, target1: levels.target1, target2: levels.target2, stop: levels.stop,
       anchor: levels.anchor, anchorSource: levels.anchorSource || null, drift: driftPct(levels.buy, shown.price),
       frozen: levels.frozen, frozenAtIst: levels.frozenAtIst, frozenAt: levels.frozenAt || null,
-      expected: levels.expected || null,
+      // THE FILL ESTIMATE IS FOR NOW, not for the moment of the freeze. It was
+      // stored at 09:34 and shown all day: at 11:54 on 25 Sep LT read "fill
+      // 45.8% today" when, from the live price with the session left, it was
+      // 78%. The target odds run from the frozen buy and stay as frozen.
+      expected: levels.expected ? {
+        ...levels.expected,
+        fill: (() => {
+          const sigma = Number(levels.expected.sigmaPct) / 100;
+          if (!(sigma > 0) || !(shown.price > 0) || phase.open !== true) return null;
+          if (shown.price <= levels.buy) return { probabilityPct: 100, medianTradingDays: 0, atLimit: true };
+          return ledgerLib.firstPassage({ from: shown.price, to: levels.buy, sigma, tradingDays: ledgerLib.sessionTradingDaysLeft(Date.now()) });
+        })()
+      } : null,
       perUnitCapital: levels.buy,
       // GM Global's smallest futures order is 20 units (the user, 2026-09-25:
       // "I need to purchase minimum 20"). Before GM's own charges, which are
@@ -667,9 +689,10 @@ function page(d) {
     const state = fillState(r.buy, r.spot);
     const exp = r.expected;
     const fillMinutes = exp?.fill ? Math.round(exp.fill.medianTradingDays * 375) : null;
-    const expLine = exp?.fill && exp?.target
-      ? `fill ${esc(exp.fill.probabilityPct)}% today (~${esc(fillMinutes)} min) &middot; target ${esc(exp.target.probabilityPct)}% in ~${esc(round(exp.target.medianTradingDays, 1))} sessions`
-      : "";
+    const expLine = [
+      exp?.fill ? (exp.fill.atLimit ? "at the limit now" : `fill ${esc(exp.fill.probabilityPct)}% by the close (~${esc(fillMinutes)} min)`) : null,
+      exp?.target ? `target ${esc(exp.target.probabilityPct)}% in ~${esc(round(exp.target.medianTradingDays, 1))} sessions` : null
+    ].filter(Boolean).join(" &middot; ");
     return `
       <tr>
         <td>${r.priceBasis === "CONTRACT"

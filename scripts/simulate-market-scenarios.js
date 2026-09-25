@@ -301,6 +301,9 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       return !t || Math.abs(t.probabilityOfTouchPct - x.touchPct) > 0.11;
     });
     check("every option's P(TOUCH) is the chance of reaching ITS OWN sell price", d.options.length > 0 && offTarget.length === 0, `${offTarget.length} rows off`);
+    check("every option's DECAY is a real share of its own buy (0-100%)",
+      d.options.every((x) => Number.isFinite(x.thetaBurnPct) && x.thetaBurnPct > 0 && x.thetaBurnPct < 100),
+      d.options.filter((x) => !(x.thetaBurnPct > 0 && x.thetaBurnPct < 100)).map((x) => x.display + " " + x.thetaBurnPct).slice(0, 3).join("; "));
     check("every futures row shows GM's 20-unit minimum: capital, loss at stop, gain at target",
       d.futures.every((x) => x.minUnits === 20 && Math.abs(x.minCapital - Math.round(x.buy * 20 * 100) / 100) < 0.02
         && Math.abs(x.minLossAtStop - Math.round((x.buy - x.stop) * 20 * 100) / 100) < 0.02 && x.minGainAtTarget > 0)
@@ -322,6 +325,16 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("not one buy limit moved after the freeze", moved.length === 0, moved.map((x) => x.symbol).join(", "));
     const nowChanged = b.data.futures.some((x) => x.spot !== x.anchor);
     check("but the NOW column did move with the market", nowChanged);
+    // The fill estimate is for NOW: from the live price to the frozen buy, with
+    // the session that is left -- not the 09:33 figure carried all day.
+    const ledgerMath = require("./paper-ledger");
+    const staleFill = b.data.futures.filter((x) => x.expected?.sigmaPct).filter((x) => {
+      if (x.spot <= x.buy) return !x.expected.fill?.atLimit;
+      const live = ledgerMath.firstPassage({ from: x.spot, to: x.buy, sigma: x.expected.sigmaPct / 100, tradingDays: ledgerMath.sessionTradingDaysLeft(ist("2026-09-24", "13:13")) });
+      return !x.expected.fill || Math.abs(x.expected.fill.probabilityPct - live.probabilityPct) > 0.5;
+    });
+    check("the futures fill estimate is recomputed from the live price, not carried from the freeze", staleFill.length === 0,
+      `${staleFill.length} stale`);
     check("fill states update on the page (at least one futures limit now reached)", /AT OR BELOW LIMIT|AT THE LIMIT/.test(b.html.split('class="pane pane-fut"')[1] || ""));
     const fills = b.data.track.open.filter((t) => t.kind === "FUT" && t.status === "OPEN").length;
     check("the dip filled some futures limits in the ledger", fills > 0, `${fills} filled`);
