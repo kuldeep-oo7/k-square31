@@ -68,11 +68,12 @@ function money(value) {
  * rather than inventing a plausible strategy name.
  */
 function optionTickets(data) {
-  return data.options.map((c) => ({
+  return data.options.filter((c) => c.frozen).map((c) => ({
     symbol: c.symbol,
     assetClass: "OPTION",
     action: "BUY",
     tradingSymbol: c.zerodha,
+    frozenAt: c.frozenAt || null,
     strike: c.strike,
     expiry: c.expiry,
     lotSize: c.lotSize,
@@ -86,37 +87,40 @@ function optionTickets(data) {
     // it overnight. The honest worst case on a bought option is the premium.
     maxRiskInr: money(Number(c.buy) * Number(c.lotSize)),
     status: "ACTIVE",
-    reason: "IV " + c.iv + "% vs realised " + c.rv + "% (VRP " + c.vrp + "), P(touch) "
-      + c.touchPct + "% in ~" + c.daysToTarget + "d, decay " + c.thetaBurnPct + "%/target, "
-      + c.daysLeft + "d to expiry, score " + c.score + ". Priced from " + c.priceSource
+    reason: "IV " + c.iv + "% vs realised " + c.rv + "% (VRP " + c.vrp + "), touch odds "
+      + c.touchPct + "% in ~" + c.daysToTarget + "d (ignores the stop), needs " + c.breakEvenPct + "% wins to break even, decay "
+      + c.thetaBurnPct + "%/target, " + c.daysLeft + "d to expiry, exit by " + c.exitBy + ", score " + c.score + ". Priced from " + c.priceSource
       + (c.priceIsLive ? " (live book)." : " (not a live book)."),
     zerodhaFastCopy: c.zerodha
   }));
 }
 
 function futureTickets(data) {
-  return data.futures.map((r) => ({
+  return data.futures.filter((r) => r.frozen).map((r) => ({
     symbol: r.symbol,
     assetClass: "FUTURE",
     action: "BUY",
-    tradingSymbol: r.tradingSymbol,
+    // A share-only name has no contract; its NSE symbol is what is searched.
+    tradingSymbol: r.tradingSymbol || r.symbol,
+    frozenAt: r.frozenAt || null,
     strike: 0,
-    expiry: "",
+    expiry: r.expiry || "",
     lotSize: r.exchangeLot,
     entryTrigger: money(r.buy),
     stopLoss: money(r.stop),
     targetRung1: money(r.target1),
     targetRung2: money(r.target2),
     runnerTarget: 0,
-    // Per unit, not per lot -- the platform this is actually traded on does not
-    // require the whole lot, and quoting lot capital overstates it enormously.
-    capitalRequiredInr: money(r.perUnitCapital),
-    maxRiskInr: money(r.riskPerUnit),
+    // In the size actually traded: GM Global's minimum of 20 units (the user,
+    // 2026-09-25), not the exchange lot and not one unit.
+    capitalRequiredInr: money(r.minCapital ?? r.perUnitCapital),
+    maxRiskInr: money(r.minLossAtStop ?? r.riskPerUnit),
     status: "ACTIVE",
     reason: "Anchored at " + r.anchor + " when the level was set. Reward:risk " + r.rewardToRisk
-      + " (+" + money(r.rewardPerUnit) + " / -" + money(r.riskPerUnit) + " per unit), composite score "
-      + r.score + ". Figures are PER UNIT; the exchange lot is " + r.exchangeLot + ".",
-    zerodhaFastCopy: r.tradingSymbol
+      + " (+" + money(r.rewardPerUnit) + " / -" + money(r.riskPerUnit) + " per unit), needs " + r.breakEvenPct
+      + "% wins to break even, composite score " + r.score + ". Capital and risk are for " + (r.minUnits || 20)
+      + " units (GM Global's minimum), before GM's charges; the exchange lot is " + r.exchangeLot + ".",
+    zerodhaFastCopy: r.tradingSymbol || r.symbol
   }));
 }
 
@@ -146,7 +150,26 @@ function asTradeSignal(ticket) {
   };
 }
 
-(async () => {
+/**
+ * EVERY FROZEN LEVEL, EACH ONCE. Levels keep freezing through the day as
+ * contracts first qualify -- on 25 Sep 59 of 124 froze after the 09:34 batch --
+ * and a once-a-session append could never have sent them. Returns the tickets
+ * not yet on the Sheet and the full set of keys once they are. A session file
+ * from before the key list existed counts what froze up to its append as sent.
+ */
+function pendingTickets(data, ledger) {
+  // The stock is part of the key: share-only rows have no contract symbol, and
+  // on 25 Sep twelve of them shared one key -- eleven would never be sent.
+  const ticketKey = (t) => t.assetClass + "|" + t.symbol + "|" + t.tradingSymbol;
+  const sent = new Set(ledger.sheetPublishedKeys || []);
+  if (ledger.sheetPublishedAt && !ledger.sheetPublishedKeys) {
+    for (const t of [...optionTickets(data), ...futureTickets(data)]) if (String(t.frozenAt || "") <= ledger.sheetPublishedAt) sent.add(ticketKey(t));
+  }
+  const tickets = [...optionTickets(data), ...futureTickets(data)].filter((t) => !sent.has(ticketKey(t)));
+  return { tickets, alreadySent: sent.size, keysAfter: [...sent, ...tickets.map(ticketKey)] };
+}
+
+async function main() {
   loadEnvFile();
   const store = require("../api/_lib/google-store");
 
@@ -253,15 +276,9 @@ function asTradeSignal(ticket) {
     console.log("google sheet: no ledger for this session; tickets skipped rather than duplicated.");
     process.exit(0);
   }
-  if (ledger.sheetPublishedAt) {
-    console.log("google sheet: tickets for " + data.sessionDate
-      + " were already appended at " + ledger.sheetPublishedAt + ".");
-    process.exit(0);
-  }
-
-  const tickets = [...optionTickets(data), ...futureTickets(data)];
+  const { tickets, alreadySent, keysAfter } = pendingTickets(data, ledger);
   if (!tickets.length) {
-    console.log("google sheet: nothing cleared the gates, so there is nothing to append.");
+    console.log("google sheet: no level frozen since the last append (" + alreadySent + " already on the Sheet for " + data.sessionDate + ").");
     process.exit(0);
   }
 
@@ -276,7 +293,8 @@ function asTradeSignal(ticket) {
       : await store.appendTradeSignalsToGoogle(tickets.map(asTradeSignal));
     // Marked published only AFTER the append returned ok. If it threw, the flag
     // stays unset and the next build tries again rather than losing the day.
-    ledger.sheetPublishedAt = new Date().toISOString();
+    ledger.sheetPublishedAt = ledger.sheetPublishedAt || new Date().toISOString();
+    ledger.sheetPublishedKeys = keysAfter;
     fs.writeFileSync(LEDGER_FILE, JSON.stringify(ledger, null, 1));
     console.log("google sheet: appended " + (appended.appended ?? tickets.length)
       + " order tickets to " + (appended.sheet || route.tab)
@@ -286,7 +304,13 @@ function asTradeSignal(ticket) {
   }
 
   process.exit(0);
-})().catch((error) => {
-  console.error("sheet publish failed outright:", error.message);
-  process.exit(0);
-});
+}
+
+module.exports = { optionTickets, futureTickets, pendingTickets };
+
+if (require.main === module) {
+  main().catch((error) => {
+    console.error("sheet publish failed outright:", error.message);
+    process.exit(0);
+  });
+}

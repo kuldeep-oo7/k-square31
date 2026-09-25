@@ -91,6 +91,8 @@ function openSession({ now = Date.now(), canFreeze: wanted = false, sessionOver 
     // The first build that froze anything. A later build must not move it.
     openedAtIst: carried?.openedAtIst || (canFreeze ? istStamp(now) : null),
     sheetPublishedAt: carried?.sheetPublishedAt || null,
+    // Which levels are already on the Sheet, so each is appended exactly once.
+    sheetPublishedKeys: carried?.sheetPublishedKeys || [],
     options: { ...(carried?.options || {}) },
     futures: { ...(carried?.futures || {}) }
   };
