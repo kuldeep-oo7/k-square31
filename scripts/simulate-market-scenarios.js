@@ -295,6 +295,12 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("every option's cost per lot is its own buy x lot, and the loss at its stop is shown",
       d.options.every((x) => Math.abs(x.costPerLot - Math.round(x.buy * x.lotSize * 100) / 100) < 0.01 && x.netLossAtStop < 0 && x.netProfit > 0),
       `${d.options.filter((x) => Math.abs(x.costPerLot - Math.round(x.buy * x.lotSize * 100) / 100) >= 0.01).length} rows off`);
+    const odds = require("../api/_lib/trade-odds");
+    const offTarget = d.options.filter((x) => {
+      const t = odds.timeToTarget({ spot: x.forward, target: x.right === "CE" ? x.strike + x.sell : x.strike - x.sell, volatility: x.rv / 100, daysAvailable: x.daysLeft });
+      return !t || Math.abs(t.probabilityOfTouchPct - x.touchPct) > 0.11;
+    });
+    check("every option's P(TOUCH) is the chance of reaching ITS OWN sell price", d.options.length > 0 && offTarget.length === 0, `${offTarget.length} rows off`);
     check("every futures row shows GM's 20-unit minimum: capital, loss at stop, gain at target",
       d.futures.every((x) => x.minUnits === 20 && Math.abs(x.minCapital - Math.round(x.buy * 20 * 100) / 100) < 0.02
         && Math.abs(x.minLossAtStop - Math.round((x.buy - x.stop) * 20 * 100) / 100) < 0.02 && x.minGainAtTarget > 0)

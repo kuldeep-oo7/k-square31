@@ -131,6 +131,7 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
   const { fnoUniverseEngine } = require("../api/_lib/universe-210");
   const { screenContracts } = require("../api/_lib/contract-screener");
   const { roundTripCost } = require("../api/_lib/trade-costs");
+  const { timeToTarget } = require("../api/_lib/trade-odds");
   const GM_MIN_UNITS = Number(process.env.K2_GM_MIN_UNITS) > 0 ? Number(process.env.K2_GM_MIN_UNITS) : 20;
   const { loadReference } = require("../api/_lib/fno-reference");
   const live = require("../api/_lib/live-quotes");
@@ -368,7 +369,19 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
         };
       })(),
       iv: c.impliedVol, rv: c.realisedVol, vrp: c.varianceRiskPremium,
-      touchPct: c.touchPct, daysToTarget: c.medianDaysToTarget, daysLeft: c.daysToExpiry,
+      // P(TOUCH) FOR THE SELL PRICE ON THIS ROW. The screener's figure is for 1.5x
+      // the CURRENT premium; once a level is frozen and the premium moves, that
+      // is a different target -- on 25 Sep 31 of 38 carried rows showed the odds
+      // of reaching a price nobody was shown. Recomputed every build: the live
+      // forward reaching strike +/- the frozen sell, on measured volatility.
+      ...(() => {
+        const level = c.optionType === "CE" ? c.strike + levels.sell : c.strike - levels.sell;
+        const vol = Number(c.realisedVol) / 100;
+        const t = Number(c.forward) > 0 && vol > 0 && level > 0
+          ? timeToTarget({ spot: Number(c.forward), target: level, volatility: vol, daysAvailable: Number(c.daysToExpiry) })
+          : null;
+        return { touchPct: t ? round(t.probabilityOfTouchPct, 1) : null, daysToTarget: t ? round(t.medianDaysIfItHappens, 1) : null };
+      })(), daysLeft: c.daysToExpiry,
       thetaBurnPct: c.thetaBurnPct, term: c.termShape, skew: c.skewPoints,
       priceSource: c.priceSource, priceIsLive: c.priceIsLive, score: c.screenScore,
       forward: c.forward ?? null, forwardSource: c.forwardSource || null,
