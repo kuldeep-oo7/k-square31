@@ -2071,8 +2071,8 @@ class FnoUniverseEngine {
           capitalRequired: u.options.put.capitalRequired,
           status: "DEFENSIVE_MONITOR",
           actionReason: "Put option monitored for hedge trigger; currently inactive.",
-          compositeScore: 40,
-          neuralScore: 35,
+          compositeScore: null,   // not scored: these used to be a typed 40 / 35
+          neuralScore: null,
           issuedAtFormatted: u.issuedAtFormatted,
           daysActive: u.daysActive,
           daysActiveFormatted: u.daysActiveFormatted,
