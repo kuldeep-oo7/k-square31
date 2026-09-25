@@ -49,6 +49,7 @@ const live = require("../api/_lib/live-quotes");
 const { europeanOption, impliedVolatility } = require("../api/_lib/option-pricing");
 const { loadReference } = require("../api/_lib/fno-reference");
 const { fnoUniverseEngine } = require("../api/_lib/universe-210");
+const nseCheck = require("../api/_lib/nse-crosscheck");
 
 const health = require("./check-desk-health");
 const realNow = Date.now;
@@ -178,7 +179,7 @@ function makeMarket(state, dayBook) {
         if (!(price > 0)) continue;
         const rng2 = withRange(key, price);
         out[key] = { key, ltp: +price.toFixed(2), open: +rng2.open.toFixed(2), high: +rng2.high.toFixed(2), low: +rng2.low.toFixed(2),
-          previousClose: null, exchangeFeedTime: feedStamp(feedAt),
+          previousClose: +rng2.open.toFixed(2), exchangeFeedTime: feedStamp(feedAt),
           // Angel sends the last TRADE time too; a quote here is a trade at the feed time.
           exchangeTradeTime: feedStamp(feedAt), tradingSymbol: key.replace(/\|/g, "") };
       }
@@ -194,7 +195,7 @@ const LEDGER_DIR = path.join(tmp, "ledger");
 const PAGES = path.join(tmp, "pages");
 fs.mkdirSync(PAGES, { recursive: true });
 
-async function runBuild(name, state, dayBook, { banned = null } = {}) {
+async function runBuild(name, state, dayBook, { banned = null, ledgerFile = LEDGER_FILE, ledgerDir = LEDGER_DIR } = {}) {
   const market = makeMarket(state, dayBook);
   // The clock MOVES while a build runs, a millisecond per reading, as a real
   // one does. A clock that stood still hid the 2026-09-24 bug: the ledger was
@@ -209,11 +210,27 @@ async function runBuild(name, state, dayBook, { banned = null } = {}) {
     const quotes = market.quotes(list || []);
     return { ok: Object.keys(quotes).length > 0, quotes, requested: (list || []).length, resolved: (list || []).length, failures: [] };
   };
+  // NSE's own site, simulated from the same market: the real comparison
+  // (compareOne, summarise) on figures NSE would show. The network layer is
+  // covered by scripts/test-nse-crosscheck.js. state.nseWrong makes NSE report
+  // a different previous close for the first sampled contract -- a wrong
+  // contract; state.nseDown makes NSE unreachable.
+  nseCheck.crossCheck = async (reqs, opts) => {
+    if (state.nseDown) return { checked: false, reason: "NSE not reached: simulated outage", sampled: reqs.length };
+    const ours = await opts.ours(reqs);
+    const rows = reqs.map((r, i) => {
+      const q = market.quotes([r])[brokers.contractKey(r)] || null;
+      const nse = q ? { last: q.ltp, prevClose: state.nseWrong && i === 0 ? q.previousClose + 5 : q.previousClose } : null;
+      return nseCheck.compareOne(r, ours[i], nse, opts.session);
+    });
+    const at = new Date(state.clock).toISOString();
+    return nseCheck.summarise(rows, { angelAt: at, nseAt: at, nseErrors: [] });
+  };
   const savedBan = fnoUniverseEngine.banned;
   if (banned) fnoUniverseEngine.banned = new Set([...(savedBan || []), ...banned]);
   let data;
   try {
-    data = await desk.build({ ledgerFile: LEDGER_FILE, ledgerDir: LEDGER_DIR });
+    data = await desk.build({ ledgerFile, ledgerDir });
   } finally {
     fnoUniverseEngine.banned = savedBan;
   }
@@ -323,6 +340,11 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("each tab totals every row -- the capital, and the loss if every stop is hit -- and warns a gap can cost more",
       (b.html.match(/If you take every row here/g) || []).length === 2 && /more if prices gap through the stops/.test(b.html)
         && /Rows in one sector tend to fall together/.test(b.html));
+    const fcd = d.feedCheck || {};
+    check("the build checks a sample of its own rows against NSE -- 4 futures, 4 options -- and each is the same contract",
+      fcd.checked === true && fcd.identityCompared === Math.min(4, d.futures.length) + Math.min(4, d.options.length)
+        && fcd.wrongContract.length === 0 && /Checked against NSE's own site/.test(b.html) && !/DO NOT TRADE THESE ROWS/.test(b.html),
+      JSON.stringify({ ...fcd, rows: undefined }));
     const o = d.options[0];
     check(`option names read like the broker's search (${o.display})`, /^[A-Z&-]+ [A-Z]{3} \d+(\.\d+)? (CE|PE)$/.test(o.display) || /\(weekly\)/.test(o.display));
     check("every stock option carries an exit-by date before its expiry",
@@ -515,6 +537,25 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
   const db = health.checkDatabase({ ledgerDir: LEDGER_DIR, levelsFile: LEDGER_FILE });
   check("the whole week's database passes the production health gate: no fill before its show, no duplicate, levels in order",
     db.trades > 0 && db.problems.length === 0, db.problems.slice(0, 2).join("; ") || `${db.trades} trades checked`);
+
+  // ======================== the check against NSE ==============================
+  // On a record of their own, so nothing above is disturbed.
+  console.log("\nThu 24 Sep -- the check against NSE: a wrong contract, then NSE unreachable");
+  {
+    const own = { ledgerFile: path.join(tmp, "nse-levels.json"), ledgerDir: path.join(tmp, "nse-ledger") };
+    const wrong = await runBuild("thu-1013-nse-wrong-contract", { ...normal, clock: ist("2026-09-24", "10:13"), nseWrong: true }, new Map(), own);
+    const fw = wrong.data.feedCheck || {};
+    check("a row priced from a different contract than NSE's is named at the top of the page, in red",
+      fw.checked === true && fw.wrongContract?.length === 1 && /DO NOT TRADE THESE ROWS/.test(wrong.html)
+        && wrong.html.includes(fw.wrongContract[0].split(":")[0]), JSON.stringify(fw.wrongContract));
+    const gate = health.checkLivePath({ ...wrong.data, brokerCheck: { ok: true } }, ist("2026-09-24", "10:13"));
+    check("and the production gate turns that build RED", gate.problems.some((p) => /WHICH contract/.test(p)), gate.problems.join(" | ") || "green");
+    const down = await runBuild("thu-1033-nse-down", { ...normal, clock: ist("2026-09-24", "10:33"), nseDown: true }, new Map(), own);
+    const quiet = health.checkLivePath({ ...down.data, brokerCheck: { ok: true } }, ist("2026-09-24", "10:33"));
+    check("NSE unreachable: the page says NOT checked, and the gate stays green",
+      down.data.feedCheck?.checked === false && /Not checked against NSE/.test(down.html) && quiet.problems.length === 0,
+      quiet.problems[0] || down.data.feedCheck?.reason);
+  }
 
   Date.now = realNow;
   live.marketPhase = realPhase;

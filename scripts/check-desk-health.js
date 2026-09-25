@@ -124,6 +124,16 @@ function checkLivePath(data, nowMs = Date.now()) {
         // not, the build itself is wrong.
         problems.push("in session, live books were seen, and the levels still did not freeze");
       }
+      // Angel One's prices checked against NSE's own site (nse-crosscheck.js).
+      // Only a MEASURED disagreement counts: NSE unreachable is "not checked"
+      // and never turns the build red.
+      const fc = data.feedCheck;
+      if (fc?.checked === true && fc.wrongContract?.length) {
+        problems.push(`Angel One and NSE disagree on WHICH contract: ${fc.wrongContract.join("; ")}`);
+      }
+      if (fc?.checked === true && fc.pricesMostlyOff) {
+        problems.push(`most sampled prices differ from NSE's beyond what seconds can explain: ${(fc.priceOff || []).join("; ")}`);
+      }
     }
   }
   return { inSession, exchangeShut, calendar, lastPrint, problems };

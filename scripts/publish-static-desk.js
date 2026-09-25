@@ -591,6 +591,27 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
 
   const saved = session.save();
 
+  // OUR PRICES AGAINST NSE'S OWN, ON EVERY BUILD (api/_lib/nse-crosscheck.js;
+  // Global Trading Atlas, 30: reconcile a sample against an independent
+  // source). A rotating sample of this page's rows is quoted again from Angel
+  // One and read from nseindia.com seconds later. The health gate fails the
+  // build in session if any of them is a DIFFERENT contract on NSE.
+  let feedCheck = { checked: false, reason: "no broker quotes on this build" };
+  if (quoteStatus?.ok) {
+    try {
+      const nseCheck = require("../api/_lib/nse-crosscheck");
+      feedCheck = await nseCheck.crossCheck(nseCheck.sampleRows({ futures, options, nowMs: Date.now() }), {
+        session: quoteStatus.lastExchangeDate || null,
+        ours: async (reqs) => {
+          const r = await brokers.contractQuotes(reqs);
+          return reqs.map((x) => r?.quotes?.[brokers.contractKey(x)] || null);
+        }
+      });
+    } catch (error) {
+      feedCheck = { checked: false, reason: error.message };
+    }
+  }
+
   // What scripts/prepare-static-build.js found when it tried to log in. Carried
   // onto the page because "no options" has two causes that look identical from
   // the outside -- the login failed, or the exchange simply is not trading --
@@ -623,6 +644,7 @@ async function build({ limit = 40, futuresLimit = 25, ledgerFile, ledgerDir, for
     survived: screen.survived ?? 0,
     brokerCheck,
     quoteStatus,
+    feedCheck,
     watchStatus,
     futuresAnchor: ANCHOR,
     forwardStatus,
@@ -880,6 +902,23 @@ function page(d) {
       ? ` ${esc(d.optionsOnLiveForward)} of ${esc(d.options.length)} options priced against the live futures price.`
       : " Premiums and the futures prices they are measured against both come from that same settlement file, so they describe the same moment.";
 
+  // What the check against NSE found (api/_lib/nse-crosscheck.js).
+  const fc = d.feedCheck;
+  const fcAt = fc?.nseAt ? istStamp(Date.parse(fc.nseAt)) : "";
+  const feedNote = !fc ? ""
+    : fc.checked
+      ? (fc.wrongContract?.length
+        ? ` <b class="down">Checked against NSE at ${esc(fcAt)}: ${esc(fc.wrongContract.length)} of ${esc(fc.identityCompared)} sampled contracts are a DIFFERENT contract on NSE.</b>`
+        : ` <b class="up">Checked against NSE's own site</b> at ${esc(fcAt)}: ${esc(fc.sameContract)} of ${esc(fc.identityCompared)} sampled
+           contracts are the same contract on both (the same previous close)${fc.worstGapPct !== null && fc.worstGapPct !== undefined ? `, last prices within ${esc(fc.worstGapPct)}%` : ""}.`)
+        + (fc.priceOff?.length ? ` <b class="warn">Price differs from NSE's:</b> ${esc(fc.priceOff.join("; "))}.` : "")
+      : ` Not checked against NSE on this build (${esc(fc.reason || "reason unknown")}).`;
+  const feedAlarm = fc?.checked && fc.wrongContract?.length
+    ? `<div class="note" style="border-left-color:var(--red)"><b class="down">DO NOT TRADE THESE ROWS.</b>
+        Angel One and NSE disagree on which contract they are: ${esc(fc.wrongContract.join("; "))}.
+        A different previous close means a different contract, so the prices shown for them are not this contract's prices.</div>`
+    : "";
+
   const liveNote = d.pricedLive > 0
     ? `<b class="up">${d.pricedLive}</b> priced from a live broker book, <b>${d.pricedFromSettlement}</b> from the ${esc(d.settlementFile)} settlement file.`
     : `All prices are from the <b>${esc(d.settlementFile)}</b> settlement file. The market was ${esc(d.marketPhase).toLowerCase()} when this was built, so nothing here is executable right now.`;
@@ -954,6 +993,7 @@ function page(d) {
     : " &middot; India VIX not read this build"}</div>
 
 <div class="note ${d.levelsFrozen ? "frozen" : ""}">${freezeNote}</div>
+${feedAlarm}
 
 <main class="desk">
   <input type="radio" name="view" id="v-fut" checked>
@@ -1019,7 +1059,7 @@ function page(d) {
 </main>
 
 <div class="note" style="margin-top:20px">
-  <b>WHERE THESE PRICES COME FROM.</b> ${liveNote}${forwardNote}${brokerNote}${banNote}
+  <b>WHERE THESE PRICES COME FROM.</b> ${liveNote}${forwardNote}${feedNote}${brokerNote}${banNote}
   This page is a <b>snapshot</b>, rebuilt on a schedule &mdash; it is not a live feed.
   <b>Check the price on your broker before placing anything.</b>
   Net figures are after brokerage, STT at 0.15%, exchange, stamp and GST; the
