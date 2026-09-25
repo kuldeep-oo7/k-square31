@@ -86,6 +86,24 @@ async function step(label, fn) {
     return `${Object.keys(record.symbols).length} results meetings filed for the next ${record.days} days (${record.rows} filings read)`;
   });
 
+  // BALANCE SHEETS (Yahoo quoteSummary), once a day. The ranking's balance-sheet
+  // rule read a cache the serverless build never filled, so it could not fire.
+  await step("balance sheets (Yahoo, daily)", async () => {
+    const { fnoUniverseEngine } = require("../api/_lib/universe-210");
+    const { fundamentals, getCachedFundamentals } = require("../api/_lib/fundamentals");
+    const DAY = 20 * 3_600_000, started = Date.now();
+    const due = (fnoUniverseEngine.symbols || []).filter((sym) => !getCachedFundamentals(sym, DAY));
+    let ok = 0, failed = 0, notReached = 0;
+    for (let i = 0; i < due.length; i += 4) {
+      if (Date.now() - started > 120_000) { notReached = due.length - i; break; }
+      const got = await Promise.all(due.slice(i, i + 4).map((sym) => fundamentals(sym, { force: true }).catch(() => null)));
+      for (const g of got) { if (g && g.fetchedAt && !g.error) ok += 1; else failed += 1; }
+      await new Promise((r) => setTimeout(r, 250));
+    }
+    const fresh = (fnoUniverseEngine.symbols || []).filter((sym) => getCachedFundamentals(sym, DAY)).length;
+    return `${due.length} due: ${ok} fetched, ${failed} failed${notReached ? `, ${notReached} not reached` : ""}; ${fresh} of ${(fnoUniverseEngine.symbols || []).length} current`;
+  });
+
   await step("broker instrument master", async () => {
     const brokers = require("../api/_lib/broker-feed");
     const result = await brokers.refreshInstruments("angelone");

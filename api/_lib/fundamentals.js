@@ -193,7 +193,26 @@ async function fundamentals(rawSymbol, options = {}) {
   }
 }
 
+/**
+ * THE BALANCE-SHEET ADJUSTMENT TO THE RANKING, as one tested rule.
+ *
+ * Debt-to-equity above 200 (Yahoo reports it in percent: above 2x) costs 15
+ * rank points -- but only where NSE's own industry classification is known and
+ * is not Financial Services. For a lender, borrowing IS the business: on
+ * 2026-09-25 the unscoped rule caught 21 names and 15 were lenders (BAJFINANCE,
+ * SHRIRAMFIN, PFC, RECLTD, MUTHOOTFIN, ...), penalised for their business model
+ * rather than for a weak balance sheet. An unknown sector is not penalised
+ * either: unknown is not bad. A strong balance sheet (score > 0.25) earns 4.
+ */
+function balanceSheetAdjustment({ debtToEquity = null, balanceSheetScore: score = null, sector = null } = {}) {
+  const known = typeof sector === "string" && sector && sector !== "Diversified";
+  if (known && sector !== "Financial Services" && Number(debtToEquity) > 200) return -15;
+  if (Number(score) > 0.25) return 4;
+  return 0;
+}
+
 module.exports = {
+  balanceSheetAdjustment,
   balanceSheetScore,
   earningsWindow,
   fundamentals,

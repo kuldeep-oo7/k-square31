@@ -4,7 +4,7 @@ const fs = require("node:fs");
 const path = require("node:path");
 const { analyzeCandidate } = require("./unified-quant-scanner");
 const { getCachedBars, StaggeredBarIngestor, CACHE_DIR: BARS_CACHE_DIR } = require("./bar-cache");
-const { getCachedFundamentals } = require("./fundamentals");
+const { getCachedFundamentals, balanceSheetAdjustment } = require("./fundamentals");
 const { loadResultsCalendar, insideTradingWeek } = require("./nse-results");
 
 // RESULTS INSIDE THIS TRADING WEEK, FROM NSE'S OWN FILINGS. The earnings veto
@@ -1301,8 +1301,9 @@ class FnoUniverseEngine {
       eligible.forEach((item) => {
         let raw = item.rawCompScore !== undefined ? item.rawCompScore : item.compositeScore;
         const fund = getCachedFundamentals(item.symbol);
-        if (fund?.metrics?.debtToEquity > 200) raw = Math.max(10, raw - 15);
-        else if ((fund?.balanceSheetScore ?? 0) > 0.25) raw = Math.min(99, raw + 4);
+        const adjust = balanceSheetAdjustment({ debtToEquity: fund?.metrics?.debtToEquity, balanceSheetScore: fund?.balanceSheetScore, sector: item.sector });
+        if (adjust < 0) raw = Math.max(10, raw + adjust);
+        else if (adjust > 0) raw = Math.min(99, raw + adjust);
         item._rawCompForRank = raw;
       });
 
