@@ -211,6 +211,12 @@ console.log("paper ledger:");
     const noWins = L.summarize([], [t(6000, "STOP")]);
     check("a stop-only record has no time to target (null), where Number(null) used to make it 0", noWins.CE.medianHoursToTarget === null,
       String(noWins.CE.medianHoursToTarget));
+    // Wilson 95% range: 1 win in 4 trades on 2 separate bets -> p 0.25, n 2.
+    const w = bets.ALL.hitRate95;
+    check("the 95% range of a hit rate uses separate bets, not trades, and is wide when they are few (Wilson)",
+      w && w.bets === 2 && w.lowPct < 5 && w.highPct > 65, JSON.stringify(w));
+    const none = L.summarize([], []);
+    check("no finished trade, no range", none.ALL.hitRate95 === null);
     check("strikes of one stock on one day count as one bet: 4 trades, 2 separate bets", bets.ALL.resolved === 4 && bets.ALL.resolvedBets === 2,
       JSON.stringify({ resolved: bets.ALL.resolved, bets: bets.ALL.resolvedBets }));
   }

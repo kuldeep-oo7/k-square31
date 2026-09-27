@@ -482,6 +482,18 @@ function summarize(open, closed) {
       // win or lose together, so they are one result, not seven. The page
       // judges a hit rate on this count.
       resolvedBets: new Set(filledClosed.map((t) => `${t.sessionDate}|${t.symbol}|${t.kind}`)).size,
+      // THE 95% RANGE OF THE HIT RATE (Wilson score interval, 1927), on the
+      // number of SEPARATE bets rather than trades: strikes of one stock on one
+      // day are one piece of evidence, not several. Still generous when bets on
+      // one day move together, so the page draws no verdict from it below 30.
+      hitRate95: (() => {
+        const n = new Set(filledClosed.map((t) => `${t.sessionDate}|${t.symbol}|${t.kind}`)).size;
+        if (!resolved || !n) return null;
+        const p = wins.length / resolved, z = 1.959964, z2 = z * z;
+        const den = 1 + z2 / n, centre = (p + z2 / (2 * n)) / den;
+        const half = (z * Math.sqrt((p * (1 - p)) / n + z2 / (4 * n * n))) / den;
+        return { lowPct: round(100 * Math.max(0, centre - half), 1), highPct: round(100 * Math.min(1, centre + half), 1), bets: n };
+      })(),
       expectedHitRatePct: expectedTarget.length ? round(expectedTarget.reduce((a, b) => a + b, 0) / expectedTarget.length, 1) : null,
       // IF PRICES MOVED AT RANDOM: how often the target would come before the
       // stop. A price with no trend is a fair game, and a fair game stopped at
