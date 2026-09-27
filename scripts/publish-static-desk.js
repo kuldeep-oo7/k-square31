@@ -32,6 +32,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const { openSession, driftPct, istStamp, numeric, sessionDateFor } = require("./session-freeze");
+const { toTick } = require("../api/_lib/session-levels");
 
 const OUT_DIR = path.resolve(__dirname, "..", "docs");
 const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
@@ -371,10 +372,15 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     const nowPrice = round(c.premium);
     const levels = session.level("options", zerodha, () => {
       if (!Number.isFinite(Number(c.premium)) || Number(c.premium) <= 0) return null;
+      // On the contract's own tick, or Zerodha refuses the order. Unknown tick:
+      // 0.05, which is also a valid price where the tick is 0.01.
+      const tick = brokers.tickSizeFor({ kind: "OPT", symbol: c.symbol, expiry: c.expiry, strike: c.strike, optionType: c.optionType }) || 0.05;
+      const buy = toTick(c.premium, tick, "down");
       return {
-        buy: round(c.premium),
-        sell: round(c.targetPremium),
-        stop: round(Number(c.premium) / 2),
+        buy,
+        sell: toTick(Number(c.targetPremium) * (buy / Number(c.premium)), tick, "nearest"),
+        stop: toTick(buy / 2, tick, "nearest"),
+        tick,
         lotSize: c.lotSize,
         expiry: c.expiry,
         strike: c.strike,
@@ -388,7 +394,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       symbol: c.symbol, strike: c.strike, right: c.optionType, expiry: c.expiry, zerodha,
       display: names.display, angel: names.angel, expiryText: names.expiryText,
       exitBy: names.exitBy, exitByText: names.exitByText,
-      buy: levels.buy, sell: levels.sell, stop: levels.stop,
+      buy: levels.buy, sell: levels.sell, stop: levels.stop, tick: levels.tick ?? null,
       now: nowPrice, drift: driftPct(levels.buy, nowPrice),
       frozen: levels.frozen, frozenAtIst: levels.frozenAtIst, frozenAt: levels.frozenAt || null,
       priceSourceAtFreeze: levels.priceSourceAtFreeze || null,
@@ -508,10 +514,14 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     const sigma = Number(r.odds?.realizedVolPct) > 0 ? Number(r.odds.realizedVolPct) / 100 : null;
     const levels = session.level("futures", r.symbol, () => {
       if (!(nowPrice > 0)) return null;
-      const buy = round(nowPrice * ENTRY_DISCOUNT);
-      const target1 = round(buy * TARGET_1);
+      // On the anchor instrument's own tick (0.01 to 5.00 for stock futures).
+      const tick = (anchorQuote === fq
+        ? brokers.tickSizeFor({ kind: "FUT", symbol: r.symbol, expiry })
+        : brokers.tickSizeFor({ kind: "EQ", symbol: r.symbol })) || 0.05;
+      const buy = toTick(nowPrice * ENTRY_DISCOUNT, tick, "down");
+      const target1 = toTick(buy * TARGET_1, tick, "nearest");
       return {
-        buy, target1, target2: round(buy * TARGET_2), stop: round(buy * STOP),
+        buy, target1, target2: toTick(buy * TARGET_2, tick, "nearest"), stop: toTick(buy * STOP, tick, "nearest"), tick,
         anchor: nowPrice, anchorSource: nowSource, priceBasis: anchorQuote === fq ? "CONTRACT" : "SHARE",
         tradingSymbol: r.tradingSymbol, angelSymbol: fq?.tradingSymbol || r.angelSymbol || null,
         expiry, lotSize: r.lotSize, symbol: r.symbol,
@@ -541,7 +551,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       spot: shown.price, nowSource: shown.source, nowAtText: shown.atText, fnoListed: r.fnoListed === true,
       priceBasis: levels.priceBasis || (anchorQuote === fq ? "CONTRACT" : "SHARE"),
       referencePrice: shown.referencePrice, referenceKind: shown.referenceKind,
-      buy: levels.buy, target1: levels.target1, target2: levels.target2, stop: levels.stop,
+      buy: levels.buy, target1: levels.target1, target2: levels.target2, stop: levels.stop, tick: levels.tick ?? null,
       anchor: levels.anchor, anchorSource: levels.anchorSource || null, drift: driftPct(levels.buy, shown.price),
       frozen: levels.frozen, frozenAtIst: levels.frozenAtIst, frozenAt: levels.frozenAt || null,
       // THE FILL ESTIMATE IS FOR NOW, not for the moment of the freeze. It was

@@ -113,4 +113,18 @@ function levelsForSession({ sessionDate = null, db = null, now = Date.now() } = 
   ).all(sessionDate || sessionDateFor(now));
 }
 
-module.exports = { anchoredLevels, levelsForSession, sessionDateFor, ENTRY_DISCOUNT, TARGET_1, TARGET_2, STOP };
+/**
+ * A price on the exchange's grid. "down" for a BUY limit -- never above the
+ * price worked out; "nearest" for a target or a stop. A price off the tick is
+ * an order the broker rejects: on 25 Sep 89 of 193 option targets (e.g.
+ * JINDALSTEL OCT 1180 CE sell 38.17) and 45 of 52 futures buys were off it.
+ */
+function toTick(price, tick, mode = "nearest") {
+  const p = Number(price), t = Number(tick);
+  if (!(p > 0) || !(t > 0)) return p > 0 ? Math.round(p * 100) / 100 : null;
+  const steps = mode === "down" ? Math.floor(p / t + 1e-9) : mode === "up" ? Math.ceil(p / t - 1e-9) : Math.round(p / t);
+  return Math.round(steps * t * 100) / 100;
+}
+
+module.exports = {
+  toTick, anchoredLevels, levelsForSession, sessionDateFor, ENTRY_DISCOUNT, TARGET_1, TARGET_2, STOP };

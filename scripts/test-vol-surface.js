@@ -106,9 +106,9 @@ if (!reference?.symbols) {
   // comparison of two arbitrary strikes.
   const sample = withSkew.slice(0, 30);
   for (const s of sample) {
-    assert.ok(Math.abs(s.skew.putDelta - 0.25) < 0.12,
+    assert.ok(Math.abs(s.skew.putDelta - 0.25) < 0.12 + 0.0005 /* delta is shown rounded to 3 places; the rule (vol-surface.js) is on the unrounded value */,
       `${s.symbol} put leg is at delta ${s.skew.putDelta}, not near 25`);
-    assert.ok(Math.abs(s.skew.callDelta - 0.25) < 0.12,
+    assert.ok(Math.abs(s.skew.callDelta - 0.25) < 0.12 + 0.0005,
       `${s.symbol} call leg is at delta ${s.skew.callDelta}, not near 25`);
     assert.ok(s.skew.putStrike < s.skew.callStrike,
       `${s.symbol} has its 25-delta put above its 25-delta call, which is impossible`);

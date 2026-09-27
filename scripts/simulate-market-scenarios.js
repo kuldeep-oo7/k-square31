@@ -287,7 +287,8 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     const f = d.futures.find((x) => x.fnoListed) || d.futures[0];
     const liveFut = b.market.forwardOf(f.symbol, f.expiry);
     check(`futures NOW is the live CONTRACT price (${f.symbol})`, Math.abs(f.spot - liveFut) < 0.02, `page ${f.spot} vs market ${liveFut.toFixed(2)}`);
-    check(`${f.symbol}'s buy limit is 0.8% under that price`, Math.abs(f.buy - Math.round(liveFut * 0.992 * 100) / 100) < 0.02, `${f.buy}`);
+    check(`${f.symbol}'s buy limit is 0.8% under that price, rounded DOWN to its tick (${f.tick})`,
+      f.buy <= liveFut * 0.992 + 1e-6 && liveFut * 0.992 - f.buy < (f.tick || 0.05) + 1e-6, `${f.buy} vs ${(liveFut * 0.992).toFixed(2)}`);
     check("that NOW price is printed on the page", b.html.includes(Number(f.spot).toLocaleString("en-IN")));
     check("futures NOW is labelled live, with its time", /futures, live at \d\d:\d\d/.test(b.html));
     check(`and the share's own price is shown beside it for comparison (${f.symbol})`,
@@ -347,6 +348,11 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("each tab totals every row -- the capital, and the loss if every stop is hit -- and warns a gap can cost more",
       (b.html.match(/If you take every row here/g) || []).length === 2 && /more if prices gap through the stops/.test(b.html)
         && /Rows in one sector tend to fall together/.test(b.html));
+    const onTick = (v, t) => t > 0 && Math.abs(Math.round(v / t) * t - v) < 1e-6;
+    const offGrid = [...d.options.filter((x) => ![x.buy, x.sell, x.stop].every((v) => onTick(v, x.tick))).map((x) => x.display),
+      ...d.futures.filter((x) => ![x.buy, x.target1, x.target2, x.stop].every((v) => onTick(v, x.tick))).map((x) => x.symbol)];
+    check("every buy, target and stop is on its contract's exchange tick -- an order the broker accepts",
+      d.options.length > 0 && d.futures.length > 0 && offGrid.length === 0, offGrid.slice(0, 4).join(", "));
     const fcd = d.feedCheck || {};
     check("the build checks a sample of its own rows against NSE -- 4 futures, 12 options -- and each is the same contract",
       fcd.checked === true && fcd.identityCompared === Math.min(4, d.futures.length) + Math.min(12, d.options.length)

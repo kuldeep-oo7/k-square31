@@ -127,6 +127,13 @@ function checkLivePath(data, nowMs = Date.now()) {
       // Angel One's prices checked against NSE's own site (nse-crosscheck.js).
       // Only a MEASURED disagreement counts: NSE unreachable is "not checked"
       // and never turns the build red.
+      // Every price shown must be an order the broker accepts: on its tick.
+      const offTick = (v, tick) => tick > 0 && Math.abs(Math.round(v / tick) * tick - v) > 1e-6;
+      const bad = [
+        ...(data.options || []).filter((c) => c.frozen && c.tick && [c.buy, c.sell, c.stop].some((v) => offTick(v, c.tick))).map((c) => c.display || c.zerodha),
+        ...(data.futures || []).filter((f) => f.frozen && f.tick && [f.buy, f.target1, f.target2, f.stop].some((v) => offTick(v, f.tick))).map((f) => f.symbol)
+      ];
+      if (bad.length) problems.push(`${bad.length} frozen row(s) priced off their exchange tick -- the broker would reject them: ${bad.slice(0, 5).join(", ")}`);
       const fc = data.feedCheck;
       if (fc?.checked === true && fc.wrongContract?.length) {
         problems.push(`Angel One and NSE disagree on WHICH contract: ${fc.wrongContract.join("; ")}`);

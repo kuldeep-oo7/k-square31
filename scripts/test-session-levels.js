@@ -133,3 +133,21 @@ fs.rmSync(dir, { recursive: true, force: true });
 console.log("ALL session level tests passed: a level is decided once at the first price of the session and "
   + "held there whatever the market does, the anchor it came from is stored so it can be audited, drift is "
   + "reported rather than hidden, and the freeze resets on the next trading day.");
+
+// ON THE EXCHANGE'S TICK (2026-09-27): a price off the tick is an order the
+// broker rejects. Ticks per contract come from Angel One's master (48 of 48
+// agreed with NSE's own quote data).
+{
+  const assert = require("node:assert");
+  const { toTick } = require("../api/_lib/session-levels");
+  assert.strictEqual(toTick(38.17, 0.05), 38.15, "an option target rounds to the nearest 0.05");
+  assert.strictEqual(toTick(391.39, 0.05, "down"), 391.35, "a buy limit rounds DOWN -- never above the price worked out");
+  assert.strictEqual(toTick(11286.98, 1, "down"), 11286, "BAJAJ-AUTO futures move in whole rupees");
+  assert.strictEqual(toTick(6998.43, 0.5, "down"), 6998, "a 0.50 tick");
+  assert.strictEqual(toTick(3872.67, 0.1, "down"), 3872.6, "LT futures move in 0.10");
+  assert.strictEqual(toTick(112.387, 0.01, "down"), 112.38, "a 0.01 tick");
+  assert.strictEqual(toTick(36.45, 0.05, "down"), 36.45, "a price already on the tick is left alone (no float drift)");
+  assert.strictEqual(toTick(0.3, 0.1, "down"), 0.3, "0.3 / 0.1 is 2.9999... in floating point; still 0.3");
+  assert.strictEqual(toTick(null, 0.05), null, "no price, no level");
+  console.log("tick rounding: 9 cases passed");
+}

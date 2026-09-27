@@ -200,7 +200,7 @@ async function refreshInstruments(provider, { timeoutMs = 180_000 } = {}) {
         // a later -EQ row replaces anything kept before it.
         const isEq = String(row.symbol || "").endsWith("-EQ");
         if (!underlyings[name] || (isEq && !String(underlyings[name].symbol || "").endsWith("-EQ"))) {
-          underlyings[name] = { token: String(row.token), exchange: "NSE", symbol: row.symbol };
+          underlyings[name] = { token: String(row.token), exchange: "NSE", symbol: row.symbol, tickSize: tickOf(row) };
         }
         continue;
       }
@@ -228,7 +228,7 @@ async function refreshInstruments(provider, { timeoutMs = 180_000 } = {}) {
         const expiry = normaliseAngelExpiry(row.expiry);
         if (!expiry) continue;
         futures[`${name}|${expiry}`] = {
-          token: String(row.token), symbol: row.symbol, lotSize: num(row.lotsize), exchange: row.exch_seg
+          token: String(row.token), symbol: row.symbol, lotSize: num(row.lotsize), exchange: row.exch_seg, tickSize: tickOf(row)
         };
         continue;
       }
@@ -240,7 +240,7 @@ async function refreshInstruments(provider, { timeoutMs = 180_000 } = {}) {
         const expiry = normaliseAngelExpiry(row.expiry);
         if (!expiry) continue;
         options[`${name}|${expiry}|${strike}|${optionType}`] = {
-          token: String(row.token), symbol: row.symbol, lotSize: num(row.lotsize), exchange: row.exch_seg
+          token: String(row.token), symbol: row.symbol, lotSize: num(row.lotsize), exchange: row.exch_seg, tickSize: tickOf(row)
         };
       }
     }
@@ -311,7 +311,28 @@ const memo = {};
 // errored. Nothing was logged. The desk simply got worse.
 // 3: NSE-only. Version 2 caches mixed NFO, BFO and MCX rows into one keyspace
 // with no exchange in the key, so they must be discarded rather than reused.
-const INSTRUMENT_SCHEMA_VERSION = 3;
+const INSTRUMENT_SCHEMA_VERSION = 4;
+
+// THE TICK: the smallest step a price may move on the exchange. Angel One's
+// master gives it per contract, in paise ("tick_size": "5.000000" = 0.05).
+// Measured 2026-09-27: stock futures use 0.01, 0.05, 0.10, 0.50, 1.00 and 5.00
+// (BEL 0.05, LT 0.10 -- NSE's own quote says 0.10 too -- BAJAJ-AUTO 1.00);
+// stock options 0.05 or 0.01. A limit off the tick is rejected by the broker.
+function tickOf(row) {
+  const paise = num(row.tick_size);
+  return paise > 0 ? Math.round(paise) / 100 : null;
+}
+
+/** The tick of one contract ({kind: EQ|FUT|OPT, symbol, expiry, strike, optionType}), or null. */
+function tickSizeFor(contract, provider = "angelone") {
+  const cache = loadInstruments(provider);
+  if (!cache) return null;
+  const symbol = String(contract?.symbol || "").toUpperCase();
+  const expiry = String(contract?.expiry || "").slice(0, 10);
+  if (contract?.kind === "EQ") return cache.underlyings?.[symbol]?.tickSize ?? null;
+  if (contract?.kind === "FUT") return cache.futures?.[`${symbol}|${expiry}`]?.tickSize ?? null;
+  return cache.options?.[`${symbol}|${expiry}|${Number(contract?.strike)}|${String(contract?.optionType || "").toUpperCase()}`]?.tickSize ?? null;
+}
 
 function loadInstruments(provider) {
   if (memo[provider]) return memo[provider];
@@ -745,6 +766,7 @@ async function contractQuotes(contracts, { timeoutMs = 20_000, batchSize = 50, m
 }
 
 module.exports = {
+  tickSizeFor,
   contractKey,
   contractQuotes,
   futuresQuotes,
