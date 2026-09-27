@@ -45,6 +45,20 @@ function money(value) {
   if (!Number.isFinite(n)) return "—";
   return (n < 0 ? "−₹" : "₹") + Math.abs(n).toLocaleString("en-IN");
 }
+// AN ORDER PRICE, WITH ITS PAISE: "385.50", as the broker shows it, not "385.5";
+// "4.00", not "4". Amounts of money keep money().
+function px(value) {
+  if (value === null || value === undefined || value === "") return "—";
+  const n = Number(value);
+  if (!Number.isFinite(n)) return "—";
+  return (n < 0 ? "−₹" : "₹") + Math.abs(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+}
+// "The market was weekend" read as broken English on the page (27 Sep).
+const PHASE_WORDS = { OPEN: "open", PRE_OPEN: "in its pre-open", CLOSED: "closed", WEEKEND: "closed for the weekend", POST_CLOSE: "closed", HOLIDAY: "closed for a holiday" };
+function phaseWords(phase) {
+  return PHASE_WORDS[String(phase || "").toUpperCase()] || String(phase || "in an unknown state").toLowerCase().replace(/_/g, " ");
+}
+
 function esc(text) {
   return String(text ?? "").replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 }
@@ -709,7 +723,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     // to the broker" produce the same empty screen and need different fixes.
     freezeBlockedBecause: session.canFreeze ? null
       : phase.open !== true
-        ? `The market is ${String(phase.phase).toLowerCase()}.`
+        ? `The market is ${phaseWords(phase.phase)}.`
         : require("../api/_lib/nse-holidays").isNseHoliday(session.sessionDate) === true
           ? "Today is an NSE trading holiday (NSE's own calendar), and no contract came back with a live exchange book."
           : "The market says it is open, but not one contract came back with a live exchange book "
@@ -797,10 +811,10 @@ function page(d) {
           ? `<div class="sub warn">another strike of ${esc(c.symbol)} &mdash; the same bet as the row above</div>` : ""}
           <div class="sub">Zerodha <code>${esc(c.zerodha)}</code>${c.angel ? ` &middot; Angel <code>${esc(c.angel)}</code>` : ""}</div>
           <div class="sub">expires ${esc(c.expiryText || c.expiry)} &middot; ${esc(round(c.daysLeft, 1))}d left${c.exitByText ? ` &middot; <b class="warn">exit by ${esc(c.exitByText)}</b>` : ""}</div>${resultsLine(c)}</td>
-        <td class="num"><b>${money(c.buy)}</b><div class="sub">&times;${esc(c.lotSize)} = ${money(c.costPerLot)}</div></td>
-        <td class="num up"><b>${money(c.sell)}</b><div class="sub">net +${money(c.netProfit)} a lot</div></td>
-        <td class="num down">${money(c.stop)}${c.netLossAtStop !== null && c.netLossAtStop !== undefined ? `<div class="sub down">net &minus;${money(Math.abs(c.netLossAtStop))} a lot</div>` : ""}</td>
-        <td class="num">${money(c.now)}<div class="sub ${state.tone}">${esc(state.word)}</div></td>
+        <td class="num"><b>${px(c.buy)}</b><div class="sub">&times;${esc(c.lotSize)} = ${money(c.costPerLot)}</div></td>
+        <td class="num up"><b>${px(c.sell)}</b><div class="sub">net +${money(c.netProfit)} a lot</div></td>
+        <td class="num down">${px(c.stop)}${c.netLossAtStop !== null && c.netLossAtStop !== undefined ? `<div class="sub down">net &minus;${money(Math.abs(c.netLossAtStop))} a lot</div>` : ""}</td>
+        <td class="num">${px(c.now)}<div class="sub ${state.tone}">${esc(state.word)}</div></td>
         <td class="num">${esc(c.iv)}% / ${esc(c.rv)}%<div class="sub">VRP ${esc(c.vrp)}</div></td>
         <td class="num">${esc(c.touchPct)}%<div class="sub">touch, ~${esc(c.daysToTarget)}d &mdash; ignores the stop</div>${c.breakEvenPct !== null && c.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(c.breakEvenPct)}% wins to break even</div>` : ""}${c.noTrendNet !== null && c.noTrendNet !== undefined ? `<div class="sub down">no trend: about &minus;${money(Math.abs(c.noTrendNet))} a lot${c.spreadKnown === false ? ", plus the spread" : ""}</div>` : ""}</td>
         <td class="num ${Number(c.thetaBurnPct) > 12 ? "down" : ""}">${esc(c.thetaBurnPct)}%</td>
@@ -847,11 +861,11 @@ function page(d) {
                ? `<div class="sub">NSE future: Zerodha <code>${esc(r.tradingSymbol)}</code>${r.angelSymbol ? ` &middot; Angel <code>${esc(r.angelSymbol)}</code>` : ""}</div>`
                : `<div class="sub">no NSE futures contract &mdash; share only</div>`}`}
           ${r.expiryText ? `<div class="sub">future expires ${esc(r.expiryText)}${r.exitByText ? ` &middot; <b class="warn">exit or roll by ${esc(r.exitByText)}</b>` : ""}</div>` : ""}${resultsLine(r)}</td>
-        <td class="num"><b>${money(r.buy)}</b>${expLine}</td>
-        <td class="num up">${money(r.target1)}<div class="sub">${money(r.target2)}</div></td>
-        <td class="num down">${money(r.stop)}</td>
-        <td class="num">${money(r.spot)}<div class="sub ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.referencePrice
-          ? `<div class="sub">${r.referenceKind === "future" ? "NSE future" : "share"} ${money(r.referencePrice)}</div>`
+        <td class="num"><b>${px(r.buy)}</b>${expLine}</td>
+        <td class="num up">${px(r.target1)}<div class="sub">${px(r.target2)}</div></td>
+        <td class="num down">${px(r.stop)}</td>
+        <td class="num">${px(r.spot)}<div class="sub ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.referencePrice
+          ? `<div class="sub">${r.referenceKind === "future" ? "NSE future" : "share"} ${px(r.referencePrice)}</div>`
           : (r.fnoListed === false ? `<div class="sub">no NSE futures contract</div>` : "")}</td>
         <td class="num">${money(r.minCapital)}<div class="sub">${esc(r.minUnits)} units</div><div class="sub down">stop &minus;${money(r.minLossAtStop)}</div><div class="sub up">target +${money(r.minGainAtTarget)}</div></td>
         <td class="num">${esc(r.rewardToRisk)}<div class="sub">+${money(r.rewardPerUnit)} / &minus;${money(r.riskPerUnit)}</div>${r.breakEvenPct !== null && r.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(r.breakEvenPct)}% wins to break even</div>` : ""}</td>
@@ -861,7 +875,9 @@ function page(d) {
   // ---- the track record tab -------------------------------------------------
   const t = d.track;
   const when = (iso) => (iso ? esc(istStamp(Date.parse(iso)).replace(" IST", "")) : "&mdash;");
-  const hrs = (h) => (h === null || h === undefined ? "&mdash;" : Number(h) < 24 ? `${esc(h)} h` : `${esc(round(h / 24, 1))} d`);
+  // A median of a few minutes rounds to 0 hours; "0 h" read as nothing at all.
+  const hrs = (h) => (h === null || h === undefined ? "&mdash;" : Number(h) < 0.05 ? "within minutes"
+    : Number(h) < 24 ? `${esc(h)} h` : `${esc(round(h / 24, 1))} d`);
   const KIND = { FUT: "FUTURE", CE: "CALL", PE: "PUT" };
   const OUTCOME = {
     TARGET: '<b class="up">TARGET ✓</b>', STOP: '<b class="down">STOP ✗</b>',
@@ -903,9 +919,9 @@ function page(d) {
       <tr>
         <td><b>${esc(x.contract)}</b><div class="sub">${esc(KIND[x.kind] || x.kind)}</div></td>
         <td class="num">${when(x.shownAt)}</td>
-        <td class="num"><b>${money(x.buy)}</b></td><td class="num up">${money(x.target)}</td><td class="num down">${money(x.stop)}</td>
-        <td class="num">${OUTCOME[x.status] || esc(x.status)}${x.filledAt ? `<div class="sub">filled after ${hrs(x.hoursToFill)}</div>` : ""}</td>
-        <td class="num">${money(x.last)}<div class="sub">${x.filledAt ? `best ${money(x.best)} &middot; worst ${money(x.worst)}` : ""}</div></td>
+        <td class="num"><b>${px(x.buy)}</b></td><td class="num up">${px(x.target)}</td><td class="num down">${px(x.stop)}</td>
+        <td class="num">${OUTCOME[x.status] || esc(x.status)}${x.filledAt ? `<div class="sub">${Number(x.hoursToFill) < 0.05 ? "filled within minutes" : `filled after ${hrs(x.hoursToFill)}`}</div>` : ""}</td>
+        <td class="num">${px(x.last)}<div class="sub">${x.filledAt ? `best ${px(x.best)} &middot; worst ${px(x.worst)}` : ""}</div></td>
         <td class="num">${expectedText(x)}</td>
       </tr>`).join("");
   const closedRows = (t?.recentClosed || []).map((x) => `
@@ -915,7 +931,7 @@ function page(d) {
         <td class="num">${hrs(x.hoursToFill)}</td>
         <td class="num">${hrs(x.hoursFillToExit)}</td>
         <td class="num">${expectedText(x)}</td>
-        <td class="num ${Number(x.pnl?.perUnit) >= 0 ? "up" : "down"}">${x.pnl ? `${money(x.pnl.perUnit)} <div class="sub">${esc(x.pnl.pct)}% ${esc(x.pnl.basis)}${x.pnl.netPerLot !== undefined && x.pnl.netPerLot !== null ? ` &middot; net ${money(x.pnl.netPerLot)}/lot` : ""}${x.kind === "FUT" && numeric(x.pnl.perUnit) !== null ? ` &middot; ${money(round(Number(x.pnl.perUnit) * (d.gmMinUnits || 20)))} at ${esc(d.gmMinUnits || 20)} units` : ""}</div>` : "&mdash;"}</td>
+        <td class="num ${numeric(x.pnl?.perUnit) === null ? "" : numeric(x.pnl.perUnit) >= 0 ? "up" : "down"}">${x.pnl ? `${money(x.pnl.perUnit)} <div class="sub">${esc(x.pnl.pct)}% ${esc(x.pnl.basis)}${x.pnl.netPerLot !== undefined && x.pnl.netPerLot !== null ? ` &middot; net ${money(x.pnl.netPerLot)}/lot` : ""}${x.kind === "FUT" && numeric(x.pnl.perUnit) !== null ? ` &middot; ${money(round(Number(x.pnl.perUnit) * (d.gmMinUnits || 20)))} at ${esc(d.gmMinUnits || 20)} units` : ""}</div>` : "&mdash;"}</td>
       </tr>`).join("");
   const trackCount = (t?.open?.length || 0) + (t?.totalClosed || 0);
   const trackPane = !t
@@ -1018,7 +1034,7 @@ function page(d) {
 
   const liveNote = d.pricedLive > 0
     ? `<b class="up">${d.pricedLive}</b> priced from a live broker book, <b>${d.pricedFromSettlement}</b> from the ${esc(d.settlementFile)} settlement file.`
-    : `All prices are from the <b>${esc(d.settlementFile)}</b> settlement file. The market was ${esc(d.marketPhase).toLowerCase()} when this was built, so nothing here is executable right now.`;
+    : `All prices are from the <b>${esc(d.settlementFile)}</b> settlement file. The market was ${esc(phaseWords(d.marketPhase))} when this was built, so nothing here is executable right now.`;
 
   const nextText = d.nextSession ? new Date(`${d.nextSession}T00:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }) : "the next session";
   // The options are priced from a settlement file OLDER than the last session
@@ -1104,7 +1120,7 @@ function page(d) {
 </style></head><body>
 
 <h1>K&sup2; Desk</h1>
-<div class="stamp">Built ${esc(d.builtAtIst)} &middot; session ${esc(d.sessionDate)} &middot; market ${esc(d.marketPhase)} &middot;
+<div class="stamp">Built ${esc(d.builtAtIst)} &middot; ${noSessionToday ? `no session today (last: ${esc(lastSessionText)})` : `session ${esc(d.sessionDate)}`} &middot; market ${esc(d.marketPhase)} &middot;
   ${esc(Number(d.examined).toLocaleString("en-IN"))} contracts examined, ${esc(Number(d.survived).toLocaleString("en-IN"))} cleared every gate${d.marketContext?.ok
     ? ` &middot; India VIX <b>${esc(d.marketContext.indiaVix)}</b> (${esc(d.marketContext.indiaVixChangePct)}%) &middot; Nifty ${esc(Number(d.marketContext.nifty).toLocaleString("en-IN"))} (${esc(d.marketContext.niftyChangePct)}%), NSE ${esc(String(d.marketContext.at || "").slice(12, 17))}`
     : " &middot; India VIX not read this build"}</div>
