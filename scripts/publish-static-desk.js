@@ -45,6 +45,25 @@ function money(value) {
   if (!Number.isFinite(n)) return "—";
   return (n < 0 ? "−₹" : "₹") + Math.abs(n).toLocaleString("en-IN");
 }
+/**
+ * EVERY BODY CELL CARRIES ITS COLUMN'S NAME (data-label), taken from the
+ * table's own header, so the phone layout can print it above the value. Done
+ * once over the finished page, so no table can be missed.
+ */
+function labelCells(html) {
+  return html.replace(/<table([^>]*)>([\s\S]*?)<\/table>/g, (whole, attrs, inner) => {
+    const head = (inner.match(/<thead>([\s\S]*?)<\/thead>/) || [])[1] || "";
+    const labels = [...head.matchAll(/<th[^>]*>([\s\S]*?)<\/th>/g)].map((m) => m[1].replace(/<[^>]+>/g, "").replace(/"/g, "&quot;").trim());
+    if (!labels.length) return whole;
+    const body = inner.replace(/<tr([^>]*)>([\s\S]*?)<\/tr>/g, (tr, trAttrs, cells) => {
+      if (/<th[\s>]/.test(cells)) return tr;
+      let i = 0;
+      return `<tr${trAttrs}>` + cells.replace(/<td(?![^>]*colspan)([^>]*)>/g, (td, tdAttrs) => `<td data-label="${labels[i++] || ""}"${tdAttrs}>`) + "</tr>";
+    });
+    return `<table${attrs}>${body}</table>`;
+  });
+}
+
 // AN ORDER PRICE, WITH ITS PAISE: "385.50", as the broker shows it, not "385.5";
 // "4.00", not "4". Amounts of money keep money().
 function px(value) {
@@ -905,7 +924,7 @@ function page(d) {
         <td class="num">${s.randomHitRatePct === null || s.randomHitRatePct === undefined ? "&mdash;" : esc(s.randomHitRatePct) + "%"}${s.expectedHitRatePct !== null && s.expectedHitRatePct !== undefined ? `<div class="sub">touch odds said ${esc(s.expectedHitRatePct)}%</div>` : ""}</td>
         <td class="num">${hrs(s.medianHoursToFill)}</td><td class="num">${hrs(s.medianHoursToTarget)}</td>
         <td class="num ${Number(s.avgReturnPct) >= 0 ? "up" : "down"}">${label === "ALL"
-          ? `&mdash;<div class="sub">see each kind: futures move ~1.5%, options ~50%</div>`
+          ? `&mdash;<div class="sub">not comparable</div>`
           : s.avgReturnPct === null ? "&mdash;" : esc(s.avgReturnPct) + "%"}</td>
         ${(() => {
           // ALL is everything: options net per lot PLUS futures at 20 units,
@@ -915,7 +934,7 @@ function page(d) {
           const opt = s.totalNetPerLot === null || s.totalNetPerLot === undefined ? null : Number(s.totalNetPerLot);
           const value = label === "FUTURES" ? fut : label === "ALL" ? (fut === null && opt === null ? null : (fut || 0) + (opt || 0)) : opt;
           const sub = label === "FUTURES" ? (t?.futuresPer20 ? `at ${esc(t.futuresPer20.units)} units, gross` : "")
-            : label === "ALL" ? "options net a lot + futures at 20 units, gross" : "";
+            : label === "ALL" ? "options + futures (20 units)" : "";
           return `<td class="num ${Number(value) >= 0 ? "up" : "down"}">${value === null ? "&mdash;" : money(round(value))}${sub ? `<div class="sub">${sub}</div>` : ""}</td>`;
         })()}
       </tr>` : "";
@@ -941,7 +960,7 @@ function page(d) {
   const trackPane = !t
     ? `<div class="note" style="border-left-color:var(--red)"><b>THE TRACK RECORD COULD NOT BE UPDATED ON THIS BUILD.</b> ${esc(d.ledgerError || "No ledger.")}</div>`
     : `
-    <div class="wrap"><table>
+    <div class="wrap"><table class="summary">
       <thead><tr>
         <th></th><th class="num">SHOWN</th><th class="num">WAITING</th><th class="num">OPEN</th>
         <th class="num">TARGET ✓</th><th class="num">STOP ✗</th><th class="num">EXPIRED</th><th class="num">UNFILLED</th>
@@ -955,7 +974,8 @@ function page(d) {
     <div class="sub" style="margin:6px 0 18px">Hit rate counts only trades that filled and then finished. IF RANDOM is how often
       the target would come before the stop if prices moved at random &mdash; each trade's break-even, before charges. Only a hit rate
       above it, over enough separate bets, is evidence of an edge. The touch odds the desk showed ignore the stop, so they always run higher.
-      Futures returns are GROSS per unit; options are NET of every charge per lot.</div>
+      Futures returns are GROSS per unit; options are NET of every charge per lot. ALL has no average return
+      (futures move about 1.5%, options about 50%), and its money is options net a lot plus futures at 20 units, gross.</div>
 
     ${(d.untrackedFutures || []).length ? `<div class="note" style="border-left-color:var(--red)">
       <b>${esc(d.untrackedFutures.length)} FUTURES ON TODAY&rsquo;S LIST ARE NOT BEING TRACKED YET:</b>
@@ -1071,7 +1091,7 @@ function page(d) {
        They are set once &mdash; and then held all day &mdash; on the first build that
        sees a live exchange book.`;
 
-  return `<!doctype html>
+  const html = `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
@@ -1089,6 +1109,9 @@ function page(d) {
   .note.frozen { border-left-color:var(--green) }
   .wrap { overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--panel) }
   table { border-collapse:collapse; width:100%; min-width:760px }
+  /* The TRACK summary's notes wrap: on a 1536-px screen (1920 at 125%) its
+     long notes pushed the money column off the right edge (27 Sep). */
+  table.summary .sub { white-space:normal; max-width:230px; margin-left:auto }
   th { text-align:left; font-size:9px; letter-spacing:.06em; color:var(--muted);
        padding:8px 10px; border-bottom:1px solid var(--line); white-space:nowrap }
   td { padding:9px 10px; border-bottom:1px solid rgba(255,255,255,.05); vertical-align:top }
@@ -1117,6 +1140,25 @@ function page(d) {
     .tabs { gap:4px }
     .tabs label { font-size:11px; padding:10px 2px; letter-spacing:0 }
     .tabs label span { margin-left:3px; padding:0 5px }
+  }
+  /* THE PHONE IS THE MAIN SCREEN (the user's Samsung Galaxy M32: a page about
+     412 px wide). Tables 1,100+ px wide showed only SYMBOL and BUY LIMIT, with
+     STOP, NOW, GM MIN and R:R off to the right (27 Sep). Below 720 px every
+     row is a card: the contract on top, then each value under its own label,
+     two to a line. Nothing scrolls sideways. */
+  @media (max-width: 720px) {
+    body { padding:10px }
+    .wrap { overflow-x:visible; border:0; background:transparent; border-radius:0 }
+    table { min-width:0 }
+    thead { display:none }
+    .wrap tbody tr { display:grid; grid-template-columns:1fr 1fr; gap:10px 14px; margin:0 0 10px; padding:12px;
+                     border:1px solid var(--line); border-radius:10px; background:var(--panel) }
+    .wrap tbody td, .wrap tbody td.num { display:block; padding:0; border:0; text-align:left; white-space:normal }
+    .wrap tbody td:first-child, .wrap tbody td[colspan] { grid-column:1 / -1 }
+    .wrap td[data-label]:not([data-label=""])::before { content:attr(data-label); display:block; font-size:9px;
+      letter-spacing:.06em; color:var(--muted); margin-bottom:2px }
+    .wrap tbody td:first-child::before { display:none }
+    table.summary .sub { max-width:none; margin-left:0 }
   }
   #v-fut:checked ~ .tabs .t-fut { color:var(--bg); background:var(--amber); border-color:var(--amber) }
   #v-ce:checked ~ .tabs .t-ce { color:var(--bg); background:var(--green); border-color:var(--green) }
@@ -1227,6 +1269,7 @@ ${feedAlarm}
 </div>
 
 </body></html>`;
+  return labelCells(html);
 }
 
 async function main() {
