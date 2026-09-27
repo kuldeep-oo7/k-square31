@@ -193,7 +193,8 @@ async function step(label, fn) {
     if (!phase.open) return `market ${phase.phase}, settlement prices are the only prices there are`;
     const { RealtimeMarketEngine } = require("../api/_lib/realtime-market-engine");
     const engine = new RealtimeMarketEngine();
-    const result = await engine.refreshLiveQuotes({ limit: 60 });
+    // Every BUY/ACCUMULATE name's chain, every build (see refreshLiveQuotes).
+    const result = await engine.refreshLiveQuotes({ everyActionable: true });
     try { engine.stop(); } catch (error) { /* nothing started */ }
     return result?.refreshed ? `${result.refreshed} chains` : "none";
   });

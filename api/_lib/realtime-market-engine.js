@@ -649,7 +649,7 @@ class RealtimeMarketEngine {
    * NIFTY those are different contracts, which is how a card came to quote a
    * one-day weekly while its symbol named the monthly.
    */
-  async refreshLiveQuotes({ limit = 45 } = {}) {
+  async refreshLiveQuotes({ limit = 45, everyActionable = false } = {}) {
     // RE-ENTRANCY GUARD. These are sequential network calls on a 90-second
     // timer: 45 chains at a second and a half each leaves very little margin,
     // and one slow or rate-limited fetch pushes the cycle past the next tick.
@@ -694,8 +694,19 @@ class RealtimeMarketEngine {
         return { picked, cursor: this[cursorKey] };
       };
 
-      const hot = takeRotating(actionable, "_actionableCursor", Math.min(ACTIONABLE_SLOTS, limit));
-      const slice = takeRotating(rest, "_quoteCursor", Math.max(0, limit - hot.picked.length)).picked;
+      // A BUILD IS ONE PASS, NOT A ROTATION. The rotation above was written for
+      // a server that ran all day and kept its cursors; the static build makes a
+      // new engine every run, so the cursors started at 0 every time and every
+      // build fetched the SAME first 25 of 64 actionable names. Measured on
+      // 2026-09-25: "25 of 64 actionable, cursors 25/35" on every in-session
+      // build, and the day's 95 option paper trades were on exactly 25 stocks --
+      // calls on the other 39 BUY names were refused for want of a live book,
+      // a hidden cap. The build asks for EVERY actionable name (about 0.4 s a
+      // chain) and nothing else: calls are shown only on actionable names.
+      const hot = everyActionable
+        ? { picked: actionable.slice() }
+        : takeRotating(actionable, "_actionableCursor", Math.min(ACTIONABLE_SLOTS, limit));
+      const slice = everyActionable ? [] : takeRotating(rest, "_quoteCursor", Math.max(0, limit - hot.picked.length)).picked;
       const picks = [...hot.picked, ...slice];
       const requests = picks.map((row) => {
         // The expiry the card is written on. Passing none falls back to the

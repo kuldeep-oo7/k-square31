@@ -330,7 +330,14 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       // The newest exchange print among every quote this build received. On an
       // NSE holiday it is a previous session's date -- which is how the health
       // gate tells a shut exchange from a broken feed without a holiday table.
-      lastExchangeDate: Object.values(quotes).map((q) => ledgerLib.feedDate(q?.exchangeFeedTime)).filter(Boolean).sort().pop() || null };
+      // The newest TRADE, not the feed's clock. Angel One re-stamps its feed
+      // the morning after a session (measured 2026-09-27: every quote stamped
+      // "26-Sep-2026 06:55", a Saturday, last trade 25-Sep 15:39), so the feed
+      // clock named a Saturday as the last session -- and on a weekday holiday
+      // would name the holiday itself, turning the health gate red for a shut
+      // exchange. The 1970 never-traded stamp sorts first and is never the max.
+      lastExchangeDate: Object.values(quotes).map((q) => ledgerLib.feedDate(q?.exchangeTradeTime || q?.exchangeFeedTime))
+        .filter((day) => day && day > "1971").sort().pop() || null };
   } catch (error) {
     quotes = { ...forwardQuotes };
     quoteStatus = { ok: false, reason: error.message };
@@ -501,7 +508,16 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
         live,
         price: round(q ? q.ltp : r.spotPrice),
         source: q ? (q === fq ? "FUTURES" : "SHARE") + "_" + (live ? "LIVE" : "LAST_TRADED") : "SHARE_CLOSE_FROM_HISTORY",
-        atText: q?.exchangeFeedTime ? String(q.exchangeFeedTime).slice(12, 17) : null,
+        // When it last TRADED ("NOT live at 06:55" on a Sunday was the feed's
+        // re-stamp, not a trade), with its day when that is not today.
+        atText: (() => {
+          const stamp = q?.exchangeTradeTime || q?.exchangeFeedTime;
+          const day = stamp ? ledgerLib.feedDate(stamp) : null;
+          if (!day || day < "1971") return null;
+          const hhmm = String(stamp).slice(12, 17);
+          if (day === session.sessionDate) return hhmm;
+          return new Date(`${day}T00:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }) + " " + hhmm;
+        })(),
         referencePrice: q === fq ? (sq ? round(sq.ltp) : null) : (fq ? round(fq.ltp) : null),
         referenceKind: q === fq ? "share" : (fq ? "future" : null)
       };
@@ -694,8 +710,10 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     freezeBlockedBecause: session.canFreeze ? null
       : phase.open !== true
         ? `The market is ${String(phase.phase).toLowerCase()}.`
-        : "The market says it is open, but not one contract came back with a live exchange book "
-          + "-- an NSE holiday, or no broker session. The clock alone is not evidence.",
+        : require("../api/_lib/nse-holidays").isNseHoliday(session.sessionDate) === true
+          ? "Today is an NSE trading holiday (NSE's own calendar), and no contract came back with a live exchange book."
+          : "The market says it is open, but not one contract came back with a live exchange book "
+            + "-- an NSE holiday, or no broker session. The clock alone is not evidence.",
     levelsOpenedAtIst: session.ledger.openedAtIst,
     freezeTally: session.tally,
     ledgerWritten: saved,
@@ -866,10 +884,20 @@ function page(d) {
         <td class="num"><b>${s.hitRatePct === null ? "&mdash;" : esc(s.hitRatePct) + "%"}</b><div class="sub">of ${esc(s.resolved)} finished${Number(s.resolvedBets) < Number(s.resolved) ? ` (${esc(s.resolvedBets)} separate bets)` : ""}${Number(s.resolvedBets ?? s.resolved) < 30 ? " &mdash; too few to judge" : ""}</div></td>
         <td class="num">${s.randomHitRatePct === null || s.randomHitRatePct === undefined ? "&mdash;" : esc(s.randomHitRatePct) + "%"}${s.expectedHitRatePct !== null && s.expectedHitRatePct !== undefined ? `<div class="sub">touch odds said ${esc(s.expectedHitRatePct)}%</div>` : ""}</td>
         <td class="num">${hrs(s.medianHoursToFill)}</td><td class="num">${hrs(s.medianHoursToTarget)}</td>
-        <td class="num ${Number(s.avgReturnPct) >= 0 ? "up" : "down"}">${s.avgReturnPct === null ? "&mdash;" : esc(s.avgReturnPct) + "%"}</td>
-        <td class="num ${Number(label === "FUTURES" ? t?.futuresPer20?.rupees : s.totalNetPerLot) >= 0 ? "up" : "down"}">${label === "FUTURES"
-          ? (t?.futuresPer20 ? `${money(t.futuresPer20.rupees)}<div class="sub">at ${esc(t.futuresPer20.units)} units, gross</div>` : "&mdash;")
-          : (s.totalNetPerLot === null ? "&mdash;" : money(s.totalNetPerLot))}</td>
+        <td class="num ${Number(s.avgReturnPct) >= 0 ? "up" : "down"}">${label === "ALL"
+          ? `&mdash;<div class="sub">see each kind: futures move ~1.5%, options ~50%</div>`
+          : s.avgReturnPct === null ? "&mdash;" : esc(s.avgReturnPct) + "%"}</td>
+        ${(() => {
+          // ALL is everything: options net per lot PLUS futures at 20 units,
+          // gross. It showed the options alone (-10,065.53 on 27 Sep, when the
+          // futures' -3,725.8 made it -13,791.33).
+          const fut = t?.futuresPer20 ? Number(t.futuresPer20.rupees) : null;
+          const opt = s.totalNetPerLot === null || s.totalNetPerLot === undefined ? null : Number(s.totalNetPerLot);
+          const value = label === "FUTURES" ? fut : label === "ALL" ? (fut === null && opt === null ? null : (fut || 0) + (opt || 0)) : opt;
+          const sub = label === "FUTURES" ? (t?.futuresPer20 ? `at ${esc(t.futuresPer20.units)} units, gross` : "")
+            : label === "ALL" ? "options net a lot + futures at 20 units, gross" : "";
+          return `<td class="num ${Number(value) >= 0 ? "up" : "down"}">${value === null ? "&mdash;" : money(round(value))}${sub ? `<div class="sub">${sub}</div>` : ""}</td>`;
+        })()}
       </tr>` : "";
   const openRows = (t?.open || []).slice().sort((a, b) => String(b.shownAt).localeCompare(String(a.shownAt))).map((x) => `
       <tr>
@@ -1004,9 +1032,12 @@ function page(d) {
         a session older than today&rsquo;s last trades (${esc(lastTraded)}). NSE publishes the ${esc(lastTraded)} file after about 19:00 IST,
         and the next build after that uses it. The futures tab already uses today&rsquo;s last trades.</div>`
     : "";
+  const noSessionToday = lastTraded && d.sessionDate && lastTraded < d.sessionDate;
+  const lastSessionText = lastTraded ? new Date(`${lastTraded}T00:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }) : "";
   const freezeNote = d.sessionOver
-    ? `<b>THE SESSION IS OVER. THESE ROWS ARE PREVIEWS, NOT ORDERS.</b> Today's buy limits were day orders and
-       ended at 15:30 &mdash; what became of each is on <b>TRACK</b>. Every row below is worked from the last
+    ? `<b>${noSessionToday ? "NO SESSION TODAY" : "THE SESSION IS OVER"}. THESE ROWS ARE PREVIEWS, NOT ORDERS.</b> ${noSessionToday
+       ? `The last session was <b>${esc(lastSessionText)}</b>; its buy limits were day orders and ended at 15:30`
+       : "Today's buy limits were day orders and ended at 15:30"} &mdash; what became of each is on <b>TRACK</b>. Every row below is worked from the last
        prices${optionsOnOldFile ? ` (the calls from the ${esc(d.settlementFile)} settlement file until NSE publishes today&rsquo;s)` : ""}, for <b>${esc(nextText)}</b>.
        The real levels are fixed on that session's first build that sees a live exchange book, and can differ from these.`
     : d.levelsFrozen
@@ -1169,8 +1200,9 @@ ${feedAlarm}
 <div class="note" style="margin-top:20px;border-left-color:var(--red)">
   <b>WHAT THIS DOES NOT ESTABLISH.</b> That any of it makes money. The paper ledger
   has ${esc(d.track?.summary?.ALL?.resolved ?? 0)} resolved trade(s) so far &mdash; far too few for a measured hit
-  rate &mdash; and the one test fixed in advance, on data never used to build the
-  rule, did not find an edge. The ranking is built on things that were measured,
+  rate &mdash; and every test fixed in advance so far, on data never used to build the rule, found no edge:
+  the desk's own ranking (final year t = 0.75), 12-1 momentum, time-series momentum, low volatility and a
+  10-month market trend filter (all five FAIL). The ranking is built on things that were measured,
   which is not the same as an edge that was proven. Size accordingly.
 </div>
 

@@ -162,7 +162,7 @@ function makeMarket(state, dayBook) {
   return {
     forwardOf, shareOf, trueVol, optionPrice,
     book(symbol, expiry, strike, type) {
-      if (state.halted || state.noBooks) return null;
+      if (state.halted || state.noBooks || state.restampFeed) return null;
       const p = optionPrice(symbol, expiry, strike, type);
       if (!(p > 0)) return null;
       const half = Math.max(0.05, tick(p * state.spreadPct / 2));
@@ -179,9 +179,14 @@ function makeMarket(state, dayBook) {
         if (!(price > 0)) continue;
         const rng2 = withRange(key, price);
         out[key] = { key, ltp: +price.toFixed(2), open: +rng2.open.toFixed(2), high: +rng2.high.toFixed(2), low: +rng2.low.toFixed(2),
-          previousClose: +rng2.open.toFixed(2), exchangeFeedTime: feedStamp(feedAt),
+          // restampFeed: Angel One re-stamps its feed the morning after a session
+          // ("26-Sep-2026 06:55" on the weekend of 27 Sep) while the last TRADE
+          // stays on the session that traded.
+          previousClose: +rng2.open.toFixed(2),
+          exchangeFeedTime: state.restampFeed ? feedStamp(Date.parse(`${state.restampFeed}T06:55:00+05:30`)) : feedStamp(feedAt),
           // Angel sends the last TRADE time too; a quote here is a trade at the feed time.
-          exchangeTradeTime: feedStamp(feedAt), tradingSymbol: key.replace(/\|/g, "") };
+          exchangeTradeTime: state.restampFeed ? feedStamp(Date.parse(`${state.lastTradeDay}T15:29:00+05:30`)) : feedStamp(feedAt),
+          tradingSymbol: key.replace(/\|/g, "") };
       }
       return out;
     }
@@ -593,6 +598,20 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       `${noBook.data.options.filter((x) => x.spreadKnown !== false).length} of ${noBook.data.options.length} claim a spread`);
     const down = await runBuild("thu-1033-nse-down", { ...normal, clock: ist("2026-09-24", "10:33"), nseDown: true }, new Map(), own);
     const quiet = health.checkLivePath({ ...down.data, brokerCheck: { ok: true } }, ist("2026-09-24", "10:33"));
+    // A REAL NSE HOLIDAY WITH A RE-STAMPED FEED: Fri 2 Oct 2026 (Gandhi
+    // Jayanti). The feed clock says 2 Oct; the last trade was 1 Oct. Reading
+    // the feed clock as the last session made the holiday look like a trading
+    // day with a dead feed -- a red build on a shut exchange.
+    const hol = await runBuild("fri-1013-holiday-restamped-feed", { ...normal, clock: ist("2026-10-02", "10:13"),
+      restampFeed: "2026-10-02", lastTradeDay: "2026-10-01" }, new Map(),
+      { ledgerFile: path.join(tmp, "holiday-levels.json"), ledgerDir: path.join(tmp, "holiday-ledger") });
+    const holGate = health.checkLivePath({ ...hol.data, brokerCheck: { ok: true } }, ist("2026-10-02", "10:13"));
+    check("on a real NSE holiday with the feed re-stamped that morning, the last session is the day before, not the holiday",
+      hol.data.quoteStatus?.lastExchangeDate === "2026-10-01", String(hol.data.quoteStatus?.lastExchangeDate));
+    check("and the production gate stays green: a shut exchange is not a dead feed",
+      holGate.exchangeShut === true && holGate.problems.length === 0, holGate.problems[0] || "green");
+    check("the page names it as an NSE holiday, from NSE's own calendar, and nothing is frozen",
+      hol.data.levelsFrozen === false && /NSE trading holiday/.test(hol.html));
     check("NSE unreachable: the page says NOT checked, and the gate stays green",
       down.data.feedCheck?.checked === false && /Not checked against NSE/.test(down.html) && quiet.problems.length === 0,
       quiet.problems[0] || down.data.feedCheck?.reason);
