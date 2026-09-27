@@ -1157,7 +1157,7 @@ function page(d) {
     .wrap tbody td:first-child, .wrap tbody td[colspan] { grid-column:1 / -1 }
     .wrap td[data-label]:not([data-label=""])::before { content:attr(data-label); display:block; font-size:9px;
       letter-spacing:.06em; color:var(--muted); margin-bottom:2px }
-    .wrap tbody td:first-child::before { display:none }
+    .wrap tbody td[data-label]:first-child::before { display:none } /* outranks the label rule above */
     table.summary .sub { max-width:none; margin-left:0 }
   }
   #v-fut:checked ~ .tabs .t-fut { color:var(--bg); background:var(--amber); border-color:var(--amber) }
