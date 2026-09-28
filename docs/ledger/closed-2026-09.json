@@ -4200,6 +4200,222 @@
     "perLot": -7806,
     "netPerLot": -7875.23
    }
+  },
+  {
+   "id": "2026-09-28|FUT|BDL26OCTFUT",
+   "kind": "FUT",
+   "symbol": "BDL",
+   "contract": "BDL26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 425,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 1101.2,
+   "target": 1128.7,
+   "target2": 1156.3,
+   "stop": 1084.7,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 67.6,
+     "medianTradingDays": 0.182
+    },
+    "target": {
+     "probabilityPct": 76.9,
+     "medianTradingDays": 2.126
+    },
+    "sigmaPct": 31.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T04:26:39.880Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-09-28T06:25:18.232Z",
+   "exitPrice": 1084.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 1.98,
+   "sessionsHeld": 0,
+   "best": 1111,
+   "worst": 1082.1,
+   "last": 1082.6,
+   "lastAt": "2026-09-28T06:25:18.232Z",
+   "marks": 8,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 1124.1,
+    "low": 1082.1,
+    "last": 1082.6
+   },
+   "pnl": {
+    "perUnit": -16.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-24|CE|BEL26OCT400CE",
+   "kind": "CE",
+   "symbol": "BEL",
+   "contract": "BEL26OCT400CE",
+   "expiry": "2026-10-27",
+   "strike": 400,
+   "optionType": "CE",
+   "lotSize": 1425,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T05:44:41.291Z",
+   "buy": 9.6,
+   "target": 14.4,
+   "target2": null,
+   "stop": 4.8,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.9,
+     "medianDays": 11.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T05:44:41.291Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T06:25:18.232Z",
+   "exitPrice": 4.8,
+   "exitReason": "STOP",
+   "hoursFillToExit": 96.68,
+   "sessionsHeld": 2,
+   "best": 10.4,
+   "worst": 4.8,
+   "last": 4.8,
+   "lastAt": "2026-09-28T06:25:18.232Z",
+   "marks": 58,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 7.6,
+    "low": 4.8,
+    "last": 4.8
+   },
+   "pnl": {
+    "perUnit": -4.8,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -6840,
+    "netPerLot": -6906.5
+   }
+  },
+  {
+   "id": "2026-09-24|PE|BAJAJ-AUTO26OCT11500PE",
+   "kind": "PE",
+   "symbol": "BAJAJ-AUTO",
+   "contract": "BAJAJ-AUTO26OCT11500PE",
+   "expiry": "2026-10-27",
+   "strike": 11500,
+   "optionType": "PE",
+   "lotSize": 75,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T05:24:52.561Z",
+   "buy": 317.8,
+   "target": 476.7,
+   "target2": null,
+   "stop": 158.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 52.8,
+     "medianDays": 10.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-24T05:24:52.561Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T06:25:18.232Z",
+   "exitPrice": 476.7,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 97.01,
+   "sessionsHeld": 2,
+   "best": 482.5,
+   "worst": 293.75,
+   "last": 470,
+   "lastAt": "2026-09-28T06:25:18.232Z",
+   "marks": 59,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 482.5,
+    "low": 402.9,
+    "last": 470
+   },
+   "pnl": {
+    "perUnit": 158.9,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 11917.5,
+    "netPerLot": 11790.9
+   }
+  },
+  {
+   "id": "2026-09-24|PE|ADANIPORTS26OCT1800PE",
+   "kind": "PE",
+   "symbol": "ADANIPORTS",
+   "contract": "ADANIPORTS26OCT1800PE",
+   "expiry": "2026-10-27",
+   "strike": 1800,
+   "optionType": "PE",
+   "lotSize": 475,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 43.53,
+   "target": 65.29,
+   "target2": null,
+   "stop": 21.77,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 59.2,
+     "medianDays": 8.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-24T04:04:56.996Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T06:25:18.232Z",
+   "exitPrice": 65.29,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 98.34,
+   "sessionsHeld": 2,
+   "best": 68.55,
+   "worst": 37.75,
+   "last": 68.5,
+   "lastAt": "2026-09-28T06:25:18.232Z",
+   "marks": 63,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 68.55,
+    "low": 43.9,
+    "last": 68.5
+   },
+   "pnl": {
+    "perUnit": 21.76,
+    "pct": 49.99,
+    "basis": "NET",
+    "perLot": 10336,
+    "netPerLot": 10219.93
+   }
   }
  ]
 }
