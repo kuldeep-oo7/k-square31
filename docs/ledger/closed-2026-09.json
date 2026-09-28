@@ -4470,6 +4470,114 @@
     "perLot": -10141.25,
     "netPerLot": -10217.06
    }
+  },
+  {
+   "id": "2026-09-25|CE|ADANIPORTS26OCT1780CE",
+   "kind": "CE",
+   "symbol": "ADANIPORTS",
+   "contract": "ADANIPORTS26OCT1780CE",
+   "expiry": "2026-10-27",
+   "strike": 1780,
+   "optionType": "CE",
+   "lotSize": 475,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T06:04:39.866Z",
+   "buy": 53.85,
+   "target": 80.78,
+   "target2": null,
+   "stop": 26.93,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 61.9,
+     "medianDays": 7.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T06:04:39.870Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T07:05:17.481Z",
+   "exitPrice": 26.93,
+   "exitReason": "STOP",
+   "hoursFillToExit": 73.01,
+   "sessionsHeld": 1,
+   "best": 53.85,
+   "worst": 26.9,
+   "last": 26.9,
+   "lastAt": "2026-09-28T07:05:17.481Z",
+   "marks": 39,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 47.55,
+    "low": 26.9,
+    "last": 26.9
+   },
+   "pnl": {
+    "perUnit": -26.92,
+    "pct": -49.99,
+    "basis": "NET",
+    "perLot": -12787,
+    "netPerLot": -12870.29
+   }
+  },
+  {
+   "id": "2026-09-24|PE|BAJAJ-AUTO26OCT11400PE",
+   "kind": "PE",
+   "symbol": "BAJAJ-AUTO",
+   "contract": "BAJAJ-AUTO26OCT11400PE",
+   "expiry": "2026-10-27",
+   "strike": 11400,
+   "optionType": "PE",
+   "lotSize": 75,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T06:25:03.493Z",
+   "buy": 269.3,
+   "target": 403.95,
+   "target2": null,
+   "stop": 134.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51.1,
+     "medianDays": 10.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-24T06:44:34.610Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-09-28T07:05:17.481Z",
+   "exitPrice": 403.95,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 96.35,
+   "sessionsHeld": 2,
+   "best": 407.65,
+   "worst": 247.45,
+   "last": 396.95,
+   "lastAt": "2026-09-28T07:05:17.481Z",
+   "marks": 59,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 407.65,
+    "low": 300,
+    "last": 396.95
+   },
+   "pnl": {
+    "perUnit": 134.65,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 10098.75,
+    "netPerLot": 9984.27
+   }
   }
  ]
 }
