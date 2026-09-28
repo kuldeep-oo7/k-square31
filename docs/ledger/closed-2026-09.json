@@ -5442,6 +5442,222 @@
     "perLot": 9714.75,
     "netPerLot": 9602.83
    }
+  },
+  {
+   "id": "2026-09-28|FUT|UNIONBANK26OCTFUT",
+   "kind": "FUT",
+   "symbol": "UNIONBANK",
+   "contract": "UNIONBANK26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 4425,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 175.09,
+   "target": 179.47,
+   "target2": 183.84,
+   "stop": 172.46,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 52.1,
+     "medianTradingDays": 0.308
+    },
+    "target": {
+     "probabilityPct": 66,
+     "medianTradingDays": 3.928
+    },
+    "sigmaPct": 20.5,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T04:46:14.521Z",
+   "hoursToFill": 0.66,
+   "closedAt": "2026-09-28T09:45:15.914Z",
+   "exitPrice": 172.46,
+   "exitReason": "STOP",
+   "hoursFillToExit": 4.98,
+   "sessionsHeld": 0,
+   "best": 175.22,
+   "worst": 172.41,
+   "last": 173,
+   "lastAt": "2026-09-28T09:45:15.914Z",
+   "marks": 18,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 180.31,
+    "low": 172.41,
+    "last": 173
+   },
+   "pnl": {
+    "perUnit": -2.63,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-25|FUT|MANKIND26OCTFUT",
+   "kind": "FUT",
+   "symbol": "MANKIND",
+   "contract": "MANKIND26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 250,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 2473.06,
+   "target": 2534.89,
+   "target2": 2596.71,
+   "stop": 2435.96,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": {
+    "fill": {
+     "probabilityPct": 58.9,
+     "medianTradingDays": 0.253
+    },
+    "target": {
+     "probabilityPct": 70.7,
+     "medianTradingDays": 3.131
+    },
+    "sigmaPct": 24.1,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T08:04:50.552Z",
+   "hoursToFill": 4,
+   "closedAt": "2026-09-28T09:45:15.914Z",
+   "exitPrice": 2435.96,
+   "exitReason": "STOP",
+   "hoursFillToExit": 73.67,
+   "sessionsHeld": 1,
+   "best": 2488.3,
+   "worst": 2430.3,
+   "last": 2445,
+   "lastAt": "2026-09-28T09:45:15.914Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 2488.3,
+    "low": 2430.3,
+    "last": 2445
+   },
+   "pnl": {
+    "perUnit": -37.1,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-25|CE|BIOCON26OCT390CE",
+   "kind": "CE",
+   "symbol": "BIOCON",
+   "contract": "BIOCON26OCT390CE",
+   "expiry": "2026-10-27",
+   "strike": 390,
+   "optionType": "CE",
+   "lotSize": 2500,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 11.3,
+   "target": 16.95,
+   "target2": null,
+   "stop": 5.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.1,
+     "medianDays": 10.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T04:04:43.424Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T09:45:15.914Z",
+   "exitPrice": 5.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 77.68,
+   "sessionsHeld": 1,
+   "best": 11.3,
+   "worst": 5.5,
+   "last": 5.7,
+   "lastAt": "2026-09-28T09:45:15.914Z",
+   "marks": 53,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 7.6,
+    "low": 5.5,
+    "last": 5.7
+   },
+   "pnl": {
+    "perUnit": -5.65,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -14125,
+    "netPerLot": -14212.05
+   }
+  },
+  {
+   "id": "2026-09-24|CE|BANKBARODA26OCT235CE",
+   "kind": "CE",
+   "symbol": "BANKBARODA",
+   "contract": "BANKBARODA26OCT235CE",
+   "expiry": "2026-10-27",
+   "strike": 235,
+   "optionType": "CE",
+   "lotSize": 2925,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T06:04:45.533Z",
+   "buy": 7.21,
+   "target": 10.82,
+   "target2": null,
+   "stop": 3.61,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 45.2,
+     "medianDays": 12.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T06:04:45.533Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T09:45:15.914Z",
+   "exitPrice": 3.61,
+   "exitReason": "STOP",
+   "hoursFillToExit": 99.68,
+   "sessionsHeld": 2,
+   "best": 7.69,
+   "worst": 3.6,
+   "last": 3.8,
+   "lastAt": "2026-09-28T09:45:15.914Z",
+   "marks": 68,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 6.65,
+    "low": 3.6,
+    "last": 3.8
+   },
+   "pnl": {
+    "perUnit": -3.6,
+    "pct": -49.93,
+    "basis": "NET",
+    "perLot": -10530,
+    "netPerLot": -10606.98
+   }
   }
  ]
 }
