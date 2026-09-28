@@ -7301,6 +7301,114 @@
     "last": 387.3
    },
    "pnl": null
+  },
+  {
+   "id": "2026-09-28|FUT|RECLTD26OCTFUT",
+   "kind": "FUT",
+   "symbol": "RECLTD",
+   "contract": "RECLTD26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1575,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 300.3,
+   "target": 307.8,
+   "target2": 315.3,
+   "stop": 295.8,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 38.7,
+     "medianTradingDays": 0.419
+    },
+    "target": {
+     "probabilityPct": 56,
+     "medianTradingDays": 5.696
+    },
+    "sigmaPct": 15.3,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T09:45:15.914Z",
+   "hoursToFill": 5.64,
+   "closedAt": "2026-09-28T10:23:56.578Z",
+   "exitPrice": 295.8,
+   "exitReason": "STOP",
+   "hoursFillToExit": 0.64,
+   "sessionsHeld": 0,
+   "best": 300.3,
+   "worst": 295.15,
+   "last": 298.2,
+   "lastAt": "2026-09-28T10:23:56.578Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 308.95,
+    "low": 295.15,
+    "last": 298.2
+   },
+   "pnl": {
+    "perUnit": -4.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-25|CE|360ONE26OCT1100CE",
+   "kind": "CE",
+   "symbol": "360ONE",
+   "contract": "360ONE26OCT1100CE",
+   "expiry": "2026-10-27",
+   "strike": 1100,
+   "optionType": "CE",
+   "lotSize": 500,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T06:24:19.247Z",
+   "buy": 29.78,
+   "target": 44.66,
+   "target2": null,
+   "stop": 14.89,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 45.4,
+     "medianDays": 12,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T06:24:19.253Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T10:23:56.578Z",
+   "exitPrice": 14.89,
+   "exitReason": "STOP",
+   "hoursFillToExit": 75.99,
+   "sessionsHeld": 1,
+   "best": 29.78,
+   "worst": 14.8,
+   "last": 14.8,
+   "lastAt": "2026-09-28T10:23:56.578Z",
+   "marks": 47,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 23.3,
+    "low": 14.8,
+    "last": 14.8
+   },
+   "pnl": {
+    "perUnit": -14.89,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -7445,
+    "netPerLot": -7513.2
+   }
   }
  ]
 }
