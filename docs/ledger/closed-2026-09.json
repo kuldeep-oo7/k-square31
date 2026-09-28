@@ -2699,6 +2699,762 @@
     "perLot": -13338.75,
     "netPerLot": -13423.59
    }
+  },
+  {
+   "id": "2026-09-25|FUT|BDL26OCTFUT",
+   "kind": "FUT",
+   "symbol": "BDL",
+   "contract": "BDL26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 425,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 1154.59,
+   "target": 1183.45,
+   "target2": 1212.32,
+   "stop": 1137.27,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": {
+    "fill": {
+     "probabilityPct": 68.3,
+     "medianTradingDays": 0.177
+    },
+    "target": {
+     "probabilityPct": 77.3,
+     "medianTradingDays": 2.068
+    },
+    "sigmaPct": 31.8,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T05:24:40.287Z",
+   "hoursToFill": 1.33,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 1137.27,
+   "exitReason": "STOP",
+   "hoursFillToExit": 70.7,
+   "sessionsHeld": 1,
+   "best": 1154.59,
+   "worst": 1124.6,
+   "last": 1125,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 37,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 1140.9,
+    "low": 1124.6,
+    "last": 1125
+   },
+   "pnl": {
+    "perUnit": -17.32,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-25|FUT|KOTAKBANK26OCTFUT",
+   "kind": "FUT",
+   "symbol": "KOTAKBANK",
+   "contract": "KOTAKBANK26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 2000,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 402.55,
+   "target": 412.61,
+   "target2": 422.68,
+   "stop": 396.51,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": {
+    "fill": {
+     "probabilityPct": 52,
+     "medianTradingDays": 0.311
+    },
+    "target": {
+     "probabilityPct": 65.8,
+     "medianTradingDays": 3.975
+    },
+    "sigmaPct": 20.3,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T07:24:36.720Z",
+   "hoursToFill": 3.33,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 396.51,
+   "exitReason": "STOP",
+   "hoursFillToExit": 68.7,
+   "sessionsHeld": 1,
+   "best": 404,
+   "worst": 396.5,
+   "last": 396.55,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 37,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 402.05,
+    "low": 396.5,
+    "last": 396.55
+   },
+   "pnl": {
+    "perUnit": -6.04,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-25|PE|BHARTIARTL26OCT1840PE",
+   "kind": "PE",
+   "symbol": "BHARTIARTL",
+   "contract": "BHARTIARTL26OCT1840PE",
+   "expiry": "2026-10-27",
+   "strike": 1840,
+   "optionType": "PE",
+   "lotSize": 475,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 47.7,
+   "target": 71.55,
+   "target2": null,
+   "stop": 23.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 66,
+     "medianDays": 6.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-25T05:05:10.568Z",
+   "hoursToFill": 1.01,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 71.55,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 71.03,
+   "sessionsHeld": 1,
+   "best": 73.45,
+   "worst": 45.95,
+   "last": 73.15,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 36,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 73.45,
+    "low": 66.75,
+    "last": 73.15
+   },
+   "pnl": {
+    "perUnit": 23.85,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 11328.75,
+    "netPerLot": 11206.08
+   }
+  },
+  {
+   "id": "2026-09-25|PE|BHARTIARTL26OCT1820PE",
+   "kind": "PE",
+   "symbol": "BHARTIARTL",
+   "contract": "BHARTIARTL26OCT1820PE",
+   "expiry": "2026-10-27",
+   "strike": 1820,
+   "optionType": "PE",
+   "lotSize": 475,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 36.05,
+   "target": 54.08,
+   "target2": null,
+   "stop": 18.02,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 64.2,
+     "medianDays": 6.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-25T05:05:10.568Z",
+   "hoursToFill": 1.01,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 54.08,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 71.03,
+   "sessionsHeld": 1,
+   "best": 58.8,
+   "worst": 34.2,
+   "last": 58.25,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 36,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 58.8,
+    "low": 52.9,
+    "last": 58.25
+   },
+   "pnl": {
+    "perUnit": 18.03,
+    "pct": 50.01,
+    "basis": "NET",
+    "perLot": 8564.25,
+    "netPerLot": 8460
+   }
+  },
+  {
+   "id": "2026-09-24|PE|BHARTIARTL26OCT1800PE",
+   "kind": "PE",
+   "symbol": "BHARTIARTL",
+   "contract": "BHARTIARTL26OCT1800PE",
+   "expiry": "2026-10-27",
+   "strike": 1800,
+   "optionType": "PE",
+   "lotSize": 475,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T08:25:17.392Z",
+   "buy": 27.33,
+   "target": 40.99,
+   "target2": null,
+   "stop": 13.67,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 60.5,
+     "medianDays": 8.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-24T09:18:46.289Z",
+   "hoursToFill": 0.89,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 40.99,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 90.8,
+   "sessionsHeld": 2,
+   "best": 45.7,
+   "worst": 24.9,
+   "last": 44.85,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 44,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 45.7,
+    "low": 36.95,
+    "last": 44.85
+   },
+   "pnl": {
+    "perUnit": 13.66,
+    "pct": 49.98,
+    "basis": "NET",
+    "perLot": 6488.5,
+    "netPerLot": 6398.06
+   }
+  },
+  {
+   "id": "2026-09-24|PE|ETERNAL26OCT340PE",
+   "kind": "PE",
+   "symbol": "ETERNAL",
+   "contract": "ETERNAL26OCT340PE",
+   "expiry": "2026-10-27",
+   "strike": 340,
+   "optionType": "PE",
+   "lotSize": 2425,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T06:04:45.533Z",
+   "buy": 10.68,
+   "target": 16.01,
+   "target2": null,
+   "stop": 5.34,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.9,
+     "medianDays": 11.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-24T06:04:45.533Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 16.01,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 94.03,
+   "sessionsHeld": 2,
+   "best": 16.1,
+   "worst": 10.65,
+   "last": 15.8,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 51,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 16.1,
+    "low": 15.25,
+    "last": 15.8
+   },
+   "pnl": {
+    "perUnit": 5.33,
+    "pct": 49.91,
+    "basis": "NET",
+    "perLot": 12925.25,
+    "netPerLot": 12791.82
+   }
+  },
+  {
+   "id": "2026-09-24|CE|360ONE26OCT1100CE",
+   "kind": "CE",
+   "symbol": "360ONE",
+   "contract": "360ONE26OCT1100CE",
+   "expiry": "2026-10-27",
+   "strike": 1100,
+   "optionType": "CE",
+   "lotSize": 500,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T05:04:57.002Z",
+   "buy": 39.3,
+   "target": 58.95,
+   "target2": null,
+   "stop": 19.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.5,
+     "medianDays": 11.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T05:24:48.516Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 19.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 94.7,
+   "sessionsHeld": 2,
+   "best": 39.3,
+   "worst": 19,
+   "last": 19.1,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 53,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 23.3,
+    "low": 19,
+    "last": 19.1
+   },
+   "pnl": {
+    "perUnit": -19.65,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -9825,
+    "netPerLot": -9899.92
+   }
+  },
+  {
+   "id": "2026-09-24|FUT|SHRIRAMFIN26OCTFUT",
+   "kind": "FUT",
+   "symbol": "SHRIRAMFIN",
+   "contract": "SHRIRAMFIN26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 825,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 992.5,
+   "target": 1017.31,
+   "target2": 1042.13,
+   "stop": 977.61,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": {
+    "fill": {
+     "probabilityPct": 62.8,
+     "medianTradingDays": 0.222
+    },
+    "target": {
+     "probabilityPct": 73.4,
+     "medianTradingDays": 2.681
+    },
+    "sigmaPct": 26.8,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T08:25:12.081Z",
+   "hoursToFill": 4.34,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 977.61,
+   "exitReason": "STOP",
+   "hoursFillToExit": 91.69,
+   "sessionsHeld": 2,
+   "best": 1002,
+   "worst": 975.5,
+   "last": 976.6,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 61,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 991.3,
+    "low": 975.5,
+    "last": 976.6
+   },
+   "pnl": {
+    "perUnit": -14.89,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-24|FUT|PFC26OCTFUT",
+   "kind": "FUT",
+   "symbol": "PFC",
+   "contract": "PFC26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1300,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 339.46,
+   "target": 347.95,
+   "target2": 356.43,
+   "stop": 334.37,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": {
+    "fill": {
+     "probabilityPct": 40.8,
+     "medianTradingDays": 0.403
+    },
+    "target": {
+     "probabilityPct": 57.2,
+     "medianTradingDays": 5.489
+    },
+    "sigmaPct": 15.8,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T08:05:08.004Z",
+   "hoursToFill": 4,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 334.37,
+   "exitReason": "STOP",
+   "hoursFillToExit": 92.03,
+   "sessionsHeld": 2,
+   "best": 340.05,
+   "worst": 331.75,
+   "last": 332,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 61,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 338.55,
+    "low": 331.75,
+    "last": 332
+   },
+   "pnl": {
+    "perUnit": -5.09,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-24|PE|BEL26OCT400PE",
+   "kind": "PE",
+   "symbol": "BEL",
+   "contract": "BEL26OCT400PE",
+   "expiry": "2026-10-27",
+   "strike": 400,
+   "optionType": "PE",
+   "lotSize": 1425,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 10.8,
+   "target": 16.2,
+   "target2": null,
+   "stop": 5.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.4,
+     "medianDays": 11,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-24T05:04:53.201Z",
+   "hoursToFill": 1,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 16.2,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 95.03,
+   "sessionsHeld": 2,
+   "best": 16.25,
+   "worst": 10.15,
+   "last": 16.25,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 56,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 16.25,
+    "low": 12.55,
+    "last": 16.25
+   },
+   "pnl": {
+    "perUnit": 5.4,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 7695,
+    "netPerLot": 7596.53
+   }
+  },
+  {
+   "id": "2026-09-24|PE|ADANIENT26OCT3000PE",
+   "kind": "PE",
+   "symbol": "ADANIENT",
+   "contract": "ADANIENT26OCT3000PE",
+   "expiry": "2026-10-27",
+   "strike": 3000,
+   "optionType": "PE",
+   "lotSize": 309,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 106.35,
+   "target": 159.52,
+   "target2": null,
+   "stop": 53.18,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.8,
+     "medianDays": 9.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-24T04:24:37.094Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 159.52,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 95.7,
+   "sessionsHeld": 2,
+   "best": 174.85,
+   "worst": 102.9,
+   "last": 161.65,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 56,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 174.85,
+    "low": 136.95,
+    "last": 161.65
+   },
+   "pnl": {
+    "perUnit": 53.17,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 16429.53,
+    "netPerLot": 16272.87
+   }
+  },
+  {
+   "id": "2026-09-24|CE|BHARTIARTL26OCT1800CE",
+   "kind": "CE",
+   "symbol": "BHARTIARTL",
+   "contract": "BHARTIARTL26OCT1800CE",
+   "expiry": "2026-10-27",
+   "strike": 1800,
+   "optionType": "CE",
+   "lotSize": 475,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 50.13,
+   "target": 75.19,
+   "target2": null,
+   "stop": 25.07,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 67.2,
+     "medianDays": 6.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T04:04:56.996Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 25.07,
+   "exitReason": "STOP",
+   "hoursFillToExit": 96.03,
+   "sessionsHeld": 2,
+   "best": 50.5,
+   "worst": 23.25,
+   "last": 23.2,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 56,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 28.05,
+    "low": 23.25,
+    "last": 23.2
+   },
+   "pnl": {
+    "perUnit": -25.06,
+    "pct": -49.99,
+    "basis": "NET",
+    "perLot": -11903.5,
+    "netPerLot": -11984.29
+   }
+  },
+  {
+   "id": "2026-09-24|CE|BHARTIARTL26OCT1840CE",
+   "kind": "CE",
+   "symbol": "BHARTIARTL",
+   "contract": "BHARTIARTL26OCT1840CE",
+   "expiry": "2026-10-27",
+   "strike": 1840,
+   "optionType": "CE",
+   "lotSize": 475,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 28.55,
+   "target": 42.83,
+   "target2": null,
+   "stop": 14.28,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 62,
+     "medianDays": 7.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T04:24:37.094Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 14.28,
+   "exitReason": "STOP",
+   "hoursFillToExit": 95.7,
+   "sessionsHeld": 2,
+   "best": 28.7,
+   "worst": 11.95,
+   "last": 11.85,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 56,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 16.7,
+    "low": 11.95,
+    "last": 11.85
+   },
+   "pnl": {
+    "perUnit": -14.27,
+    "pct": -49.98,
+    "basis": "NET",
+    "perLot": -6778.25,
+    "netPerLot": -6844.58
+   }
+  },
+  {
+   "id": "2026-09-24|CE|BHARTIARTL26OCT1820CE",
+   "kind": "CE",
+   "symbol": "BHARTIARTL",
+   "contract": "BHARTIARTL26OCT1820CE",
+   "expiry": "2026-10-27",
+   "strike": 1820,
+   "optionType": "CE",
+   "lotSize": 475,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 38.63,
+   "target": 57.94,
+   "target2": null,
+   "stop": 19.32,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 65.3,
+     "medianDays": 6.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T04:24:37.094Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-09-28T04:06:42.660Z",
+   "exitPrice": 19.05,
+   "exitReason": "STOP",
+   "hoursFillToExit": 95.7,
+   "sessionsHeld": 2,
+   "best": 38.63,
+   "worst": 16.6,
+   "last": 16.8,
+   "lastAt": "2026-09-28T04:06:42.660Z",
+   "marks": 56,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 19.55,
+    "low": 16.6,
+    "last": 16.8
+   },
+   "pnl": {
+    "perUnit": -19.58,
+    "pct": -50.69,
+    "basis": "NET",
+    "perLot": -9300.5,
+    "netPerLot": -9373.34
+   }
   }
  ]
 }
