@@ -77,8 +77,11 @@ function completedRows(rows, now = Date.now()) {
 async function refreshRiskHistory(symbols, { now = Date.now(), budgetMs = 120_000, batchSize = 4, delayMs = 250, dir = DIR, fetcher = fetchChart } = {}) {
   const started = Date.now();
   const wanted = [...new Set([MARKET, VIX, ...symbols])];
-  const close = latestSessionCloseMs(now);
-  const due = wanted.filter((symbol) => !(Date.parse(readHistory(symbol, { dir })?.fetchedAt || "") > close));
+  // A copy taken before 16:00 on a session day holds that day's bar before
+  // NSE has settled it, and stays due until one is taken after -- the first
+  // build after 15:30 would otherwise keep an unsettled bar until tomorrow.
+  const settled = latestSessionCloseMs(now) + 30 * 60_000;
+  const due = wanted.filter((symbol) => !(Date.parse(readHistory(symbol, { dir })?.fetchedAt || "") > settled));
   let fetched = 0, failed = 0, notReached = 0;
   const failures = [];
   for (let i = 0; i < due.length; i += batchSize) {

@@ -67,7 +67,11 @@ if (!reference?.symbols) {
   console.log("  - no contract reference cached; the exchange-wide surface checks are skipped");
 } else {
   const names = Object.keys(reference.symbols);
-  const surfaces = names.map((n) => surfaceFor(n, { reference })).filter((s) => s.ok);
+  // At the file's own close: its premiums were settled then. Read against
+  // today's clock, Friday's file on Monday night put the September expiry
+  // 0.7 days away instead of 4, and 206 of 209 names read as one shape.
+  const fileClose = Date.parse(`${String(reference.session).slice(0, 10)}T15:30:00+05:30`);
+  const surfaces = names.map((n) => surfaceFor(n, { reference, now: fileClose })).filter((s) => s.ok);
 
   const withTerm = surfaces.filter((s) => s.termStructure.available);
   const withSkew = surfaces.filter((s) => s.skew.available);

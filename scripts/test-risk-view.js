@@ -285,6 +285,11 @@ console.log("\nthe history cache round-trips, and the fetch keeps its budget");
     check("fetches NIFTY, India VIX and every name, and records the failure", r.wanted === 4 && r.fetched === 3 && r.failed === 1 && /BAD/.test(r.failures[0]), JSON.stringify(r));
     const again = await H.refreshRiskHistory(["GOOD", "BAD"], { dir, now, fetcher, delayMs: 0 });
     check("a copy taken after the latest close is not fetched again", again.due === 1 && again.fetched === 0, JSON.stringify(again));
+    // Taken at 15:45, before the day's bar settles: still due at 18:00.
+    const dir2 = fs.mkdtempSync(path.join(os.tmpdir(), "k2-risk-"));
+    await H.refreshRiskHistory(["GOOD"], { dir: dir2, now: Date.parse("2026-09-25T15:45:00+05:30"), fetcher, delayMs: 0 });
+    const later = await H.refreshRiskHistory(["GOOD"], { dir: dir2, now, fetcher, delayMs: 0 });
+    check("a copy taken at 15:45, before the day's bar settles, is fetched again after 16:00", later.due === 3 && later.fetched === 3, JSON.stringify(later));
     console.log("\n" + passed + " passed, " + failed + " failed");
     process.exit(failed ? 1 : 0);
   })();

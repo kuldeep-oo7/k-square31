@@ -303,6 +303,11 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     console.log("  09:13 pre-open");
     check("before the bell nothing is frozen, and the page says INDICATIVE", pre.data.levelsFrozen === false && /INDICATIVE, NOT FIXED/.test(pre.html));
     check("the track record records nothing before the bell", (pre.data.track?.tally?.added ?? 0) === 0);
+    check("before the bell there is no check against NSE -- its pages still show the last session -- and the page says so, never red",
+      pre.data.feedCheck?.checked === false && /previous session/.test(pre.data.feedCheck?.reason || "") && !/DO NOT TRADE THESE ROWS/.test(pre.html),
+      JSON.stringify(pre.data.feedCheck));
+    check("before the bell the notice says every price is from the last session, and not to order from it yet",
+      /BEFORE THE OPEN: EVERY PRICE BELOW IS FROM/.test(pre.html) && /Do not place orders from this page before then/.test(pre.html));
     check("before the bell on a trading day the header names today's session, never \"no session today\"",
       /session 2026-09-24/.test(pre.html) && !/no session today/.test(pre.html), (pre.html.match(/Built [^<]{0,120}/) || [""])[0]);
     check("before the bell every option is priced against the SETTLEMENT forward, the same moment as its premium",

@@ -695,6 +695,13 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
         })(),
         open: ledger.open,
         recentClosed: closed.slice().sort((a, b) => String(b.closedAt).localeCompare(String(a.closedAt))).slice(0, 60),
+        // The days the puts on the record were shown. None have been shown
+        // since 25 Sep (calls only), and TRACK must say so: "no put option ...
+        // but still in the records tab there are put profits" (the user, 28 Sep).
+        putDays: (() => {
+          const days = [...ledger.open, ...closed].filter((x) => x.kind === "PE").map((x) => x.sessionDate).filter(Boolean).sort();
+          return days.length ? { first: days[0], last: days[days.length - 1] } : null;
+        })(),
         totalClosed: closed.length,
         tally: ledger.tally,
         saved: ledgerSaved
@@ -731,7 +738,14 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
   // One and read from nseindia.com seconds later. The health gate fails the
   // build in session if any of them is a DIFFERENT contract on NSE.
   let feedCheck = { checked: false, reason: "no broker quotes on this build" };
-  if (quoteStatus?.ok) {
+  // NOT BEFORE THE OPEN. Until 09:15 NSE's quote pages still show the previous
+  // session: at 09:13 on Mon 28 Sep NSE gave WIPRO OCT FUT a "previous close"
+  // of 162.87 -- Thursday's -- where Angel One had Friday's 162.35 (NSE's own
+  // bhavcopy: close 162.35), and the page told the user two contracts were
+  // DIFFERENT contracts. Comparing two different days proves nothing.
+  if (quoteStatus?.ok && phase.phase === "PRE_OPEN") {
+    feedCheck = { checked: false, reason: "before the open, NSE's quote pages still show the previous session" };
+  } else if (quoteStatus?.ok) {
     try {
       const nseCheck = require("../api/_lib/nse-crosscheck");
       feedCheck = await nseCheck.crossCheck(nseCheck.sampleRows({ futures, options, nowMs: Date.now() }), {
@@ -984,8 +998,12 @@ function page(d) {
       : e.target.medianDays !== null && e.target.medianDays !== undefined ? `${esc(e.target.medianDays)} days` : "?";
     return `${esc(e.target.probabilityPct ?? "?")}% &middot; ~${days}`;
   };
+  const shortDay = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
+  const putNote = t?.putDays && !d.options.some((c) => c.right === "PE")
+    ? `<div class="sub warn">shown ${esc(shortDay(t.putDays.first))}${t.putDays.last !== t.putDays.first ? `&ndash;${esc(shortDay(t.putDays.last))}` : ""},
+        before puts came off the page &mdash; none since; tracked to their end</div>` : "";
   const summaryRow = (label, s) => s ? `
-      <tr><td><b>${label}</b></td>
+      <tr><td><b>${label}</b>${label === "PUTS" ? putNote : ""}</td>
         <td class="num">${esc(s.shown)}</td><td class="num">${esc(s.waiting)}</td><td class="num">${esc(s.open)}</td>
         <td class="num up">${esc(s.target)}</td><td class="num down">${esc(s.stop)}</td><td class="num">${esc(s.expired)}</td>
         <td class="num">${esc(s.unfilled)}</td>
@@ -1166,11 +1184,31 @@ function page(d) {
        `They hold however far the market runs: ${esc(d.freezeTally.carried)} carried from earlier in the session,
        ${esc(d.freezeTally.frozenThisBuild)} set on this build. The <b>NOW</b> column is the only
        number that changes &mdash; it tells you whether the market has come to your limit yet.`]
+    : d.marketPhase === "PRE_OPEN"
+    // "There is no change in the futures from Friday -- is it even working?"
+    // and "you told me to buy at this but it was way lower" (the user, 28 Sep,
+    // looking at 09:10-09:31): before the open every price is the last
+    // session's, and today's real levels come from live prices after 09:15.
+    ? [`<b>BEFORE THE OPEN: EVERY PRICE BELOW IS ${lastSessionText ? `FROM ${esc(lastSessionText.toUpperCase())}` : "FROM THE LAST SESSION"} &mdash; THESE LEVELS ARE INDICATIVE, NOT FIXED.</b> Today&rsquo;s real levels are set on live prices after 09:15.`,
+       `Nothing has traded yet today (a few shares and futures print in the 09:00&ndash;09:08 pre-open auction, and a row
+       says so when it has). The levels are fixed on the first build that sees live prices &mdash; normally 09:33 &mdash; and they
+       move by however far the market opens from the last close. <b>Do not place orders from this page before then.</b>`]
     : [`<b>THESE LEVELS ARE INDICATIVE, NOT FIXED.</b> ${esc(d.freezeBlockedBecause)}`,
        `There is no traded price to anchor them to, so nothing has been written down.
        They are set once &mdash; and then held all day &mdash; on the first build that
        sees a live exchange book.`];
 
+  // WHEN THE NIFTY AND VIX FIGURES ARE FROM. Before the open they are the last
+  // session's close, and "Nifty 23,140.5 (+0.34%), NSE 15:30" read on Monday
+  // at 09:10 as this morning's -- beside a GIFT Nifty at -0.38% (the user,
+  // 28 Sep). A figure from another day names its day.
+  const ctxWhen = (() => {
+    const m = String(d.marketContext?.at || "").match(/^(\d{2})-([A-Za-z]{3})-(\d{4}) (\d{2}:\d{2})/);
+    if (!m) return `NSE ${esc(String(d.marketContext?.at || "").slice(12, 17))}`;
+    const iso = `${m[3]}-${String(MONTHS.indexOf(m[2].toUpperCase()) + 1).padStart(2, "0")}-${m[1]}`;
+    return iso === d.sessionDate ? `NSE ${esc(m[4])}`
+      : `<b class="warn">NSE close of ${esc(new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }))} &mdash; not today</b>`;
+  })();
   const html = `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8">
@@ -1266,7 +1304,7 @@ function page(d) {
 <h1>K&sup2; Desk</h1>
 <div class="stamp">Built ${esc(d.builtAtIst)} &middot; ${noSessionToday ? `no session today (last: ${esc(lastSessionText)})` : `session ${esc(d.sessionDate)}`} &middot; market ${esc(d.marketPhase)} &middot;
   ${esc(Number(d.examined).toLocaleString("en-IN"))} contracts examined, ${esc(Number(d.survived).toLocaleString("en-IN"))} cleared every gate${d.marketContext?.ok
-    ? ` &middot; India VIX <b>${esc(d.marketContext.indiaVix)}</b> (${signedPct(d.marketContext.indiaVixChangePct)}) &middot; Nifty ${esc(Number(d.marketContext.nifty).toLocaleString("en-IN"))} (${signedPct(d.marketContext.niftyChangePct)}), NSE ${esc(String(d.marketContext.at || "").slice(12, 17))}`
+    ? ` &middot; India VIX <b>${esc(d.marketContext.indiaVix)}</b> (${signedPct(d.marketContext.indiaVixChangePct)}) &middot; Nifty ${esc(Number(d.marketContext.nifty).toLocaleString("en-IN"))} (${signedPct(d.marketContext.niftyChangePct)}), ${ctxWhen}`
     : " &middot; India VIX not read this build"}</div>
 
 <div class="note ${d.levelsFrozen ? "frozen" : ""}"><details class="fold"><summary>${freezeHead}<span class="more"></span></summary><div>${freezeRest}</div></details></div>
