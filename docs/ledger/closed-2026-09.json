@@ -3455,6 +3455,157 @@
     "perLot": -9300.5,
     "netPerLot": -9373.34
    }
+  },
+  {
+   "id": "2026-09-25|CE|DRREDDY26OCT1220CE",
+   "kind": "CE",
+   "symbol": "DRREDDY",
+   "contract": "DRREDDY26OCT1220CE",
+   "expiry": "2026-10-27",
+   "strike": 1220,
+   "optionType": "CE",
+   "lotSize": 625,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T06:24:19.247Z",
+   "buy": 22.45,
+   "target": 33.67,
+   "target2": null,
+   "stop": 11.23,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 43.7,
+     "medianDays": 12.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-25T06:44:56.108Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-09-28T04:26:39.880Z",
+   "exitPrice": 33.67,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 69.7,
+   "sessionsHeld": 1,
+   "best": 34.25,
+   "worst": 21.7,
+   "last": 32.8,
+   "lastAt": "2026-09-28T04:26:39.880Z",
+   "marks": 29,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 34.25,
+    "low": 24.95,
+    "last": 32.8
+   },
+   "pnl": {
+    "perUnit": 11.22,
+    "pct": 49.98,
+    "basis": "NET",
+    "perLot": 7012.5,
+    "netPerLot": 6918.57
+   }
+  },
+  {
+   "id": "2026-09-24|PE|ETERNAL26OCT350PE",
+   "kind": "PE",
+   "symbol": "ETERNAL",
+   "contract": "ETERNAL26OCT350PE",
+   "expiry": "2026-10-27",
+   "strike": 350,
+   "optionType": "PE",
+   "lotSize": 2425,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:24:39.935Z",
+   "buy": 15.08,
+   "target": 22.61,
+   "target2": null,
+   "stop": 7.54,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.7,
+     "medianDays": 10.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-24T04:24:39.935Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T04:26:39.880Z",
+   "exitPrice": 22.61,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 96.03,
+   "sessionsHeld": 2,
+   "best": 22.85,
+   "worst": 14.8,
+   "last": 21.55,
+   "lastAt": "2026-09-28T04:26:39.880Z",
+   "marks": 55,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 22.85,
+    "low": 21.55,
+    "last": 21.55
+   },
+   "pnl": {
+    "perUnit": 7.53,
+    "pct": 49.93,
+    "basis": "NET",
+    "perLot": 18260.25,
+    "netPerLot": 18091.28
+   }
+  },
+  {
+   "id": "2026-09-24|FUT|APOLLOTYRE (share)",
+   "kind": "FUT",
+   "symbol": "APOLLOTYRE",
+   "contract": "APOLLOTYRE (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 399.23,
+   "target": 409.21,
+   "target2": 419.19,
+   "stop": 393.24,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "STOP",
+   "filledAt": "2026-09-24T07:24:30.261Z",
+   "hoursToFill": 3.33,
+   "closedAt": "2026-09-28T04:26:39.880Z",
+   "exitPrice": 393.24,
+   "exitReason": "STOP",
+   "hoursFillToExit": 93.04,
+   "sessionsHeld": 2,
+   "best": 400.95,
+   "worst": 393,
+   "last": 394.25,
+   "lastAt": "2026-09-28T04:26:39.880Z",
+   "marks": 62,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 398.4,
+    "low": 393,
+    "last": 394.25
+   },
+   "pnl": {
+    "perUnit": -5.99,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
