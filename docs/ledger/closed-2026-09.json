@@ -4416,6 +4416,60 @@
     "perLot": 10336,
     "netPerLot": 10219.93
    }
+  },
+  {
+   "id": "2026-09-25|CE|ADANIPORTS26OCT1800CE",
+   "kind": "CE",
+   "symbol": "ADANIPORTS",
+   "contract": "ADANIPORTS26OCT1800CE",
+   "expiry": "2026-10-27",
+   "strike": 1800,
+   "optionType": "CE",
+   "lotSize": 475,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:44:40.803Z",
+   "buy": 42.7,
+   "target": 64.05,
+   "target2": null,
+   "stop": 21.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 58.8,
+     "medianDays": 8.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T05:05:10.568Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-09-28T06:44:52.975Z",
+   "exitPrice": 21.35,
+   "exitReason": "STOP",
+   "hoursFillToExit": 73.66,
+   "sessionsHeld": 1,
+   "best": 44,
+   "worst": 21.3,
+   "last": 21.4,
+   "lastAt": "2026-09-28T06:44:52.975Z",
+   "marks": 41,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 38.55,
+    "low": 21.3,
+    "last": 21.4
+   },
+   "pnl": {
+    "perUnit": -21.35,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -10141.25,
+    "netPerLot": -10217.06
+   }
   }
  ]
 }
