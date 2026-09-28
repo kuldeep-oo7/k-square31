@@ -79,6 +79,10 @@ function buildReference(rows, session) {
     if (isFuture) {
       const price = num(row.SttlmPric) ?? num(row.ClsPric);
       if (price > 0) bucket.futuresPrice = price;
+      // The file's own last trade, close and previous close: how the check
+      // against NSE tells a page still showing this session from a different
+      // contract (nse-crosscheck.js).
+      bucket.futuresFile = { last: num(row.LastPric), close: num(row.ClsPric), prevClose: num(row.PrvsClsgPric) };
       continue;
     }
 
@@ -101,6 +105,8 @@ function buildReference(rows, session) {
         price: traded,
         settle: num(row.SttlmPric),
         close: num(row.ClsPric),
+        last: num(row.LastPric),
+        prevClose: num(row.PrvsClsgPric),
         open: num(row.OpnPric),
         high: num(row.HghPric),
         low: num(row.LwPric),

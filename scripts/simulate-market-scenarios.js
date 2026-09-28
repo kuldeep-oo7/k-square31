@@ -260,8 +260,14 @@ async function runBuild(name, state, dayBook, { banned = null, ledgerFile = LEDG
     const ours = await opts.ours(reqs);
     const rows = reqs.map((r, i) => {
       const q = market.quotes([r])[brokers.contractKey(r)] || null;
-      const nse = q ? { last: q.ltp, prevClose: state.nseWrong && i === 0 ? q.previousClose + 5 : q.previousClose } : null;
-      return nseCheck.compareOne(r, ours[i], nse, opts.session);
+      // state.nseStale: NSE's page still on the last session -- its figures
+      // are the settlement file's own last trade and previous close (as for
+      // WIPRO OCT FUT at 09:13 on 28 Sep); an untraded leg has neither.
+      const file = opts.fileFor ? opts.fileFor(r) : null;
+      const nse = state.nseStale
+        ? (file ? { last: file.last > 0 ? file.last : null, prevClose: file.last > 0 ? file.prevClose : null } : null)
+        : q ? { last: q.ltp, prevClose: state.nseWrong && i === 0 ? q.previousClose + 5 : q.previousClose } : null;
+      return nseCheck.compareOne(r, ours[i], nse, opts.session, file);
     });
     const at = new Date(state.clock).toISOString();
     return nseCheck.summarise(rows, { angelAt: at, nseAt: at, nseErrors: [] });
@@ -691,6 +697,26 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
         && !/1 day in 20:/.test(noCa.html), (text(noCa.html).match(/BAD-DAY RISK[^.]{0,160}/) || ["no risk line"])[0]);
     const noGate = health.checkLivePath({ ...noCa.data, brokerCheck: { ok: true } }, ist("2026-09-24", "10:53"));
     check("and a missing risk figure never turns the production gate red", noGate.problems.length === 0, noGate.problems[0] || "green");
+    // THE FIRST BUILD AFTER THE OPEN (09:16): it freezes the day's levels,
+    // and the check against NSE waits until 09:25 -- NSE's pages can still
+    // show the last session then, and this is the build that must not go red.
+    const early = await runBuild("thu-0916-first-after-open", { ...normal, clock: ist("2026-09-24", "09:16") }, new Map(),
+      { ledgerFile: path.join(tmp, "early-levels.json"), ledgerDir: path.join(tmp, "early-ledger") });
+    const earlyGate = health.checkLivePath({ ...early.data, brokerCheck: { ok: true } }, ist("2026-09-24", "09:16"));
+    check("the 09:16 build freezes the day's levels on live prices", early.data.levelsFrozen === true && early.data.pricedLive > 0,
+      `${early.data.pricedLive} live, frozen ${early.data.levelsFrozen}`);
+    check("and does not check against NSE before 09:25 -- it says so, and the gate stays green",
+      early.data.feedCheck?.checked === false && /before 09:25/.test(early.data.feedCheck?.reason || "") && earlyGate.problems.length === 0,
+      `${JSON.stringify(early.data.feedCheck)} ${earlyGate.problems[0] || "green"}`);
+    // NSE'S PAGES STILL ON THE LAST SESSION AFTER 09:25 (a slow roll-over):
+    // "not rolled yet", never "a different contract", never red.
+    const late = await runBuild("thu-0933-nse-not-rolled", { ...normal, clock: ist("2026-09-24", "09:33"), nseStale: true }, new Map(),
+      { ledgerFile: path.join(tmp, "late-levels.json"), ledgerDir: path.join(tmp, "late-ledger") });
+    const lateGate = health.checkLivePath({ ...late.data, brokerCheck: { ok: true } }, ist("2026-09-24", "09:33"));
+    check("NSE's pages still showing the last session: no contract is called DIFFERENT, no DO NOT TRADE, the gate stays green",
+      !(late.data.feedCheck?.wrongContract || []).length && !/DO NOT TRADE THESE ROWS/.test(late.html) && lateGate.problems.length === 0
+        && (late.data.feedCheck?.notComparable?.NSE_NOT_ROLLED_TO_TODAY || 0) > 0,
+      `${JSON.stringify(late.data.feedCheck?.notComparable)} ${lateGate.problems[0] || "green"}`);
     check("NSE unreachable: the page says NOT checked, and the gate stays green",
       down.data.feedCheck?.checked === false && /Not checked against NSE/.test(down.html) && quiet.problems.length === 0,
       quiet.problems[0] || down.data.feedCheck?.reason);

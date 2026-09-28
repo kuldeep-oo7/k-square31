@@ -69,6 +69,24 @@ const ipca = fc.compareOne(REQ.ipca, angel(1970.8, 1997.1, "25-Sep-2026 15:53:16
 check("after the close a share's closing-session price is NSE's too (IPCALAB 1970.80, not a 0.61% gap)",
   ipca.identity === "SAME" && ipca.gapPct === 0 && ipca.nse === 1970.8, JSON.stringify(ipca));
 
+// ---- Monday 28 Sep, 09:13: NSE's page had not rolled over to the new session ----
+// NSE's own 25 Sep file for WIPRO OCT FUT: LastPric 162.55, ClsPric 162.35, PrvsClsgPric 162.87.
+const wiproReq = { kind: "FUT", symbol: "WIPRO", expiry: "2026-10-27" };
+const wiproFile = { last: 162.55, close: 162.35, prevClose: 162.87 };
+const wiproNse = { last: 162.55, prevClose: 162.87 };   // NSE's page at 09:13 on 28 Sep
+const monday = fc.compareOne(wiproReq, angel(162.49, 162.35, "28-Sep-2026 09:09:02"), wiproNse, "2026-09-28", wiproFile);
+check("NSE's page still showing Friday is not a different contract (WIPRO OCT FUT, 28 Sep 09:13)",
+  monday.identity === "NSE_NOT_ROLLED_TO_TODAY" && monday.priceOff === false, JSON.stringify(monday));
+check("...which is what the check said without the file: the false alarm of 28 Sep",
+  fc.compareOne(wiproReq, angel(162.49, 162.35, "28-Sep-2026 09:09:02"), wiproNse, "2026-09-28").identity === "DIFFERENT");
+check("once NSE rolls over, the same contract is SAME",
+  fc.compareOne(wiproReq, angel(160.2, 162.35, "28-Sep-2026 09:40:00"), { last: 160.25, prevClose: 162.35 }, "2026-09-28", wiproFile).identity === "SAME");
+check("and a wrong contract is still DIFFERENT with the file present",
+  fc.compareOne(wiproReq, angel(160.2, 158.1, "28-Sep-2026 09:40:00"), { last: 160.25, prevClose: 162.35 }, "2026-09-28", wiproFile).identity === "DIFFERENT");
+check("on the weekend both carry Friday's session: SAME, not 'not rolled'",
+  fc.compareOne(wiproReq, angel(162.55, 162.87, "25-Sep-2026 15:29:00"), wiproNse, "2026-09-25", wiproFile).identity === "SAME");
+check("a stale NSE page never turns the build red", !fc.summarise([monday]).wrongContract.length && fc.summarise([monday]).pricesMostlyOff === false);
+
 const band = (ours, theirs) => fc.compareOne(REQ.havells, angel(ours, 44.35), { last: theirs, prevClose: 44.35 }, SESSION);
 check("an option 5% apart in seconds is within the band", band(2.0, 2.1).priceOff === false);
 check("an option 20% and 8 ticks apart is flagged", band(2.0, 2.4).priceOff === true);

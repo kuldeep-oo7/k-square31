@@ -96,7 +96,7 @@ function nseFigures(r, body) {
  * One contract, both sources. `ours` is Angel One's quote (ltp, previousClose,
  * exchangeTradeTime); `session` the newest exchange date the build saw.
  */
-function compareOne(r, ours, nse, session) {
+function compareOne(r, ours, nse, session, file = null) {
   const row = { contract: label(r), kind: r.kind, ours: num(ours?.ltp), nse: num(nse?.last),
     oursPrevClose: num(ours?.previousClose), nsePrevClose: num(nse?.prevClose), identity: null, gapPct: null, priceOff: false };
   if (!(row.ours > 0)) return { ...row, identity: "NO_QUOTE_FROM_ANGEL" };
@@ -106,6 +106,18 @@ function compareOne(r, ours, nse, session) {
   // nothing either way.
   const tradedOn = feedDay(ours?.exchangeTradeTime);
   if (session && (!tradedOn || tradedOn < session)) return { ...row, identity: "NOT_TRADED_THIS_SESSION" };
+  // NSE'S PAGE STILL ON THE LAST SESSION. Its last price and previous close
+  // are then exactly the last settlement file's last trade and previous close,
+  // while Angel One has moved on: at 09:13 on Mon 28 Sep NSE showed WIPRO OCT
+  // FUT at 162.55 with a previous close of 162.87 -- Friday's last trade and
+  // Thursday's close, both in NSE's own 25 Sep file -- beside Angel One's
+  // Friday close, 162.35. Two different days, not two different contracts;
+  // and its stale last price is no measure of ours either.
+  const eq = (a, b) => a > 0 && b > 0 && Math.abs(a - b) <= 0.011;
+  if (file && eq(num(nse.last), num(file.last)) && eq(row.nsePrevClose, num(file.prevClose))
+      && !eq(row.oursPrevClose, num(file.prevClose))) {
+    return { ...row, identity: "NSE_NOT_ROLLED_TO_TODAY" };
+  }
   const refs = [row.nsePrevClose, num(nse.basePrice)].filter((v) => v > 0);
   row.identity = !(row.oursPrevClose > 0) || !refs.length ? "NO_PREVIOUS_CLOSE"
     : refs.some((v) => Math.abs(v - row.oursPrevClose) <= 0.011) ? "SAME" : "DIFFERENT";
@@ -196,7 +208,7 @@ async function readNse(requests, { fetchImpl = fetch, pauseMs = 300, timeoutMs =
  * ours:     async (requests) => array of Angel One quotes, aligned with requests
  * session:  the newest exchange date among the build's quotes ("2026-09-25")
  */
-async function crossCheck(requests, { ours, session = null, fetchImpl = fetch, pauseMs = 300, timeoutMs = 8_000, budgetMs = 30_000, now = () => Date.now() } = {}) {
+async function crossCheck(requests, { ours, session = null, fileFor = () => null, fetchImpl = fetch, pauseMs = 300, timeoutMs = 8_000, budgetMs = 30_000, now = () => Date.now() } = {}) {
   const sample = (requests || []).filter((r) => r && r.symbol && ["EQ", "FUT", "OPT"].includes(r.kind));
   if (!sample.length) return { checked: false, reason: "nothing on the page to compare", sampled: 0 };
   let ourQuotes;
@@ -206,7 +218,7 @@ async function crossCheck(requests, { ours, session = null, fetchImpl = fetch, p
   try { replies = await readNse(sample, { fetchImpl, pauseMs, timeoutMs, budgetMs }); } catch (error) { return { checked: false, reason: `NSE not reached: ${error.message}`, sampled: sample.length }; }
   const nseAt = new Date(now()).toISOString();
   const errors = [...new Set([...replies.values()].filter((b) => b && b.error).map((b) => b.error))];
-  const rows = sample.map((r, i) => compareOne(r, ourQuotes?.[i] || null, nseFigures(r, replies.get(urlFor(r))), session));
+  const rows = sample.map((r, i) => compareOne(r, ourQuotes?.[i] || null, nseFigures(r, replies.get(urlFor(r))), session, fileFor(r)));
   return summarise(rows, { angelAt, nseAt, nseErrors: errors });
 }
 

@@ -743,13 +743,27 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
   // of 162.87 -- Thursday's -- where Angel One had Friday's 162.35 (NSE's own
   // bhavcopy: close 162.35), and the page told the user two contracts were
   // DIFFERENT contracts. Comparing two different days proves nothing.
-  if (quoteStatus?.ok && phase.phase === "PRE_OPEN") {
-    feedCheck = { checked: false, reason: "before the open, NSE's quote pages still show the previous session" };
+  // And not before 09:25: the first build after the open (09:16, the one that
+  // freezes the day's levels) must not be turned red by NSE rolling over late.
+  // NSE_NOT_ROLLED_TO_TODAY in nse-crosscheck.js covers a late page after that.
+  const istMinutesNow = (() => { const t = new Date(Date.now() + 330 * 60_000); return t.getUTCHours() * 60 + t.getUTCMinutes(); })();
+  if (quoteStatus?.ok && (phase.phase === "PRE_OPEN" || (phase.open === true && istMinutesNow < 9 * 60 + 25))) {
+    feedCheck = { checked: false, reason: phase.phase === "PRE_OPEN"
+      ? "before the open, NSE's quote pages still show the previous session"
+      : "before 09:25, NSE's quote pages can still show the previous session" };
   } else if (quoteStatus?.ok) {
     try {
       const nseCheck = require("../api/_lib/nse-crosscheck");
       feedCheck = await nseCheck.crossCheck(nseCheck.sampleRows({ futures, options, nowMs: Date.now() }), {
         session: quoteStatus.lastExchangeDate || null,
+        // The last settlement file's own figures for each contract, to tell a
+        // page NSE has not yet rolled over from a different contract.
+        fileFor: (req) => {
+          const bucket = reference?.symbols?.[req.symbol]?.expiries?.[String(req.expiry || "").slice(0, 10)];
+          if (req.kind === "FUT") return bucket?.futuresFile || null;
+          if (req.kind === "OPT") return bucket?.quotes?.[`${req.strike}|${req.optionType}`] || null;
+          return null;
+        },
         ours: async (reqs) => {
           const r = await brokers.contractQuotes(reqs);
           return reqs.map((x) => r?.quotes?.[brokers.contractKey(x)] || null);
