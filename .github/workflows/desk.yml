@@ -255,6 +255,8 @@ jobs:
           rm -rf /tmp/k2mirror
           git clone --depth 1 "git@github.com:${REPO}.git" /tmp/k2mirror
           cp docs/index.html /tmp/k2mirror/index.html
+          # The open page polls this to load the next build by itself.
+          if [ -f docs/version.json ]; then cp docs/version.json /tmp/k2mirror/version.json; fi
           : > /tmp/k2mirror/.nojekyll
           cd /tmp/k2mirror
           git config user.name "k2-desk-bot"

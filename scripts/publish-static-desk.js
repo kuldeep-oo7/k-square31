@@ -1302,7 +1302,7 @@ function page(d) {
 </style></head><body>
 
 <h1>K&sup2; Desk</h1>
-<div class="stamp">Built ${esc(d.builtAtIst)} &middot; ${noSessionToday ? `no session today (last: ${esc(lastSessionText)})` : `session ${esc(d.sessionDate)}`} &middot; market ${esc(d.marketPhase)} &middot;
+<div class="stamp">Built ${esc(d.builtAtIst)}<span id="age"></span> &middot; ${noSessionToday ? `no session today (last: ${esc(lastSessionText)})` : `session ${esc(d.sessionDate)}`} &middot; market ${esc(d.marketPhase)} &middot;
   ${esc(Number(d.examined).toLocaleString("en-IN"))} contracts examined, ${esc(Number(d.survived).toLocaleString("en-IN"))} cleared every gate${d.marketContext?.ok
     ? ` &middot; India VIX <b>${esc(d.marketContext.indiaVix)}</b> (${signedPct(d.marketContext.indiaVixChangePct)}) &middot; Nifty ${esc(Number(d.marketContext.nifty).toLocaleString("en-IN"))} (${signedPct(d.marketContext.niftyChangePct)}), ${ctxWhen}`
     : " &middot; India VIX not read this build"}</div>
@@ -1406,6 +1406,45 @@ ${feedAlarm}
   which is not the same as an edge that was proven. Size accordingly.
 </div>
 
+<script>
+/* HOW OLD THIS PAGE IS, AND THE NEXT ONE AS SOON AS IT EXISTS. The page is a
+   snapshot rebuilt every 20 minutes in market hours, not a live feed; at 09:31
+   on 28 Sep the user's phone still showed the 09:13 build, with Friday's
+   futures. So the page says its own age, asks every minute whether a newer
+   build is out, and loads it past the phone's 10-minute cache (GitHub Pages
+   sends max-age=600), keeping the open tab. Without scripts it works as before. */
+(function () {
+  var builtMs = Date.parse(${JSON.stringify(d.builtAt)});
+  var age = document.getElementById("age");
+  function tick() {
+    if (!age || !(builtMs > 0)) return;
+    var m = Math.max(0, Math.round((Date.now() - builtMs) / 60000));
+    age.textContent = " (" + (m < 1 ? "just now" : m < 60 ? m + " min ago" : Math.floor(m / 60) + " h " + (m % 60) + " min ago") + ")";
+    age.className = m > 25 ? "warn" : "";
+  }
+  tick();
+  setInterval(tick, 30000);
+  var tabs = { "#futures": "v-fut", "#calls": "v-ce", "#puts": "v-pe", "#track": "v-trk" };
+  var chosen = document.getElementById(tabs[location.hash] || "");
+  if (chosen) chosen.checked = true;
+  Object.keys(tabs).forEach(function (h) {
+    var input = document.getElementById(tabs[h]);
+    if (input) input.addEventListener("change", function () { if (input.checked) history.replaceState(null, "", h); });
+  });
+  function check() {
+    if (document.hidden || !window.fetch) return;
+    fetch("version.json?t=" + Date.now(), { cache: "no-store" })
+      .then(function (r) { return r.ok ? r.json() : null; })
+      .then(function (v) {
+        var next = v && Date.parse(v.builtAt);
+        if (next > builtMs) location.replace(location.pathname + "?v=" + next + location.hash);
+      })
+      .catch(function () {});
+  }
+  setInterval(check, 60000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) { tick(); check(); } });
+})();
+</script>
 </body></html>`;
   return labelCells(html);
 }
@@ -1415,6 +1454,8 @@ async function main() {
   fs.mkdirSync(OUT_DIR, { recursive: true });
   fs.writeFileSync(path.join(OUT_DIR, "data.json"), JSON.stringify(data, null, 1));
   fs.writeFileSync(path.join(OUT_DIR, "index.html"), page(data));
+  // What the open page asks every minute: is there a newer build than me?
+  fs.writeFileSync(path.join(OUT_DIR, "version.json"), JSON.stringify({ builtAt: data.builtAt, builtAtIst: data.builtAtIst }));
   // GitHub Pages will not serve a directory containing an underscore path
   // without this, and the failure is a silent 404 rather than an error.
   fs.writeFileSync(path.join(OUT_DIR, ".nojekyll"), "");
