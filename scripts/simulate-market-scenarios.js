@@ -338,6 +338,8 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       /For calls these figures are the pessimistic end/.test(cePane) && /India VIX moved [+−]?\d+%/.test(cePane) && !/read the two as a range/.test(cePane)
         && !/For calls these figures/.test(futPane), String(rc.worst.vixPct));
     check("percentages in the risk box carry a real minus sign, never a hyphen", !/NIFTY -\d/.test(b.html) && !/VIX moved -\d/.test(b.html));
+    check("nowhere on the page is a number written with a hyphen for its minus",
+      !/(?<![\w-])-\d[\d.,]*%/.test(text(b.html).replace(/\d{4}-\d{2}-\d{2}/g, "")), (text(b.html).match(/.{0,30}(?<![\w-])-\d[\d.,]*%.{0,10}/) || [""])[0]);
     check("every futures row and every call is in it (the simulated history covers every name)",
       rf?.rowsIncluded === d.futures.length && rc?.rowsIncluded === d.options.filter((x) => x.right === "CE").length,
       `${rf?.rowsIncluded}/${d.futures.length} futures, ${rc?.rowsIncluded} calls`);
@@ -626,6 +628,8 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
   check("every trade the week produced is accounted for on the TRACK tab", s.shown === s.waiting + s.open + s.target + s.stop + s.expired + s.unfilled);
   check("under 30 finished trades a hit rate is labelled too few to judge", s.resolved >= 30 || /too few to judge/.test(last.html));
   check("a loss is written -₹ everywhere on the page, never ₹-", !/₹-\d/.test(last.html));
+  check("and a falling percentage on TRACK carries a real minus sign, never a hyphen",
+    !/(?<![\w-])-\d[\d.,]*%/.test(text(last.html).replace(/\d{4}-\d{2}-\d{2}/g, "")), (text(last.html).match(/.{0,30}(?<![\w-])-\d[\d.,]*%.{0,10}/) || [""])[0]);
   check("a kind with no target yet shows no time to target, not 0 h",
     ["FUT", "CE", "PE"].every((k) => last.data.track.summary[k].target > 0 || last.data.track.summary[k].medianHoursToTarget === null));
   check("TRACK compares the hit rate with the random-price break-even, not with touch odds",

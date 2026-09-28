@@ -72,6 +72,13 @@ function px(value) {
   if (!Number.isFinite(n)) return "—";
   return (n < 0 ? "−₹" : "₹") + Math.abs(n).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 }
+// A PERCENTAGE WITH A REAL MINUS SIGN, as the rupee amounts have: "−1.5%",
+// not "-1.5%" (twelve hyphens on the live page, 28 Sep); "+" when it rose.
+function signedPct(value) {
+  const n = numeric(value);
+  if (n === null) return "—";
+  return `${n < 0 ? "−" : n > 0 ? "+" : ""}${Math.abs(n)}%`;
+}
 // "The market was weekend" read as broken English on the page (27 Sep).
 const PHASE_WORDS = { OPEN: "open", PRE_OPEN: "in its pre-open", CLOSED: "closed", WEEKEND: "closed for the weekend", POST_CLOSE: "closed", HOLIDAY: "closed for a holiday" };
 function phaseWords(phase) {
@@ -835,8 +842,6 @@ function page(d) {
   // lost on days that already happened. The line you tap carries the three
   // figures; the rest says how they were worked out and what was left out.
   const dayText = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
-  // A signed percentage with a real minus sign, as the amounts have ("-3.24%" read as a hyphen).
-  const pct = (v) => (v === null || v === undefined ? "" : `${Number(v) < 0 ? "−" : Number(v) > 0 ? "+" : ""}${esc(Math.abs(Number(v)))}%`);
   const riskBox = (side, kind) => {
     const r = d.risk;
     if (!r) return "";
@@ -857,7 +862,7 @@ function page(d) {
         Not a forecast: these are days that already happened. Before charges.</div>
       <div><b>1 day in 20:</b> on the worst ${esc(side.tailDays)} of those ${esc(side.days)} days, all the rows together lost at least
         ${money(side.var)} &mdash; ${money(side.es)} on average.</div>
-      <div><b>Worst day, ${esc(dayText(w.date))}</b>${w.marketPct !== null && w.marketPct !== undefined ? ` (NIFTY ${pct(w.marketPct)})` : ""}: ${esc(w.stocksDown)} of
+      <div><b>Worst day, ${esc(dayText(w.date))}</b>${w.marketPct !== null && w.marketPct !== undefined ? ` (NIFTY ${signedPct(w.marketPct)})` : ""}: ${esc(w.stocksDown)} of
         ${esc(w.stocksWithData)} stocks fell and ${stops} &mdash; a loss of ${money(w.rupees)}, against ${money(-side.stopTotal)} if every stop
         had filled at its own price (before charges).</div>
       ${side.gap ? `<div><b>Market opens 5% lower:</b> ${money(side.gap.rupees)}. Each stock opens lower by its own measured sensitivity to NIFTY
@@ -871,7 +876,7 @@ function page(d) {
         so none of them counts as a crash.</div>
       ${kind === "calls" ? `<div><b>For calls these figures are the pessimistic end.</b> Each call is repriced with Black-76 at its own implied volatility,
         held where it is &mdash; and in a crash that volatility jumps, which cushions a call${side.worst.vixPct !== null && side.worst.vixPct !== undefined
-          ? ` (India VIX moved ${pct(Math.round(side.worst.vixPct))} on ${esc(dayText(side.worst.date))})` : ""}. By how much depends on each stock&rsquo;s own
+          ? ` (India VIX moved ${signedPct(Math.round(side.worst.vixPct))} on ${esc(dayText(side.worst.date))})` : ""}. By how much depends on each stock&rsquo;s own
         option volatility, which this page has no history for.</div>` : ""}
     </details>`;
   };
@@ -984,7 +989,7 @@ function page(d) {
         <td class="num">${esc(s.shown)}</td><td class="num">${esc(s.waiting)}</td><td class="num">${esc(s.open)}</td>
         <td class="num up">${esc(s.target)}</td><td class="num down">${esc(s.stop)}</td><td class="num">${esc(s.expired)}</td>
         <td class="num">${esc(s.unfilled)}</td>
-        <td class="num"><b>${s.hitRatePct === null ? "&mdash;" : esc(s.hitRatePct) + "%"}</b><div class="sub">of ${esc(s.resolved)} finished${Number(s.resolvedBets) < Number(s.resolved) ? ` (${esc(s.resolvedBets)} separate bets)` : ""}${Number(s.resolvedBets ?? s.resolved) < 30 ? " &mdash; too few to judge" : ""}</div>${s.hitRate95
+        <td class="num"><b>${s.hitRatePct === null ? "&mdash;" : esc(s.hitRatePct) + "%"}</b><div class="sub">of ${esc(s.resolved)} finished${Number(s.resolvedBets) < Number(s.resolved) ? ` (${esc(s.resolvedBets)} separate bet${Number(s.resolvedBets) === 1 ? "" : "s"})` : ""}${Number(s.resolvedBets ?? s.resolved) < 30 ? " &mdash; too few to judge" : ""}</div>${s.hitRate95
           ? `<div class="sub">95% range ${esc(s.hitRate95.lowPct)}&ndash;${esc(s.hitRate95.highPct)}%${Number(s.resolvedBets) >= 30 && s.randomHitRatePct !== null && s.randomHitRatePct !== undefined
             ? (s.hitRate95.lowPct > s.randomHitRatePct ? ` &mdash; <b class="up">above break-even</b>`
               : s.hitRate95.highPct < s.randomHitRatePct ? ` &mdash; <b class="down">below break-even</b>` : " &mdash; not yet distinguishable from break-even")
@@ -993,7 +998,7 @@ function page(d) {
         <td class="num">${hrs(s.medianHoursToFill)}</td><td class="num">${hrs(s.medianHoursToTarget)}</td>
         <td class="num ${Number(s.avgReturnPct) >= 0 ? "up" : "down"}">${label === "ALL"
           ? `&mdash;<div class="sub">not comparable</div>`
-          : s.avgReturnPct === null ? "&mdash;" : esc(s.avgReturnPct) + "%"}</td>
+          : s.avgReturnPct === null ? "&mdash;" : signedPct(s.avgReturnPct)}</td>
         ${(() => {
           // ALL is everything: options net per lot PLUS futures at 20 units,
           // gross. It showed the options alone (-10,065.53 on 27 Sep, when the
@@ -1022,7 +1027,7 @@ function page(d) {
         <td class="num">${hrs(x.hoursToFill)}</td>
         <td class="num">${hrs(x.hoursFillToExit)}</td>
         <td class="num">${expectedText(x)}</td>
-        <td class="num ${numeric(x.pnl?.perUnit) === null ? "" : numeric(x.pnl.perUnit) >= 0 ? "up" : "down"}">${x.pnl ? `${money(x.pnl.perUnit)} <div class="sub">${esc(x.pnl.pct)}% ${esc(x.pnl.basis)}${x.pnl.netPerLot !== undefined && x.pnl.netPerLot !== null ? ` &middot; net ${money(x.pnl.netPerLot)}/lot` : ""}${x.kind === "FUT" && numeric(x.pnl.perUnit) !== null ? ` &middot; ${money(round(Number(x.pnl.perUnit) * (d.gmMinUnits || 20)))} at ${esc(d.gmMinUnits || 20)} units` : ""}</div>` : "&mdash;"}</td>
+        <td class="num ${numeric(x.pnl?.perUnit) === null ? "" : numeric(x.pnl.perUnit) >= 0 ? "up" : "down"}">${x.pnl ? `${money(x.pnl.perUnit)} <div class="sub">${signedPct(x.pnl.pct)} ${esc(x.pnl.basis)}${x.pnl.netPerLot !== undefined && x.pnl.netPerLot !== null ? ` &middot; net ${money(x.pnl.netPerLot)}/lot` : ""}${x.kind === "FUT" && numeric(x.pnl.perUnit) !== null ? ` &middot; ${money(round(Number(x.pnl.perUnit) * (d.gmMinUnits || 20)))} at ${esc(d.gmMinUnits || 20)} units` : ""}</div>` : "&mdash;"}</td>
       </tr>`).join("");
   const trackCount = (t?.open?.length || 0) + (t?.totalClosed || 0);
   const trackPane = !t
@@ -1261,7 +1266,7 @@ function page(d) {
 <h1>K&sup2; Desk</h1>
 <div class="stamp">Built ${esc(d.builtAtIst)} &middot; ${noSessionToday ? `no session today (last: ${esc(lastSessionText)})` : `session ${esc(d.sessionDate)}`} &middot; market ${esc(d.marketPhase)} &middot;
   ${esc(Number(d.examined).toLocaleString("en-IN"))} contracts examined, ${esc(Number(d.survived).toLocaleString("en-IN"))} cleared every gate${d.marketContext?.ok
-    ? ` &middot; India VIX <b>${esc(d.marketContext.indiaVix)}</b> (${esc(d.marketContext.indiaVixChangePct)}%) &middot; Nifty ${esc(Number(d.marketContext.nifty).toLocaleString("en-IN"))} (${esc(d.marketContext.niftyChangePct)}%), NSE ${esc(String(d.marketContext.at || "").slice(12, 17))}`
+    ? ` &middot; India VIX <b>${esc(d.marketContext.indiaVix)}</b> (${signedPct(d.marketContext.indiaVixChangePct)}) &middot; Nifty ${esc(Number(d.marketContext.nifty).toLocaleString("en-IN"))} (${signedPct(d.marketContext.niftyChangePct)}), NSE ${esc(String(d.marketContext.at || "").slice(12, 17))}`
     : " &middot; India VIX not read this build"}</div>
 
 <div class="note ${d.levelsFrozen ? "frozen" : ""}"><details class="fold"><summary>${freezeHead}<span class="more"></span></summary><div>${freezeRest}</div></details></div>
