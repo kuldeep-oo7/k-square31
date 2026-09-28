@@ -303,6 +303,8 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     console.log("  09:13 pre-open");
     check("before the bell nothing is frozen, and the page says INDICATIVE", pre.data.levelsFrozen === false && /INDICATIVE, NOT FIXED/.test(pre.html));
     check("the track record records nothing before the bell", (pre.data.track?.tally?.added ?? 0) === 0);
+    check("before the bell on a trading day the header names today's session, never \"no session today\"",
+      /session 2026-09-24/.test(pre.html) && !/no session today/.test(pre.html), (pre.html.match(/Built [^<]{0,120}/) || [""])[0]);
     check("before the bell every option is priced against the SETTLEMENT forward, the same moment as its premium",
       pre.data.options.length > 0 && pre.data.options.every((c) => c.forwardSource === "SETTLEMENT"),
       `${pre.data.options.length} options`);
@@ -668,6 +670,8 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       holGate.exchangeShut === true && holGate.problems.length === 0, holGate.problems[0] || "green");
     check("the page names it as an NSE holiday, from NSE's own calendar, and nothing is frozen",
       hol.data.levelsFrozen === false && /NSE trading holiday/.test(hol.html));
+    check("and on the holiday the header says there is no session today, naming the last one",
+      /no session today \(last: Thu, 1 Oct\)/.test(hol.html), (hol.html.match(/Built [^<]{0,120}/) || [""])[0]);
     // WITHOUT NSE'S CORPORATE-ACTION FILINGS a demerger cannot be told from a
     // crash (ABFRL's 22 May 2025 demerger reads as a 66.6% fall), so the page
     // shows no risk figure at all -- and the reason -- rather than a wrong one.

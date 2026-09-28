@@ -757,6 +757,10 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     // the next trading session (session-freeze.js).
     sessionOver,
     nextSession,
+    // Whether today is an NSE trading day at all (weekends and NSE's own
+    // holiday calendar), so the page never calls a trading morning before the
+    // bell a day with no session.
+    tradingDay: ledgerLib.isTradingDate(sessionDateNow),
     // Naming the reason matters: "the market is closed" and "nobody logged in
     // to the broker" produce the same empty screen and need different fixes.
     freezeBlockedBecause: session.canFreeze ? null
@@ -1136,7 +1140,12 @@ function page(d) {
         a session older than today&rsquo;s last trades (${esc(lastTraded)}). NSE publishes the ${esc(lastTraded)} file after about 19:00 IST,
         and the next build after that uses it. The futures tab already uses today&rsquo;s last trades.</div>`
     : "";
-  const noSessionToday = lastTraded && d.sessionDate && lastTraded < d.sessionDate;
+  // NO SESSION TODAY only when today is not a trading day (a weekend or an NSE
+  // holiday), or the session is over and nothing traded. Before the bell the
+  // last trade is always the day before, and the header said "no session today"
+  // on Monday 28 Sep at 07:49 -- a trading day that had not opened yet.
+  const noSessionToday = Boolean(lastTraded && d.sessionDate && lastTraded < d.sessionDate
+    && (d.tradingDay === false || d.sessionOver === true));
   const lastSessionText = lastTraded ? new Date(`${lastTraded}T00:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }) : "";
   // The headline stays on screen; the explanation folds behind a tap on the
   // phone (details.fold), so the rows come first.
