@@ -62,6 +62,11 @@ on:
   # double-bill a month that only has 2,000 minutes in it.
   schedule:
     - cron: "43 3 * * 1-5"       # 09:13 IST, pre-open
+    # 09:16 IST, THE FIRST BUILD AFTER THE OPEN (the user, 28 Sep): the first
+    # live page used to be the 09:33 build, landing at 09:37 -- until then the
+    # page showed the last session's futures. The outside clock gets a 09:16
+    # job too; this is its backstop, and the gate below lets it through.
+    - cron: "46 3 * * 1-5"
     - cron: "13 4-9 * * 1-5"     # 09:43 to 14:43 IST, hourly
     - cron: "3 10 * * 1-5"       # 15:33 IST, after the close
     # THE EVENING, for the day's settlement prices. NSE's own server dates the
@@ -106,6 +111,15 @@ jobs:
           if [ -z "$last" ]; then
             echo "go=true" >> "$GITHUB_OUTPUT"
             echo "no previous build found -- building"
+            exit 0
+          fi
+          # The first build after the 09:15 open always runs: the 09:13
+          # pre-open build lands at ~09:14, and standing down for it would keep
+          # the last session's prices on the page for another twenty minutes.
+          open=$(date -d "$(TZ=Asia/Kolkata date +%Y-%m-%d) 09:15 +0530" +%s)
+          if [ "$(date -u +%s)" -ge "$open" ] && [ "$(date -u -d "$last" +%s)" -lt "$open" ]; then
+            echo "go=true" >> "$GITHUB_OUTPUT"
+            echo "first build after the open -- building"
             exit 0
           fi
           age=$(( $(date -u +%s) - $(date -u -d "$last" +%s) ))
