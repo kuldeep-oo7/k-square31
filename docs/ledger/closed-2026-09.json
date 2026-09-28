@@ -4902,6 +4902,60 @@
     "perLot": -9732.75,
     "netPerLot": -9807.41
    }
+  },
+  {
+   "id": "2026-09-24|CE|ETERNAL26OCT345CE",
+   "kind": "CE",
+   "symbol": "ETERNAL",
+   "contract": "ETERNAL26OCT345CE",
+   "expiry": "2026-10-27",
+   "strike": 345,
+   "optionType": "CE",
+   "lotSize": 2425,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:24:39.935Z",
+   "buy": 11.93,
+   "target": 17.89,
+   "target2": null,
+   "stop": 5.97,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.8,
+     "medianDays": 10.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T04:24:39.935Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T08:25:05.600Z",
+   "exitPrice": 5.97,
+   "exitReason": "STOP",
+   "hoursFillToExit": 100.01,
+   "sessionsHeld": 2,
+   "best": 12.55,
+   "worst": 5.9,
+   "last": 5.9,
+   "lastAt": "2026-09-28T08:25:05.600Z",
+   "marks": 68,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 7.45,
+    "low": 5.9,
+    "last": 5.9
+   },
+   "pnl": {
+    "perUnit": -5.96,
+    "pct": -49.96,
+    "basis": "NET",
+    "perLot": -14453,
+    "netPerLot": -14541.03
+   }
   }
  ]
 }
