@@ -3714,6 +3714,114 @@
     "pct": -1.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-09-25|PE|BDL26OCT1160PE",
+   "kind": "PE",
+   "symbol": "BDL",
+   "contract": "BDL26OCT1160PE",
+   "expiry": "2026-10-27",
+   "strike": 1160,
+   "optionType": "PE",
+   "lotSize": 425,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:25:18.965Z",
+   "buy": 53.65,
+   "target": 80.47,
+   "target2": null,
+   "stop": 26.83,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.2,
+     "medianDays": 9.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-25T04:44:40.808Z",
+   "hoursToFill": 0.32,
+   "closedAt": "2026-09-28T05:45:13.963Z",
+   "exitPrice": 80.47,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 73.01,
+   "sessionsHeld": 1,
+   "best": 82.3,
+   "worst": 51,
+   "last": 82.2,
+   "lastAt": "2026-09-28T05:45:13.963Z",
+   "marks": 40,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 82.3,
+    "low": 69.35,
+    "last": 82.2
+   },
+   "pnl": {
+    "perUnit": 26.82,
+    "pct": 49.99,
+    "basis": "NET",
+    "perLot": 11398.5,
+    "netPerLot": 11275.35
+   }
+  },
+  {
+   "id": "2026-09-25|FUT|MAZDOCK26OCTFUT",
+   "kind": "FUT",
+   "symbol": "MAZDOCK",
+   "contract": "MAZDOCK26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 225,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 2186.37,
+   "target": 2241.03,
+   "target2": 2295.69,
+   "stop": 2153.57,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": {
+    "fill": {
+     "probabilityPct": 64.5,
+     "medianTradingDays": 0.208
+    },
+    "target": {
+     "probabilityPct": 74.7,
+     "medianTradingDays": 2.485
+    },
+    "sigmaPct": 28.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T08:04:50.552Z",
+   "hoursToFill": 4,
+   "closedAt": "2026-09-28T05:45:13.963Z",
+   "exitPrice": 2153.57,
+   "exitReason": "STOP",
+   "hoursFillToExit": 69.67,
+   "sessionsHeld": 1,
+   "best": 2199.6,
+   "worst": 2152,
+   "last": 2156.5,
+   "lastAt": "2026-09-28T05:45:13.963Z",
+   "marks": 42,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 2199.4,
+    "low": 2152,
+    "last": 2156.5
+   },
+   "pnl": {
+    "perUnit": -32.8,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }

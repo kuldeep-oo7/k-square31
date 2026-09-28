@@ -241,7 +241,8 @@
   "OPTION|BDL|BDL26OCT1160CE",
   "OPTION|BDL|BDL26OCT1180CE",
   "OPTION|AMBER|AMBER26OCT7000CE",
-  "OPTION|AMBER|AMBER26OCT7200CE"
+  "OPTION|AMBER|AMBER26OCT7200CE",
+  "OPTION|HEROMOTOCO|HEROMOTOCO26OCT5100CE"
  ],
  "options": {
   "M&M26OCT3000CE": {
@@ -2882,6 +2883,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-09-28T05:05:27.865Z",
    "frozenAtIst": "2026-09-28 10:35 IST",
+   "frozenAtSpot": null
+  },
+  "HEROMOTOCO26OCT5100CE": {
+   "buy": 297.3,
+   "sell": 445.95,
+   "stop": 148.65,
+   "tick": 0.05,
+   "lotSize": 150,
+   "expiry": "2026-10-27",
+   "strike": 5100,
+   "right": "CE",
+   "symbol": "HEROMOTOCO",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-28T05:45:13.948Z",
+   "frozenAtIst": "2026-09-28 11:15 IST",
    "frozenAtSpot": null
   }
  },
