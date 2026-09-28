@@ -183,10 +183,25 @@ async function main() {
   try { data = JSON.parse(fs.readFileSync(path.join(DOCS, "data.json"), "utf8")); }
   catch (error) { console.log("google sheet: no docs/data.json to publish --", error.message); process.exit(0); }
 
-  // 1. The full snapshot, every build. Versioned, so this overwrites cleanly
-  //    instead of accumulating twenty-six copies of the same day.
+  // WHEN THE DOCUMENTS ARE WRITTEN. The deployed Apps Script KEEPS every
+  // version of a document as new rows on K2_STATE ("Preserve prior versions")
+  // and scans the whole sheet on every read and write -- so writing three
+  // documents on every build added ~26 copies a day, the Sheet step took 108 s
+  // at 10:53 on 28 Sep, and after the close the biggest writes came back 404.
+  // Git keeps the page and the ledger on every build; the Sheet is the second
+  // copy, and twice a day is enough: when the levels freeze, and from 21:00,
+  // after the evening settlement file (the 21:13 build). K2_SHEET_DOCS=always
+  // forces it.
+  const istHour = new Date(Date.now() + 330 * 60_000).getUTCHours();
+  const writeDocs = process.env.K2_SHEET_DOCS === "always"
+    || Number(data.freezeTally?.frozenThisBuild) > 0 || istHour >= 21;
+  if (!writeDocs) {
+    console.log("google sheet: backup documents not written on this build (they are written when levels freeze and from 21:00; git holds every build)");
+  }
+
+  // 1. The full snapshot.
   const documentPath = "k2/desk-" + data.sessionDate + ".json";
-  try {
+  if (writeDocs) try {
     const existing = await store.readGoogleDocument(documentPath, null);
     const written = await store.writeGoogleDocument(documentPath, data, existing.etag);
     // READ IT BACK. On this project "ARCHIVE: OK" once meant a READ had
@@ -207,7 +222,7 @@ async function main() {
   //     finished ones. Git holds the primary copy (docs/ledger/, committed every
   //     build); this is the second copy, somewhere a repository accident cannot
   //     reach.
-  try {
+  if (writeDocs) try {
     const ledgerDir = path.join(DOCS, "ledger");
     const files = fs.existsSync(ledgerDir)
       ? fs.readdirSync(ledgerDir).filter((f) => f === "open.json" || /^closed-\d{4}-\d{2}\.json$/.test(f))

@@ -229,18 +229,9 @@ jobs:
         continue-on-error: true
         run: node scripts/write-run-summary.js
 
-      - name: Publish to the Google Sheet
-        # The Sheet is the part that is readable from a phone in an office on
-        # the other side of the world, and the part that cannot be suspended.
-        # It must never be able to fail the build that produced the prices --
-        # nor to stall it: 75 s of a 133 s build on 25 Sep, and Monday's first
-        # freeze appends ~220 rows at once. A step over its limit is killed and,
-        # with continue-on-error, the job goes on to publish the page (GitHub
-        # docs, steps[*].timeout-minutes / continue-on-error).
-        continue-on-error: true
-        timeout-minutes: 4
-        run: node scripts/publish-to-sheet.js
-
+      # THE PUBLIC PAGE FIRST. The Sheet step below can take minutes (the
+      # Apps Script scans all of K2_STATE on every write); it must never hold
+      # the page back -- least of all on the 09:16 build that freezes the day.
       - name: Mirror the page to the public URL
         # GitHub Pages cannot serve THIS repository -- asked directly, the API
         # said "Your current plan does not support GitHub Pages for this
@@ -282,6 +273,18 @@ jobs:
             git commit -q -m "desk: $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M IST')"
             git push -q && echo "published to https://$(echo "$REPO" | cut -d/ -f1).github.io/$(echo "$REPO" | cut -d/ -f2)/"
           fi
+
+      - name: Publish to the Google Sheet
+        # The Sheet is the part that is readable from a phone in an office on
+        # the other side of the world, and the part that cannot be suspended.
+        # It must never be able to fail the build that produced the prices --
+        # nor to stall it: 75 s of a 133 s build on 25 Sep, and Monday's first
+        # freeze appends ~220 rows at once. A step over its limit is killed and,
+        # with continue-on-error, the job goes on to publish the page (GitHub
+        # docs, steps[*].timeout-minutes / continue-on-error).
+        continue-on-error: true
+        timeout-minutes: 4
+        run: node scripts/publish-to-sheet.js
 
       - name: Commit it
         run: |
