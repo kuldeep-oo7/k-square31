@@ -245,7 +245,8 @@
   "OPTION|HEROMOTOCO|HEROMOTOCO26OCT5100CE",
   "OPTION|KOTAKBANK|KOTAKBANK26OCT420CE",
   "OPTION|TATAELXSI|TATAELXSI26OCT3400CE",
-  "OPTION|CROMPTON|CROMPTON26OCT235CE"
+  "OPTION|CROMPTON|CROMPTON26OCT235CE",
+  "OPTION|DLF|DLF26OCT710CE"
  ],
  "options": {
   "M&M26OCT3000CE": {
@@ -2946,6 +2947,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-09-28T07:05:17.468Z",
    "frozenAtIst": "2026-09-28 12:35 IST",
+   "frozenAtSpot": null
+  },
+  "DLF26OCT710CE": {
+   "buy": 7.4,
+   "sell": 11.1,
+   "stop": 3.7,
+   "tick": 0.05,
+   "lotSize": 950,
+   "expiry": "2026-10-27",
+   "strike": 710,
+   "right": "CE",
+   "symbol": "DLF",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-28T07:25:16.101Z",
+   "frozenAtIst": "2026-09-28 12:55 IST",
    "frozenAtSpot": null
   }
  },
