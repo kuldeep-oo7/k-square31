@@ -3606,6 +3606,114 @@
     "pct": -1.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-09-25|CE|BDL26OCT1160CE",
+   "kind": "CE",
+   "symbol": "BDL",
+   "contract": "BDL26OCT1160CE",
+   "expiry": "2026-10-27",
+   "strike": 1160,
+   "optionType": "CE",
+   "lotSize": 425,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 40.63,
+   "target": 60.94,
+   "target2": null,
+   "stop": 20.32,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51,
+     "medianDays": 10.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T04:04:43.424Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T05:05:27.876Z",
+   "exitPrice": 20.32,
+   "exitReason": "STOP",
+   "hoursFillToExit": 73.01,
+   "sessionsHeld": 1,
+   "best": 40.63,
+   "worst": 20,
+   "last": 20,
+   "lastAt": "2026-09-28T05:05:27.876Z",
+   "marks": 38,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 27.05,
+    "low": 20,
+    "last": 20
+   },
+   "pnl": {
+    "perUnit": -20.31,
+    "pct": -49.99,
+    "basis": "NET",
+    "perLot": -8631.75,
+    "netPerLot": -8703.31
+   }
+  },
+  {
+   "id": "2026-09-24|FUT|EICHERMOT26OCTFUT",
+   "kind": "FUT",
+   "symbol": "EICHERMOT",
+   "contract": "EICHERMOT26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 100,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 7358.66,
+   "target": 7542.63,
+   "target2": 7726.59,
+   "stop": 7248.28,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": {
+    "fill": {
+     "probabilityPct": 40,
+     "medianTradingDays": 0.41
+    },
+    "target": {
+     "probabilityPct": 56.5,
+     "medianTradingDays": 5.615
+    },
+    "sigmaPct": 15.5,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T07:24:30.261Z",
+   "hoursToFill": 3.33,
+   "closedAt": "2026-09-28T05:05:27.876Z",
+   "exitPrice": 7248.28,
+   "exitReason": "STOP",
+   "hoursFillToExit": 93.68,
+   "sessionsHeld": 2,
+   "best": 7386,
+   "worst": 7241,
+   "last": 7244.5,
+   "lastAt": "2026-09-28T05:05:27.876Z",
+   "marks": 65,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 7323,
+    "low": 7241,
+    "last": 7244.5
+   },
+   "pnl": {
+    "perUnit": -110.38,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
