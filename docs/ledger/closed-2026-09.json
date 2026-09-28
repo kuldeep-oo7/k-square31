@@ -4686,6 +4686,168 @@
     "pct": 2.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-09-28|FUT|INDIANB26OCTFUT",
+   "kind": "FUT",
+   "symbol": "INDIANB",
+   "contract": "INDIANB26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 825.35,
+   "target": 846,
+   "target2": 866.6,
+   "stop": 812.95,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 49.7,
+     "medianTradingDays": 0.328
+    },
+    "target": {
+     "probabilityPct": 64.3,
+     "medianTradingDays": 4.231
+    },
+    "sigmaPct": 19.4,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T04:26:39.880Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-09-28T07:45:12.113Z",
+   "exitPrice": 812.95,
+   "exitReason": "STOP",
+   "hoursFillToExit": 3.31,
+   "sessionsHeld": 0,
+   "best": 828,
+   "worst": 810.45,
+   "last": 811.15,
+   "lastAt": "2026-09-28T07:45:12.113Z",
+   "marks": 12,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 839.75,
+    "low": 810.45,
+    "last": 811.15
+   },
+   "pnl": {
+    "perUnit": -12.4,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-25|FUT|LT26OCTFUT",
+   "kind": "FUT",
+   "symbol": "LT",
+   "contract": "LT26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 175,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 3845.98,
+   "target": 3942.13,
+   "target2": 4038.28,
+   "stop": 3788.29,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": {
+    "fill": {
+     "probabilityPct": 45.8,
+     "medianTradingDays": 0.362
+    },
+    "target": {
+     "probabilityPct": 61.1,
+     "medianTradingDays": 4.797
+    },
+    "sigmaPct": 17.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T05:24:40.287Z",
+   "hoursToFill": 1.33,
+   "closedAt": "2026-09-28T07:45:12.113Z",
+   "exitPrice": 3788.29,
+   "exitReason": "STOP",
+   "hoursFillToExit": 74.34,
+   "sessionsHeld": 1,
+   "best": 3878,
+   "worst": 3786,
+   "last": 3787.4,
+   "lastAt": "2026-09-28T07:45:12.113Z",
+   "marks": 48,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 3858.2,
+    "low": 3786,
+    "last": 3787.4
+   },
+   "pnl": {
+    "perUnit": -57.69,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-24|PE|ADANIGREEN26OCT1300PE",
+   "kind": "PE",
+   "symbol": "ADANIGREEN",
+   "contract": "ADANIGREEN26OCT1300PE",
+   "expiry": "2026-10-27",
+   "strike": 1300,
+   "optionType": "PE",
+   "lotSize": 600,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T09:04:44.034Z",
+   "buy": 51.35,
+   "target": 77.03,
+   "target2": null,
+   "stop": 25.68,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.1,
+     "medianDays": 10.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-24T09:04:44.034Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T07:45:12.113Z",
+   "exitPrice": 77.03,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 94.67,
+   "sessionsHeld": 2,
+   "best": 79.95,
+   "worst": 44.2,
+   "last": 79,
+   "lastAt": "2026-09-28T07:45:12.113Z",
+   "marks": 53,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 79.95,
+    "low": 46.2,
+    "last": 79
+   },
+   "pnl": {
+    "perUnit": 25.68,
+    "pct": 50.01,
+    "basis": "NET",
+    "perLot": 15408,
+    "netPerLot": 15258.16
+   }
   }
  ]
 }
