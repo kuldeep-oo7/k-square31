@@ -3822,6 +3822,384 @@
     "pct": -1.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-09-25|CE|BDL26OCT1200CE",
+   "kind": "CE",
+   "symbol": "BDL",
+   "contract": "BDL26OCT1200CE",
+   "expiry": "2026-10-27",
+   "strike": 1200,
+   "optionType": "CE",
+   "lotSize": 425,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T06:24:19.247Z",
+   "buy": 19.63,
+   "target": 29.44,
+   "target2": null,
+   "stop": 9.82,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38.4,
+     "medianDays": 13.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T06:24:19.253Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T06:06:17.170Z",
+   "exitPrice": 9.82,
+   "exitReason": "STOP",
+   "hoursFillToExit": 71.7,
+   "sessionsHeld": 1,
+   "best": 19.63,
+   "worst": 9.75,
+   "last": 10,
+   "lastAt": "2026-09-28T06:06:17.170Z",
+   "marks": 34,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 16.2,
+    "low": 9.75,
+    "last": 10
+   },
+   "pnl": {
+    "perUnit": -9.81,
+    "pct": -49.97,
+    "basis": "NET",
+    "perLot": -4169.25,
+    "netPerLot": -4228.22
+   }
+  },
+  {
+   "id": "2026-09-25|CE|BDL26OCT1180CE",
+   "kind": "CE",
+   "symbol": "BDL",
+   "contract": "BDL26OCT1180CE",
+   "expiry": "2026-10-27",
+   "strike": 1180,
+   "optionType": "CE",
+   "lotSize": 425,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T06:24:19.247Z",
+   "buy": 25.38,
+   "target": 38.06,
+   "target2": null,
+   "stop": 12.69,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.3,
+     "medianDays": 12.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T06:24:19.253Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T06:06:17.170Z",
+   "exitPrice": 12.69,
+   "exitReason": "STOP",
+   "hoursFillToExit": 71.7,
+   "sessionsHeld": 1,
+   "best": 25.38,
+   "worst": 12.65,
+   "last": 12.65,
+   "lastAt": "2026-09-28T06:06:17.170Z",
+   "marks": 34,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 20.05,
+    "low": 12.65,
+    "last": 12.65
+   },
+   "pnl": {
+    "perUnit": -12.69,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -5393.25,
+    "netPerLot": -5455.67
+   }
+  },
+  {
+   "id": "2026-09-25|CE|DRREDDY26OCT1210CE",
+   "kind": "CE",
+   "symbol": "DRREDDY",
+   "contract": "DRREDDY26OCT1210CE",
+   "expiry": "2026-10-27",
+   "strike": 1210,
+   "optionType": "CE",
+   "lotSize": 625,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T06:24:19.247Z",
+   "buy": 26.4,
+   "target": 39.6,
+   "target2": null,
+   "stop": 13.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47,
+     "medianDays": 11.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-25T06:44:56.108Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-09-28T06:06:17.170Z",
+   "exitPrice": 39.6,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 71.36,
+   "sessionsHeld": 1,
+   "best": 40.1,
+   "worst": 25.5,
+   "last": 40.25,
+   "lastAt": "2026-09-28T06:06:17.170Z",
+   "marks": 35,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 40.1,
+    "low": 29.45,
+    "last": 40.25
+   },
+   "pnl": {
+    "perUnit": 13.2,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 8250,
+    "netPerLot": 8147.84
+   }
+  },
+  {
+   "id": "2026-09-25|PE|BDL26OCT1200PE",
+   "kind": "PE",
+   "symbol": "BDL",
+   "contract": "BDL26OCT1200PE",
+   "expiry": "2026-10-27",
+   "strike": 1200,
+   "optionType": "PE",
+   "lotSize": 425,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T05:05:10.561Z",
+   "buy": 78.95,
+   "target": 118.42,
+   "target2": null,
+   "stop": 39.48,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55,
+     "medianDays": 9.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-25T05:05:10.568Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T06:06:17.170Z",
+   "exitPrice": 118.42,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 73.02,
+   "sessionsHeld": 1,
+   "best": 119.15,
+   "worst": 78,
+   "last": 118,
+   "lastAt": "2026-09-28T06:06:17.170Z",
+   "marks": 39,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 119.15,
+    "low": 94.5,
+    "last": 118
+   },
+   "pnl": {
+    "perUnit": 39.47,
+    "pct": 49.99,
+    "basis": "NET",
+    "perLot": 16774.75,
+    "netPerLot": 16615.78
+   }
+  },
+  {
+   "id": "2026-09-24|FUT|BAJAJ-AUTO26OCTFUT",
+   "kind": "FUT",
+   "symbol": "BAJAJ-AUTO",
+   "contract": "BAJAJ-AUTO26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 75,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 11229.44,
+   "target": 11510.18,
+   "target2": 11790.91,
+   "stop": 11061,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": {
+    "fill": {
+     "probabilityPct": 40.6,
+     "medianTradingDays": 0.405
+    },
+    "target": {
+     "probabilityPct": 57,
+     "medianTradingDays": 5.529
+    },
+    "sigmaPct": 15.7,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T08:25:12.081Z",
+   "hoursToFill": 4.34,
+   "closedAt": "2026-09-28T06:06:17.170Z",
+   "exitPrice": 11061,
+   "exitReason": "STOP",
+   "hoursFillToExit": 93.68,
+   "sessionsHeld": 2,
+   "best": 11332,
+   "worst": 11036,
+   "last": 11038,
+   "lastAt": "2026-09-28T06:06:17.170Z",
+   "marks": 68,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 11270,
+    "low": 11036,
+    "last": 11038
+   },
+   "pnl": {
+    "perUnit": -168.44,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-24|FUT|LT26OCTFUT",
+   "kind": "FUT",
+   "symbol": "LT",
+   "contract": "LT26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 175,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 3859.67,
+   "target": 3956.16,
+   "target2": 4052.65,
+   "stop": 3801.77,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": {
+    "fill": {
+     "probabilityPct": 49.9,
+     "medianTradingDays": 0.328
+    },
+    "target": {
+     "probabilityPct": 64.2,
+     "medianTradingDays": 4.255
+    },
+    "sigmaPct": 19.3,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T08:44:36.761Z",
+   "hoursToFill": 4.66,
+   "closedAt": "2026-09-28T06:06:17.170Z",
+   "exitPrice": 3801.77,
+   "exitReason": "STOP",
+   "hoursFillToExit": 93.36,
+   "sessionsHeld": 2,
+   "best": 3887.5,
+   "worst": 3801.5,
+   "last": 3802.1,
+   "lastAt": "2026-09-28T06:06:17.170Z",
+   "marks": 68,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 3858.2,
+    "low": 3801.5,
+    "last": 3802.1
+   },
+   "pnl": {
+    "perUnit": -57.9,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-24|CE|EICHERMOT26OCT7500CE",
+   "kind": "CE",
+   "symbol": "EICHERMOT",
+   "contract": "EICHERMOT26OCT7500CE",
+   "expiry": "2026-10-27",
+   "strike": 7500,
+   "optionType": "CE",
+   "lotSize": 100,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 156.13,
+   "target": 234.19,
+   "target2": null,
+   "stop": 78.07,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.3,
+     "medianDays": 10.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T04:04:56.996Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-28T06:06:17.170Z",
+   "exitPrice": 78.07,
+   "exitReason": "STOP",
+   "hoursFillToExit": 98.02,
+   "sessionsHeld": 2,
+   "best": 156.13,
+   "worst": 74,
+   "last": 74.5,
+   "lastAt": "2026-09-28T06:06:17.170Z",
+   "marks": 62,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 111.8,
+    "low": 74,
+    "last": 74.5
+   },
+   "pnl": {
+    "perUnit": -78.06,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -7806,
+    "netPerLot": -7875.23
+   }
   }
  ]
 }
