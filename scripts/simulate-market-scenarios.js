@@ -193,6 +193,41 @@ function makeMarket(state, dayBook) {
   };
 }
 
+// ---- two years of history for the risk view ------------------------------------
+// Every name a seeded walk on a common market move, so the rows fall together
+// on the bad days as real ones do. Deterministic, and nothing from this
+// machine's own cache: the page's risk figures come from these series alone.
+const RISK_DAYS = (() => {
+  const out = [];
+  let t = Date.parse("2026-09-23T00:00:00Z");
+  while (out.length < 320) {
+    const day = new Date(t);
+    if (![0, 6].includes(day.getUTCDay())) out.unshift(day.toISOString().slice(0, 10));
+    t -= 86_400_000;
+  }
+  return out;
+})();
+const RISK_MARKET = (() => { const r = rng(4242); return RISK_DAYS.map(() => 0.009 * r.normal()); })();
+const riskSeries = new Map();
+function simHistory(symbol) {
+  if (!riskSeries.has(symbol)) {
+    const r = rng([...String(symbol)].reduce((a, ch) => (Math.imul(a, 31) + ch.charCodeAt(0)) >>> 0, 17));
+    const beta = 0.6 + 0.8 * r();
+    const rows = [];
+    let close = 100 + 900 * r();
+    RISK_DAYS.forEach((day, i) => {
+      const move = beta * RISK_MARKET[i] + 0.012 * r.normal();
+      const open = close * (1 + move * (0.3 + 0.4 * r()));
+      const next = close * (1 + move);
+      rows.push([day, open, Math.max(open, next) * (1 + 0.004 * r()), Math.min(open, next) * (1 - 0.004 * r()), next]);
+      close = next;
+    });
+    riskSeries.set(symbol, { rows });
+  }
+  return riskSeries.get(symbol);
+}
+const SIM_RISK = { riskHistoryFor: simHistory, riskActions: { ok: true, fetchedAt: "2026-09-23T12:00:00Z", rows: [] } };
+
 // ---- driving the real build ----------------------------------------------------
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "k2-scenarios-"));
 const LEDGER_FILE = path.join(tmp, "levels.json");
@@ -200,7 +235,7 @@ const LEDGER_DIR = path.join(tmp, "ledger");
 const PAGES = path.join(tmp, "pages");
 fs.mkdirSync(PAGES, { recursive: true });
 
-async function runBuild(name, state, dayBook, { banned = null, ledgerFile = LEDGER_FILE, ledgerDir = LEDGER_DIR } = {}) {
+async function runBuild(name, state, dayBook, { banned = null, ledgerFile = LEDGER_FILE, ledgerDir = LEDGER_DIR, risk = SIM_RISK } = {}) {
   const market = makeMarket(state, dayBook);
   // The clock MOVES while a build runs, a millisecond per reading, as a real
   // one does. A clock that stood still hid the 2026-09-24 bug: the ledger was
@@ -235,7 +270,7 @@ async function runBuild(name, state, dayBook, { banned = null, ledgerFile = LEDG
   if (banned) fnoUniverseEngine.banned = new Set([...(savedBan || []), ...banned]);
   let data;
   try {
-    data = await desk.build({ ledgerFile, ledgerDir });
+    data = await desk.build({ ledgerFile, ledgerDir, ...risk });
   } finally {
     fnoUniverseEngine.banned = savedBan;
   }
@@ -287,6 +322,27 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("every option's implied vol on the page is the market's own, to half a point", errs.length > 0 && worstIv < 0.5,
       `worst ${worstIv.toFixed(2)} vol pts over ${errs.length} options`);
     check("every option priced against the LIVE forward, none against yesterday's", d.options.every((c) => c.forwardSource === "LIVE"));
+    // BAD-DAY RISK on both tabs (api/_lib/risk-view.js), from the simulated history.
+    const futPane = b.html.split('class="pane pane-fut"')[1].split('class="pane pane-ce"')[0];
+    const cePane = b.html.split('class="pane pane-ce"')[1].split('class="pane pane-pe"')[0];
+    const rf = d.risk?.futures, rc = d.risk?.calls;
+    check("the futures tab carries the bad-day risk in rupees: 1 day in 20, the worst day, the market opening 5% lower",
+      /BAD-DAY RISK<\/b>, every row together &mdash; 1 day in 20: <b class="down amt">−₹[\d,]+<\/b> or worse/.test(futPane)
+        && /worst day: <b class="down amt">−₹[\d,]+<\/b>/.test(futPane) && /market opens 5% lower: <b class="down amt">−₹[\d,]+<\/b>/.test(futPane),
+      rf ? `1-in-20 ${rf.var}, worst ${rf.worst?.rupees}, gap ${rf.gap?.rupees}` : JSON.stringify(d.risk).slice(0, 160));
+    check("so does the calls tab, one lot each", rc?.available === true && /BAD-DAY RISK<\/b>, every row together/.test(cePane) && /one lot each/.test(cePane),
+      rc ? `${rc.rowsIncluded} of ${rc.rows} calls` : "none");
+    check("the calls' risk says its figures are the pessimistic end, with India VIX's move on the worst day and no invented second figure",
+      /For calls these figures are the pessimistic end/.test(cePane) && /India VIX moved [+−]?\d+%/.test(cePane) && !/read the two as a range/.test(cePane)
+        && !/For calls these figures/.test(futPane), String(rc.worst.vixPct));
+    check("percentages in the risk box carry a real minus sign, never a hyphen", !/NIFTY -\d/.test(b.html) && !/VIX moved -\d/.test(b.html));
+    check("every futures row and every call is in it (the simulated history covers every name)",
+      rf?.rowsIncluded === d.futures.length && rc?.rowsIncluded === d.options.filter((x) => x.right === "CE").length,
+      `${rf?.rowsIncluded}/${d.futures.length} futures, ${rc?.rowsIncluded} calls`);
+    check("the stocks' shares of the bad days add up to the bad days' average loss", Math.abs(rf.contributionsSum - rf.es) <= 1 && Math.abs(rc.contributionsSum - rc.es) <= 1);
+    check("the worst day is at least as bad as the 1-in-20 day, which is a loss", rf.worst.rupees <= -rf.var && rf.var > 0 && rc.var > 0);
+    check("the freeze headline stays on screen; only its explanation folds",
+      /<summary><b>BUY, SELL AND STOP ARE FIXED FOR TODAY<\/b>/.test(b.html) && /<details class="fold">/.test(b.html));
     // The anchor is the NSE futures CONTRACT (the user's platform quotes it
     // exactly, measured 2026-09-24); share-only names stay on the share.
     const f = d.futures.find((x) => x.fnoListed) || d.futures[0];
@@ -612,6 +668,16 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       holGate.exchangeShut === true && holGate.problems.length === 0, holGate.problems[0] || "green");
     check("the page names it as an NSE holiday, from NSE's own calendar, and nothing is frozen",
       hol.data.levelsFrozen === false && /NSE trading holiday/.test(hol.html));
+    // WITHOUT NSE'S CORPORATE-ACTION FILINGS a demerger cannot be told from a
+    // crash (ABFRL's 22 May 2025 demerger reads as a 66.6% fall), so the page
+    // shows no risk figure at all -- and the reason -- rather than a wrong one.
+    const noCa = await runBuild("thu-1053-no-corporate-actions", { ...normal, clock: ist("2026-09-24", "10:53") }, new Map(),
+      { ledgerFile: path.join(tmp, "noca-levels.json"), ledgerDir: path.join(tmp, "noca-ledger"), risk: { riskHistoryFor: simHistory, riskActions: null } });
+    check("without NSE's corporate-action filings the page shows no risk figure, and says why",
+      /BAD-DAY RISK: not available on this build/.test(text(noCa.html)) && /corporate-action filings could not be read/.test(text(noCa.html))
+        && !/1 day in 20:/.test(noCa.html), (text(noCa.html).match(/BAD-DAY RISK[^.]{0,160}/) || ["no risk line"])[0]);
+    const noGate = health.checkLivePath({ ...noCa.data, brokerCheck: { ok: true } }, ist("2026-09-24", "10:53"));
+    check("and a missing risk figure never turns the production gate red", noGate.problems.length === 0, noGate.problems[0] || "green");
     check("NSE unreachable: the page says NOT checked, and the gate stays green",
       down.data.feedCheck?.checked === false && /Not checked against NSE/.test(down.html) && quiet.problems.length === 0,
       quiet.problems[0] || down.data.feedCheck?.reason);

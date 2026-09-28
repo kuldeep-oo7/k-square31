@@ -140,6 +140,30 @@ async function step(label, fn) {
       + (r.notReached ? `, ${r.notReached} not reached in time` : "") + ` (${r.seconds}s). History now: ${ends}`;
   });
 
+  // DEMERGERS, BONUSES AND SPLITS from NSE's own filings (nse-corporate-actions.js),
+  // once a day: the risk view must not read a demerger as a crash (ABFRL
+  // "fell" 66.6% on its demerger ex-date, 22 May 2025, in the price history).
+  await step("NSE corporate actions (demergers, bonuses, splits)", async () => {
+    const ca = require("../api/_lib/nse-corporate-actions");
+    const have = ca.loadCorporateActions();
+    if (have && Date.now() - Date.parse(have.fetchedAt) < 20 * 3_600_000) return `current: ${have.rows.length} price actions, read ${have.fetchedAt}`;
+    const r = await ca.refreshCorporateActions();
+    if (!r.ok) throw new Error(r.reason + (have ? ` (keeping the file read ${have.fetchedAt})` : " (no earlier file: the risk view will say it is unavailable)"));
+    return `${r.rows.length} price actions in ${r.filings} filings over ${r.days} days`;
+  });
+
+  // TWO YEARS OF PRICES FOR THE RISK VIEW (risk-history.js), in its own copy so
+  // the technical read's three months -- and every score -- stay as they are.
+  // Fetched when a copy predates the latest close: the first build after 15:30
+  // pays for it and the cache carries it to the next day.
+  await step("two years of prices for the risk view", async () => {
+    const { fnoUniverseEngine } = require("../api/_lib/universe-210");
+    const { refreshRiskHistory } = require("../api/_lib/risk-history");
+    const r = await refreshRiskHistory(fnoUniverseEngine.symbols || [], { budgetMs: 120_000 });
+    return `${r.due} due: ${r.fetched} fetched, ${r.failed} failed${r.notReached ? `, ${r.notReached} not reached in time` : ""}; `
+      + `${r.have} of ${r.wanted} on hand (${r.seconds}s)${r.failures.length ? ` -- ${r.failures.join("; ")}` : ""}`;
+  });
+
   // THE LOGIN, ON EVERY BUILD, WHETHER OR NOT THE MARKET IS OPEN.
   //
   // Live quotes are only fetched in session, so without this the first time

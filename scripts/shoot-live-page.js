@@ -23,7 +23,8 @@ const fs = require("node:fs");
 const os = require("node:os");
 const path = require("node:path");
 
-const URL_BASE = "https://kuldeep-oo7.github.io/k2-desk/";
+// K2_SHOOT_URL points it at a page rendered locally, to look before pushing.
+const URL_BASE = process.env.K2_SHOOT_URL || "https://kuldeep-oo7.github.io/k2-desk/";
 const expect = process.argv[2] || null;
 const OUT = process.argv[3] || path.join(os.tmpdir(), "k2-live-shots", new Date().toISOString().replace(/[:.]/g, "-"));
 const DEVICES = [
@@ -37,6 +38,7 @@ const DEVICES = [
   const browser = await chromium.launch({ headless: true, ...(process.platform === "win32" ? { channel: "msedge" } : {}) });
   const problems = [];
   const shots = [];
+  const rowOffsets = [];
   let stamp = "";
   for (const device of DEVICES) {
     const context = await browser.newContext({ viewport: device.viewport, deviceScaleFactor: device.deviceScaleFactor, isMobile: device.isMobile, hasTouch: device.hasTouch });
@@ -58,12 +60,31 @@ const DEVICES = [
       const top = await page.$eval(`label[for='${tab.id}']`, (l) => l.getBoundingClientRect().top + window.scrollY - 10);
       await page.evaluate((y) => window.scrollTo(0, y), top);
       await shoot(`${name}-1-top`);
+      // WHERE THE FIRST ROW STARTS: how far a reader scrolls, from the tab
+      // buttons, before the first contract. On the phone this is the number the
+      // folded notes exist to shrink (the user, 27 Sep: rows first).
+      const firstRow = await page.evaluate((id) => {
+        const pane = [...document.querySelectorAll("section.pane")].find((p) => getComputedStyle(p).display !== "none");
+        const row = pane && pane.querySelector("tbody tr");
+        const tabs = document.querySelector(`label[for='${id}']`);
+        if (!row || !tabs) return null;
+        return Math.round(row.getBoundingClientRect().top - tabs.getBoundingClientRect().bottom);
+      }, tab.id);
+      if (firstRow !== null) rowOffsets.push(`${device.name} ${tab.text}: first row ${firstRow}px under the tabs (${(firstRow / device.viewport.height).toFixed(2)} screens)`);
       for (let step = 2; step <= device.scrolls + 1; step += 1) {
         await page.evaluate((h) => window.scrollBy(0, h - 120), device.viewport.height);
         await shoot(`${name}-${step}-down`);
       }
       const where = `${device.name} ${tab.text}`;
-      const text = await page.$eval("body", (b) => b.innerText);
+      // Folded notes are not in innerText while closed: open every one for the
+      // check, then put them back as they were.
+      const text = await page.evaluate(() => {
+        const closed = [...document.querySelectorAll("details:not([open])")];
+        closed.forEach((d) => { d.open = true; });
+        const t = document.body.innerText;
+        closed.forEach((d) => { d.open = false; });
+        return t;
+      });
       for (const [label, re] of [["undefined", /\bundefined\b/], ["NaN", /\bNaN\b/], ["null", /\bnull\b/], ["Infinity", /\bInfinity\b/],
         ["[object Object]", /\[object Object\]/], ["a minus after the rupee sign (₹-)", /₹-\d/]]) {
         if (re.test(text)) problems.push(`${where}: "${label}" is visible`);
@@ -79,10 +100,21 @@ const DEVICES = [
     }
     await page.evaluate(() => window.scrollTo(0, document.body.scrollHeight));
     await shoot("9-footer");
+    // One fold opened, to see what a tap shows.
+    const opened = await page.evaluate(() => {
+      document.querySelector("label[for='v-fut']")?.click();
+      const d = [...document.querySelectorAll("section.pane-fut details.fold")].find((x) => !x.open);
+      if (!d) return false;
+      d.open = true;
+      window.scrollTo(0, d.getBoundingClientRect().top + window.scrollY - 60);
+      return true;
+    });
+    if (opened) await shoot("8-fold-open");
     await context.close();
   }
   await browser.close();
 
+  console.log(rowOffsets.join("\n"));
   console.log(`screenshots (${shots.length}) in ${OUT}`);
   for (const s of shots) console.log("  " + s);
   console.log(problems.length ? "PROBLEMS:\n  " + [...new Set(problems)].join("\n  ") : "checks: nothing that must never be visible, nothing wider than the screen");

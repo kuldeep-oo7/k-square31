@@ -183,7 +183,7 @@ function fillState(limit, now) {
 // -- 122 of 162 calls that had cleared every gate, beside a header saying 162
 // had. The user: "if it is passing all of this then it is a good one ... why
 // we have to force it to cut down". A limit can still be passed for tests.
-async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, ledgerDir, forceFreeze = null } = {}) {
+async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, ledgerDir, forceFreeze = null, riskHistoryFor = null, riskActions = undefined } = {}) {
   const { fnoUniverseEngine } = require("../api/_lib/universe-210");
   const { screenContracts } = require("../api/_lib/contract-screener");
   const { roundTripCost } = require("../api/_lib/trade-costs");
@@ -699,6 +699,25 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
 
   const saved = session.save();
 
+  // WHAT EVERY ROW TOGETHER COULD COST ON A BAD DAY (api/_lib/risk-view.js):
+  // today's rows replayed through two years of real prices, stops and targets
+  // in the market. Read from the cache prepare-static-build.js fills -- never
+  // the network -- and never fatal: a failure is a reason the page prints.
+  const risk = (() => {
+    try {
+      const { riskView } = require("../api/_lib/risk-view");
+      const { readHistory } = require("../api/_lib/risk-history");
+      const { loadCorporateActions } = require("../api/_lib/nse-corporate-actions");
+      return riskView({
+        futures, calls: options.filter((c) => c.right === "CE"), units: GM_MIN_UNITS,
+        historyFor: riskHistoryFor || ((symbol) => readHistory(symbol)),
+        actions: riskActions === undefined ? loadCorporateActions() : riskActions
+      });
+    } catch (error) {
+      return { available: false, reason: error.message };
+    }
+  })();
+
   // OUR PRICES AGAINST NSE'S OWN, ON EVERY BUILD (api/_lib/nse-crosscheck.js;
   // Global Trading Atlas, 30: reconcile a sample against an independent
   // source). A rotating sample of this page's rows is quoted again from Angel
@@ -776,6 +795,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     banList: { tradeDate: fnoUniverseEngine.banTradeDate || null, symbols: [...bannedSet].sort(),
       refusedContracts: screen.refused?.banned ?? null },
     track,
+    risk,
     ledgerError,
     // Futures on today's list that the session froze without: their contract
     // quote did not come back live, so they are shown on a fallback price and
@@ -803,9 +823,53 @@ function page(d) {
     for (const r of rows) sectors[r.sector || "Unknown"] = (sectors[r.sector || "Unknown"] || 0) + 1;
     const top = Object.entries(sectors).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${esc(k)} ${esc(v)}`).join(", ");
     const stocks = new Set(rows.map((r) => r.symbol)).size;
-    return `<div class="sub" style="margin:-4px 0 10px">If you take every row here (${esc(unit)}): <b>${money(capital)}</b> in total;
-      if every stop is hit, <b class="down">&minus;${money(loss)}</b> &mdash; more if prices gap through the stops.
-      ${stocks < rows.length ? `These ${esc(rows.length)} rows are on <b>${esc(stocks)} stocks</b>: several strikes of one stock are one bet, not several. ` : ""}Most rows are in: ${top}. Rows in one sector tend to fall together.${extra ? ` ${extra}` : ""}</div>`;
+    return `<details class="fold sub lead"><summary>If you take every row here (${esc(unit)}): <b class="amt">${money(round(capital, 0))}</b> in total;
+      if every stop is hit, <b class="down amt">&minus;${money(round(loss, 0))}</b> &mdash; more if prices gap through the stops.<span class="more"></span></summary>
+      <div>${stocks < rows.length ? `These ${esc(rows.length)} rows are on <b>${esc(stocks)} stocks</b>: several strikes of one stock are one bet, not several. ` : ""}Most rows are in: ${top}. Rows in one sector tend to fall together.${extra ? ` ${extra}` : ""}</div></details>`;
+  };
+  // BAD-DAY RISK (api/_lib/risk-view.js): what every row TOGETHER would have
+  // lost on days that already happened. The line you tap carries the three
+  // figures; the rest says how they were worked out and what was left out.
+  const dayText = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  // A signed percentage with a real minus sign, as the amounts have ("-3.24%" read as a hyphen).
+  const pct = (v) => (v === null || v === undefined ? "" : `${Number(v) < 0 ? "−" : Number(v) > 0 ? "+" : ""}${esc(Math.abs(Number(v)))}%`);
+  const riskBox = (side, kind) => {
+    const r = d.risk;
+    if (!r) return "";
+    const off = (why) => `<div class="sub lead"><b>BAD-DAY RISK:</b> not available on this build &mdash; ${esc(why)}.</div>`;
+    if (!r.available) return off(r.reason || "reason unknown");
+    if (!side) return "";
+    if (!side.available) return off(side.reason || "reason unknown");
+    const w = side.worst;
+    const what = kind === "futures" ? `${esc(r.units)} units each` : "one lot each";
+    const stops = !w.stopsHit ? "no stop was hit"
+      : `${esc(w.stopsHit)} stop${w.stopsHit === 1 ? " was" : "s were"} hit${w.throughGap ? `, ${esc(w.throughGap)} of them by a gap at the open` : ""}`;
+    const left = [...(side.excluded || []).map((x) => `${esc(x.symbol)} (${esc(x.sessions)} sessions of history)`),
+      ...(side.unpriced || []).map((s) => `${esc(s)} (could not be priced)`)];
+    return `<details class="fold risk"><summary><b>BAD-DAY RISK</b>, every row together &mdash; 1 day in 20: <b class="down amt">${money(-side.var)}</b> or worse
+      &middot; worst day: <b class="down amt">${money(w.rupees)}</b>${side.gap ? ` &middot; market opens 5% lower: <b class="down amt">${money(side.gap.rupees)}</b>` : ""}<span class="more"></span></summary>
+      <div>Today&rsquo;s ${esc(side.rowsIncluded)} rows (${what}) replayed through each of the last ${esc(side.days)} trading days,
+        ${esc(dayText(side.from))} to ${esc(dayText(side.to))}, on real prices, with every stop and target in the market.
+        Not a forecast: these are days that already happened. Before charges.</div>
+      <div><b>1 day in 20:</b> on the worst ${esc(side.tailDays)} of those ${esc(side.days)} days, all the rows together lost at least
+        ${money(side.var)} &mdash; ${money(side.es)} on average.</div>
+      <div><b>Worst day, ${esc(dayText(w.date))}</b>${w.marketPct !== null && w.marketPct !== undefined ? ` (NIFTY ${pct(w.marketPct)})` : ""}: ${esc(w.stocksDown)} of
+        ${esc(w.stocksWithData)} stocks fell and ${stops} &mdash; a loss of ${money(w.rupees)}, against ${money(-side.stopTotal)} if every stop
+        had filled at its own price (before charges).</div>
+      ${side.gap ? `<div><b>Market opens 5% lower:</b> ${money(side.gap.rupees)}. Each stock opens lower by its own measured sensitivity to NIFTY
+        (median ${esc(side.gap.medianBeta)}), and a stop fills at the open, not at its own price.</div>` : ""}
+      <div><b>Together:</b> on those ${esc(side.tailDays)} worst days, ${esc(side.fellTogetherPct)}% of the stocks fell at once. These rows are closer
+        to one bet on the market than to ${esc(side.stocks)} separate ones.</div>
+      ${(side.top || []).length ? `<div><b>Most of the bad-day loss:</b> ${side.top.map((x) => `${esc(x.symbol)} ${x.sharePct === null || x.sharePct === undefined ? money(-x.rupees) : esc(x.sharePct) + "%"}`).join(", ")}${kind === "futures"
+        ? ` &mdash; at ${esc(r.units)} units each, the highest-priced stocks carry the most rupees` : ""}.</div>` : ""}
+      ${left.length ? `<div><b>Left out:</b> ${left.join(", ")}.</div>` : ""}
+      <div>Demergers, bonuses and splits are read from NSE&rsquo;s own filings${r.actionsAsOf ? ` (${esc(dayText(String(r.actionsAsOf).slice(0, 10)))})` : ""},
+        so none of them counts as a crash.</div>
+      ${kind === "calls" ? `<div><b>For calls these figures are the pessimistic end.</b> Each call is repriced with Black-76 at its own implied volatility,
+        held where it is &mdash; and in a crash that volatility jumps, which cushions a call${side.worst.vixPct !== null && side.worst.vixPct !== undefined
+          ? ` (India VIX moved ${pct(Math.round(side.worst.vixPct))} on ${esc(dayText(side.worst.date))})` : ""}. By how much depends on each stock&rsquo;s own
+        option volatility, which this page has no history for.</div>` : ""}
+    </details>`;
   };
   const sumOf = (rows, f) => rows.reduce((a, r) => a + (Number(f(r)) || 0), 0);
   const puts = d.options.filter((c) => c.right === "PE");
@@ -1074,22 +1138,24 @@ function page(d) {
     : "";
   const noSessionToday = lastTraded && d.sessionDate && lastTraded < d.sessionDate;
   const lastSessionText = lastTraded ? new Date(`${lastTraded}T00:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }) : "";
-  const freezeNote = d.sessionOver
-    ? `<b>${noSessionToday ? "NO SESSION TODAY" : "THE SESSION IS OVER"}. THESE ROWS ARE PREVIEWS, NOT ORDERS.</b> ${noSessionToday
-       ? `The last session was <b>${esc(lastSessionText)}</b>; its buy limits were day orders and ended at 15:30`
-       : "Today's buy limits were day orders and ended at 15:30"} &mdash; what became of each is on <b>TRACK</b>. Every row below is worked from the last
-       prices${optionsOnOldFile ? ` (the calls from the ${esc(d.settlementFile)} settlement file until NSE publishes today&rsquo;s)` : ""}, for <b>${esc(nextText)}</b>.
-       The real levels are fixed on that session's first build that sees a live exchange book, and can differ from these.`
+  // The headline stays on screen; the explanation folds behind a tap on the
+  // phone (details.fold), so the rows come first.
+  const [freezeHead, freezeRest] = d.sessionOver
+    ? [`<b>${noSessionToday ? "NO SESSION TODAY" : "THE SESSION IS OVER"}. THESE ROWS ARE PREVIEWS, NOT ORDERS</b> &mdash; worked from the last prices, for <b>${esc(nextText)}</b>.`,
+       `${noSessionToday
+         ? `The last session was <b>${esc(lastSessionText)}</b>; its buy limits were day orders and ended at 15:30`
+         : "Today's buy limits were day orders and ended at 15:30"} &mdash; what became of each is on <b>TRACK</b>.${optionsOnOldFile
+         ? ` The calls are priced from the ${esc(d.settlementFile)} settlement file until NSE publishes today&rsquo;s.` : ""}
+       The real levels are fixed on that session's first build that sees a live exchange book, and can differ from these.`]
     : d.levelsFrozen
-    ? `<b>BUY, SELL AND STOP ARE FIXED FOR TODAY.</b> They were set at
-       <b>${esc(d.levelsOpenedAtIst || "the first build after the open")}</b> and they do not move again,
-       however far the market runs. ${esc(d.freezeTally.carried)} carried from earlier in the session,
+    ? [`<b>BUY, SELL AND STOP ARE FIXED FOR TODAY</b> &mdash; set at <b>${esc(d.levelsOpenedAtIst || "the first build after the open")}</b>, and they do not move again.`,
+       `They hold however far the market runs: ${esc(d.freezeTally.carried)} carried from earlier in the session,
        ${esc(d.freezeTally.frozenThisBuild)} set on this build. The <b>NOW</b> column is the only
-       number that changes &mdash; it tells you whether the market has come to your limit yet.`
-    : `<b>THESE LEVELS ARE INDICATIVE, NOT FIXED.</b> ${esc(d.freezeBlockedBecause)}
-       There is no traded price to anchor them to, so nothing has been written down.
+       number that changes &mdash; it tells you whether the market has come to your limit yet.`]
+    : [`<b>THESE LEVELS ARE INDICATIVE, NOT FIXED.</b> ${esc(d.freezeBlockedBecause)}`,
+       `There is no traded price to anchor them to, so nothing has been written down.
        They are set once &mdash; and then held all day &mdash; on the first build that
-       sees a live exchange book.`;
+       sees a live exchange book.`];
 
   const html = `<!doctype html>
 <html lang="en"><head>
@@ -1122,6 +1188,24 @@ function page(d) {
   .name { font-size:15px; letter-spacing:.02em }
   .warn { color:var(--amber) }
   tr:last-child td { border-bottom:none }
+  /* FOLDED NOTES. On the phone the explanations wait behind a tap so the rows
+     come first (the user, 27 Sep: 25 lines of text sat above the first futures
+     row); the figures stay in the line you tap. On a wider screen every fold
+     is shown open (::details-content, in the media query below). No script. */
+  details.fold > summary { cursor:pointer; list-style:none }
+  details.fold > summary::-webkit-details-marker { display:none }
+  details.fold > summary .more::after { content:" ▸ more"; color:var(--amber); white-space:nowrap }
+  details.fold[open] > summary .more::after { content:" ▾ less" }
+  details.fold > div { margin-top:6px }
+  .lead { margin:-4px 0 10px }
+  .amt { white-space:nowrap } /* "−" and "₹1,46,419" split across two lines on the phone (27 Sep) */
+  details.fold.risk { border:1px solid var(--line); border-left:3px solid var(--red); border-radius:8px;
+                      padding:8px 12px; margin:0 0 12px; font-size:11px; line-height:1.55; color:var(--muted) }
+  @media (min-width: 721px) {
+    details.fold::details-content { content-visibility:visible; display:block }
+    details.fold > summary { cursor:default }
+    details.fold > summary .more { display:none }
+  }
   /* Three tabs, no JavaScript: a radio button per tab, and CSS shows the pane
      whose button is checked. Works on any phone, with scripts off, forever. */
   .desk > input { position:absolute; opacity:0; pointer-events:none }
@@ -1171,7 +1255,7 @@ function page(d) {
     ? ` &middot; India VIX <b>${esc(d.marketContext.indiaVix)}</b> (${esc(d.marketContext.indiaVixChangePct)}%) &middot; Nifty ${esc(Number(d.marketContext.nifty).toLocaleString("en-IN"))} (${esc(d.marketContext.niftyChangePct)}%), NSE ${esc(String(d.marketContext.at || "").slice(12, 17))}`
     : " &middot; India VIX not read this build"}</div>
 
-<div class="note ${d.levelsFrozen ? "frozen" : ""}">${freezeNote}</div>
+<div class="note ${d.levelsFrozen ? "frozen" : ""}"><details class="fold"><summary>${freezeHead}<span class="more"></span></summary><div>${freezeRest}</div></details></div>
 ${feedAlarm}
 
 <main class="desk">
@@ -1193,7 +1277,8 @@ ${feedAlarm}
       `<b>With no trend, a row's target comes before its stop at most as often as its break-even (about 37.5%)</b> &mdash; a price with no trend is a fair game &mdash;
        so before GM's charges these rows make money only if the BUY signal works. That signal failed its pre-registered final test
        (1,205 trades, t = 0.75; panel study, 24 Sep 2026).`)}
-    ${d.watchStatus ? `<div class="sub" style="margin:-4px 0 10px">Watching your ${esc(d.watchStatus.stocks)} stocks
+    ${riskBox(d.risk?.futures, "futures")}
+    ${d.watchStatus ? `<details class="fold sub lead"><summary>Watching your ${esc(d.watchStatus.stocks)} stocks &mdash; which are priced how<span class="more"></span></summary><div>Watching your ${esc(d.watchStatus.stocks)} stocks
       (${esc(d.watchStatus.source)}): ${esc(d.watchStatus.withFutures)} have an NSE futures contract,
       ${esc(d.watchStatus.shareOnly)} are share-only (removed from F&amp;O)${d.watchStatus.notListed.length
         ? `, and ${esc(d.watchStatus.notListed.length)} ${d.watchStatus.notListed.length === 1 ? "has" : "have"} no price${d.watchStatus.unlistedOnNse
@@ -1210,7 +1295,7 @@ ${feedAlarm}
           ? `Levels are anchored on the <b>${main}</b>; rows frozen earlier this session on the other price keep it until the session ends, and each row says which.`
           : `Levels are anchored on the <b>${bases.has("SHARE") ? "share price" : bases.has("CONTRACT") ? "NSE futures contract" : main}</b>.`;
       })()}
-      Share-only names stay on the share. The other price is shown under NOW to compare with your platform.</div>` : ""}
+      Share-only names stay on the share. The other price is shown under NOW to compare with your platform.</div></details>` : ""}
     <div class="wrap"><table>
       <thead><tr>
         <th>SYMBOL</th><th class="num">BUY LIMIT</th><th class="num">TARGET 1 &middot; 2</th>
@@ -1233,6 +1318,7 @@ ${feedAlarm}
          ? `, <b>plus the bid-ask spread</b>, which is not known without a live book (${esc(calls.filter((c) => c.spreadKnown === false).length)} of these rows)` : ""}.
        ${esc(calls.filter((c) => Number(c.vrp) > 1).length)} of ${esc(calls.length)} are priced above the stock&rsquo;s own recent movement (implied above realised), which makes it worse.
        They make money only if the BUY signal works, and it failed its pre-registered final test (1,205 trades, t = 0.75; panel study, 24 Sep 2026).` : "")}
+    ${riskBox(d.risk?.calls, "calls")}
     ${d.optionsDirection ? `<div class="sub" style="margin:-4px 0 10px">Only on the ${esc(d.optionsDirection.names)} stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
     ${oldFileNote}
     ${optionTable(calls, "No calls cleared every gate on this build.")}
