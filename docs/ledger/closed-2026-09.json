@@ -4956,6 +4956,60 @@
     "perLot": -14453,
     "netPerLot": -14541.03
    }
+  },
+  {
+   "id": "2026-09-24|PE|BANKBARODA26OCT240PE",
+   "kind": "PE",
+   "symbol": "BANKBARODA",
+   "contract": "BANKBARODA26OCT240PE",
+   "expiry": "2026-10-27",
+   "strike": 240,
+   "optionType": "PE",
+   "lotSize": 2925,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 8.34,
+   "target": 12.51,
+   "target2": null,
+   "stop": 4.17,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.6,
+     "medianDays": 11.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-24T04:45:02.051Z",
+   "hoursToFill": 0.67,
+   "closedAt": "2026-09-28T08:45:23.857Z",
+   "exitPrice": 12.51,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 100.01,
+   "sessionsHeld": 2,
+   "best": 12.55,
+   "worst": 7.47,
+   "last": 12.55,
+   "lastAt": "2026-09-28T08:45:23.857Z",
+   "marks": 70,
+   "obs": {
+    "date": "2026-09-28",
+    "high": 12.55,
+    "low": 8.44,
+    "last": 12.55
+   },
+   "pnl": {
+    "perUnit": 4.17,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 12197.25,
+    "netPerLot": 12068.79
+   }
   }
  ]
 }
