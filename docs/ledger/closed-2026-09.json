@@ -12052,6 +12052,114 @@
     "perLot": 9300,
     "netPerLot": 9190.84
    }
+  },
+  {
+   "id": "2026-09-29|CE|KOTAKBANK26OCT395CE",
+   "kind": "CE",
+   "symbol": "KOTAKBANK",
+   "contract": "KOTAKBANK26OCT395CE",
+   "expiry": "2026-10-27",
+   "strike": 395,
+   "optionType": "CE",
+   "lotSize": 2000,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 11.9,
+   "target": 17.85,
+   "target2": null,
+   "stop": 5.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.8,
+     "medianDays": 9.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-29T04:06:33.336Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-29T07:45:39.562Z",
+   "exitPrice": 17.85,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 3.65,
+   "sessionsHeld": 0,
+   "best": 18.35,
+   "worst": 11.15,
+   "last": 18.35,
+   "lastAt": "2026-09-29T07:45:39.562Z",
+   "marks": 12,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 18.35,
+    "low": 11.15,
+    "last": 18.35
+   },
+   "pnl": {
+    "perUnit": 5.95,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 11900,
+    "netPerLot": 11773.52
+   }
+  },
+  {
+   "id": "2026-09-24|PE|AMBER26OCT7200PE",
+   "kind": "PE",
+   "symbol": "AMBER",
+   "contract": "AMBER26OCT7200PE",
+   "expiry": "2026-10-27",
+   "strike": 7200,
+   "optionType": "PE",
+   "lotSize": 100,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 318.25,
+   "target": 477.38,
+   "target2": null,
+   "stop": 159.13,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56,
+     "medianDays": 9.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-24T04:04:56.996Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-29T07:45:39.562Z",
+   "exitPrice": 477.38,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 123.68,
+   "sessionsHeld": 3,
+   "best": 505,
+   "worst": 303.95,
+   "last": 495,
+   "lastAt": "2026-09-29T07:45:39.562Z",
+   "marks": 87,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 505,
+    "low": 400,
+    "last": 495
+   },
+   "pnl": {
+    "perUnit": 159.13,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 15913,
+    "netPerLot": 15759.79
+   }
   }
  ]
 }
