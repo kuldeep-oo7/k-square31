@@ -224,7 +224,8 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
    * THE MARKET'S DIRECTION, AND WHAT IT ALLOWS.
    *
    * api/_lib/market-regime.js classifyMarketRegime read NIFTY as BEAR_HOSTILE --
-   * "long setups restricted", shorts allowed -- every day from Mon 21 Sep 2026,
+   * "long setups restricted", shorts allowed -- every session from Wed 2 Sep 2026
+   * (on NSE's own NIFTY history),
    * while this page showed only buys: the reader had never been connected, the
    * ratings below have no bearish verdict at all (BUY, ACCUMULATE, STAND_ASIDE),
    * and puts had been taken off on 25 Sep. The user, 29 Sep: "the market is

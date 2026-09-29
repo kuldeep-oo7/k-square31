@@ -3,7 +3,7 @@
 /**
  * THE PUBLIC PAGE AGAINST NSE'S OWN SITE, EVERY ROW.
  *
- *   node scripts/audit-live-vs-nse.js [--all-calls]
+ *   node scripts/audit-live-vs-nse.js [--all-options]
  *
  * The user, 28 Sep: "verify against the internet ... this is showing it is right
  * or wrong". The build's own check samples 16 contracts; this reads every row
@@ -21,7 +21,11 @@
  * every futures tick against NSE's own ticksize, and TRACK's verdicts on the
  * day's futures trades against NSE's own day high and low: a STOP needs a low
  * at or under the stop, a TARGET a high through the target, a fill a trade
- * under the buy. Network only: not in the check chain.
+ * under the buy. And every contract name the page tells you to type into
+ * Zerodha is looked up in ZERODHA'S OWN instrument list (api.kite.trade, public):
+ * it must exist, with the same expiry, strike, side and lot. Calls and puts
+ * alike -- index options included -- since the page shows puts in a downtrend.
+ * Network only: not in the check chain.
  */
 
 const fs = require("node:fs");
@@ -31,7 +35,7 @@ const nse = require("../api/_lib/nse-crosscheck");
 
 const PAGE = "https://kuldeep-oo7.github.io/k2-desk/";
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36";
-const allCalls = process.argv.includes("--all-calls");
+const allOptions = process.argv.includes("--all-options") || process.argv.includes("--all-calls");
 const problems = [];
 const notes = [];
 const bad = (msg) => problems.push(msg);
@@ -76,8 +80,8 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
     if (!eq(f.target1, toTick(f.buy * TARGET_1, tick, "nearest")) || !eq(f.target2, toTick(f.buy * TARGET_2, tick, "nearest"))
         || !eq(f.stop, toTick(f.buy * STOP, tick, "nearest"))) bad(`${f.symbol}: target or stop is not buy x ${TARGET_1}/${TARGET_2}/${STOP}`);
   }
-  // Calls: what the page shows, the stop, and the tick.
-  const calls = data.options.filter((c) => c.right === "CE");
+  // Every option, calls and puts: what the page shows, the stop, and the tick.
+  const calls = data.options;
   for (const c of calls) {
     for (const [what, v] of [["buy", c.buy], ["sell", c.sell], ["stop", c.stop], ["now", c.now]]) {
       if (v === null || v === undefined) continue;
@@ -89,7 +93,9 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
     if (!(c.sell > c.buy)) bad(`${c.display}: sell ${c.sell} is not above buy ${c.buy}`);
     if (!(c.lotSize > 0) || Math.abs(c.costPerLot - c.buy * c.lotSize) > 0.02) bad(`${c.display}: cost per lot ${c.costPerLot} is not ${c.buy} x ${c.lotSize}`);
   }
-  console.log(`page vs build: ${data.futures.length} futures and ${calls.length} calls read off the page`);
+  const putCount = calls.filter((c) => c.right === "PE").length;
+  console.log(`page vs build: ${data.futures.length} futures, ${calls.length - putCount} calls and ${putCount} puts read off the page`
+    + (data.direction ? ` | direction ${data.direction.available ? `${data.direction.regime} since ${data.direction.since} (close of ${data.direction.asOf}${data.direction.stale ? ", STALE" : ""})` : "not read"}` : ""));
 
   // 3 + 4: against NSE's own site.
   const cookie = await nseSession();
@@ -115,9 +121,9 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
     }
   }
   const chains = new Map();
-  const sampleCalls = allCalls ? calls : calls.filter((c, i, a) => a.findIndex((x) => x.symbol === c.symbol) === i);
+  const sampleCalls = allOptions ? calls : calls.filter((c, i, a) => a.findIndex((x) => x.symbol === c.symbol) === i);
   for (const c of sampleCalls) {
-    const req = { kind: "OPT", symbol: c.symbol, expiry: c.expiry, strike: c.strike, optionType: "CE" };
+    const req = { kind: "OPT", symbol: c.symbol, expiry: c.expiry, strike: c.strike, optionType: c.right };
     const key = `${c.symbol}|${c.expiry}`;
     let body = chains.get(key);
     if (!body) {
@@ -131,7 +137,33 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
     const tol = afterClose ? 0.011 : Math.max(0.15, n.last * 0.1);
     if (!eq(c.now, n.last, tol)) bad(`${c.display}: page NOW ${c.now}, NSE last ${n.last}`);
   }
-  console.log(`page vs NSE: ${compared} contracts compared (${futRows.length} futures, ${sampleCalls.length} calls${allCalls ? "" : ", one strike per stock"})`);
+  console.log(`page vs NSE: ${compared} contracts compared (${futRows.length} futures, ${sampleCalls.length} options${allOptions ? "" : ", one strike per name"})`);
+
+  // Every name the page gives for Zerodha, in Zerodha's own instrument list.
+  try {
+    const csv = await (await fetch("https://api.kite.trade/instruments/NFO", { signal: AbortSignal.timeout(60_000) })).text();
+    const kite = new Map();
+    for (const line of csv.split(/\r?\n/).slice(1)) {
+      const cells = line.split(",");
+      if (cells.length >= 12) kite.set(cells[2], { expiry: cells[5], strike: Number(cells[6]), lot: Number(cells[8]), type: cells[9] });
+    }
+    let named = 0;
+    for (const c of calls) {
+      const k = kite.get(c.zerodha);
+      named += 1;
+      if (!k) { bad(`${c.display}: Zerodha has no contract named ${c.zerodha}`); continue; }
+      if (k.expiry !== c.expiry || k.strike !== Number(c.strike) || k.type !== c.right || k.lot !== Number(c.lotSize)) {
+        bad(`${c.zerodha}: Zerodha lists expiry ${k.expiry}, strike ${k.strike}, ${k.type}, lot ${k.lot}; the page says ${c.expiry}, ${c.strike}, ${c.right}, lot ${c.lotSize}`);
+      }
+    }
+    for (const f of data.futures.filter((x) => x.priceBasis === "CONTRACT" && x.tradingSymbol)) {
+      const k = kite.get(f.tradingSymbol);
+      named += 1;
+      if (!k) bad(`${f.symbol}: Zerodha has no contract named ${f.tradingSymbol}`);
+      else if (k.expiry !== f.expiry || k.type !== "FUT") bad(`${f.tradingSymbol}: Zerodha lists ${k.type} expiring ${k.expiry}; the page says ${f.expiry}`);
+    }
+    console.log(`Zerodha names: ${named} contracts looked up in Zerodha's own instrument list (${kite.size} NFO contracts)`);
+  } catch (e) { notes.push(`Zerodha names not checked: ${e.message}`); }
 
   // Every lot size against NSE's own lot file.
   try {
@@ -154,7 +186,7 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
       const want = lots.get(f.symbol)?.[col(f.expiry)];
       if (want && Number(f.exchangeLot) !== want) bad(`${f.symbol} FUT: lot ${f.exchangeLot}, ${want} in NSE's lot file`);
     }
-    console.log(`lot sizes: ${lotChecked} calls checked against NSE's fo_mktlots.csv`);
+    console.log(`lot sizes: ${lotChecked} options checked against NSE's fo_mktlots.csv`);
   } catch (e) { notes.push(`lot sizes not checked: ${e.message}`); }
 
   // TRACK's verdicts on today's futures trades against NSE's own day range.

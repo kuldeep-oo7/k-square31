@@ -4,7 +4,9 @@
  * THE MARKET'S DIRECTION, ONE VERDICT FOR THE WHOLE BUILD.
  *
  * api/_lib/market-regime.js classifyMarketRegime read NIFTY as BEAR_HOSTILE --
- * "long setups restricted", shorts allowed -- every day from Mon 21 Sep 2026,
+ * "long setups restricted", shorts allowed -- every session from Wed 2 Sep 2026
+ * (recomputed on NSE's own NIFTY history on 29 Sep: close 22,716.2, 20-day
+ * 23,377.78, 50-day 23,932.93 -- the same to the paisa as the build's),
  * while the page showed only buys: the reader had never been connected, the
  * ratings had no bearish verdict, and puts had been taken off on 25 Sep. The
  * user, 29 Sep: "the market is falling ... you should know it and give me the
