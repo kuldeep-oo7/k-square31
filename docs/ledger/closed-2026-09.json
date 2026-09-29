@@ -11264,6 +11264,60 @@
     "perLot": -9409.75,
     "netPerLot": -9483.51
    }
+  },
+  {
+   "id": "2026-09-28|CE|BAJAJ-AUTO26OCT11500CE",
+   "kind": "CE",
+   "symbol": "BAJAJ-AUTO",
+   "contract": "BAJAJ-AUTO26OCT11500CE",
+   "expiry": "2026-10-27",
+   "strike": 11500,
+   "optionType": "CE",
+   "lotSize": 75,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T05:05:27.865Z",
+   "buy": 129.8,
+   "target": 194.7,
+   "target2": null,
+   "stop": 64.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38.2,
+     "medianDays": 12.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T05:25:54.677Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-09-29T05:47:02.119Z",
+   "exitPrice": 64.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 24.35,
+   "sessionsHeld": 1,
+   "best": 129.8,
+   "worst": 64.4,
+   "last": 69.75,
+   "lastAt": "2026-09-29T05:47:02.119Z",
+   "marks": 31,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 97.4,
+    "low": 64.4,
+    "last": 69.75
+   },
+   "pnl": {
+    "perUnit": -64.9,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -4867.5,
+    "netPerLot": -4928.43
+   }
   }
  ]
 }
