@@ -738,7 +738,9 @@ function calculateOptions(symbol, spot, lotSize, isBullish, volInput = 0.22) {
  * ^NSEI and ^NSEBANK. Verified against the cards themselves -- ^NSEI last close
  * 23346.4 and ^NSEBANK 56358.7 match the spots the desk already shows.
  */
-const INDEX_BAR_TICKERS = { NIFTY: "^NSEI", BANKNIFTY: "^NSEBANK", FINNIFTY: "^CNXFIN" };
+// FINNIFTY is NIFTY_FIN_SERVICE.NS: ^CNXFIN is Yahoo's "NIFTY FINSRV25 50", a
+// different index (26570.5 against NSE's FINNIFTY 24648.5 on 29 Sep 2026).
+const INDEX_BAR_TICKERS = { NIFTY: "^NSEI", BANKNIFTY: "^NSEBANK", FINNIFTY: "NIFTY_FIN_SERVICE.NS" };
 
 /** Days to the expiry the card is actually built on. */
 function indexDaysToListedExpiry(opts) {
@@ -1391,6 +1393,20 @@ class FnoUniverseEngine {
           finalAction = "ACCUMULATE";
           finalStatus = "SUPPORT_ACCUMULATION";
           reason = `Upper quartile cross-sectional conviction: 75th+ percentile composite score, supportive volume flow.`;
+        // THE BEARISH MIRROR. Until 29 Sep 2026 this arbiter had no bearish
+        // verdict at all: every name was BUY, ACCUMULATE or STAND_ASIDE, so the
+        // desk could not say "down" about anything while the market fell. The
+        // mirror of the two buy tiers: the bottom decile SELL, the next 15%
+        // REDUCE. The page shows puts on them only while NIFTY is in a
+        // downtrend (api/_lib/market-direction.js).
+        } else if (analyzed.compositeScore <= 10 && analyzed.neuralScore <= 25) {
+          finalAction = "SELL";
+          finalStatus = "BOTTOM_DECILE_SELL_SIGNAL";
+          reason = `Bottom decile cross-sectional ranking (comp: ${analyzed.compositeScore}%, neural: ${analyzed.neuralScore}%) -- the mirror of BUY.`;
+        } else if (analyzed.compositeScore <= 25 && analyzed.neuralScore <= 40) {
+          finalAction = "REDUCE";
+          finalStatus = "LOWER_QUARTILE_REDUCE";
+          reason = `Lower quartile cross-sectional ranking (comp: ${analyzed.compositeScore}%, neural: ${analyzed.neuralScore}%) -- the mirror of ACCUMULATE.`;
         } else {
           finalAction = "STAND_ASIDE";
           finalStatus = "NO_CONVICTION_STAND_ASIDE";

@@ -134,7 +134,10 @@ async function step(label, fn) {
   await step("price history for the technical read", async () => {
     const { fnoUniverseEngine } = require("../api/_lib/universe-210");
     const { refreshStaleBars } = require("../api/_lib/bar-cache");
-    const r = await refreshStaleBars(fnoUniverseEngine.symbols || []);
+    // And every index with options, under its Yahoo ticker: an index put's
+    // realised volatility and odds come from these (contract-screener.js).
+    const { INDEX_TICKER } = require("../api/_lib/market-direction");
+    const r = await refreshStaleBars([...(fnoUniverseEngine.symbols || []), ...Object.values(INDEX_TICKER)]);
     const ends = Object.entries(r.endsOn).sort(([a], [b]) => b.localeCompare(a)).map(([d, n]) => `${n} end ${d}`).join(", ");
     return `${r.due} behind the latest session: ${r.refreshed} refreshed, ${r.failed} kept as they were`
       + (r.notReached ? `, ${r.notReached} not reached in time` : "") + ` (${r.seconds}s). History now: ${ends}`;
@@ -159,7 +162,8 @@ async function step(label, fn) {
   await step("two years of prices for the risk view", async () => {
     const { fnoUniverseEngine } = require("../api/_lib/universe-210");
     const { refreshRiskHistory } = require("../api/_lib/risk-history");
-    const r = await refreshRiskHistory(fnoUniverseEngine.symbols || [], { budgetMs: 120_000 });
+    const { INDEX_TICKER } = require("../api/_lib/market-direction");
+    const r = await refreshRiskHistory([...(fnoUniverseEngine.symbols || []), ...Object.values(INDEX_TICKER)], { budgetMs: 120_000 });
     return `${r.due} due: ${r.fetched} fetched, ${r.failed} failed${r.notReached ? `, ${r.notReached} not reached in time` : ""}; `
       + `${r.have} of ${r.wanted} on hand (${r.seconds}s)${r.failures.length ? ` -- ${r.failures.join("; ")}` : ""}`;
   });
@@ -211,16 +215,42 @@ async function step(label, fn) {
       + (leg ? " (" + leg.strike + leg.optionType + " last " + leg.lastPrice + ")" : "");
   });
 
+  // THE MARKET'S DIRECTION, AND THE NAMES WHOSE BOOKS THE PAGE WILL NEED. The
+  // same function the page uses (market-direction.js optionsView), on the same
+  // inputs: in a downtrend the page shows puts on the indices and the falling
+  // SELL/REDUCE stocks, and a put with no live book is refused in session.
+  let chainSymbols = null;
+  await step("market direction and the option names", async () => {
+    const { fnoUniverseEngine } = require("../api/_lib/universe-210");
+    const { marketDirection, optionsView, ownTrend } = require("../api/_lib/market-direction");
+    const { getCachedBars } = require("../api/_lib/bar-cache");
+    // The engine read every bar file into memory when it was first required --
+    // before the history step above refreshed them -- and prefers that copy.
+    // Rated on it, this could fetch books for yesterday's names. Drop it, so
+    // the ratings here are the page's: read from the files, as build() reads them.
+    fnoUniverseEngine.barsCache.clear();
+    const direction = marketDirection();
+    const view = optionsView({ direction, universe: fnoUniverseEngine.getUniverse() || [],
+      trendFor: (symbol) => ownTrend(getCachedBars(symbol)?.bars) });
+    chainSymbols = Object.keys(view.bullish);
+    const verdict = direction.available
+      ? `${direction.regime} since ${direction.since} (NIFTY ${direction.close}, EMA20 ${direction.ema20}, SMA50 ${direction.sma50}; close of ${direction.asOf}${direction.stale ? `, OLDER than ${direction.expectedAsOf}` : ""})`
+      : `unknown (${direction.reason})`;
+    return `${verdict}; ${view.rule}: ${view.indices.length} indices, ${view.stocks.length} stocks`
+      + (view.ratedDownNotFalling.length ? `; rated SELL/REDUCE but not falling, no put: ${view.ratedDownNotFalling.length}` : "");
+  });
+
   await step("live option quotes", async () => {
     const live = require("../api/_lib/live-quotes");
     const phase = live.marketPhase();
     if (!phase.open) return `market ${phase.phase}, settlement prices are the only prices there are`;
     const { RealtimeMarketEngine } = require("../api/_lib/realtime-market-engine");
     const engine = new RealtimeMarketEngine();
-    // Every BUY/ACCUMULATE name's chain, every build (see refreshLiveQuotes).
-    const result = await engine.refreshLiveQuotes({ everyActionable: true });
+    // Exactly the names the page will show (above); if the direction step
+    // failed, every BUY/ACCUMULATE name as before (see refreshLiveQuotes).
+    const result = await engine.refreshLiveQuotes(chainSymbols ? { symbols: chainSymbols } : { everyActionable: true });
     try { engine.stop(); } catch (error) { /* nothing started */ }
-    return result?.refreshed ? `${result.refreshed} chains` : "none";
+    return result?.refreshed ? `${result.refreshed} of ${result.requested} chains` : "none";
   });
 
   console.log("prepared.");

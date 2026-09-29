@@ -52,6 +52,8 @@ function classifyMarketRegime(indexBars = []) {
   const atrPct = (atr14 / lastClose) * 100;
   const gkVol = calcGarmanKlassVol(usable, 20) || 15;
 
+  // The numbers behind the verdict, so a page can say them.
+  const levels = { lastClose: round(lastClose, 2), ema20: round(ema20, 2), sma50: round(sma50, 2), sma200: sma200 === null ? null : round(sma200, 2) };
   const aboveEma20 = lastClose >= ema20;
   const ema20AboveSma50 = ema20 >= sma50;
   const aboveSma200 = !sma200 || lastClose >= sma200;
@@ -65,7 +67,8 @@ function classifyMarketRegime(indexBars = []) {
       shortAllowance: false,
       gkVol,
       atrPct: round(atrPct, 2),
-      reason: "Index in primary uptrend (Price > EMA20 > SMA50 > SMA200)"
+      reason: "Index in primary uptrend (Price > EMA20 > SMA50 > SMA200)",
+      ...levels
     };
   }
 
@@ -78,7 +81,8 @@ function classifyMarketRegime(indexBars = []) {
       shortAllowance: true,
       gkVol,
       atrPct: round(atrPct, 2),
-      reason: "Index in established downtrend (Price < EMA20 < SMA50); long setups restricted"
+      reason: "Index in established downtrend (Price < EMA20 < SMA50); long setups restricted",
+      ...levels
     };
   }
 
@@ -90,7 +94,8 @@ function classifyMarketRegime(indexBars = []) {
     shortAllowance: true,
     gkVol,
     atrPct: round(atrPct, 2),
-    reason: "Index consolidating in range (Mixed Moving Averages)"
+    reason: "Index consolidating in range (Mixed Moving Averages)",
+    ...levels
   };
 }
 

@@ -190,7 +190,7 @@ function fillState(limit, now) {
 // -- 122 of 162 calls that had cleared every gate, beside a header saying 162
 // had. The user: "if it is passing all of this then it is a good one ... why
 // we have to force it to cut down". A limit can still be passed for tests.
-async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, ledgerDir, forceFreeze = null, riskHistoryFor = null, riskActions = undefined } = {}) {
+async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, ledgerDir, forceFreeze = null, riskHistoryFor = null, riskActions = undefined, trendFor = null, directionHistoryFor = null } = {}) {
   const { fnoUniverseEngine } = require("../api/_lib/universe-210");
   const { screenContracts } = require("../api/_lib/contract-screener");
   const { roundTripCost } = require("../api/_lib/trade-costs");
@@ -217,16 +217,38 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
   // earn money". The options list used to rank calls and puts on the same names
   // by cheapness alone (9 of 18 stocks carried both that morning; 7 were the
   // same strike), so the two sides cancelled -- on 24 Sep calls lost 13.8% while
-  // puts made 14.4%. The desk's view is long-only: BUY or ACCUMULATE. It has no
-  // bearish verdict, and its own measured short side lost money in all 24
-  // geometries in all three splits (PANEL_STUDY_ROUND3.txt: "a measured,
-  // reliably NEGATIVE expectancy" -- betting on falls in a market with positive
-  // drift). So: calls on the names it rates a buy, no puts, nothing on the rest.
+  // puts made 14.4%. From 25 Sep: calls on the names rated BUY or ACCUMULATE,
+  // no puts. From 29 Sep the side follows the market's direction (below).
   const sectorOf = new Map(universe.map((r) => [r.symbol, r.sector || null]));
-  const bullish = {};
-  for (const row of universe) {
-    if (row.action === "BUY" || row.action === "ACCUMULATE") bullish[row.symbol] = true;
-  }
+  /**
+   * THE MARKET'S DIRECTION, AND WHAT IT ALLOWS.
+   *
+   * api/_lib/market-regime.js classifyMarketRegime read NIFTY as BEAR_HOSTILE --
+   * "long setups restricted", shorts allowed -- every day from Mon 21 Sep 2026,
+   * while this page showed only buys: the reader had never been connected, the
+   * ratings below have no bearish verdict at all (BUY, ACCUMULATE, STAND_ASIDE),
+   * and puts had been taken off on 25 Sep. The user, 29 Sep: "the market is
+   * falling ... you should know it and give me the put option".
+   *
+   * So the direction is read here, from NIFTY's completed daily closes (known
+   * before the open, so it cannot change during a session). In a downtrend the
+   * page freezes no new buys -- no futures, no calls -- and shows puts: on
+   * every NSE index with options, and on the stocks rated SELL or REDUCE that
+   * are in their own downtrend (market-direction.js optionsView, the same
+   * function prepare-static-build.js used to fetch their live books).
+   * Tested first on five years of NSE's own NIFTY data (research/regime-2026-09-29,
+   * pre-registered, run once): shorts in these downtrends FAILED (final year
+   * +0.29% a trade, t 0.21, 18 trades) and longs outside them FAILED (-0.26%).
+   * The page says so beside it: this is the direction the user asked for, not
+   * a proven edge.
+   */
+  const { marketDirection, optionsView, ownTrend, INDEX_TICKER } = require("../api/_lib/market-direction");
+  const historyFor = riskHistoryFor || ((symbol) => require("../api/_lib/risk-history").readHistory(symbol));
+  const direction = marketDirection({ historyFor: directionHistoryFor || historyFor });
+  const view = optionsView({ direction, universe,
+    trendFor: trendFor || ((symbol) => ownTrend(require("../api/_lib/bar-cache").getCachedBars(symbol)?.bars)) });
+  const downtrend = view.downtrend;
+  const bullish = view.bullish;
 
   /**
    * THE FORWARD HAS TO BE AS LIVE AS THE PREMIUM.
@@ -337,7 +359,8 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     symbolsAsOf: fnoUniverseEngine.watchSymbolsAsOf || null,
     indices: (watchFile.indices || []).map((x) => x.symbol)
   } : null;
-  const futuresPicked = universe
+  // No new futures buys in a downtrend (see THE MARKET'S DIRECTION above).
+  const futuresPicked = (downtrend ? [] : universe)
     .filter((r) => (r.action === "BUY" || r.action === "ACCUMULATE") && r.perUnit)
     .sort((a, b) => (b.compositeScore || 0) - (a.compositeScore || 0))
     .slice(0, futuresLimit)
@@ -410,8 +433,13 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
   // several strikes of one stock are ONE bet, and the page should read so.
   const stockRank = new Map();
   for (const c of screen.contracts || []) if (!stockRank.has(c.symbol)) stockRank.set(c.symbol, stockRank.size);
+  // In a downtrend the indices come first: the direction was read -- and
+  // tested -- on NIFTY itself, so an index put is the direct bet on it, while
+  // a stock put adds a rating nobody has tested.
+  const INDEX_ORDER = Object.keys(INDEX_TICKER);
+  const rankOf = (symbol) => (downtrend && INDEX_ORDER.includes(symbol) ? INDEX_ORDER.indexOf(symbol) - INDEX_ORDER.length : stockRank.get(symbol));
   const byStock = (screen.contracts || []).map((c, i) => ({ c, i }))
-    .sort((a, b) => stockRank.get(a.c.symbol) - stockRank.get(b.c.symbol) || a.i - b.i).map((x) => x.c);
+    .sort((a, b) => rankOf(a.c.symbol) - rankOf(b.c.symbol) || a.i - b.i).map((x) => x.c);
 
   const options = byStock.map((c) => {
     const names = contractNames(c.symbol, c.expiry, c.strike, c.optionType, reference);
@@ -473,7 +501,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
           // net figure here (after the close it was -77 a lot on SUNPHARMA 1860
           // CE, charges only). Say so rather than let it read as the whole cost.
           spreadKnown: atTarget ? atTarget.spreadKnown === true : null,
-          sector: sectorOf.get(c.symbol) || null,
+          sector: sectorOf.get(c.symbol) || (INDEX_TICKER[c.symbol] ? "Index" : null),
           costPct: atTarget?.costAsPctOfGross ?? null
         };
       })(),
@@ -503,8 +531,14 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       })(), daysLeft: c.daysToExpiry,
       term: c.termShape, skew: c.skewPoints,
       priceSource: c.priceSource, priceIsLive: c.priceIsLive, score: c.screenScore,
+      liveToken: (() => {
+        const q = quoteFor({ kind: "OPT", symbol: c.symbol, expiry: c.expiry, strike: c.strike, optionType: c.optionType });
+        return q?.token && q?.exchange ? `${q.exchange}:${q.token}` : null;
+      })(),
       forward: c.forward ?? null, forwardSource: c.forwardSource || null,
-      resultsStatus: c.resultsStatus || null, resultsDate: c.resultsDate || null
+      // An index has no results day; "results date not announced yet" on NIFTY would be nonsense.
+      resultsStatus: INDEX_TICKER[c.symbol] ? null : (c.resultsStatus || null), resultsDate: INDEX_TICKER[c.symbol] ? null : (c.resultsDate || null),
+      isIndex: Boolean(INDEX_TICKER[c.symbol])
     };
   }).filter(Boolean);
 
@@ -605,6 +639,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       symbol: r.symbol, tradingSymbol: levels.tradingSymbol || r.tradingSymbol,
       angelSymbol: levels.angelSymbol || null, expiry: levels.expiry || expiry,
       spot: shown.price, nowSource: shown.source, nowAtText: shown.atText, fnoListed: r.fnoListed === true,
+      liveToken: shownQuote?.token && shownQuote?.exchange ? `${shownQuote.exchange}:${shownQuote.token}` : null,
       priceBasis: levels.priceBasis || (anchorQuote === fq ? "CONTRACT" : "SHARE"),
       referencePrice: shown.referencePrice, referenceKind: shown.referenceKind,
       buy: levels.buy, target1: levels.target1, target2: levels.target2, stop: levels.stop, tick: levels.tick ?? null,
@@ -723,8 +758,9 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       const { readHistory } = require("../api/_lib/risk-history");
       const { loadCorporateActions } = require("../api/_lib/nse-corporate-actions");
       return riskView({
-        futures, calls: options.filter((c) => c.right === "CE"), units: GM_MIN_UNITS,
-        historyFor: riskHistoryFor || ((symbol) => readHistory(symbol)),
+        futures, calls: options.filter((c) => c.right === "CE"), puts: options.filter((c) => c.right === "PE"), units: GM_MIN_UNITS,
+        // An index's history is kept under its Yahoo ticker.
+        historyFor: (symbol) => (riskHistoryFor || ((s) => readHistory(s)))(INDEX_TICKER[symbol] || symbol),
         actions: riskActions === undefined ? loadCorporateActions() : riskActions
       });
     } catch (error) {
@@ -821,7 +857,9 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     futuresAnchor: ANCHOR,
     forwardStatus,
     optionsOnLiveForward: options.filter((c) => c.forwardSource === "LIVE").length,
-    optionsDirection: { rule: "CALLS_ON_BUY_OR_ACCUMULATE_ONLY", names: Object.keys(bullish).length },
+    optionsDirection: { rule: view.rule, names: Object.keys(bullish).length, indices: view.indices,
+      stocks: view.stocks.length, ratedDownNotFalling: view.ratedDownNotFalling },
+    direction,
     gmMinUnits: GM_MIN_UNITS,
     marketContext: marketContext
       ? { ok: true, indiaVix: marketContext.indiaVix, indiaVixChangePct: marketContext.indiaVixChangePct,
@@ -864,7 +902,7 @@ function page(d) {
     const stocks = new Set(rows.map((r) => r.symbol)).size;
     return `<details class="fold sub lead"><summary>If you take every row here (${esc(unit)}): <b class="amt">${money(round(capital, 0))}</b> in total;
       if every stop is hit, <b class="down amt">&minus;${money(round(loss, 0))}</b> &mdash; more if prices gap through the stops.<span class="more"></span></summary>
-      <div>${stocks < rows.length ? `These ${esc(rows.length)} rows are on <b>${esc(stocks)} stocks</b>: several strikes of one stock are one bet, not several. ` : ""}Most rows are in: ${top}. Rows in one sector tend to fall together.${extra ? ` ${extra}` : ""}</div></details>`;
+      <div>${stocks < rows.length ? `These ${esc(rows.length)} rows are on <b>${esc(stocks)} ${rows.some((r) => r.isIndex) ? "names" : "stocks"}</b>: several strikes of one ${rows.some((r) => r.isIndex) ? "name" : "stock"} are one bet, not several. ` : ""}Most rows are in: ${top}. Rows in one sector tend to fall together.${extra ? ` ${extra}` : ""}</div></details>`;
   };
   // BAD-DAY RISK (api/_lib/risk-view.js): what every row TOGETHER would have
   // lost on days that already happened. The line you tap carries the three
@@ -879,23 +917,28 @@ function page(d) {
     if (!side.available) return off(side.reason || "reason unknown");
     const w = side.worst;
     const what = kind === "futures" ? `${esc(r.units)} units each` : "one lot each";
+    // A put loses when its index or stock RISES: every "fell" below reads the
+    // other way round, and so does the gap.
+    const isPut = kind === "puts";
+    const moved = isPut ? "rose" : "fell";
+    const gapWord = side.gap && Number(side.gap.shockPct) > 0 ? "higher" : "lower";
     const stops = !w.stopsHit ? "no stop was hit"
       : `${esc(w.stopsHit)} stop${w.stopsHit === 1 ? " was" : "s were"} hit${w.throughGap ? `, ${esc(w.throughGap)} of them by a gap at the open` : ""}`;
     const left = [...(side.excluded || []).map((x) => `${esc(x.symbol)} (${esc(x.sessions)} sessions of history)`),
       ...(side.unpriced || []).map((s) => `${esc(s)} (could not be priced)`)];
     return `<details class="fold risk"><summary><b>BAD-DAY RISK</b>, every row together &mdash; 1 day in 20: <b class="down amt">${money(-side.var)}</b> or worse
-      &middot; worst day: <b class="down amt">${money(w.rupees)}</b>${side.gap ? ` &middot; market opens 5% lower: <b class="down amt">${money(side.gap.rupees)}</b>` : ""}<span class="more"></span></summary>
+      &middot; worst day: <b class="down amt">${money(w.rupees)}</b>${side.gap ? ` &middot; market opens 5% ${gapWord}: <b class="down amt">${money(side.gap.rupees)}</b>` : ""}<span class="more"></span></summary>
       <div>Today&rsquo;s ${esc(side.rowsIncluded)} rows (${what}) replayed through each of the last ${esc(side.days)} trading days,
         ${esc(dayText(side.from))} to ${esc(dayText(side.to))}, on real prices, with every stop and target in the market.
         Not a forecast: these are days that already happened. Before charges.</div>
       <div><b>1 day in 20:</b> on the worst ${esc(side.tailDays)} of those ${esc(side.days)} days, all the rows together lost at least
         ${money(side.var)} &mdash; ${money(side.es)} on average.</div>
       <div><b>Worst day, ${esc(dayText(w.date))}</b>${w.marketPct !== null && w.marketPct !== undefined ? ` (NIFTY ${signedPct(w.marketPct)})` : ""}: ${esc(w.stocksDown)} of
-        ${esc(w.stocksWithData)} stocks fell and ${stops} &mdash; a loss of ${money(w.rupees)}, against ${money(-side.stopTotal)} if every stop
+        ${esc(w.stocksWithData)} ${isPut ? "names" : "stocks"} ${moved} and ${stops} &mdash; a loss of ${money(w.rupees)}, against ${money(-side.stopTotal)} if every stop
         had filled at its own price (before charges).</div>
-      ${side.gap ? `<div><b>Market opens 5% lower:</b> ${money(side.gap.rupees)}. Each stock opens lower by its own measured sensitivity to NIFTY
+      ${side.gap ? `<div><b>Market opens 5% ${gapWord}:</b> ${money(side.gap.rupees)}. Each ${isPut ? "name" : "stock"} opens ${gapWord} by its own measured sensitivity to NIFTY
         (median ${esc(side.gap.medianBeta)}), and a stop fills at the open, not at its own price.</div>` : ""}
-      <div><b>Together:</b> on those ${esc(side.tailDays)} worst days, ${esc(side.fellTogetherPct)}% of the stocks fell at once. These rows are closer
+      <div><b>Together:</b> on those ${esc(side.tailDays)} worst days, ${esc(side.fellTogetherPct)}% of the ${isPut ? "names" : "stocks"} ${moved} at once. These rows are closer
         to one bet on the market than to ${esc(side.stocks)} separate ones.</div>
       ${(side.top || []).length ? `<div><b>Most of the bad-day loss:</b> ${side.top.map((x) => `${esc(x.symbol)} ${x.sharePct === null || x.sharePct === undefined ? money(-x.rupees) : esc(x.sharePct) + "%"}`).join(", ")}${kind === "futures"
         ? ` &mdash; at ${esc(r.units)} units each, the highest-priced stocks carry the most rupees` : ""}.</div>` : ""}
@@ -906,6 +949,10 @@ function page(d) {
         held where it is &mdash; and in a crash that volatility jumps, which cushions a call${side.worst.vixPct !== null && side.worst.vixPct !== undefined
           ? ` (India VIX moved ${signedPct(Math.round(side.worst.vixPct))} on ${esc(dayText(side.worst.date))})` : ""}. By how much depends on each stock&rsquo;s own
         option volatility, which this page has no history for.</div>` : ""}
+      ${isPut ? `<div><b>For puts these figures are the OPTIMISTIC end.</b> Each put is repriced with Black-76 at its own implied volatility,
+        held where it is &mdash; but a put loses on the days the market rises, and on those days implied volatility usually falls, which takes
+        still more off a put${side.worst.vixPct !== null && side.worst.vixPct !== undefined
+          ? ` (India VIX moved ${signedPct(Math.round(side.worst.vixPct))} on ${esc(dayText(side.worst.date))})` : ""}. The real loss on such a day can be larger than shown.</div>` : ""}
     </details>`;
   };
   const sumOf = (rows, f) => rows.reduce((a, r) => a + (Number(f(r)) || 0), 0);
@@ -922,6 +969,12 @@ function page(d) {
     if (r.resultsStatus === "UNKNOWN") return `<div class="sub down">results calendar unavailable today</div>`;
     return "";
   };
+  // A missing figure is a dash: esc(null) is "", which printed "24.1% / %".
+  const pctOrDash = (v) => (numeric(v) === null ? "&mdash;" : `${esc(v)}%`);
+  // What the live-prices service (worker/k2-live.mjs) needs to move a NOW cell:
+  // the contract's Angel token, the row's buy limit, and whether it is an order.
+  const liveAttrs = (token, buy, frozen) => (token && Number(buy) > 0
+    ? ` data-live="${esc(token)}" data-buy="${esc(buy)}" data-frozen="${frozen ? 1 : 0}"` : "");
   const optionRows = (list) => list.map((c, i) => {
     const state = c.frozen ? fillState(c.buy, c.now) : previewState(c.buy, c.now);
     const sameStock = i > 0 && list[i - 1].symbol === c.symbol;
@@ -934,10 +987,10 @@ function page(d) {
         <td class="num"><b>${px(c.buy)}</b><div class="sub">&times;${esc(c.lotSize)} = ${money(c.costPerLot)}</div></td>
         <td class="num up"><b>${px(c.sell)}</b><div class="sub">net +${money(c.netProfit)} a lot</div></td>
         <td class="num down">${px(c.stop)}${c.netLossAtStop !== null && c.netLossAtStop !== undefined ? `<div class="sub down">net &minus;${money(Math.abs(c.netLossAtStop))} a lot</div>` : ""}</td>
-        <td class="num">${px(c.now)}<div class="sub ${state.tone}">${esc(state.word)}</div></td>
-        <td class="num">${esc(c.iv)}% / ${esc(c.rv)}%<div class="sub">VRP ${esc(c.vrp)}</div></td>
-        <td class="num">${esc(c.touchPct)}%<div class="sub">touch, ~${esc(c.daysToTarget)}d &mdash; ignores the stop</div>${c.breakEvenPct !== null && c.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(c.breakEvenPct)}% wins to break even</div>` : ""}${c.noTrendNet !== null && c.noTrendNet !== undefined ? `<div class="sub down">no trend: about &minus;${money(Math.abs(c.noTrendNet))} a lot${c.spreadKnown === false ? ", plus the spread" : ""}</div>` : ""}</td>
-        <td class="num ${Number(c.thetaBurnPct) > 12 ? "down" : ""}">${esc(c.thetaBurnPct)}%</td>
+        <td class="num"${liveAttrs(c.liveToken, c.buy, c.frozen)}><span class="nowv">${px(c.now)}</span><div class="sub nows ${state.tone}">${esc(state.word)}</div></td>
+        <td class="num">${pctOrDash(c.iv)} / ${pctOrDash(c.rv)}<div class="sub">VRP ${numeric(c.vrp) === null ? "&mdash;" : esc(c.vrp)}</div></td>
+        <td class="num">${pctOrDash(c.touchPct)}${numeric(c.touchPct) === null ? `<div class="sub">touch odds need the price history</div>` : `<div class="sub">touch, ~${esc(c.daysToTarget)}d &mdash; ignores the stop</div>`}${c.breakEvenPct !== null && c.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(c.breakEvenPct)}% wins to break even</div>` : ""}${c.noTrendNet !== null && c.noTrendNet !== undefined ? `<div class="sub down">no trend: about &minus;${money(Math.abs(c.noTrendNet))} a lot${c.spreadKnown === false ? ", plus the spread" : ""}</div>` : ""}</td>
+        <td class="num ${Number(c.thetaBurnPct) > 12 ? "down" : ""}">${pctOrDash(c.thetaBurnPct)}</td>
         <td class="num">${esc(c.score)}</td>
       </tr>`;
   }).join("");
@@ -986,7 +1039,7 @@ function page(d) {
         <td class="num"><b>${px(r.buy)}</b>${expLine}</td>
         <td class="num up">${px(r.target1)}<div class="sub">${px(r.target2)}</div></td>
         <td class="num down">${px(r.stop)}</td>
-        <td class="num">${px(r.spot)}<div class="sub ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.referencePrice
+        <td class="num"${liveAttrs(r.liveToken, r.buy, r.frozen)}><span class="nowv">${px(r.spot)}</span><div class="sub nows ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.referencePrice
           ? `<div class="sub">${r.referenceKind === "future" ? "NSE future" : "share"} ${px(r.referencePrice)}</div>`
           : (r.fnoListed === false ? `<div class="sub">no NSE futures contract</div>` : "")}</td>
         <td class="num">${money(r.minCapital)}<div class="sub">${esc(r.minUnits)} units</div><div class="sub down">stop &minus;${money(r.minLossAtStop)}</div><div class="sub up">target +${money(r.minGainAtTarget)}</div></td>
@@ -1016,8 +1069,8 @@ function page(d) {
   };
   const shortDay = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
   const putNote = t?.putDays && !d.options.some((c) => c.right === "PE")
-    ? `<div class="sub warn">shown ${esc(shortDay(t.putDays.first))}${t.putDays.last !== t.putDays.first ? `&ndash;${esc(shortDay(t.putDays.last))}` : ""},
-        before puts came off the page &mdash; none since; tracked to their end</div>` : "";
+    ? `<div class="sub warn">shown ${esc(shortDay(t.putDays.first))}${t.putDays.last !== t.putDays.first ? `&ndash;${esc(shortDay(t.putDays.last))}` : ""};
+        none on this build (puts are shown only while NIFTY is in a downtrend); tracked to their end</div>` : "";
   const summaryRow = (label, s) => s ? `
       <tr><td><b>${label}</b>${label === "PUTS" ? putNote : ""}</td>
         <td class="num">${esc(s.shown)}</td><td class="num">${esc(s.waiting)}</td><td class="num">${esc(s.open)}</td>
@@ -1175,7 +1228,7 @@ function page(d) {
   const lastTraded = d.quoteStatus?.lastExchangeDate || null;
   const optionsOnOldFile = d.pricedLive === 0 && d.settlementFile && lastTraded && d.settlementFile < lastTraded;
   const oldFileNote = optionsOnOldFile
-    ? `<div class="sub warn" style="margin:-4px 0 10px">These calls are priced from NSE&rsquo;s <b>${esc(d.settlementFile)}</b> settlement file,
+    ? `<div class="sub warn" style="margin:-4px 0 10px">These options are priced from NSE&rsquo;s <b>${esc(d.settlementFile)}</b> settlement file,
         a session older than today&rsquo;s last trades (${esc(lastTraded)}). NSE publishes the ${esc(lastTraded)} file after about 19:00 IST,
         and the next build after that uses it. The futures tab already uses today&rsquo;s last trades.</div>`
     : "";
@@ -1193,7 +1246,7 @@ function page(d) {
        `${noSessionToday
          ? `The last session was <b>${esc(lastSessionText)}</b>; its buy limits were day orders and ended at 15:30`
          : "Today's buy limits were day orders and ended at 15:30"} &mdash; what became of each is on <b>TRACK</b>.${optionsOnOldFile
-         ? ` The calls are priced from the ${esc(d.settlementFile)} settlement file until NSE publishes today&rsquo;s.` : ""}
+         ? ` The options are priced from the ${esc(d.settlementFile)} settlement file until NSE publishes today&rsquo;s.` : ""}
        The real levels are fixed on that session's first build that sees a live exchange book, and can differ from these.`]
     : d.levelsFrozen
     ? [`<b>BUY, SELL AND STOP ARE FIXED FOR TODAY</b> &mdash; set at <b>${esc(d.levelsOpenedAtIst || "the first build after the open")}</b>, and they do not move again.`,
@@ -1207,13 +1260,52 @@ function page(d) {
     // session's, and today's real levels come from live prices after 09:15.
     ? [`<b>BEFORE THE OPEN: EVERY PRICE BELOW IS ${lastSessionText ? `FROM ${esc(lastSessionText.toUpperCase())}` : "FROM THE LAST SESSION"} &mdash; THESE LEVELS ARE INDICATIVE, NOT FIXED.</b> Today&rsquo;s real levels are set on live prices after 09:15.`,
        `Nothing has traded yet today (a few shares and futures print in the 09:00&ndash;09:08 pre-open auction, and a row
-       says so when it has). The levels are fixed on the first build that sees live prices &mdash; normally 09:33 &mdash; and they
+       says so when it has). The levels are fixed on the first build that sees live prices &mdash; normally by about 09:36 &mdash; and they
        move by however far the market opens from the last close. <b>Do not place orders from this page before then.</b>`]
     : [`<b>THESE LEVELS ARE INDICATIVE, NOT FIXED.</b> ${esc(d.freezeBlockedBecause)}`,
        `There is no traded price to anchor them to, so nothing has been written down.
        They are set once &mdash; and then held all day &mdash; on the first build that
        sees a live exchange book.`];
 
+  // THE MARKET'S DIRECTION (api/_lib/market-direction.js), above the tabs: it
+  // decides what the tabs may show. The user, 29 Sep: "the market is falling
+  // ... you should know it and give me the put option".
+  const dir = d.direction;
+  const od = d.optionsDirection || {};
+  const dtest = dir?.test || {};
+  const downtrendPage = Boolean(dir?.available && dir.downtrend);
+  // What the page SHOWS, not what was eligible: "5 indices and 36 stocks" sat
+  // above 3 indices and 21 stocks on the simulated page (29 Sep).
+  const putNames = [...new Set(puts.map((c) => c.symbol))];
+  const putIndices = putNames.filter((s) => puts.some((c) => c.symbol === s && c.isIndex));
+  const lvl = (v) => (numeric(v) === null ? "&mdash;" : esc(Number(v).toLocaleString("en-IN", { maximumFractionDigits: 2 })));
+  const dirDay = (iso) => (iso ? esc(dayText(iso)) : "&mdash;");
+  const dirLevels = dir?.available
+    ? `NIFTY closed at ${lvl(dir.close)} on ${dirDay(dir.asOf)}; its 20-day average ${lvl(dir.ema20)}, its 50-day ${lvl(dir.sma50)}${numeric(dir.sma200) === null ? "" : `, its 200-day ${lvl(dir.sma200)}`}.`
+    : "";
+  const dirStale = dir?.available && dir.stale
+    ? ` <b class="warn">That is the close of ${dirDay(dir.asOf)}: the close of ${dirDay(dir.expectedAsOf)} was not on hand when this was built.</b>` : "";
+  const [dirHead, dirRest, dirTone] = !dir?.available
+    ? [`<b class="warn">MARKET DIRECTION: NOT READ ON THIS BUILD</b> &mdash; ${esc(dir?.reason || "reason unknown")}. The tabs show buys as before.`,
+       "Without NIFTY's daily history the page cannot say whether the market is in a downtrend.", "amber"]
+    : downtrendPage
+    ? [`<b class="down">MARKET DIRECTION: DOWN</b> &mdash; NIFTY in a downtrend since <b>${dirDay(dir.since)}</b>. <b>No new buys</b> (no futures, no calls): <b>puts instead</b> &mdash; ${puts.length
+        ? `${esc(puts.length)} on ${esc(putNames.length)} name${putNames.length === 1 ? "" : "s"} (${esc(putIndices.length)} ${putIndices.length === 1 ? "index" : "indices"}, ${esc(putNames.length - putIndices.length)} stock${putNames.length - putIndices.length === 1 ? "" : "s"})`
+        : "none cleared every gate on this build"}.${dir.stale ? ` <b class="warn">(close of ${dirDay(dir.asOf)})</b>` : ""}`,
+       `${dirLevels} A close under the 20-day average, with the 20-day under the 50-day, is what the desk&rsquo;s trend reader
+        (market-regime.js) calls a downtrend. It is read from completed daily closes, so it does not change during the day.${dirStale}
+        Puts are looked for on ${esc((od.indices || []).join(", "))}, and on the ${esc(od.stocks ?? 0)} stocks the desk rates SELL or REDUCE that are
+        falling themselves (under their own 20-day and 50-day averages)${(od.ratedDownNotFalling || []).length ? `; ${esc(od.ratedDownNotFalling.length)} more are rated SELL or REDUCE but are not falling, so no put` : ""}.
+        ${esc(putNames.length)} of those names had contracts that cleared every gate${putIndices.length ? ` (indices: ${esc(putIndices.join(", "))})` : ""}.
+        <b>Tested first, and it FAILED:</b> on five years of NSE&rsquo;s own NIFTY data, selling NIFTY in these downtrends made
+        ${signedPct(round(dtest.shortsFinalPct, 2))} a trade in the final year &mdash; ${esc(dtest.shortsFinalTrades)} trades, t = ${esc(dtest.shortsFinalT)},
+        no different from nothing (the test was fixed before it was run). These puts are here because you asked for the market&rsquo;s direction,
+        not because they are proven. Each is tracked on TRACK from the moment it is shown.`, "red"]
+    : [`<b>MARKET DIRECTION: ${dir.regime === "BULL_TRENDING" ? "UP" : "MIXED"}</b> &mdash; NIFTY is not in a downtrend: buys as usual, and puts only in a downtrend.${dir.stale ? ` <b class="warn">(close of ${dirDay(dir.asOf)})</b>` : ""}`,
+       `${dirLevels} The desk&rsquo;s trend reader (market-regime.js) calls a close under the 20-day average, with the 20-day under the
+        50-day, a downtrend; then this page shows no new buys, and puts instead.${dirStale} Tested on five years of NSE&rsquo;s own NIFTY data:
+        buying NIFTY outside those downtrends made ${signedPct(round(dtest.longsOutsideFinalPct, 2))} a trade in the final year &mdash; the test FAILED.`,
+       dir.regime === "BULL_TRENDING" ? "green" : "amber"];
   // WHEN THE NIFTY AND VIX FIGURES ARE FROM. Before the open they are the last
   // session's close, and "Nifty 23,140.5 (+0.34%), NSE 15:30" read on Monday
   // at 09:10 as this morning's -- beside a GIFT Nifty at -0.38% (the user,
@@ -1324,6 +1416,7 @@ function page(d) {
     : " &middot; India VIX not read this build"}</div>
 
 <div class="note ${d.levelsFrozen ? "frozen" : ""}"><details class="fold"><summary>${freezeHead}<span class="more"></span></summary><div>${freezeRest}</div></details></div>
+<div class="note direction" style="border-left-color:var(--${dirTone})"><details class="fold"><summary>${dirHead}<span class="more"></span></summary><div>${dirRest}</div></details></div>
 ${feedAlarm}
 
 <main class="desk">
@@ -1368,7 +1461,9 @@ ${feedAlarm}
       <thead><tr>
         <th>SYMBOL</th><th class="num">BUY LIMIT</th><th class="num">TARGET 1 &middot; 2</th>
         <th class="num">STOP</th><th class="num">NOW</th><th class="num">GM MIN (20 UNITS)</th><th class="num">R : R</th>
-      </tr></thead><tbody>${futRows || '<tr><td colspan="7">No futures cleared the hurdle on this build.</td></tr>'}</tbody>
+      </tr></thead><tbody>${futRows || `<tr><td colspan="7">${downtrendPage
+        ? "No new futures buys: NIFTY is in a downtrend (MARKET DIRECTION, above). Futures shown on earlier days stay on TRACK until they finish."
+        : "No futures cleared the hurdle on this build."}</td></tr>`}</tbody>
     </table></div>
     <div class="sub" style="margin-top:8px">${d.resultsCalendar?.ok
       ? `Results dates are NSE's own board-meeting filings, read ${esc(String(d.resultsCalendar.fetchedAt).slice(0, 10))}:
@@ -1387,16 +1482,28 @@ ${feedAlarm}
        ${esc(calls.filter((c) => Number(c.vrp) > 1).length)} of ${esc(calls.length)} are priced above the stock&rsquo;s own recent movement (implied above realised), which makes it worse.
        They make money only if the BUY signal works, and it failed its pre-registered final test (1,205 trades, t = 0.75; panel study, 24 Sep 2026).` : "")}
     ${riskBox(d.risk?.calls, "calls")}
-    ${d.optionsDirection ? `<div class="sub" style="margin:-4px 0 10px">Only on the ${esc(d.optionsDirection.names)} stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
-    ${oldFileNote}
-    ${optionTable(calls, "No calls cleared every gate on this build.")}
+    ${d.optionsDirection && !downtrendPage ? `<div class="sub" style="margin:-4px 0 10px">Only on the ${esc(d.optionsDirection.names)} stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
+    ${calls.length ? oldFileNote : ""}
+    ${optionTable(calls, downtrendPage
+      ? "No new calls: NIFTY is in a downtrend (MARKET DIRECTION, above). Puts instead, on the PUTS tab."
+      : "No calls cleared every gate on this build.")}
   </section>
 
   <section class="pane pane-pe">
-    <h2>Puts &mdash; you BUY the put, it pays if the stock FALLS</h2>
-    ${optionTable(puts, d.optionsDirection
-      ? "No puts, by design. The desk has no bearish view, and when its own history was tested, betting on falls lost money in all 24 set-ups across all three test periods (PANEL_STUDY_ROUND3). Puts come back only if a bearish signal proves itself."
-      : "No puts cleared every gate on this build.")}
+    <h2>Puts &mdash; you BUY the put, it pays if the index or stock FALLS</h2>
+    ${allRowsBox(puts, sumOf(puts, (c) => c.costPerLot), sumOf(puts, (c) => Math.abs(c.netLossAtStop)), "one lot each",
+      puts.length ? `<b>With no trend and fairly priced options, a put is expected to lose about its charges</b>:
+       about &minus;${money(Math.abs(sumOf(puts, (c) => c.noTrendNet)))} across all ${esc(puts.length)} rows, one lot each${puts.some((c) => c.spreadKnown === false)
+         ? `, <b>plus the bid-ask spread</b>, which is not known without a live book (${esc(puts.filter((c) => c.spreadKnown === false).length)} of these rows)` : ""}.
+       ${esc(puts.filter((c) => Number(c.vrp) > 1).length)} of ${esc(puts.length)} are priced above their own recent movement (implied above realised), which makes it worse.
+       They make money only if the fall continues, and selling NIFTY in these downtrends failed its pre-registered test (final year t = ${esc(dtest.shortsFinalT)}).` : "")}
+    ${riskBox(d.risk?.puts, "puts")}
+    ${downtrendPage && puts.length ? `<div class="sub" style="margin:-4px 0 10px">Looked for on ${esc((od.indices || []).join(", "))} and on the ${esc(od.stocks ?? 0)} stocks rated SELL or REDUCE that are falling themselves;
+      ${esc(putNames.length)} had contracts that cleared every gate, the indices first. One side per name, the side the market&rsquo;s direction points to.</div>` : ""}
+    ${puts.length ? oldFileNote : ""}
+    ${optionTable(puts, downtrendPage
+      ? "No puts cleared every gate on this build."
+      : "No puts: NIFTY is not in a downtrend (MARKET DIRECTION, above). Puts are shown only while it is &mdash; on the indices, and on the stocks rated SELL or REDUCE that are falling themselves.")}
   </section>
 
   <section class="pane pane-trk">
@@ -1417,9 +1524,10 @@ ${feedAlarm}
   <b>WHAT THIS DOES NOT ESTABLISH.</b> That any of it makes money. The paper ledger
   has ${esc(d.track?.summary?.ALL?.resolved ?? 0)} resolved trade(s) so far &mdash; far too few for a measured hit
   rate &mdash; and every test fixed in advance so far, on data never used to build the rule, found no edge:
-  the desk's own ranking (final year t = 0.75), 12-1 momentum, time-series momentum, low volatility and a
-  10-month market trend filter (all five FAIL). The ranking is built on things that were measured,
-  which is not the same as an edge that was proven. Size accordingly.
+  the desk's own ranking (final year t = 0.75), 12-1 momentum, time-series momentum, low volatility, a
+  10-month market trend filter, and the NIFTY trend reader that now chooses between buys and puts
+  (selling NIFTY in its downtrends: final year t = 0.21) &mdash; all six FAIL. The ranking is built on
+  things that were measured, which is not the same as an edge that was proven. Size accordingly.
 </div>
 
 <script>
@@ -1459,6 +1567,73 @@ ${feedAlarm}
   }
   setInterval(check, 60000);
   document.addEventListener("visibilitychange", function () { if (!document.hidden) { tick(); check(); } });
+})();
+/* LIVE NOW BETWEEN BUILDS, on a phone given the private live-prices service
+   once (a link ending #live=<service address>|<key>; #live=off removes it).
+   Every 20 s in market hours it asks for the contracts on this page and moves
+   NOW and the limit state -- the same words as the build: AT OR BELOW LIMIT,
+   WAITING -- needs a x% dip, PREVIEW. The levels never move. Without the
+   service, nothing here runs. */
+(function () {
+  var cfg = null;
+  try {
+    var m = location.hash.match(/live=([^&]*)/);
+    if (m) {
+      var v = decodeURIComponent(m[1]);
+      if (v === "off") localStorage.removeItem("k2-live");
+      else if (v.indexOf("|") > 0) localStorage.setItem("k2-live", JSON.stringify({ url: v.split("|")[0], key: v.split("|").slice(1).join("|") }));
+      history.replaceState(null, "", location.pathname + location.search);
+    }
+    cfg = JSON.parse(localStorage.getItem("k2-live") || "null");
+  } catch (e) { cfg = null; }
+  if (!cfg || !cfg.url || !cfg.key || !window.fetch) return;
+  var cells = [].slice.call(document.querySelectorAll("td[data-live]"));
+  if (!cells.length) return;
+  var ist = function () { var t = new Date(Date.now() + 330 * 60000); return { day: t.getUTCDay(), min: t.getUTCHours() * 60 + t.getUTCMinutes(), date: t.toISOString().slice(0, 10) }; };
+  var open = function () { var n = ist(); return n.day >= 1 && n.day <= 5 && n.min >= 555 && n.min <= 930; };
+  var fmt = function (v) { return "\u20b9" + Number(v).toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 }); };
+  var MON = { Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06", Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12" };
+  // Backslashes doubled: this script is inside a template literal, which drops single ones.
+  var today = function (stamp) { var p = String(stamp || "").match(/^(\\d{2})-([A-Za-z]{3})-(\\d{4}) (\\d{2}:\\d{2}:\\d{2})/); return p && p[3] + "-" + MON[p[2]] + "-" + p[1] === ist().date ? p[4] : null; };
+  function state(p, l, frozen) {
+    if (!frozen) { var under = (p - l) / p * 100; return { word: under > 0 ? "PREVIEW, not an order \u2014 " + under.toFixed(1) + "% under the last price" : "PREVIEW, not an order", tone: "" }; }
+    var gap = (p - l) / l * 100;
+    if (gap <= 0) return { word: "AT OR BELOW LIMIT", tone: "up" };
+    if (gap <= 0.1) return { word: "AT THE LIMIT", tone: "up" };
+    var dip = (p - l) / p * 100;
+    return { word: "WAITING \u2014 needs a " + dip.toFixed(1) + "% dip", tone: dip > 5 ? "down" : "" };
+  }
+  var stamp = document.querySelector(".stamp");
+  function poll() {
+    if (document.hidden || !open()) return;
+    var tokens = cells.map(function (c) { return c.getAttribute("data-live"); }).filter(function (t, i, a) { return a.indexOf(t) === i; });
+    fetch(cfg.url.replace(/\\/$/, "") + "/quotes?t=" + tokens.join(","), { headers: { "X-K2-Key": cfg.key }, cache: "no-store" })
+      .then(function (r) { return r.json(); })
+      .then(function (j) {
+        if (!j || !j.ok) return;
+        cells.forEach(function (c) {
+          var q = j.quotes[c.getAttribute("data-live")];
+          if (!q || !(q.ltp > 0)) return;
+          var v = c.querySelector(".nowv"); if (v) v.textContent = fmt(q.ltp);
+          var s = c.querySelector(".nows"), buy = Number(c.getAttribute("data-buy"));
+          if (s && buy > 0) { var st = state(q.ltp, buy, c.getAttribute("data-frozen") === "1"); s.textContent = st.word; s.className = "sub nows " + st.tone; }
+          var tag = c.querySelector(".livetag");
+          if (!tag) { tag = document.createElement("div"); c.insertBefore(tag, s ? s.nextSibling : null); }
+          var t = today(q.tradeTime);
+          tag.className = "sub livetag " + (t ? "up" : "warn");
+          tag.textContent = t ? "live, last trade " + t : "live \u2014 no trade yet today";
+        });
+        var mark = document.getElementById("livemark");
+        // After the build's own age, so "(20 min ago)" is never read as the live price's age.
+        var ageSpan = document.getElementById("age");
+        if (!mark && stamp) { mark = document.createElement("span"); mark.id = "livemark"; mark.className = "up"; stamp.insertBefore(mark, ageSpan ? ageSpan.nextSibling : stamp.firstChild.nextSibling); }
+        if (mark) mark.textContent = " \u00b7 NOW live " + new Date(Date.parse(j.at) + 330 * 60000).toISOString().slice(11, 19) + " ";
+      })
+      .catch(function () {});
+  }
+  poll();
+  setInterval(poll, 20000);
+  document.addEventListener("visibilitychange", function () { if (!document.hidden) poll(); });
 })();
 </script>
 </body></html>`;

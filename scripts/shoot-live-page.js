@@ -26,7 +26,17 @@ const path = require("node:path");
 // K2_SHOOT_URL points it at a page rendered locally, to look before pushing.
 const URL_BASE = process.env.K2_SHOOT_URL || "https://kuldeep-oo7.github.io/k2-desk/";
 const expect = process.argv[2] || null;
-const OUT = process.argv[3] || path.join(os.tmpdir(), "k2-live-shots", new Date().toISOString().replace(/[:.]/g, "-"));
+// THE USER'S FOLDER OF PHOTOS (29 Sep 2026): "whenever you push it to github you
+// need to open the chrome, take screenshots and save it date wise on that folder,
+// same when I say audit and simulations, so I can see it". Every run lands in
+//   C:\Users\kulde\Downloads\K2-screenshots\<IST date>\<IST time>-<label>\
+// with a README.txt of what was photographed and what the checks found. A third
+// argument that is a path overrides it; any other third argument is the label.
+const istNow = new Date(Date.now() + 330 * 60_000).toISOString();
+const arg3 = process.argv[3] || "";
+const SHOTS_ROOT = process.env.K2_SHOTS_ROOT || path.join(os.homedir(), "Downloads", "K2-screenshots");
+const OUT = /[\\/:]/.test(arg3) ? arg3
+  : path.join(SHOTS_ROOT, istNow.slice(0, 10), `${istNow.slice(11, 16).replace(":", "")}-${(arg3 || "check").replace(/[^A-Za-z0-9_-]+/g, "-")}`);
 const DEVICES = [
   { name: "phone", viewport: { width: 412, height: 915 }, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true, scrolls: 4 },
   { name: "laptop", viewport: { width: 1536, height: 864 }, deviceScaleFactor: 1.25, isMobile: false, hasTouch: false, scrolls: 2 }
@@ -35,7 +45,10 @@ const DEVICES = [
 (async () => {
   const { chromium } = require("playwright");
   fs.mkdirSync(OUT, { recursive: true });
-  const browser = await chromium.launch({ headless: true, ...(process.platform === "win32" ? { channel: "msedge" } : {}) });
+  // Chrome, as the user asked; Edge if Chrome is not there.
+  let browser = null, browserName = "chrome";
+  try { browser = await chromium.launch({ headless: true, channel: "chrome" }); }
+  catch { browserName = "msedge"; browser = await chromium.launch({ headless: true, ...(process.platform === "win32" ? { channel: "msedge" } : {}) }); }
   const problems = [];
   const shots = [];
   const rowOffsets = [];
@@ -116,6 +129,18 @@ const DEVICES = [
 
   console.log(rowOffsets.join("\n"));
   console.log(`screenshots (${shots.length}) in ${OUT}`);
+  fs.writeFileSync(path.join(OUT, "README.txt"), [
+    `K2 desk, photographed ${istNow.slice(0, 16).replace("T", " ")} IST in ${browserName}`,
+    `page: ${URL_BASE}`,
+    `build on the page: ${stamp || "(stamp not read)"}${expect ? `  (waited for "${expect}")` : ""}`,
+    "",
+    "where the first row starts, per tab:", ...rowOffsets.map((x) => "  " + x),
+    "",
+    problems.length ? "PROBLEMS:" : "checks: nothing that must never be visible, nothing wider than the screen",
+    ...[...new Set(problems)].map((x) => "  " + x),
+    "",
+    `files (${shots.length}):`, ...shots.map((s) => "  " + path.basename(s))
+  ].join("\r\n") + "\r\n");
   for (const s of shots) console.log("  " + s);
   console.log(problems.length ? "PROBLEMS:\n  " + [...new Set(problems)].join("\n  ") : "checks: nothing that must never be visible, nothing wider than the screen");
   console.log("Now READ the screenshots -- phone first. This script does not replace looking.");

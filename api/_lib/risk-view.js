@@ -19,8 +19,9 @@
  *   low reaches the stop            -> out at the stop (the stop first, if both)
  *   high reaches the target         -> out at the target
  *   otherwise                       -> marked at the close
- * A call is repriced with Black-76 at its own implied volatility, held where it
- * is, one day nearer expiry. Futures are GM Global's 20 units; calls one lot.
+ * An option is repriced with Black-76 at its own implied volatility, held where
+ * it is, one day nearer expiry; a put's worst price is at the day's HIGH.
+ * Futures are GM Global's 20 units; calls and puts one lot.
  *
  * WHAT IS LEFT OUT, AND SAID. A stock with under a year of history. Every
  * stock-day that NSE's own filings mark as a demerger, bonus, split or rights
@@ -133,22 +134,26 @@ function futuresPosition(r, units) {
 }
 
 /**
- * A call at one lot: Black-76 at its implied volatility, one day nearer expiry,
- * scaled so that today's model value is exactly the buy price.
+ * An option at one lot -- a call, or a put (c.right "PE") -- repriced with
+ * Black-76 at its implied volatility, one day nearer expiry, scaled so that
+ * today's model value is exactly the buy price. A put gains as the index FALLS,
+ * so its worst price in a day is at the day's HIGH: `inverse` tells simulate()
+ * to read the range the other way round.
  */
 function callPosition(c) {
   const entry = num(c.buy), F0 = num(c.forward), K = num(c.strike), days = num(c.daysLeft), iv = num(c.iv), lot = num(c.lotSize);
   if (!(entry > 0) || !(F0 > 0) || !(K > 0) || !(days > 0) || !(iv > 0) || !(lot > 0)) return null;
+  const type = c.right === "PE" ? "PE" : "CE";
   const T0 = days / 365, T1 = Math.max(0, T0 - DAY), sigma = iv / 100;
-  const value = (F, T) => europeanOption({ model: "BLACK76", optionType: "CE", underlyingPrice: F, strike: K,
+  const value = (F, T) => europeanOption({ model: "BLACK76", optionType: type, underlyingPrice: F, strike: K,
     timeToExpiryYears: T, riskFreeRate: RISK_FREE, dividendYield: 0, volatility: sigma }).price;
   const v0 = value(F0, T0);
   // A contract the model values at (nearly) nothing cannot be scaled to its
   // price: 1% of the premium or less would magnify rounding into rupees.
   if (!(v0 > entry * 0.01)) return null;
   const scale = entry / v0;
-  return { symbol: c.symbol, qty: lot, entry, stop: num(c.stop), target: num(c.sell),
-    priceAt: (m, v = 1) => scale * europeanOption({ model: "BLACK76", optionType: "CE", underlyingPrice: F0 * m, strike: K,
+  return { symbol: c.symbol, qty: lot, entry, stop: num(c.stop), target: num(c.sell), inverse: type === "PE",
+    priceAt: (m, v = 1) => scale * europeanOption({ model: "BLACK76", optionType: type, underlyingPrice: F0 * m, strike: K,
       timeToExpiryYears: T1, riskFreeRate: RISK_FREE, dividendYield: 0, volatility: sigma * v }).price };
 }
 
@@ -174,7 +179,10 @@ function simulate(positions, index, { tail = TAIL, minSessions = MIN_SESSIONS, g
       const mv = index.moves.get(p.symbol).get(d);
       if (!mv) continue;
       const [g, l, h, c] = mv;
-      const out = exitPrice(p, p.priceAt(1 + g), p.priceAt(1 + l), p.priceAt(1 + h), p.priceAt(1 + c));
+      // A put's low is at the index's high, and its high at the index's low.
+      const out = p.inverse
+        ? exitPrice(p, p.priceAt(1 + g), p.priceAt(1 + h), p.priceAt(1 + l), p.priceAt(1 + c))
+        : exitPrice(p, p.priceAt(1 + g), p.priceAt(1 + l), p.priceAt(1 + h), p.priceAt(1 + c));
       const pnl = p.qty * (out.price - p.entry);
       total += pnl;
       byStock.set(p.symbol, (byStock.get(p.symbol) || 0) + pnl);
@@ -205,8 +213,9 @@ function simulate(positions, index, { tail = TAIL, minSessions = MIN_SESSIONS, g
   const vixMove = index.moves.get(VIX)?.get(worst.date);
   const vixPct = vixMove ? Math.round(1000 * vixMove[3]) / 10 : null;
 
-  // THE GAP: every stock opens lower by its own measured sensitivity to NIFTY
-  // times the shock, and stays there. A stop cannot fill above the open.
+  // THE GAP: every stock opens lower (for puts, higher) by its own measured
+  // sensitivity to NIFTY times the shock, and stays there. A stop cannot fill
+  // better than the open.
   let gap = null;
   if (marketMoves && marketMoves.size >= minSessions) {
     const betas = new Map(stocks.map((s) => [s, betaOf(index.moves.get(s), marketMoves)]));
@@ -249,7 +258,7 @@ function simulate(positions, index, { tail = TAIL, minSessions = MIN_SESSIONS, g
  * The risk view for the page: futures at `units` each, calls at one lot each.
  * Never throws; a failure is a reason, and the page says it.
  */
-function riskView({ futures = [], calls = [], units = 20, historyFor, actions, now = Date.now() }) {
+function riskView({ futures = [], calls = [], puts = [], units = 20, historyFor, actions, now = Date.now() }) {
   try {
     if (!actions || !Array.isArray(actions.rows)) {
       return { available: false, reason: "NSE's corporate-action filings could not be read, so a demerger could not be told from a crash" };
@@ -259,17 +268,17 @@ function riskView({ futures = [], calls = [], units = 20, historyFor, actions, n
       if (!bySymbol.has(a.symbol)) bySymbol.set(a.symbol, []);
       bySymbol.get(a.symbol).push(a);
     }
-    const symbols = [...new Set([...futures, ...calls].map((r) => r.symbol))];
+    const symbols = [...new Set([...futures, ...calls, ...puts].map((r) => r.symbol))];
     const index = historyIndex({ symbols, historyFor, actionsFor: (s) => bySymbol.get(s) || [], now });
     if (!index.calendar.length) return { available: false, reason: "no price history on this build" };
-    const side = (rows, make) => {
+    const side = (rows, make, opts = {}) => {
       if (!rows.length) return null;
       const positions = [], unpriced = [];
       for (const r of rows) {
         const p = make(r);
         if (p) positions.push(p); else unpriced.push(r.symbol);
       }
-      const out = positions.length ? simulate(positions, index) : { available: false, reason: "no row could be priced" };
+      const out = positions.length ? simulate(positions, index, opts) : { available: false, reason: "no row could be priced" };
       return { ...out, unpriced };
     };
     return {
@@ -277,6 +286,8 @@ function riskView({ futures = [], calls = [], units = 20, historyFor, actions, n
       actionsAsOf: actions.fetchedAt || null,
       futures: side(futures, (r) => futuresPosition(r, units)),
       calls: side(calls, callPosition),
+      // A put loses when the market RISES: its gap is the market opening 5% higher.
+      puts: side(puts, callPosition, { gapShock: -GAP_SHOCK }),
       units
     };
   } catch (error) {

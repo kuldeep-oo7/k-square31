@@ -71,7 +71,10 @@ function realisedVolFor(symbol, days, cache) {
     byTenor.set(key, measured);
     return measured;
   }
-  const cached = getCachedBars(symbol);
+  // An index's bars are cached under its Yahoo ticker, not its F&O symbol:
+  // "NIFTY" found nothing, and every index put read realised volatility "null".
+  const { INDEX_TICKER } = require("./market-direction");
+  const cached = getCachedBars(INDEX_TICKER[symbol] || symbol);
   const bars = Array.isArray(cached?.bars) && cached.bars.length >= 20 ? cached.bars : null;
   const byTenor = new Map([["bars", bars]]);
   cache.set(symbol, byTenor);
@@ -149,8 +152,13 @@ function scoreContract(row) {
 
   // 9. THE UNDERLYING'S OWN READ, supplied by the caller from the existing
   //    scanner -- technicals, candlesticks, chart geometry, Hurst, GARCH and
-  //    the matched-filter bank. Neutral when the name has not been scanned.
-  parts.underlying = Number.isFinite(row.underlyingScore) ? row.underlyingScore : 50;
+  //    the matched-filter bank. Neutral when the name has not been scanned (an
+  //    index). The score is higher for a stronger stock, which is what a CALL
+  //    buyer wants and the opposite of what a PUT buyer wants: for a put it is
+  //    read the other way up, or the weakest names ranked last among the puts.
+  parts.underlying = Number.isFinite(row.underlyingScore)
+    ? (row.optionType === "PE" ? 100 - row.underlyingScore : row.underlyingScore)
+    : 50;
 
   // Equal weight, deliberately. Any other split would be a claim about relative
   // importance that nothing in this repo has earned the right to make.

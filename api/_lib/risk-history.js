@@ -73,6 +73,24 @@ function completedRows(rows, now = Date.now()) {
   return (rows || []).filter((r) => r[0] < today || (r[0] === today && settled));
 }
 
+/**
+ * The newest NSE session whose daily bar is complete at `now`: a trading day
+ * (weekday, not on NSE's holiday list) whose 16:00 IST has passed -- the rule
+ * completedRows() counts a bar by.
+ */
+function lastCompletedSession(now = Date.now()) {
+  const { isNseHoliday } = require("./nse-holidays");
+  const back = (iso) => istDate(Date.parse(`${iso}T12:00:00Z`) - 86_400_000 - IST_MS);
+  let day = istDate(now);
+  if (new Date(now + IST_MS).getUTCHours() < 16) day = back(day);
+  for (let i = 0; i < 15; i += 1) {
+    const w = new Date(`${day}T00:00:00Z`).getUTCDay();
+    if (w !== 0 && w !== 6 && isNseHoliday(day) !== true) return day;
+    day = back(day);
+  }
+  return day;
+}
+
 /** Fetch every symbol whose copy predates the latest session close, inside a time budget. */
 async function refreshRiskHistory(symbols, { now = Date.now(), budgetMs = 120_000, batchSize = 4, delayMs = 250, dir = DIR, fetcher = fetchChart } = {}) {
   const started = Date.now();
@@ -81,7 +99,18 @@ async function refreshRiskHistory(symbols, { now = Date.now(), budgetMs = 120_00
   // NSE has settled it, and stays due until one is taken after -- the first
   // build after 15:30 would otherwise keep an unsettled bar until tomorrow.
   const settled = latestSessionCloseMs(now) + 30 * 60_000;
-  const due = wanted.filter((symbol) => !(Date.parse(readHistory(symbol, { dir })?.fetchedAt || "") > settled));
+  const lastSession = lastCompletedSession(now);
+  const due = wanted.filter((symbol) => {
+    const have = readHistory(symbol, { dir });
+    if (!(Date.parse(have?.fetchedAt || "") > settled)) return true;
+    // NIFTY decides the market's direction (market-direction.js). A copy taken
+    // after the close that still lacks that close -- the provider had not
+    // published it yet -- is fetched again, or the direction would be read
+    // from the day before until the next session closed.
+    if (symbol !== MARKET) return false;
+    const rows = completedRows(have.rows, now);
+    return !rows.length || rows[rows.length - 1][0] < lastSession;
+  });
   let fetched = 0, failed = 0, notReached = 0;
   const failures = [];
   for (let i = 0; i < due.length; i += batchSize) {
@@ -103,4 +132,4 @@ async function refreshRiskHistory(symbols, { now = Date.now(), budgetMs = 120_00
   return { wanted: wanted.length, due: due.length, fetched, failed, notReached, have, failures, seconds: Math.round((Date.now() - started) / 100) / 10 };
 }
 
-module.exports = { readHistory, saveHistory, refreshRiskHistory, completedRows, compact, istDate, MARKET, VIX, RANGE, DIR };
+module.exports = { readHistory, saveHistory, refreshRiskHistory, completedRows, lastCompletedSession, compact, istDate, MARKET, VIX, RANGE, DIR };

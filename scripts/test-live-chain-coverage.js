@@ -33,6 +33,12 @@ function check(label, condition, detail = "") {
   const origLog = console.log;
   const quiet = (fn) => async (...a) => { console.log = () => {}; try { return await fn(...a); } finally { console.log = origLog; } };
   const ref = loadReference();
+  // The clock of the settlement file on hand, as the scenario simulation does:
+  // on a machine whose history was fetched days ago, today's clock refuses
+  // every name as stale (STALE_DATA_REFUSAL), nothing is actionable, and the
+  // first check could only fail -- or, written the other way, pass on nothing.
+  const refNoon = Date.parse(`${ref.session}T12:00:00+05:30`);
+  Date.now = () => refNoon;
   const actionable = (fnoUniverseEngine.getUniverse(null) || []).filter((r) => r.action === "BUY" || r.action === "ACCUMULATE");
   const withOptions = new Set(actionable.filter((r) => ref?.symbols?.[r.symbol]).map((r) => r.symbol));
 
@@ -43,6 +49,37 @@ function check(label, condition, detail = "") {
     withOptions.size > 0 && [...withOptions].every((s) => fetched.has(s)), `${[...withOptions].filter((s) => fetched.has(s)).length} of ${withOptions.size}`);
   check("and for nothing else -- calls are only shown on actionable names", [...fetched].every((s) => withOptions.has(s)));
   check("every request is on the expiry the card is written on (at least 7 days out)",
+    asked.every((r) => r.expiry && (Date.parse(r.expiry) - Date.now()) / 86_400_000 >= 6));
+
+  // EXACTLY THE NAMES THE PAGE WILL SHOW (market-direction.js optionsView). In
+  // a downtrend those are the indices and the falling SELL/REDUCE stocks: with
+  // "every actionable name" instead, every put was refused in session for want
+  // of a live book, nothing froze and the health gate went red.
+  const brokers = require("../api/_lib/broker-feed");
+  const realFutures = brokers.futuresQuotes;
+  let askedFutures = [];
+  brokers.futuresQuotes = async (reqs) => {
+    askedFutures = reqs;
+    const quotes = {};
+    for (const r of reqs) quotes[`${r.symbol}|${r.expiry}`] = { symbol: r.symbol, expiry: r.expiry, price: r.symbol === "NIFTY" ? 22716.2 : 54259.95 };
+    return { ok: true, quotes };
+  };
+  const stock = (fnoUniverseEngine.getUniverse(null) || []).find((r) => ref?.symbols?.[r.symbol] && r.spotPrice > 0);
+  const wanted = ["NIFTY", "BANKNIFTY", stock.symbol];
+  const down = new RealtimeMarketEngine();
+  await quiet(() => down.refreshLiveQuotes({ symbols: wanted }))();
+  brokers.futuresQuotes = realFutures;
+  const bySym = new Map(asked.map((r) => [r.symbol, r]));
+  check("given the page's names, a build fetches exactly those chains -- the indices included",
+    asked.length === wanted.length && wanted.every((s) => bySym.has(s)), asked.map((r) => r.symbol).join(", "));
+  check("an index's chain is centred on its LIVE front future, not on yesterday's close",
+    bySym.get("NIFTY")?.referencePrice === 22716.2 && bySym.get("BANKNIFTY")?.referencePrice === 54259.95,
+    `${bySym.get("NIFTY")?.referencePrice} / ${bySym.get("BANKNIFTY")?.referencePrice}`);
+  check("the front FUTURE is asked for (a month with a future), not NIFTY's first weekly",
+    askedFutures.length === 2 && askedFutures.every((r) => Number(ref.symbols[r.symbol].expiries[r.expiry]?.futuresPrice) > 0),
+    JSON.stringify(askedFutures));
+  check("a stock keeps its own price as the centre, as before", bySym.get(stock.symbol)?.referencePrice === stock.spotPrice);
+  check("every chain is on the expiry the rows are written on (at least 7 days out)",
     asked.every((r) => r.expiry && (Date.parse(r.expiry) - Date.now()) / 86_400_000 >= 6));
 
   const server = new RealtimeMarketEngine();

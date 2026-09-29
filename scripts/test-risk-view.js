@@ -233,6 +233,49 @@ console.log("\na call, repriced");
   check("a call with no implied volatility is left out, not priced at zero", R.callPosition({ ...c, iv: null }) === null);
 }
 
+console.log("\na put, repriced -- and read the other way up");
+{
+  const erf = (x) => {
+    const t = 1 / (1 + 0.5 * Math.abs(x));
+    const y = 1 - t * Math.exp(-x * x - 1.26551223 + t * (1.00002368 + t * (0.37409196 + t * (0.09678418 + t * (-0.18628806
+      + t * (0.27886807 + t * (-1.13520398 + t * (1.48851587 + t * (-0.82215223 + t * 0.17087277)))))))));
+    return x >= 0 ? y : -y;
+  };
+  const N = (x) => 0.5 * (1 + erf(x / Math.SQRT2));
+  // Black-76 put, written out independently: e^-rT (K N(-d2) - F N(-d1)).
+  const b76put = (F, K, T, s, r = 0.065) => {
+    const d1 = (Math.log(F / K) + 0.5 * s * s * T) / (s * Math.sqrt(T)), d2 = d1 - s * Math.sqrt(T);
+    return Math.exp(-r * T) * (K * N(-d2) - F * N(-d1));
+  };
+  const c = { symbol: "A", right: "PE", buy: 180, stop: 90, sell: 270, forward: 22700, strike: 22500, daysLeft: 21, iv: 18, lotSize: 65 };
+  const p = R.callPosition(c);
+  const scale = 180 / b76put(22700, 22500, 21 / 365, 0.18);
+  for (const m of [0.97, 1, 1.02]) {
+    const want = scale * b76put(22700 * m, 22500, 20 / 365, 0.18);
+    check(`at ${((m - 1) * 100).toFixed(0)}% the put is worth ${want.toFixed(2)} (independent Black-76)`, near(p.priceAt(m), want, 0.02), p.priceAt(m).toFixed(4));
+  }
+  check("a put is worth MORE when the index is lower", p.priceAt(0.98) > p.priceAt(1) && p.priceAt(1.02) < p.priceAt(1));
+  check("a put is marked inverse, a call is not", p.inverse === true && R.callPosition({ ...c, right: "CE" }).inverse === false);
+
+  // One day that runs 6% up and closes flat: the put's stop is hit at the
+  // day's HIGH, and the same day a call reaches its target.
+  const rows = [["2026-09-24", 100, 100, 100, 100], ["2026-09-25", 100, 106, 99.5, 100]];
+  const idx = R.historyIndex({ symbols: ["X"], historyFor: (s) => (s === "X" ? { rows } : null), actionsFor: () => [], now: NOW });
+  const put = R.callPosition({ symbol: "X", right: "PE", buy: 2.9, stop: 1.45, sell: 4.35, forward: 100, strike: 100, daysLeft: 30, iv: 25, lotSize: 100 });
+  const call = R.callPosition({ symbol: "X", right: "CE", buy: 2.9, stop: 1.45, sell: 4.35, forward: 100, strike: 100, daysLeft: 30, iv: 25, lotSize: 100 });
+  const outPut = R.simulate([put], idx, { minSessions: 1 });
+  const outCall = R.simulate([call], idx, { minSessions: 1 });
+  check("a 6% run-up stops the put out at its stop (read at the day's high)", outPut.worst.stopsHit === 1 && outPut.worst.rupees === Math.round(100 * (1.45 - 2.9)), JSON.stringify(outPut.worst));
+  check("the same day takes the call to its target", outCall.worst.rupees === Math.round(100 * (4.35 - 2.9)), JSON.stringify(outCall.worst));
+
+  // The gap that hurts a put is the market opening HIGHER.
+  const hist = { M1: { rows: HIST[H.MARKET].rows }, [H.MARKET]: HIST[H.MARKET] };
+  const mkt = hist.M1.rows[hist.M1.rows.length - 1][4];
+  const book = R.riskView({ puts: [{ symbol: "M1", right: "PE", buy: 300, stop: 150, sell: 450, forward: mkt, strike: mkt, daysLeft: 21, iv: 18, lotSize: 65 }],
+    historyFor: (s) => hist[s], actions: { ok: true, rows: [] }, now: NOW });
+  check("the puts' gap is the market opening 5% HIGHER, and it is a loss", book.puts?.gap?.shockPct === 5 && book.puts.gap.rupees < 0, JSON.stringify(book.puts?.gap));
+}
+
 console.log("\nIndia VIX's move on the worst day");
 {
   const c = { symbol: "A", buy: 6, stop: 3, sell: 9, forward: 200, strike: 200, daysLeft: 30, iv: 25, lotSize: 100 };
@@ -273,13 +316,15 @@ console.log("\nthe history cache round-trips, and the fetch keeps its budget");
   check("a symbol with & is stored and read back", back && back.rows.length === 1 && back.range === "2y");
   (async () => {
     let calls = 0;
-    const fetcher = async (symbol) => {
+    // Bars through `lastDay` (the provider has published that day's close).
+    const fetcherTo = (lastDay) => async (symbol) => {
       calls += 1;
       if (symbol === "BAD") throw new Error("Symbol not found");
-      const ts = Math.floor(Date.parse("2026-09-24T09:15:00+05:30") / 1000);
+      const ts = Math.floor(Date.parse(`${lastDay}T09:15:00+05:30`) / 1000);
       return { timestamp: Array.from({ length: 30 }, (_, i) => ts - (29 - i) * 86400),
         indicators: { quote: [{ open: Array(30).fill(10), high: Array(30).fill(11), low: Array(30).fill(9), close: Array(30).fill(10) }] } };
     };
+    const fetcher = fetcherTo("2026-09-25");
     const now = Date.parse("2026-09-25T18:00:00+05:30");
     const r = await H.refreshRiskHistory(["GOOD", "BAD"], { dir, now, fetcher, delayMs: 0 });
     check("fetches NIFTY, India VIX and every name, and records the failure", r.wanted === 4 && r.fetched === 3 && r.failed === 1 && /BAD/.test(r.failures[0]), JSON.stringify(r));
@@ -290,6 +335,19 @@ console.log("\nthe history cache round-trips, and the fetch keeps its budget");
     await H.refreshRiskHistory(["GOOD"], { dir: dir2, now: Date.parse("2026-09-25T15:45:00+05:30"), fetcher, delayMs: 0 });
     const later = await H.refreshRiskHistory(["GOOD"], { dir: dir2, now, fetcher, delayMs: 0 });
     check("a copy taken at 15:45, before the day's bar settles, is fetched again after 16:00", later.due === 3 && later.fetched === 3, JSON.stringify(later));
+    // NIFTY decides the market's direction: a copy taken after the close that
+    // still lacks that close (the provider had not published it) is fetched
+    // again; any other name is not.
+    const dir3 = fs.mkdtempSync(path.join(os.tmpdir(), "k2-risk-"));
+    await H.refreshRiskHistory(["GOOD"], { dir: dir3, now, fetcher: fetcherTo("2026-09-24"), delayMs: 0 });
+    const lagging = await H.refreshRiskHistory(["GOOD"], { dir: dir3, now, fetcher, delayMs: 0 });
+    check("NIFTY's copy without the latest close is fetched again, the others are not", lagging.due === 1 && lagging.fetched === 1
+      && H.readHistory("^NSEI", { dir: dir3 }).rows.slice(-1)[0][0] === "2026-09-25", JSON.stringify(lagging));
+    check("the last completed session: Fri 25 Sep at 18:00; still Thu 24 Sep at 15:45; Fri over the weekend; the day before a holiday",
+      H.lastCompletedSession(now) === "2026-09-25" && H.lastCompletedSession(Date.parse("2026-09-25T15:45:00+05:30")) === "2026-09-24"
+      && H.lastCompletedSession(Date.parse("2026-09-27T10:00:00+05:30")) === "2026-09-25"
+      && H.lastCompletedSession(Date.parse("2026-10-02T18:00:00+05:30")) === "2026-10-01",
+      [H.lastCompletedSession(now), H.lastCompletedSession(Date.parse("2026-10-02T18:00:00+05:30"))].join(" "));
     console.log("\n" + passed + " passed, " + failed + " failed");
     process.exit(failed ? 1 : 0);
   })();

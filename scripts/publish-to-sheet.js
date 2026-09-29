@@ -67,6 +67,8 @@ function money(value) {
  * desk does not know something -- a hedge it never constructed -- it says so
  * rather than inventing a plausible strategy name.
  */
+const known = (value, unit = "") => (value === null || value === undefined || value === "" || !Number.isFinite(Number(value)) ? "not measured" : `${value}${unit}`);
+
 function optionTickets(data) {
   return data.options.filter((c) => c.frozen).map((c) => ({
     symbol: c.symbol,
@@ -87,9 +89,13 @@ function optionTickets(data) {
     // it overnight. The honest worst case on a bought option is the premium.
     maxRiskInr: money(Number(c.buy) * Number(c.lotSize)),
     status: "ACTIVE",
-    reason: "IV " + c.iv + "% vs realised " + c.rv + "% (VRP " + c.vrp + "), touch odds "
-      + c.touchPct + "% in ~" + c.daysToTarget + "d (ignores the stop), needs " + c.breakEvenPct + "% wins to break even, decay "
-      + c.thetaBurnPct + "%/target, " + c.daysLeft + "d to expiry, exit by " + c.exitBy + ", score " + c.score + ". Priced from " + c.priceSource
+    // A figure the desk could not measure says so: "realised null%" and "exit
+    // by null" were what an index put would have written.
+    reason: "IV " + known(c.iv, "%") + " vs realised " + known(c.rv, "%") + " (VRP " + known(c.vrp) + "), touch odds "
+      + known(c.touchPct, "%") + " in ~" + known(c.daysToTarget, "d") + " (ignores the stop), needs " + known(c.breakEvenPct, "%") + " wins to break even, decay "
+      + known(c.thetaBurnPct, "%") + "/target, " + c.daysLeft + "d to expiry, "
+      + (c.exitBy ? "exit by " + c.exitBy : c.isIndex ? "held to expiry (an index option is cash-settled)" : "exit date not known")
+      + ", score " + c.score + ". Priced from " + c.priceSource
       + (c.priceIsLive ? " (live book)." : " (not a live book)."),
     zerodhaFastCopy: c.zerodha
   }));

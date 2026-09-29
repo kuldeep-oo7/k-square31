@@ -47,7 +47,7 @@ const desk = require("./publish-static-desk");
 const brokers = require("../api/_lib/broker-feed");
 const live = require("../api/_lib/live-quotes");
 const { europeanOption, impliedVolatility } = require("../api/_lib/option-pricing");
-const { loadReference } = require("../api/_lib/fno-reference");
+const { loadReference, angelTradingSymbol } = require("../api/_lib/fno-reference");
 const { fnoUniverseEngine } = require("../api/_lib/universe-210");
 const nseCheck = require("../api/_lib/nse-crosscheck");
 
@@ -186,7 +186,13 @@ function makeMarket(state, dayBook) {
           exchangeFeedTime: state.restampFeed ? feedStamp(Date.parse(`${state.restampFeed}T06:55:00+05:30`)) : feedStamp(feedAt),
           // Angel sends the last TRADE time too; a quote here is a trade at the feed time.
           exchangeTradeTime: state.restampFeed ? feedStamp(Date.parse(`${state.lastTradeDay}T15:29:00+05:30`)) : feedStamp(feedAt),
-          tradingSymbol: key.replace(/\|/g, "") };
+          // Angel's own form of the name (AMBER27OCT26FUT), as its quote carries
+          // it -- "AMBER2026-10-27" on the simulated page read like a defect.
+          tradingSymbol: c.kind === "EQ" ? `${c.symbol}-EQ`
+            : angelTradingSymbol(c.symbol, c.expiry, c.kind === "OPT" ? c.strike : null, c.kind === "OPT" ? c.optionType : null),
+          // Angel's segment and token, as broker-feed.js now carries them.
+          exchange: c.kind === "EQ" ? "NSE" : "NFO",
+          token: String(100000 + ([...key].reduce((a, ch) => (Math.imul(a, 31) + ch.charCodeAt(0)) >>> 0, 7) % 900000)) };
       }
       return out;
     }
@@ -226,7 +232,36 @@ function simHistory(symbol) {
   }
   return riskSeries.get(symbol);
 }
-const SIM_RISK = { riskHistoryFor: simHistory, riskActions: { ok: true, fetchedAt: "2026-09-23T12:00:00Z", rows: [] } };
+// ---- NIFTY's trend, for the market's direction (market-direction.js) ---------
+// Set per scenario, never left to the random walk above: a steady rise for the
+// week of buys, and a fall of 0.6% a day over the last 40 sessions for the
+// downtrend -- under its 20-day average, the 20-day under the 50-day, which
+// the desk's own reader calls BEAR_HOSTILE. Every weekday to Fri 2 Oct, so no
+// build in the simulated week reads a close older than the last session.
+const NIFTY_DAYS = (() => {
+  const out = [];
+  let t = Date.parse("2026-10-02T00:00:00Z");
+  while (out.length < 320) {
+    const day = new Date(t);
+    if (![0, 6].includes(day.getUTCDay())) out.unshift(day.toISOString().slice(0, 10));
+    t -= 86_400_000;
+  }
+  return out;
+})();
+function niftySeries(fallDays) {
+  let close = 20000;
+  return { rows: NIFTY_DAYS.map((day, i) => {
+    const r = i >= NIFTY_DAYS.length - fallDays ? -0.006 : 0.001;
+    const open = close;
+    close *= 1 + r;
+    return [day, open, Math.max(open, close) * 1.002, Math.min(open, close) * 0.998, close];
+  }) };
+}
+const NIFTY_UP = niftySeries(0);
+const NIFTY_DOWN = niftySeries(40);
+const directionFrom = (series) => (symbol) => (symbol === "^NSEI" ? series : null);
+const SIM_RISK = { riskHistoryFor: simHistory, riskActions: { ok: true, fetchedAt: "2026-09-23T12:00:00Z", rows: [] },
+  directionHistoryFor: directionFrom(NIFTY_UP) };
 
 // ---- driving the real build ----------------------------------------------------
 const tmp = fs.mkdtempSync(path.join(os.tmpdir(), "k2-scenarios-"));
@@ -356,6 +391,19 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       `${rf?.rowsIncluded}/${d.futures.length} futures, ${rc?.rowsIncluded} calls`);
     check("the stocks' shares of the bad days add up to the bad days' average loss", Math.abs(rf.contributionsSum - rf.es) <= 1 && Math.abs(rc.contributionsSum - rc.es) <= 1);
     check("the worst day is at least as bad as the 1-in-20 day, which is a loss", rf.worst.rupees <= -rf.var && rf.var > 0 && rc.var > 0);
+    // LIVE NOW (worker/k2-live.mjs): every NOW cell carries its contract's token and its buy.
+    const liveCells = (b.html.match(/data-live="N(?:SE|FO):\d+" data-buy="[\d.]+" data-frozen="[01]"/g) || []).length;
+    const withToken = d.futures.filter((x) => x.liveToken).length + d.options.filter((x) => x.liveToken).length;
+    check("every NOW cell carries its contract's Angel token, its buy and whether it is an order -- for the live service",
+      withToken > 0 && liveCells === withToken && d.options.every((x) => x.liveToken) && /class="nowv"/.test(b.html),
+      `${liveCells} cells, ${withToken} rows with a token`);
+    // THE PAGE'S OWN SCRIPTS MUST PARSE. They live in a template literal, which drops
+    // single backslashes: //$/ became //$/ and broke the whole script (29 Sep, caught
+    // before any push).
+    const pageScripts = [...b.html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    const scriptErrors = pageScripts.map((code) => { try { new Function(code); return null; } catch (e) { return e.message; } }).filter(Boolean);
+    check("the page's own scripts parse (age, reload, live NOW)", pageScripts.length > 0 && scriptErrors.length === 0, scriptErrors.join("; "));
+
     check("the freeze headline stays on screen; only its explanation folds",
       /<summary><b>BUY, SELL AND STOP ARE FIXED FOR TODAY<\/b>/.test(b.html) && /<details class="fold">/.test(b.html));
     // The anchor is the NSE futures CONTRACT (the user's platform quotes it
@@ -383,7 +431,11 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("every option on the page is a CALL on a stock the desk rates BUY or ACCUMULATE",
       d.options.length > 0 && d.options.every((x) => x.right === "CE" && buyNames.has(x.symbol)),
       `${d.options.length} options, ${d.options.filter((x) => x.right === "PE").length} puts, ${d.options.filter((x) => !buyNames.has(x.symbol)).length} off-view`);
-    check("and the PUTS tab says why it is empty, instead of just being blank", /No puts, by design/.test(b.html));
+    check("and the PUTS tab says why it is empty, instead of just being blank", /No puts: NIFTY is not in a downtrend/.test(b.html));
+    check("the market's direction is at the top: UP, with the test result, and it is not a downtrend",
+      b.data.direction?.available === true && b.data.direction.downtrend === false && /MARKET DIRECTION: UP/.test(b.html)
+        && /the test FAILED/.test(b.html) && b.data.direction.stale === false,
+      JSON.stringify({ regime: b.data.direction?.regime, asOf: b.data.direction?.asOf, stale: b.data.direction?.stale }));
     // THE MONEY ON A ROW COMES FROM THAT ROW'S OWN LEVELS (25 Sep: ASTRAL showed
     // cost at the live price beside a frozen buy), and in the user's real sizes.
     check("every option's cost per lot is its own buy x lot, and the loss at its stop is shown",
@@ -691,7 +743,7 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     // crash (ABFRL's 22 May 2025 demerger reads as a 66.6% fall), so the page
     // shows no risk figure at all -- and the reason -- rather than a wrong one.
     const noCa = await runBuild("thu-1053-no-corporate-actions", { ...normal, clock: ist("2026-09-24", "10:53") }, new Map(),
-      { ledgerFile: path.join(tmp, "noca-levels.json"), ledgerDir: path.join(tmp, "noca-ledger"), risk: { riskHistoryFor: simHistory, riskActions: null } });
+      { ledgerFile: path.join(tmp, "noca-levels.json"), ledgerDir: path.join(tmp, "noca-ledger"), risk: { ...SIM_RISK, riskActions: null } });
     check("without NSE's corporate-action filings the page shows no risk figure, and says why",
       /BAD-DAY RISK: not available on this build/.test(text(noCa.html)) && /corporate-action filings could not be read/.test(text(noCa.html))
         && !/1 day in 20:/.test(noCa.html), (text(noCa.html).match(/BAD-DAY RISK[^.]{0,160}/) || ["no risk line"])[0]);
@@ -720,6 +772,124 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("NSE unreachable: the page says NOT checked, and the gate stays green",
       down.data.feedCheck?.checked === false && /Not checked against NSE/.test(down.html) && quiet.problems.length === 0,
       quiet.problems[0] || down.data.feedCheck?.reason);
+  }
+
+  // ======================== DOWNTREND: NO NEW BUYS, PUTS =======================
+  // The failure of 21-29 Sep 2026: NIFTY under its 20-day average, the 20-day
+  // under the 50-day -- the desk's own reader said DOWN every day -- and the
+  // page showed only buys. Asked for, verbatim: "the market is falling ... you
+  // should know it and give me the put option". On a record of its own.
+  console.log("\nThu 24 Sep -- DOWNTREND: NIFTY under its 20-day and 50-day averages, the market 2% lower");
+  {
+    const own = { ledgerFile: path.join(tmp, "down-levels.json"), ledgerDir: path.join(tmp, "down-ledger") };
+    const hash = (s) => [...String(s)].reduce((a, ch) => (Math.imul(a, 31) + ch.charCodeAt(0)) >>> 0, 7);
+    // A third of the names are not falling themselves: rated SELL or REDUCE,
+    // they must still get no put.
+    const stockTrend = (s) => (hash(s) % 3 === 0 ? "NEUTRAL_CHOPPY" : "BEAR_HOSTILE");
+    const downRisk = { ...SIM_RISK, directionHistoryFor: directionFrom(NIFTY_DOWN), trendFor: stockTrend };
+    const downDay = { indexMove: -0.02, idioScale: 0.01, ivMult: 1.2, spreadPct: 0.02 };
+    const INDICES = ["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "NIFTYNXT50"];
+    const universe = fnoUniverseEngine.getUniverse({ severity: "NORMAL", shieldActive: false });
+    const actionOf = new Map(universe.map((r) => [r.symbol, r.action]));
+    const book = new Map();
+    const b = await runBuild("thu-0933-downtrend-puts", { ...downDay, clock: ist("2026-09-24", "09:33") }, book, { ...own, risk: downRisk });
+    const d = b.data;
+    const puts = d.options.filter((x) => x.right === "PE");
+    const names = [...new Set(puts.map((x) => x.symbol))];
+    console.log(`  09:33 -> ${d.futures.length} futures, ${tabCount(b.html, "t-ce")} calls, ${tabCount(b.html, "t-pe")} puts on ${names.length} names`
+      + ` (indices: ${names.filter((s) => INDICES.includes(s)).join(", ") || "none"})`);
+    check("the direction is DOWN, said at the top with the levels it was read from and when",
+      d.direction?.downtrend === true && d.direction.stale === false && /MARKET DIRECTION: DOWN/.test(b.html)
+        && /NIFTY in a downtrend since/.test(b.html) && /its 20-day average/.test(b.html),
+      JSON.stringify({ regime: d.direction?.regime, since: d.direction?.since, asOf: d.direction?.asOf, close: d.direction?.close }));
+    check("beside it, that the direction's own test FAILED -- with its numbers", /Tested first, and it FAILED/.test(b.html) && /\+0\.29% a trade/.test(b.html) && /t = 0\.205/.test(b.html));
+    check("no new futures buys, and the futures tab says why", d.futures.length === 0 && /No new futures buys: NIFTY is in a downtrend/.test(b.html));
+    check("no new calls, and the calls tab says why", d.options.every((x) => x.right === "PE") && /No new calls: NIFTY is in a downtrend/.test(b.html)
+      && !/Only on the \d+ stocks the desk rates BUY or ACCUMULATE/.test(b.html));
+    check("puts ARE on the page (not an empty pass), and the tab counts them", puts.length > 0 && tabCount(b.html, "t-pe") === puts.length, `${puts.length} puts`);
+    check("index puts are among them", names.some((s) => INDICES.includes(s)), names.filter((s) => INDICES.includes(s)).join(", ") || "none");
+    const shownIdx = names.filter((s) => INDICES.includes(s));
+    check("the banner counts the puts SHOWN -- rows, names, indices, stocks -- not the names that were eligible",
+      b.html.includes(`${puts.length} on ${names.length} names (${shownIdx.length} ${shownIdx.length === 1 ? "index" : "indices"}, ${names.length - shownIdx.length} stock`),
+      (text(b.html).match(/puts instead[^.]{0,80}/) || [""])[0]);
+    check("the indices come first on the puts tab", INDICES.includes(puts[0].symbol)
+      && puts.findIndex((x) => !INDICES.includes(x.symbol)) > puts.map((x) => INDICES.includes(x.symbol)).lastIndexOf(true), puts[0].display);
+    check("an index's rows are counted under \"Index\", never \"Unknown\"", puts.filter((x) => INDICES.includes(x.symbol)).every((x) => x.sector === "Index")
+      && /These \d+ rows are on <b>\d+ names<\/b>/.test(b.html));
+    const offView = puts.filter((x) => !INDICES.includes(x.symbol)
+      && !((actionOf.get(x.symbol) === "SELL" || actionOf.get(x.symbol) === "REDUCE") && stockTrend(x.symbol) === "BEAR_HOSTILE"));
+    check("every stock put is on a name rated SELL or REDUCE that is falling itself -- none on a stock that is not",
+      offView.length === 0, offView.slice(0, 5).map((x) => `${x.symbol} ${actionOf.get(x.symbol)} ${stockTrend(x.symbol)}`).join("; ") || `${names.length - names.filter((s) => INDICES.includes(s)).length} stocks`);
+    const notFalling = d.optionsDirection?.ratedDownNotFalling || [];
+    check("SELL/REDUCE names that are not falling get no put, and the page counts them",
+      notFalling.length > 0 && notFalling.every((s) => stockTrend(s) !== "BEAR_HOSTILE") && !puts.some((x) => notFalling.includes(x.symbol))
+        && /more are rated SELL or REDUCE but are not falling/.test(b.html), `${notFalling.length} not falling`);
+    check("the puts freeze on live books, and every one becomes a paper trade on TRACK",
+      d.levelsFrozen === true && d.track.tally.added === puts.length && (d.track.summary.PE?.shown ?? 0) === puts.length,
+      `${d.track.tally.added} added, PE shown ${d.track.summary.PE?.shown}`);
+    const onTick = (v, t) => t > 0 && Math.abs(Math.round(v / t) * t - v) < 1e-6;
+    const bent = puts.filter((x) => !(onTick(x.buy, x.tick) && onTick(x.sell, x.tick) && onTick(x.stop, x.tick) && x.sell > x.buy && x.stop < x.buy
+      && Math.abs(x.stop - Math.round(x.buy / 2 / x.tick) * x.tick) < 1e-6 && Math.abs(x.costPerLot - Math.round(x.buy * x.lotSize * 100) / 100) < 0.01));
+    check("every put: stop half the buy, sell above it, cost its own buy x lot, all on its tick", bent.length === 0, bent.slice(0, 3).map((x) => x.display).join("; "));
+    const odds = require("../api/_lib/trade-odds");
+    const withRv = puts.filter((x) => Number(x.rv) > 0);
+    const touchOff = withRv.filter((x) => {
+      const t = odds.timeToTarget({ spot: x.forward, target: x.strike - x.sell, volatility: x.rv / 100, daysAvailable: x.daysLeft });
+      return !t || Math.abs(t.probabilityOfTouchPct - x.touchPct) > 0.11;
+    });
+    check("every put's P(TOUCH) is the chance of the underlying FALLING to strike minus its own sell", withRv.length > 0 && touchOff.length === 0,
+      `${touchOff.length} off of ${withRv.length}`);
+    const pePane = b.html.split('class="pane pane-pe"')[1].split('class="pane pane-trk"')[0];
+    check("a missing figure is a dash, never a bare % sign", !/(^|[^\d.])%(?=\s*(<|\/))/.test(pePane.replace(/\d%/g, "")) && !/ \/ %/.test(pePane),
+      (pePane.match(/.{0,40}[^\d.]%.{0,10}/) || [""])[0]);
+    check("no index put carries a results date or a results line", puts.filter((x) => INDICES.includes(x.symbol)).every((x) => x.resultsStatus === null && x.resultsDate === null));
+    check("index puts carry no exit-by date before expiry (an index is cash-settled)", puts.filter((x) => INDICES.includes(x.symbol)).every((x) => !x.exitBy));
+    const rp = d.risk?.puts;
+    check("the puts tab carries its bad-day risk: the market opening 5% HIGHER, and figures that are the OPTIMISTIC end",
+      rp?.available === true && /market opens 5% higher: <b class="down amt">−₹[\d,]+<\/b>/.test(pePane) && /For puts these figures are the OPTIMISTIC end/.test(pePane)
+        && rp.gap?.shockPct === 5 && rp.gap.rupees < 0, rp ? `1-in-20 ${rp.var}, worst ${rp.worst?.rupees}, gap ${rp.gap?.rupees}` : JSON.stringify(d.risk).slice(0, 120));
+    check("the puts' risk says the names ROSE on its worst day, not fell", /names rose and/.test(pePane) && !/stocks fell and/.test(pePane));
+    const gate = health.checkLivePath({ ...d, brokerCheck: { ok: true } }, ist("2026-09-24", "09:53"));
+    check("the production gate is green on the downtrend build", gate.problems.length === 0, gate.problems[0] || "green");
+    const pageScripts = [...b.html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
+    check("the page's own scripts parse on the downtrend page", pageScripts.every((code) => { try { new Function(code); return true; } catch { return false; } }));
+    check("every put's NOW cell carries its token for the live service", puts.every((x) => x.liveToken)
+      && (b.html.match(/data-live="NFO:\d+"/g) || []).length === puts.length);
+
+    // Later the same day: the levels hold, NOW moves.
+    const noon = await runBuild("thu-1213-downtrend-later", { ...downDay, indexMove: -0.03, clock: ist("2026-09-24", "12:13") }, book, { ...own, risk: downRisk });
+    const frozenAt = new Map(puts.map((x) => [x.zerodha, x.buy]));
+    const heldPuts = noon.data.options.filter((x) => frozenAt.has(x.zerodha));
+    check("at 12:13 the puts' levels have not moved, and their NOW has", heldPuts.length > 0 && heldPuts.every((x) => x.buy === frozenAt.get(x.zerodha))
+      && heldPuts.some((x) => x.now !== puts.find((p) => p.zerodha === x.zerodha).now), `${heldPuts.length} held`);
+
+    // The next session the direction is no longer down: calls come back, and
+    // Thursday's puts stay on TRACK until they finish.
+    const up = await runBuild("fri-0933-direction-back-up", { ...normal, clock: ist("2026-09-25", "09:33") }, new Map(), { ...own, risk: SIM_RISK });
+    check("when the direction is no longer down, calls come back and no new put is shown",
+      up.data.direction.downtrend === false && up.data.options.length > 0 && up.data.options.every((x) => x.right === "CE"), `${up.data.options.length} options`);
+    check("and Thursday's puts are still on TRACK", (up.data.track.summary.PE?.shown ?? 0) >= puts.length && /PUTS/.test(up.html.split('class="pane pane-trk"')[1] || ""),
+      `PE shown ${up.data.track.summary.PE?.shown}`);
+    const dbDown = health.checkDatabase({ ledgerDir: own.ledgerDir, levelsFile: own.ledgerFile });
+    check("the downtrend record passes the production health gate", dbDown.trades > 0 && dbDown.problems.length === 0, dbDown.problems[0] || `${dbDown.trades} trades`);
+  }
+
+  // NIFTY's history missing: the page says the direction is not read, and
+  // shows buys as before -- never a blank page, never a guessed direction.
+  {
+    const own = { ledgerFile: path.join(tmp, "nodir-levels.json"), ledgerDir: path.join(tmp, "nodir-ledger") };
+    const nd = await runBuild("thu-1033-no-direction", { ...normal, clock: ist("2026-09-24", "10:33") }, new Map(),
+      { ...own, risk: { ...SIM_RISK, directionHistoryFor: () => null } });
+    check("without NIFTY's history the page says the direction was not read, and shows buys as before",
+      nd.data.direction?.available === false && /MARKET DIRECTION: NOT READ ON THIS BUILD/.test(nd.html)
+        && nd.data.options.length > 0 && nd.data.options.every((x) => x.right === "CE"), nd.data.direction?.reason);
+    // A close older than the last session is said, not hidden.
+    const old = { rows: NIFTY_DOWN.rows.filter((r) => r[0] <= "2026-09-21") };
+    const st = await runBuild("thu-1053-direction-stale", { ...normal, clock: ist("2026-09-24", "10:53") }, new Map(),
+      { ...own, risk: { ...SIM_RISK, directionHistoryFor: (s) => (s === "^NSEI" ? old : null) } });
+    check("a direction read from an older close says which close, in the banner", st.data.direction?.stale === true
+      && /was not on hand when this was built/.test(st.html) && /close of Mon,? 21 Sept? 2026/.test(text(st.html)),
+      `${st.data.direction?.asOf} vs ${st.data.direction?.expectedAsOf}`);
   }
 
   Date.now = realNow;

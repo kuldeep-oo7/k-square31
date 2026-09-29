@@ -44,7 +44,13 @@ console.log("Starting contract screener test suite...");
     "a contract you can actually exit must rank higher");
   assert.ok(scoreContract({ ...base, underlyingScore: 95 }).score > scoreContract({ ...base, underlyingScore: 10 }).score,
     "the underlying's own read must carry through");
-  console.log("  ✓ Probability, liquidity and the underlying read all move the score");
+  // For a PUT the read is the other way up: a weaker stock is the better put.
+  assert.ok(scoreContract({ ...base, optionType: "PE", underlyingScore: 10 }).score > scoreContract({ ...base, optionType: "PE", underlyingScore: 95 }).score,
+    "for a put, a weaker underlying must rank higher");
+  assert.strictEqual(scoreContract({ ...base, optionType: "PE", underlyingScore: 10 }).parts.underlying, 90);
+  assert.strictEqual(scoreContract({ ...base, optionType: "CE", underlyingScore: 10 }).parts.underlying, 10);
+  assert.strictEqual(scoreContract({ ...base, optionType: "PE", underlyingScore: NaN }).parts.underlying, 50);
+  console.log("  ✓ Probability, liquidity and the underlying read all move the score -- a put reads the underlying the other way up");
 
   // No term may be allowed to dominate: every one of them is unvalidated, and a
   // hidden weight is how this repo's composite score went wrong twice before.

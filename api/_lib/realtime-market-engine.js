@@ -649,7 +649,7 @@ class RealtimeMarketEngine {
    * NIFTY those are different contracts, which is how a card came to quote a
    * one-day weekly while its symbol named the monthly.
    */
-  async refreshLiveQuotes({ limit = 45, everyActionable = false } = {}) {
+  async refreshLiveQuotes({ limit = 45, everyActionable = false, symbols = null } = {}) {
     // RE-ENTRANCY GUARD. These are sequential network calls on a 90-second
     // timer: 45 chains at a second and a half each leaves very little margin,
     // and one slow or rate-limited fetch pushes the cycle past the next tick.
@@ -703,18 +703,55 @@ class RealtimeMarketEngine {
       // calls on the other 39 BUY names were refused for want of a live book,
       // a hidden cap. The build asks for EVERY actionable name (about 0.4 s a
       // chain) and nothing else: calls are shown only on actionable names.
-      const hot = everyActionable
+      // EXACTLY THE NAMES THE PAGE WILL SHOW, when the build says which
+      // (market-direction.js optionsView). In a downtrend those are the indices
+      // and the falling SELL/REDUCE stocks, and "every actionable name" -- BUY
+      // and ACCUMULATE -- would fetch books for rows the page will not show and
+      // none for the puts it will: in session a put with no live book is
+      // refused, nothing freezes, and the health gate turns red.
+      const bySymbol = new Map(universe.map((row) => [row.symbol, row]));
+      const hot = symbols
+        ? { picked: symbols.map((symbol) => bySymbol.get(symbol) || { symbol, spotPrice: null }) }
+        : everyActionable
         ? { picked: actionable.slice() }
         : takeRotating(actionable, "_actionableCursor", Math.min(ACTIONABLE_SLOTS, limit));
-      const slice = everyActionable ? [] : takeRotating(rest, "_quoteCursor", Math.max(0, limit - hot.picked.length)).picked;
+      const slice = symbols || everyActionable ? [] : takeRotating(rest, "_quoteCursor", Math.max(0, limit - hot.picked.length)).picked;
       const picks = [...hot.picked, ...slice];
+      // AN INDEX HAS NO ROW, SO NO PRICE TO CENTRE ITS CHAIN ON. The broker
+      // returns 48 contracts around the centre -- for NIFTY, with strikes 50
+      // apart, about 2.6% either side -- so centring on the last close misses
+      // most of the useful strikes on a day that opened 2% away. The live
+      // front future is the centre; the settlement file's close only if the
+      // broker gives nothing.
+      const unpriced = picks.filter((row) => !(Number(row.spotPrice) > 0));
+      const liveCentre = {};
+      if (unpriced.length) {
+        try {
+          const brokers = require("./broker-feed");
+          // The front FUTURE, not frontExpiry: NIFTY's first listed expiry is
+          // a weekly, which has options and no future.
+          const frontFuture = (symbol) => {
+            const exps = contractRef?.symbols?.[symbol]?.expiries || {};
+            return Object.keys(exps).sort()
+              .find((e) => Number(exps[e]?.futuresPrice) > 0 && Date.parse(`${e}T15:30:00+05:30`) > Date.now()) || null;
+          };
+          const wanted = unpriced.map((row) => ({ symbol: row.symbol, expiry: frontFuture(row.symbol) })).filter((x) => x.expiry);
+          const got = wanted.length ? await brokers.futuresQuotes(wanted) : null;
+          for (const q of Object.values(got?.quotes || {})) if (q.price > 0) liveCentre[q.symbol] = q.price;
+        } catch (error) {
+          console.error("Index futures for chain centres failed:", error.message);
+        }
+      }
       const requests = picks.map((row) => {
         // The expiry the card is written on. Passing none falls back to the
         // FRONT expiry, which for NIFTY is a weekly the card does not describe.
         const chosen = reference.tradableExpiry(row.symbol, { minDays: 7, reference: contractRef });
         const expiry = chosen ? chosen.expiry : null;
-        const near = reference.nearestListedStrike(row.symbol, row.spotPrice, { reference: contractRef, expiry });
-        return near ? { symbol: row.symbol, expiry: near.expiry, referencePrice: row.spotPrice } : null;
+        const centre = Number(row.spotPrice) > 0 ? Number(row.spotPrice)
+          : liveCentre[row.symbol] || Number(contractRef?.symbols?.[row.symbol]?.underlyingPrice) || null;
+        if (!(centre > 0)) return null;
+        const near = reference.nearestListedStrike(row.symbol, centre, { reference: contractRef, expiry });
+        return near ? { symbol: row.symbol, expiry: near.expiry, referencePrice: centre } : null;
       }).filter(Boolean);
       if (!requests.length) return null;
       const result = await live.refreshQuotes(requests);
