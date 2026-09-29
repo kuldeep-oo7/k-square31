@@ -257,7 +257,8 @@
   "OPTION|BHARATFORG|BHARATFORG26OCT2000CE",
   "OPTION|MAXHEALTH|MAXHEALTH26OCT1050CE",
   "OPTION|MARUTI|MARUTI26OCT12600CE",
-  "OPTION|DABUR|DABUR26OCT395CE"
+  "OPTION|DABUR|DABUR26OCT395CE",
+  "OPTION|KOTAKBANK|KOTAKBANK26OCT425CE"
  ],
  "options": {
   "SUNPHARMA26OCT1860CE": {
@@ -3153,6 +3154,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-09-29T06:45:46.673Z",
    "frozenAtIst": "2026-09-29 12:15 IST",
+   "frozenAtSpot": null
+  },
+  "KOTAKBANK26OCT425CE": {
+   "buy": 3.7,
+   "sell": 5.55,
+   "stop": 1.85,
+   "tick": 0.05,
+   "lotSize": 2000,
+   "expiry": "2026-10-27",
+   "strike": 425,
+   "right": "CE",
+   "symbol": "KOTAKBANK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-29T07:26:21.836Z",
+   "frozenAtIst": "2026-09-29 12:56 IST",
    "frozenAtSpot": null
   }
  },
