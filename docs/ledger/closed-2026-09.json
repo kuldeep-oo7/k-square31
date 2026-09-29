@@ -11361,6 +11361,168 @@
     "pct": 2.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-09-29|CE|KOTAKBANK26OCT415CE",
+   "kind": "CE",
+   "symbol": "KOTAKBANK",
+   "contract": "KOTAKBANK26OCT415CE",
+   "expiry": "2026-10-27",
+   "strike": 415,
+   "optionType": "CE",
+   "lotSize": 2000,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 4.05,
+   "target": 6.05,
+   "target2": null,
+   "stop": 2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 29.7,
+     "medianDays": 14.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-29T04:06:33.336Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-29T06:26:26.267Z",
+   "exitPrice": 6.05,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 2.33,
+   "sessionsHeld": 0,
+   "best": 6.2,
+   "worst": 3.75,
+   "last": 6.2,
+   "lastAt": "2026-09-29T06:26:26.267Z",
+   "marks": 8,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 6.2,
+    "low": 3.75,
+    "last": 6.2
+   },
+   "pnl": {
+    "perUnit": 2,
+    "pct": 49.38,
+    "basis": "NET",
+    "perLot": 4000,
+    "netPerLot": 3925.91
+   }
+  },
+  {
+   "id": "2026-09-29|CE|KOTAKBANK26OCT410CE",
+   "kind": "CE",
+   "symbol": "KOTAKBANK",
+   "contract": "KOTAKBANK26OCT410CE",
+   "expiry": "2026-10-27",
+   "strike": 410,
+   "optionType": "CE",
+   "lotSize": 2000,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 5.4,
+   "target": 8.1,
+   "target2": null,
+   "stop": 2.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 36.2,
+     "medianDays": 12.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-29T04:06:33.336Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-29T06:26:26.267Z",
+   "exitPrice": 8.1,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 2.33,
+   "sessionsHeld": 0,
+   "best": 8.25,
+   "worst": 4.95,
+   "last": 8.15,
+   "lastAt": "2026-09-29T06:26:26.267Z",
+   "marks": 8,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 8.25,
+    "low": 4.95,
+    "last": 8.15
+   },
+   "pnl": {
+    "perUnit": 2.7,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 5400,
+    "netPerLot": 5316.82
+   }
+  },
+  {
+   "id": "2026-09-29|CE|KOTAKBANK26OCT405CE",
+   "kind": "CE",
+   "symbol": "KOTAKBANK",
+   "contract": "KOTAKBANK26OCT405CE",
+   "expiry": "2026-10-27",
+   "strike": 405,
+   "optionType": "CE",
+   "lotSize": 2000,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 7.15,
+   "target": 10.7,
+   "target2": null,
+   "stop": 3.6,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 42.1,
+     "medianDays": 11.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-29T04:26:36.384Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-09-29T06:26:26.267Z",
+   "exitPrice": 10.7,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 2,
+   "sessionsHeld": 0,
+   "best": 10.8,
+   "worst": 6.65,
+   "last": 10.65,
+   "lastAt": "2026-09-29T06:26:26.267Z",
+   "marks": 8,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 10.8,
+    "low": 6.65,
+    "last": 10.65
+   },
+   "pnl": {
+    "perUnit": 3.55,
+    "pct": 49.65,
+    "basis": "NET",
+    "perLot": 7100,
+    "netPerLot": 7005.26
+   }
   }
  ]
 }
