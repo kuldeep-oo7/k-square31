@@ -1,0 +1,13 @@
+# K² live prices (worker/k2-live.mjs). Deploy: npx wrangler deploy --config worker/wrangler.toml
+# Secrets, set once by the account holder (never committed):
+#   npx wrangler secret put ANGEL_API_KEY      --config worker/wrangler.toml
+#   npx wrangler secret put ANGEL_CLIENT_CODE  --config worker/wrangler.toml
+#   npx wrangler secret put ANGEL_MPIN         --config worker/wrangler.toml
+#   npx wrangler secret put ANGEL_TOTP_SECRET  --config worker/wrangler.toml
+#   npx wrangler secret put K2_VIEW_KEY        --config worker/wrangler.toml
+name = "k2-live"
+main = "k2-live.mjs"
+compatibility_date = "2026-09-01"
+
+[vars]
+ALLOWED_ORIGIN = "https://kuldeep-oo7.github.io"

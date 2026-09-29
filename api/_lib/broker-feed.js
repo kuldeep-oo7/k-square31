@@ -734,6 +734,9 @@ async function contractQuotes(contracts, { timeoutMs = 20_000, batchSize = 50, m
         if (!wanted || !(last > 0)) continue;
         quotes[wanted.key] = {
           key: wanted.key,
+          // Angel's own id for the contract, so the page can ask for this exact
+          // contract again, live (worker/k2-live.mjs).
+          exchange: wanted.exchange, token: wanted.token,
           tradingSymbol: row.tradingSymbol || wanted.tradingSymbol,
           ltp: last,
           open: num(row.open),
