@@ -12160,6 +12160,222 @@
     "perLot": 15913,
     "netPerLot": 15759.79
    }
+  },
+  {
+   "id": "2026-09-29|CE|PREMIERENE26OCT940CE",
+   "kind": "CE",
+   "symbol": "PREMIERENE",
+   "contract": "PREMIERENE26OCT940CE",
+   "expiry": "2026-10-27",
+   "strike": 940,
+   "optionType": "CE",
+   "lotSize": 650,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 20.15,
+   "target": 30.2,
+   "target2": null,
+   "stop": 10.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38.3,
+     "medianDays": 12.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T04:06:33.336Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-29T08:25:59.731Z",
+   "exitPrice": 10.05,
+   "exitReason": "STOP",
+   "hoursFillToExit": 4.32,
+   "sessionsHeld": 0,
+   "best": 20.15,
+   "worst": 9.9,
+   "last": 10.45,
+   "lastAt": "2026-09-29T08:25:59.731Z",
+   "marks": 14,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 23,
+    "low": 9.9,
+    "last": 10.45
+   },
+   "pnl": {
+    "perUnit": -10.1,
+    "pct": -50.12,
+    "basis": "NET",
+    "perLot": -6565,
+    "netPerLot": -6630.64
+   }
+  },
+  {
+   "id": "2026-09-25|PE|CROMPTON26OCT220PE",
+   "kind": "PE",
+   "symbol": "CROMPTON",
+   "contract": "CROMPTON26OCT220PE",
+   "expiry": "2026-10-27",
+   "strike": 220,
+   "optionType": "PE",
+   "lotSize": 2150,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:25:18.965Z",
+   "buy": 6.68,
+   "target": 10.02,
+   "target2": null,
+   "stop": 3.34,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.7,
+     "medianDays": 10.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-25T04:25:18.968Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-29T08:25:59.731Z",
+   "exitPrice": 10.02,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 100.01,
+   "sessionsHeld": 2,
+   "best": 10.06,
+   "worst": 5.3,
+   "last": 9.56,
+   "lastAt": "2026-09-29T08:25:59.731Z",
+   "marks": 76,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 10.06,
+    "low": 7,
+    "last": 9.56
+   },
+   "pnl": {
+    "perUnit": 3.34,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 7181,
+    "netPerLot": 7085.96
+   }
+  },
+  {
+   "id": "2026-09-25|CE|CROMPTON26OCT225CE",
+   "kind": "CE",
+   "symbol": "CROMPTON",
+   "contract": "CROMPTON26OCT225CE",
+   "expiry": "2026-10-27",
+   "strike": 225,
+   "optionType": "CE",
+   "lotSize": 2150,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 6.09,
+   "target": 9.13,
+   "target2": null,
+   "stop": 3.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 52,
+     "medianDays": 10.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T04:25:18.968Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-09-29T08:25:59.731Z",
+   "exitPrice": 3.05,
+   "exitReason": "STOP",
+   "hoursFillToExit": 100.01,
+   "sessionsHeld": 2,
+   "best": 6.09,
+   "worst": 2.96,
+   "last": 3.25,
+   "lastAt": "2026-09-29T08:25:59.731Z",
+   "marks": 77,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 4.71,
+    "low": 2.96,
+    "last": 3.25
+   },
+   "pnl": {
+    "perUnit": -3.04,
+    "pct": -49.92,
+    "basis": "NET",
+    "perLot": -6536,
+    "netPerLot": -6601.69
+   }
+  },
+  {
+   "id": "2026-09-25|CE|CROMPTON26OCT220CE",
+   "kind": "CE",
+   "symbol": "CROMPTON",
+   "contract": "CROMPTON26OCT220CE",
+   "expiry": "2026-10-27",
+   "strike": 220,
+   "optionType": "CE",
+   "lotSize": 2150,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 8.82,
+   "target": 13.24,
+   "target2": null,
+   "stop": 4.41,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.3,
+     "medianDays": 9.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T04:25:18.968Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-09-29T08:25:59.731Z",
+   "exitPrice": 4.41,
+   "exitReason": "STOP",
+   "hoursFillToExit": 100.01,
+   "sessionsHeld": 2,
+   "best": 8.82,
+   "worst": 4.41,
+   "last": 4.9,
+   "lastAt": "2026-09-29T08:25:59.731Z",
+   "marks": 77,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 6.7,
+    "low": 4.41,
+    "last": 4.9
+   },
+   "pnl": {
+    "perUnit": -4.41,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -9481.5,
+    "netPerLot": -9555.45
+   }
   }
  ]
 }
