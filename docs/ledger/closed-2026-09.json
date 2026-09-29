@@ -12743,6 +12743,211 @@
     "perLot": 6400,
     "netPerLot": 6309.93
    }
+  },
+  {
+   "id": "2026-09-29|CE|KFINTECH26OCT920CE",
+   "kind": "CE",
+   "symbol": "KFINTECH",
+   "contract": "KFINTECH26OCT920CE",
+   "expiry": "2026-10-27",
+   "strike": 920,
+   "optionType": "CE",
+   "lotSize": 575,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T05:26:01.684Z",
+   "buy": 12.75,
+   "target": 19.15,
+   "target2": null,
+   "stop": 6.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 23.8,
+     "medianDays": 15.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T05:47:02.119Z",
+   "hoursToFill": 0.35,
+   "closedAt": "2026-09-29T09:26:58.486Z",
+   "exitPrice": 6.4,
+   "exitReason": "STOP",
+   "hoursFillToExit": 3.67,
+   "sessionsHeld": 0,
+   "best": 12.75,
+   "worst": 6.2,
+   "last": 6.8,
+   "lastAt": "2026-09-29T09:26:58.486Z",
+   "marks": 12,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 15.65,
+    "low": 6.2,
+    "last": 6.8
+   },
+   "pnl": {
+    "perUnit": -6.35,
+    "pct": -49.8,
+    "basis": "NET",
+    "perLot": -3651.25,
+    "netPerLot": -3708.82
+   }
+  },
+  {
+   "id": "2026-09-29|FUT|LTTS (share)",
+   "kind": "FUT",
+   "symbol": "LTTS",
+   "contract": "LTTS (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 100,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 3131.9,
+   "target": 3210.2,
+   "target2": 3288.5,
+   "stop": 3084.9,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "STOP",
+   "filledAt": "2026-09-29T07:26:21.853Z",
+   "hoursToFill": 3.33,
+   "closedAt": "2026-09-29T09:26:58.486Z",
+   "exitPrice": 3084.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 2.01,
+   "sessionsHeld": 0,
+   "best": 3145.5,
+   "worst": 3084.3,
+   "last": 3092.3,
+   "lastAt": "2026-09-29T09:26:58.486Z",
+   "marks": 17,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 3227.3,
+    "low": 3084.3,
+    "last": 3092.3
+   },
+   "pnl": {
+    "perUnit": -47,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-29|CE|KFINTECH26OCT900CE",
+   "kind": "CE",
+   "symbol": "KFINTECH",
+   "contract": "KFINTECH26OCT900CE",
+   "expiry": "2026-10-27",
+   "strike": 900,
+   "optionType": "CE",
+   "lotSize": 575,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 18.5,
+   "target": 27.75,
+   "target2": null,
+   "stop": 9.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 33,
+     "medianDays": 13.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T04:06:33.336Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-29T09:26:58.486Z",
+   "exitPrice": 9.25,
+   "exitReason": "STOP",
+   "hoursFillToExit": 5.34,
+   "sessionsHeld": 0,
+   "best": 19.5,
+   "worst": 8.6,
+   "last": 9.7,
+   "lastAt": "2026-09-29T09:26:58.486Z",
+   "marks": 17,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 20.05,
+    "low": 8.6,
+    "last": 9.7
+   },
+   "pnl": {
+    "perUnit": -9.25,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -5318.75,
+    "netPerLot": -5380.96
+   }
+  },
+  {
+   "id": "2026-09-28|CE|KOTAKBANK26OCT400CE",
+   "kind": "CE",
+   "symbol": "KOTAKBANK",
+   "contract": "KOTAKBANK26OCT400CE",
+   "expiry": "2026-10-27",
+   "strike": 400,
+   "optionType": "CE",
+   "lotSize": 2000,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 10.7,
+   "target": 16.05,
+   "target2": null,
+   "stop": 5.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.1,
+     "medianDays": 11.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-28T04:06:42.660Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-29T09:26:58.486Z",
+   "exitPrice": 16.05,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 29.34,
+   "sessionsHeld": 1,
+   "best": 16.65,
+   "worst": 8.6,
+   "last": 15.95,
+   "lastAt": "2026-09-29T09:26:58.486Z",
+   "marks": 45,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 16.65,
+    "low": 8.6,
+    "last": 15.95
+   },
+   "pnl": {
+    "perUnit": 5.35,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 10700,
+    "netPerLot": 10581.51
+   }
   }
  ]
 }
