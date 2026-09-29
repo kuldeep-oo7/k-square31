@@ -7409,6 +7409,60 @@
     "perLot": -7445,
     "netPerLot": -7513.2
    }
+  },
+  {
+   "id": "2026-09-28|FUT|TMPV26OCTFUT",
+   "kind": "FUT",
+   "symbol": "TMPV",
+   "contract": "TMPV26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1600,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 285.55,
+   "target": 292.7,
+   "target2": 299.85,
+   "stop": 281.25,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 75.2,
+     "medianTradingDays": 0.122
+    },
+    "target": {
+     "probabilityPct": 82.4,
+     "medianTradingDays": 1.332
+    },
+    "sigmaPct": 41.9,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T06:06:17.170Z",
+   "hoursToFill": 1.99,
+   "closedAt": "2026-09-29T03:44:02.647Z",
+   "exitPrice": 280,
+   "exitReason": "STOP",
+   "hoursFillToExit": 21.63,
+   "sessionsHeld": 1,
+   "best": 286.05,
+   "worst": 280,
+   "last": 280,
+   "lastAt": "2026-09-29T03:44:02.647Z",
+   "marks": 29,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 280,
+    "low": 280,
+    "last": 280
+   },
+   "pnl": {
+    "perUnit": -5.55,
+    "pct": -1.94,
+    "basis": "GROSS"
+   }
   }
  ]
 }
