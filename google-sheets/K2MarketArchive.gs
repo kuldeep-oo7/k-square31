@@ -12,6 +12,11 @@ const K2_STATE_HEADERS = [
 ];
 const K2_STATE_CHUNK_SIZE = 40000;
 const K2_MAX_STATE_DOCUMENT = 5000000;
+// RETENTION, approved by the user on 29 Sep 2026: the newest three versions of
+// each document stay on K2_STATE. Every read scans the whole sheet, and keeping
+// every version grew it to 181 rows of up to 40,000 characters in one day --
+// after which every call failed (28 Sep, after the close).
+const K2_STATE_KEEP_VERSIONS = 3;
 
 function setupK2Archive() {
   const spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
@@ -30,7 +35,7 @@ function doGet() {
   return json_({
     ok: true,
     service: 'K2 Google Sheets database',
-    version: '2026.09.17-audit',
+    version: '2026.09.29-retention',
     capabilities: [
       'readDocuments', 'writeDocument', 'appendTradeSignals',
       'appendPortfolioAudit', 'appendMacroRadar', 'appendStockFundamentals',
@@ -177,9 +182,54 @@ function writeDocument_(spreadsheet, payload) {
   sheet.getRange(sheet.getLastRow() + 1, 1, additions.length, K2_STATE_HEADERS.length).setValues(additions);
   SpreadsheetApp.flush();
 
-  // Preserve prior versions for audit/recovery. Retention/migration is a separate,
-  // explicitly approved maintenance job, never an ordinary write side effect.
-  return { ok: true, path: path, version: nextVersion, chunks: chunks.length };
+  // Keep the newest K2_STATE_KEEP_VERSIONS versions of this document (this one
+  // and the ones before it); delete the rest. The rows were read before the
+  // append, and appending only adds rows below them, so their numbers hold.
+  const stale = staleRows_(existingRows, nextVersion, K2_STATE_KEEP_VERSIONS);
+  if (stale.length) deleteRows_(sheet, stale);
+  return { ok: true, path: path, version: nextVersion, chunks: chunks.length, pruned: stale.length };
+}
+
+/** Row numbers of every version of one document older than the newest `keep` (counting the one just written). */
+function staleRows_(rows, newVersion, keep) {
+  const versions = Array.from(new Set(rows.map(function (row) { return row.version; })
+    .filter(function (v) { return Number.isInteger(v) && v >= 1 && v !== newVersion; })))
+    .sort(function (a, b) { return b - a; });
+  const kept = new Set(versions.slice(0, Math.max(0, keep - 1)));
+  return rows.filter(function (row) { return !kept.has(row.version); }).map(function (row) { return row.row; });
+}
+
+/**
+ * ONE-TIME CLEANUP, run once from the editor after deploying this version
+ * (29 Sep 2026): the newest K2_STATE_KEEP_VERSIONS versions of every document
+ * stay on K2_STATE, older rows are deleted. Reads only the path and version
+ * columns, so it is quick however large the sheet has grown.
+ */
+function pruneK2State() {
+  const properties = PropertiesService.getScriptProperties();
+  const spreadsheet = SpreadsheetApp.openById(properties.getProperty('K2_SPREADSHEET_ID'));
+  return withWriteLock_(function () {
+    const sheet = getStateSheet_(spreadsheet);
+    if (sheet.getLastRow() < 2) return 0;
+    const values = sheet.getRange(2, 1, sheet.getLastRow() - 1, 2).getValues();
+    const byPath = new Map();
+    values.forEach(function (row, index) {
+      const path = String(row[0] || '');
+      if (!byPath.has(path)) byPath.set(path, []);
+      byPath.get(path).push({ row: index + 2, version: Number(row[1]) });
+    });
+    const stale = [];
+    byPath.forEach(function (rows) {
+      const versions = Array.from(new Set(rows.map(function (row) { return row.version; })
+        .filter(function (v) { return Number.isInteger(v) && v >= 1; })))
+        .sort(function (a, b) { return b - a; });
+      const kept = new Set(versions.slice(0, K2_STATE_KEEP_VERSIONS));
+      rows.forEach(function (row) { if (!kept.has(row.version)) stale.push(row.row); });
+    });
+    deleteRows_(sheet, stale);
+    console.log('K2_STATE: ' + values.length + ' rows, ' + stale.length + ' deleted, ' + (values.length - stale.length) + ' kept');
+    return stale.length;
+  });
 }
 
 function getStateSheet_(spreadsheet) {
