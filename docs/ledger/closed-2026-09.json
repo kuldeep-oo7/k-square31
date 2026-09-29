@@ -12948,6 +12948,211 @@
     "perLot": 10700,
     "netPerLot": 10581.51
    }
+  },
+  {
+   "id": "2026-09-29|FUT|JKCEMENT (share)",
+   "kind": "FUT",
+   "symbol": "JKCEMENT",
+   "contract": "JKCEMENT (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 100,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 4903,
+   "target": 5025.5,
+   "target2": 5148,
+   "stop": 4829.5,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "STOP",
+   "filledAt": "2026-09-29T09:26:58.486Z",
+   "hoursToFill": 5.34,
+   "closedAt": "2026-09-29T09:45:49.247Z",
+   "exitPrice": 4829.5,
+   "exitReason": "STOP",
+   "hoursFillToExit": 0.31,
+   "sessionsHeld": 0,
+   "best": 4903,
+   "worst": 4810.5,
+   "last": 4827,
+   "lastAt": "2026-09-29T09:45:49.247Z",
+   "marks": 18,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 4993.5,
+    "low": 4810.5,
+    "last": 4827
+   },
+   "pnl": {
+    "perUnit": -73.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-29|FUT|OBEROIRLTY26OCTFUT",
+   "kind": "FUT",
+   "symbol": "OBEROIRLTY",
+   "contract": "OBEROIRLTY26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 350,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 1809.3,
+   "target": 1854.5,
+   "target2": 1899.8,
+   "stop": 1782.2,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 66.4,
+     "medianTradingDays": 0.191
+    },
+    "target": {
+     "probabilityPct": 76.1,
+     "medianTradingDays": 2.26
+    },
+    "sigmaPct": 30,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T04:46:41.477Z",
+   "hoursToFill": 0.67,
+   "closedAt": "2026-09-29T09:45:49.247Z",
+   "exitPrice": 1782.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 4.99,
+   "sessionsHeld": 0,
+   "best": 1813,
+   "worst": 1777.4,
+   "last": 1786.3,
+   "lastAt": "2026-09-29T09:45:49.247Z",
+   "marks": 18,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 1836,
+    "low": 1777.4,
+    "last": 1786.3
+   },
+   "pnl": {
+    "perUnit": -27.1,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-28|CE|BAJAJ-AUTO26OCT11400CE",
+   "kind": "CE",
+   "symbol": "BAJAJ-AUTO",
+   "contract": "BAJAJ-AUTO26OCT11400CE",
+   "expiry": "2026-10-27",
+   "strike": 11400,
+   "optionType": "CE",
+   "lotSize": 75,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T05:05:27.865Z",
+   "buy": 163.8,
+   "target": 245.7,
+   "target2": null,
+   "stop": 81.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 43,
+     "medianDays": 11.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T05:05:27.876Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-29T09:45:49.247Z",
+   "exitPrice": 81.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 28.67,
+   "sessionsHeld": 1,
+   "best": 163.8,
+   "worst": 80,
+   "last": 85.5,
+   "lastAt": "2026-09-29T09:45:49.247Z",
+   "marks": 43,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 121.6,
+    "low": 80,
+    "last": 85.5
+   },
+   "pnl": {
+    "perUnit": -81.9,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -6142.5,
+    "netPerLot": -6207.03
+   }
+  },
+  {
+   "id": "2026-09-28|CE|BAJAJ-AUTO26OCT11300CE",
+   "kind": "CE",
+   "symbol": "BAJAJ-AUTO",
+   "contract": "BAJAJ-AUTO26OCT11300CE",
+   "expiry": "2026-10-27",
+   "strike": 11300,
+   "optionType": "CE",
+   "lotSize": 75,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T05:05:27.865Z",
+   "buy": 202.15,
+   "target": 303.2,
+   "target2": null,
+   "stop": 101.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.5,
+     "medianDays": 10.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T05:25:54.677Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-09-29T09:45:49.247Z",
+   "exitPrice": 101.1,
+   "exitReason": "STOP",
+   "hoursFillToExit": 28.33,
+   "sessionsHeld": 1,
+   "best": 202.15,
+   "worst": 100.75,
+   "last": 110.35,
+   "lastAt": "2026-09-29T09:45:49.247Z",
+   "marks": 43,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 151.85,
+    "low": 100.75,
+    "last": 110.35
+   },
+   "pnl": {
+    "perUnit": -101.05,
+    "pct": -49.99,
+    "basis": "NET",
+    "perLot": -7578.75,
+    "netPerLot": -7647.34
+   }
   }
  ]
 }
