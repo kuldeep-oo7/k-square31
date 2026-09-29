@@ -11210,6 +11210,60 @@
     "pct": -1.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-09-25|CE|BHARTIARTL26OCT1800CE",
+   "kind": "CE",
+   "symbol": "BHARTIARTL",
+   "contract": "BHARTIARTL26OCT1800CE",
+   "expiry": "2026-10-27",
+   "strike": 1800,
+   "optionType": "CE",
+   "lotSize": 475,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 39.63,
+   "target": 59.44,
+   "target2": null,
+   "stop": 19.82,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 64.2,
+     "medianDays": 6.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T04:04:43.424Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-29T05:26:01.696Z",
+   "exitPrice": 19.82,
+   "exitReason": "STOP",
+   "hoursFillToExit": 97.36,
+   "sessionsHeld": 2,
+   "best": 39.63,
+   "worst": 19.7,
+   "last": 20.45,
+   "lastAt": "2026-09-29T05:26:01.696Z",
+   "marks": 67,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 23.85,
+    "low": 19.7,
+    "last": 20.45
+   },
+   "pnl": {
+    "perUnit": -19.81,
+    "pct": -49.99,
+    "basis": "NET",
+    "perLot": -9409.75,
+    "netPerLot": -9483.51
+   }
   }
  ]
 }
