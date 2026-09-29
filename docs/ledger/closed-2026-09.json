@@ -12538,6 +12538,211 @@
     "perLot": 4800,
     "netPerLot": 4721.06
    }
+  },
+  {
+   "id": "2026-09-29|FUT|IEX26OCTFUT",
+   "kind": "FUT",
+   "symbol": "IEX",
+   "contract": "IEX26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 4350,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 109.52,
+   "target": 112.26,
+   "target2": 115,
+   "stop": 107.88,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 41.9,
+     "medianTradingDays": 0.393
+    },
+    "target": {
+     "probabilityPct": 58.3,
+     "medianTradingDays": 5.286
+    },
+    "sigmaPct": 16.3,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T05:06:23.771Z",
+   "hoursToFill": 1,
+   "closedAt": "2026-09-29T09:07:10.007Z",
+   "exitPrice": 107.88,
+   "exitReason": "STOP",
+   "hoursFillToExit": 4.01,
+   "sessionsHeld": 0,
+   "best": 110.34,
+   "worst": 107.8,
+   "last": 108.02,
+   "lastAt": "2026-09-29T09:07:10.007Z",
+   "marks": 16,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 111.98,
+    "low": 107.8,
+    "last": 108.02
+   },
+   "pnl": {
+    "perUnit": -1.64,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-28|CE|KOTAKBANK26OCT405CE",
+   "kind": "CE",
+   "symbol": "KOTAKBANK",
+   "contract": "KOTAKBANK26OCT405CE",
+   "expiry": "2026-10-27",
+   "strike": 405,
+   "optionType": "CE",
+   "lotSize": 2000,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:26:39.871Z",
+   "buy": 8.35,
+   "target": 12.5,
+   "target2": null,
+   "stop": 4.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 41.3,
+     "medianDays": 12,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-28T04:26:39.880Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-29T09:07:10.007Z",
+   "exitPrice": 12.5,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 28.68,
+   "sessionsHeld": 1,
+   "best": 12.85,
+   "worst": 6.65,
+   "last": 12.55,
+   "lastAt": "2026-09-29T09:07:10.007Z",
+   "marks": 43,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 12.85,
+    "low": 6.65,
+    "last": 12.55
+   },
+   "pnl": {
+    "perUnit": 4.15,
+    "pct": 49.7,
+    "basis": "NET",
+    "perLot": 8300,
+    "netPerLot": 8197.27
+   }
+  },
+  {
+   "id": "2026-09-28|FUT|GRANULES (share)",
+   "kind": "FUT",
+   "symbol": "GRANULES",
+   "contract": "GRANULES (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 500,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 853.45,
+   "target": 874.8,
+   "target2": 896.1,
+   "stop": 840.65,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "TARGET",
+   "filledAt": "2026-09-28T07:25:16.110Z",
+   "hoursToFill": 3.31,
+   "closedAt": "2026-09-29T09:07:10.007Z",
+   "exitPrice": 874.8,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 25.7,
+   "sessionsHeld": 1,
+   "best": 876.95,
+   "worst": 846.3,
+   "last": 873.8,
+   "lastAt": "2026-09-29T09:07:10.007Z",
+   "marks": 45,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 876.95,
+    "low": 847,
+    "last": 873.8
+   },
+   "pnl": {
+    "perUnit": 21.35,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-28|CE|KOTAKBANK26OCT410CE",
+   "kind": "CE",
+   "symbol": "KOTAKBANK",
+   "contract": "KOTAKBANK26OCT410CE",
+   "expiry": "2026-10-27",
+   "strike": 410,
+   "optionType": "CE",
+   "lotSize": 2000,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 6.45,
+   "target": 9.65,
+   "target2": null,
+   "stop": 3.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 35.2,
+     "medianDays": 13.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-28T04:06:42.660Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-29T09:07:10.007Z",
+   "exitPrice": 9.65,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 29.01,
+   "sessionsHeld": 1,
+   "best": 10.05,
+   "worst": 4.95,
+   "last": 9.85,
+   "lastAt": "2026-09-29T09:07:10.007Z",
+   "marks": 44,
+   "obs": {
+    "date": "2026-09-29",
+    "high": 10.05,
+    "low": 4.95,
+    "last": 9.85
+   },
+   "pnl": {
+    "perUnit": 3.2,
+    "pct": 49.61,
+    "basis": "NET",
+    "perLot": 6400,
+    "netPerLot": 6309.93
+   }
   }
  ]
 }
