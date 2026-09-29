@@ -956,7 +956,9 @@ function page(d) {
   // looked exactly like a row priced on the right one.
   const SOURCE_LABEL = {
     FUTURES_LIVE: "futures, live",
-    FUTURES_LAST_TRADED: "futures, last trade &mdash; NOT live",
+    // Not "last trade": NSE has no trading in derivatives after 15:30, so the
+    // 15:39 stamp after the close is the day's last price update, not a trade.
+    FUTURES_LAST_TRADED: "futures, last price &mdash; NOT live",
     SHARE_LIVE: "share, live",
     SHARE_LAST_TRADED: "share, last trade &mdash; NOT live",
     SHARE_CLOSE_FROM_HISTORY: "share, last close &mdash; NOT live"
