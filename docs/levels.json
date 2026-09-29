@@ -254,7 +254,10 @@
   "OPTION|AMBER|AMBER26OCT7100CE",
   "OPTION|AMBER|AMBER26OCT7300CE",
   "OPTION|ASTRAL|ASTRAL26OCT1400CE",
-  "OPTION|BHARATFORG|BHARATFORG26OCT2000CE"
+  "OPTION|BHARATFORG|BHARATFORG26OCT2000CE",
+  "OPTION|MAXHEALTH|MAXHEALTH26OCT1050CE",
+  "OPTION|MARUTI|MARUTI26OCT12600CE",
+  "OPTION|DABUR|DABUR26OCT395CE"
  ],
  "options": {
   "SUNPHARMA26OCT1860CE": {
@@ -3105,6 +3108,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-09-29T06:26:26.249Z",
    "frozenAtIst": "2026-09-29 11:56 IST",
+   "frozenAtSpot": null
+  },
+  "MAXHEALTH26OCT1050CE": {
+   "buy": 9.95,
+   "sell": 14.95,
+   "stop": 4.95,
+   "tick": 0.05,
+   "lotSize": 525,
+   "expiry": "2026-10-27",
+   "strike": 1050,
+   "right": "CE",
+   "symbol": "MAXHEALTH",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-29T06:45:46.673Z",
+   "frozenAtIst": "2026-09-29 12:15 IST",
+   "frozenAtSpot": null
+  },
+  "MARUTI26OCT12600CE": {
+   "buy": 111.8,
+   "sell": 167.7,
+   "stop": 55.9,
+   "tick": 0.05,
+   "lotSize": 50,
+   "expiry": "2026-10-27",
+   "strike": 12600,
+   "right": "CE",
+   "symbol": "MARUTI",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-29T06:45:46.673Z",
+   "frozenAtIst": "2026-09-29 12:15 IST",
+   "frozenAtSpot": null
+  },
+  "DABUR26OCT395CE": {
+   "buy": 5,
+   "sell": 7.5,
+   "stop": 2.5,
+   "tick": 0.05,
+   "lotSize": 1250,
+   "expiry": "2026-10-27",
+   "strike": 395,
+   "right": "CE",
+   "symbol": "DABUR",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-29T06:45:46.673Z",
+   "frozenAtIst": "2026-09-29 12:15 IST",
    "frozenAtSpot": null
   }
  },
