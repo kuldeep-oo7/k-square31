@@ -20077,6 +20077,114 @@
     "perLot": -16490,
     "netPerLot": -16583.72
    }
+  },
+  {
+   "id": "2026-09-29|CE|SBIN26OCT980CE",
+   "kind": "CE",
+   "symbol": "SBIN",
+   "contract": "SBIN26OCT980CE",
+   "expiry": "2026-10-27",
+   "strike": 980,
+   "optionType": "CE",
+   "lotSize": 750,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 12.65,
+   "target": 18.95,
+   "target2": null,
+   "stop": 6.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 40.4,
+     "medianDays": 11.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-29T04:26:36.384Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-09-30T07:05:46.884Z",
+   "exitPrice": 18.95,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 26.65,
+   "sessionsHeld": 1,
+   "best": 19,
+   "worst": 11.9,
+   "last": 18.8,
+   "lastAt": "2026-09-30T07:05:46.884Z",
+   "marks": 38,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 19,
+    "low": 15.6,
+    "last": 18.8
+   },
+   "pnl": {
+    "perUnit": 6.3,
+    "pct": 49.8,
+    "basis": "NET",
+    "perLot": 4725,
+    "netPerLot": 4646.23
+   }
+  },
+  {
+   "id": "2026-09-25|PE|HAVELLS26OCT1120PE",
+   "kind": "PE",
+   "symbol": "HAVELLS",
+   "contract": "HAVELLS26OCT1120PE",
+   "expiry": "2026-10-27",
+   "strike": 1120,
+   "optionType": "PE",
+   "lotSize": 500,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 52.03,
+   "target": 78.04,
+   "target2": null,
+   "stop": 26.02,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 57.3,
+     "medianDays": 8.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-25T04:04:43.424Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-30T07:05:46.884Z",
+   "exitPrice": 78.04,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 123.02,
+   "sessionsHeld": 3,
+   "best": 85,
+   "worst": 48.45,
+   "last": 85,
+   "lastAt": "2026-09-30T07:05:46.884Z",
+   "marks": 92,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 85,
+    "low": 76.2,
+    "last": 85
+   },
+   "pnl": {
+    "perUnit": 26.01,
+    "pct": 49.99,
+    "basis": "NET",
+    "perLot": 13005,
+    "netPerLot": 12871.15
+   }
   }
  ]
 }
