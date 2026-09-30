@@ -226,7 +226,10 @@
   "OPTION|ADANIENSOL|ADANIENSOL26OCT1300PE",
   "OPTION|ADANIENSOL|ADANIENSOL26OCT1260PE",
   "OPTION|RADICO|RADICO26OCT4300PE",
-  "OPTION|NIFTY|NIFTY26O1322950PE"
+  "OPTION|NIFTY|NIFTY26O1322950PE",
+  "OPTION|LTF|LTF26OCT255PE",
+  "OPTION|KAYNES|KAYNES26OCT3300PE",
+  "OPTION|BSE|BSE26OCT2900PE"
  ],
  "options": {
   "MFSL26OCT1400PE": {
@@ -3587,6 +3590,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-09-30T04:45:47.032Z",
    "frozenAtIst": "2026-09-30 10:15 IST",
+   "frozenAtSpot": null
+  },
+  "LTF26OCT255PE": {
+   "buy": 3.75,
+   "sell": 5.6,
+   "stop": 1.9,
+   "tick": 0.05,
+   "lotSize": 2250,
+   "expiry": "2026-10-27",
+   "strike": 255,
+   "right": "PE",
+   "symbol": "LTF",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T05:25:27.009Z",
+   "frozenAtIst": "2026-09-30 10:55 IST",
+   "frozenAtSpot": null
+  },
+  "KAYNES26OCT3300PE": {
+   "buy": 65.3,
+   "sell": 97.95,
+   "stop": 32.65,
+   "tick": 0.05,
+   "lotSize": 150,
+   "expiry": "2026-10-27",
+   "strike": 3300,
+   "right": "PE",
+   "symbol": "KAYNES",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T05:25:27.009Z",
+   "frozenAtIst": "2026-09-30 10:55 IST",
+   "frozenAtSpot": null
+  },
+  "BSE26OCT2900PE": {
+   "buy": 53.5,
+   "sell": 80.25,
+   "stop": 26.75,
+   "tick": 0.05,
+   "lotSize": 200,
+   "expiry": "2026-10-27",
+   "strike": 2900,
+   "right": "PE",
+   "symbol": "BSE",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T05:25:27.009Z",
+   "frozenAtIst": "2026-09-30 10:55 IST",
    "frozenAtSpot": null
   }
  },
