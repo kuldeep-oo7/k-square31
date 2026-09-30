@@ -234,7 +234,9 @@
   "OPTION|MFSL|MFSL26OCT1300PE",
   "OPTION|MANAPPURAM|MANAPPURAM26OCT300PE",
   "OPTION|BANKNIFTY|BANKNIFTY26OCT56300PE",
-  "OPTION|INOXWIND|INOXWIND26OCT67.5PE"
+  "OPTION|INOXWIND|INOXWIND26OCT67.5PE",
+  "OPTION|BANKNIFTY|BANKNIFTY26OCT56400PE",
+  "OPTION|KPITTECH|KPITTECH26OCT480PE"
  ],
  "options": {
   "MFSL26OCT1400PE": {
@@ -3715,6 +3717,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-09-30T06:05:05.756Z",
    "frozenAtIst": "2026-09-30 11:35 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26OCT56400PE": {
+   "buy": 1547.5,
+   "sell": 2321.25,
+   "stop": 773.75,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-10-27",
+   "strike": 56400,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T06:45:33.061Z",
+   "frozenAtIst": "2026-09-30 12:15 IST",
+   "frozenAtSpot": null
+  },
+  "KPITTECH26OCT480PE": {
+   "buy": 7.95,
+   "sell": 11.9,
+   "stop": 4,
+   "tick": 0.05,
+   "lotSize": 775,
+   "expiry": "2026-10-27",
+   "strike": 480,
+   "right": "PE",
+   "symbol": "KPITTECH",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T06:45:33.061Z",
+   "frozenAtIst": "2026-09-30 12:15 IST",
    "frozenAtSpot": null
   }
  },
