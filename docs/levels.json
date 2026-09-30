@@ -242,7 +242,10 @@
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT14200PE",
   "OPTION|MANAPPURAM|MANAPPURAM26OCT340PE",
   "OPTION|NIFTY|NIFTY26O1322300PE",
-  "OPTION|CUMMINSIND|CUMMINSIND26OCT4600PE"
+  "OPTION|CUMMINSIND|CUMMINSIND26OCT4600PE",
+  "OPTION|NIFTY|NIFTY26O1322250PE",
+  "OPTION|BANKNIFTY|BANKNIFTY26OCT53800PE",
+  "OPTION|KALYANKJIL|KALYANKJIL26OCT520PE"
  ],
  "options": {
   "MFSL26OCT1400PE": {
@@ -3858,6 +3861,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-09-30T09:26:08.106Z",
    "frozenAtIst": "2026-09-30 14:56 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26OCT53800PE": {
+   "buy": 449.75,
+   "sell": 674.65,
+   "stop": 224.9,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-10-27",
+   "strike": 53800,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T09:45:30.133Z",
+   "frozenAtIst": "2026-09-30 15:15 IST",
+   "frozenAtSpot": null
+  },
+  "KALYANKJIL26OCT520PE": {
+   "buy": 10.6,
+   "sell": 15.9,
+   "stop": 5.3,
+   "tick": 0.05,
+   "lotSize": 1350,
+   "expiry": "2026-10-27",
+   "strike": 520,
+   "right": "PE",
+   "symbol": "KALYANKJIL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T09:45:30.133Z",
+   "frozenAtIst": "2026-09-30 15:15 IST",
    "frozenAtSpot": null
   }
  },
