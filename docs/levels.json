@@ -225,7 +225,8 @@
   "OPTION|IDFCFIRSTB|IDFCFIRSTB26OCT77PE",
   "OPTION|ADANIENSOL|ADANIENSOL26OCT1300PE",
   "OPTION|ADANIENSOL|ADANIENSOL26OCT1260PE",
-  "OPTION|RADICO|RADICO26OCT4300PE"
+  "OPTION|RADICO|RADICO26OCT4300PE",
+  "OPTION|NIFTY|NIFTY26O1322950PE"
  ],
  "options": {
   "MFSL26OCT1400PE": {
@@ -3571,6 +3572,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-09-30T04:25:36.188Z",
    "frozenAtIst": "2026-09-30 09:55 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26O1322950PE": {
+   "buy": 279.6,
+   "sell": 419.4,
+   "stop": 139.8,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-10-13",
+   "strike": 22950,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T04:45:47.032Z",
+   "frozenAtIst": "2026-09-30 10:15 IST",
    "frozenAtSpot": null
   }
  },
