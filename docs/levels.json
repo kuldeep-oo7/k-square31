@@ -240,7 +240,9 @@
   "OPTION|BANKNIFTY|BANKNIFTY26OCT56500PE",
   "OPTION|BANKNIFTY|BANKNIFTY26OCT56600PE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT14200PE",
-  "OPTION|MANAPPURAM|MANAPPURAM26OCT340PE"
+  "OPTION|MANAPPURAM|MANAPPURAM26OCT340PE",
+  "OPTION|NIFTY|NIFTY26O1322300PE",
+  "OPTION|CUMMINSIND|CUMMINSIND26OCT4600PE"
  ],
  "options": {
   "MFSL26OCT1400PE": {
@@ -3811,6 +3813,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-09-30T08:05:04.937Z",
    "frozenAtIst": "2026-09-30 13:35 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26O1322300PE": {
+   "buy": 87.05,
+   "sell": 130.55,
+   "stop": 43.5,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-10-13",
+   "strike": 22300,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T09:06:19.472Z",
+   "frozenAtIst": "2026-09-30 14:36 IST",
+   "frozenAtSpot": null
+  },
+  "CUMMINSIND26OCT4600PE": {
+   "buy": 49.7,
+   "sell": 74.55,
+   "stop": 24.85,
+   "tick": 0.05,
+   "lotSize": 200,
+   "expiry": "2026-10-27",
+   "strike": 4600,
+   "right": "PE",
+   "symbol": "CUMMINSIND",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T09:06:19.472Z",
+   "frozenAtIst": "2026-09-30 14:36 IST",
    "frozenAtSpot": null
   }
  },
