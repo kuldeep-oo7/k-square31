@@ -22611,6 +22611,60 @@
     "perLot": -9420,
     "netPerLot": -9493.78
    }
+  },
+  {
+   "id": "2026-09-24|PE|BAJFINANCE26OCT1030PE",
+   "kind": "PE",
+   "symbol": "BAJFINANCE",
+   "contract": "BAJFINANCE26OCT1030PE",
+   "expiry": "2026-10-27",
+   "strike": 1030,
+   "optionType": "PE",
+   "lotSize": 750,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:24:39.935Z",
+   "buy": 46.4,
+   "target": 69.6,
+   "target2": null,
+   "stop": 23.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.1,
+     "medianDays": 10.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-24T04:24:39.935Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-30T10:24:28.378Z",
+   "exitPrice": 69.6,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 150,
+   "sessionsHeld": 4,
+   "best": 71,
+   "worst": 43.1,
+   "last": 71,
+   "lastAt": "2026-09-30T10:24:28.378Z",
+   "marks": 123,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 71,
+    "low": 63.05,
+    "last": 71
+   },
+   "pnl": {
+    "perUnit": 23.2,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 17400,
+    "netPerLot": 17236.88
+   }
   }
  ]
 }
