@@ -18187,6 +18187,168 @@
     "perLot": 12870,
     "netPerLot": 12737.04
    }
+  },
+  {
+   "id": "2026-09-29|FUT|CROMPTON26OCTFUT",
+   "kind": "FUT",
+   "symbol": "CROMPTON",
+   "contract": "CROMPTON26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 2150,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 216.22,
+   "target": 221.63,
+   "target2": 227.03,
+   "stop": 212.98,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 52.6,
+     "medianTradingDays": 0.304
+    },
+    "target": {
+     "probabilityPct": 66.3,
+     "medianTradingDays": 3.878
+    },
+    "sigmaPct": 20.7,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T04:46:41.477Z",
+   "hoursToFill": 0.67,
+   "closedAt": "2026-09-30T05:06:48.847Z",
+   "exitPrice": 212.98,
+   "exitReason": "STOP",
+   "hoursFillToExit": 24.34,
+   "sessionsHeld": 1,
+   "best": 217.8,
+   "worst": 212.6,
+   "last": 212.74,
+   "lastAt": "2026-09-30T05:06:48.847Z",
+   "marks": 32,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 215.9,
+    "low": 212.6,
+    "last": 212.74
+   },
+   "pnl": {
+    "perUnit": -3.24,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-25|CE|ETERNAL26OCT345CE",
+   "kind": "CE",
+   "symbol": "ETERNAL",
+   "contract": "ETERNAL26OCT345CE",
+   "expiry": "2026-10-27",
+   "strike": 345,
+   "optionType": "CE",
+   "lotSize": 2425,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T06:24:19.247Z",
+   "buy": 7.65,
+   "target": 11.48,
+   "target2": null,
+   "stop": 3.83,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 41.1,
+     "medianDays": 13.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T06:24:19.253Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-30T05:06:48.847Z",
+   "exitPrice": 3.83,
+   "exitReason": "STOP",
+   "hoursFillToExit": 118.71,
+   "sessionsHeld": 3,
+   "best": 8.5,
+   "worst": 3.7,
+   "last": 3.75,
+   "lastAt": "2026-09-30T05:06:48.847Z",
+   "marks": 87,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 5.45,
+    "low": 3.7,
+    "last": 3.75
+   },
+   "pnl": {
+    "perUnit": -3.82,
+    "pct": -49.93,
+    "basis": "NET",
+    "perLot": -9263.5,
+    "netPerLot": -9336.89
+   }
+  },
+  {
+   "id": "2026-09-25|CE|HAVELLS26OCT1100CE",
+   "kind": "CE",
+   "symbol": "HAVELLS",
+   "contract": "HAVELLS26OCT1100CE",
+   "expiry": "2026-10-27",
+   "strike": 1100,
+   "optionType": "CE",
+   "lotSize": 500,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:44:40.803Z",
+   "buy": 25.28,
+   "target": 37.91,
+   "target2": null,
+   "stop": 12.64,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51.5,
+     "medianDays": 10.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T07:05:14.232Z",
+   "hoursToFill": 2.34,
+   "closedAt": "2026-09-30T05:06:48.847Z",
+   "exitPrice": 12.64,
+   "exitReason": "STOP",
+   "hoursFillToExit": 118.03,
+   "sessionsHeld": 3,
+   "best": 27,
+   "worst": 12.1,
+   "last": 12.25,
+   "lastAt": "2026-09-30T05:06:48.847Z",
+   "marks": 93,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 15,
+    "low": 12.1,
+    "last": 12.25
+   },
+   "pnl": {
+    "perUnit": -12.64,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -6320,
+    "netPerLot": -6385.03
+   }
   }
  ]
 }
