@@ -238,7 +238,9 @@
   "OPTION|BANKNIFTY|BANKNIFTY26OCT56400PE",
   "OPTION|KPITTECH|KPITTECH26OCT480PE",
   "OPTION|BANKNIFTY|BANKNIFTY26OCT56500PE",
-  "OPTION|BANKNIFTY|BANKNIFTY26OCT56600PE"
+  "OPTION|BANKNIFTY|BANKNIFTY26OCT56600PE",
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT14200PE",
+  "OPTION|MANAPPURAM|MANAPPURAM26OCT340PE"
  ],
  "options": {
   "MFSL26OCT1400PE": {
@@ -3779,6 +3781,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-09-30T07:25:27.601Z",
    "frozenAtIst": "2026-09-30 12:55 IST",
+   "frozenAtSpot": null
+  },
+  "MIDCPNIFTY26OCT14200PE": {
+   "buy": 403.8,
+   "sell": 605.7,
+   "stop": 201.9,
+   "tick": 0.05,
+   "lotSize": 120,
+   "expiry": "2026-10-27",
+   "strike": 14200,
+   "right": "PE",
+   "symbol": "MIDCPNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T08:05:04.937Z",
+   "frozenAtIst": "2026-09-30 13:35 IST",
+   "frozenAtSpot": null
+  },
+  "MANAPPURAM26OCT340PE": {
+   "buy": 19.7,
+   "sell": 29.55,
+   "stop": 9.85,
+   "tick": 0.05,
+   "lotSize": 3000,
+   "expiry": "2026-10-27",
+   "strike": 340,
+   "right": "PE",
+   "symbol": "MANAPPURAM",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T08:05:04.937Z",
+   "frozenAtIst": "2026-09-30 13:35 IST",
    "frozenAtSpot": null
   }
  },
