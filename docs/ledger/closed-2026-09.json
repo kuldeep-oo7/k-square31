@@ -20185,6 +20185,168 @@
     "perLot": 13005,
     "netPerLot": 12871.15
    }
+  },
+  {
+   "id": "2026-09-30|PE|KPITTECH26OCT490PE",
+   "kind": "PE",
+   "symbol": "KPITTECH",
+   "contract": "KPITTECH26OCT490PE",
+   "expiry": "2026-10-27",
+   "strike": 490,
+   "optionType": "PE",
+   "lotSize": 775,
+   "sessionDate": "2026-09-30",
+   "shownAt": "2026-09-30T04:07:03.898Z",
+   "buy": 8.65,
+   "target": 13,
+   "target2": null,
+   "stop": 4.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 23.1,
+     "medianDays": 15.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-30T04:07:03.910Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-30T08:25:13.169Z",
+   "exitPrice": 13,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 4.3,
+   "sessionsHeld": 0,
+   "best": 13.15,
+   "worst": 8.4,
+   "last": 12.7,
+   "lastAt": "2026-09-30T08:25:13.169Z",
+   "marks": 14,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 13.15,
+    "low": 8.35,
+    "last": 12.7
+   },
+   "pnl": {
+    "perUnit": 4.35,
+    "pct": 50.29,
+    "basis": "NET",
+    "perLot": 3371.25,
+    "netPerLot": 3301.68
+   }
+  },
+  {
+   "id": "2026-09-29|FUT|HAVELLS26OCTFUT",
+   "kind": "FUT",
+   "symbol": "HAVELLS",
+   "contract": "HAVELLS26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 500,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 1052.5,
+   "target": 1078.8,
+   "target2": 1105.1,
+   "stop": 1036.7,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 56.1,
+     "medianTradingDays": 0.275
+    },
+    "target": {
+     "probabilityPct": 68.8,
+     "medianTradingDays": 3.45
+    },
+    "sigmaPct": 22.5,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T04:46:41.477Z",
+   "hoursToFill": 0.67,
+   "closedAt": "2026-09-30T08:25:13.169Z",
+   "exitPrice": 1036.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 27.64,
+   "sessionsHeld": 1,
+   "best": 1062.4,
+   "worst": 1036,
+   "last": 1036,
+   "lastAt": "2026-09-30T08:25:13.169Z",
+   "marks": 43,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 1059,
+    "low": 1036,
+    "last": 1036
+   },
+   "pnl": {
+    "perUnit": -15.8,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-28|CE|HAVELLS26OCT1100CE",
+   "kind": "CE",
+   "symbol": "HAVELLS",
+   "contract": "HAVELLS26OCT1100CE",
+   "expiry": "2026-10-27",
+   "strike": 1100,
+   "optionType": "CE",
+   "lotSize": 500,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T05:05:27.865Z",
+   "buy": 20.75,
+   "target": 31.1,
+   "target2": null,
+   "stop": 10.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 43.9,
+     "medianDays": 11.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T05:05:27.876Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-30T08:25:13.169Z",
+   "exitPrice": 10.4,
+   "exitReason": "STOP",
+   "hoursFillToExit": 51.33,
+   "sessionsHeld": 2,
+   "best": 21.35,
+   "worst": 10,
+   "last": 10,
+   "lastAt": "2026-09-30T08:25:13.169Z",
+   "marks": 67,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 15,
+    "low": 10,
+    "last": 10
+   },
+   "pnl": {
+    "perUnit": -10.35,
+    "pct": -49.88,
+    "basis": "NET",
+    "perLot": -5175,
+    "netPerLot": -5236.86
+   }
   }
  ]
 }
