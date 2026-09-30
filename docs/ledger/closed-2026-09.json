@@ -16319,6 +16319,265 @@
     "pct": -2.15,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-09-29|FUT|AARTIIND (share)",
+   "kind": "FUT",
+   "symbol": "AARTIIND",
+   "contract": "AARTIIND (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 470.05,
+   "target": 481.8,
+   "target2": 493.55,
+   "stop": 463,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "TARGET",
+   "filledAt": "2026-09-29T09:45:49.247Z",
+   "hoursToFill": 5.65,
+   "closedAt": "2026-09-30T03:49:31.276Z",
+   "exitPrice": 481.8,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 18.06,
+   "sessionsHeld": 1,
+   "best": 481.85,
+   "worst": 468,
+   "last": 481.35,
+   "lastAt": "2026-09-30T03:49:31.276Z",
+   "marks": 29,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 481.85,
+    "low": 471.4,
+    "last": 481.35
+   },
+   "pnl": {
+    "perUnit": 11.75,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-28|CE|GLENMARK26OCT2440CE",
+   "kind": "CE",
+   "symbol": "GLENMARK",
+   "contract": "GLENMARK26OCT2440CE",
+   "expiry": "2026-10-27",
+   "strike": 2440,
+   "optionType": "CE",
+   "lotSize": 375,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T05:05:27.865Z",
+   "buy": 36.2,
+   "target": 54.3,
+   "target2": null,
+   "stop": 18.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 41.3,
+     "medianDays": 11.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-28T05:05:27.876Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-09-30T03:49:31.276Z",
+   "exitPrice": 54.3,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 46.73,
+   "sessionsHeld": 2,
+   "best": 54.85,
+   "worst": 25.65,
+   "last": 47.8,
+   "lastAt": "2026-09-30T03:49:31.276Z",
+   "marks": 53,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 54.85,
+    "low": 46.7,
+    "last": 47.8
+   },
+   "pnl": {
+    "perUnit": 18.1,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 6787.5,
+    "netPerLot": 6695.08
+   }
+  },
+  {
+   "id": "2026-09-28|CE|GLENMARK26OCT2480CE",
+   "kind": "CE",
+   "symbol": "GLENMARK",
+   "contract": "GLENMARK26OCT2480CE",
+   "expiry": "2026-10-27",
+   "strike": 2480,
+   "optionType": "CE",
+   "lotSize": 375,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:46:14.503Z",
+   "buy": 28,
+   "target": 42,
+   "target2": null,
+   "stop": 14,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 37,
+     "medianDays": 13,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-28T05:05:27.876Z",
+   "hoursToFill": 0.32,
+   "closedAt": "2026-09-30T03:49:31.276Z",
+   "exitPrice": 42,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 46.73,
+   "sessionsHeld": 2,
+   "best": 44.1,
+   "worst": 18.8,
+   "last": 38.2,
+   "lastAt": "2026-09-30T03:49:31.276Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 44.1,
+    "low": 35.2,
+    "last": 38.2
+   },
+   "pnl": {
+    "perUnit": 14,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 5250,
+    "netPerLot": 5167.82
+   }
+  },
+  {
+   "id": "2026-09-28|FUT|POLYCAB26OCTFUT",
+   "kind": "FUT",
+   "symbol": "POLYCAB",
+   "contract": "POLYCAB26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 125,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 8250,
+   "target": 8456.5,
+   "target2": 8662.5,
+   "stop": 8126.5,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 42.2,
+     "medianTradingDays": 0.39
+    },
+    "target": {
+     "probabilityPct": 58.5,
+     "medianTradingDays": 5.249
+    },
+    "sigmaPct": 16.4,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T05:45:13.963Z",
+   "hoursToFill": 1.64,
+   "closedAt": "2026-09-30T03:49:31.276Z",
+   "exitPrice": 8126.5,
+   "exitReason": "STOP",
+   "hoursFillToExit": 46.07,
+   "sessionsHeld": 2,
+   "best": 8274,
+   "worst": 8092.5,
+   "last": 8152,
+   "lastAt": "2026-09-30T03:49:31.276Z",
+   "marks": 57,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 8162,
+    "low": 8092.5,
+    "last": 8152
+   },
+   "pnl": {
+    "perUnit": -123.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-09-24|CE|DIVISLAB26OCT9800CE",
+   "kind": "CE",
+   "symbol": "DIVISLAB",
+   "contract": "DIVISLAB26OCT9800CE",
+   "expiry": "2026-10-27",
+   "strike": 9800,
+   "optionType": "CE",
+   "lotSize": 100,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T05:24:52.561Z",
+   "buy": 278.13,
+   "target": 417.19,
+   "target2": null,
+   "stop": 139.07,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.3,
+     "medianDays": 11.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T05:44:38.439Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-09-30T03:49:31.276Z",
+   "exitPrice": 139.07,
+   "exitReason": "STOP",
+   "hoursFillToExit": 142.08,
+   "sessionsHeld": 4,
+   "best": 278.13,
+   "worst": 138.8,
+   "last": 142.85,
+   "lastAt": "2026-09-30T03:49:31.276Z",
+   "marks": 107,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 168.2,
+    "low": 138.8,
+    "last": 142.85
+   },
+   "pnl": {
+    "perUnit": -139.06,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -13906,
+    "netPerLot": -13992.44
+   }
   }
  ]
 }
