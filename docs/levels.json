@@ -229,7 +229,10 @@
   "OPTION|NIFTY|NIFTY26O1322950PE",
   "OPTION|LTF|LTF26OCT255PE",
   "OPTION|KAYNES|KAYNES26OCT3300PE",
-  "OPTION|BSE|BSE26OCT2900PE"
+  "OPTION|BSE|BSE26OCT2900PE",
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13500PE",
+  "OPTION|MFSL|MFSL26OCT1300PE",
+  "OPTION|MANAPPURAM|MANAPPURAM26OCT300PE"
  ],
  "options": {
   "MFSL26OCT1400PE": {
@@ -3635,6 +3638,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-09-30T05:25:27.009Z",
    "frozenAtIst": "2026-09-30 10:55 IST",
+   "frozenAtSpot": null
+  },
+  "MIDCPNIFTY26OCT13500PE": {
+   "buy": 132.55,
+   "sell": 198.85,
+   "stop": 66.3,
+   "tick": 0.05,
+   "lotSize": 120,
+   "expiry": "2026-10-27",
+   "strike": 13500,
+   "right": "PE",
+   "symbol": "MIDCPNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T05:44:51.649Z",
+   "frozenAtIst": "2026-09-30 11:14 IST",
+   "frozenAtSpot": null
+  },
+  "MFSL26OCT1300PE": {
+   "buy": 18.45,
+   "sell": 27.65,
+   "stop": 9.2,
+   "tick": 0.05,
+   "lotSize": 400,
+   "expiry": "2026-10-27",
+   "strike": 1300,
+   "right": "PE",
+   "symbol": "MFSL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T05:44:51.649Z",
+   "frozenAtIst": "2026-09-30 11:14 IST",
+   "frozenAtSpot": null
+  },
+  "MANAPPURAM26OCT300PE": {
+   "buy": 4.2,
+   "sell": 6.3,
+   "stop": 2.1,
+   "tick": 0.05,
+   "lotSize": 3000,
+   "expiry": "2026-10-27",
+   "strike": 300,
+   "right": "PE",
+   "symbol": "MANAPPURAM",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T05:44:51.649Z",
+   "frozenAtIst": "2026-09-30 11:14 IST",
    "frozenAtSpot": null
   }
  },
