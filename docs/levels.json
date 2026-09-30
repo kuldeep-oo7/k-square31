@@ -232,7 +232,9 @@
   "OPTION|BSE|BSE26OCT2900PE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13500PE",
   "OPTION|MFSL|MFSL26OCT1300PE",
-  "OPTION|MANAPPURAM|MANAPPURAM26OCT300PE"
+  "OPTION|MANAPPURAM|MANAPPURAM26OCT300PE",
+  "OPTION|BANKNIFTY|BANKNIFTY26OCT56300PE",
+  "OPTION|INOXWIND|INOXWIND26OCT67.5PE"
  ],
  "options": {
   "MFSL26OCT1400PE": {
@@ -3683,6 +3685,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-09-30T05:44:51.649Z",
    "frozenAtIst": "2026-09-30 11:14 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26OCT56300PE": {
+   "buy": 1534.75,
+   "sell": 2302.15,
+   "stop": 767.4,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-10-27",
+   "strike": 56300,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T06:05:05.756Z",
+   "frozenAtIst": "2026-09-30 11:35 IST",
+   "frozenAtSpot": null
+  },
+  "INOXWIND26OCT67.5PE": {
+   "buy": 1.17,
+   "sell": 1.76,
+   "stop": 0.58,
+   "tick": 0.01,
+   "lotSize": 6400,
+   "expiry": "2026-10-27",
+   "strike": 67.5,
+   "right": "PE",
+   "symbol": "INOXWIND",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-09-30T06:05:05.756Z",
+   "frozenAtIst": "2026-09-30 11:35 IST",
    "frozenAtSpot": null
   }
  },
