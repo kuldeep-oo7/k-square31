@@ -16265,6 +16265,60 @@
     "perLot": -8126,
     "netPerLot": -8196.13
    }
+  },
+  {
+   "id": "2026-09-24|FUT|M&M26OCTFUT",
+   "kind": "FUT",
+   "symbol": "M&M",
+   "contract": "M&M26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 200,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T04:04:56.996Z",
+   "buy": 2989.39,
+   "target": 3064.12,
+   "target2": 3138.86,
+   "stop": 2944.55,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": {
+    "fill": {
+     "probabilityPct": 50.6,
+     "medianTradingDays": 0.322
+    },
+    "target": {
+     "probabilityPct": 64.7,
+     "medianTradingDays": 4.169
+    },
+    "sigmaPct": 19.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-24T08:44:36.761Z",
+   "hoursToFill": 4.66,
+   "closedAt": "2026-09-30T03:43:55.676Z",
+   "exitPrice": 2925,
+   "exitReason": "STOP",
+   "hoursFillToExit": 138.99,
+   "sessionsHeld": 4,
+   "best": 3045,
+   "worst": 2925,
+   "last": 2925,
+   "lastAt": "2026-09-30T03:43:55.676Z",
+   "marks": 118,
+   "obs": {
+    "date": "2026-09-30",
+    "high": 2925,
+    "low": 2925,
+    "last": 2925
+   },
+   "pnl": {
+    "perUnit": -64.39,
+    "pct": -2.15,
+    "basis": "GROSS"
+   }
   }
  ]
 }
