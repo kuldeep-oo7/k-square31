@@ -229,7 +229,10 @@
   "OPTION|PRESTIGE|PRESTIGE26OCT1380PE",
   "OPTION|KALYANKJIL|KALYANKJIL26OCT510PE",
   "OPTION|KPITTECH|KPITTECH26OCT470PE",
-  "OPTION|IRFC|IRFC26OCT73PE"
+  "OPTION|IRFC|IRFC26OCT73PE",
+  "OPTION|ADANIENT|ADANIENT26OCT2750PE",
+  "OPTION|HAL|HAL26OCT4500PE",
+  "OPTION|RVNL|RVNL26OCT187.5PE"
  ],
  "options": {
   "VMM26OCT100PE": {
@@ -3635,6 +3638,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-01T05:45:38.953Z",
    "frozenAtIst": "2026-10-01 11:15 IST",
+   "frozenAtSpot": null
+  },
+  "ADANIENT26OCT2750PE": {
+   "buy": 35.15,
+   "sell": 52.7,
+   "stop": 17.55,
+   "tick": 0.05,
+   "lotSize": 309,
+   "expiry": "2026-10-27",
+   "strike": 2750,
+   "right": "PE",
+   "symbol": "ADANIENT",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-01T06:05:25.984Z",
+   "frozenAtIst": "2026-10-01 11:35 IST",
+   "frozenAtSpot": null
+  },
+  "HAL26OCT4500PE": {
+   "buy": 48.9,
+   "sell": 73.35,
+   "stop": 24.45,
+   "tick": 0.05,
+   "lotSize": 150,
+   "expiry": "2026-10-27",
+   "strike": 4500,
+   "right": "PE",
+   "symbol": "HAL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-01T06:05:25.984Z",
+   "frozenAtIst": "2026-10-01 11:35 IST",
+   "frozenAtSpot": null
+  },
+  "RVNL26OCT187.5PE": {
+   "buy": 3.03,
+   "sell": 4.55,
+   "stop": 1.52,
+   "tick": 0.01,
+   "lotSize": 1925,
+   "expiry": "2026-10-27",
+   "strike": 187.5,
+   "right": "PE",
+   "symbol": "RVNL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-01T06:05:25.984Z",
+   "frozenAtIst": "2026-10-01 11:35 IST",
    "frozenAtSpot": null
   }
  },
