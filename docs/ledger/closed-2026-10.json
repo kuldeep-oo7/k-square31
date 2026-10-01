@@ -24709,6 +24709,60 @@
     "perLot": 8003.75,
     "netPerLot": 7903.23
    }
+  },
+  {
+   "id": "2026-09-29|CE|INFY26OCT960CE",
+   "kind": "CE",
+   "symbol": "INFY",
+   "contract": "INFY26OCT960CE",
+   "expiry": "2026-10-27",
+   "strike": 960,
+   "optionType": "CE",
+   "lotSize": 400,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 58.45,
+   "target": 87.7,
+   "target2": null,
+   "stop": 29.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51,
+     "medianDays": 9.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-29T04:26:36.384Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-01T09:45:38.689Z",
+   "exitPrice": 87.7,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 53.32,
+   "sessionsHeld": 2,
+   "best": 89.3,
+   "worst": 52.5,
+   "last": 86.8,
+   "lastAt": "2026-10-01T09:45:38.689Z",
+   "marks": 71,
+   "obs": {
+    "date": "2026-10-01",
+    "high": 89.3,
+    "low": 65.95,
+    "last": 86.8
+   },
+   "pnl": {
+    "perUnit": 29.25,
+    "pct": 50.04,
+    "basis": "NET",
+    "perLot": 11700,
+    "netPerLot": 11574.9
+   }
   }
  ]
 }
