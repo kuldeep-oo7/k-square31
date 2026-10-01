@@ -258,7 +258,9 @@
   "OPTION|BANKNIFTY|BANKNIFTY26OCT53700PE",
   "OPTION|BANKNIFTY|BANKNIFTY26OCT53600PE",
   "OPTION|ADANIPOWER|ADANIPOWER26OCT187.5PE",
-  "OPTION|GMRAIRPORT|GMRAIRPORT26OCT90PE"
+  "OPTION|GMRAIRPORT|GMRAIRPORT26OCT90PE",
+  "OPTION|LTF|LTF26OCT250PE",
+  "OPTION|NAUKRI|NAUKRI26OCT1140PE"
  ],
  "options": {
   "VMM26OCT100PE": {
@@ -4099,6 +4101,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-01T07:45:52.592Z",
    "frozenAtIst": "2026-10-01 13:15 IST",
+   "frozenAtSpot": null
+  },
+  "LTF26OCT250PE": {
+   "buy": 4,
+   "sell": 6,
+   "stop": 2,
+   "tick": 0.05,
+   "lotSize": 2250,
+   "expiry": "2026-10-27",
+   "strike": 250,
+   "right": "PE",
+   "symbol": "LTF",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-01T08:07:36.971Z",
+   "frozenAtIst": "2026-10-01 13:37 IST",
+   "frozenAtSpot": null
+  },
+  "NAUKRI26OCT1140PE": {
+   "buy": 17.1,
+   "sell": 25.65,
+   "stop": 8.55,
+   "tick": 0.05,
+   "lotSize": 550,
+   "expiry": "2026-10-27",
+   "strike": 1140,
+   "right": "PE",
+   "symbol": "NAUKRI",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-01T08:07:36.971Z",
+   "frozenAtIst": "2026-10-01 13:37 IST",
    "frozenAtSpot": null
   }
  },
