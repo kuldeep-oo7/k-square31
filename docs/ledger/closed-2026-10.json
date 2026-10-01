@@ -5442,6 +5442,60 @@
     "perLot": -9573.75,
     "netPerLot": -9647.96
    }
+  },
+  {
+   "id": "2026-09-29|FUT|GODREJCP26OCTFUT",
+   "kind": "FUT",
+   "symbol": "GODREJCP",
+   "contract": "GODREJCP26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 500,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 858.95,
+   "target": 880.4,
+   "target2": 901.9,
+   "stop": 846.05,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 53.8,
+     "medianTradingDays": 0.294
+    },
+    "target": {
+     "probabilityPct": 67.3,
+     "medianTradingDays": 3.719
+    },
+    "sigmaPct": 21.3,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T04:26:36.384Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-01T05:05:41.185Z",
+   "exitPrice": 846.05,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.65,
+   "sessionsHeld": 2,
+   "best": 862.7,
+   "worst": 845.6,
+   "last": 848.2,
+   "lastAt": "2026-10-01T05:05:41.185Z",
+   "marks": 59,
+   "obs": {
+    "date": "2026-10-01",
+    "high": 851.5,
+    "low": 845.6,
+    "last": 848.2
+   },
+   "pnl": {
+    "perUnit": -12.9,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
