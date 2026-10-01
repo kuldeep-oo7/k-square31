@@ -24493,6 +24493,60 @@
     "perLot": 7562.5,
     "netPerLot": 7464.92
    }
+  },
+  {
+   "id": "2026-09-28|CE|SHRIRAMFIN26OCT980CE",
+   "kind": "CE",
+   "symbol": "SHRIRAMFIN",
+   "contract": "SHRIRAMFIN26OCT980CE",
+   "expiry": "2026-10-27",
+   "strike": 980,
+   "optionType": "CE",
+   "lotSize": 825,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 33.9,
+   "target": 50.85,
+   "target2": null,
+   "stop": 16.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.1,
+     "medianDays": 9.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T04:06:42.660Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-01T09:06:22.831Z",
+   "exitPrice": 16.95,
+   "exitReason": "STOP",
+   "hoursFillToExit": 76.99,
+   "sessionsHeld": 3,
+   "best": 36.75,
+   "worst": 16.95,
+   "last": 18.8,
+   "lastAt": "2026-10-01T09:06:22.831Z",
+   "marks": 97,
+   "obs": {
+    "date": "2026-10-01",
+    "high": 29.75,
+    "low": 16.95,
+    "last": 18.8
+   },
+   "pnl": {
+    "perUnit": -16.95,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -13983.75,
+    "netPerLot": -14070.4
+   }
   }
  ]
 }
