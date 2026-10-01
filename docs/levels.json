@@ -247,7 +247,11 @@
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13400PE",
   "OPTION|TATASTEEL|TATASTEEL26OCT172.5PE",
   "OPTION|SWIGGY|SWIGGY26OCT230PE",
-  "OPTION|IRFC|IRFC26OCT72PE"
+  "OPTION|IRFC|IRFC26OCT72PE",
+  "OPTION|TATASTEEL|TATASTEEL26OCT170PE",
+  "OPTION|RVNL|RVNL26OCT185PE",
+  "OPTION|RVNL|RVNL26OCT182.5PE",
+  "OPTION|KPITTECH|KPITTECH26OCT460PE"
  ],
  "options": {
   "VMM26OCT100PE": {
@@ -3923,6 +3927,66 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-01T07:06:13.774Z",
    "frozenAtIst": "2026-10-01 12:36 IST",
+   "frozenAtSpot": null
+  },
+  "TATASTEEL26OCT170PE": {
+   "buy": 2.64,
+   "sell": 3.96,
+   "stop": 1.32,
+   "tick": 0.01,
+   "lotSize": 2750,
+   "expiry": "2026-10-27",
+   "strike": 170,
+   "right": "PE",
+   "symbol": "TATASTEEL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-01T07:27:38.122Z",
+   "frozenAtIst": "2026-10-01 12:57 IST",
+   "frozenAtSpot": null
+  },
+  "RVNL26OCT185PE": {
+   "buy": 3.72,
+   "sell": 5.58,
+   "stop": 1.86,
+   "tick": 0.01,
+   "lotSize": 1925,
+   "expiry": "2026-10-27",
+   "strike": 185,
+   "right": "PE",
+   "symbol": "RVNL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-01T07:27:38.122Z",
+   "frozenAtIst": "2026-10-01 12:57 IST",
+   "frozenAtSpot": null
+  },
+  "RVNL26OCT182.5PE": {
+   "buy": 3.04,
+   "sell": 4.56,
+   "stop": 1.52,
+   "tick": 0.01,
+   "lotSize": 1925,
+   "expiry": "2026-10-27",
+   "strike": 182.5,
+   "right": "PE",
+   "symbol": "RVNL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-01T07:27:38.122Z",
+   "frozenAtIst": "2026-10-01 12:57 IST",
+   "frozenAtSpot": null
+  },
+  "KPITTECH26OCT460PE": {
+   "buy": 9,
+   "sell": 13.5,
+   "stop": 4.5,
+   "tick": 0.05,
+   "lotSize": 775,
+   "expiry": "2026-10-27",
+   "strike": 460,
+   "right": "PE",
+   "symbol": "KPITTECH",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-01T07:27:38.122Z",
+   "frozenAtIst": "2026-10-01 12:57 IST",
    "frozenAtSpot": null
   }
  },
