@@ -24547,6 +24547,168 @@
     "perLot": -13983.75,
     "netPerLot": -14070.4
    }
+  },
+  {
+   "id": "2026-09-29|CE|INFY26OCT1000CE",
+   "kind": "CE",
+   "symbol": "INFY",
+   "contract": "INFY26OCT1000CE",
+   "expiry": "2026-10-27",
+   "strike": 1000,
+   "optionType": "CE",
+   "lotSize": 400,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 36.15,
+   "target": 54.25,
+   "target2": null,
+   "stop": 18.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 46,
+     "medianDays": 10.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-29T04:26:36.384Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-01T09:27:00.664Z",
+   "exitPrice": 54.25,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 53.01,
+   "sessionsHeld": 2,
+   "best": 60,
+   "worst": 31.75,
+   "last": 56.75,
+   "lastAt": "2026-10-01T09:27:00.664Z",
+   "marks": 70,
+   "obs": {
+    "date": "2026-10-01",
+    "high": 60,
+    "low": 41.75,
+    "last": 56.75
+   },
+   "pnl": {
+    "perUnit": 18.1,
+    "pct": 50.07,
+    "basis": "NET",
+    "perLot": 7240,
+    "netPerLot": 7144.61
+   }
+  },
+  {
+   "id": "2026-09-29|CE|INFY26OCT980CE",
+   "kind": "CE",
+   "symbol": "INFY",
+   "contract": "INFY26OCT980CE",
+   "expiry": "2026-10-27",
+   "strike": 980,
+   "optionType": "CE",
+   "lotSize": 400,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 46.55,
+   "target": 69.8,
+   "target2": null,
+   "stop": 23.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.4,
+     "medianDays": 9.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-29T04:26:36.384Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-01T09:27:00.664Z",
+   "exitPrice": 69.8,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 53.01,
+   "sessionsHeld": 2,
+   "best": 73,
+   "worst": 41.5,
+   "last": 69.7,
+   "lastAt": "2026-10-01T09:27:00.664Z",
+   "marks": 70,
+   "obs": {
+    "date": "2026-10-01",
+    "high": 73,
+    "low": 52.55,
+    "last": 69.7
+   },
+   "pnl": {
+    "perUnit": 23.25,
+    "pct": 49.95,
+    "basis": "NET",
+    "perLot": 9300,
+    "netPerLot": 9190.79
+   }
+  },
+  {
+   "id": "2026-09-25|CE|COFORGE26OCT1900CE",
+   "kind": "CE",
+   "symbol": "COFORGE",
+   "contract": "COFORGE26OCT1900CE",
+   "expiry": "2026-10-27",
+   "strike": 1900,
+   "optionType": "CE",
+   "lotSize": 475,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T06:24:19.247Z",
+   "buy": 33.7,
+   "target": 50.55,
+   "target2": null,
+   "stop": 16.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 42.5,
+     "medianDays": 12.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-25T06:24:19.253Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-01T09:27:00.664Z",
+   "exitPrice": 50.55,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 147.04,
+   "sessionsHeld": 4,
+   "best": 52.1,
+   "worst": 22.8,
+   "last": 49.6,
+   "lastAt": "2026-10-01T09:27:00.664Z",
+   "marks": 125,
+   "obs": {
+    "date": "2026-10-01",
+    "high": 52.1,
+    "low": 28.4,
+    "last": 49.6
+   },
+   "pnl": {
+    "perUnit": 16.85,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 8003.75,
+    "netPerLot": 7903.23
+   }
   }
  ]
 }
