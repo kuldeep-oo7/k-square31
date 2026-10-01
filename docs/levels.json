@@ -232,7 +232,9 @@
   "OPTION|IRFC|IRFC26OCT73PE",
   "OPTION|ADANIENT|ADANIENT26OCT2750PE",
   "OPTION|HAL|HAL26OCT4500PE",
-  "OPTION|RVNL|RVNL26OCT187.5PE"
+  "OPTION|RVNL|RVNL26OCT187.5PE",
+  "OPTION|ADANIPOWER|ADANIPOWER26OCT190PE",
+  "OPTION|GRASIM|GRASIM26OCT3120PE"
  ],
  "options": {
   "VMM26OCT100PE": {
@@ -3683,6 +3685,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-01T06:05:25.984Z",
    "frozenAtIst": "2026-10-01 11:35 IST",
+   "frozenAtSpot": null
+  },
+  "ADANIPOWER26OCT190PE": {
+   "buy": 2.8,
+   "sell": 4.2,
+   "stop": 1.4,
+   "tick": 0.01,
+   "lotSize": 3550,
+   "expiry": "2026-10-27",
+   "strike": 190,
+   "right": "PE",
+   "symbol": "ADANIPOWER",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-01T06:26:06.198Z",
+   "frozenAtIst": "2026-10-01 11:56 IST",
+   "frozenAtSpot": null
+  },
+  "GRASIM26OCT3120PE": {
+   "buy": 131,
+   "sell": 196.5,
+   "stop": 65.5,
+   "tick": 0.05,
+   "lotSize": 250,
+   "expiry": "2026-10-27",
+   "strike": 3120,
+   "right": "PE",
+   "symbol": "GRASIM",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-01T06:26:06.198Z",
+   "frozenAtIst": "2026-10-01 11:56 IST",
    "frozenAtSpot": null
   }
  },
