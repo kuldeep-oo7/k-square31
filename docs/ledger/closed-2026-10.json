@@ -5334,6 +5334,114 @@
     "perLot": -5880,
     "netPerLot": -5943.79
    }
+  },
+  {
+   "id": "2026-09-29|CE|ITC26OCT270CE",
+   "kind": "CE",
+   "symbol": "ITC",
+   "contract": "ITC26OCT270CE",
+   "expiry": "2026-10-27",
+   "strike": 270,
+   "optionType": "CE",
+   "lotSize": 1725,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 3.65,
+   "target": 5.45,
+   "target2": null,
+   "stop": 1.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.9,
+     "medianDays": 10,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T04:26:36.384Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-01T04:46:16.504Z",
+   "exitPrice": 1.85,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.33,
+   "sessionsHeld": 2,
+   "best": 4.35,
+   "worst": 1.8,
+   "last": 1.95,
+   "lastAt": "2026-10-01T04:46:16.504Z",
+   "marks": 56,
+   "obs": {
+    "date": "2026-10-01",
+    "high": 2.5,
+    "low": 1.8,
+    "last": 1.95
+   },
+   "pnl": {
+    "perUnit": -1.8,
+    "pct": -49.32,
+    "basis": "NET",
+    "perLot": -3105,
+    "netPerLot": -3161.16
+   }
+  },
+  {
+   "id": "2026-09-28|CE|ITC26OCT260CE",
+   "kind": "CE",
+   "symbol": "ITC",
+   "contract": "ITC26OCT260CE",
+   "expiry": "2026-10-27",
+   "strike": 260,
+   "optionType": "CE",
+   "lotSize": 1725,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 11.1,
+   "target": 16.65,
+   "target2": null,
+   "stop": 5.55,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.1,
+     "medianDays": 8.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T04:06:42.660Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-01T04:46:16.504Z",
+   "exitPrice": 5.55,
+   "exitReason": "STOP",
+   "hoursFillToExit": 72.66,
+   "sessionsHeld": 3,
+   "best": 11.1,
+   "worst": 5.5,
+   "last": 5.85,
+   "lastAt": "2026-10-01T04:46:16.504Z",
+   "marks": 84,
+   "obs": {
+    "date": "2026-10-01",
+    "high": 7.1,
+    "low": 5.5,
+    "last": 5.85
+   },
+   "pnl": {
+    "perUnit": -5.55,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -9573.75,
+    "netPerLot": -9647.96
+   }
   }
  ]
 }
