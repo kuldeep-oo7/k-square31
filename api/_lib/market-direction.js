@@ -87,17 +87,26 @@ function ownTrend(bars, now = Date.now()) {
 }
 
 /**
- * WHICH NAMES GET OPTIONS ON THIS BUILD, AND WHICH SIDE: symbol -> true (calls)
- * or false (puts); a name that is not in the map gets nothing.
+ * WHICH NAMES GET OPTIONS ON THIS BUILD, AND WHICH SIDE: symbol -> true (calls,
+ * and futures) or false (puts); a name that is not in the map gets nothing.
+ * EVERY STOCK IS READ ON ITS OWN TREND, ON EVERY BUILD -- the page adapts to the
+ * market by itself, nobody has to switch it:
  *
- *   No downtrend: calls on the stocks the desk rates BUY or ACCUMULATE -- the
- *     rule since 25 Sep 2026, unchanged.
- *   NIFTY in a downtrend: no calls. Puts on every NSE index with options, and
- *     on the stocks the desk rates SELL or REDUCE that are ALSO in their own
- *     downtrend. The rating alone is not a direction: half of its weight is
- *     trend persistence and a volatility band, which say nothing about which
- *     way a stock is going, so a put needs the stock itself to be falling
- *     (price under its 20-day average, under its 50-day).
+ *   A stock rated SELL or REDUCE that is falling itself (price under its 20-day
+ *     average, under its 50-day): puts -- in ANY market.
+ *   NIFTY not in a downtrend: calls and futures on the stocks rated BUY or
+ *     ACCUMULATE -- the rule since 25 Sep 2026, unchanged.
+ *   NIFTY in a downtrend: puts on every NSE index with options; and calls and
+ *     futures on the stocks RISING ON THEIR OWN (price over its 20-day average,
+ *     over its 50-day) that the desk does not rate SELL or REDUCE. Until 2 Oct
+ *     2026 a falling NIFTY blocked every buy; on 1 Oct that hid 13 of 275 F&O
+ *     stocks in their own uptrend (NSE's own closes). The owner, 2 Oct: "in this
+ *     market also there are stocks that rise, you need to show me that".
+ *     NOT YET TESTED: tracked on TRACK from the moment it is shown.
+ *
+ * The rating alone is not a direction: half of its weight is trend persistence
+ * and a volatility band, which say nothing about which way a stock is going, so
+ * a side needs the stock itself to be moving that way.
  *
  * `trendFor(symbol)` returns the stock's own regime (ownTrend), or null.
  */
@@ -105,25 +114,28 @@ function optionsView({ direction, universe = [], trendFor = () => null }) {
   const downtrend = Boolean(direction?.available && direction.regime === "BEAR_HOSTILE");
   const bullish = {};
   const skipped = [];
-  if (downtrend) {
-    for (const index of Object.keys(INDEX_TICKER)) bullish[index] = false;
-    for (const row of universe) {
-      if (row.action !== "SELL" && row.action !== "REDUCE") continue;
-      const trend = trendFor(row.symbol);
-      if (trend === "BEAR_HOSTILE") bullish[row.symbol] = false;
+  const risingOnTheirOwn = [];
+  if (downtrend) for (const index of Object.keys(INDEX_TICKER)) bullish[index] = false;
+  for (const row of universe) {
+    const ratedDown = row.action === "SELL" || row.action === "REDUCE";
+    if (ratedDown) {
+      if (trendFor(row.symbol) === "BEAR_HOSTILE") bullish[row.symbol] = false;
       else skipped.push(row.symbol);
-    }
-  } else {
-    for (const row of universe) {
+    } else if (!downtrend) {
       if (row.action === "BUY" || row.action === "ACCUMULATE") bullish[row.symbol] = true;
+    } else if (trendFor(row.symbol) === "BULL_TRENDING") {
+      bullish[row.symbol] = true;
+      risingOnTheirOwn.push(row.symbol);
     }
   }
   return {
     downtrend,
-    rule: downtrend ? "PUTS_ON_INDICES_AND_FALLING_SELL_REDUCE_IN_A_DOWNTREND" : "CALLS_ON_BUY_OR_ACCUMULATE_ONLY",
+    rule: downtrend ? "INDEX_PUTS_FALLING_SELL_REDUCE_PUTS_AND_STOCKS_RISING_ON_THEIR_OWN" : "CALLS_ON_BUY_OR_ACCUMULATE_AND_PUTS_ON_FALLING_SELL_REDUCE",
     bullish,
     indices: downtrend ? Object.keys(INDEX_TICKER) : [],
     stocks: Object.keys(bullish).filter((s) => !(s in INDEX_TICKER)),
+    // Calls/futures in a NIFTY downtrend: stocks in their own uptrend (untested).
+    risingOnTheirOwn,
     // SELL or REDUCE, but not in a downtrend of their own: no put.
     ratedDownNotFalling: skipped
   };

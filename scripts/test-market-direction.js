@@ -85,25 +85,33 @@ console.log("\nwhich names get options, and which side:");
 {
   const universe = [
     { symbol: "AAA", action: "BUY" }, { symbol: "BBB", action: "ACCUMULATE" }, { symbol: "CCC", action: "STAND_ASIDE" },
-    { symbol: "DDD", action: "SELL" }, { symbol: "EEE", action: "REDUCE" }, { symbol: "FFF", action: "SELL" }
+    { symbol: "DDD", action: "SELL" }, { symbol: "EEE", action: "REDUCE" }, { symbol: "FFF", action: "SELL" },
+    { symbol: "HHH", action: "STAND_ASIDE" }, { symbol: "III", action: "SELL" }
   ];
-  const trend = { DDD: "BEAR_HOSTILE", EEE: "BEAR_HOSTILE", FFF: "NEUTRAL_CHOPPY" };
-  const up = D.optionsView({ direction: { available: true, regime: "BULL_TRENDING" }, universe, trendFor: (s) => trend[s] || null });
-  check("no downtrend: calls on BUY and ACCUMULATE only -- the rule since 25 Sep, unchanged",
-    JSON.stringify(up.bullish) === JSON.stringify({ AAA: true, BBB: true }) && up.downtrend === false && up.rule === "CALLS_ON_BUY_OR_ACCUMULATE_ONLY");
-  const mixed = D.optionsView({ direction: { available: true, regime: "NEUTRAL_CHOPPY" }, universe, trendFor: (s) => trend[s] || null });
+  // AAA falls with the market; BBB and HHH rise on their own; III is rated SELL but rising.
+  const trend = { AAA: "BEAR_HOSTILE", BBB: "BULL_TRENDING", HHH: "BULL_TRENDING", III: "BULL_TRENDING",
+    DDD: "BEAR_HOSTILE", EEE: "BEAR_HOSTILE", FFF: "NEUTRAL_CHOPPY" };
+  const trendFor = (s) => trend[s] || null;
+  const up = D.optionsView({ direction: { available: true, regime: "BULL_TRENDING" }, universe, trendFor });
+  check("no downtrend: calls on BUY and ACCUMULATE (unchanged since 25 Sep), and puts on the SELL/REDUCE stocks falling themselves",
+    JSON.stringify(up.bullish) === JSON.stringify({ AAA: true, BBB: true, DDD: false, EEE: false }) && up.downtrend === false
+    && up.rule === "CALLS_ON_BUY_OR_ACCUMULATE_AND_PUTS_ON_FALLING_SELL_REDUCE", JSON.stringify(up.bullish));
+  const mixed = D.optionsView({ direction: { available: true, regime: "NEUTRAL_CHOPPY" }, universe, trendFor });
   check("a mixed market is not a downtrend", JSON.stringify(mixed.bullish) === JSON.stringify(up.bullish));
-  const unread = D.optionsView({ direction: { available: false }, universe });
-  check("direction not read: buys as before, never puts on a guess", JSON.stringify(unread.bullish) === JSON.stringify(up.bullish));
-  const down = D.optionsView({ direction: { available: true, regime: "BEAR_HOSTILE" }, universe, trendFor: (s) => trend[s] || null });
-  const want = { NIFTY: false, BANKNIFTY: false, FINNIFTY: false, MIDCPNIFTY: false, NIFTYNXT50: false, DDD: false, EEE: false };
-  check("downtrend: puts on every index with options, and on the SELL/REDUCE stocks that are falling -- no calls at all",
-    JSON.stringify(down.bullish) === JSON.stringify(want) && Object.values(down.bullish).every((v) => v === false), JSON.stringify(down.bullish));
-  check("a SELL stock that is not falling gets no put, and is named", down.ratedDownNotFalling.join() === "FFF" && !("FFF" in down.bullish));
-  check("a BUY stock gets nothing in a downtrend", !("AAA" in down.bullish) && !("BBB" in down.bullish));
-  check("the view says what it chose: 5 indices, 2 stocks", down.indices.length === 5 && down.stocks.join() === "DDD,EEE");
-  check("a stock with no trend verdict (too little history) gets no put", !("GGG" in D.optionsView({ direction: { available: true, regime: "BEAR_HOSTILE" },
-    universe: [{ symbol: "GGG", action: "SELL" }], trendFor: () => null }).bullish));
+  const unread = D.optionsView({ direction: { available: false }, universe, trendFor });
+  check("direction not read: as in a normal market, never index puts on a guess",
+    JSON.stringify(unread.bullish) === JSON.stringify(up.bullish) && unread.indices.length === 0);
+  const down = D.optionsView({ direction: { available: true, regime: "BEAR_HOSTILE" }, universe, trendFor });
+  const want = { NIFTY: false, BANKNIFTY: false, FINNIFTY: false, MIDCPNIFTY: false, NIFTYNXT50: false, BBB: true, DDD: false, EEE: false, HHH: true };
+  check("downtrend: index puts, puts on the falling SELL/REDUCE stocks, and calls on the stocks RISING ON THEIR OWN",
+    JSON.stringify(down.bullish) === JSON.stringify(want), JSON.stringify(down.bullish));
+  check("downtrend: a BUY stock that falls with the market gets nothing", !("AAA" in down.bullish));
+  check("downtrend: a stock rising on its own is shown whatever its rating, unless rated SELL/REDUCE",
+    down.bullish.HHH === true && !("III" in down.bullish) && down.risingOnTheirOwn.join() === "BBB,HHH");
+  check("a SELL stock that is not falling gets no put, and is named", down.ratedDownNotFalling.join() === "FFF,III" && !("FFF" in down.bullish));
+  check("the view says what it chose: 5 indices, 4 stocks", down.indices.length === 5 && down.stocks.join() === "BBB,DDD,EEE,HHH");
+  check("a stock with no trend verdict (too little history) gets nothing", Object.keys(D.optionsView({ direction: { available: true, regime: "BEAR_HOSTILE" },
+    universe: [{ symbol: "GGG", action: "SELL" }, { symbol: "JJJ", action: "BUY" }], trendFor: () => null }).bullish).every((s) => s in D.INDEX_TICKER));
 }
 
 console.log("\nthe index tickers (checked against NSE's allIndices, 29 Sep 2026):");

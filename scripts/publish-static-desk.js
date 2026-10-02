@@ -360,9 +360,11 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     symbolsAsOf: fnoUniverseEngine.watchSymbolsAsOf || null,
     indices: (watchFile.indices || []).map((x) => x.symbol)
   } : null;
-  // No new futures buys in a downtrend (see THE MARKET'S DIRECTION above).
-  const futuresPicked = (downtrend ? [] : universe)
-    .filter((r) => (r.action === "BUY" || r.action === "ACCUMULATE") && r.perUnit)
+  // Futures follow the same side as the calls (market-direction.js optionsView):
+  // BUY/ACCUMULATE in a normal market; in a NIFTY downtrend, the stocks rising
+  // on their own. Read afresh on every build -- nobody has to switch it.
+  const futuresPicked = universe
+    .filter((r) => bullish[r.symbol] === true && r.perUnit)
     .sort((a, b) => (b.compositeScore || 0) - (a.compositeScore || 0))
     .slice(0, futuresLimit)
     .map((r) => ({ row: r, expiry: tradableExpiry(r.symbol, { minDays: 7, reference })?.expiry || null }));
@@ -859,7 +861,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     forwardStatus,
     optionsOnLiveForward: options.filter((c) => c.forwardSource === "LIVE").length,
     optionsDirection: { rule: view.rule, names: Object.keys(bullish).length, indices: view.indices,
-      stocks: view.stocks.length, ratedDownNotFalling: view.ratedDownNotFalling },
+      stocks: view.stocks.length, ratedDownNotFalling: view.ratedDownNotFalling, risingOnTheirOwn: view.risingOnTheirOwn || [] },
     direction,
     gmMinUnits: GM_MIN_UNITS,
     marketContext: marketContext
@@ -1071,7 +1073,7 @@ function page(d) {
   const shortDay = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" });
   const putNote = t?.putDays && !d.options.some((c) => c.right === "PE")
     ? `<div class="sub warn">shown ${esc(shortDay(t.putDays.first))}${t.putDays.last !== t.putDays.first ? `&ndash;${esc(shortDay(t.putDays.last))}` : ""};
-        none on this build (puts are shown only while NIFTY is in a downtrend); tracked to their end</div>` : "";
+        none on this build; tracked to their end</div>` : "";
   const summaryRow = (label, s) => s ? `
       <tr><td><b>${label}</b>${label === "PUTS" ? putNote : ""}</td>
         <td class="num">${esc(s.shown)}</td><td class="num">${esc(s.waiting)}</td><td class="num">${esc(s.open)}</td>
@@ -1279,6 +1281,9 @@ function page(d) {
   // above 3 indices and 21 stocks on the simulated page (29 Sep).
   const putNames = [...new Set(puts.map((c) => c.symbol))];
   const putIndices = putNames.filter((s) => puts.some((c) => c.symbol === s && c.isIndex));
+  const rising = od.risingOnTheirOwn || [];
+  const callNames = [...new Set(calls.map((c) => c.symbol))];
+  const futNames = (d.futures || []).length;
   const lvl = (v) => (numeric(v) === null ? "&mdash;" : esc(Number(v).toLocaleString("en-IN", { maximumFractionDigits: 2 })));
   const dirDay = (iso) => (iso ? esc(dayText(iso)) : "&mdash;");
   const dirLevels = dir?.available
@@ -1290,9 +1295,9 @@ function page(d) {
     ? [`<b class="warn">MARKET DIRECTION: NOT READ ON THIS BUILD</b> &mdash; ${esc(dir?.reason || "reason unknown")}. The tabs show buys as before.`,
        "Without NIFTY's daily history the page cannot say whether the market is in a downtrend.", "amber"]
     : downtrendPage
-    ? [`<b class="down">MARKET DIRECTION: DOWN</b> &mdash; NIFTY in a downtrend since <b>${dirDay(dir.since)}</b>. <b>No new buys</b> (no futures, no calls): <b>puts instead</b> &mdash; ${puts.length
+    ? [`<b class="down">MARKET DIRECTION: DOWN</b> &mdash; NIFTY in a downtrend since <b>${dirDay(dir.since)}</b>. <b>Puts</b> on the indices and the falling stocks &mdash; ${puts.length
         ? `${esc(puts.length)} on ${esc(putNames.length)} name${putNames.length === 1 ? "" : "s"} (${esc(putIndices.length)} ${putIndices.length === 1 ? "index" : "indices"}, ${esc(putNames.length - putIndices.length)} stock${putNames.length - putIndices.length === 1 ? "" : "s"})`
-        : "none cleared every gate on this build"}.${dir.stale ? ` <b class="warn">(close of ${dirDay(dir.asOf)})</b>` : ""}`,
+        : "none cleared every gate on this build"}. <b class="up">Buys only on the stocks rising on their own</b> &mdash; ${esc(rising.length)} found${rising.length ? ` (${esc(rising.slice(0, 12).join(", "))}${rising.length > 12 ? ", &hellip;" : ""})` : ""}: ${esc(futNames)} on FUTURES, ${esc(callNames.length)} with calls.${dir.stale ? ` <b class="warn">(close of ${dirDay(dir.asOf)})</b>` : ""}`,
        `${dirLevels} A close under the 20-day average, with the 20-day under the 50-day, is what the desk&rsquo;s trend reader
         (market-regime.js) calls a downtrend. It is read from completed daily closes, so it does not change during the day.${dirStale}
         Puts are looked for on ${esc((od.indices || []).join(", "))}, and on the ${esc(od.stocks ?? 0)} stocks the desk rates SELL or REDUCE that are
@@ -1301,10 +1306,12 @@ function page(d) {
         <b>Tested first, and it FAILED:</b> on five years of NSE&rsquo;s own NIFTY data, selling NIFTY in these downtrends made
         ${signedPct(round(dtest.shortsFinalPct, 2))} a trade in the final year &mdash; ${esc(dtest.shortsFinalTrades)} trades, t = ${esc(dtest.shortsFinalT)},
         no different from nothing (the test was fixed before it was run). These puts are here because you asked for the market&rsquo;s direction,
-        not because they are proven. Each is tracked on TRACK from the moment it is shown.`, "red"]
+        not because they are proven. <b>Rising against the market</b>: every build reads each stock&rsquo;s own trend; a stock over its own 20-day
+        average, with that over its 50-day, gets futures and calls even while NIFTY falls (not if the desk rates it SELL or REDUCE). That rule is
+        <b>NOT YET TESTED</b>. Each row is tracked on TRACK from the moment it is shown.`, "red"]
     : [`<b>MARKET DIRECTION: ${dir.regime === "BULL_TRENDING" ? "UP" : "MIXED"}</b> &mdash; NIFTY is not in a downtrend: buys as usual, and puts only in a downtrend.${dir.stale ? ` <b class="warn">(close of ${dirDay(dir.asOf)})</b>` : ""}`,
        `${dirLevels} The desk&rsquo;s trend reader (market-regime.js) calls a close under the 20-day average, with the 20-day under the
-        50-day, a downtrend; then this page shows no new buys, and puts instead.${dirStale} Tested on five years of NSE&rsquo;s own NIFTY data:
+        50-day, a downtrend; then this page shows puts, and buys only on the stocks rising on their own.${dirStale} Tested on five years of NSE&rsquo;s own NIFTY data:
         buying NIFTY outside those downtrends made ${signedPct(round(dtest.longsOutsideFinalPct, 2))} a trade in the final year &mdash; the test FAILED.`,
        dir.regime === "BULL_TRENDING" ? "green" : "amber"];
   // WHEN THE NIFTY AND VIX FIGURES ARE FROM. Before the open they are the last
@@ -1463,7 +1470,7 @@ ${feedAlarm}
         <th>SYMBOL</th><th class="num">BUY LIMIT</th><th class="num">TARGET 1 &middot; 2</th>
         <th class="num">STOP</th><th class="num">NOW</th><th class="num">GM MIN (20 UNITS)</th><th class="num">R : R</th>
       </tr></thead><tbody>${futRows || `<tr><td colspan="7">${downtrendPage
-        ? "No new futures buys: NIFTY is in a downtrend (MARKET DIRECTION, above). Futures shown on earlier days stay on TRACK until they finish."
+        ? "No stock is rising on its own on this build (NIFTY is in a downtrend, MARKET DIRECTION above), so no futures buys. Futures shown on earlier days stay on TRACK until they finish."
         : "No futures cleared the hurdle on this build."}</td></tr>`}</tbody>
     </table></div>
     <div class="sub" style="margin-top:8px">${d.resultsCalendar?.ok
@@ -1483,10 +1490,11 @@ ${feedAlarm}
        ${esc(calls.filter((c) => Number(c.vrp) > 1).length)} of ${esc(calls.length)} are priced above the stock&rsquo;s own recent movement (implied above realised), which makes it worse.
        They make money only if the BUY signal works, and it failed its pre-registered final test (1,205 trades, t = 0.75; panel study, 24 Sep 2026).` : "")}
     ${riskBox(d.risk?.calls, "calls")}
-    ${d.optionsDirection && !downtrendPage ? `<div class="sub" style="margin:-4px 0 10px">Only on the ${esc(d.optionsDirection.names)} stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
+    ${d.optionsDirection && !downtrendPage ? `<div class="sub" style="margin:-4px 0 10px">Only on the stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
+    ${downtrendPage ? `<div class="sub" style="margin:-4px 0 10px"><b>NIFTY is falling, so only stocks rising on their own</b> (over their own 20-day and 50-day averages): ${esc(rising.length)} found on this build. Untested rule &mdash; tracked on TRACK.</div>` : ""}
     ${calls.length ? oldFileNote : ""}
     ${optionTable(calls, downtrendPage
-      ? "No new calls: NIFTY is in a downtrend (MARKET DIRECTION, above). Puts instead, on the PUTS tab."
+      ? "No call cleared every gate on the stocks rising on their own (NIFTY is in a downtrend, MARKET DIRECTION above). Puts are on the PUTS tab."
       : "No calls cleared every gate on this build.")}
   </section>
 
@@ -1504,7 +1512,7 @@ ${feedAlarm}
     ${puts.length ? oldFileNote : ""}
     ${optionTable(puts, downtrendPage
       ? "No puts cleared every gate on this build."
-      : "No puts: NIFTY is not in a downtrend (MARKET DIRECTION, above). Puts are shown only while it is &mdash; on the indices, and on the stocks rated SELL or REDUCE that are falling themselves.")}
+      : "No put cleared every gate on this build. Outside a NIFTY downtrend, puts are looked for on the stocks rated SELL or REDUCE that are falling themselves; in a downtrend also on the indices.")}
   </section>
 
   <section class="pane pane-trk">

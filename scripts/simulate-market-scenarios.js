@@ -428,10 +428,12 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     // the names the desk rates BUY or ACCUMULATE; its measured short side loses.
     const buyNames = new Set(fnoUniverseEngine.getUniverse({ severity: "NORMAL", shieldActive: false })
       .filter((r) => r.action === "BUY" || r.action === "ACCUMULATE").map((r) => r.symbol));
-    check("every option on the page is a CALL on a stock the desk rates BUY or ACCUMULATE",
-      d.options.length > 0 && d.options.every((x) => x.right === "CE" && buyNames.has(x.symbol)),
-      `${d.options.length} options, ${d.options.filter((x) => x.right === "PE").length} puts, ${d.options.filter((x) => !buyNames.has(x.symbol)).length} off-view`);
-    check("and the PUTS tab says why it is empty, instead of just being blank", /No puts: NIFTY is not in a downtrend/.test(b.html));
+    const downNames = new Set(fnoUniverseEngine.getUniverse({ severity: "NORMAL", shieldActive: false })
+      .filter((r) => r.action === "SELL" || r.action === "REDUCE").map((r) => r.symbol));
+    check("every call is on a stock the desk rates BUY or ACCUMULATE, every put on a stock it rates SELL or REDUCE -- and no index put",
+      d.options.some((x) => x.right === "CE")
+        && d.options.every((x) => (x.right === "CE" ? buyNames.has(x.symbol) : downNames.has(x.symbol) && !x.isIndex)),
+      `${d.options.length} options, ${d.options.filter((x) => x.right === "PE").length} puts, ${d.options.filter((x) => !buyNames.has(x.symbol) && !downNames.has(x.symbol)).length} off-view`);
     check("the market's direction is at the top: UP, with the test result, and it is not a downtrend",
       b.data.direction?.available === true && b.data.direction.downtrend === false && /MARKET DIRECTION: UP/.test(b.html)
         && /the test FAILED/.test(b.html) && b.data.direction.stale === false,
@@ -474,7 +476,7 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       /target comes before its stop at most as often as its break-even/.test(b.html) && /a call is expected to lose about its charges/.test(b.html)
         && d.options.every((x) => x.noTrendNet < 0), `${d.options.filter((x) => !(x.noTrendNet < 0)).length} option rows without it`);
     check("each tab totals every row -- the capital, and the loss if every stop is hit -- and warns a gap can cost more",
-      (b.html.match(/If you take every row here/g) || []).length === 2 && /more if prices gap through the stops/.test(b.html)
+      (b.html.match(/If you take every row here/g) || []).length >= 2 && /more if prices gap through the stops/.test(b.html)
         && /Rows in one sector tend to fall together/.test(b.html));
     const onTick = (v, t) => t > 0 && Math.abs(Math.round(v / t) * t - v) < 1e-6;
     const offGrid = [...d.options.filter((x) => ![x.buy, x.sell, x.stop].every((v) => onTick(v, x.tick))).map((x) => x.display),
@@ -785,7 +787,8 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     const hash = (s) => [...String(s)].reduce((a, ch) => (Math.imul(a, 31) + ch.charCodeAt(0)) >>> 0, 7);
     // A third of the names are not falling themselves: rated SELL or REDUCE,
     // they must still get no put.
-    const stockTrend = (s) => (hash(s) % 3 === 0 ? "NEUTRAL_CHOPPY" : "BEAR_HOSTILE");
+    // Some stocks rise on their own while NIFTY falls (13 of 275 on NSE's 1 Oct 2026 close).
+    const stockTrend = (s) => (hash(s) % 7 === 0 ? "BULL_TRENDING" : hash(s) % 3 === 0 ? "NEUTRAL_CHOPPY" : "BEAR_HOSTILE");
     const downRisk = { ...SIM_RISK, directionHistoryFor: directionFrom(NIFTY_DOWN), trendFor: stockTrend };
     const downDay = { indexMove: -0.02, idioScale: 0.01, ivMult: 1.2, spreadPct: 0.02 };
     const INDICES = ["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY", "NIFTYNXT50"];
@@ -803,9 +806,15 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
         && /NIFTY in a downtrend since/.test(b.html) && /its 20-day average/.test(b.html),
       JSON.stringify({ regime: d.direction?.regime, since: d.direction?.since, asOf: d.direction?.asOf, close: d.direction?.close }));
     check("beside it, that the direction's own test FAILED -- with its numbers", /Tested first, and it FAILED/.test(b.html) && /\+0\.29% a trade/.test(b.html) && /t = 0\.205/.test(b.html));
-    check("no new futures buys, and the futures tab says why", d.futures.length === 0 && /No new futures buys: NIFTY is in a downtrend/.test(b.html));
-    check("no new calls, and the calls tab says why", d.options.every((x) => x.right === "PE") && /No new calls: NIFTY is in a downtrend/.test(b.html)
-      && !/Only on the \d+ stocks the desk rates BUY or ACCUMULATE/.test(b.html));
+    const rising = new Set(d.optionsDirection?.risingOnTheirOwn || []);
+    console.log(`  rising on their own: ${rising.size} (${[...rising].slice(0, 8).join(", ")})`);
+    check("futures only on the stocks rising on their own, and the banner names how many",
+      d.futures.every((r) => rising.has(r.symbol)) && /Buys only on the stocks rising on their own/.test(b.html)
+        && rising.size > 0 && d.futures.length > 0, `${d.futures.length} futures`);
+    check("calls only on the stocks rising on their own, and the calls tab says so",
+      d.options.filter((x) => x.right === "CE").every((x) => rising.has(x.symbol)) && /only stocks rising on their own/.test(b.html)
+        && !/Only on the stocks the desk rates BUY or ACCUMULATE/.test(b.html),
+      `${d.options.filter((x) => x.right === "CE").length} calls`);
     check("puts ARE on the page (not an empty pass), and the tab counts them", puts.length > 0 && tabCount(b.html, "t-pe") === puts.length, `${puts.length} puts`);
     check("index puts are among them", names.some((s) => INDICES.includes(s)), names.filter((s) => INDICES.includes(s)).join(", ") || "none");
     const shownIdx = names.filter((s) => INDICES.includes(s));
@@ -824,9 +833,9 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("SELL/REDUCE names that are not falling get no put, and the page counts them",
       notFalling.length > 0 && notFalling.every((s) => stockTrend(s) !== "BEAR_HOSTILE") && !puts.some((x) => notFalling.includes(x.symbol))
         && /more are rated SELL or REDUCE but are not falling/.test(b.html), `${notFalling.length} not falling`);
-    check("the puts freeze on live books, and every one becomes a paper trade on TRACK",
-      d.levelsFrozen === true && d.track.tally.added === puts.length && (d.track.summary.PE?.shown ?? 0) === puts.length,
-      `${d.track.tally.added} added, PE shown ${d.track.summary.PE?.shown}`);
+    check("puts, calls and futures freeze on live books, and every one becomes a paper trade on TRACK",
+      d.levelsFrozen === true && d.track.tally.added === d.options.length + d.futures.length && (d.track.summary.PE?.shown ?? 0) === puts.length,
+      `${d.track.tally.added} added (${d.options.length} options + ${d.futures.length} futures), PE shown ${d.track.summary.PE?.shown}`);
     const onTick = (v, t) => t > 0 && Math.abs(Math.round(v / t) * t - v) < 1e-6;
     const bent = puts.filter((x) => !(onTick(x.buy, x.tick) && onTick(x.sell, x.tick) && onTick(x.stop, x.tick) && x.sell > x.buy && x.stop < x.buy
       && Math.abs(x.stop - Math.round(x.buy / 2 / x.tick) * x.tick) < 1e-6 && Math.abs(x.costPerLot - Math.round(x.buy * x.lotSize * 100) / 100) < 0.01));
@@ -853,8 +862,9 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("the production gate is green on the downtrend build", gate.problems.length === 0, gate.problems[0] || "green");
     const pageScripts = [...b.html.matchAll(/<script>([\s\S]*?)<\/script>/g)].map((m) => m[1]);
     check("the page's own scripts parse on the downtrend page", pageScripts.every((code) => { try { new Function(code); return true; } catch { return false; } }));
-    check("every put's NOW cell carries its token for the live service", puts.every((x) => x.liveToken)
-      && (b.html.match(/data-live="NFO:\d+"/g) || []).length === puts.length);
+    check("every option's NOW cell carries its token for the live service", d.options.every((x) => x.liveToken)
+      && (b.html.match(/data-live="NFO:\d+"/g) || []).length >= d.options.length,
+      `${(b.html.match(/data-live="NFO:\d+"/g) || []).length} tokens, ${d.options.length} options`);
 
     // Later the same day: the levels hold, NOW moves.
     const noon = await runBuild("thu-1213-downtrend-later", { ...downDay, indexMove: -0.03, clock: ist("2026-09-24", "12:13") }, book, { ...own, risk: downRisk });
@@ -866,8 +876,9 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     // The next session the direction is no longer down: calls come back, and
     // Thursday's puts stay on TRACK until they finish.
     const up = await runBuild("fri-0933-direction-back-up", { ...normal, clock: ist("2026-09-25", "09:33") }, new Map(), { ...own, risk: SIM_RISK });
-    check("when the direction is no longer down, calls come back and no new put is shown",
-      up.data.direction.downtrend === false && up.data.options.length > 0 && up.data.options.every((x) => x.right === "CE"), `${up.data.options.length} options`);
+    check("when the direction is no longer down, calls come back and no INDEX put is shown",
+      up.data.direction.downtrend === false && up.data.options.some((x) => x.right === "CE") && !up.data.options.some((x) => x.right === "PE" && x.isIndex),
+      `${up.data.options.length} options`);
     check("and Thursday's puts are still on TRACK", (up.data.track.summary.PE?.shown ?? 0) >= puts.length && /PUTS/.test(up.html.split('class="pane pane-trk"')[1] || ""),
       `PE shown ${up.data.track.summary.PE?.shown}`);
     const dbDown = health.checkDatabase({ ledgerDir: own.ledgerDir, levelsFile: own.ledgerFile });
@@ -882,7 +893,7 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       { ...own, risk: { ...SIM_RISK, directionHistoryFor: () => null } });
     check("without NIFTY's history the page says the direction was not read, and shows buys as before",
       nd.data.direction?.available === false && /MARKET DIRECTION: NOT READ ON THIS BUILD/.test(nd.html)
-        && nd.data.options.length > 0 && nd.data.options.every((x) => x.right === "CE"), nd.data.direction?.reason);
+        && nd.data.options.some((x) => x.right === "CE") && !nd.data.options.some((x) => x.isIndex), nd.data.direction?.reason);
     // A close older than the last session is said, not hidden.
     const old = { rows: NIFTY_DOWN.rows.filter((r) => r[0] <= "2026-09-21") };
     const st = await runBuild("thu-1053-direction-stale", { ...normal, clock: ist("2026-09-24", "10:53") }, new Map(),
