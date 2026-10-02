@@ -1,0 +1,28 @@
+- [Verify against the internet](verify-against-the-internet.md) — standing rule: check every external fact against a PRIMARY source before coding or stating it
+- [Verify the live page with screenshots](verify-live-page-with-screenshots.md) — USER RULE: after every push, screenshot every tab on the PHONE (Galaxy M32, 412px) and laptop, read the images before saying done
+- [K² trading rules](k2-trading-rules.md) — NSE futures only, Monday-open anchor, 2-3% target; the Friday forced book-out is superseded by a continuous 20-session hold
+- [K² ladder has no measured edge](k2-ladder-has-no-measured-edge.md) — 0 of 24 geometries survive validation; at no trend +2.5/-1.5 is a fair game (37.5% = break-even); touch odds ignore the stop
+- [K² Apex engine runs on synthetic data](k2-apex-engine-runs-on-synthetic-data.md) — the deployed k-square31 desk prices from a hash/stale table and scores from a sine wave; track record was seeded
+- [Serverless desk](k2-serverless-desk.md) — builds on a GitHub Actions schedule; Pages is 422 on this private repo; Sheet connected to K2 Archive v2 on 2026-09-27 (appends work); run summary needs nothing
+- [Audit 2026-09-23](k2-audit-2026-09-23.md) — BSM-on-futures mispriced every option ~2.75 vol pts; forward was yesterday's; ban list 6 days old; what runs vs not; 37.5% is break-even
+- [Paper ledger / track record](k2-paper-ledger.md) — every frozen level is a paper trade marked each build, stored in docs/ledger/ + Sheet, scored against itself; futures anchored on the futures contract
+- [Session freeze lives in git](k2-session-freeze-in-git.md) — docs/levels.json, not SQLite, because a runner has no disk; this is what stopped the moving buy limit
+- [K² hosting and store](k2-hosting-and-store.md) — HISTORY: Render suspended 2026-09-22, then laptop + tunnel; SUPERSEDED on 2026-09-23 by the serverless desk (see k2-serverless-desk)
+- [Build rewrites package type](k2-build-rewrites-package-type.md) — vinext build injects "type":"module" and silently breaks every CommonJS script; pinned to "commonjs"
+- [PC memory constraint](pc-memory-constraint.md) — 8 GB soldered RAM; pagefile fix, and why Claude CLI kept getting killed
+- [REALTIME path verified](k2-realtime-path-unverified.md) — RESOLVED 2026-09-24: live books priced in session; desk TRACK matched the user's Zerodha screen exactly
+- [Render free-tier limits](k2-render-free-tier-limits.md) — 512 MB, ephemeral disk, no .private; the four failure modes that blanked the desk on 2026-09-18
+- [Live path is narrow](k2-live-path-is-narrow.md) — server.js reaches 26 of 61 modules and ZERO npm packages; the boosted trees and recommendation.js never run in production
+- [Find defects by distribution](k2-find-defects-by-distribution.md) — measure the output across the whole universe; low cardinality or saturation names the bug; Number(null)===0 is the recurring class
+- [Contract identity rules](k2-contract-identity-rules.md) — NSE expiry is Tuesday; Zerodha and Angel One name the same contract differently; the Angel master is 52% BSE/MCX and collides with NSE
+- [GM Global is manual only](gm-global-manual-only.md) — user trades futures there by hand; fetch/read/store NOTHING from GM; "broker" on the desk means Angel One; 20 units is not an NSE lot
+- [NSE live API endpoints](nse-live-api-endpoints.md) — option-chain-v3 and NextApi GetQuoteApi work (Sep 2026), quote-derivative is 404; previous close fingerprints a contract (per-build check); chain IV splits call/put
+- [Momentum pre-registration 2026-09-25](k2-momentum-prereg-2026-09-25.md) — 12-1 momentum on the panel, rules hashed before running: BOTH legs FAIL (paid 2022-24, reversed 2024-26)
+- [Show every passing row](k2-show-every-passing-row.md) — user decision: no row cap; every contract clearing every gate is shown; strikes of one stock = one bet
+- [K² Google Sheet link](k2-google-sheet.md) — docs.google.com/spreadsheets/d/1j2Qv_p4R3UrGa9RUdPjDQxEDyiPq4uZIE1xNkDrWvfQ; bound 'K2 Archive' script; second Google account
+- [Published strategies 2026-09-27](k2-published-strategies-2026-09-27.md) — TS momentum, low vol, 10-month trend filter pre-registered on the panel: ALL FAIL
+- [Bad-day risk view](k2-risk-view.md) — live 28 Sep: 2y historical simulation on both tabs; Yahoo misses demergers (NSE filings guard); phone folds notes; user said NO to value investing
+- [Gap-filter prereg 2026-09-29](k2-gap-filter-prereg-2026-09-29.md) — no futures buys on NIFTY gap-down mornings; sha256 05b43924... recorded before running; panel rebuilt from NSE (Yahoo panel had wrong bars)
+- [Market direction live](k2-market-direction.md) — LIVE 29 Sep: NIFTY downtrend (since 2 Sep, verified on NSE) → puts only; optionsView shared by build-prep and page; its test FAILED; verify first in-session build
+- [Open requests 29 Sep](k2-open-requests-2026-09-29.md) — backtest every strategy by market situation; VWAP and order flow are NOT used; BUY side below break-even on TRACK
+- [Cloud credit for heavy work](cloud-credit-for-heavy-work.md) — USER: run heavy work in cloud sessions ($100 credit to 5 Nov); claude --cloud needs a TTY (Start-Process pwsh); network Trusted blocks NSE
