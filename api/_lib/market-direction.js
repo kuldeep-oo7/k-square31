@@ -32,7 +32,12 @@ const { readHistory, completedRows, lastCompletedSession } = require("./risk-his
 // 69460.2: identical). ^CNXFIN is NOT FINNIFTY: Yahoo names it "NIFTY FINSRV25
 // 50" and it read 26570.5 against NSE's 24648.5.
 const INDEX_TICKER = { NIFTY: "^NSEI", BANKNIFTY: "^NSEBANK", FINNIFTY: "NIFTY_FIN_SERVICE.NS", MIDCPNIFTY: "NIFTY_MID_SELECT.NS", NIFTYNXT50: "^NSMIDCP" };
-const TEST = { file: "research/regime-2026-09-29", verdict: "FAIL", shortsFinalPct: 0.286, shortsFinalT: 0.205, shortsFinalTrades: 18, longsOutsideFinalPct: -0.2606 };
+const TEST = { file: "research/regime-2026-09-29", verdict: "FAIL", shortsFinalPct: 0.286, shortsFinalT: 0.205, shortsFinalTrades: 18, longsOutsideFinalPct: -0.2606,
+  // research/rising-stocks-2026-10-02 (pre-registered v2, sha256 2c64fd54..., run once 2 Oct 2026, NSE's own
+  // bhavcopies 2020-09..2026-10, top 200 by traded value, the desk's futures geometry, dated charges):
+  // H1 stocks rising on their own while NIFTY falls, long -- FAIL; H2 falling stocks shorted in a downtrend -- FAIL.
+  rising: { verdict: "FAIL", finalPct: -0.444, finalT: -3.34, finalTrades: 1680, finalWinPct: 26.7, validationPct: -0.002 },
+  stockShorts: { verdict: "FAIL", finalPct: -0.123, finalT: -0.48, finalTrades: 3019 } };
 
 const IST_MS = 330 * 60_000;
 const istDate = (ms) => new Date(ms + IST_MS).toISOString().slice(0, 10);
@@ -102,7 +107,9 @@ function ownTrend(bars, now = Date.now()) {
  *     2026 a falling NIFTY blocked every buy; on 1 Oct that hid 13 of 275 F&O
  *     stocks in their own uptrend (NSE's own closes). The owner, 2 Oct: "in this
  *     market also there are stocks that rise, you need to show me that".
- *     NOT YET TESTED: tracked on TRACK from the moment it is shown.
+ *     TESTED 2 Oct 2026 and FAILED (TEST.rising): final year -0.44% a trade,
+ *     1,680 trades, 26.7% winners against 37.5% needed. Shown anyway, at the
+ *     owner's request, with that verdict on the page; tracked on TRACK.
  *
  * The rating alone is not a direction: half of its weight is trend persistence
  * and a volatility band, which say nothing about which way a stock is going, so

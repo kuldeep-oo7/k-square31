@@ -1307,8 +1307,12 @@ function page(d) {
         ${signedPct(round(dtest.shortsFinalPct, 2))} a trade in the final year &mdash; ${esc(dtest.shortsFinalTrades)} trades, t = ${esc(dtest.shortsFinalT)},
         no different from nothing (the test was fixed before it was run). These puts are here because you asked for the market&rsquo;s direction,
         not because they are proven. <b>Rising against the market</b>: every build reads each stock&rsquo;s own trend; a stock over its own 20-day
-        average, with that over its 50-day, gets futures and calls even while NIFTY falls (not if the desk rates it SELL or REDUCE). That rule is
-        <b>NOT YET TESTED</b>. Each row is tracked on TRACK from the moment it is shown.`, "red"]
+        average, with that over its 50-day, gets futures and calls even while NIFTY falls (not if the desk rates it SELL or REDUCE).
+        <b>Tested first, and it FAILED</b>: on NSE&rsquo;s own files 2020&ndash;2026 (the 200 most traded stocks, this desk&rsquo;s buy-limit, target and stop, after charges),
+        buying them made ${signedPct(dtest.rising?.finalPct ?? -0.444)} a trade in the final year &mdash; ${esc(dtest.rising?.finalTrades ?? 1680)} trades,
+        ${esc(dtest.rising?.finalWinPct ?? 26.7)}% winners where 37.5% are needed to break even. Shorting the falling stocks in a downtrend also failed
+        (${signedPct(dtest.stockShorts?.finalPct ?? -0.123)} a trade). They are shown because you asked to see them, not because they work.
+        Each row is tracked on TRACK from the moment it is shown.`, "red"]
     : [`<b>MARKET DIRECTION: ${dir.regime === "BULL_TRENDING" ? "UP" : "MIXED"}</b> &mdash; NIFTY is not in a downtrend: buys as usual, and puts only in a downtrend.${dir.stale ? ` <b class="warn">(close of ${dirDay(dir.asOf)})</b>` : ""}`,
        `${dirLevels} The desk&rsquo;s trend reader (market-regime.js) calls a close under the 20-day average, with the 20-day under the
         50-day, a downtrend; then this page shows puts, and buys only on the stocks rising on their own.${dirStale} Tested on five years of NSE&rsquo;s own NIFTY data:
@@ -1491,7 +1495,7 @@ ${feedAlarm}
        They make money only if the BUY signal works, and it failed its pre-registered final test (1,205 trades, t = 0.75; panel study, 24 Sep 2026).` : "")}
     ${riskBox(d.risk?.calls, "calls")}
     ${d.optionsDirection && !downtrendPage ? `<div class="sub" style="margin:-4px 0 10px">Only on the stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
-    ${downtrendPage ? `<div class="sub" style="margin:-4px 0 10px"><b>NIFTY is falling, so only stocks rising on their own</b> (over their own 20-day and 50-day averages): ${esc(rising.length)} found on this build. Untested rule &mdash; tracked on TRACK.</div>` : ""}
+    ${downtrendPage ? `<div class="sub" style="margin:-4px 0 10px"><b>NIFTY is falling, so only stocks rising on their own</b> (over their own 20-day and 50-day averages): ${esc(rising.length)} found on this build. <b class="down">Tested: FAILED</b> &mdash; ${signedPct(dtest.rising?.finalPct ?? -0.444)} a trade in the final year (MARKET DIRECTION, above). Tracked on TRACK.</div>` : ""}
     ${calls.length ? oldFileNote : ""}
     ${optionTable(calls, downtrendPage
       ? "No call cleared every gate on the stocks rising on their own (NIFTY is in a downtrend, MARKET DIRECTION above). Puts are on the PUTS tab."
