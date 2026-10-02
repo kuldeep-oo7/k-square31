@@ -84,6 +84,16 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
   prevClose, volume, value]`, with series EQ/BE/BZ, unadjusted. A `.none` file marks a
   holiday. NIFTY 50 history is in `nse-data/nifty-50-nse.json` when present. To add new days:
   `gh workflow run nse-data.yml`.
+- **If `gh` says its login fails** (a cloud session's `GH_TOKEN` is a placeholder that the
+  GitHub proxy swaps for the real one): `gh auth status` can report failure even though API
+  calls work, so try the real command first. Fallback, REST only:
+  ```
+  gh api repos/kuldeep-oo7/k-square31/releases/tags/page-check -q '.assets[0].id'      # -> ID
+  gh api -H "Accept: application/octet-stream" repos/kuldeep-oo7/k-square31/releases/assets/ID > page-check.zip
+  gh api -X POST repos/kuldeep-oo7/k-square31/actions/workflows/page-check.yml/dispatches -f ref=main -f 'inputs[label]=x'
+  ```
+  The same works with curl to api.github.com. Say which route worked.
+- **Packages:** run `npm install` first (the npm registry is allowed), then `npm run check`.
 - Research studies go in `studies/<name>-<date>/` on a `claude/...` branch: code, the
   registration, and the results. Never the data.
 - Already tested on this desk, all pre-registered:
@@ -92,3 +102,35 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     and crude cues.
   - NOT TESTABLE: gap continuation, VIX spike.
   - Don't re-run these as "new".
+
+## Open work (as of 2 Oct 2026). Pick up from here
+
+- **Strategy atlas** (branch `claude/strategy-atlas-2026-09-30`, `studies/strategy-atlas-2026-09-30/`):
+  - Families: Turtle S1/S2, Connors RSI(2), NR7 and the 52-week high (George & Hwang 2004),
+    each in its original form and in the desk-geometry form, plus the desk's candlestick and
+    chart-pattern detectors per stock. 24 members in all.
+  - Minervini is dropped: no primary source and no sourced exit.
+  - A registration with study.js was written in a cloud session. Push it BEFORE any real-data
+    number exists. Then SOURCE-CHECK.txt, then one run on the `data-nse-cm` release, then
+    RESULT.txt and READ-THIS-FIRST.txt.
+  - A PASS goes to TRACK as paper only.
+- **Audit findings still open:**
+  - F3: the Global Macro Shock Shield gets a hard-coded `severity: "NORMAL"`
+    (`publish-static-desk.js`), so it never engages.
+  - F21: VWAP is unused (`advanced-quant.js calculateAnchoredVwap` is daily-bar only).
+  - F23: FINNIFTY and MIDCPNIFTY have no history on Yahoo. Use NSE's index history.
+  - F24: no order-flow input (OI build-up, depth) decides anything.
+  - F25: TRACK's "below break-even" range treats trades as independent, but they cluster on a
+    few sessions. It should be judged by session.
+  - F26: the futures tab cites a 5-SESSION study (t 0.75), while the live rule holds 20
+    sessions.
+  - F27: after hours the header shows India VIX's 15:30 value, not NSE's official close.
+  - Google Apps Script calls sometimes return 404 on Google's side. Retry idempotent calls.
+- **GM Global:** the workflows `gm-cloud-sync`, `gm-explore` and `gm-portfolio-dump` are
+  disabled, and GM's secrets were deleted on 30 Sep. Removing the remaining GM code (the three
+  workflows, `api/gm-sync.js`, `scripts/gm-*.js` and their tests) is approved, by pull request.
+  First check that nothing on the desk path references it.
+- **The owner's own to-dos** (not yours): reset the Angel One TOTP secret, then update it in
+  GitHub secret `K2_BROKERS_JSON` and in Cloudflare `ANGEL_TOTP_SECRET`.
+- **Live-price Worker:** `worker/k2-live.mjs`, deployed by the owner at
+  k2-live.kdesk-4817.workers.dev. Its key is a secret; never ask for it.
