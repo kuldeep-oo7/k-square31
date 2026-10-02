@@ -1,6 +1,6 @@
 # K² desk: rules for every Claude session (laptop or cloud)
 
-Also read `HANDOVER.md` (study results, the owner's chat rules, known problems) and `notes/claude-memory/` (the laptop Claude's memory notes; start at its MEMORY.md, and treat each as true when written: check names and numbers against the code). Add new durable facts there, never secrets. A cloud session can't see the owner's laptop. It has no `~/.claude` memory, no `.private/`
+Also read `HANDOVER.md` (study results, the owner's chat rules, known problems) and `notes/claude-memory/MEMORY.md`, a one-line index of the laptop Claude's memory notes. **To save the owner's credit, do NOT read every note.** Open a note only when the task touches its subject. Treat each note as true when written, and check names and numbers against the code. Add new durable facts there, never secrets. Keep replies and file reads lean: the owner pays per token. A cloud session can't see the owner's laptop. It has no `~/.claude` memory, no `.private/`
 and no `research/`. This file carries what it needs. Nothing secret belongs here.
 
 ## Who reads the desk, and how
