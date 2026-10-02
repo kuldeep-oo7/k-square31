@@ -1,0 +1,61 @@
+name: nse-data
+# NSE's own daily equity bhavcopy, every stock, kept as ONE file on a private release
+# (tag data-nse-cm, asset nse-cm.tar.gz), so a study can run anywhere without the laptop:
+#   gh release download data-nse-cm -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz
+# gives  nse-data/cm/YYYY-MM-DD.json  (+ nse-data/nifty-50-nse.json when present).
+# A cloud Claude session can download it (release-assets.githubusercontent.com is on its
+# default allowlist) but cannot reach NSE itself, so new days are fetched HERE, on GitHub.
+# Each run restores the last archive, fetches only the missing days, and re-uploads.
+on:
+  workflow_dispatch:
+    inputs:
+      from:
+        description: "First day (YYYY-MM-DD)"
+        default: "2020-09-01"
+      to:
+        description: "Last day (YYYY-MM-DD); empty = yesterday IST"
+        default: ""
+permissions:
+  contents: write           # to create/replace the release asset
+concurrency:
+  group: nse-data
+  cancel-in-progress: false
+jobs:
+  fetch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Restore the last archive
+        run: |
+          mkdir -p nse-data/cm
+          if gh release view data-nse-cm >/dev/null 2>&1; then
+            gh release download data-nse-cm -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz && rm nse-cm.tar.gz
+          else
+            gh release create data-nse-cm --title "NSE equity bhavcopy (data)" --notes "Daily NSE CM bhavcopy, EQ/BE/BZ, one JSON per session. Built by .github/workflows/nse-data.yml. Data only; not a release of the desk." --latest=false
+          fi
+          echo "files before: $(ls nse-data/cm | wc -l)"
+      - name: Fetch the missing days from NSE
+        env:
+          K2_CM_DIR: nse-data/cm
+          K2_STOP_IST: "23:59"
+        run: node scripts/nse-cm-bhavcopy.js "${{ inputs.from }}" ${{ inputs.to }}
+      - name: Upload the archive
+        if: always()
+        run: |
+          echo "files after: $(ls nse-data/cm | wc -l)"
+          tail -5 nse-data/download.log || true
+          tar -czf nse-cm.tar.gz nse-data
+          ls -l nse-cm.tar.gz
+          gh release upload data-nse-cm nse-cm.tar.gz --clobber
+          {
+            echo "### NSE bhavcopy archive"
+            echo "- session files: $(ls nse-data/cm/*.json | wc -l), first $(ls nse-data/cm/*.json | head -1 | xargs basename), last $(ls nse-data/cm/*.json | tail -1 | xargs basename)"
+            echo "- holidays recorded: $(ls nse-data/cm/*.none 2>/dev/null | wc -l)"
+            echo '```'; tail -8 nse-data/download.log || true; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

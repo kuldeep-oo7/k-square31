@@ -1,0 +1,66 @@
+name: page-check
+# THE USER'S RULE, WITHOUT THE LAPTOP: after every push, photograph the live page on the
+# phone (Galaxy M32, 412 px) and laptop screens, and audit it against NSE and Zerodha.
+# Runs scripts/shoot-live-page.js and scripts/audit-live-vs-nse.js on GitHub, then puts the
+# photos and both reports on the private release tag "page-check" (replaced each run):
+#   gh workflow run page-check.yml -f expect="2026-10-05 09:33" -f label=after-fix
+#   gh run watch $(gh run list -w page-check.yml -L1 --json databaseId -q '.[0].databaseId')
+#   gh release download page-check -p page-check.zip --clobber && unzip -o page-check.zip -d page-check
+# A cloud Claude session can do all three (api.github.com and release-assets.githubusercontent.com
+# are on its default allowlist), then READ every photo before calling a change done.
+on:
+  workflow_dispatch:
+    inputs:
+      expect:
+        description: "Build stamp the page must show first, e.g. 2026-10-05 09:33 (empty = whatever is live)"
+        default: ""
+      label:
+        description: "Short label for the run"
+        default: "check"
+permissions:
+  contents: write           # to replace the release asset
+concurrency:
+  group: page-check
+  cancel-in-progress: true
+jobs:
+  shoot:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Install (desk modules + Playwright only)
+        run: |
+          npm install --omit=dev --no-audit --no-fund
+          mkdir -p "$RUNNER_TEMP/pw" && cd "$RUNNER_TEMP/pw" && npm init -y >/dev/null && npm install --no-audit --no-fund playwright@^1.55.0
+      - name: Photograph every tab (Google Chrome, preinstalled on the runner)
+        id: shoot
+        continue-on-error: true
+        env:
+          NODE_PATH: ${{ runner.temp }}/pw/node_modules
+        run: node scripts/shoot-live-page.js "${{ inputs.expect }}" "$RUNNER_TEMP/out/shots" 2>&1 | tee "$RUNNER_TEMP/out-shoot.txt"
+      - name: Audit against NSE and Zerodha
+        id: audit
+        continue-on-error: true
+        run: node scripts/audit-live-vs-nse.js 2>&1 | tee "$RUNNER_TEMP/out-audit.txt"
+      - name: Upload photos and reports
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/out"
+          cp "$RUNNER_TEMP/out-shoot.txt" "$RUNNER_TEMP/out/SHOOT.txt" || true
+          cp "$RUNNER_TEMP/out-audit.txt" "$RUNNER_TEMP/out/AUDIT.txt" || true
+          printf 'label: %s\nexpected build: %s\nrun: %s/%s/actions/runs/%s\nUTC: %s\nshoot: %s\naudit: %s\n' \
+            "${{ inputs.label }}" "${{ inputs.expect }}" "$GITHUB_SERVER_URL" "$GITHUB_REPOSITORY" "$GITHUB_RUN_ID" "$(date -u +%FT%TZ)" \
+            "${{ steps.shoot.outcome }}" "${{ steps.audit.outcome }}" > "$RUNNER_TEMP/out/RUN.txt"
+          (cd "$RUNNER_TEMP/out" && zip -qr ../page-check.zip .)
+          gh release view page-check >/dev/null 2>&1 || gh release create page-check --title "Live page check (photos)" --notes "Latest phone and laptop photos of the live desk plus the NSE audit, replaced by every run of .github/workflows/page-check.yml." --latest=false
+          gh release upload page-check "$RUNNER_TEMP/page-check.zip" --clobber
+          {
+            echo "### Page check: ${{ inputs.label }}"
+            echo "- photos: ${{ steps.shoot.outcome }} · audit: ${{ steps.audit.outcome }}"
+            echo '```'; tail -25 "$RUNNER_TEMP/out-shoot.txt" || true; echo; tail -25 "$RUNNER_TEMP/out-audit.txt" || true; echo '```'
+          } >> "$GITHUB_STEP_SUMMARY"

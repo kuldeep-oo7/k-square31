@@ -1,0 +1,94 @@
+# K² desk: rules for every Claude session (laptop or cloud)
+
+A cloud session can't see the owner's laptop. It has no `~/.claude` memory, no `.private/`
+and no `research/`. This file carries what it needs. Nothing secret belongs here.
+
+## Who reads the desk, and how
+
+- The page is https://kuldeep-oo7.github.io/k2-desk/: NSE F&O, with tabs FUTURES, CALLS, PUTS
+  and TRACK.
+- The owner reads it **mostly on a phone** (Samsung Galaxy M32: a 412 px page at 2.625x),
+  usually at the office during market hours.
+- They trade futures **by hand** on GM Global, a paper competition among friends.
+  **Fetch, read and store NOTHING from GM Global. Never add a GM data source.** "Broker" on
+  this desk means Angel One (market data only).
+- They buy real calls and puts on Zerodha. Every option shown must be an order Zerodha
+  accepts.
+- They want plain words, short sentences, and numbers with their source. Answer in chat;
+  don't make artifacts unless asked.
+
+## Standing rules
+
+1. **Verify every outside fact against its primary owner before coding or stating it**: NSE's
+   own files, the broker's own docs, the paper itself. Use at least two sources when you can.
+   Quote the number and name the source. Label anything unverified. On this desk, guessed
+   facts were repeatedly wrong *silently*: a tax rate, a symbol format, the expiry weekday.
+2. **"Pushed" is not "deployed", and "deployed" is not "serving".** Before saying something
+   is live, fetch it and read what comes back.
+3. **Photograph the page after every change that reaches it, and read the photos yourself.**
+   Check every tab, top and scrolled, phone first. Without the laptop, use the
+   `page-check` workflow (below). Backend checks are not this check. If you can't get the
+   photos, say so. Never report success without them.
+4. **Never claim a guarantee or a proven edge.** A rule reaches the page only after a
+   **pre-registered** test passes. Write the rules, hash them with sha256, and commit them
+   *before* computing anything on real data. Even then it goes to TRACK as a paper rule
+   first. Report FAIL as FAIL, with its numbers.
+5. **Upgrade only; never silently downgrade or remove a working feature.** No display cap on
+   passing rows: every contract that clears every gate is shown, and several strikes of one
+   stock count as one bet. Tighten a gate instead, and say which one.
+6. **Never push to `main` between 09:13 and 09:40 IST on trading days.** That is when the day's
+   levels freeze. Prefer a branch plus a pull request that the owner merges.
+7. **Never ask for, print or commit secrets.** They live in GitHub Actions secrets and in
+   Cloudflare. The owner sets them; you don't.
+8. Don't commit downloaded market data. It lives on releases (below).
+
+## How the desk runs (no server)
+
+- `.github/workflows/desk.yml` builds the page and commits it to `main` (`docs/`). The build
+  is started by cron-job.org at `13,33,53 9-15 * * 1-5` IST, plus 09:16. GitHub's own
+  scheduler is only a backstop, because it dropped whole mornings.
+- A `desk: rebuilt` commit from k2-desk-bot appears every ~20 min. Pull before pushing.
+- To rebuild now: `gh workflow run desk.yml`.
+- The page is mirrored to the public repo `kuldeep-oo7/k2-desk` (GitHub Pages).
+- Market direction (`api/_lib/market-direction.js`): when NIFTY's close < EMA20 < SMA50, the
+  page shows puts only (index puts, plus SELL/REDUCE stocks in their own downtrend). It has
+  done so since 2 Sep 2026. That rule's own pre-registered test FAILED, and the page says so.
+- Futures geometry (`api/_lib/session-levels.js`):
+  - buy = open × 0.992, rounded down to 0.05;
+  - target +2.5%, stop −1.5%;
+  - hold up to 20 sessions.
+- TRACK (`scripts/paper-ledger.js`) marks every frozen level as a paper trade.
+- NSE F&O expiry is **Tuesday**. Read expiries from the exchange file, never compute them.
+  Zerodha and Angel One name the same contract differently (`api/_lib/fno-reference.js`).
+- Checks: `npm run check`. Some tests need cached market bars that a fresh clone may lack.
+  Say which ones were skipped rather than calling the run green.
+
+## Working without the laptop
+
+A cloud session's network allows GitHub and the package registries, but **not NSE**. So
+NSE work runs on GitHub Actions, and you collect the results from a release:
+
+- **Photos and NSE audit of the live page:**
+  ```
+  gh workflow run page-check.yml -f expect="YYYY-MM-DD HH:MM" -f label=what-changed
+  gh run watch $(gh run list -w page-check.yml -L1 --json databaseId -q '.[0].databaseId')
+  gh release download page-check -p page-check.zip --clobber && unzip -o page-check.zip -d page-check
+  ```
+  Then read `page-check/shots/*.png`, `SHOOT.txt` and `AUDIT.txt`. The `expect` value is the
+  "Built … IST" stamp of the build you are waiting for.
+- **NSE daily equity bhavcopy, every stock, from 2020-09:**
+  ```
+  gh release download data-nse-cm -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz
+  ```
+  This gives `nse-data/cm/YYYY-MM-DD.json` = `[isin, symbol, series, open, high, low, close,
+  prevClose, volume, value]`, with series EQ/BE/BZ, unadjusted. A `.none` file marks a
+  holiday. NIFTY 50 history is in `nse-data/nifty-50-nse.json` when present. To add new days:
+  `gh workflow run nse-data.yml`.
+- Research studies go in `studies/<name>-<date>/` on a `claude/...` branch: code, the
+  registration, and the results. Never the data.
+- Already tested on this desk, all pre-registered:
+  - FAIL: the composite rating, NIFTY candlesticks, the NIFTY trend reader, 12-1 momentum,
+    time-series momentum, low volatility, the 10-month trend filter, and the US-overnight
+    and crude cues.
+  - NOT TESTABLE: gap continuation, VIX spike.
+  - Don't re-run these as "new".
