@@ -1,6 +1,6 @@
 # K² desk: rules for every Claude session (laptop or cloud)
 
-A cloud session can't see the owner's laptop. It has no `~/.claude` memory, no `.private/`
+Also read `HANDOVER.md` (study results, the owner's chat rules, known problems). A cloud session can't see the owner's laptop. It has no `~/.claude` memory, no `.private/`
 and no `research/`. This file carries what it needs. Nothing secret belongs here.
 
 ## Who reads the desk, and how
