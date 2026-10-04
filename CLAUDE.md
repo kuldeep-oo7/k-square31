@@ -126,15 +126,18 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
       t −3.31).
     - The NSE audit now compares after-hours futures with NSE's OFFICIAL close (closePrice), not
       the last trade.
+    - F21 (2c21bb0): the futures rows show the day's VWAP (Angel's average traded price) as
+      information only; no VWAP rule has been tested.
+    - F25 (2c21bb0): TRACK's 95% hit-rate range is the wider of Wilson-on-bets and a
+      session-clustered interval, with no verdict under 10 sessions.
+    - F27 (dc428c8): after the close the header shows India VIX's official close from NSE.
+    - Google Apps Script: safe calls (reads, probes, document writes) retry on 404/408/429/5xx;
+      appends never retry (api/_lib/google-store.js).
   - STARTED: order-flow recording. Each in-session build saves the best-5 order book, totals and
     OI to the private release orderflow-rec (api/_lib/orderflow-recorder.js). Nothing decides on it
     until there is a history to test.
   - Still open:
-    - F21: VWAP is unused.
     - F24: depth is now recorded but not yet tested.
-    - F25: TRACK's binomial range treats trades as independent.
-    - F27: after hours, the header shows VIX's 15:30 value.
-    - Google Apps Script 404 retries.
 - **Forward paper tests on TRACK (rules fixed before 5 Oct 2026; docs/paper-rules/*.json, written by
   .github/workflows/springy-dip.yml at 07:45 IST):**
   - springy dip;
