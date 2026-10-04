@@ -114,18 +114,36 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     number exists. Then SOURCE-CHECK.txt, then one run on the `data-nse-cm` release, then
     RESULT.txt and READ-THIS-FIRST.txt.
   - A PASS goes to TRACK as paper only.
-- **Audit findings still open:**
-  - F3: the Global Macro Shock Shield gets a hard-coded `severity: "NORMAL"`
-    (`publish-static-desk.js`), so it never engages.
-  - F21: VWAP is unused (`advanced-quant.js calculateAnchoredVwap` is daily-bar only).
-  - F23: FINNIFTY and MIDCPNIFTY have no history on Yahoo. Use NSE's index history.
-  - F24: no order-flow input (OI build-up, depth) decides anything.
-  - F25: TRACK's "below break-even" range treats trades as independent, but they cluster on a
-    few sessions. It should be judged by session.
-  - F26: the futures tab cites a 5-SESSION study (t 0.75), while the live rule holds 20
-    sessions.
-  - F27: after hours the header shows India VIX's 15:30 value, not NSE's official close.
-  - Google Apps Script calls sometimes return 404 on Google's side. Retry idempotent calls.
+- **Audit findings, as of 4 Oct 2026:**
+  - FIXED:
+    - F3: the page now says no shock gate runs. Its inputs failed their tests. The K2-lang
+      "INDIA_VIX < 22" REQUIRE is evaluated, but nothing reads it.
+    - F23: FINNIFTY and MIDCPNIFTY get 2 years of NSE history from release data-nse-idx
+      (api/_lib/nse-index-history.js).
+    - F26: the false "t = 0.75" citation is replaced by the real rating replay
+      (research/rating-replay-2026-10-04: BUY/ACC −0.03%/trade FAIL; SELL/REDUCE shorts LOSE,
+      t −3.31).
+    - The NSE audit now compares after-hours futures with NSE's OFFICIAL close (closePrice), not
+      the last trade.
+  - STARTED: order-flow recording. Each in-session build saves the best-5 order book, totals and
+    OI to the private release orderflow-rec (api/_lib/orderflow-recorder.js). Nothing decides on it
+    until there is a history to test.
+  - Still open:
+    - F21: VWAP is unused.
+    - F24: depth is now recorded but not yet tested.
+    - F25: TRACK's binomial range treats trades as independent.
+    - F27: after hours, the header shows VIX's 15:30 value.
+    - Google Apps Script 404 retries.
+- **Forward paper tests on TRACK (rules fixed before 5 Oct 2026; docs/paper-rules/*.json, written by
+  .github/workflows/springy-dip.yml at 07:45 IST):**
+  - springy dip;
+  - long-unwinding bounce;
+  - short build-up;
+  - NIFTY 2% strangle (option selling, information only);
+  - 150-day cross-down shorts (scored against the market).
+- **Testing standard:** protocol v2 (research/audit-2026-10-04/PROTOCOL.txt): the whole sample,
+  excess over the market for stock trades, t >= 3, with Holm and the Deflated Sharpe ratio reported.
+  The old final-year-only verdicts were underpowered.
 - **GM Global:** the workflows `gm-cloud-sync`, `gm-explore` and `gm-portfolio-dump` are
   disabled, and GM's secrets were deleted on 30 Sep. Removing the remaining GM code (the three
   workflows, `api/gm-sync.js`, `scripts/gm-*.js` and their tests) is approved, by pull request.

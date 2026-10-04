@@ -221,9 +221,12 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
     const nifty = row("NIFTY 50"), vix = row("INDIA VIX");
     const pageNifty = Number((text.match(/Nifty ([\d,.]+)/) || [])[1]?.replace(/,/g, ""));
     const pageVix = Number((text.match(/India VIX ([\d.]+)/) || [])[1]);
-    if (!eq(pageNifty, nifty?.last, 0.051)) bad(`header Nifty ${pageNifty}, NSE ${nifty?.last}`);
-    if (!eq(pageVix, vix?.last, 0.0051)) bad(`header India VIX ${pageVix}, NSE ${vix?.last}`);
-    console.log(`header: Nifty ${pageNifty} (NSE ${nifty?.last}), India VIX ${pageVix} (NSE ${vix?.last})`);
+    // After the close the page shows NSE's OFFICIAL close (ind_close_all), not allIndices' 15:30 value.
+    const official = await require("../api/_lib/nse-market-context").officialClose(idx.timestamp);
+    const refVix = official?.vix?.close ?? vix?.last, refNifty = official?.nifty?.close ?? nifty?.last, src = official ? "NSE official close" : "NSE";
+    if (!eq(pageNifty, refNifty, 0.051)) bad(`header Nifty ${pageNifty}, ${src} ${refNifty}`);
+    if (!eq(pageVix, refVix, 0.0051)) bad(`header India VIX ${pageVix}, ${src} ${refVix}`);
+    console.log(`header: Nifty ${pageNifty} (${src} ${refNifty}), India VIX ${pageVix} (${src} ${refVix})`);
   } catch (e) { notes.push(`header not checked: ${e.message}`); }
 
   // The ban list against NSE's own file.
