@@ -970,6 +970,12 @@ function forwardV2Box(fv) {
   </div>`;
 }
 
+// THE DESK'S OWN RATING, REPLAYED ON SIX YEARS OF NSE DATA (research/rating-replay-2026-10-04, pre-registered,
+// sha256 a7bcce9d..., run 4 Oct 2026, protocol v2). It REPLACES the "t = 0.75" citation, which came from
+// scripts/apex-panel-study.js -- a momentum stand-in, never the rating itself.
+const RATING_TEST = { stockDays: 236746, buyTrades: 32725, buyNetPct: -0.028, buyWinPct: 36.7, buyT: -0.44,
+  sellTrades: 35236, sellNetPct: -0.139, sellT: -3.31, sellVsMarketPct: -0.394 };
+
 function page(d) {
   // Calls, puts and futures are three different trades, and they were asked
   // for as three separate things: "you have mixed up the call and put and the
@@ -1531,8 +1537,10 @@ ${feedAlarm}
     <h2>Futures &mdash; ${esc(d.gmMinUnits || 20)} units each (GM Global's minimum)</h2>
     ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`,
       `<b>With no trend, a row's target comes before its stop at most as often as its break-even (about 37.5%)</b> &mdash; a price with no trend is a fair game &mdash;
-       so before GM's charges these rows make money only if the BUY signal works. That signal failed its pre-registered final test
-       (1,205 trades, t = 0.75; panel study, 24 Sep 2026).`)}
+       so before GM's charges these rows make money only if the BUY signal works. <b>It was tested and FAILED</b>: the desk&rsquo;s own rating,
+       replayed day by day on six years of NSE&rsquo;s own prices (${RATING_TEST.stockDays.toLocaleString("en-IN")} stock-days), bought on this tab&rsquo;s limit, target and stop,
+       made &minus;${Math.abs(RATING_TEST.buyNetPct)}% a trade after charges, ${RATING_TEST.buyWinPct}% winners where 37.5% are needed
+       (${RATING_TEST.buyTrades.toLocaleString("en-IN")} trades, t = &minus;${Math.abs(RATING_TEST.buyT)}).`)}
     ${riskBox(d.risk?.futures, "futures")}
     ${d.watchStatus ? `<details class="fold sub lead"><summary>Watching your ${esc(d.watchStatus.stocks)} stocks &mdash; which are priced how<span class="more"></span></summary><div>Watching your ${esc(d.watchStatus.stocks)} stocks
       (${esc(d.watchStatus.source)}): ${esc(d.watchStatus.withFutures)} have an NSE futures contract,
@@ -1575,7 +1583,8 @@ ${feedAlarm}
        about &minus;${money(Math.abs(sumOf(calls, (c) => c.noTrendNet)))} across all ${esc(calls.length)} rows, one lot each${calls.some((c) => c.spreadKnown === false)
          ? `, <b>plus the bid-ask spread</b>, which is not known without a live book (${esc(calls.filter((c) => c.spreadKnown === false).length)} of these rows)` : ""}.
        ${esc(calls.filter((c) => Number(c.vrp) > 1).length)} of ${esc(calls.length)} are priced above the stock&rsquo;s own recent movement (implied above realised), which makes it worse.
-       They make money only if the BUY signal works, and it failed its pre-registered final test (1,205 trades, t = 0.75; panel study, 24 Sep 2026).` : "")}
+       They make money only if the BUY signal works, and <b>it failed</b>: the desk&rsquo;s own rating, replayed on six years of NSE&rsquo;s prices, made
+       &minus;${Math.abs(RATING_TEST.buyNetPct)}% a trade on its BUY and ACCUMULATE rows (${RATING_TEST.buyTrades.toLocaleString("en-IN")} trades, ${RATING_TEST.buyWinPct}% winners).` : "")}
     ${riskBox(d.risk?.calls, "calls")}
     ${d.optionsDirection && !downtrendPage ? `<div class="sub" style="margin:-4px 0 10px">Only on the stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
     ${downtrendPage ? `<div class="sub" style="margin:-4px 0 10px"><b>NIFTY is falling, so only stocks rising on their own</b> (over their own 20-day and 50-day averages): ${esc(rising.length)} found on this build. <b class="down">Tested: FAILED</b> &mdash; ${signedPct(dtest.rising?.finalPct ?? -0.444)} a trade in the final year (MARKET DIRECTION, above). Tracked on TRACK.</div>` : ""}
@@ -1594,6 +1603,10 @@ ${feedAlarm}
        ${esc(puts.filter((c) => Number(c.vrp) > 1).length)} of ${esc(puts.length)} are priced above their own recent movement (implied above realised), which makes it worse.
        They make money only if the fall continues, and selling NIFTY in these downtrends failed its pre-registered test (final year t = ${esc(dtest.shortsFinalT)}).` : "")}
     ${riskBox(d.risk?.puts, "puts")}
+    ${puts.some((c) => !c.isIndex) ? `<div class="sub warn" style="margin:-4px 0 10px"><b>The stock puts lean on the desk&rsquo;s SELL and REDUCE ratings, and those were tested: shorting them LOST.</b>
+      Replayed on six years of NSE&rsquo;s prices, shorting every SELL/REDUCE row on this desk&rsquo;s limit, target and stop made &minus;${Math.abs(RATING_TEST.sellNetPct)}% a trade
+      (${RATING_TEST.sellTrades.toLocaleString("en-IN")} trades, t = &minus;${Math.abs(RATING_TEST.sellT)} &mdash; reliably negative), and over 20 sessions those stocks did slightly
+      BETTER than the market. They are shown because you asked for the falling names, not because the rating picks fallers.</div>` : ""}
     ${downtrendPage && puts.length ? `<div class="sub" style="margin:-4px 0 10px">Looked for on ${esc((od.indices || []).join(", "))} and on the ${esc(od.stocks ?? 0)} stocks rated SELL or REDUCE that are falling themselves;
       ${esc(putNames.length)} had contracts that cleared every gate, the indices first. One side per name, the side the market&rsquo;s direction points to.</div>` : ""}
     ${puts.length ? oldFileNote : ""}
@@ -1627,7 +1640,7 @@ ${feedAlarm}
   <b>WHAT THIS DOES NOT ESTABLISH.</b> That any of it makes money. The paper ledger
   has ${esc(d.track?.summary?.ALL?.resolved ?? 0)} resolved trade(s) so far &mdash; far too few for a measured hit
   rate &mdash; and every test fixed in advance so far, on data never used to build the rule, found no edge:
-  the desk's own ranking (final year t = 0.75), 12-1 momentum, time-series momentum, low volatility, a
+  the desk's own rating (replayed on six years of NSE data: &minus;0.03% a trade on its buys, and its SELL/REDUCE shorts LOST &minus;0.14% a trade, t = &minus;3.3), 12-1 momentum, time-series momentum, low volatility, a
   10-month market trend filter, and the NIFTY trend reader that now chooses between buys and puts
   (selling NIFTY in its downtrends: final year t = 0.21) &mdash; all six FAIL. The ranking is built on
   things that were measured, which is not the same as an edge that was proven. Size accordingly.
