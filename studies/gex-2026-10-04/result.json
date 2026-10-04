@@ -1,0 +1,73 @@
+{
+ "rows": [
+  {
+   "k": "M1-G1 momentum when short gamma (US convention)",
+   "months": 18,
+   "trades": 36,
+   "verdict": "NOT TESTABLE"
+  },
+  {
+   "k": "M2-G1 reversal when long gamma (US convention)",
+   "months": 73,
+   "trades": 1469,
+   "meanPct": -0.04737507014193204,
+   "t": -2.517121369503031,
+   "sharpe": -1.0881490751553025,
+   "p": 0.9940840794470639,
+   "win": 46.017699115044245,
+   "verdict": "FAIL",
+   "holm": false,
+   "dsr": 0.00000365874005419669
+  },
+  {
+   "k": "V-G1 buy straddle when short gamma (US convention)",
+   "months": 18,
+   "trades": 36,
+   "verdict": "NOT TESTABLE"
+  },
+  {
+   "k": "M1-G2 momentum when short gamma (NSE split)",
+   "months": 29,
+   "trades": 106,
+   "meanPct": -0.02417175742798998,
+   "t": -0.189793927421973,
+   "sharpe": -0.15395781631472402,
+   "p": 0.5752647968082416,
+   "win": 44.339622641509436,
+   "verdict": "FAIL",
+   "holm": false,
+   "dsr": 0.08468763315822248
+  },
+  {
+   "k": "M2-G2 reversal when long gamma (NSE split)",
+   "months": 73,
+   "trades": 1399,
+   "meanPct": -0.05838425551413172,
+   "t": -3.1989603300462175,
+   "sharpe": -1.3075794986227511,
+   "p": 0.9993103151389907,
+   "win": 45.5325232308792,
+   "verdict": "FAIL",
+   "holm": false,
+   "dsr": 2.5128051295140463e-7
+  },
+  {
+   "k": "V-G2 buy straddle when short gamma (NSE split)",
+   "months": 29,
+   "trades": 106,
+   "meanPct": 0.5766565379274506,
+   "t": 0.20684244535063964,
+   "sharpe": 0.11188815929721262,
+   "p": 0.41806636439487277,
+   "win": 36.79245283018868,
+   "verdict": "FAIL",
+   "holm": false,
+   "dsr": 0.16829115644451076
+  }
+ ],
+ "diag": {
+  "gexDays": 1506,
+  "shortG1": 36,
+  "shortG2": 106
+ }
+}
