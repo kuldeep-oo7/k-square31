@@ -88,6 +88,21 @@ const DEVICES = [
         await page.evaluate((h) => window.scrollBy(0, h - 120), device.viewport.height);
         await shoot(`${name}-${step}-down`);
       }
+      // THE FORWARD PAPER-TEST BOXES sit several screens down TRACK, past the scroll shots above
+      // (4 Oct 2026): photograph each from its top, at most two screens a box, so a session without
+      // the laptop can read them too.
+      if (name === "track") {
+        // the tab bar stays pinned at the top while scrolled: start each box just under it
+        const bar = await page.evaluate(() => Math.max(0, ...[...document.querySelectorAll("label[for^='v-']")].map((l) => l.getBoundingClientRect().bottom)));
+        const tops = await page.evaluate((bar) => [...document.querySelectorAll("div.note")]
+          .filter((n) => n.offsetParent !== null && /PAPER TEST/.test((n.querySelector("b") || {}).textContent || ""))
+          .map((n) => ({ top: Math.round(n.getBoundingClientRect().top + window.scrollY - bar - 10), h: n.offsetHeight })), bar);
+        for (const [k, b] of tops.entries()) {
+          await page.evaluate((y) => window.scrollTo(0, y), b.top);
+          await shoot(`${name}-paper-${k + 1}a`);
+          if (b.h > device.viewport.height - 20) { await page.evaluate((h) => window.scrollBy(0, h - 120), device.viewport.height); await shoot(`${name}-paper-${k + 1}b`); }
+        }
+      }
       const where = `${device.name} ${tab.text}`;
       // Folded notes are not in innerText while closed: open every one for the
       // check, then put them back as they were.

@@ -75,7 +75,9 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
   gh release download page-check -p page-check.zip --clobber && unzip -o page-check.zip -d page-check
   ```
   Then read `page-check/shots/*.png`, `SHOOT.txt` and `AUDIT.txt`. The `expect` value is the
-  "Built … IST" stamp of the build you are waiting for.
+  "Built … IST" stamp of the build you are waiting for: the PAGE's stamp, which can be a minute
+  before the "desk: rebuilt" commit's time. TRACK's forward paper-test boxes are several screens
+  down: their photos are `*-track-paper-*.png`.
 - **NSE daily equity bhavcopy, every stock, from 2020-09:**
   ```
   gh release download data-nse-cm -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz
