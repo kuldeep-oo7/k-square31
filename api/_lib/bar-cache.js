@@ -40,14 +40,14 @@ function getCachedBars(symbol, maxAgeMs = 12 * 60 * 60 * 1000) {
   }
 }
 
-function saveCachedBars(symbol, bars) {
+function saveCachedBars(symbol, bars, { provider = "YahooFinance" } = {}) {
   try {
     ensureCacheDir();
     const file = getCacheFilePath(symbol);
     const payload = {
       symbol,
       fetchedAt: new Date().toISOString(),
-      provider: "YahooFinance",
+      provider,
       range: "3mo",
       interval: "1d",
       count: bars.length,

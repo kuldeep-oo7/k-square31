@@ -344,6 +344,7 @@ async function refreshQuotes(requests, { provider = null, concurrency = 1 } = {}
           ask: leg.ask,
           bidQuantity: leg.bidQuantity,
           askQuantity: leg.askQuantity,
+          book: leg.book || null,
           spread: leg.spread,
           spreadPct: leg.spreadPct,
           openInterest: leg.openInterest,
@@ -385,7 +386,7 @@ async function refreshQuotes(requests, { provider = null, concurrency = 1 } = {}
 }
 
 module.exports = {
-  CACHE_FILE, DEFAULT_MAX_AGE_MS, classifyBook, diagnose, keyFor, liveFuture, liveQuote,
+  CACHE_FILE, DEFAULT_MAX_AGE_MS, classifyBook, diagnose, keyFor, liveFuture, liveQuote, load,
   refreshFutures,
   marketPhase, parseExchangeClock, refreshQuotes, status
 };

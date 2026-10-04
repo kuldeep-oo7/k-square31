@@ -13,7 +13,7 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
     const file = path.join(OUT, `${d}.json`); if (fs.existsSync(file)) continue; const [y, m, dd] = d.split("-");
     try { const r = await fetch(`https://nsearchives.nseindia.com/content/indices/ind_close_all_${dd}${m}${y}.csv`, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(30000) });
       if (!r.ok) throw new Error(`HTTP ${r.status}`); const out = {};
-      for (const line of (await r.text()).split(/\r?\n/).slice(1)) { const f = line.split(","); if (f[0] === "Nifty 50" || f[0] === "Nifty Bank") out[f[0]] = [+f[2], +f[3], +f[4], +f[5]]; }
+      for (const line of (await r.text()).split(/\r?\n/).slice(1)) { const f = line.split(","); if (["Nifty 50", "Nifty Bank", "Nifty Financial Services", "Nifty Midcap Select", "Nifty Next 50"].includes(f[0])) out[f[0]] = [+f[2], +f[3], +f[4], +f[5]]; }
       if (!out["Nifty 50"]) throw new Error("no Nifty 50 row"); fs.writeFileSync(file, JSON.stringify(out)); fails = 0;
     } catch (e) { fails += 1; console.log(`${d}: FAILED ${e.message}`); if (fails >= 3) { console.log("STOPPED"); return; } }
     await pause(800);

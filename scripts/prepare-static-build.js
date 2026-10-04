@@ -168,6 +168,18 @@ async function step(label, fn) {
       + `${r.have} of ${r.wanted} on hand (${r.seconds}s)${r.failures.length ? ` -- ${r.failures.join("; ")}` : ""}`;
   });
 
+  // NSE'S OWN INDEX HISTORY WHERE YAHOO HAS NONE (audit F23). Yahoo returns one row for FINNIFTY and
+  // MIDCPNIFTY; the workflow downloads NSE's archive (release data-nse-idx) to nse-idx/nse-idx.json and
+  // this fills the two caches for any index Yahoo covers too thinly. Runs AFTER both Yahoo refreshes, so
+  // a fresh one-row Yahoo copy is replaced again on every build.
+  await step("NSE index history where Yahoo has none", async () => {
+    const { loadArchive, fillThinIndices } = require("../api/_lib/nse-index-history");
+    const archive = loadArchive(process.env.K2_NSE_IDX_ARCHIVE || "nse-idx/nse-idx.json");
+    if (!archive) return "no NSE index archive on this runner -- FINNIFTY and MIDCPNIFTY keep Yahoo's (thin) copy";
+    const done = fillThinIndices({ archive });
+    return Object.entries(done).map(([t, v]) => `${t}: ${v}`).join("; ");
+  });
+
   // THE LOGIN, ON EVERY BUILD, WHETHER OR NOT THE MARKET IS OPEN.
   //
   // Live quotes are only fetched in session, so without this the first time
@@ -251,6 +263,15 @@ async function step(label, fn) {
     const result = await engine.refreshLiveQuotes(chainSymbols ? { symbols: chainSymbols } : { everyActionable: true });
     try { engine.stop(); } catch (error) { /* nothing started */ }
     return result?.refreshed ? `${result.refreshed} of ${result.requested} chains` : "none";
+  });
+
+  // ORDER FLOW, RECORDED (api/_lib/orderflow-recorder.js): this build's order books, one line, in
+  // orderflow/<IST date>.jsonl -- the workflow appends it to the private release "orderflow-rec".
+  await step("record the order books (order flow history)", async () => {
+    const live = require("../api/_lib/live-quotes");
+    if (!live.marketPhase().open) return "market closed: nothing to record";
+    const r = require("../api/_lib/orderflow-recorder").record({ store: live.load ? live.load() : null });
+    return r.written ? `${r.futures} futures and ${r.options} option books recorded` : r.reason;
   });
 
   console.log("prepared.");

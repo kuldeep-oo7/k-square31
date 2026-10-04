@@ -40,6 +40,13 @@ jobs:
         run: |
           K2_CM_DIR=nse-data/cm K2_IDX_DIR=nse-idx K2_FROM=$(date -u -d '-40 days' +%F) node scripts/nse-index-close-history.js
           K2_CM_DIR=nse-data/cm K2_OUT_DIR=nse-extra K2_FROM=$(date -u -d '-40 days' +%F) node scripts/nse-options-delivery-history.js
+      - name: Keep NSE's index history archive current (release data-nse-idx)
+        continue-on-error: true
+        run: |
+          gh release view data-nse-idx >/dev/null 2>&1 || gh release create data-nse-idx --title "NSE index history (data)" --notes "Daily open/high/low/close of NIFTY 50, BANK, FIN SERVICES, MIDCAP SELECT, NEXT 50 from NSE's ind_close_all files. Built by springy-dip.yml." --latest=false
+          gh release download data-nse-idx -p nse-idx.json -D idx-archive --clobber || true
+          node scripts/nse-index-archive.js nse-idx idx-archive/nse-idx.json nse-idx.json
+          gh release upload data-nse-idx nse-idx.json --clobber
       - name: Signals and the running score
         run: |
           npm install --omit=dev --no-audit --no-fund

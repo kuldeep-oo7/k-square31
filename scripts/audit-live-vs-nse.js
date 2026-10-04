@@ -115,9 +115,16 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
       .toLocaleDateString("en-GB", { day: "2-digit", month: "short", year: "numeric", timeZone: "UTC" }).replace(/ /g, "-"));
     if (row && Number(row.ticksize) > 0 && !eq(Number(row.ticksize), Number(f.tick), 1e-9)) bad(`${f.symbol} FUT: tick ${f.tick} on the page, ${row.ticksize} on NSE`);
     compared += 1;
-    const gap = Math.abs(f.spot - n.last) / n.last * 100;
-    if (afterClose ? !eq(f.spot, n.last, Math.max(0.011, n.last * 0.0005)) : gap > 1) {
-      bad(`${f.symbol} ${f.expiry} FUT: page NOW ${f.spot}, NSE last ${n.last} (${gap.toFixed(2)}%)`);
+    // AFTER THE CLOSE the page shows NSE's OFFICIAL close (the settlement file), which is not the
+    // last trade: on 1 Oct 2026 DRREDDY's Oct future closed officially at 1210.7 (closePrice, and
+    // the F&O bhavcopy's close and settlement) while its last trade was 1212.9 (lastPrice). The audit
+    // compared against lastPrice and flagged four correct rows. After the close, compare against
+    // NSE's own closePrice; in session, the last trade.
+    const official = afterClose && Number(row?.closePrice) > 0 ? Number(row.closePrice) : null;
+    const ref = official ?? n.last, refName = official !== null ? "NSE official close" : "NSE last";
+    const gap = Math.abs(f.spot - ref) / ref * 100;
+    if (afterClose ? !eq(f.spot, ref, Math.max(0.011, ref * 0.0005)) : gap > 1) {
+      bad(`${f.symbol} ${f.expiry} FUT: page NOW ${f.spot}, ${refName} ${ref} (${gap.toFixed(2)}%)`);
     }
   }
   const chains = new Map();

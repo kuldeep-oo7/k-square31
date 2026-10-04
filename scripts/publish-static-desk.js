@@ -201,6 +201,14 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
 
   // India VIX from NSE, read by prepare-static-build.js (null if unread).
   const marketContext = require("../api/_lib/nse-market-context").loadMarketContext();
+  // NO MACRO SHOCK SHIELD RUNS ON THIS PAGE, ON PURPOSE (audit F3, settled 4 Oct 2026). The shield
+  // (market-regime.js evaluateGlobalMacroShock: GIFT Nifty gap, India VIX spike, Brent spike, S&P
+  // futures gap) would stop every buy on a shock morning. Its inputs were tested on NSE's own data
+  // (research/situations-2026-09-29, pre-registered): a US overnight move FAILED (it pointed the wrong
+  // way in validation), a crude spike FAILED, a VIX spike was NOT TESTABLE (12 events). A gate built on
+  // failed signals would empty the page on an unproven premise, so severity stays NORMAL and the page
+  // says so. The K2-lang rule "REQUIRE ... INDIA_VIX < 22" is evaluated (unified-quant-scanner.js) but its
+  // result, k2StrategyPassed, is only reported -- no action reads it -- so there is NO VIX gate either.
   const macro = { severity: "NORMAL", shieldActive: false,
     indiaVix: marketContext ? { price: marketContext.indiaVix, source: "NSE allIndices", at: marketContext.nseTimestamp } : null };
   const reference = loadReference();
@@ -1611,6 +1619,10 @@ ${feedAlarm}
   spread is extra and is only known where a live book was seen.
 </div>
 
+<div class="note" style="margin-top:20px;border-left-color:var(--red)">
+  <b>NO SHOCK SHIELD.</b> Nothing on this page stops buys on a bad global morning &mdash; not a GIFT Nifty gap, a crude or S&amp;P move, or an India VIX spike.
+  Those signals were tested on NSE&rsquo;s own data and failed (or had too few events to test), so they do not gate anything. Check the market yourself before acting on a shock day.
+</div>
 <div class="note" style="margin-top:20px;border-left-color:var(--red)">
   <b>WHAT THIS DOES NOT ESTABLISH.</b> That any of it makes money. The paper ledger
   has ${esc(d.track?.summary?.ALL?.resolved ?? 0)} resolved trade(s) so far &mdash; far too few for a measured hit
