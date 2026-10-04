@@ -1,0 +1,15 @@
+NIFTY GAMMA EXPOSURE -- run 2026-10-04T12:34:47.272Z, prereg sha256 ac8103c10bda8d42bfd0f0ac5f60986802c004b6e0ab5ed2aa0525834300c12b (verified); protocol v2
+Data: 1509 sessions with NSE options, futures and participant files, 2020-09-01 .. 2026-10-01; gamma exposure computed on 1506 days.
+Short gamma (GEX < 0): US convention on 36 days (2.4%), NSE split on 106 days (7.0%).
+The two conventions agree in sign on 1366 of 1506 days (90.7%).
+DSR benchmark (expected best annual Sharpe of 4 skill-less trials): 0.73
+member | months | trades | mean/trade | winners | t (NW) | annual Sharpe | Holm | DSR | VERDICT
+M1-G1 momentum when short gamma (US convention) | 18 | 36 | - | - | - | - | - | - | NOT TESTABLE
+M2-G1 reversal when long gamma (US convention) | 73 | 1469 | -0.047% | 46.0% | -2.52 | -1.09 | no | 0.00 | FAIL
+V-G1 buy straddle when short gamma (US convention) | 18 | 36 | - | - | - | - | - | - | NOT TESTABLE
+M1-G2 momentum when short gamma (NSE split) | 29 | 106 | -0.024% | 44.3% | -0.19 | -0.15 | no | 0.08 | FAIL
+M2-G2 reversal when long gamma (NSE split) | 73 | 1399 | -0.058% | 45.5% | -3.20 | -1.31 | no | 0.00 | FAIL
+V-G2 buy straddle when short gamma (NSE split) | 29 | 106 | +0.577% | 36.8% | 0.21 | 0.11 | no | 0.17 | FAIL
+
+Diagnostics, every day regardless of GEX (no verdict): momentum 1505 trades, -0.022% a month-average trade, t -1.04; straddle bought 1505 trades, -2.070% a month-average trade, t -3.22.
+PASS (t >= 3): none. PROMISING: none.
