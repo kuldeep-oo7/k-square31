@@ -867,6 +867,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     // .github/workflows/springy-dip.yml from NSE's own files (null if not yet written).
     springyDip: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "springy-dip.json"), "utf8")); } catch { return null; } })(),
     oiFlow: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "oi-flow.json"), "utf8")); } catch { return null; } })(),
+    forwardV2: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v2.json"), "utf8")); } catch { return null; } })(),
     gmMinUnits: GM_MIN_UNITS,
     marketContext: marketContext
       ? { ok: true, indiaVix: marketContext.indiaVix, indiaVixChangePct: marketContext.indiaVixChangePct,
@@ -932,6 +933,32 @@ function oiFlowBox(of) {
     A verdict needs 100 trades and 3 months each. Data through ${esc(of.dataThrough)}. <b>Not recommendations until they pass.</b>
     ${part("LU", "LONG-UNWINDING BOUNCE", "buy at the next open, sell 10 sessions later")}
     ${part("SB", "SHORT BUILD-UP", "short at the next open, cover at the close")}
+  </div>`;
+}
+
+// THE PROTOCOL-v2 SURVIVORS, ON PAPER, AGAINST THE FUTURE (studies/forward-v2-2026-10-04).
+function forwardV2Box(fv) {
+  if (!fv) return "";
+  const mn = (v) => String(v).replace(/^-/, "&minus;");
+  const verdict = (s) => { s = s || {}; const tone = s.verdict === "PASS" ? "up" : s.verdict === "FAIL" ? "down" : "warn";
+    return `<b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a trade, ${esc(s.winPct)}% winners, worst ${mn(esc(s.worstPct))}%, t ${mn(esc(s.t ?? "&mdash;"))}` : ""}`; };
+  const shorts = (k, title) => { const r = fv[k] || {};
+    const pend = (r.pending || []).map((p) => `<tr><td><b>${esc(p.symbol)}</b></td><td>short at the next open, cover 10 sessions later</td></tr>`).join("");
+    const done = (r.trades || []).filter((t) => t.status === "DONE").slice(0, 15).map((t) => `<tr><td><b>${esc(t.symbol)}</b></td><td>${esc(t.entryDate)} &rarr; ${esc(t.exitDate)}</td><td class="num ${t.excessPct > 0 ? "up" : "down"}">${t.excessPct > 0 ? "+" : ""}${mn(esc(t.excessPct))}%</td></tr>`).join("");
+    return `<div style="margin-top:10px"><b>${title}</b> &mdash; ${esc(r.rule || "")}. Backtest: ${esc(r.backtest || "")}. ${verdict(r.summary)}.
+      ${pend ? `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th></tr></thead><tbody>${pend}</tbody></table></div>` : `<div class="sub">No signal for the next session.</div>`}
+      ${done ? `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">VS MARKET</th></tr></thead><tbody>${done}</tbody></table></div>` : ""}</div>`; };
+  const st = fv.STRANGLE || {};
+  const strRows = (st.trades || []).slice(0, 15).map((t) => `<tr><td>${esc(t.entryDate)} &rarr; ${esc(t.expiry)}</td><td class="num">${esc(t.putStrike)} PE / ${esc(t.callStrike)} CE</td><td class="num">${esc(t.premium)}</td>
+    <td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${mn(esc(t.netPct))}%`}</td></tr>`).join("");
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
+    <b>FORWARD PAPER TESTS: WHAT SURVIVED THE PROPER RE-TEST</b> (six years, against the market, t &ge; 3 &mdash; Harvey, Liu &amp; Zhu 2016) &mdash; judged only on
+    prices from ${esc(fv.start)}, NSE&rsquo;s official files; rules fixed in ${esc(fv.preregistration)}. Data through ${esc(fv.dataThrough)}. <b>Not recommendations until they pass.</b>
+    <div style="margin-top:10px"><b>NIFTY 2% STRANGLE (option SELLING)</b> &mdash; ${esc(st.rule || "")}. Backtest: ${esc(st.backtest || "")}. ${verdict(st.summary)} (a verdict needs 26 trades).
+      Selling needs margin and a crash can cost many weeks of premium &mdash; <b>information, not a row to buy on Zerodha</b>.
+      ${strRows ? `<div class="wrap"><table><thead><tr><th>WEEK</th><th class="num">STRIKES</th><th class="num">PREMIUM</th><th class="num">NET</th></tr></thead><tbody>${strRows}</tbody></table></div>` : `<div class="sub">First trade at the next weekly cycle.</div>`}</div>
+    ${shorts("MA150A", "SHORT: CLOSE CROSSES BELOW ITS 150-DAY AVERAGE")}
+    ${shorts("MA150B", "SHORT: 5-DAY AVERAGE CROSSES BELOW THE 150-DAY")}
   </div>`;
 }
 
@@ -1571,6 +1598,7 @@ ${feedAlarm}
     <h2>Track record &mdash; every price shown, bought on paper the moment it appeared</h2>
     ${springyBox(d.springyDip)}
     ${oiFlowBox(d.oiFlow)}
+    ${forwardV2Box(d.forwardV2)}
     ${trackPane}
   </section>
 </main>

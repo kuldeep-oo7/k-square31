@@ -254,9 +254,15 @@ function analyzeCandidate({
     ? 50 + (pat.bias === "BULLISH" ? 1 : -1)
          * Number(pat.confidence || 0.5) * 35 * (pat.confirmed === true ? 1 : 0.6)
     : null;
+  // CANDLESTICKS NO LONGER MOVE THE RATING (4 Oct 2026, the owner's decision). Re-scored over six
+  // years of NSE's own bhavcopies (research/audit-2026-10-04, protocol v2), the desk's bullish candle
+  // signal made -0.092% a trade AGAINST the market, t = -3.33, on 37,334 trades -- it measurably
+  // picked worse stocks. Its share of the pattern term is held at neutral (50), so no weight moves
+  // and nothing else changes; the candle is still shown as information.
+  const CANDLE_NEUTRAL = 50;
   const patternScore = chartScore === null
-    ? rawComponents.candle
-    : (rawComponents.candle + chartScore) / 2;
+    ? CANDLE_NEUTRAL
+    : (CANDLE_NEUTRAL + chartScore) / 2;
 
   let compScore = (rawComponents.neural * liveWeights.neural) +
                   (patternScore * liveWeights.pattern) +

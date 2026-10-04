@@ -1,0 +1,51 @@
+PRE-REGISTRATION -- FORWARD PAPER TESTS of the protocol-v2 survivors
+Written Sunday 4 Oct 2026, BEFORE the first session they cover (Monday 5 Oct 2026).
+
+WHERE THEY COME FROM
+research/audit-2026-10-04 (protocol v2, sha256 be9d3dce...) re-scored 78 earlier strategies over six
+years of NSE data:
+  STRANGLE  research/results-vrp-2026-10-04 V2, short NIFTY 2% strangle to weekly expiry: PASS,
+            t 4.66, +0.101% of NIFTY a trade, annual Sharpe 1.93, 61 months, survives Holm across
+            73. DSR 0.39: not significant after the trial-count correction. Its design was motivated
+            by an earlier straddle result.
+  MA150-A   research/ta-atlas-2026-10-03 M2, close crosses below its 150-day average -> short:
+            PROMISING, +0.338% a trade above the market, t 2.26.
+  MA150-B   M3, the 5-day average crosses below the 150-day average -> short: PROMISING, +0.307%
+            above the market, t 2.58.
+All three have been looked at, so only future prices can test them honestly.
+
+THE RULES (identical to the studies)
+STRANGLE. Data: NSE's own F&O bhavcopy (NIFTY options, the two nearest expiries) and NSE's daily
+index file (content/indices/ind_close_all_DDMMYYYY.csv, "Nifty 50" closing value; checked 4 Oct 2026:
+1 Oct 2026 = 22,421.95).
+- For each NIFTY option expiry E (as listed in the bhavcopy), the first session d after the previous
+  expiry with 4..10 calendar days to E.
+- S = NIFTY's close on d. Sell the call at the listed strike nearest S x 1.02 and the put nearest
+  S x 0.98, at their closing prices on d. Hold to E; settle at intrinsic value against NIFTY's close
+  on E.
+- Net = (premium - payout - charges) / S, with charges from api/_lib/trade-costs.js roundTripCost
+  .totalCost, quantity 75 per leg. Option SELLING: it needs margin, and a crash loses more than one
+  week's premium. Information, not a row for the owner's Zerodha buying.
+MA150-A / MA150-B. Data: NSE CM bhavcopy (series EQ, by symbol); the universe and resets of
+research/ta-atlas-2026-10-03:
+- the top 200 by 60-session median traded value;
+- at least 250 bars after the last reset (an open >= 18% from the previous close);
+- the signal bars all after the last reset; a trade crossing a reset is void.
+On bars up to d-1:
+- A: close(d-2) >= SMA150(d-2) and close(d-1) < SMA150(d-1);
+- B: SMA5(d-2) >= SMA150(d-2) and SMA5(d-1) < SMA150(d-1).
+Short at the official open of d, cover at the official close of d+9 (10 sessions). Futures charges,
+both legs, dated, quantity ceil(500000/open), plus a roll per month end crossed.
+SCORED AGAINST THE MARKET: excess = net + B(d,10), where B is the equal-weighted open(d) ->
+close(d+9) return of that month's universe stocks (protocol v2). This is a short against the market
+(e.g. stock future short + NIFTY future long), not a bet that the market falls.
+
+WHAT IS COUNTED
+Every signal with entry on or after 2026-10-05, prices from NSE's official files only.
+
+VERDICT (three rules; each judged at 5% / 3 = 1.67% one-sided)
+- STRANGLE: COLLECTING until 26 finished trades (about 6 months).
+- MA150-A, MA150-B: COLLECTING until 100 finished trades and 3 months.
+Then PASS if the mean (net for STRANGLE, excess for MA150) > 0 AND the one-sided t (clustered by
+ISO week of entry) is at or above the 1.67% Student-t critical value with (weeks - 1) df. Otherwise
+FAIL. Nothing may change after this commit.
