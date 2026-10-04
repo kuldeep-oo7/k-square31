@@ -76,7 +76,7 @@ function run(data) {
     const ex = exposure(data.opt(d), fd[6], d), p = data.part(d); if (!ex || !p) continue;
     const fc = -(p.CLIENT.cl - p.CLIENT.cs) / p.TOTAL.cl, fp = -(p.CLIENT.pl - p.CLIENT.ps) / p.TOTAL.pl;
     const G = [ex.callX - ex.putX, fc * ex.callX + fp * ex.putX];
-    diag.gexDays += 1; if (G[0] < 0) diag.shortG1 += 1; if (G[1] < 0) diag.shortG2 += 1;
+    diag.gexDays += 1; if (G[0] < 0) diag.shortG1 += 1; if (G[1] < 0) diag.shortG2 += 1; if (Math.sign(G[0]) === Math.sign(G[1])) diag.agree = (diag.agree || 0) + 1;
     // futures: the nearest contract after d+1, the same one on d-1, d and d+1
     const c = nearestAfter(d1, d1);
     if (c && c[3] > 0 && c[6] > 0) { const a = contract(d0, c[2]), b = contract(d, c[2]);
@@ -163,12 +163,19 @@ if (sessions.length < 500) { console.error(`too little data: ${sessions.length} 
 const cache = (fn) => { const m = new Map(); return (d) => { if (m.has(d)) return m.get(d); if (m.size > 8) m.delete(m.keys().next().value); const v = fn(d); m.set(d, v); return v; }; };
 const data = { sessions, opt: cache((d) => JSON.parse(fs.readFileSync(path.join(OPT, `${d}.json`), "utf8"))), fut: cache((d) => JSON.parse(fs.readFileSync(path.join(FUT, `${d}.json`), "utf8"))),
   part: cache((d) => parsePart(fs.readFileSync(path.join(PART, `${d}.csv`), "utf8"))) };
+if (process.argv.includes("--coverage")) {   // inputs only, by year: computes no gamma exposure
+  const by = {}; for (const d of sessions) { const y = d.slice(0, 4); const b = (by[y] ||= { sessions: 0, part: 0, opt: 0, fut: 0 }); b.sessions += 1;
+    if (data.part(d)) b.part += 1; if ((data.opt(d)?.idx?.NIFTY || []).some((r) => r[0] > d)) b.opt += 1; if ((data.fut(d) || []).some((r) => r[0] === "NIFTY" && r[1] === "IDX" && r[2] > d)) b.fut += 1; }
+  for (const [y, b] of Object.entries(by)) console.log(`${y}: ${b.sessions} sessions | participant file parsed ${b.part} | NIFTY options after the date ${b.opt} | NIFTY futures after the date ${b.fut}`);
+  process.exit(0);
+}
 const res = run(data); const rows = score(res.trades);
 const every = (xs) => { const s = monthly(xs); const r = nwT(s); return `${xs.length} trades, ${(r.mean >= 0 ? "+" : "") + r.mean.toFixed(3)}% a month-average trade, t ${r.t.toFixed(2)}`; };
 const out = []; const line = (x) => { console.log(x); out.push(x); };
 line(`NIFTY GAMMA EXPOSURE -- run ${new Date().toISOString()}, prereg sha256 ${SHA} (verified); protocol v2`);
 line(`Data: ${sessions.length} sessions with NSE options, futures and participant files, ${sessions[0]} .. ${sessions[sessions.length - 1]}; gamma exposure computed on ${res.diag.gexDays} days.`);
 line(`Short gamma (GEX < 0): US convention on ${res.diag.shortG1} days (${((100 * res.diag.shortG1) / res.diag.gexDays).toFixed(1)}%), NSE split on ${res.diag.shortG2} days (${((100 * res.diag.shortG2) / res.diag.gexDays).toFixed(1)}%).`);
+line(`The two conventions agree in sign on ${res.diag.agree || 0} of ${res.diag.gexDays} days (${((100 * (res.diag.agree || 0)) / res.diag.gexDays).toFixed(1)}%).`);
 line(`DSR benchmark (expected best annual Sharpe of ${rows.filter((r) => r.verdict !== "NOT TESTABLE").length} skill-less trials): ${rows.SR0 === undefined ? "-" : rows.SR0.toFixed(2)}`);
 line(`member | months | trades | mean/trade | winners | t (NW) | annual Sharpe | Holm | DSR | VERDICT`);
 for (const r of rows) line(fmt(r));
