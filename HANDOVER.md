@@ -25,9 +25,19 @@ numbers are copied here.
 - long-unwinding bounce;
 - short build-up;
 - NIFTY 2% strangle (selling, information only);
-- 150-day cross-down shorts (scored against the market).
+- 150-day cross-down shorts A and B (scored against the market);
+- cheap-vol straddle and industry-adjusted reversal (studies/forward-v3-2026-10-04; the options
+  study's two near misses, t 1.94 and 1.98).
 
-These are the ONLY candidates; check their running scores before anything else.
+Eight rules in docs/paper-rules/*.json (springy-dip, oi-flow LU+SB, forward-v2 STRANGLE+MA150A+MA150B,
+forward-v3 CHEAPVOL+INDREV). These are the ONLY candidates; check their running scores before
+anything else. Earliest possible verdicts: about 3 months (100 trades and 3 months); the strangle and
+INDREV need 26 (about 6 months).
+- The NSE daily files they read (F&O, index, NIFTY and stock options) are kept in release
+  data-paper-inputs; the job stops (commits nothing) if a folder no longer reaches back before 5 Oct.
+- INDREV's industries: NSE's filings give "-" for about a third of the top 200; the study treated
+  "-" as one group and so does the forward test (stated in its registration, before commit). Its
+  industry file is pinned by sha256 47c3516e...; another file shows NOT RUN.
 
 **Testing standard: protocol v2** (studies/audit-2026-10-04/PROTOCOL.txt). Earlier "FAIL" verdicts
 from final-year-only tests mean "unproven". Every study's code, rules and results are in studies/

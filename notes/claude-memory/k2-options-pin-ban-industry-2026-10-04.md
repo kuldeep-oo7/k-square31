@@ -31,5 +31,8 @@ PASS at t ≥ 3).
 
 Lesson: an option bought and held over a weekend loses ~2 days of decay with no movement in return.
 
-**How to apply:** O3 and I2 are candidates for forward paper tests, but each needs a new registration.
+**How to apply:** O3 and I2 are on TRACK as forward paper tests from 5 Oct 2026
+(studies/forward-v3-2026-10-04). I2's industry is NSE's board-meeting sm_indusrty, which is "-" for
+57-73 of the top 200 (SWIGGY, HDFCLIFE, DMART, INDIGO...); the study kept "-" as one group, so for
+those I2 is a reversal against that group. A version with full industries would be a new rule.
 Warn the owner against buying options into results. See [[k2-audit-protocol-v2-2026-10-04]].

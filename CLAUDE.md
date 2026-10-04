@@ -141,7 +141,12 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
   - long-unwinding bounce;
   - short build-up;
   - NIFTY 2% strangle (option selling, information only);
-  - 150-day cross-down shorts (scored against the market).
+  - 150-day cross-down shorts A and B (scored against the market);
+  - cheap-vol straddle and industry reversal (studies/forward-v3-2026-10-04; "-" industries are one
+    group, as in the backtest; the industry file is pinned by sha256).
+  - Eight rules in all. Their daily NSE files live in release `data-paper-inputs`.
+- `npm run check` had outgrown Windows' command line: add new tests to `scripts/check-forward.js`,
+  not to the package.json chain.
 - **Testing standard:** protocol v2 (research/audit-2026-10-04/PROTOCOL.txt): the whole sample,
   excess over the market for stock trades, t >= 3, with Holm and the Deflated Sharpe ratio reported.
   The old final-year-only verdicts were underpowered.
