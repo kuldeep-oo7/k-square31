@@ -71,7 +71,8 @@ const get = async (url) => fetch(url, { headers: { "User-Agent": UA, Accept: "*/
 (async () => {
   fs.mkdirSync(path.join(OUT, "fut"), { recursive: true });
   fs.mkdirSync(path.join(OUT, "part"), { recursive: true });
-  const sessions = fs.readdirSync(CM).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, 10)).sort();
+  const FROM = process.env.K2_FROM || "0000-00-00";   // only sessions on or after this date (the daily job needs the last few)
+  const sessions = fs.readdirSync(CM).filter((f) => f.endsWith(".json")).map((f) => f.slice(0, 10)).filter((d) => d >= FROM).sort();
   const todo = sessions.filter((d) => !fs.existsSync(path.join(OUT, "fut", `${d}.json`)) || !fs.existsSync(path.join(OUT, "part", `${d}.csv`)) && !fs.existsSync(path.join(OUT, "part", `${d}.none`)));
   log(`=== ${new Date().toISOString()} ${todo.length} of ${sessions.length} sessions to fetch`);
   let fails = 0, got = 0;

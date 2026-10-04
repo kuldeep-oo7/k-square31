@@ -866,6 +866,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     // The OWN "springy dip" forward paper test, written each weekday morning by
     // .github/workflows/springy-dip.yml from NSE's own files (null if not yet written).
     springyDip: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "springy-dip.json"), "utf8")); } catch { return null; } })(),
+    oiFlow: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "oi-flow.json"), "utf8")); } catch { return null; } })(),
     gmMinUnits: GM_MIN_UNITS,
     marketContext: marketContext
       ? { ok: true, indiaVix: marketContext.indiaVix, indiaVixChangePct: marketContext.indiaVixChangePct,
@@ -896,10 +897,10 @@ function springyBox(sd) {
   const s = sd.summary || {};
   const bt = sd.backtest || {};
   const verdictTone = s.verdict === "PASS" ? "up" : s.verdict === "FAIL" ? "down" : "warn";
-  const pend = (sd.pending || []).map((p) => `<tr><td><b>${esc(p.symbol)}</b></td><td>buy at the open of the next session</td><td class="num">z ${esc(p.z)}</td><td class="num">ac ${esc(p.ac)}</td></tr>`).join("");
+  const pend = (sd.pending || []).map((p) => `<tr><td><b>${esc(p.symbol)}</b></td><td>buy at the open of the next session</td><td class="num">${esc(p.z).replace(/^-/, "&minus;")}</td><td class="num">${esc(p.ac).replace(/^-/, "&minus;")}</td></tr>`).join("");
   const rows = (sd.trades || []).slice(0, 30).map((t) => `<tr><td><b>${esc(t.symbol)}</b></td><td>${esc(t.entryDate)}${t.exitDate ? ` &rarr; ${esc(t.exitDate)}` : ""}</td>
     <td class="num">${t.entry ? esc(t.entry) : "&mdash;"}${t.exit ? ` &rarr; ${esc(t.exit)}` : ""}</td>
-    <td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${esc(t.netPct)}%`}</td></tr>`).join("");
+    <td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${esc(t.netPct).replace(/^-/, "&minus;")}%`}</td></tr>`).join("");
   return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
     <b>OWN RULE, FORWARD PAPER TEST: &ldquo;SPRINGY DIP&rdquo;</b> &mdash; a stock that tends to snap back (its daily moves reverse:
     lag-1 autocorrelation under &minus;0.05 over 120 sessions) closing 2 standard deviations under its 20-day average; buy at the next open,
@@ -911,6 +912,26 @@ function springyBox(sd) {
     (a verdict needs 100 trades and 3 months). Data through ${esc(sd.dataThrough)}. <b>Not a recommendation until it passes.</b>
     ${pend ? `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th><th class="num">Z</th><th class="num">AC</th></tr></thead><tbody>${pend}</tbody></table></div>` : `<div class="sub">No signal for the next session.</div>`}
     ${rows ? `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">OPEN &rarr; CLOSE</th><th class="num">NET</th></tr></thead><tbody>${rows}</tbody></table></div>` : ""}
+  </div>`;
+}
+
+// TWO OPEN-INTEREST PATTERNS, ON PAPER, AGAINST THE FUTURE (studies/oi-flow-forward-2026-10-04).
+function oiFlowBox(of) {
+  if (!of) return "";
+  const mn = (v) => String(v).replace(/^-/, "&minus;");
+  const part = (k, title, act) => { const r = of[k] || {}; const s = r.summary || {}; const tone = s.verdict === "PASS" ? "up" : s.verdict === "FAIL" ? "down" : "warn";
+    const pend = (r.pending || []).map((p) => `<tr><td><b>${esc(p.symbol)}</b></td><td>${act}</td><td class="num">${mn(esc(p.pricePct))}%</td><td class="num">${mn(esc(p.oiPct))}%</td></tr>`).join("");
+    const done = (r.trades || []).slice(0, 15).map((t) => `<tr><td><b>${esc(t.symbol)}</b></td><td>${esc(t.entryDate)}${t.exitDate ? ` &rarr; ${esc(t.exitDate)}` : ""}</td><td class="num">${t.entry ? esc(t.entry) : "&mdash;"}${t.exit ? ` &rarr; ${esc(t.exit)}` : ""}</td><td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${mn(esc(t.netPct))}%`}</td></tr>`).join("");
+    return `<div style="margin-top:10px"><b>${title}</b> &mdash; ${esc(r.rule || "")}. Backtest: ${esc(r.backtest || "")}.
+      <b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanNetPct > 0 ? "+" : ""}${mn(esc(s.meanNetPct))}% a trade, ${esc(s.winPct)}% winners, t ${mn(esc(s.t ?? "&mdash;"))}` : ""}.
+      ${pend ? `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th><th class="num">PRICE</th><th class="num">OPEN INT.</th></tr></thead><tbody>${pend}</tbody></table></div>` : `<div class="sub">No signal for the next session.</div>`}
+      ${done ? `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">OPEN &rarr; CLOSE</th><th class="num">NET</th></tr></thead><tbody>${done}</tbody></table></div>` : ""}</div>`; };
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
+    <b>FORWARD PAPER TESTS: WHAT THE BIG POSITIONS DO (futures open interest)</b> &mdash; two patterns that FAILED their backtest but held one sign in every period,
+    now judged only on prices from ${esc(of.start)} (NSE&rsquo;s official open and close, after futures charges); rules fixed in ${esc(of.preregistration)}.
+    A verdict needs 100 trades and 3 months each. Data through ${esc(of.dataThrough)}. <b>Not recommendations until they pass.</b>
+    ${part("LU", "LONG-UNWINDING BOUNCE", "buy at the next open, sell 10 sessions later")}
+    ${part("SB", "SHORT BUILD-UP", "short at the next open, cover at the close")}
   </div>`;
 }
 
@@ -1549,6 +1570,7 @@ ${feedAlarm}
   <section class="pane pane-trk">
     <h2>Track record &mdash; every price shown, bought on paper the moment it appeared</h2>
     ${springyBox(d.springyDip)}
+    ${oiFlowBox(d.oiFlow)}
     ${trackPane}
   </section>
 </main>
