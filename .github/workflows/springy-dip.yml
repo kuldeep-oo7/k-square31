@@ -65,8 +65,12 @@ jobs:
             echo "$d: from ${first:-none}, $(ls "$d" 2>/dev/null | wc -l) files"
             if [ -z "$first" ] || [[ "$first" > "2026-10-01" ]]; then echo "::error::$d does not reach back before 2026-10-05 (first: ${first:-none})"; exit 1; fi
           done
+          # Every session NSE's index file has must also have its equity bhavcopy: a real session lost
+          # as a "holiday" would shift the industry reversal's every-5th-session schedule silently.
+          for f in nse-idx/*.json; do d=$(basename "$f" .json); [ -f "nse-data/cm/$d.json" ] || { echo "::error::NSE held a session on $d but nse-data/cm has no file for it"; exit 1; }; done
           gh release view data-paper-inputs >/dev/null 2>&1 || gh release create data-paper-inputs --title "Paper-test inputs (NSE daily files)" --notes "NSE's own F&O, index and option files from late Aug 2026 on, read by the forward paper tests (docs/paper-rules). Built by springy-dip.yml." --latest=false
-          tar -czf paper-inputs.tar.gz nse-fo nse-idx nse-extra nse-sopt
+          # .none (NSE answered 404) is not kept: a day missing today is fetched again tomorrow, within 40 days
+          tar --exclude='*.none' -czf paper-inputs.tar.gz nse-fo nse-idx nse-extra nse-sopt
           gh release upload data-paper-inputs paper-inputs.tar.gz --clobber
       - name: Signals and the running score
         run: |
