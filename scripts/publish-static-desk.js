@@ -650,6 +650,10 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       symbol: r.symbol, tradingSymbol: levels.tradingSymbol || r.tradingSymbol,
       angelSymbol: levels.angelSymbol || null, expiry: levels.expiry || expiry,
       spot: shown.price, nowSource: shown.source, nowAtText: shown.atText, fnoListed: r.fnoListed === true,
+      // THE DAY'S VWAP (audit F21, 4 Oct 2026): NSE's average traded price for the session, which Angel's
+      // FULL quote carries as avgPrice (broker-feed.js bookOf). Shown only while the quote is live --
+      // information beside NOW, not a signal: no VWAP rule has been tested on this desk.
+      vwap: shown.live && Number(shownQuote?.book?.avg) > 0 ? round(Number(shownQuote.book.avg)) : null,
       liveToken: shownQuote?.token && shownQuote?.exchange ? `${shownQuote.exchange}:${shownQuote.token}` : null,
       priceBasis: levels.priceBasis || (anchorQuote === fq ? "CONTRACT" : "SHARE"),
       referencePrice: shown.referencePrice, referenceKind: shown.referenceKind,
@@ -1131,7 +1135,7 @@ function page(d) {
         <td class="num"><b>${px(r.buy)}</b>${expLine}</td>
         <td class="num up">${px(r.target1)}<div class="sub">${px(r.target2)}</div></td>
         <td class="num down">${px(r.stop)}</td>
-        <td class="num"${liveAttrs(r.liveToken, r.buy, r.frozen)}><span class="nowv">${px(r.spot)}</span><div class="sub nows ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.referencePrice
+        <td class="num"${liveAttrs(r.liveToken, r.buy, r.frozen)}><span class="nowv">${px(r.spot)}</span><div class="sub nows ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.vwap ? `<div class="sub">day&rsquo;s VWAP ${px(r.vwap)} &middot; NOW is ${r.spot >= r.vwap ? "above" : "below"} it</div>` : ""}${r.referencePrice
           ? `<div class="sub">${r.referenceKind === "future" ? "NSE future" : "share"} ${px(r.referencePrice)}</div>`
           : (r.fnoListed === false ? `<div class="sub">no NSE futures contract</div>` : "")}</td>
         <td class="num">${money(r.minCapital)}<div class="sub">${esc(r.minUnits)} units</div><div class="sub down">stop &minus;${money(r.minLossAtStop)}</div><div class="sub up">target +${money(r.minGainAtTarget)}</div></td>
@@ -1169,10 +1173,10 @@ function page(d) {
         <td class="num up">${esc(s.target)}</td><td class="num down">${esc(s.stop)}</td><td class="num">${esc(s.expired)}</td>
         <td class="num">${esc(s.unfilled)}</td>
         <td class="num"><b>${s.hitRatePct === null ? "&mdash;" : esc(s.hitRatePct) + "%"}</b><div class="sub">of ${esc(s.resolved)} finished${Number(s.resolvedBets) < Number(s.resolved) ? ` (${esc(s.resolvedBets)} separate bet${Number(s.resolvedBets) === 1 ? "" : "s"})` : ""}${Number(s.resolvedBets ?? s.resolved) < 30 ? " &mdash; too few to judge" : ""}</div>${s.hitRate95
-          ? `<div class="sub">95% range ${esc(s.hitRate95.lowPct)}&ndash;${esc(s.hitRate95.highPct)}%${Number(s.resolvedBets) >= 30 && s.randomHitRatePct !== null && s.randomHitRatePct !== undefined
+          ? `<div class="sub">95% range ${esc(s.hitRate95.lowPct)}&ndash;${esc(s.hitRate95.highPct)}%${s.hitRate95.sessions ? ` (${esc(s.hitRate95.sessions)} session${s.hitRate95.sessions === 1 ? "" : "s"}, each day counted as one piece of evidence)` : ""}${Number(s.resolvedBets) >= 30 && Number(s.hitRate95.sessions) >= 10 && s.randomHitRatePct !== null && s.randomHitRatePct !== undefined
             ? (s.hitRate95.lowPct > s.randomHitRatePct ? ` &mdash; <b class="up">above break-even</b>`
               : s.hitRate95.highPct < s.randomHitRatePct ? ` &mdash; <b class="down">below break-even</b>` : " &mdash; not yet distinguishable from break-even")
-            : ""}</div>` : ""}</td>
+            : Number(s.hitRate95.sessions) < 10 ? " &mdash; too few sessions to judge (10 needed)" : ""}</div>` : ""}</td>
         <td class="num">${s.randomHitRatePct === null || s.randomHitRatePct === undefined ? "&mdash;" : esc(s.randomHitRatePct) + "%"}${s.expectedHitRatePct !== null && s.expectedHitRatePct !== undefined ? `<div class="sub">touch odds said ${esc(s.expectedHitRatePct)}%</div>` : ""}</td>
         <td class="num">${hrs(s.medianHoursToFill)}</td><td class="num">${hrs(s.medianHoursToTarget)}</td>
         <td class="num ${Number(s.avgReturnPct) >= 0 ? "up" : "down"}">${label === "ALL"

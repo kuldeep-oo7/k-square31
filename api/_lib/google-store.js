@@ -75,7 +75,14 @@ function canonicalWebAppUrl(raw) {
  * or a refusal from the script is an answer, and asking again would either
  * duplicate a write or hammer a service that has already said no.
  */
-async function requestGoogle(action, payload = {}, { attempts = 3 } = {}) {
+// GOOGLE-SIDE HTTP FAILURES ON SAFE CALLS (fixed 4 Oct 2026). Some 404s never reach the script at all --
+// Google's own front end answers them, and the Apps Script execution log shows no run -- so they are
+// transport faults, not answers. Calls that are SAFE TO REPEAT (reads, listings, the empty probe, and a
+// document write guarded by its expected version, which a repeat can only turn into a CONFLICT answer)
+// pass `retryHttp` and are retried on these codes. Appends never do: a repeated append could duplicate rows.
+const SAFE_RETRY_HTTP = [404, 408, 429, 500, 502, 503, 504];
+
+async function requestGoogle(action, payload = {}, { attempts = 3, retryHttp = [] } = {}) {
   if (!googleStoreConfigured()) throw new Error("Google Sheets operational store is not configured");
   const body = JSON.stringify({
     secret: process.env.K2_GOOGLE_SHEETS_ARCHIVE_SECRET,
@@ -93,7 +100,11 @@ async function requestGoogle(action, payload = {}, { attempts = 3 } = {}) {
         body,
         signal: AbortSignal.timeout(GOOGLE_STORE_TIMEOUT_MS)
       });
-      if (!response.ok) throw new Error(`Google Sheets store returned ${response.status}`);
+      if (!response.ok) {
+        const httpError = new Error(`Google Sheets store returned ${response.status}`);
+        if (retryHttp.includes(response.status)) httpError.k2RetryHttp = true;
+        throw httpError;
+      }
       const result = await response.json();
       if (!result?.ok) {
         // An answer, not a transport fault. Do not try again.
@@ -104,7 +115,7 @@ async function requestGoogle(action, payload = {}, { attempts = 3 } = {}) {
     } catch (error) {
       // Anything the script or the protocol SAID is final.
       if (error instanceof GoogleStoreConflictError) throw error;
-      if (/returned \d{3}/.test(error.message) || /rejected the request/.test(error.message)) throw error;
+      if ((/returned \d{3}/.test(error.message) && !error.k2RetryHttp) || /rejected the request/.test(error.message)) throw error;
       // "fetch failed" is Node's opaque wrapper. The reason it actually failed
       // -- ECONNRESET, ETIMEDOUT, EPROTO, a DNS fault -- is on error.cause, and
       // without it a diagnosis is guesswork. Three deploys were spent guessing.
@@ -126,7 +137,7 @@ async function readGoogleDocuments(entries) {
   if (!entries.length) return [];
   const result = await requestGoogle("readDocuments", {
     paths: entries.map((entry) => entry.pathname)
-  });
+  }, { retryHttp: SAFE_RETRY_HTTP });
   const documents = new Map((result.documents || []).map((document) => [document.path, document]));
   return entries.map(({ pathname, fallback }) => {
     const document = documents.get(pathname);
@@ -145,7 +156,7 @@ async function writeGoogleDocument(pathname, data, etag) {
     expectedVersion: etag ? Number(etag) : 0,
     encoding: "gzip-base64",
     encoded: encodeDocument(data)
-  });
+  }, { retryHttp: SAFE_RETRY_HTTP });
   return { etag: String(result.version) };
 }
 
@@ -204,7 +215,8 @@ async function appendRecommendationAuditToGoogle(audit) {
 async function probeGoogleAction(action) {
   if (!googleStoreConfigured()) return { supported: false, reason: "not configured" };
   try {
-    await requestGoogle(action, { recommendations: [], signals: [], holdings: [] }, { attempts: 1 });
+    // An empty payload writes nothing, so it is safe to ask again after a Google-side 404.
+    await requestGoogle(action, { recommendations: [], signals: [], holdings: [] }, { attempts: 3, retryHttp: SAFE_RETRY_HTTP });
     return { supported: true, reason: null };
   } catch (error) {
     if (/Invalid action/i.test(error.message)) return { supported: false, reason: "the deployed Apps Script does not have this action" };
@@ -214,7 +226,7 @@ async function probeGoogleAction(action) {
 
 async function listGoogleTabs() {
   if (!googleStoreConfigured()) throw new Error("Google Sheets operational store is not configured");
-  return requestGoogle("listTabs", {});
+  return requestGoogle("listTabs", {}, { retryHttp: SAFE_RETRY_HTTP });
 }
 
 async function queryGoogleCapabilities() {
@@ -230,10 +242,12 @@ async function queryGoogleCapabilities() {
 
 async function readTabRowsFromGoogle({ tab, limit = 100, offset }) {
   if (!googleStoreConfigured()) throw new Error("Google Sheets operational store is not configured");
-  return requestGoogle("readTabRows", { tab, limit, ...(offset === undefined ? {} : { offset }) });
+  return requestGoogle("readTabRows", { tab, limit, ...(offset === undefined ? {} : { offset }) }, { retryHttp: SAFE_RETRY_HTTP });
 }
 
 module.exports = {
+  SAFE_RETRY_HTTP,
+  requestGoogle,
   canonicalWebAppUrl,
   GoogleStoreConflictError,
   appendMacroRadarToGoogle,
