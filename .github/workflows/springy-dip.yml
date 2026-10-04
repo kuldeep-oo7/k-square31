@@ -34,6 +34,9 @@ jobs:
           after=$(ls nse-data/cm/*.json | wc -l)
           echo "sessions: $before -> $after"
           if [ "$after" != "$before" ]; then tar -czf nse-cm.tar.gz nse-data && gh release upload data-nse-cm nse-cm.tar.gz --clobber; fi
+      - name: Restore the paper tests' daily NSE files (release data-paper-inputs)
+        run: |
+          if gh release download data-paper-inputs -p paper-inputs.tar.gz; then tar -xzf paper-inputs.tar.gz && rm paper-inputs.tar.gz; else echo "no paper-inputs archive yet"; fi
       - name: NSE F&O futures files for the last 40 days (open interest)
         run: K2_CM_DIR=nse-data/cm K2_FO_DIR=nse-fo K2_FROM=$(date -u -d '-40 days' +%F) node scripts/nse-fo-history.js
       - name: NSE index closes and NIFTY option prices for the last 40 days
@@ -47,17 +50,36 @@ jobs:
           gh release download data-nse-idx -p nse-idx.json -D idx-archive --clobber || true
           node scripts/nse-index-archive.js nse-idx idx-archive/nse-idx.json nse-idx.json
           gh release upload data-nse-idx nse-idx.json --clobber
+      - name: Stock option prices (last 40 days) and NSE industries, for the cheap-vol and industry tests
+        continue-on-error: true
+        run: |
+          K2_CM_DIR=nse-data/cm K2_SOPT_DIR=nse-sopt K2_FROM=$(date -u -d '-40 days' +%F) node scripts/nse-stock-options-history.js
+          gh release download data-research -p research-misc.tar.gz --clobber && tar -xzf research-misc.tar.gz research/industry-2026-10-04/industries.json && cp research/industry-2026-10-04/industries.json industries.json
+      - name: Keep the paper tests' daily NSE files (release data-paper-inputs)
+        run: |
+          # The tests count from 2026-10-05 and are replayed from there on every run, but the steps above
+          # fetch only 40 days. Each folder must still reach back before 5 Oct; if one does not, stop here
+          # (nothing is committed) rather than publish a record with its first trades missing.
+          for d in nse-fo/fut nse-idx nse-extra/opt nse-sopt; do
+            first=$(ls "$d" 2>/dev/null | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}' | sort | head -1 | cut -c1-10)
+            echo "$d: from ${first:-none}, $(ls "$d" 2>/dev/null | wc -l) files"
+            if [ -z "$first" ] || [[ "$first" > "2026-10-01" ]]; then echo "::error::$d does not reach back before 2026-10-05 (first: ${first:-none})"; exit 1; fi
+          done
+          gh release view data-paper-inputs >/dev/null 2>&1 || gh release create data-paper-inputs --title "Paper-test inputs (NSE daily files)" --notes "NSE's own F&O, index and option files from late Aug 2026 on, read by the forward paper tests (docs/paper-rules). Built by springy-dip.yml." --latest=false
+          tar -czf paper-inputs.tar.gz nse-fo nse-idx nse-extra nse-sopt
+          gh release upload data-paper-inputs paper-inputs.tar.gz --clobber
       - name: Signals and the running score
         run: |
           npm install --omit=dev --no-audit --no-fund
           K2_CM_DIR=nse-data/cm node scripts/springy-dip-forward.js | tee -a "$GITHUB_STEP_SUMMARY"
           K2_CM_DIR=nse-data/cm K2_FUT_DIR=nse-fo/fut node scripts/oi-flow-forward.js | tee -a "$GITHUB_STEP_SUMMARY"
           K2_CM_DIR=nse-data/cm K2_IDX_DIR=nse-idx K2_OPT_DIR=nse-extra/opt node scripts/forward-v2.js | tee -a "$GITHUB_STEP_SUMMARY"
+          K2_CM_DIR=nse-data/cm K2_SOPT_DIR=nse-sopt K2_INDUSTRY=industries.json node scripts/forward-v3.js | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Commit the list
         run: |
           git config user.name "k2-desk-bot"
           git config user.email "k2-desk-bot@users.noreply.github.com"
-          git add docs/paper-rules/springy-dip.json docs/paper-rules/oi-flow.json docs/paper-rules/forward-v2.json
+          git add docs/paper-rules/springy-dip.json docs/paper-rules/oi-flow.json docs/paper-rules/forward-v2.json docs/paper-rules/forward-v3.json
           git diff --cached --quiet && { echo "no change"; exit 0; }
           git commit -m "paper rules: forward tests updated"
           for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin HEAD:main && exit 0; sleep 10; done

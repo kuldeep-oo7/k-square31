@@ -880,6 +880,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     springyDip: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "springy-dip.json"), "utf8")); } catch { return null; } })(),
     oiFlow: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "oi-flow.json"), "utf8")); } catch { return null; } })(),
     forwardV2: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v2.json"), "utf8")); } catch { return null; } })(),
+    forwardV3: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v3.json"), "utf8")); } catch { return null; } })(),
     gmMinUnits: GM_MIN_UNITS,
     marketContext: marketContext
       ? { ok: true, indiaVix: marketContext.indiaVix, indiaVixChangePct: marketContext.indiaVixChangePct,
@@ -979,6 +980,36 @@ function forwardV2Box(fv) {
 // scripts/apex-panel-study.js -- a momentum stand-in, never the rating itself.
 const RATING_TEST = { stockDays: 236746, buyTrades: 32725, buyNetPct: -0.028, buyWinPct: 36.7, buyT: -0.44,
   sellTrades: 35236, sellNetPct: -0.139, sellT: -3.31, sellVsMarketPct: -0.394 };
+
+// THE TWO NEAR MISSES, ON PAPER, AGAINST THE FUTURE (studies/forward-v3-2026-10-04).
+function forwardV3Box(fv) {
+  if (!fv) return "";
+  const mn = (v) => String(v).replace(/^-/, "&minus;");
+  const verdict = (s) => { s = s || {}; const tone = s.verdict === "PASS" ? "up" : s.verdict === "FAIL" ? "down" : "warn";
+    return `<b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a trade, ${esc(s.winPct)}% winners, worst ${mn(esc(s.worstPct))}%, t ${mn(esc(s.t ?? "&mdash;"))}` : ""}`; };
+  const cv = fv.CHEAPVOL || {}, ir = fv.INDREV || {};
+  const cvRows = (cv.trades || []).slice(0, 15).map((t) => `<tr><td><b>${esc(t.symbol)}</b> ${esc(t.strike)} straddle</td><td>${esc(t.entryDate)}${t.exitDate ? ` &rarr; ${esc(t.exitDate)}` : ""}</td>
+    <td class="num">IV ${esc(t.ivPct)}% / RV ${esc(t.rvPct)}%</td><td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${mn(esc(t.netPct))}%`}</td></tr>`).join("");
+  const irRows = (ir.rebalances || []).slice(0, 10).map((r) => `<tr><td>${esc(r.date)}</td><td>${esc((r.long || []).length)} long / ${esc((r.short || []).length)} short</td>
+    <td class="num ${r.netPct > 0 ? "up" : r.netPct < 0 ? "down" : ""}">${r.netPct === undefined ? esc(r.status) : `${r.netPct > 0 ? "+" : ""}${mn(esc(r.netPct))}%`}</td></tr>`).join("");
+  // * marks the names NSE's filings give no industry for: they are compared with each other as one group,
+  // as in the backtest (studies/forward-v3-2026-10-04/PREREGISTRATION.txt, "DATA LIMIT").
+  const noInd = new Set(ir.pendingNoIndustry || []);
+  const names = (list) => esc(list.map((s) => (noInd.has(s) ? `${s}*` : s)).join(", "));
+  const next = ir.status && ir.status !== "RUN" ? `<div class="sub"><b class="down">${esc(ir.status)}</b> &mdash; it is never computed with any other file.</div>`
+    : ir.pending ? `<div class="sub"><b>Next session is a rebalance.</b> Long (lagged their group): ${names(ir.pending.long)}. Short (led it): ${names(ir.pending.short)}.${noInd.size ? ` * = NSE gives no industry (${esc(noInd.size)} of ${esc(ir.pending.long.length + ir.pending.short.length)} names): compared with all such stocks together, as in the backtest.` : ""}</div>`
+    : `<div class="sub">Next rebalance in ${esc(ir.sessionsToNext)} session${ir.sessionsToNext === 1 ? "" : "s"}.</div>`;
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
+    <b>FORWARD PAPER TESTS: THE TWO NEAR MISSES</b> &mdash; each just missed the bar on six years of NSE data, so now judged only on prices from ${esc(fv.start)};
+    rules fixed in ${esc(fv.preregistration)}. Data through ${esc(fv.dataThrough)}. <b>Not recommendations until they pass.</b>
+    <div style="margin-top:10px"><b>CHEAP-VOLATILITY STRADDLE (option BUYING)</b> &mdash; ${esc(cv.rule || "")}. Backtest: ${esc(cv.backtest || "")}. ${verdict(cv.summary)} (a verdict needs 100 trades and 3 months).
+      Entry is the official close of the signal day &mdash; in practice near 15:25.
+      ${cvRows ? `<div class="wrap"><table><thead><tr><th>STRADDLE</th><th>DAYS</th><th class="num">IV / REALISED</th><th class="num">NET</th></tr></thead><tbody>${cvRows}</tbody></table></div>` : `<div class="sub">No signal yet.</div>`}</div>
+    <div style="margin-top:10px"><b>INDUSTRY-ADJUSTED REVERSAL (long-short futures)</b> &mdash; ${esc(ir.rule || "")}. Backtest: ${esc(ir.backtest || "")}. ${verdict(ir.summary)} (a verdict needs 26 rebalances).
+      ${next}
+      ${irRows ? `<div class="wrap"><table><thead><tr><th>REBALANCE</th><th>LEGS</th><th class="num">NET</th></tr></thead><tbody>${irRows}</tbody></table></div>` : ""}</div>
+  </div>`;
+}
 
 function page(d) {
   // Calls, puts and futures are three different trades, and they were asked
@@ -1624,6 +1655,7 @@ ${feedAlarm}
     ${springyBox(d.springyDip)}
     ${oiFlowBox(d.oiFlow)}
     ${forwardV2Box(d.forwardV2)}
+    ${forwardV3Box(d.forwardV3)}
     ${trackPane}
   </section>
 </main>

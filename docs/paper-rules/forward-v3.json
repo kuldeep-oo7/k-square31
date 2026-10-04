@@ -1,0 +1,83 @@
+{
+ "preregistration": "studies/forward-v3-2026-10-04/PREREGISTRATION.txt",
+ "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
+ "start": "2026-10-05",
+ "dataThrough": "2026-10-01",
+ "builtAt": "2026-10-04T11:44:46.013Z",
+ "industries": 2584,
+ "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
+ "CHEAPVOL": {
+  "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
+  "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months -- just short of the bar",
+  "trades": [],
+  "summary": {
+   "finished": 0,
+   "verdict": "COLLECTING"
+  }
+ },
+ "INDREV": {
+  "rule": "Every 5th session: buy the 10% of stocks that lagged their industry group most over the last 5 sessions, short the 10% that led it most; close both 5 sessions later. Industry = NSE's own filings, which give none for about a third of the 200 stocks; those are compared with each other as one group, exactly as in the backtest",
+  "backtest": "+0.15% a rebalance, t 1.98, 248 rebalances over 60 months -- just short of the bar",
+  "status": "RUN",
+  "rebalances": [],
+  "pending": {
+   "long": [
+    "POLICYBZR",
+    "PATANJALI",
+    "SWIGGY",
+    "WOCKPHARMA",
+    "MAXHEALTH",
+    "IFCI",
+    "BAJAJ-AUTO",
+    "SBICARD",
+    "NAM-INDIA",
+    "KALYANKJIL",
+    "YESBANK",
+    "OFSS",
+    "UNIONBANK",
+    "JIOFIN"
+   ],
+   "short": [
+    "BHEL",
+    "DMART",
+    "TFCILTD",
+    "INDIGO",
+    "SYRMA",
+    "HDFCLIFE",
+    "POWERINDIA",
+    "COFORGE",
+    "AEGISLOG",
+    "AXISBANK",
+    "ENRIN",
+    "RATNAVEER",
+    "AZAD",
+    "MOREPENLAB"
+   ]
+  },
+  "pendingNoIndustry": [
+   "POLICYBZR",
+   "PATANJALI",
+   "SWIGGY",
+   "MAXHEALTH",
+   "SBICARD",
+   "NAM-INDIA",
+   "KALYANKJIL",
+   "JIOFIN",
+   "DMART",
+   "INDIGO",
+   "SYRMA",
+   "HDFCLIFE",
+   "POWERINDIA",
+   "COFORGE",
+   "AEGISLOG",
+   "ENRIN",
+   "RATNAVEER",
+   "AZAD"
+  ],
+  "sessionsToNext": 0,
+  "summary": {
+   "finished": 0,
+   "verdict": "COLLECTING"
+  }
+ }
+}

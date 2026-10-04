@@ -22,7 +22,7 @@ const cookie = async () => { const r = await fetch(REF, { headers: { "User-Agent
     try {
       const r = await fetch(`https://www.nseindia.com/api/corporate-board-meetings?index=equities&from_date=01-${pad(m)}-${y}&to_date=${last}-${pad(m)}-${y}`, { headers: { "User-Agent": UA, Accept: "application/json", Referer: REF, Cookie: ck }, signal: AbortSignal.timeout(40000) });
       if (!r.ok) throw new Error(`HTTP ${r.status}`); const j = await r.json(); const d = Array.isArray(j) ? j : j.data; if (!Array.isArray(d)) throw new Error("no array");
-      fs.writeFileSync(file, JSON.stringify(d.map((x) => [x.bm_symbol, x.bm_date, x.bm_purpose, x.bm_timestamp]))); console.log(`${y}-${pad(m)}: ${d.length}`); fails = 0;
+      fs.writeFileSync(file, JSON.stringify(d.map((x) => [x.bm_symbol, x.bm_date, x.bm_purpose, x.bm_timestamp, x.sm_indusrty]))); console.log(`${y}-${pad(m)}: ${d.length}`); fails = 0;
     } catch (e) { fails += 1; console.log(`${y}-${pad(m)}: FAILED ${e.message}`); if (fails >= 3) { console.log("STOPPED"); return; } await pause(20000); ck = await cookie(); }
     await pause(4000);
   }

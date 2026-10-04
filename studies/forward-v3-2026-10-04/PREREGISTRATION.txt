@@ -1,0 +1,65 @@
+PRE-REGISTRATION -- FORWARD PAPER TESTS of the two near misses from research/options-2026-10-04
+Written Sunday 4 Oct 2026, BEFORE the first session they cover (Monday 5 Oct 2026). The commit time is
+the proof. Owner's request, 4 Oct: "put the cheap-vol straddle and industry reversal on TRACK too".
+
+WHERE THEY COME FROM (studies/options-2026-10-04, pre-registered e2801c12..., protocol v2, run once)
+  CHEAPVOL  O3: buy the ATM straddle when its implied vol is below 0.8x the stock's 20-session realised
+            vol; sell 5 sessions later. +3.295% of premium a trade, t 1.94, Sharpe 1.01, 5,126 trades,
+            60 months. FAIL by a hair: PROMISING needs t >= 2.
+  INDREV    I2: industry-adjusted short-term reversal (Da, Liu & Schaumburg 2014), long-short.
+            +0.150% a trade, t 1.98, Sharpe 0.87, 248 rebalances, 60 months. FAIL by a hair.
+Both have been looked at, so only future prices can test them.
+
+THE RULES (identical to studies/options-2026-10-04/study.js)
+Data: NSE's own files only.
+- CM bhavcopy (series EQ, by symbol).
+- F&O bhavcopy OPTSTK: the two nearest expiries, strikes within +/-12% of the CM close.
+- Industries: the latest "sm_indusrty" of NSE's board-meeting filings
+  (research/industry-2026-10-04/industries.json, 2,584 symbols, sha256
+  47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405; kept in release data-research,
+  research-misc.tar.gz). Only this exact file is used. If it is missing or its sha256 differs, INDREV
+  is NOT RUN that day and the page says so; it is never computed with another file.
+Universe: each month, the top 200 EQ stocks by 60-session median traded value, with >= 250 bars after
+the last reset (an open >= 18% from the previous close).
+CHEAPVOL. On each session d, for each universe stock that has options:
+- the nearest expiry with >= 8 calendar days left; ATM = the listed strike nearest the CM close of d;
+- straddle IV = (CE close + PE close) / (0.8 x S x sqrt(days/365)) on d;
+- realised = the annualised population SD of the last 20 daily log returns of the CM close up to d.
+If IV < 0.8 x realised, BUY the straddle at the closing prices of d and SELL at the closing prices of d+5
+(5 sessions), at most once per stock per 5 sessions. The 6 sessions must be consecutive with no reset.
+Net = (exit - entry - option charges) / entry, as % of premium. The charges are
+api/_lib/trade-costs.js roundTripCost .totalCost per leg, quantity round(100000 / leg premium).
+The entry is the official CLOSE of the signal day. In practice the owner would act near 15:25 on
+near-close prices; the paper test uses the official close. Stated.
+INDREV. On every 5th session of NSE's session list counted from 2020-09-01 (index divisible by 5):
+- each universe stock's 5-session return (close d-1 / close d-6), minus the equal-weighted 5-session
+  return of the universe stocks in its industry (industries with >= 3 such stocks);
+- LONG the bottom 10%, SHORT the top 10%, from open(d) to close(d+4).
+Futures charges on every leg (calculateNseFuturesCharges, dated, quantity ceil(500000/price), a roll per
+month end crossed). Score = (mean long net + mean short net) / 2, one observation per rebalance.
+
+DATA LIMIT FOUND BEFORE COMMIT (Sunday 4 Oct 2026, after the study, before any forward price)
+NSE's filings give no industry ("-") for 57 of the top-200 universe in Jun 2023, 63 in Jun 2025 and 73
+in Sep 2026, among them SWIGGY, HDFCLIFE, DMART, INDIGO, COFORGE, JIOFIN. No older filing fills the
+gap: of the 1,540 symbols whose latest value is "-", none had a real industry in any filing since
+2020-08. The study kept "-" as one group (stocks with no entry at all, 13-19 of 200, are skipped), so
+its t 1.98 already includes that group, and this test does the same: for those stocks it is a reversal
+against the whole "no industry" group, not against their industry. Monday's lists (5 Oct): 18 of the
+28 names are such stocks. A version with NSE's full industry classification would be a different rule
+with no backtest; it is not part of this test.
+
+OPERATIONS (not rules): the daily NSE option files the tests read are kept in release
+data-paper-inputs, so trades from 5 Oct stay countable after GitHub's runner forgets them. If those
+files no longer reach back before 5 Oct, the daily job stops instead of publishing a shortened record.
+
+WHAT IS COUNTED
+- CHEAPVOL: every signal day d >= 2026-10-05.
+- INDREV: every rebalance session d >= 2026-10-05.
+Official files only.
+
+VERDICT (two rules; each judged at 2.5% one-sided)
+- CHEAPVOL: COLLECTING until 100 finished trades and 3 months.
+- INDREV: COLLECTING until 26 rebalances (about 6 months).
+Then PASS if the mean > 0 AND the one-sided t (CHEAPVOL clustered by ISO week of entry; INDREV one
+observation per rebalance) is at or above the 2.5% Student-t critical value with (clusters - 1) df.
+Otherwise FAIL. Nothing may change after this commit.
