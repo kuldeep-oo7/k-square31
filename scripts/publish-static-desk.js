@@ -863,6 +863,9 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     optionsDirection: { rule: view.rule, names: Object.keys(bullish).length, indices: view.indices,
       stocks: view.stocks.length, ratedDownNotFalling: view.ratedDownNotFalling, risingOnTheirOwn: view.risingOnTheirOwn || [] },
     direction,
+    // The OWN "springy dip" forward paper test, written each weekday morning by
+    // .github/workflows/springy-dip.yml from NSE's own files (null if not yet written).
+    springyDip: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "springy-dip.json"), "utf8")); } catch { return null; } })(),
     gmMinUnits: GM_MIN_UNITS,
     marketContext: marketContext
       ? { ok: true, indiaVix: marketContext.indiaVix, indiaVixChangePct: marketContext.indiaVixChangePct,
@@ -885,6 +888,30 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     options,
     futures
   };
+}
+
+// THE OWN "SPRINGY DIP" RULE, ON PAPER, AGAINST THE FUTURE (studies/springy-dip-forward-2026-10-04).
+function springyBox(sd) {
+  if (!sd) return "";
+  const s = sd.summary || {};
+  const bt = sd.backtest || {};
+  const verdictTone = s.verdict === "PASS" ? "up" : s.verdict === "FAIL" ? "down" : "warn";
+  const pend = (sd.pending || []).map((p) => `<tr><td><b>${esc(p.symbol)}</b></td><td>buy at the open of the next session</td><td class="num">z ${esc(p.z)}</td><td class="num">ac ${esc(p.ac)}</td></tr>`).join("");
+  const rows = (sd.trades || []).slice(0, 30).map((t) => `<tr><td><b>${esc(t.symbol)}</b></td><td>${esc(t.entryDate)}${t.exitDate ? ` &rarr; ${esc(t.exitDate)}` : ""}</td>
+    <td class="num">${t.entry ? esc(t.entry) : "&mdash;"}${t.exit ? ` &rarr; ${esc(t.exit)}` : ""}</td>
+    <td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${esc(t.netPct)}%`}</td></tr>`).join("");
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
+    <b>OWN RULE, FORWARD PAPER TEST: &ldquo;SPRINGY DIP&rdquo;</b> &mdash; a stock that tends to snap back (its daily moves reverse:
+    lag-1 autocorrelation under &minus;0.05 over 120 sessions) closing 2 standard deviations under its 20-day average; buy at the next open,
+    sell at the close 5 sessions later, after futures charges. <b>Backtest: FAILED</b> (too weak to rule out luck) &mdash; but the only one
+    of 10 dip rules positive in all three periods: ${esc(bt.developmentPct)}%, ${esc(bt.validationPct)}%, ${esc(bt.finalPct)}% a trade
+    (final year ${esc(bt.finalTrades)} trades, t ${esc(bt.finalT)}). So it is tested here on prices nobody has seen yet, from
+    ${esc(sd.start)}, on NSE's official open and close only; rules fixed in ${esc(sd.preregistration)}.
+    <b class="${verdictTone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanNetPct > 0 ? "+" : ""}${esc(s.meanNetPct)}% a trade, ${esc(s.winPct)}% winners, t ${esc(s.t ?? "&mdash;")}` : ""}
+    (a verdict needs 100 trades and 3 months). Data through ${esc(sd.dataThrough)}. <b>Not a recommendation until it passes.</b>
+    ${pend ? `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th><th class="num">Z</th><th class="num">AC</th></tr></thead><tbody>${pend}</tbody></table></div>` : `<div class="sub">No signal for the next session.</div>`}
+    ${rows ? `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">OPEN &rarr; CLOSE</th><th class="num">NET</th></tr></thead><tbody>${rows}</tbody></table></div>` : ""}
+  </div>`;
 }
 
 function page(d) {
@@ -1522,6 +1549,7 @@ ${feedAlarm}
   <section class="pane pane-trk">
     <h2>Track record &mdash; every price shown, bought on paper the moment it appeared</h2>
     ${trackPane}
+    ${springyBox(d.springyDip)}
   </section>
 </main>
 

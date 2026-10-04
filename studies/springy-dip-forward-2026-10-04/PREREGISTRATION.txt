@@ -1,0 +1,41 @@
+PRE-REGISTRATION -- FORWARD PAPER TEST of "SPRINGY DIP" (OWN rule E1)
+Written Sunday 4 Oct 2026, BEFORE the first session it covers (Monday 5 Oct 2026). Committed to the repo
+before that session opens; the commit time is the proof.
+
+WHERE THE RULE COMES FROM
+research/dip-ml-2026-10-04 (pre-registered, sha256 89a8eca5..., run once on NSE's CM bhavcopy
+2020-09..2026-10). E1 was the only one of 10 members positive in all three windows:
+development +0.551% a trade (t 1.89, 1,773 trades), validation +0.663% (t 1.53, 874), final
++0.209% (t 0.41, 639). It FAILED that test: too weak to rule out luck. Because that history has now
+been looked at, only FUTURE prices can test it honestly. That is this test.
+
+THE RULE (identical to E1)
+Data: NSE's own CM bhavcopy (series EQ, by symbol), one file per session.
+Reset: an open >= 18% away from the previous close (splits, bonuses, demergers). A stock's signal
+bars must all come after its last reset, and a trade whose window contains a reset is void.
+Universe: on each month's first session, the 200 EQ stocks with the highest median daily traded
+value over the previous 60 sessions, among stocks with at least 250 bars after their last reset.
+Signal for session d, read from completed bars up to d-1:
+  ac = lag-1 autocorrelation of the stock's daily close-to-close returns over the 120 bars to d-1;
+  z  = (close(d-1) - SMA20(d-1)) / SD20(d-1), with SD the population standard deviation;
+  SIGNAL when ac < -0.05 AND z <= -2.
+Trade: buy at the official open of d, sell at the official close of d+4 (5 sessions).
+Net return = close/open - 1 - charges. Charges are api/_lib/shadow-broker.js
+calculateNseFuturesCharges on both legs, dated, quantity ceil(500000/open), plus one roll round
+trip per month end crossed. A paper futures trade: no option is priced.
+
+WHAT IS COUNTED
+Every signal with entry on or after 2026-10-05. Prices come only from NSE's official files, never
+a live quote, so nothing can be chosen after the fact.
+
+VERDICT (stated now)
+COLLECTING until at least 100 finished trades AND at least 3 calendar months since 2026-10-05.
+Then, and at every later update:
+PASS if the mean net return > 0 AND the one-sided t (errors clustered by ISO week of entry) is at or
+above the 5% Student-t critical value with (weeks - 1) df. Otherwise FAIL.
+This is ONE test of ONE rule, so there is no multiple-testing correction. Nothing about the rule may
+change after this commit. A changed rule is a new test with a new date.
+
+WHAT IT DOES ON THE PAGE
+The TRACK tab shows the list and the running score, labelled "OWN rule, forward paper test", with
+the backtest numbers above. It is not a recommendation until it PASSES here.

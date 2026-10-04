@@ -1,0 +1,49 @@
+name: springy-dip
+# The forward paper test of the OWN "springy dip" rule (studies/springy-dip-forward-2026-10-04).
+# Every weekday before the open: add yesterday's NSE bhavcopy to the data-nse-cm archive, then list
+# today's signals and settle earlier trades from NSE's official open/close only, and commit
+# docs/paper-rules/springy-dip.json (the TRACK tab shows it on the next desk build).
+on:
+  schedule:
+    - cron: "15 2 * * 1-5"      # 07:45 IST; GitHub may start it late, which only delays the list
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: springy-dip
+  cancel-in-progress: false
+jobs:
+  forward:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Restore and extend NSE's bhavcopy archive
+        env:
+          K2_CM_DIR: nse-data/cm
+          K2_STOP_IST: "23:59"
+        run: |
+          gh release download data-nse-cm -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz && rm nse-cm.tar.gz
+          before=$(ls nse-data/cm/*.json | wc -l)
+          node scripts/nse-cm-bhavcopy.js 2020-09-01
+          after=$(ls nse-data/cm/*.json | wc -l)
+          echo "sessions: $before -> $after"
+          if [ "$after" != "$before" ]; then tar -czf nse-cm.tar.gz nse-data && gh release upload data-nse-cm nse-cm.tar.gz --clobber; fi
+      - name: Signals and the running score
+        run: |
+          npm install --omit=dev --no-audit --no-fund
+          K2_CM_DIR=nse-data/cm node scripts/springy-dip-forward.js | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Commit the list
+        run: |
+          git config user.name "k2-desk-bot"
+          git config user.email "k2-desk-bot@users.noreply.github.com"
+          git add docs/paper-rules/springy-dip.json
+          git diff --cached --quiet && { echo "no change"; exit 0; }
+          git commit -m "springy dip: forward paper test updated"
+          for i in 1 2 3 4 5; do git pull --rebase origin main && git push origin HEAD:main && exit 0; sleep 10; done
+          exit 1
