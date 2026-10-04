@@ -1548,8 +1548,8 @@ ${feedAlarm}
 
   <section class="pane pane-trk">
     <h2>Track record &mdash; every price shown, bought on paper the moment it appeared</h2>
-    ${trackPane}
     ${springyBox(d.springyDip)}
+    ${trackPane}
   </section>
 </main>
 
