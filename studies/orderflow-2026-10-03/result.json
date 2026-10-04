@@ -1,0 +1,325 @@
+{
+  "sha": "22d0f92767e78b08ce4f82f443780f9d8bfa4b7b9561a9d8129f2b0d5e49e559",
+  "verdicts": {
+    "B1 long build-up -> long 1d": {
+      "development": {
+        "trades": 5685,
+        "months": 45,
+        "meanPct": -0.3604,
+        "t": -7.689,
+        "winPct": 40.52770448548813
+      },
+      "validation": {
+        "trades": 1175,
+        "months": 13,
+        "meanPct": -0.1121,
+        "t": -1.604,
+        "winPct": 46.04255319148936
+      },
+      "final": {
+        "trades": 873,
+        "months": 13,
+        "meanPct": -0.1458,
+        "t": -1.893,
+        "winPct": 45.70446735395189
+      },
+      "p": 0.9586401559679375,
+      "holmAlpha": 0.05,
+      "verdict": "FAIL"
+    },
+    "B2 long build-up -> long 10d": {
+      "development": {
+        "trades": 5671,
+        "months": 45,
+        "meanPct": 0.4551,
+        "t": 1.288,
+        "winPct": 50.943396226415096
+      },
+      "validation": {
+        "trades": 1171,
+        "months": 13,
+        "meanPct": -1.0272,
+        "t": -1.469,
+        "winPct": 44.23569598633647
+      },
+      "final": {
+        "trades": 872,
+        "months": 13,
+        "meanPct": 0.4273,
+        "t": 0.511,
+        "winPct": 49.42660550458716
+      },
+      "p": 0.30931094128722747,
+      "holmAlpha": 0.005,
+      "verdict": "FAIL"
+    },
+    "B3 short build-up -> short 1d": {
+      "development": {
+        "trades": 5576,
+        "months": 45,
+        "meanPct": 0.2964,
+        "t": 5.871,
+        "winPct": 56.707317073170735
+      },
+      "validation": {
+        "trades": 1604,
+        "months": 13,
+        "meanPct": 0.0203,
+        "t": 0.149,
+        "winPct": 50.43640897755611
+      },
+      "final": {
+        "trades": 1325,
+        "months": 13,
+        "meanPct": 0.131,
+        "t": 1.862,
+        "winPct": 53.735849056603776
+      },
+      "p": 0.04363096792920996,
+      "holmAlpha": 0.004166666666666667,
+      "verdict": "FAIL"
+    },
+    "B4 short build-up -> short 10d": {
+      "development": {
+        "trades": 5568,
+        "months": 45,
+        "meanPct": -0.5127,
+        "t": -1.441,
+        "winPct": 48.11422413793103
+      },
+      "validation": {
+        "trades": 1600,
+        "months": 13,
+        "meanPct": -0.3205,
+        "t": -0.303,
+        "winPct": 51.8125
+      },
+      "final": {
+        "trades": 1322,
+        "months": 13,
+        "meanPct": -0.1312,
+        "t": -0.295,
+        "winPct": 53.85779122541604
+      },
+      "p": 0.6134822151578332,
+      "holmAlpha": 0.0071428571428571435,
+      "verdict": "FAIL"
+    },
+    "B5 short covering -> long 1d": {
+      "development": {
+        "trades": 5574,
+        "months": 45,
+        "meanPct": -0.0172,
+        "t": -0.218,
+        "winPct": 47.11158952278436
+      },
+      "validation": {
+        "trades": 1058,
+        "months": 13,
+        "meanPct": -0.2702,
+        "t": -3.334,
+        "winPct": 42.34404536862004
+      },
+      "final": {
+        "trades": 1205,
+        "months": 13,
+        "meanPct": -0.019,
+        "t": -0.136,
+        "winPct": 47.551867219917014
+      },
+      "p": 0.5529619120940776,
+      "holmAlpha": 0.00625,
+      "verdict": "FAIL"
+    },
+    "B6 short covering -> long 10d": {
+      "development": {
+        "trades": 5552,
+        "months": 45,
+        "meanPct": 0.8744,
+        "t": 2.72,
+        "winPct": 55.47550432276657
+      },
+      "validation": {
+        "trades": 1054,
+        "months": 13,
+        "meanPct": -1.5731,
+        "t": -2.094,
+        "winPct": 37.571157495256166
+      },
+      "final": {
+        "trades": 1200,
+        "months": 13,
+        "meanPct": 1.3691,
+        "t": 1.142,
+        "winPct": 52.333333333333336
+      },
+      "p": 0.13786489689562487,
+      "holmAlpha": 0.004545454545454546,
+      "verdict": "FAIL"
+    },
+    "B7 long unwinding -> short 1d": {
+      "development": {
+        "trades": 3236,
+        "months": 45,
+        "meanPct": -0.2443,
+        "t": -2.337,
+        "winPct": 46.446229913473424
+      },
+      "validation": {
+        "trades": 773,
+        "months": 13,
+        "meanPct": -0.3056,
+        "t": -1.618,
+        "winPct": 45.019404915912034
+      },
+      "final": {
+        "trades": 439,
+        "months": 13,
+        "meanPct": -0.1251,
+        "t": -0.823,
+        "winPct": 46.01366742596811
+      },
+      "p": 0.7867194652054574,
+      "holmAlpha": 0.01,
+      "verdict": "FAIL"
+    },
+    "B8 long unwinding -> short 10d": {
+      "development": {
+        "trades": 3225,
+        "months": 45,
+        "meanPct": -1.9704,
+        "t": -4.963,
+        "winPct": 38.325581395348834
+      },
+      "validation": {
+        "trades": 768,
+        "months": 13,
+        "meanPct": -0.847,
+        "t": -1.19,
+        "winPct": 46.09375
+      },
+      "final": {
+        "trades": 433,
+        "months": 13,
+        "meanPct": -1.0361,
+        "t": -1.765,
+        "winPct": 45.49653579676674
+      },
+      "p": 0.9485126748677697,
+      "holmAlpha": 0.025,
+      "verdict": "FAIL"
+    },
+    "C1 FII adding -> long NIFTY 1d": {
+      "development": {
+        "trades": 267,
+        "months": 37,
+        "meanPct": -0.0852,
+        "t": -2.034,
+        "winPct": 47.19101123595506
+      },
+      "validation": {
+        "trades": 55,
+        "months": 12,
+        "meanPct": -0.0769,
+        "t": -0.884,
+        "winPct": 45.45454545454545
+      },
+      "final": {
+        "trades": 58,
+        "months": 12,
+        "meanPct": -0.1035,
+        "t": -0.944,
+        "winPct": 48.275862068965516
+      },
+      "p": 0.8172786700502384,
+      "holmAlpha": 0.0125,
+      "verdict": "FAIL"
+    },
+    "C2 FII adding -> long NIFTY 5d": {
+      "development": {
+        "trades": 267,
+        "months": 37,
+        "meanPct": 0.1025,
+        "t": 0.55,
+        "winPct": 55.056179775280896
+      },
+      "validation": {
+        "trades": 55,
+        "months": 12,
+        "meanPct": 0.1617,
+        "t": 0.569,
+        "winPct": 54.54545454545455
+      },
+      "final": {
+        "trades": 58,
+        "months": 12,
+        "meanPct": -0.4269,
+        "t": -1.424,
+        "winPct": 39.6551724137931
+      },
+      "p": 0.9089049582904695,
+      "holmAlpha": 0.016666666666666666,
+      "verdict": "FAIL"
+    },
+    "C3 FII cutting -> short NIFTY 1d": {
+      "development": {
+        "trades": 265,
+        "months": 37,
+        "meanPct": 0.0461,
+        "t": 1.007,
+        "winPct": 52.83018867924528
+      },
+      "validation": {
+        "trades": 93,
+        "months": 13,
+        "meanPct": -0.001,
+        "t": -0.011,
+        "winPct": 51.61290322580645
+      },
+      "final": {
+        "trades": 83,
+        "months": 13,
+        "meanPct": -0.0312,
+        "t": -0.614,
+        "winPct": 45.78313253012048
+      },
+      "p": 0.7246607591205947,
+      "holmAlpha": 0.008333333333333333,
+      "verdict": "FAIL"
+    },
+    "C4 FII cutting -> short NIFTY 5d": {
+      "development": {
+        "trades": 265,
+        "months": 37,
+        "meanPct": -0.1201,
+        "t": -0.696,
+        "winPct": 43.77358490566038
+      },
+      "validation": {
+        "trades": 93,
+        "months": 13,
+        "meanPct": 0.186,
+        "t": 0.684,
+        "winPct": 59.13978494623656
+      },
+      "final": {
+        "trades": 83,
+        "months": 13,
+        "meanPct": -0.0025,
+        "t": -0.01,
+        "winPct": 54.21686746987952
+      },
+      "p": 0.5039071910944978,
+      "holmAlpha": 0.005555555555555556,
+      "verdict": "FAIL"
+    }
+  },
+  "cutoffs": {
+    "r": 0.015580871386411843,
+    "oi": 0.030380434782608656,
+    "fii": [
+      -5576,
+      5195
+    ]
+  }
+}

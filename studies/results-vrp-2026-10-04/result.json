@@ -1,0 +1,154 @@
+{
+  "sha": "8751008a32a2a9cde8866c19f12b086ebbbf7a407f05617d39808c7fcb33a313",
+  "verdicts": {
+    "R1 results reaction top 20% -> long 10d": {
+      "development": {
+        "trades": 441,
+        "months": 26,
+        "meanPct": 0.9913,
+        "t": 1.272,
+        "winPct": 53.51473922902494,
+        "worstPct": -28.089868991878358
+      },
+      "validation": {
+        "trades": 136,
+        "months": 9,
+        "meanPct": -1.1091,
+        "t": -0.671,
+        "winPct": 41.911764705882355,
+        "worstPct": -17.347725728446374
+      },
+      "final": {
+        "trades": 167,
+        "months": 9,
+        "meanPct": 0.6973,
+        "t": 0.91,
+        "winPct": 52.09580838323353,
+        "worstPct": -17.23112576736612
+      },
+      "p": 0.19470824153575647,
+      "holmAlpha": 0.016666666666666666,
+      "verdict": "FAIL"
+    },
+    "R2 results reaction bottom 20% -> short 10d": {
+      "development": {
+        "trades": 441,
+        "months": 25,
+        "meanPct": -0.0288,
+        "t": -0.046,
+        "winPct": 49.43310657596372,
+        "worstPct": -24.26559123031995
+      },
+      "validation": {
+        "trades": 133,
+        "months": 9,
+        "meanPct": 1.0853,
+        "t": 0.935,
+        "winPct": 58.64661654135338,
+        "worstPct": -19.804466448869757
+      },
+      "final": {
+        "trades": 126,
+        "months": 9,
+        "meanPct": -1.0111,
+        "t": -1.173,
+        "winPct": 49.20634920634921,
+        "worstPct": -24.960104679321937
+      },
+      "p": 0.8627318634626615,
+      "holmAlpha": 0.025,
+      "verdict": "FAIL"
+    },
+    "V1 short NIFTY straddle when IV > 1.2x realised": {
+      "development": {
+        "trades": 42,
+        "months": 22,
+        "meanPct": 0.0643,
+        "t": 0.442,
+        "winPct": 61.904761904761905,
+        "worstPct": -1.9909413407407843
+      },
+      "validation": {
+        "trades": 10,
+        "months": 7,
+        "meanPct": 0.251,
+        "t": 0.668,
+        "winPct": 60,
+        "worstPct": -2.499409085860263
+      },
+      "final": {
+        "trades": 20,
+        "months": 10,
+        "meanPct": 0.2864,
+        "t": 1.321,
+        "winPct": 70,
+        "worstPct": -1.918076067361771
+      },
+      "p": 0.10955026532317082,
+      "holmAlpha": 0.0125,
+      "verdict": "NOT TESTABLE"
+    },
+    "V2 short NIFTY 2% strangle": {
+      "development": {
+        "trades": 148,
+        "months": 37,
+        "meanPct": 0.1107,
+        "t": 3.958,
+        "winPct": 85.13513513513513,
+        "worstPct": -3.2155272444524154
+      },
+      "validation": {
+        "trades": 49,
+        "months": 13,
+        "meanPct": 0.0469,
+        "t": 0.787,
+        "winPct": 83.6734693877551,
+        "worstPct": -1.6737620216790003
+      },
+      "final": {
+        "trades": 49,
+        "months": 13,
+        "meanPct": 0.143,
+        "t": 2.391,
+        "winPct": 91.83673469387755,
+        "worstPct": -1.5638671458916897
+      },
+      "p": 0.017036579633323015,
+      "holmAlpha": 0.01,
+      "verdict": "FAIL"
+    },
+    "V3 LONG NIFTY straddle (buyer)": {
+      "development": {
+        "trades": 148,
+        "months": 37,
+        "meanPct": -0.1121,
+        "t": -1.723,
+        "winPct": 37.16216216216216,
+        "worstPct": -2.6276052970687336
+      },
+      "validation": {
+        "trades": 49,
+        "months": 13,
+        "meanPct": -0.1548,
+        "t": -1.059,
+        "winPct": 38.775510204081634,
+        "worstPct": -1.6818714445333078
+      },
+      "final": {
+        "trades": 49,
+        "months": 13,
+        "meanPct": -0.1432,
+        "t": -1.392,
+        "winPct": 34.69387755102041,
+        "worstPct": -1.6074034435571107
+      },
+      "p": 0.905408129395427,
+      "holmAlpha": 0.05,
+      "verdict": "FAIL"
+    }
+  },
+  "cutoffs": {
+    "lo": -0.04177624924135148,
+    "hi": 0.03352761663871551
+  }
+}

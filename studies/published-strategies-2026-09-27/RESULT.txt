@@ -1,0 +1,22 @@
+THREE PUBLISHED STRATEGIES ON THE K2 PANEL -- result of the pre-registered test (prereg sha256 6f9c28df8b6a6464...)
+Run 2026-09-27T14:51:46.358Z. 97 stocks. Monthly excess returns, net of 0.20% cost.
+
+T1 time-series momentum
+  development   23 months   -0.34%/month  t -3.48
+  validation    12 months   -0.57%/month  t -2.74
+  final         12 months   -0.34%/month  t -1.14
+  critical t (one-sided, alpha 0.05/3, df 11): 2.431   =>  FAIL
+
+T2 low volatility
+  development   29 months   -0.92%/month  t -1.56
+  validation    10 months    0.58%/month  t 0.75
+  final         11 months   -1.32%/month  t -2.94
+  critical t (one-sided, alpha 0.05/3, df 10): 2.466   =>  FAIL
+
+T3 market trend filter
+  development   26 months   -0.45%/month  t -1.02
+  validation    12 months   -0.54%/month  t -0.46
+  final         12 months   -1.03%/month  t -1.02
+  critical t (one-sided, alpha 0.05/3, df 11): 2.431   =>  FAIL
+
+A PASS means paper tracking on TRACK only; ~12 months per window: a FAIL is weak evidence, not proof.

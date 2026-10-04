@@ -1,0 +1,13 @@
+DIP + OWN -- run 2026-10-04T04:21:25.165Z, prereg sha256 89a8eca50540594f917af86f4ac8f0e47bf15e382e63cf7b9d6e2f52e0c67be1 (verified); 135527 trades
+D1 5-day losers -> long                | dev +0.200% t 0.92 win 51% (13914) | val -0.054% t -0.14 win 48% (4494) | final -0.154% t -0.60 win 45% (4417) | p 7.2e-1 vs 0.0167 | FAIL
+D2 5-day winners -> short              | dev -0.009% t -0.04 win 52% (13914) | val +0.241% t 0.53 win 52% (4494) | final -0.271% t -0.72 win 50% (4417) | p 7.6e-1 vs 0.0250 | FAIL
+D3 3 lower closes over SMA200 -> long  | dev +0.190% t 0.88 win 51% (5315) | val -0.440% t -1.46 win 45% (1387) | final +0.093% t 0.44 win 51% (1597) | p 3.3e-1 vs 0.0071 | FAIL
+D4 IBS<=0.2 over SMA200 -> long        | dev +0.096% t 0.49 win 50% (21364) | val -0.619% t -1.85 win 43% (5027) | final +0.126% t 0.67 win 50% (5750) | p 2.6e-1 vs 0.0056 | FAIL
+D5 RSI14<35 with SMA50>SMA200 -> long  | dev +0.603% t 2.28 win 55% (1929) | val -0.091% t -0.38 win 47% (792) | final +0.397% t 1.26 win 53% (640) | p 1.2e-1 vs 0.0050 | FAIL
+D6 gap-down 2% fade (intraday)         | dev -0.006% t -0.03 win 49% (2584) | val +1.528% t 2.63 win 72% (971) | final +0.129% t 0.56 win 55% (1023) | p 2.9e-1 vs 0.0063 | FAIL
+E1 OWN OU dip z<=-2 -> long            | dev +0.551% t 1.89 win 56% (1773) | val +0.663% t 1.53 win 53% (874) | final +0.209% t 0.41 win 50% (639) | p 3.4e-1 vs 0.0083 | FAIL
+E2 OWN OU spike z>=+2 -> short         | dev -0.379% t -1.13 win 49% (2758) | val +0.940% t 3.29 win 59% (611) | final -0.172% t -0.39 win 52% (1011) | p 6.5e-1 vs 0.0100 | FAIL
+E3 OWN ridge ML top 10% -> long        | dev +0.329% t 1.40 win 53% (8005) | val -0.065% t -0.20 win 48% (4494) | final -0.095% t -0.46 win 47% (4417) | p 6.7e-1 vs 0.0125 | FAIL
+E4 OWN ridge ML bottom 10% -> short    | dev -0.550% t -1.77 win 50% (8005) | val +0.189% t 0.38 win 52% (4494) | final -0.263% t -0.73 win 51% (4417) | p 7.6e-1 vs 0.0500 | FAIL
+
+PASS: none

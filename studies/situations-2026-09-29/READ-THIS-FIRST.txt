@@ -1,0 +1,57 @@
+BACKTEST, 29 SEP 2026 -- WHAT IT SAYS, IN PLAIN WORDS
+(RESULT.txt has every number; this page says how to read them.)
+
+The rules were written down and hashed BEFORE anything was computed
+(PREREGISTRATION.txt, sha256 03f93c90...bbb6bdf7, 17:27 UTC). Data: NSE's own NIFTY 50
+history (1,248 sessions, Sep 2021 - Sep 2026), NSE's own expiry dates, and Yahoo's S&P 500,
+Brent crude and India VIX (Yahoo's India VIX = NSE's official closes on every one of 41
+sessions checked). Every trade pays the real NSE futures charges.
+
+PART A -- THE DIRECTION SIGNALS YOU NAMED. Does any of them tell NIFTY's direction?
+  A1 US market fell/rose >= 1% overnight   FAIL.
+       In the validation year NIFTY moved the OTHER way from its open (t -2.6), but not in
+       the final year (t -0.6). Doing the opposite would be a NEW idea taken from this same
+       data: untested. Do not trade it.
+  A2 Crude oil spiked / crashed >= 3%       FAIL.
+  A3 Gap down means more down (>= 1%)       NOT TESTABLE (17 final-year trades). No clear
+       direction either way: development +0.04%, validation -0.09%, final -0.25%, every t
+       under 1.
+  A4 India VIX jumps >= 10%                 NOT TESTABLE (12 final-year trades).
+  A5 The desk's own candles on NIFTY
+     (hammer, doji, engulfing, stars ...)   FAIL. Final year +0.02% a trade, t 0.13.
+  P1 The same candles on each stock         WAITING: needs NSE's stock history, which NSE
+       stopped serving this machine tonight (the fetch stopped itself; not resumed).
+Earlier the same way: the NIFTY trend reader behind the puts FAILED (shorts in downtrends:
+final year +0.29% a trade, t 0.21, 18 trades).
+
+PART B -- EVERY DESK RULE ON NIFTY, BY SITUATION. DESCRIPTIVE ONLY: it decides nothing.
+~100 cells; about 5 will look "significant" by chance alone. Cells under 30 trades say so.
+  - The desk's futures BUY on NIFTY averaged +0.13% a trade; in downtrends +0.38%.
+  - Its SHORT mirror (the put stand-in) averaged -0.21%; in downtrends -0.04%.
+    On NIFTY's own 5 years, shorting a downtrend did NOT pay; buying the dip did a little
+    better. Neither is proven.
+  - NIFTY from the OPEN to the CLOSE of the same day: -0.08% a day AFTER charges; about half
+    of that is the charges. BEFORE charges -0.04% a day (a check made after the run, not
+    pre-registered: t -2.6 over five years, t -0.8 and -1.0 in the last two years).
+    Weekly-expiry days: -0.10% before charges (267 days) -- a cell, not a rule.
+
+ONE TRAP, stated: "B-WEEK" (NIFTY over 5 sessions) enters at the PREVIOUS close, so its rows
+for gap, US and crude count that morning's own gap as part of the return -- "gap >= +1% ->
++2.30% over the week" is mostly the gap itself, not something you could have traded.
+
+WHAT WAS NOT TESTED TONIGHT (so nobody assumes it was)
+  - the desk's own stock rating on the LIVE rule (0.8% under, +2.5% / -1.5%, 20 sessions) --
+    the page's "t = 0.75" is from a 5-session version; needs the NSE stock panel
+  - stock puts (SELL/REDUCE + the stock's own downtrend) -- needs the same panel
+  - the desk's candles per stock (P1) -- same
+  - options on REAL past prices (NSE's F&O archive files) -- not fetched yet
+  - VWAP; open-interest build-up (order flow) -- not built yet
+  - value investing -- cannot be done honestly without balance sheets as they were known at
+    the time; you said no to it earlier
+
+WHAT THIS MEANS FOR THE DESK
+Nothing tested so far predicts NIFTY's direction well enough to pay for itself: not the trend
+reader, not the US market overnight, not crude, not the desk's candlesticks, not momentum, low
+volatility or the 10-month trend filter (earlier studies). The puts on the page in a downtrend
+are there because you asked for them, and they are tracked on TRACK; the data does not say
+they make money. The only clean test left is the FORWARD record: TRACK.

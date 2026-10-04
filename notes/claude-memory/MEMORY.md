@@ -26,3 +26,10 @@
 - [Market direction live](k2-market-direction.md) — LIVE 29 Sep: NIFTY downtrend (since 2 Sep, verified on NSE) → puts only; optionsView shared by build-prep and page; its test FAILED; verify first in-session build
 - [Open requests 29 Sep](k2-open-requests-2026-09-29.md) — backtest every strategy by market situation; VWAP and order flow are NOT used; BUY side below break-even on TRACK
 - [Cloud credit for heavy work](cloud-credit-for-heavy-work.md) — USER: run heavy work in cloud sessions ($100 credit to 5 Nov); claude --cloud needs a TTY (Start-Process pwsh); network Trusted blocks NSE
+- [Rising-stocks test 2 Oct](k2-rising-stocks-test-2026-10-02.md) — live rule (rising stocks while NIFTY falls) FAILED: final −0.44%/trade, 27% wins; NSE prevClose is NOT split-adjusted; the geometry itself loses
+- [TA atlas 3 Oct](k2-ta-atlas-2026-10-03.md) — 36 published chart/indicator/candle rules (BLL, Turtle, TradingView RSI/MACD/Supertrend/BB, Connors, NR7, desk detectors) ALL FAIL; order-flow prereg 22d0f927
+- [Dip + ML 4 Oct](k2-dip-ml-2026-10-04.md) — 10 dip/mean-reversion + own OU-dip + walk-forward ridge ML: ALL FAIL; OU dip positive in all 3 windows (final +0.21%, t 0.41)
+- [Families 4 Oct](k2-families-2026-10-04.md) — delivery %, PCR, carry, pairs, calendar, short straddles: 0 PASS; short NIFTY straddle positive in all 3 windows (weak VRP); NSE bulk-deal API capped at 70 rows
+- [Audit + protocol v2 4 Oct](k2-audit-protocol-v2-2026-10-04.md) — old verdicts were underpowered (needed Sharpe ~4 in 1 yr); v2 full-sample excess t>=3: short NIFTY 2% strangle PASS (t 4.66), 4 promising; desk candles LONG significantly negative (t -3.33)
+- [Rating replay 4 Oct](k2-rating-replay-2026-10-04.md) — desk rating replayed on 6y NSE: BUY/ACC −0.03%/trade (FAIL); SELL/REDUCE shorts LOSE (t −3.31); old "t=0.75" was a stand-in study, citation replaced
+- [Options/pinning/ban/industry 4 Oct](k2-options-pin-ban-industry-2026-10-04.md) — 0 PASS; buying straddles across results LOSES −5.6%/trade (t −6.7); near misses: cheap-vol straddle (t 1.94), industry-adjusted reversal (t 1.98)

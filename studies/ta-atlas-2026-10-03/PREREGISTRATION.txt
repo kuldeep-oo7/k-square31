@@ -1,0 +1,91 @@
+PRE-REGISTRATION -- TECHNICAL ANALYSIS ATLAS (published chart, indicator and candlestick rules)
+Written 3 Oct 2026 BEFORE any signal or result was computed on the real data.
+Its sha256 is in PREREGISTRATION.sha256 and checked by study.js; if it changes, the result is void.
+
+WHY
+The owner asked to test the strategies that the open-source world and TradingView say work, mostly
+chart patterns, indicators and candlesticks, and to keep only what passes. Each rule below is
+someone else's published rule with its own parameters. Nothing is tuned here.
+
+WHAT THIS DATA HAS ALREADY BEEN USED FOR
+The same windows were used by about 11 earlier studies on this desk, all of which failed. The final
+window is not a clean holdout. A PASS is a paper candidate, not a proof.
+
+DATA
+NSE CM bhavcopy 2020-09-01 .. 2026-10-01 (release data-nse-cm; local copy at
+research/rising-stocks-2026-10-02/nse-data/cm). Series EQ, keyed by NSE symbol. Resets are handled
+exactly as in research/rising-stocks-2026-10-02/PREREGISTRATION-v2.txt: an open >= 18% from the
+previous close is a reset; the signal's bars must all come after the last reset, and a trade whose
+window contains a reset is dropped. NSE's prevClose is not split-adjusted (shown there).
+Universe: each month, the top 200 EQ symbols by median traded value over the previous 60 sessions,
+among symbols with at least 250 sessions after their last reset (the longest rule needs 200).
+
+ONE UNIFORM TRADE, so that only the SIGNAL is tested
+A signal is read from completed bars up to and including d-1.
+- LONG: buy at open(d), sell at close(d+9), which is 10 sessions. This is Brock, Lakonishok & LeBaron's
+  fixed 10-day holding.
+- SHORT: the reverse.
+One trade per stock per member per signal day. Signals are EVENTS (the day a cross or pattern
+occurs), not states.
+Costs: api/_lib/shadow-broker.js calculateNseFuturesCharges on both legs, dated, quantity =
+ceil(500000/price), plus one extra round trip per month end crossed (a futures roll; approximate).
+Net return in %.
+
+MEMBERS (each LONG and SHORT is a separate member; Holm across ALL of them)
+Brock, Lakonishok & LeBaron (1992), Journal of Finance 47(5):1731-1764 (abstract read on Wiley; the
+rule details are as the paper is widely summarised, because the PDF was not reachable):
+  M1  MA 1-50   close(d-1) crosses above SMA50 -> long; crosses below -> short
+  M2  MA 1-150  the same with SMA150
+  M3  MA 5-150  SMA5 crosses SMA150
+  M4  MA 1-200  close crosses SMA200
+  M5  MA 2-200  SMA2 crosses SMA200
+  M6  TRB 50    close(d-1) > max of the 50 closes before it -> long; < min -> short (first day only)
+  M7  TRB 150
+  M8  TRB 200
+Curtis Faith, The Original Turtle Trading Rules (2003): breakout entries (exits replaced by the
+uniform trade):
+  M9  20-day    close(d-1) above the highest high of the 20 sessions before it -> long;
+                below the lowest low -> short
+  M10 55-day    the same with 55
+TradingView built-in strategies (help pages read 3 Oct 2026):
+  M11 RSI Strategy   RSI(14) crosses up through 30 -> long; crosses down through 70 -> short.
+                     The page states length 14 and does not state the levels; 30/70 is the standard
+                     default.
+  M12 MACD Strategy  the MACD(12,26,9) histogram turns from negative to positive -> long; positive
+                     to negative -> short. The page states 12/26/9.
+  M13 Supertrend     direction flips to up -> long; to down -> short. ATR 10, factor 3; the page
+                     lists these inputs but not their values; 10/3 is the commonly stated default.
+  M14 Bollinger Bands Strategy Directed  close crosses below the lower band (20, 2.0) -> long;
+                     crosses above the upper band -> short. The page states 20 and 2.0.
+Connors RSI(2), StockCharts ChartSchool:
+  M15 RSI(2) < 10 and close > SMA200 -> long; RSI(2) > 90 and close < SMA200 -> short
+      (the first day of each episode)
+Crabel NR7, StockCharts ChartSchool:
+  M16 bar d-1 is an NR7 (its range is the narrowest of the last 7) and the close of d-1 is in the top
+      half of its range -> long; bottom half -> short.
+      (A daily-bar version: the intraday breakout of the NR7 high/low cannot be timed on daily bars.)
+The desk's own detectors, run per stock on its last 66 bars up to d-1, as the live desk feeds them:
+  M17 Candlesticks   api/_lib/candlestick-engine.js identifyCandlestickPatterns bias BULLISH -> long,
+                     BEARISH -> short (the day the bias appears, i.e. it differed on d-2's read)
+  M18 Chart patterns api/_lib/chart-patterns.js scanChartPatterns primaryPattern CONFIRMED with bias
+                     BULLISH -> long, BEARISH -> short (the day it first appears)
+Not tested, and why: George & Hwang's 52-week high is a 6-month cross-sectional portfolio, not a
+signal-day rule. Minervini has no primary-sourced exit. Weinstein is judgement.
+
+WINDOWS (by entry session)
+development: before 2024-09-19 | validation: 2024-09-19 .. 2025-09-17 | final: 2025-09-18 .. 2026-09-15
+
+STATISTICS
+Unit: the trade. Mean net % with errors clustered by calendar month of entry
+(api/_lib/panel.js clusterRobustMean). One-sided p from Student-t with (months - 1) df.
+PASS = validation mean > 0 AND final mean > 0 AND the final p survives Holm-Bonferroni across all
+36 members at 5% family-wise. Fewer than 30 final trades = NOT TESTABLE.
+
+WHAT THE RESULT DOES
+A PASS goes onto the page only as "passed on re-used data; paper first", tracked on TRACK, after
+the owner sees the numbers. A FAIL is reported as a FAIL.
+
+CODE CHECKS FIRST (synthetic only)
+(1) A planted edge must be found by a trend rule.
+(2) Random walks must give at most one chance PASS.
+(3) Changing future prices must leave earlier trades identical.

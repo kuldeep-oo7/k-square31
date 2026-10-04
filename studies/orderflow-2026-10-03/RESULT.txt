@@ -1,0 +1,17 @@
+F&O files missing for 1 of 1510 sessions: 2021-03-30
+3377 EQ symbols, 302 with stock futures, FII rows on 1509 sessions
+ORDER FLOW -- run 2026-10-04T04:55:42.467Z, prereg sha256 22d0f92767e78b08ce4f82f443780f9d8bfa4b7b9561a9d8129f2b0d5e49e559 (verified); cut-offs from development: |R| >= 1.56%, |OI| >= 3.04%, FII dF <= -5576 or >= 5195
+B1 long build-up -> long 1d        | dev -0.360% t -7.69 win 41% (5685) | val -0.112% t -1.60 win 46% (1175) | final -0.146% t -1.89 win 46% (873) | p 9.6e-1 vs 0.0500 | FAIL
+B2 long build-up -> long 10d       | dev +0.455% t 1.29 win 51% (5671) | val -1.027% t -1.47 win 44% (1171) | final +0.427% t 0.51 win 49% (872) | p 3.1e-1 vs 0.0050 | FAIL
+B3 short build-up -> short 1d      | dev +0.296% t 5.87 win 57% (5576) | val +0.020% t 0.15 win 50% (1604) | final +0.131% t 1.86 win 54% (1325) | p 4.4e-2 vs 0.0042 | FAIL
+B4 short build-up -> short 10d     | dev -0.513% t -1.44 win 48% (5568) | val -0.321% t -0.30 win 52% (1600) | final -0.131% t -0.29 win 54% (1322) | p 6.1e-1 vs 0.0071 | FAIL
+B5 short covering -> long 1d       | dev -0.017% t -0.22 win 47% (5574) | val -0.270% t -3.33 win 42% (1058) | final -0.019% t -0.14 win 48% (1205) | p 5.5e-1 vs 0.0063 | FAIL
+B6 short covering -> long 10d      | dev +0.874% t 2.72 win 55% (5552) | val -1.573% t -2.09 win 38% (1054) | final +1.369% t 1.14 win 52% (1200) | p 1.4e-1 vs 0.0045 | FAIL
+B7 long unwinding -> short 1d      | dev -0.244% t -2.34 win 46% (3236) | val -0.306% t -1.62 win 45% (773) | final -0.125% t -0.82 win 46% (439) | p 7.9e-1 vs 0.0100 | FAIL
+B8 long unwinding -> short 10d     | dev -1.970% t -4.96 win 38% (3225) | val -0.847% t -1.19 win 46% (768) | final -1.036% t -1.76 win 45% (433) | p 9.5e-1 vs 0.0250 | FAIL
+C1 FII adding -> long NIFTY 1d     | dev -0.085% t -2.03 win 47% (267) | val -0.077% t -0.88 win 45% (55) | final -0.103% t -0.94 win 48% (58) | p 8.2e-1 vs 0.0125 | FAIL
+C2 FII adding -> long NIFTY 5d     | dev +0.102% t 0.55 win 55% (267) | val +0.162% t 0.57 win 55% (55) | final -0.427% t -1.42 win 40% (58) | p 9.1e-1 vs 0.0167 | FAIL
+C3 FII cutting -> short NIFTY 1d   | dev +0.046% t 1.01 win 53% (265) | val -0.001% t -0.01 win 52% (93) | final -0.031% t -0.61 win 46% (83) | p 7.2e-1 vs 0.0083 | FAIL
+C4 FII cutting -> short NIFTY 5d   | dev -0.120% t -0.70 win 44% (265) | val +0.186% t 0.68 win 59% (93) | final -0.003% t -0.01 win 54% (83) | p 5.0e-1 vs 0.0056 | FAIL
+
+PASS: none

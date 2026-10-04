@@ -37,3 +37,8 @@ P&L. See [[k2-ladder-has-no-measured-edge]].
 level, exit on first touch of target or stop, otherwise time-stop at 20
 sessions. Never on Friday-flat or on generic 3/5/10-session holds. Related:
 [[k2-hosting-and-store]].
+
+**Restated by the owner, 4 Oct 2026:** "we are doing it for trading, not for investing ... in the
+futures and in the call/put also". Every test and every page row must be a short-horizon TRADE:
+intraday up to the 20-session hold. No buy-and-hold, no valuation or investing horizons. Options
+must be judged on real option prices (premium, decay, IV), not only on the share's move.

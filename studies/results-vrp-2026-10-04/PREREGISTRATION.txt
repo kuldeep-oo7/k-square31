@@ -1,0 +1,56 @@
+PRE-REGISTRATION -- RESULTS-DAY DRIFT, AND THE OPTIONS VOLATILITY PREMIUM (variants and the buyer's side)
+Written 4 Oct 2026 BEFORE any signal or result was computed for these rules. sha256 in PREREGISTRATION.sha256.
+The board-meeting files were only counted and one sample printed, to write the parser.
+
+WHAT THIS DATA HAS ALREADY BEEN USED FOR
+- Stock and NIFTY prices: about 16 earlier studies.
+- NIFTY option prices: research/families-2026-10-04 F11 (short weekly NIFTY straddle: positive
+  in all three windows, FAIL). The variants below are motivated by that result, so they are NOT
+  independent of it.
+- Board meetings: never used.
+
+DATA (NSE's own)
+- Board meetings: www.nseindia.com/api/corporate-board-meetings, months 2020-08..2026-10.
+  A RESULTS EVENT is a (symbol, meeting date) whose purpose or description contains "result"
+  (case-insensitive). Duplicate filings for the same symbol and date count once.
+- CM bhavcopy, universe (top 200 by 60-session median traded value, 250 bars after the last reset),
+  resets, windows and futures costs: as research/ta-atlas-2026-10-03.
+- NIFTY option rows (two nearest expiries) from research/families-2026-10-04/nse-extra/opt, and
+  NIFTY 50 closes. Option costs: api/_lib/trade-costs.js roundTripCost .totalCost, quantity 75 per
+  leg.
+
+RESULTS-DAY DRIFT (Chan, Jegadeesh & Lakonishok 1996; Brandt, Kishore, Santa-Clara & Venkatachalam 2008)
+For a results event of a universe stock with meeting date M:
+- M0 = the first session on or after M.
+- REACTION = close(M0 + 1) / close(session before M0) - 1. This covers results released during
+  the meeting day or after hours.
+- The cut-offs are the 20th and 80th percentiles of REACTION over DEVELOPMENT-window events only,
+  then frozen.
+  R1  REACTION >= the 80th percentile -> long from open(M0 + 2) to close(M0 + 11), 10 sessions.
+  R2  REACTION <= the 20th percentile -> short over the same days.
+Window by the entry session. A trade crossing a reset is dropped. Futures charges, both legs, dated.
+
+OPTIONS VOLATILITY PREMIUM (Carr & Wu 2009) -- NIFTY weekly options, held to expiry
+The cycle and strike choice are F11 of research/families-2026-10-04:
+- the first session of each weekly-expiry cycle with 4..10 calendar days left;
+- the strike nearest NIFTY's close; closing prices; settled at intrinsic value on NIFTY's close
+  on the expiry date.
+Return in % of NIFTY's close, after charges.
+  V1  Conditional short straddle. Sell only when the straddle's implied volatility exceeds 1.2x
+      NIFTY's 20-session realised volatility. Straddle IV = (CE + PE) / (0.8 x S x sqrt(days/365));
+      realised = the annualised population SD of the last 20 daily log returns up to that session.
+  V2  Short strangle. Sell the call at the strike nearest S x 1.02 and the put nearest S x 0.98.
+  V3  Long straddle, the BUYER's side of F11: buy CE + PE at the ATM strike, hold to expiry.
+      Included because the owner buys options. Its PASS would mean buying volatility paid.
+
+FAMILY: R1, R2, V1, V2, V3. Holm across all 5.
+PASS = validation mean > 0 AND final mean > 0 AND the final one-sided p (Student-t, months - 1 df,
+clustered by calendar month) survives Holm at 5%. Fewer than 30 final trades = NOT TESTABLE.
+Worst single trade reported for every member.
+
+WHAT THE RESULT DOES
+A PASS goes to TRACK as a forward paper test first. V1/V2 are option SELLING (margin, crash risk);
+even a PASS would be information for the page, not a row for the owner's Zerodha buying.
+
+CODE CHECKS FIRST (synthetic only): a planted drift must be found by R1; a planted premium by V1;
+noise must not pass; changing future prices must leave earlier trades identical.

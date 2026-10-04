@@ -1,0 +1,86 @@
+
+RE-SCORE under PROTOCOL v2 (sha256 be9d3dcefc012f02fa9b7172455fabb1eb1b170d22d477b763387699971fe7cd, verified), run 2026-10-04T06:50:22.515Z
+78 members; 73 testable. Expected best annual Sharpe from 73 skill-less trials (DSR benchmark): 2.05. Power: over 72 months, t = 3 needs an annual Sharpe of about 1.22.
+member | scored on | months | trades | mean/trade | t (NW) | annual Sharpe | Holm | DSR | VERDICT
+results | V2 short NIFTY 2% strangle | net | 61 | 246 | +0.101% | 4.66 | 1.93 | yes | 0.39 | PASS
+ta-atlas | M3 MA 5-150 SHORT | excess | 60 | 2321 | +0.307% | 2.58 | 0.90 | no | 0.01 | PROMISING
+families | F11 short NIFTY straddle to expiry | net | 61 | 246 | +0.096% | 2.34 | 0.80 | no | 0.00 | PROMISING
+ta-atlas | M2 MA 1-150 SHORT | excess | 60 | 4675 | +0.338% | 2.26 | 1.08 | no | 0.02 | PROMISING
+ta-atlas | M15 Connors RSI2 SHORT | excess | 60 | 4193 | +0.216% | 2.22 | 0.74 | no | 0.00 | PROMISING
+ta-atlas | M5 MA 2-200 SHORT | excess | 60 | 2866 | +0.285% | 1.81 | 0.87 | no | 0.00 | FAIL
+dip-ml | D6 gap-down 2% fade (intraday) | excess | 60 | 4578 | +0.177% | 1.79 | 0.84 | no | 0.00 | FAIL
+ta-atlas | M4 MA 1-200 SHORT | excess | 60 | 3945 | +0.279% | 1.63 | 0.95 | no | 0.01 | FAIL
+ta-atlas | M14 TV Bollinger 20/2 SHORT | excess | 60 | 7501 | +0.173% | 1.51 | 0.60 | no | 0.00 | FAIL
+families | F8 turn of month NIFTY long | net | 60 | 60 | +0.300% | 1.42 | 0.62 | no | 0.00 | FAIL
+results | V1 short NIFTY straddle when IV > 1.2x realised | net | 39 | 72 | +0.125% | 1.15 | 0.47 | no | 0.00 | FAIL
+ta-atlas | M6 TRB 50 SHORT | excess | 60 | 6908 | +0.224% | 1.15 | 0.61 | no | 0.00 | FAIL
+families | F7 pairs (GGR) spread reversion | net | 59 | 1598 | +0.318% | 1.10 | 0.61 | no | 0.00 | FAIL
+dip-ml | E2 OWN OU spike z>=+2 -> short | excess | 60 | 4380 | +0.145% | 1.07 | 0.56 | no | 0.00 | FAIL
+dip-ml | D2 5-day winners -> short | excess | 60 | 22825 | +0.101% | 0.96 | 0.51 | no | 0.00 | FAIL
+families | F1 delivery accumulation -> long 5d | excess | 60 | 11142 | +0.054% | 0.83 | 0.44 | no | 0.00 | FAIL
+ta-atlas | M12 TV MACD hist LONG | excess | 60 | 9432 | +0.041% | 0.61 | 0.22 | no | 0.00 | FAIL
+rising | H1 | net | 32 | 6349 | +0.069% | 0.53 | 0.35 | no | 0.00 | FAIL
+dip-ml | D3 3 lower closes over SMA200 -> long | excess | 60 | 8299 | +0.031% | 0.51 | 0.22 | no | 0.00 | FAIL
+orderflow | B8 long unwinding -> short 10d [FITTED: val+final only] | excess | 25 | 1201 | +0.076% | 0.48 | 0.30 | no | 0.01 | FAIL
+orderflow | B3 short build-up -> short 1d [FITTED: val+final only] | excess | 25 | 2929 | +0.013% | 0.46 | 0.26 | no | 0.00 | FAIL
+ta-atlas | M10 Turtle 55 SHORT | excess | 60 | 4058 | +0.063% | 0.38 | 0.13 | no | 0.00 | FAIL
+ta-atlas | M16 NR7 LONG | excess | 60 | 16088 | +0.020% | 0.38 | 0.18 | no | 0.00 | FAIL
+ta-atlas | M9 Turtle 20 SHORT | excess | 60 | 8006 | +0.040% | 0.31 | 0.14 | no | 0.00 | FAIL
+ta-atlas | M1 MA 1-50 SHORT | excess | 60 | 8434 | +0.019% | 0.18 | 0.08 | no | 0.00 | FAIL
+ta-atlas | M7 TRB 150 SHORT | excess | 60 | 2865 | +0.017% | 0.05 | 0.03 | no | 0.00 | FAIL
+dip-ml | D5 RSI14<35 with SMA50>SMA200 -> long | excess | 60 | 3361 | -0.012% | -0.06 | -0.03 | no | 0.00 | FAIL
+ta-atlas | M15 Connors RSI2 LONG | excess | 60 | 8265 | -0.014% | -0.15 | -0.06 | no | 0.00 | FAIL
+dip-ml | E3 OWN ridge ML top 10% -> long [FITTED: val+final only] | excess | 25 | 8911 | -0.013% | -0.16 | -0.10 | no | 0.00 | FAIL
+dip-ml | D1 5-day losers -> long | excess | 60 | 22825 | -0.013% | -0.24 | -0.09 | no | 0.00 | FAIL
+ta-atlas | M18 desk chart patterns SHORT | excess | 60 | 3490 | -0.038% | -0.30 | -0.13 | no | 0.00 | FAIL
+families | F12 short BANKNIFTY straddle to expiry | net | 67 | 228 | -0.095% | -0.41 | -0.15 | no | 0.00 | FAIL
+ta-atlas | M8 TRB 200 SHORT | excess | 59 | 2055 | -0.186% | -0.47 | -0.28 | no | 0.00 | FAIL
+ta-atlas | M13 TV Supertrend 10/3 SHORT | excess | 60 | 3246 | -0.082% | -0.49 | -0.22 | no | 0.00 | FAIL
+orderflow | B6 short covering -> long 10d [FITTED: val+final only] | excess | 25 | 2254 | -0.568% | -0.53 | -0.37 | no | 0.00 | FAIL
+ta-atlas | M11 TV RSI 14 30/70 SHORT | excess | 60 | 4381 | -0.092% | -0.56 | -0.23 | no | 0.00 | FAIL
+families | F6 futures carry bottom 10% -> short 5d | excess | 60 | 13598 | -0.025% | -0.58 | -0.21 | no | 0.00 | FAIL
+orderflow | C4 FII cutting -> short NIFTY 5d [FITTED: val+final only] | net | 25 | 176 | -0.112% | -0.59 | -0.41 | no | 0.00 | FAIL
+ta-atlas | M11 TV RSI 14 30/70 LONG | excess | 60 | 2667 | -0.155% | -0.69 | -0.29 | no | 0.00 | FAIL
+dip-ml | E4 OWN ridge ML bottom 10% -> short [FITTED: val+final only] | excess | 25 | 8911 | -0.092% | -0.74 | -0.52 | no | 0.00 | FAIL
+families | F4 NIFTY PCR low -> short 10d [FITTED: val+final only] | net | 24 | 232 | -0.373% | -0.84 | -0.62 | no | 0.00 | FAIL
+orderflow | B2 long build-up -> long 10d [FITTED: val+final only] | excess | 25 | 2043 | -0.233% | -0.94 | -0.76 | no | 0.00 | FAIL
+families | F5 futures carry top 10% -> long 5d | excess | 60 | 13594 | -0.057% | -0.97 | -0.46 | no | 0.00 | FAIL
+orderflow | C3 FII cutting -> short NIFTY 1d [FITTED: val+final only] | net | 25 | 176 | -0.042% | -1.02 | -0.65 | no | 0.00 | FAIL
+families | F9 monthly expiry week NIFTY long | net | 60 | 61 | -0.290% | -1.09 | -0.50 | no | 0.00 | FAIL
+orderflow | B4 short build-up -> short 10d [FITTED: val+final only] | excess | 25 | 2922 | -0.191% | -1.10 | -0.81 | no | 0.00 | FAIL
+families | F10 Monday NIFTY short | net | 61 | 250 | -0.059% | -1.17 | -0.60 | no | 0.00 | FAIL
+ta-atlas | M1 MA 1-50 LONG | excess | 60 | 8162 | -0.118% | -1.25 | -0.58 | no | 0.00 | FAIL
+orderflow | B1 long build-up -> long 1d [FITTED: val+final only] | excess | 25 | 2048 | -0.072% | -1.34 | -0.87 | no | 0.00 | FAIL
+dip-ml | E1 OWN OU dip z<=-2 -> long | excess | 60 | 3286 | -0.173% | -1.34 | -0.51 | no | 0.00 | FAIL
+ta-atlas | M17 desk candles SHORT | excess | 60 | 46397 | -0.037% | -1.40 | -0.73 | no | 0.00 | FAIL
+ta-atlas | M14 TV Bollinger 20/2 LONG | excess | 60 | 6366 | -0.228% | -1.44 | -0.67 | no | 0.00 | FAIL
+ta-atlas | M18 desk chart patterns LONG | excess | 60 | 4112 | -0.200% | -1.70 | -0.79 | no | 0.00 | FAIL
+ta-atlas | M8 TRB 200 LONG | excess | 60 | 6502 | -0.306% | -1.76 | -0.73 | no | 0.00 | FAIL
+ta-atlas | M6 TRB 50 LONG | excess | 60 | 10194 | -0.247% | -1.78 | -0.87 | no | 0.00 | FAIL
+ta-atlas | M10 Turtle 55 LONG | excess | 60 | 6293 | -0.317% | -1.92 | -0.92 | no | 0.00 | FAIL
+ta-atlas | M9 Turtle 20 LONG | excess | 60 | 9886 | -0.206% | -2.00 | -0.79 | no | 0.00 | FAIL
+ta-atlas | M7 TRB 150 LONG | excess | 60 | 6975 | -0.315% | -2.03 | -0.78 | no | 0.00 | FAIL
+ta-atlas | M3 MA 5-150 LONG | excess | 60 | 2085 | -0.301% | -2.23 | -0.80 | no | 0.00 | FAIL
+families | F2 delivery distribution -> short 5d | excess | 60 | 15736 | -0.102% | -2.28 | -0.95 | no | 0.00 | FAIL
+ta-atlas | M16 NR7 SHORT | excess | 60 | 19784 | -0.094% | -2.41 | -0.91 | no | 0.00 | FAIL
+dip-ml | D4 IBS<=0.2 over SMA200 -> long | excess | 60 | 32141 | -0.126% | -2.51 | -1.33 | no | 0.00 | FAIL
+rising | H3 | net | 58 | 49298 | -0.155% | -2.54 | -1.25 | no | 0.00 | FAIL
+ta-atlas | M13 TV Supertrend 10/3 LONG | excess | 60 | 3039 | -0.385% | -2.60 | -1.18 | no | 0.00 | FAIL
+results | V3 LONG NIFTY straddle (buyer) | net | 61 | 246 | -0.114% | -2.79 | -0.95 | no | 0.00 | FAIL
+ta-atlas | M2 MA 1-150 LONG | excess | 60 | 4438 | -0.457% | -3.12 | -1.38 | no | 0.00 | FAIL
+ta-atlas | M12 TV MACD hist SHORT | excess | 60 | 9421 | -0.214% | -3.16 | -1.35 | no | 0.00 | FAIL
+ta-atlas | M4 MA 1-200 LONG | excess | 60 | 3746 | -0.428% | -3.16 | -1.63 | no | 0.00 | FAIL
+ta-atlas | M5 MA 2-200 LONG | excess | 60 | 2662 | -0.502% | -3.24 | -1.56 | no | 0.00 | FAIL
+ta-atlas | M17 desk candles LONG | excess | 60 | 37334 | -0.092% | -3.33 | -1.42 | no | 0.00 | FAIL
+orderflow | B5 short covering -> long 1d [FITTED: val+final only] | excess | 25 | 2263 | -0.318% | -3.84 | -2.03 | no | 0.00 | FAIL
+rising | H2 | net | 32 | 18741 | -0.356% | -4.25 | -2.15 | no | 0.00 | FAIL
+orderflow | B7 long unwinding -> short 1d [FITTED: val+final only] | excess | 25 | 1212 | -0.216% | -5.38 | -3.06 | no | 0.00 | FAIL
+orderflow | C1 FII adding -> long NIFTY 1d [FITTED: val+final only] | net | 23 | 113 | - | - | - | no | - | NOT TESTABLE
+orderflow | C2 FII adding -> long NIFTY 5d [FITTED: val+final only] | net | 23 | 113 | - | - | - | no | - | NOT TESTABLE
+families | F3 NIFTY PCR high -> long 10d [FITTED: val+final only] | net | 23 | 81 | - | - | - | no | - | NOT TESTABLE
+results | R1 results reaction top 20% -> long 10d [FITTED: val+final only] | excess | 18 | 303 | - | - | - | no | - | NOT TESTABLE
+results | R2 results reaction bottom 20% -> short 10d [FITTED: val+final only] | excess | 18 | 259 | - | - | - | no | - | NOT TESTABLE
+
+PASS (t >= 3): results | V2 short NIFTY 2% strangle
+PROMISING (2 <= t < 3): ta-atlas | M3 MA 5-150 SHORT; families | F11 short NIFTY straddle to expiry; ta-atlas | M2 MA 1-150 SHORT; ta-atlas | M15 Connors RSI2 SHORT
+Survive Holm across all 73: results | V2 short NIFTY 2% strangle; DSR >= 0.95: none

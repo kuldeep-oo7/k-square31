@@ -1,0 +1,68 @@
+EVALUATION PROTOCOL v2 -- re-scoring every strategy tested on 2-4 Oct 2026, written BEFORE re-scoring.
+sha256 in PROTOCOL.sha256.
+
+WHY (the audit, 4 Oct 2026)
+The owner asked whether the testing itself is wrong. Measured against the literature, the old verdict
+rule had too little statistical power:
+- It judged each strategy on the final 12 months only, clustered by month (11 df).
+- It required the validation year to be positive as well.
+- It applied Holm across up to 36 members at once.
+The one-sided critical t was then about 4 on 12 monthly points: a strategy needed an annual Sharpe
+of about 4 inside one year to PASS. Good real strategies run a Sharpe of 1-2.
+Harvey, Liu & Zhu (2016, RFS 29(1)) set the bar for a new factor at t > 3.0 over the WHOLE sample.
+Bailey & Lopez de Prado (2014) correct the Sharpe ratio for the number of trials. Splitting six
+years into three windows is needed only where parameters were chosen on the data. Most rules here
+are PUBLISHED with their own parameters, fixed long before 2020, so all six years are out-of-sample
+for them.
+Also, long-only stock signals were scored on raw returns, so market moves swamped them. The
+standard is the return in EXCESS of the market.
+
+WHAT IS RE-SCORED (rules and trades unchanged; only the judging changes)
+Every member of research/rising-stocks-2026-10-02 (3), ta-atlas-2026-10-03 (36), dip-ml-2026-10-04
+(10), orderflow-2026-10-03 (12), families-2026-10-04 (12) and results-vrp-2026-10-04 (5): 78
+members. Each study's own run() produces its trades from the same data. The earlier panel studies
+(composite, momentum, published strategies, regime, situations) used other data and are not
+included; that is stated.
+
+THE NEW SCORE
+1. Excess return. For a stock trade of a member with a fixed holding h (sessions) entered at the
+   open of d:
+     excess = net - side x B(d, h),
+   where B is the equal-weighted return, open(d) to close(d+h-1), of that month's universe stocks
+   (the top 200 by 60-session median traded value, at least 250 bars after the last reset, whole
+   window traded, no reset inside). side is +1 for a long and -1 for a short.
+   Members on NIFTY, BANKNIFTY or options, pairs (already hedged), and desk-geometry members
+   (variable exit) are scored on net return; the score says which.
+   Fixed holdings (in sessions):
+   - ta-atlas: 10;
+   - dip-ml: D6 = 1, the rest = 5;
+   - orderflow: B odd = 1, B even = 10;
+   - families: F1, F2, F5, F6 = 5;
+   - results: R1, R2 = 10.
+2. Monthly series. For each calendar month from Sep 2020 to Sep 2026 with at least one trade: the
+   mean excess (or net) per trade of the trades entered that month.
+3. Statistic. t = mean of the monthly series / its Newey-West standard error (lag 3), over ALL
+   months of all three old windows together. Annualised Sharpe of the monthly series = mean / sd x
+   sqrt(12), with the number of months.
+4. Verdict.
+   PASS       = mean > 0 AND t >= 3.0 (Harvey-Liu-Zhu).
+   PROMISING  = mean > 0 AND 2.0 <= t < 3.0. Never a trading rule by itself; a candidate for a
+                forward paper test.
+   FAIL       = otherwise.
+   NOT TESTABLE = fewer than 24 months with trades.
+   Also reported:
+   - Holm across all 78 (one-sided, 5% family-wise; normal approximation, since df are about 70);
+   - the Deflated Sharpe Ratio probability (Bailey & Lopez de Prado 2014, with N = 78 trials, using
+     the cross-member variance of the annualised Sharpe ratios), a DSR >= 0.95 counting as
+     significant after selection.
+5. Members whose parameters were fitted on this data are flagged FITTED: the order-flow terciles,
+   the PCR terciles, the results cut-offs, and ridge ML (refit walk-forward, so its own trades are
+   out-of-sample by construction). For them only, the old development window is excluded and the
+   score uses validation + final.
+6. Power, stated with the result: over N months a true annual Sharpe S gives t of about
+   S x sqrt(N/12); with N = 72, t = 3 needs S of about 1.22.
+
+WHAT THE RESULT DOES
+A PASS becomes a forward paper test on TRACK (like the springy dip), then a page rule only if that
+forward test passes. A PROMISING member may become a forward paper test. The page changes only
+through those steps.

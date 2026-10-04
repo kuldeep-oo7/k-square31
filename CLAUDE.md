@@ -94,6 +94,7 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
   ```
   The same works with curl to api.github.com. Say which route worked.
 - **Packages:** run `npm install` first (the npm registry is allowed), then `npm run check`.
+- **Restore every study's data:** `bash scripts/restore-research-data.sh` (private releases `data-nse-cm` + `data-research`; `--no-sopt` skips the 257 MB stock options). `research/` is git-ignored: code + rules + results live in `studies/` (index: `studies/README.md`).
 - Research studies go in `studies/<name>-<date>/` on a `claude/...` branch: code, the
   registration, and the results. Never the data.
 - Already tested on this desk, all pre-registered:
