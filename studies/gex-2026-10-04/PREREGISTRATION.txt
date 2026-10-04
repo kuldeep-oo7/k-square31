@@ -1,0 +1,68 @@
+PRE-REGISTRATION -- NIFTY GAMMA EXPOSURE (GEX), six members, scored under PROTOCOL v2
+Written Sunday 4 Oct 2026, BEFORE any gamma-exposure number has been computed on real data. The commit
+time and the sha256 in PREREGISTRATION.sha256 are the proof; study.js refuses to run if this file changes.
+Owner, 4 Oct: "go start the gamma exposure test".
+
+IDEA (what is being tested)
+Option dealers who are SHORT gamma hedge by trading WITH the move (buy rises, sell falls), which can
+make moves larger and continue; dealers LONG gamma hedge AGAINST the move, which can damp it. Primary
+source: Baltussen, Da, Lammers & Martens, "Hedging demand and market intraday momentum", Journal of
+Financial Economics 142(1), 2021, 377-403. Their effect is INTRADAY (the last 30 minutes); this study
+uses NSE's end-of-day files only, so it tests the DAILY version of the idea, not their result.
+The open question for India is the SIGN: who is short the gamma. Two answers are tested side by side.
+
+DATA (NSE's own end-of-day files only; release data-research)
+- NIFTY options: F&O bhavcopy OPTIDX NIFTY, the two nearest expiries listed that day, every strike:
+  close and open interest (scripts/nse-options-delivery-history.js -> opt/<date>.json, idx.NIFTY rows
+  [expiry, strike, CE/PE, close, settle, OI]).
+- NIFTY futures: F&O bhavcopy FUTIDX NIFTY open and close (scripts/nse-fo-history.js -> fut/<date>.json).
+- Who holds what: NSE's participant-wise open interest, fao_participant_oi_DDMMYYYY.csv (part/<date>.csv),
+  columns "Option Index Call Long / Put Long / Call Short / Put Short" for Client, DII, FII, Pro, TOTAL.
+Sessions: the dates with all three files, 2020-09-01 .. 2026-10-01.
+
+GAMMA EXPOSURE ON DAY d (known only after day d's close)
+- F = close of the NIFTY futures contract with the nearest expiry AFTER d.
+- For each option expiry E listed in day d's file with E > d: T = calendar days(d, E) / 365. IV of
+  that expiry from its at-the-money straddle: K* = the strike nearest F with CE and PE close > 0;
+  sigma = (CE + PE) / (0.8 x F x sqrt(T)).
+- Gamma of each strike K (Black-76, no discounting): d1 = (ln(F/K) + sigma^2 T / 2) / (sigma sqrt(T)),
+  gamma = phi(d1) / (F sigma sqrt(T)). Exposure per 1% move = gamma x OI x F^2 x 0.01.
+- G1 "US convention": dealers are long the calls and short the puts:
+  GEX = sum over strikes (call exposure) - sum (put exposure).
+- G2 "NSE's own split": the hedgers are everyone except Clients (FII + DII + Pro), whose net position is
+  minus the Clients' net position in NSE's file. fc = -(Client Call Long - Client Call Short) / TOTAL Call
+  Long; fp = -(Client Put Long - Client Put Short) / TOTAL Put Long (all index options, as NSE publishes
+  them; assumed to hold strike by strike for NIFTY). GEX = fc x sum (call exposure) + fp x sum (put exposure).
+- "Short gamma" = GEX < 0; "long gamma" = GEX > 0. No threshold is fitted: the sign only.
+
+THE SIX MEMBERS (g = G1, G2). Signal from day d's files; trades start the NEXT session (d+1).
+  M1-g  momentum when short gamma: if GEX_g(d) < 0, take the side of day d's NIFTY futures move
+        (sign of close(d)/close(d-1) - 1, same contract), from the OPEN to the CLOSE of d+1.
+  M2-g  reversal when long gamma: if GEX_g(d) > 0, take the side AGAINST day d's move, open to close of d+1.
+  V-g   buy the straddle when short gamma: if GEX_g(d) < 0, buy the NIFTY at-the-money straddle (nearest
+        listed expiry E > d+2, strike nearest the futures close of d+1, both legs with close > 0) at the
+        close of d+1 and sell it at the close of d+2 (a leg with no close on d+2: NSE's settlement price
+        for it that day; neither: no trade).
+Futures contract for M1/M2: the nearest NIFTY expiry after d+1, the same contract on d-1, d and d+1 (else
+no trade). A zero move on day d: no trade.
+Charges: futures -- api/_lib/shadow-broker calculateNseFuturesCharges, dated, quantity ceil(500000/price),
+buy and sell. Options -- api/_lib/trade-costs roundTripCost(...).totalCost per leg, quantity
+round(100000 / leg premium). Futures net = side x (close/open - 1) - charges/notional. Straddle net =
+(exit CE + exit PE - entry CE - entry PE - charges per unit) / (entry CE + entry PE).
+
+SCORING: PROTOCOL v2 (studies/audit-2026-10-04/PROTOCOL.txt), unchanged
+- The whole sample; one value per calendar month = the mean net of that month's trades; Newey-West(3) t
+  on the monthly series. At least 24 months, else NOT TESTABLE.
+- PASS: mean > 0 and t >= 3. PROMISING: mean > 0 and 2 <= t < 3. Otherwise FAIL.
+- Reported beside it: Holm across the six members (one-sided 5%), the Deflated Sharpe Ratio (Bailey &
+  Lopez de Prado; N = 6), the number of trades and months, and the share of days each sign convention
+  calls short gamma.
+- Diagnostics only (not members, no verdict): the same trades taken on EVERY day regardless of GEX.
+- Run ONCE on real data. Nothing may change after this commit. A PASS goes to TRACK as a paper rule first.
+
+SYNTHETIC CHECKS (must pass before the real run; study.js --synthetic)
+1. A planted momentum edge on days the G1 convention calls short gamma must be found (M1-G1 PASS).
+2. A planted volatility edge (bigger moves after G1 short-gamma days) must be found (V-G1 PASS).
+3. Noise: with nothing planted, at most one member may PASS by chance.
+4. No look-ahead: changing every price and file after a cut date leaves every trade signalled at least
+   3 sessions before the cut identical.
