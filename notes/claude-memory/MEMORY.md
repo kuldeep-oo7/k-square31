@@ -35,3 +35,4 @@
 - [Options/pinning/ban/industry 4 Oct](k2-options-pin-ban-industry-2026-10-04.md) — 0 PASS; buying straddles across results LOSES −5.6%/trade (t −6.7); near misses cheap-vol straddle (t 1.94) and industry reversal (t 1.98) on TRACK from 5 Oct; "-" industries are one group
 - [Paper-test inputs archive](k2-paper-test-inputs-archive.md) — forward tests replay from 5 Oct but fetched only 40 days; NSE daily files now kept in release data-paper-inputs, job stops if they no longer reach back
 - [Microstructure data limits 4 Oct](k2-microstructure-data-limits.md) — have daily NSE (VWAP, OI per strike → GEX) + 20-min best-5 snapshots from 5 Oct; NO tape, aggressor side, depth history or intraday bars; Angel best-5 only, 1-min 30d/request; GitHub job 6 h
+- [GEX 4 Oct](k2-gex-2026-10-04.md) — NIFTY gamma exposure, 2 sign conventions x 3 trades, pre-registered, one run: 0 PASS; dealers short gamma only 2.4%/7.0% of days; branch claude/gex-2026-10-04, PR #1

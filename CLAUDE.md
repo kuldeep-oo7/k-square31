@@ -102,7 +102,7 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
 - Already tested on this desk, all pre-registered:
   - FAIL: the composite rating, NIFTY candlesticks, the NIFTY trend reader, 12-1 momentum,
     time-series momentum, low volatility, the 10-month trend filter, and the US-overnight
-    and crude cues.
+    and crude cues; NIFTY gamma exposure, daily (4 Oct 2026: 0 PASS; branch claude/gex-2026-10-04, PR #1).
   - NOT TESTABLE: gap continuation, VIX spike.
   - Don't re-run these as "new".
 

@@ -39,6 +39,9 @@ INDREV need 26 (about 6 months).
   "-" as one group and so does the forward test (stated in its registration, before commit). Its
   industry file is pinned by sha256 47c3516e...; another file shows NOT RUN.
 
+**NIFTY gamma exposure (4 Oct, evening):** pre-registered, one run, 0 PASS (studies/gex-2026-10-04 on branch
+claude/gex-2026-10-04, PR #1). Dealers are short gamma on only 2.4% (US convention) / 7.0% (NSE participant split) of days.
+
 **Testing standard: protocol v2** (studies/audit-2026-10-04/PROTOCOL.txt). Earlier "FAIL" verdicts
 from final-year-only tests mean "unproven". Every study's code, rules and results are in studies/
 (see studies/README.md). The data is restored with `bash scripts/restore-research-data.sh` (private
