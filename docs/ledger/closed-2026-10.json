@@ -30573,6 +30573,60 @@
     "perLot": -6000,
     "netPerLot": -6064.13
    }
+  },
+  {
+   "id": "2026-09-24|PE|ASIANPAINT26OCT2400PE",
+   "kind": "PE",
+   "symbol": "ASIANPAINT",
+   "contract": "ASIANPAINT26OCT2400PE",
+   "expiry": "2026-10-27",
+   "strike": 2400,
+   "optionType": "PE",
+   "lotSize": 250,
+   "sessionDate": "2026-09-24",
+   "shownAt": "2026-09-24T09:18:52.725Z",
+   "buy": 52.1,
+   "target": 78.15,
+   "target2": null,
+   "stop": 26.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.5,
+     "medianDays": 10.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-24T09:45:18.923Z",
+   "hoursToFill": 0.44,
+   "closedAt": "2026-10-05T07:05:20.058Z",
+   "exitPrice": 78.15,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 261.33,
+   "sessionsHeld": 6,
+   "best": 81.55,
+   "worst": 26.3,
+   "last": 81,
+   "lastAt": "2026-10-05T07:05:20.058Z",
+   "marks": 156,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 81.55,
+    "low": 45.8,
+    "last": 81
+   },
+   "pnl": {
+    "perUnit": 26.05,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 6512.5,
+    "netPerLot": 6421.91
+   }
   }
  ]
 }
