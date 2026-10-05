@@ -28424,6 +28424,168 @@
     "perLot": -8866,
     "netPerLot": -8938.21
    }
+  },
+  {
+   "id": "2026-09-30|PE|GAIL26OCT175PE",
+   "kind": "PE",
+   "symbol": "GAIL",
+   "contract": "GAIL26OCT175PE",
+   "expiry": "2026-10-27",
+   "strike": 175,
+   "optionType": "PE",
+   "lotSize": 3550,
+   "sessionDate": "2026-09-30",
+   "shownAt": "2026-09-30T03:49:31.267Z",
+   "buy": 4.97,
+   "target": 7.46,
+   "target2": null,
+   "stop": 2.48,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.4,
+     "medianDays": 8.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-30T03:49:31.276Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-05T05:45:47.054Z",
+   "exitPrice": 7.46,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 121.94,
+   "sessionsHeld": 2,
+   "best": 7.5,
+   "worst": 4.09,
+   "last": 7.24,
+   "lastAt": "2026-10-05T05:45:47.054Z",
+   "marks": 57,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 7.5,
+    "low": 4.27,
+    "last": 7.24
+   },
+   "pnl": {
+    "perUnit": 2.49,
+    "pct": 50.1,
+    "basis": "NET",
+    "perLot": 8839.5,
+    "netPerLot": 8733.49
+   }
+  },
+  {
+   "id": "2026-09-25|PE|HDFCBANK26OCT760PE",
+   "kind": "PE",
+   "symbol": "HDFCBANK",
+   "contract": "HDFCBANK26OCT760PE",
+   "expiry": "2026-10-27",
+   "strike": 760,
+   "optionType": "PE",
+   "lotSize": 650,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 35.65,
+   "target": 53.48,
+   "target2": null,
+   "stop": 17.83,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.8,
+     "medianDays": 10.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-25T04:04:43.424Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-05T05:45:47.054Z",
+   "exitPrice": 53.48,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 241.68,
+   "sessionsHeld": 5,
+   "best": 53.8,
+   "worst": 30,
+   "last": 53.8,
+   "lastAt": "2026-10-05T05:45:47.054Z",
+   "marks": 147,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 53.8,
+    "low": 32.6,
+    "last": 53.8
+   },
+   "pnl": {
+    "perUnit": 17.83,
+    "pct": 50.01,
+    "basis": "NET",
+    "perLot": 11589.5,
+    "netPerLot": 11465.1
+   }
+  },
+  {
+   "id": "2026-09-25|CE|HDFCBANK26OCT710CE",
+   "kind": "CE",
+   "symbol": "HDFCBANK",
+   "contract": "HDFCBANK26OCT710CE",
+   "expiry": "2026-10-27",
+   "strike": 710,
+   "optionType": "CE",
+   "lotSize": 650,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 33.7,
+   "target": 50.55,
+   "target2": null,
+   "stop": 16.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.2,
+     "medianDays": 9.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T04:25:18.968Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-05T05:45:47.054Z",
+   "exitPrice": 16.85,
+   "exitReason": "STOP",
+   "hoursFillToExit": 241.34,
+   "sessionsHeld": 5,
+   "best": 40.15,
+   "worst": 16.85,
+   "last": 16.85,
+   "lastAt": "2026-10-05T05:45:47.054Z",
+   "marks": 147,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 33.9,
+    "low": 16.85,
+    "last": 16.85
+   },
+   "pnl": {
+    "perUnit": -16.85,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -10952.5,
+    "netPerLot": -11030.6
+   }
   }
  ]
 }
