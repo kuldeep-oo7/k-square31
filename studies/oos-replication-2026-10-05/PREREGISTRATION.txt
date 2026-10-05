@@ -1,0 +1,79 @@
+PRE-REGISTRATION -- OUT-OF-SAMPLE REPLICATION of the eight forward paper tests
+Written Monday 5 Oct 2026, BEFORE any of the data below has been downloaded (it does not exist yet:
+.github/workflows/oos-data.yml fetches it after this commit). sha256 in PREREGISTRATION.sha256.
+
+WHY
+The eight rules on TRACK were chosen as the best few of about 80 tried on NSE 2020-09 .. 2026-09, so
+their numbers there are flattered by selection. The owner's question: do they also work on data they
+were never chosen on? Two such samples:
+  NSE OLD  NSE's own daily files 2005-01-01 .. 2020-08-31 (entries), which includes the 2008 crash and
+           the 2020 COVID fall. No rule here was designed, tuned or checked on these years.
+  US       today's S&P 500 members, 2005-01-01 .. 2026-09-15 (entries). A different market.
+
+THE RULES -- the forward tests' own code, UNCHANGED, only the start date moved
+  SD        springy dip           api/_lib/springy-dip.js forward(), rule start 2005-01-01   score: net %
+  LU        long-unwinding bounce api/_lib/oi-flow-forward.js forward() LU                   score: net %
+  SB        short build-up        api/_lib/oi-flow-forward.js forward() SB                   score: net %
+  STRANGLE  NIFTY 2% strangle     api/_lib/forward-v2.js strangle()                          score: net % of NIFTY
+  MA150A    close < SMA150 cross  api/_lib/forward-v2.js maCross() A                         score: excess % (vs universe)
+  MA150B    SMA5 < SMA150 cross   api/_lib/forward-v2.js maCross() B                         score: excess %
+  CHEAPVOL  cheap-vol straddle    api/_lib/forward-v3.js cheapVol()                          score: net % of premium
+  INDREV    industry reversal     api/_lib/forward-v3.js indRev()                            score: net % per rebalance
+Universe, resets, cut-offs (LU/SB: |R| >= 1.5581%, |OI| >= 3.0380%, frozen from 2020-2024), holding
+periods and charges are whatever that code does today (commit of this registration).
+Tests: NSE OLD all 8. US: SD, MA150A, MA150B, INDREV (the other four need NSE open interest or option
+prices that are not available for the US).
+
+DATA
+NSE OLD (scripts/nse-old-history.js, NSE archive old formats, fetched 2005-01-01 .. 2020-10-31 so that
+late-2020 entries can finish; only entries on or before 2020-08-31 count):
+- CM bhavcopy (EQ/BE/BZ); F&O bhavcopy (stock futures with open interest; NIFTY options, two nearest
+  expiries; stock options within 12% of the CM close, two nearest expiries); NSE's daily index file
+  ind_close_all for the NIFTY 50 close.
+- NIFTY close fallback, only on sessions where NSE's index file is missing: on an expiry day, the
+  expiring NIFTY future's SETTLE_PR (NSE's final settlement price of index futures = the index close);
+  otherwise the nearest-expiry NIFTY future's close (stated bias: about the cost of carry). The count of
+  fallback sessions is reported.
+- Before Feb 2019 NIFTY options expired MONTHLY; the strangle rule applies to every listed expiry, so
+  its old-NSE trades are mostly monthly. Stated, not changed.
+- INDREV uses the registered industry file (sha256 47c3516e..., 2026 filings): stocks delisted before
+  2020 mostly have no entry and are skipped, "-" is one group, as in the forward test. Weaker; stated.
+- Weekend special sessions (Muhurat) are not fetched: about one session a year missing.
+- The futures charge function is the desk's; before 2013 the real STT on futures was 0.017% (the code
+  uses 0.0125% before Oct 2024): costs slightly understated for 2005-2012. Stated.
+US (scripts/us-history.js):
+- Members: TODAY's S&P 500 from Wikipedia's "List of S&P 500 companies" (a secondary source; S&P's own
+  list is not free). SURVIVORSHIP BIAS: companies that failed or left the index since 2005 are missing,
+  which flatters long rules and hurts short rules. Stated.
+- Prices: Yahoo Finance chart API v8, daily, split-adjusted OHLC (not dividend-adjusted).
+  traded value = close x volume. Industry = GICS sub-industry from the same Wikipedia table.
+- Costs: the futures charge function is replaced, for the US run only, by 0.05% of turnover per leg
+  (commission plus half-spread on large caps), plus the code's own roll charges.
+
+SCORE AND VERDICT (per rule and market; 12 tests)
+Monthly series: for each calendar month with a finished trade, the mean score per trade entered that
+month. t = mean / Newey-West SE (lag 3) over all months (protocol v2's statistic). One-sided p from
+the normal.
+  REPLICATED  mean > 0 AND p survives Holm across all 12 tests at 5% family-wise.
+  STRONG      REPLICATED and t >= 3.0 (protocol v2's bar).
+  FAILED      otherwise.   NOT TESTABLE: fewer than 24 months with trades.
+Also reported (descriptive, no verdict): trades, months, win rate, worst month, and the mean in each
+period -- NSE: 2005-09, 2010-14, 2015-20; US: 2005-09, 2010-14, 2015-19, 2020-26 -- and in the crashes
+(Jan 2008 .. Mar 2009; Feb .. Apr 2020).
+
+CODE CHECKS FIRST (synthetic only; the real run is refused unless all pass)
+ (1) a planted mean-reversion market (AR(1) returns -0.15) must give SD mean > 0, t > 2 through this
+     pipeline;
+ (2) random-walk markets, 12 seeds x SD, MA150A, MA150B (36 tests): at most 4 REPLICATED at the
+     unadjusted one-sided 5% (about 2 expected by chance; MA150A and MA150B are near-twins, so they pass
+     or fail together). [Amended before this file was first committed: a 3-seed version with "at most 1"
+     failed because one seed passed both twins; a scratch run of 12 seeds gave 2 of 36. No real data had
+     been fetched or used.]
+ (3) changing every price after a cut date leaves every earlier finished trade identical (SD, MA150);
+ (4) the US charge replacement returns exactly 0.05% of turnover.
+
+WHAT HAPPENS NEXT
+- RESULT.txt and READ-THIS-FIRST.txt, FAILED as FAILED. Run once.
+- The forward tests on TRACK are NOT changed by this result (their own rules say nothing may change).
+  The result is reported to the owner as context. A rule that FAILS on both samples deserves little
+  trust even if it does well forward; one REPLICATED on both is the strongest candidate the desk has.
