@@ -168,7 +168,9 @@
   "OPTION|LAURUSLABS|LAURUSLABS26OCT2040CE",
   "OPTION|LAURUSLABS|LAURUSLABS26OCT2060CE",
   "OPTION|LAURUSLABS|LAURUSLABS26OCT2080CE",
-  "OPTION|JSWENERGY|JSWENERGY26OCT480PE"
+  "OPTION|JSWENERGY|JSWENERGY26OCT480PE",
+  "OPTION|SWIGGY|SWIGGY26OCT260PE",
+  "OPTION|TORNTPHARM|TORNTPHARM26OCT4600PE"
  ],
  "options": {
   "NAUKRI26OCT1200PE": {
@@ -4264,6 +4266,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-05T04:45:55.819Z",
    "frozenAtIst": "2026-10-05 10:15 IST",
+   "frozenAtSpot": null
+  },
+  "TORNTPHARM26OCT4600PE": {
+   "buy": 45.4,
+   "sell": 68.1,
+   "stop": 22.7,
+   "tick": 0.05,
+   "lotSize": 125,
+   "expiry": "2026-10-27",
+   "strike": 4600,
+   "right": "PE",
+   "symbol": "TORNTPHARM",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-05T05:07:42.514Z",
+   "frozenAtIst": "2026-10-05 10:37 IST",
    "frozenAtSpot": null
   }
  },
