@@ -30897,6 +30897,60 @@
     "perLot": -8003.1,
     "netPerLot": -8072.92
    }
+  },
+  {
+   "id": "2026-10-05|FUT|MANKIND26OCTFUT",
+   "kind": "FUT",
+   "symbol": "MANKIND",
+   "contract": "MANKIND26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 250,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T03:50:43.392Z",
+   "buy": 2495.3,
+   "target": 2557.7,
+   "target2": 2620.1,
+   "stop": 2457.9,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 60.4,
+     "medianTradingDays": 0.251
+    },
+    "target": {
+     "probabilityPct": 71.4,
+     "medianTradingDays": 3.023
+    },
+    "sigmaPct": 24.7,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T06:46:22.031Z",
+   "hoursToFill": 2.93,
+   "closedAt": "2026-10-05T08:46:13.077Z",
+   "exitPrice": 2457.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 2,
+   "sessionsHeld": 0,
+   "best": 2504,
+   "worst": 2457.8,
+   "last": 2461,
+   "lastAt": "2026-10-05T08:46:13.077Z",
+   "marks": 16,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 2547.4,
+    "low": 2457.8,
+    "last": 2461
+   },
+   "pnl": {
+    "perUnit": -37.4,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
