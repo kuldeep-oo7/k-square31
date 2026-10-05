@@ -293,7 +293,12 @@
   "OPTION|HINDUNILVR|HINDUNILVR26OCT1780PE",
   "OPTION|JSWENERGY|JSWENERGY26OCT490PE",
   "OPTION|JSWENERGY|JSWENERGY26OCT500PE",
-  "OPTION|KFINTECH|KFINTECH26OCT820PE"
+  "OPTION|KFINTECH|KFINTECH26OCT820PE",
+  "OPTION|BSE|BSE26OCT3250PE",
+  "OPTION|POWERGRID|POWERGRID26OCT250PE",
+  "OPTION|PRESTIGE|PRESTIGE26OCT1400PE",
+  "OPTION|JSWENERGY|JSWENERGY26OCT470PE",
+  "OPTION|GAIL|GAIL26OCT162.5PE"
  ],
  "options": {
   "NAUKRI26OCT1200PE": {
@@ -4644,6 +4649,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-05T05:45:47.033Z",
    "frozenAtIst": "2026-10-05 11:15 IST",
+   "frozenAtSpot": null
+  },
+  "POWERGRID26OCT250PE": {
+   "buy": 2.05,
+   "sell": 3.1,
+   "stop": 1,
+   "tick": 0.05,
+   "lotSize": 1900,
+   "expiry": "2026-10-27",
+   "strike": 250,
+   "right": "PE",
+   "symbol": "POWERGRID",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-05T06:05:38.501Z",
+   "frozenAtIst": "2026-10-05 11:35 IST",
+   "frozenAtSpot": null
+  },
+  "PRESTIGE26OCT1400PE": {
+   "buy": 21.2,
+   "sell": 31.8,
+   "stop": 10.6,
+   "tick": 0.05,
+   "lotSize": 450,
+   "expiry": "2026-10-27",
+   "strike": 1400,
+   "right": "PE",
+   "symbol": "PRESTIGE",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-05T06:05:38.501Z",
+   "frozenAtIst": "2026-10-05 11:35 IST",
+   "frozenAtSpot": null
+  },
+  "GAIL26OCT162.5PE": {
+   "buy": 1.59,
+   "sell": 2.39,
+   "stop": 0.8,
+   "tick": 0.01,
+   "lotSize": 3550,
+   "expiry": "2026-10-27",
+   "strike": 162.5,
+   "right": "PE",
+   "symbol": "GAIL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-05T06:05:38.501Z",
+   "frozenAtIst": "2026-10-05 11:35 IST",
    "frozenAtSpot": null
   }
  },
