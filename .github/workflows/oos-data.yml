@@ -30,7 +30,7 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with: { node-version: "24" }
-      - name: Fetch NSE's old files (twice: the second pass resumes anything that failed)
+      - name: "Fetch NSE's old files, two passes (the second resumes anything that failed)"
         run: |
           K2_OLD_DIR=nse-old node scripts/nse-old-history.js ${{ matrix.part.from }} ${{ matrix.part.to }} || true
           K2_OLD_DIR=nse-old node scripts/nse-old-history.js ${{ matrix.part.from }} ${{ matrix.part.to }} || true
