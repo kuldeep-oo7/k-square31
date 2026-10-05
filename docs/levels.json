@@ -311,7 +311,8 @@
   "OPTION|KOTAKBANK|KOTAKBANK26OCT400CE",
   "OPTION|HYUNDAI|HYUNDAI26OCT1900PE",
   "OPTION|NIFTY|NIFTY26O1322750PE",
-  "OPTION|NIFTY|NIFTY26O1322800PE"
+  "OPTION|NIFTY|NIFTY26O1322800PE",
+  "OPTION|PRESTIGE|PRESTIGE26OCT1380PE"
  ],
  "options": {
   "NAUKRI26OCT1200PE": {
@@ -4857,6 +4858,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-05T07:05:20.045Z",
    "frozenAtIst": "2026-10-05 12:35 IST",
+   "frozenAtSpot": null
+  },
+  "PRESTIGE26OCT1380PE": {
+   "buy": 21.25,
+   "sell": 31.85,
+   "stop": 10.65,
+   "tick": 0.05,
+   "lotSize": 450,
+   "expiry": "2026-10-27",
+   "strike": 1380,
+   "right": "PE",
+   "symbol": "PRESTIGE",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-05T09:06:43.020Z",
+   "frozenAtIst": "2026-10-05 14:36 IST",
    "frozenAtSpot": null
   }
  },

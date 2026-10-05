@@ -30951,6 +30951,114 @@
     "pct": -1.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-10-01|PE|KALYANKJIL26OCT500PE",
+   "kind": "PE",
+   "symbol": "KALYANKJIL",
+   "contract": "KALYANKJIL26OCT500PE",
+   "expiry": "2026-10-27",
+   "strike": 500,
+   "optionType": "PE",
+   "lotSize": 1350,
+   "sessionDate": "2026-10-01",
+   "shownAt": "2026-10-01T06:45:24.964Z",
+   "buy": 10.25,
+   "target": 15.4,
+   "target2": null,
+   "stop": 5.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 25.5,
+     "medianDays": 14.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-01T06:45:24.978Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-05T09:06:43.034Z",
+   "exitPrice": 5.15,
+   "exitReason": "STOP",
+   "hoursFillToExit": 98.36,
+   "sessionsHeld": 1,
+   "best": 14.45,
+   "worst": 5.05,
+   "last": 5.75,
+   "lastAt": "2026-10-05T09:06:43.034Z",
+   "marks": 32,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 12.2,
+    "low": 5.05,
+    "last": 5.75
+   },
+   "pnl": {
+    "perUnit": -5.1,
+    "pct": -49.76,
+    "basis": "NET",
+    "perLot": -6885,
+    "netPerLot": -6951.78
+   }
+  },
+  {
+   "id": "2026-09-29|CE|VBL26OCT450CE",
+   "kind": "CE",
+   "symbol": "VBL",
+   "contract": "VBL26OCT450CE",
+   "expiry": "2026-10-27",
+   "strike": 450,
+   "optionType": "CE",
+   "lotSize": 1275,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 5.85,
+   "target": 8.75,
+   "target2": null,
+   "stop": 2.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 34.2,
+     "medianDays": 13.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-29T04:26:36.384Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-05T09:06:43.034Z",
+   "exitPrice": 8.75,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 148.67,
+   "sessionsHeld": 3,
+   "best": 8.8,
+   "worst": 3.25,
+   "last": 8,
+   "lastAt": "2026-10-05T09:06:43.034Z",
+   "marks": 94,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 8.8,
+    "low": 5,
+    "last": 8
+   },
+   "pnl": {
+    "perUnit": 2.9,
+    "pct": 49.57,
+    "basis": "NET",
+    "perLot": 3697.5,
+    "netPerLot": 3625.52
+   }
   }
  ]
 }
