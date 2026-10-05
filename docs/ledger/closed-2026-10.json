@@ -30627,6 +30627,60 @@
     "perLot": 6512.5,
     "netPerLot": 6421.91
    }
+  },
+  {
+   "id": "2026-09-29|CE|TATAPOWER26OCT360CE",
+   "kind": "CE",
+   "symbol": "TATAPOWER",
+   "contract": "TATAPOWER26OCT360CE",
+   "expiry": "2026-10-27",
+   "strike": 360,
+   "optionType": "CE",
+   "lotSize": 1450,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 7.35,
+   "target": 11,
+   "target2": null,
+   "stop": 3.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 57.7,
+     "medianDays": 7.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T05:06:23.771Z",
+   "hoursToFill": 1,
+   "closedAt": "2026-10-05T08:05:07.174Z",
+   "exitPrice": 3.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 146.98,
+   "sessionsHeld": 3,
+   "best": 9.25,
+   "worst": 3.65,
+   "last": 3.85,
+   "lastAt": "2026-10-05T08:05:07.174Z",
+   "marks": 91,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 5.35,
+    "low": 3.65,
+    "last": 3.85
+   },
+   "pnl": {
+    "perUnit": -3.7,
+    "pct": -50.34,
+    "basis": "NET",
+    "perLot": -5365,
+    "netPerLot": -5427.16
+   }
   }
  ]
 }
