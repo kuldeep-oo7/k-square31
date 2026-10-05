@@ -306,7 +306,8 @@
   "OPTION|GMRAIRPORT|GMRAIRPORT26OCT88PE",
   "OPTION|COALINDIA|COALINDIA26OCT410CE",
   "OPTION|POWERINDIA|POWERINDIA26OCT30000PE",
-  "OPTION|IOC|IOC26OCT125PE"
+  "OPTION|IOC|IOC26OCT125PE",
+  "OPTION|ADANIENT|ADANIENT26OCT2700PE"
  ],
  "options": {
   "NAUKRI26OCT1200PE": {
@@ -4807,6 +4808,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-05T06:25:47.799Z",
    "frozenAtIst": "2026-10-05 11:55 IST",
+   "frozenAtSpot": null
+  },
+  "ADANIENT26OCT2700PE": {
+   "buy": 36.95,
+   "sell": 55.45,
+   "stop": 18.5,
+   "tick": 0.05,
+   "lotSize": 309,
+   "expiry": "2026-10-27",
+   "strike": 2700,
+   "right": "PE",
+   "symbol": "ADANIENT",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-05T06:46:22.014Z",
+   "frozenAtIst": "2026-10-05 12:16 IST",
    "frozenAtSpot": null
   }
  },
