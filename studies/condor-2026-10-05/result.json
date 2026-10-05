@@ -1,0 +1,64 @@
+{
+ "sha": "f075f21cc371cfb3442ce3c0d599620dbe1f8574487207253d68566e2076dc8d",
+ "verdicts": {
+  "IC1 fixed 2%/4% iron condor": {
+   "trades": 247,
+   "months": 61,
+   "winPct": 84.21052631578948,
+   "worstWeekPct": -1.7674900319717561,
+   "worstMonthPct": -0.48216697624331123,
+   "meanOnRiskPct": 2.273750587587007,
+   "meanPct": 0.030373347015819344,
+   "t": 1.7546366185050855,
+   "sharpe": 0.6881476475706932,
+   "p": 0.03966069159864294,
+   "dsr": 0.0010686929925745887,
+   "verdict": "FAIL",
+   "holm": false
+  },
+  "IC2 market-range condor (short +-M, long +-2M)": {
+   "trades": 247,
+   "months": 61,
+   "winPct": 68.42105263157895,
+   "worstWeekPct": -1.834471501421022,
+   "worstMonthPct": -0.6563670082741663,
+   "meanOnRiskPct": -1.2596560607601022,
+   "meanPct": 0.0034671066154932286,
+   "t": 0.15435454012348632,
+   "sharpe": 0.05988772769862754,
+   "p": 0.4386649583524893,
+   "dsr": 0.0000036156641973566746,
+   "verdict": "FAIL",
+   "holm": false
+  },
+  "IC3 IC2 + volatility-clustering brake": {
+   "trades": 221,
+   "months": 58,
+   "winPct": 67.42081447963801,
+   "worstWeekPct": -1.6964011996001331,
+   "worstMonthPct": -0.41814340930967386,
+   "meanOnRiskPct": -1.127782581207855,
+   "meanPct": 0.016167148006925806,
+   "t": 0.7034216093897793,
+   "sharpe": 0.27018111314490445,
+   "p": 0.2408963931199356,
+   "dsr": 0.000045614970476903084,
+   "verdict": "FAIL",
+   "holm": false
+  }
+ },
+ "comparison": {
+  "trades": 247,
+  "months": 61,
+  "winPct": 86.23481781376518,
+  "worstWeekPct": -3.2184213826648795,
+  "worstMonthPct": -0.4750209208947555,
+  "meanOnRiskPct": null,
+  "meanPct": 0.0994464453716912,
+  "t": 4.572318299213674,
+  "sharpe": 1.8921536873454181,
+  "p": 0.000002414207190937212,
+  "dsr": 0.3609636011931327,
+  "verdict": "PASS"
+ }
+}
