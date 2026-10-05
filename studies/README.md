@@ -13,6 +13,8 @@ FAIL means "unproven".
 
 | Folder | What | Result |
 |---|---|---|
+| oos-replication-2026-10-05 | **The 8 TRACK rules on UNSEEN data**: NSE 2005-2020 + S&P 500 2005-2026 | Only short build-up holds (+0.28%/trade, every period); strangle fades; dip and cheap-vol fail per trade |
+| condor-2026-10-05 | NIFTY iron condors (hedged strangle) | 0 PASS (best t 1.75); hedging removes the edge |
 | rating-replay-2026-10-04 | **The desk's own rating, replayed** (236,746 stock-days) | BUY/ACC −0.03%/trade FAIL; SELL/REDUCE shorts LOSE (t −3.31) |
 | audit-2026-10-04 | Protocol v2 re-score of 78 rules | NIFTY 2% strangle PASS (t 4.66; selling); 4 promising; desk candles LONG t −3.33 |
 | options-2026-10-04 | Option buying on real prices, expiry pinning, ban list, industry | 0 PASS; straddles across results −5.6%/trade (t −6.7); near misses: cheap-vol straddle t 1.94, industry-adjusted reversal t 1.98 |
