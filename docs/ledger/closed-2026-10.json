@@ -27085,6 +27085,222 @@
     "perLot": 8490,
     "netPerLot": 8386.17
    }
+  },
+  {
+   "id": "2026-09-30|PE|HDFCLIFE26OCT505PE",
+   "kind": "PE",
+   "symbol": "HDFCLIFE",
+   "contract": "HDFCLIFE26OCT505PE",
+   "expiry": "2026-10-27",
+   "strike": 505,
+   "optionType": "PE",
+   "lotSize": 1100,
+   "sessionDate": "2026-09-30",
+   "shownAt": "2026-09-30T04:25:36.188Z",
+   "buy": 9.2,
+   "target": 13.8,
+   "target2": null,
+   "stop": 4.6,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.7,
+     "medianDays": 9.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-30T04:45:47.041Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-05T04:06:19.794Z",
+   "exitPrice": 4.6,
+   "exitReason": "STOP",
+   "hoursFillToExit": 119.34,
+   "sessionsHeld": 2,
+   "best": 10.5,
+   "worst": 4.6,
+   "last": 4.7,
+   "lastAt": "2026-10-05T04:06:19.794Z",
+   "marks": 49,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 4.95,
+    "low": 4.6,
+    "last": 4.7
+   },
+   "pnl": {
+    "perUnit": -4.6,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -5060,
+    "netPerLot": -5121.48
+   }
+  },
+  {
+   "id": "2026-09-29|CE|GODREJCP26OCT900CE",
+   "kind": "CE",
+   "symbol": "GODREJCP",
+   "contract": "GODREJCP26OCT900CE",
+   "expiry": "2026-10-27",
+   "strike": 900,
+   "optionType": "CE",
+   "lotSize": 500,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T06:06:38.798Z",
+   "buy": 8.45,
+   "target": 12.7,
+   "target2": null,
+   "stop": 4.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 31.4,
+     "medianDays": 14,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T06:26:26.267Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-05T04:06:19.794Z",
+   "exitPrice": 4.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 141.66,
+   "sessionsHeld": 3,
+   "best": 8.6,
+   "worst": 4.2,
+   "last": 4.35,
+   "lastAt": "2026-10-05T04:06:19.794Z",
+   "marks": 73,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 5.4,
+    "low": 4.2,
+    "last": 4.35
+   },
+   "pnl": {
+    "perUnit": -4.25,
+    "pct": -50.3,
+    "basis": "NET",
+    "perLot": -2125,
+    "netPerLot": -2178.14
+   }
+  },
+  {
+   "id": "2026-09-29|CE|GODREJCP26OCT860CE",
+   "kind": "CE",
+   "symbol": "GODREJCP",
+   "contract": "GODREJCP26OCT860CE",
+   "expiry": "2026-10-27",
+   "strike": 860,
+   "optionType": "CE",
+   "lotSize": 500,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 26.55,
+   "target": 39.8,
+   "target2": null,
+   "stop": 13.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51,
+     "medianDays": 9.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T04:26:36.384Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-05T04:06:19.794Z",
+   "exitPrice": 13.3,
+   "exitReason": "STOP",
+   "hoursFillToExit": 143.66,
+   "sessionsHeld": 3,
+   "best": 26.55,
+   "worst": 13.25,
+   "last": 13.25,
+   "lastAt": "2026-10-05T04:06:19.794Z",
+   "marks": 79,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 16.05,
+    "low": 13.25,
+    "last": 13.25
+   },
+   "pnl": {
+    "perUnit": -13.25,
+    "pct": -49.91,
+    "basis": "NET",
+    "perLot": -6625,
+    "netPerLot": -6690.95
+   }
+  },
+  {
+   "id": "2026-09-25|CE|COFORGE26OCT1800CE",
+   "kind": "CE",
+   "symbol": "COFORGE",
+   "contract": "COFORGE26OCT1800CE",
+   "expiry": "2026-10-27",
+   "strike": 1800,
+   "optionType": "CE",
+   "lotSize": 475,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T04:04:43.417Z",
+   "buy": 69.7,
+   "target": 104.55,
+   "target2": null,
+   "stop": 34.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.8,
+     "medianDays": 8.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-25T04:25:18.968Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-05T04:06:19.794Z",
+   "exitPrice": 104.55,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 239.68,
+   "sessionsHeld": 5,
+   "best": 104.65,
+   "worst": 50.35,
+   "last": 103.45,
+   "lastAt": "2026-10-05T04:06:19.794Z",
+   "marks": 142,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 104.65,
+    "low": 76.55,
+    "last": 103.45
+   },
+   "pnl": {
+    "perUnit": 34.85,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 16553.75,
+    "netPerLot": 16396.27
+   }
   }
  ]
 }
