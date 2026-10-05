@@ -45,13 +45,16 @@ function parseCm(text, iso) {
 }
 function parseFo(text, iso, spot) {
   const { head, rows, c } = table(text); logHead("FO", iso, head);
-  for (const n of ["INSTRUMENT", "SYMBOL", "EXPIRY_DT", "STRIKE_PR", "OPTION_TYP", "OPEN", "HIGH", "LOW", "CLOSE", "SETTLE_PR", "CONTRACTS", "OPEN_INT", "CHG_IN_OI"]) if (c(n) < 0) throw new Error(`FO ${iso}: missing column ${n}`);
+  // NSE's own headers: 2005 files name the option type "OPTIONTYPE", later ones "OPTION_TYP" (seen 5 Oct 2026).
+  const iTyp = c("OPTION_TYP") >= 0 ? c("OPTION_TYP") : c("OPTIONTYPE");
+  for (const n of ["INSTRUMENT", "SYMBOL", "EXPIRY_DT", "STRIKE_PR", "OPEN", "HIGH", "LOW", "CLOSE", "SETTLE_PR", "CONTRACTS", "OPEN_INT", "CHG_IN_OI"]) if (c(n) < 0) throw new Error(`FO ${iso}: missing column ${n}`);
+  if (iTyp < 0) throw new Error(`FO ${iso}: no option-type column`);
   const fut = [], idxRows = [], stk = new Map();
   for (const f of rows) {
     const ins = f[c("INSTRUMENT")], sym = f[c("SYMBOL")], E = isoOld(f[c("EXPIRY_DT")]);
     if (ins === "FUTSTK" || ins === "FUTIDX") fut.push([sym, ins === "FUTSTK" ? "STK" : "IDX", E, +f[c("OPEN")], +f[c("HIGH")], +f[c("LOW")], +f[c("CLOSE")], +f[c("SETTLE_PR")], +f[c("OPEN_INT")], +f[c("CHG_IN_OI")], +f[c("CONTRACTS")]]);
-    else if (ins === "OPTIDX" && (sym === "NIFTY" || sym === "BANKNIFTY")) idxRows.push([sym, E, +f[c("STRIKE_PR")], f[c("OPTION_TYP")], +f[c("CLOSE")], +f[c("SETTLE_PR")], +f[c("OPEN_INT")]]);
-    else if (ins === "OPTSTK") { if (!stk.has(sym)) stk.set(sym, []); stk.get(sym).push([sym, E, +f[c("STRIKE_PR")], f[c("OPTION_TYP")], +f[c("CLOSE")], +f[c("SETTLE_PR")], +f[c("OPEN_INT")], +f[c("CONTRACTS")]]); }
+    else if (ins === "OPTIDX" && (sym === "NIFTY" || sym === "BANKNIFTY")) idxRows.push([sym, E, +f[c("STRIKE_PR")], f[iTyp], +f[c("CLOSE")], +f[c("SETTLE_PR")], +f[c("OPEN_INT")]]);
+    else if (ins === "OPTSTK") { if (!stk.has(sym)) stk.set(sym, []); stk.get(sym).push([sym, E, +f[c("STRIKE_PR")], f[iTyp], +f[c("CLOSE")], +f[c("SETTLE_PR")], +f[c("OPEN_INT")], +f[c("CONTRACTS")]]); }
   }
   const idx = {}; for (const u of ["NIFTY", "BANKNIFTY"]) { const rs = idxRows.filter((r) => r[0] === u); const ex = [...new Set(rs.map((r) => r[1]))].sort().slice(0, 2); idx[u] = rs.filter((r) => ex.includes(r[1])).map((r) => r.slice(1)); }
   const sopt = []; for (const [sym, rs] of stk) { const s = spot[sym]; if (!(s > 0)) continue; const ex = [...new Set(rs.map((r) => r[1]))].sort().slice(0, 2); for (const r of rs) if (ex.includes(r[1]) && Math.abs(r[2] / s - 1) <= 0.12) sopt.push(r); }
