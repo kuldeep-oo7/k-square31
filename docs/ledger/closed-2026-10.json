@@ -31059,6 +31059,168 @@
     "perLot": 3697.5,
     "netPerLot": 3625.52
    }
+  },
+  {
+   "id": "2026-10-05|PE|PRESTIGE26OCT1420PE",
+   "kind": "PE",
+   "symbol": "PRESTIGE",
+   "contract": "PRESTIGE26OCT1420PE",
+   "expiry": "2026-10-27",
+   "strike": 1420,
+   "optionType": "PE",
+   "lotSize": 450,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T03:50:43.392Z",
+   "buy": 23.35,
+   "target": 35,
+   "target2": null,
+   "stop": 11.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 33.9,
+     "medianDays": 10.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-05T03:50:43.399Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-05T09:45:16.901Z",
+   "exitPrice": 35,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 5.91,
+   "sessionsHeld": 0,
+   "best": 35.75,
+   "worst": 20.3,
+   "last": 34.15,
+   "lastAt": "2026-10-05T09:45:16.901Z",
+   "marks": 19,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 35.75,
+    "low": 20.3,
+    "last": 34.15
+   },
+   "pnl": {
+    "perUnit": 11.65,
+    "pct": 49.89,
+    "basis": "NET",
+    "perLot": 5242.5,
+    "netPerLot": 5160.32
+   }
+  },
+  {
+   "id": "2026-10-05|PE|PRESTIGE26OCT1440PE",
+   "kind": "PE",
+   "symbol": "PRESTIGE",
+   "contract": "PRESTIGE26OCT1440PE",
+   "expiry": "2026-10-27",
+   "strike": 1440,
+   "optionType": "PE",
+   "lotSize": 450,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T03:50:43.392Z",
+   "buy": 28.95,
+   "target": 43.4,
+   "target2": null,
+   "stop": 14.5,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 39.4,
+     "medianDays": 9.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-05T03:50:43.399Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-05T09:45:16.901Z",
+   "exitPrice": 43.4,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 5.91,
+   "sessionsHeld": 0,
+   "best": 44.1,
+   "worst": 25.65,
+   "last": 42.2,
+   "lastAt": "2026-10-05T09:45:16.901Z",
+   "marks": 19,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 44.1,
+    "low": 25.65,
+    "last": 42.2
+   },
+   "pnl": {
+    "perUnit": 14.45,
+    "pct": 49.91,
+    "basis": "NET",
+    "perLot": 6502.5,
+    "netPerLot": 6411.93
+   }
+  },
+  {
+   "id": "2026-09-25|CE|DIXON26OCT13500CE",
+   "kind": "CE",
+   "symbol": "DIXON",
+   "contract": "DIXON26OCT13500CE",
+   "expiry": "2026-10-27",
+   "strike": 13500,
+   "optionType": "CE",
+   "lotSize": 50,
+   "sessionDate": "2026-09-25",
+   "shownAt": "2026-09-25T06:24:19.247Z",
+   "buy": 361.95,
+   "target": 542.92,
+   "target2": null,
+   "stop": 180.98,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 41.1,
+     "medianDays": 13.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-25T06:44:56.108Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-05T09:45:16.901Z",
+   "exitPrice": 180.98,
+   "exitReason": "STOP",
+   "hoursFillToExit": 243.01,
+   "sessionsHeld": 5,
+   "best": 500,
+   "worst": 178,
+   "last": 187.05,
+   "lastAt": "2026-10-05T09:45:16.901Z",
+   "marks": 151,
+   "obs": {
+    "date": "2026-10-05",
+    "high": 232.55,
+    "low": 178,
+    "last": 187.05
+   },
+   "pnl": {
+    "perUnit": -180.97,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -9048.5,
+    "netPerLot": -9121.23
+   }
   }
  ]
 }
