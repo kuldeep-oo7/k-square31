@@ -1,0 +1,2441 @@
+{
+ "prereg": "03f93c90f2501a306cb8a701351091fd58bac5c57d1af706cf6b7f27bbb6bdf7",
+ "runAt": "2026-09-29T17:30:37.636Z",
+ "partA": {
+  "A1": {
+   "res": {
+    "development": {
+     "n": 238,
+     "months": 36,
+     "meanPct": -0.0811,
+     "t": -1.253,
+     "winPct": 47.9
+    },
+    "validation": {
+     "n": 49,
+     "months": 10,
+     "meanPct": -0.1965,
+     "t": -2.62,
+     "winPct": 40.8
+    },
+    "final": {
+     "n": 49,
+     "months": 12,
+     "meanPct": -0.0838,
+     "t": -0.568,
+     "winPct": 32.7
+    }
+   },
+   "p": 0.7092781759100862,
+   "verdict": "FAIL"
+  },
+  "A2": {
+   "res": {
+    "development": {
+     "n": 110,
+     "months": 30,
+     "meanPct": -0.1665,
+     "t": -1.674,
+     "winPct": 41.8
+    },
+    "validation": {
+     "n": 20,
+     "months": 8,
+     "meanPct": 0.0126,
+     "t": 0.213,
+     "winPct": 55
+    },
+    "final": {
+     "n": 69,
+     "months": 12,
+     "meanPct": -0.0418,
+     "t": -0.626,
+     "winPct": 44.9
+    }
+   },
+   "p": 0.7279572382054837,
+   "verdict": "FAIL"
+  },
+  "A3": {
+   "res": {
+    "development": {
+     "n": 43,
+     "months": 17,
+     "meanPct": 0.0437,
+     "t": 0.471,
+     "winPct": 53.5
+    },
+    "validation": {
+     "n": 13,
+     "months": 9,
+     "meanPct": -0.0889,
+     "t": -0.41,
+     "winPct": 38.5
+    },
+    "final": {
+     "n": 17,
+     "months": 4,
+     "meanPct": -0.2446,
+     "t": -0.882,
+     "winPct": 41.2
+    }
+   },
+   "p": null,
+   "verdict": "NOT TESTABLE (under 20 final trades)"
+  },
+  "A4": {
+   "res": {
+    "development": {
+     "n": 25,
+     "months": 18,
+     "meanPct": -0.2723,
+     "t": -0.781,
+     "winPct": 40
+    },
+    "validation": {
+     "n": 3,
+     "months": 3,
+     "meanPct": -2.2396,
+     "t": -0.95,
+     "winPct": 33.3
+    },
+    "final": {
+     "n": 12,
+     "months": 5,
+     "meanPct": 0.8165,
+     "t": 1.299,
+     "winPct": 58.3
+    }
+   },
+   "p": null,
+   "verdict": "NOT TESTABLE (under 20 final trades)"
+  },
+  "A5": {
+   "res": {
+    "development": {
+     "n": 293,
+     "months": 37,
+     "meanPct": -0.0756,
+     "t": -0.682,
+     "winPct": 47.8
+    },
+    "validation": {
+     "n": 108,
+     "months": 13,
+     "meanPct": -0.038,
+     "t": -0.325,
+     "winPct": 50.9
+    },
+    "final": {
+     "n": 82,
+     "months": 13,
+     "meanPct": 0.0221,
+     "t": 0.134,
+     "winPct": 48.8
+    }
+   },
+   "p": 0.4478118553658032,
+   "verdict": "FAIL"
+  }
+ },
+ "partB": [
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "gap <= -1%",
+   "n": 13,
+   "meanPct": 0.9323,
+   "t": 2.052,
+   "winPct": 61.5,
+   "byWindow": [
+    {
+     "n": 8,
+     "meanPct": 0.9711
+    },
+    {
+     "n": 1,
+     "meanPct": -1.5359
+    },
+    {
+     "n": 4,
+     "meanPct": 1.4717
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "gap -1%..-0.3%",
+   "n": 33,
+   "meanPct": 0.1322,
+   "t": 0.277,
+   "winPct": 42.4,
+   "byWindow": [
+    {
+     "n": 20,
+     "meanPct": 0.1881
+    },
+    {
+     "n": 5,
+     "meanPct": -0.9614
+    },
+    {
+     "n": 8,
+     "meanPct": 0.6759
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "gap -0.3..+0.3%",
+   "n": 144,
+   "meanPct": -0.0377,
+   "t": -0.157,
+   "winPct": 39.6,
+   "byWindow": [
+    {
+     "n": 79,
+     "meanPct": 0.2318
+    },
+    {
+     "n": 44,
+     "meanPct": -0.3796
+    },
+    {
+     "n": 21,
+     "meanPct": -0.3348
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "gap +0.3..+1%",
+   "n": 75,
+   "meanPct": 0.2162,
+   "t": 0.746,
+   "winPct": 44,
+   "byWindow": [
+    {
+     "n": 61,
+     "meanPct": 0.2165
+    },
+    {
+     "n": 8,
+     "meanPct": 1.0944
+    },
+    {
+     "n": 6,
+     "meanPct": -0.9576
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "gap >= +1%",
+   "n": 12,
+   "meanPct": 0.6356,
+   "t": 1.28,
+   "winPct": 50,
+   "byWindow": [
+    {
+     "n": 7,
+     "meanPct": 1.0545
+    },
+    {
+     "n": 1,
+     "meanPct": 2.6274
+    },
+    {
+     "n": 4,
+     "meanPct": -0.5955
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "weekly expiry day",
+   "n": 74,
+   "meanPct": 0.2116,
+   "t": 0.713,
+   "winPct": 43.2,
+   "byWindow": [
+    {
+     "n": 47,
+     "meanPct": 0.2493
+    },
+    {
+     "n": 14,
+     "meanPct": 0.4191
+    },
+    {
+     "n": 13,
+     "meanPct": -0.1479
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "session before an expiry",
+   "n": 52,
+   "meanPct": 0.0352,
+   "t": 0.119,
+   "winPct": 40.4,
+   "byWindow": [
+    {
+     "n": 36,
+     "meanPct": 0.0137
+    },
+    {
+     "n": 8,
+     "meanPct": -0.0403
+    },
+    {
+     "n": 8,
+     "meanPct": 0.2076
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "monthly expiry week",
+   "n": 72,
+   "meanPct": 0.2886,
+   "t": 1.018,
+   "winPct": 47.2,
+   "byWindow": [
+    {
+     "n": 46,
+     "meanPct": 0.2612
+    },
+    {
+     "n": 11,
+     "meanPct": 0.4973
+    },
+    {
+     "n": 15,
+     "meanPct": 0.2197
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "India VIX low (< 13.41)",
+   "n": 61,
+   "meanPct": 0.0113,
+   "t": 0.035,
+   "winPct": 39.3,
+   "byWindow": [
+    {
+     "n": 27,
+     "meanPct": 0.4951
+    },
+    {
+     "n": 18,
+     "meanPct": -0.241
+    },
+    {
+     "n": 16,
+     "meanPct": -0.5211
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "India VIX mid",
+   "n": 104,
+   "meanPct": -0.1275,
+   "t": -0.397,
+   "winPct": 37.5,
+   "byWindow": [
+    {
+     "n": 61,
+     "meanPct": 0.1407
+    },
+    {
+     "n": 34,
+     "meanPct": -0.6051
+    },
+    {
+     "n": 9,
+     "meanPct": -0.1407
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "India VIX high (>= 17.06)",
+   "n": 110,
+   "meanPct": 0.4229,
+   "t": 1.459,
+   "winPct": 49.1,
+   "byWindow": [
+    {
+     "n": 85,
+     "meanPct": 0.324
+    },
+    {
+     "n": 7,
+     "meanPct": 1.8923
+    },
+    {
+     "n": 18,
+     "meanPct": 0.3188
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "NIFTY calm (20d vol < 10.1%)",
+   "n": 61,
+   "meanPct": 0.2964,
+   "t": 1.043,
+   "winPct": 45.9,
+   "byWindow": [
+    {
+     "n": 39,
+     "meanPct": 0.3181
+    },
+    {
+     "n": 10,
+     "meanPct": 0.8801
+    },
+    {
+     "n": 12,
+     "meanPct": -0.2604
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "NIFTY normal vol",
+   "n": 106,
+   "meanPct": -0.4042,
+   "t": -1.313,
+   "winPct": 30.2,
+   "byWindow": [
+    {
+     "n": 58,
+     "meanPct": 0.0168
+    },
+    {
+     "n": 35,
+     "meanPct": -1.1013
+    },
+    {
+     "n": 13,
+     "meanPct": -0.4054
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "NIFTY volatile (20d vol >= 14.4%)",
+   "n": 108,
+   "meanPct": 0.5437,
+   "t": 1.831,
+   "winPct": 52.8,
+   "byWindow": [
+    {
+     "n": 76,
+     "meanPct": 0.4752
+    },
+    {
+     "n": 14,
+     "meanPct": 1.2913
+    },
+    {
+     "n": 18,
+     "meanPct": 0.2516
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "regime BULL",
+   "n": 76,
+   "meanPct": 0.2589,
+   "t": 0.881,
+   "winPct": 47.4,
+   "byWindow": [
+    {
+     "n": 56,
+     "meanPct": 0.199
+    },
+    {
+     "n": 15,
+     "meanPct": 0.5235
+    },
+    {
+     "n": 5,
+     "meanPct": 0.1356
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "regime NEUTRAL",
+   "n": 92,
+   "meanPct": -0.147,
+   "t": -0.473,
+   "winPct": 37,
+   "byWindow": [
+    {
+     "n": 53,
+     "meanPct": 0.4011
+    },
+    {
+     "n": 20,
+     "meanPct": -1.3926
+    },
+    {
+     "n": 19,
+     "meanPct": -0.3649
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "regime BEAR",
+   "n": 96,
+   "meanPct": 0.381,
+   "t": 1.193,
+   "winPct": 46.9,
+   "byWindow": [
+    {
+     "n": 53,
+     "meanPct": 0.4878
+    },
+    {
+     "n": 24,
+     "meanPct": 0.3473
+    },
+    {
+     "n": 19,
+     "meanPct": 0.1258
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "above 200-day average",
+   "n": 143,
+   "meanPct": 0.2191,
+   "t": 0.856,
+   "winPct": 44.8,
+   "byWindow": [
+    {
+     "n": 90,
+     "meanPct": 0.4605
+    },
+    {
+     "n": 39,
+     "meanPct": -0.0395
+    },
+    {
+     "n": 14,
+     "meanPct": -0.6128
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "below 200-day average",
+   "n": 62,
+   "meanPct": 0.398,
+   "t": 0.877,
+   "winPct": 50,
+   "byWindow": [
+    {
+     "n": 13,
+     "meanPct": 2.3145
+    },
+    {
+     "n": 20,
+     "meanPct": -0.5063
+    },
+    {
+     "n": 29,
+     "meanPct": 0.1626
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "US fell >= 1% overnight",
+   "n": 41,
+   "meanPct": 0.3412,
+   "t": 0.936,
+   "winPct": 48.8,
+   "byWindow": [
+    {
+     "n": 28,
+     "meanPct": 0.1359
+    },
+    {
+     "n": 6,
+     "meanPct": 0.6582
+    },
+    {
+     "n": 7,
+     "meanPct": 0.891
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "US within +-1%",
+   "n": 182,
+   "meanPct": -0.0961,
+   "t": -0.435,
+   "winPct": 37.4,
+   "byWindow": [
+    {
+     "n": 108,
+     "meanPct": 0.1888
+    },
+    {
+     "n": 45,
+     "meanPct": -0.5022
+    },
+    {
+     "n": 29,
+     "meanPct": -0.5268
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "US rose >= 1% overnight",
+   "n": 52,
+   "meanPct": 0.7203,
+   "t": 2.374,
+   "winPct": 55.8,
+   "byWindow": [
+    {
+     "n": 37,
+     "meanPct": 0.6837
+    },
+    {
+     "n": 8,
+     "meanPct": 0.8731
+    },
+    {
+     "n": 7,
+     "meanPct": 0.7393
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "crude fell >= 3%",
+   "n": 28,
+   "meanPct": 0.542,
+   "t": 1.045,
+   "winPct": 53.6,
+   "byWindow": [
+    {
+     "n": 20,
+     "meanPct": 0.967
+    },
+    {
+     "n": 1,
+     "meanPct": -5.4533
+    },
+    {
+     "n": 7,
+     "meanPct": 0.1842
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "crude within +-3%",
+   "n": 216,
+   "meanPct": 0.1078,
+   "t": 0.534,
+   "winPct": 42.1,
+   "byWindow": [
+    {
+     "n": 139,
+     "meanPct": 0.2105
+    },
+    {
+     "n": 56,
+     "meanPct": -0.0478
+    },
+    {
+     "n": 21,
+     "meanPct": -0.1573
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "crude rose >= 3%",
+   "n": 31,
+   "meanPct": -0.145,
+   "t": -0.488,
+   "winPct": 35.5,
+   "byWindow": [
+    {
+     "n": 14,
+     "meanPct": 0.0635
+    },
+    {
+     "n": 2,
+     "meanPct": -1.7671
+    },
+    {
+     "n": 15,
+     "meanPct": -0.1234
+    }
+   ]
+  },
+  {
+   "rule": "B-LONG desk futures buy",
+   "situation": "every day",
+   "n": 277,
+   "meanPct": 0.126,
+   "t": 0.69,
+   "winPct": 42.6,
+   "byWindow": [
+    {
+     "n": 175,
+     "meanPct": 0.2882
+    },
+    {
+     "n": 59,
+     "meanPct": -0.1977
+    },
+    {
+     "n": 43,
+     "meanPct": -0.0899
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "gap <= -1%",
+   "n": 19,
+   "meanPct": 0.6098,
+   "t": 0.886,
+   "winPct": 52.6,
+   "byWindow": [
+    {
+     "n": 10,
+     "meanPct": 1.2579
+    },
+    {
+     "n": 3,
+     "meanPct": -1.8179
+    },
+    {
+     "n": 6,
+     "meanPct": 0.7436
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "gap -1%..-0.3%",
+   "n": 42,
+   "meanPct": -0.2975,
+   "t": -0.885,
+   "winPct": 33.3,
+   "byWindow": [
+    {
+     "n": 29,
+     "meanPct": -0.4325
+    },
+    {
+     "n": 7,
+     "meanPct": 1.2142
+    },
+    {
+     "n": 6,
+     "meanPct": -1.4087
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "gap -0.3..+0.3%",
+   "n": 93,
+   "meanPct": -0.364,
+   "t": -1.707,
+   "winPct": 32.3,
+   "byWindow": [
+    {
+     "n": 45,
+     "meanPct": -0.8268
+    },
+    {
+     "n": 29,
+     "meanPct": 0.1521
+    },
+    {
+     "n": 19,
+     "meanPct": -0.0556
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "gap +0.3..+1%",
+   "n": 46,
+   "meanPct": 0.0234,
+   "t": 0.059,
+   "winPct": 39.1,
+   "byWindow": [
+    {
+     "n": 32,
+     "meanPct": -0.3238
+    },
+    {
+     "n": 7,
+     "meanPct": 0.0709
+    },
+    {
+     "n": 7,
+     "meanPct": 1.5634
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "gap >= +1%",
+   "n": 10,
+   "meanPct": -1.0746,
+   "t": -1.809,
+   "winPct": 20,
+   "byWindow": [
+    {
+     "n": 6,
+     "meanPct": -0.3354
+    },
+    {
+     "n": 3,
+     "meanPct": -2.3453
+    },
+    {
+     "n": 1,
+     "meanPct": -1.6974
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "weekly expiry day",
+   "n": 43,
+   "meanPct": -0.0586,
+   "t": -0.193,
+   "winPct": 39.5,
+   "byWindow": [
+    {
+     "n": 29,
+     "meanPct": -0.3688
+    },
+    {
+     "n": 9,
+     "meanPct": 1.0749
+    },
+    {
+     "n": 5,
+     "meanPct": -0.3
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "session before an expiry",
+   "n": 44,
+   "meanPct": -0.3788,
+   "t": -1.245,
+   "winPct": 36.4,
+   "byWindow": [
+    {
+     "n": 22,
+     "meanPct": -0.4334
+    },
+    {
+     "n": 9,
+     "meanPct": -0.2684
+    },
+    {
+     "n": 13,
+     "meanPct": -0.3628
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "monthly expiry week",
+   "n": 48,
+   "meanPct": -0.113,
+   "t": -0.314,
+   "winPct": 37.5,
+   "byWindow": [
+    {
+     "n": 30,
+     "meanPct": -0.3743
+    },
+    {
+     "n": 14,
+     "meanPct": 0.1724
+    },
+    {
+     "n": 4,
+     "meanPct": 0.8479
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "India VIX low (< 13.41)",
+   "n": 39,
+   "meanPct": 0.2818,
+   "t": 0.782,
+   "winPct": 46.2,
+   "byWindow": [
+    {
+     "n": 16,
+     "meanPct": -0.561
+    },
+    {
+     "n": 14,
+     "meanPct": 0.8011
+    },
+    {
+     "n": 9,
+     "meanPct": 0.9724
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "India VIX mid",
+   "n": 68,
+   "meanPct": -0.359,
+   "t": -1.194,
+   "winPct": 30.9,
+   "byWindow": [
+    {
+     "n": 34,
+     "meanPct": -0.4698
+    },
+    {
+     "n": 24,
+     "meanPct": 0.1113
+    },
+    {
+     "n": 10,
+     "meanPct": -1.1113
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "India VIX high (>= 17.06)",
+   "n": 99,
+   "meanPct": -0.2475,
+   "t": -0.709,
+   "winPct": 35.4,
+   "byWindow": [
+    {
+     "n": 68,
+     "meanPct": -0.2661
+    },
+    {
+     "n": 11,
+     "meanPct": -1.1791
+    },
+    {
+     "n": 20,
+     "meanPct": 0.328
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "NIFTY calm (20d vol < 10.1%)",
+   "n": 36,
+   "meanPct": -0.5406,
+   "t": -1.931,
+   "winPct": 27.8,
+   "byWindow": [
+    {
+     "n": 19,
+     "meanPct": -0.5288
+    },
+    {
+     "n": 12,
+     "meanPct": -0.5777
+    },
+    {
+     "n": 5,
+     "meanPct": -0.4962
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "NIFTY normal vol",
+   "n": 71,
+   "meanPct": -0.0637,
+   "t": -0.189,
+   "winPct": 39.4,
+   "byWindow": [
+    {
+     "n": 36,
+     "meanPct": -0.5937
+    },
+    {
+     "n": 20,
+     "meanPct": 1.2492
+    },
+    {
+     "n": 15,
+     "meanPct": -0.5423
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "NIFTY volatile (20d vol >= 14.4%)",
+   "n": 99,
+   "meanPct": -0.1408,
+   "t": -0.406,
+   "winPct": 36.4,
+   "byWindow": [
+    {
+     "n": 63,
+     "meanPct": -0.1845
+    },
+    {
+     "n": 17,
+     "meanPct": -1.008
+    },
+    {
+     "n": 19,
+     "meanPct": 0.7796
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "regime BULL",
+   "n": 46,
+   "meanPct": -0.4951,
+   "t": -1.695,
+   "winPct": 26.1,
+   "byWindow": [
+    {
+     "n": 32,
+     "meanPct": -0.3665
+    },
+    {
+     "n": 11,
+     "meanPct": -0.6945
+    },
+    {
+     "n": 3,
+     "meanPct": -1.1363
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "regime NEUTRAL",
+   "n": 74,
+   "meanPct": -0.1684,
+   "t": -0.55,
+   "winPct": 36.5,
+   "byWindow": [
+    {
+     "n": 36,
+     "meanPct": -0.5921
+    },
+    {
+     "n": 20,
+     "meanPct": 0.3198
+    },
+    {
+     "n": 18,
+     "meanPct": 0.1367
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "regime BEAR",
+   "n": 81,
+   "meanPct": -0.0357,
+   "t": -0.089,
+   "winPct": 40.7,
+   "byWindow": [
+    {
+     "n": 45,
+     "meanPct": -0.2266
+    },
+    {
+     "n": 18,
+     "meanPct": 0.12
+    },
+    {
+     "n": 18,
+     "meanPct": 0.286
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "above 200-day average",
+   "n": 90,
+   "meanPct": -0.2191,
+   "t": -0.796,
+   "winPct": 33.3,
+   "byWindow": [
+    {
+     "n": 54,
+     "meanPct": -0.5979
+    },
+    {
+     "n": 29,
+     "meanPct": 0.263
+    },
+    {
+     "n": 7,
+     "meanPct": 0.705
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "below 200-day average",
+   "n": 67,
+   "meanPct": -0.4275,
+   "t": -0.942,
+   "winPct": 32.8,
+   "byWindow": [
+    {
+     "n": 15,
+     "meanPct": -1.4128
+    },
+    {
+     "n": 20,
+     "meanPct": -0.3356
+    },
+    {
+     "n": 32,
+     "meanPct": -0.023
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "US fell >= 1% overnight",
+   "n": 38,
+   "meanPct": -0.4681,
+   "t": -1.251,
+   "winPct": 28.9,
+   "byWindow": [
+    {
+     "n": 27,
+     "meanPct": -0.2639
+    },
+    {
+     "n": 6,
+     "meanPct": -1.1227
+    },
+    {
+     "n": 5,
+     "meanPct": -0.7849
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "US within +-1%",
+   "n": 142,
+   "meanPct": -0.1452,
+   "t": -0.599,
+   "winPct": 37.3,
+   "byWindow": [
+    {
+     "n": 69,
+     "meanPct": -0.561
+    },
+    {
+     "n": 40,
+     "meanPct": 0.2069
+    },
+    {
+     "n": 33,
+     "meanPct": 0.2976
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "US rose >= 1% overnight",
+   "n": 26,
+   "meanPct": 0.0182,
+   "t": 0.043,
+   "winPct": 38.5,
+   "byWindow": [
+    {
+     "n": 22,
+     "meanPct": 0.127
+    },
+    {
+     "n": 3,
+     "meanPct": -0.2076
+    },
+    {
+     "n": 1,
+     "meanPct": -1.6974
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "crude fell >= 3%",
+   "n": 15,
+   "meanPct": -0.2957,
+   "t": -0.546,
+   "winPct": 33.3,
+   "byWindow": [
+    {
+     "n": 11,
+     "meanPct": -0.0671
+    },
+    {
+     "n": 2,
+     "meanPct": -2.2826
+    },
+    {
+     "n": 2,
+     "meanPct": 0.4338
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "crude within +-3%",
+   "n": 159,
+   "meanPct": -0.1053,
+   "t": -0.508,
+   "winPct": 37.1,
+   "byWindow": [
+    {
+     "n": 92,
+     "meanPct": -0.2526
+    },
+    {
+     "n": 41,
+     "meanPct": 0.1793
+    },
+    {
+     "n": 26,
+     "meanPct": -0.0331
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "crude rose >= 3%",
+   "n": 32,
+   "meanPct": -0.5233,
+   "t": -0.917,
+   "winPct": 31.3,
+   "byWindow": [
+    {
+     "n": 15,
+     "meanPct": -1.2712
+    },
+    {
+     "n": 6,
+     "meanPct": -0.3114
+    },
+    {
+     "n": 11,
+     "meanPct": 0.3809
+    }
+   ]
+  },
+  {
+   "rule": "B-SHORT its mirror (put stand-in)",
+   "situation": "every day",
+   "n": 210,
+   "meanPct": -0.2116,
+   "t": -0.978,
+   "winPct": 35.2,
+   "byWindow": [
+    {
+     "n": 122,
+     "meanPct": -0.4061
+    },
+    {
+     "n": 49,
+     "meanPct": 0.0187
+    },
+    {
+     "n": 39,
+     "meanPct": 0.1076
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "gap <= -1%",
+   "n": 36,
+   "meanPct": 0.0649,
+   "t": 0.465,
+   "winPct": 55.6,
+   "byWindow": [
+    {
+     "n": 21,
+     "meanPct": -0.0318
+    },
+    {
+     "n": 6,
+     "meanPct": 0.3307
+    },
+    {
+     "n": 9,
+     "meanPct": 0.1133
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "gap -1%..-0.3%",
+   "n": 176,
+   "meanPct": -0.0249,
+   "t": -0.454,
+   "winPct": 51.7,
+   "byWindow": [
+    {
+     "n": 110,
+     "meanPct": -0.0169
+    },
+    {
+     "n": 26,
+     "meanPct": 0.0327
+    },
+    {
+     "n": 40,
+     "meanPct": -0.0844
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "gap -0.3..+0.3%",
+   "n": 689,
+   "meanPct": -0.0956,
+   "t": -3.865,
+   "winPct": 42.5,
+   "byWindow": [
+    {
+     "n": 373,
+     "meanPct": -0.0848
+    },
+    {
+     "n": 166,
+     "meanPct": -0.1158
+    },
+    {
+     "n": 150,
+     "meanPct": -0.1002
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "gap +0.3..+1%",
+   "n": 310,
+   "meanPct": -0.0939,
+   "t": -3.073,
+   "winPct": 45.5,
+   "byWindow": [
+    {
+     "n": 229,
+     "meanPct": -0.1034
+    },
+    {
+     "n": 43,
+     "meanPct": -0.0632
+    },
+    {
+     "n": 38,
+     "meanPct": -0.072
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "gap >= +1%",
+   "n": 37,
+   "meanPct": 0.037,
+   "t": 0.332,
+   "winPct": 54.1,
+   "byWindow": [
+    {
+     "n": 22,
+     "meanPct": 0.1097
+    },
+    {
+     "n": 7,
+     "meanPct": 0.1806
+    },
+    {
+     "n": 8,
+     "meanPct": -0.2884
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "weekly expiry day",
+   "n": 267,
+   "meanPct": -0.1372,
+   "t": -3.354,
+   "winPct": 38.6,
+   "byWindow": [
+    {
+     "n": 159,
+     "meanPct": -0.1211
+    },
+    {
+     "n": 53,
+     "meanPct": -0.0754
+    },
+    {
+     "n": 55,
+     "meanPct": -0.2429
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "session before an expiry",
+   "n": 266,
+   "meanPct": -0.0366,
+   "t": -0.995,
+   "winPct": 47.7,
+   "byWindow": [
+    {
+     "n": 159,
+     "meanPct": -0.0674
+    },
+    {
+     "n": 52,
+     "meanPct": 0.0157
+    },
+    {
+     "n": 55,
+     "meanPct": 0.0027
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "monthly expiry week",
+   "n": 303,
+   "meanPct": -0.123,
+   "t": -3.153,
+   "winPct": 41.3,
+   "byWindow": [
+    {
+     "n": 180,
+     "meanPct": -0.1256
+    },
+    {
+     "n": 60,
+     "meanPct": 0.0325
+    },
+    {
+     "n": 63,
+     "meanPct": -0.2638
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "India VIX low (< 13.41)",
+   "n": 487,
+   "meanPct": -0.0722,
+   "t": -3.177,
+   "winPct": 43.5,
+   "byWindow": [
+    {
+     "n": 245,
+     "meanPct": -0.0402
+    },
+    {
+     "n": 87,
+     "meanPct": -0.096
+    },
+    {
+     "n": 155,
+     "meanPct": -0.1093
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "India VIX mid",
+   "n": 415,
+   "meanPct": -0.1064,
+   "t": -3.332,
+   "winPct": 43.9,
+   "byWindow": [
+    {
+     "n": 245,
+     "meanPct": -0.1074
+    },
+    {
+     "n": 131,
+     "meanPct": -0.0979
+    },
+    {
+     "n": 39,
+     "meanPct": -0.1291
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "India VIX high (>= 17.06)",
+   "n": 327,
+   "meanPct": -0.0517,
+   "t": -1.567,
+   "winPct": 49.8,
+   "byWindow": [
+    {
+     "n": 246,
+     "meanPct": -0.0805
+    },
+    {
+     "n": 30,
+     "meanPct": 0.1116
+    },
+    {
+     "n": 51,
+     "meanPct": -0.0088
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "NIFTY calm (20d vol < 10.1%)",
+   "n": 426,
+   "meanPct": -0.0727,
+   "t": -2.955,
+   "winPct": 44.4,
+   "byWindow": [
+    {
+     "n": 245,
+     "meanPct": -0.0728
+    },
+    {
+     "n": 68,
+     "meanPct": 0.0015
+    },
+    {
+     "n": 113,
+     "meanPct": -0.117
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "NIFTY normal vol",
+   "n": 434,
+   "meanPct": -0.1019,
+   "t": -3.136,
+   "winPct": 44.5,
+   "byWindow": [
+    {
+     "n": 245,
+     "meanPct": -0.0793
+    },
+    {
+     "n": 118,
+     "meanPct": -0.152
+    },
+    {
+     "n": 71,
+     "meanPct": -0.0968
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "NIFTY volatile (20d vol >= 14.4%)",
+   "n": 368,
+   "meanPct": -0.0555,
+   "t": -1.81,
+   "winPct": 47.6,
+   "byWindow": [
+    {
+     "n": 245,
+     "meanPct": -0.0739
+    },
+    {
+     "n": 62,
+     "meanPct": 0
+    },
+    {
+     "n": 61,
+     "meanPct": -0.0383
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "regime BULL",
+   "n": 461,
+   "meanPct": -0.0812,
+   "t": -3.716,
+   "winPct": 43,
+   "byWindow": [
+    {
+     "n": 339,
+     "meanPct": -0.0763
+    },
+    {
+     "n": 64,
+     "meanPct": -0.1231
+    },
+    {
+     "n": 58,
+     "meanPct": -0.0637
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "regime NEUTRAL",
+   "n": 439,
+   "meanPct": -0.0541,
+   "t": -1.88,
+   "winPct": 47.8,
+   "byWindow": [
+    {
+     "n": 221,
+     "meanPct": -0.0566
+    },
+    {
+     "n": 88,
+     "meanPct": -0.0019
+    },
+    {
+     "n": 130,
+     "meanPct": -0.085
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "regime BEAR",
+   "n": 299,
+   "meanPct": -0.0947,
+   "t": -2.649,
+   "winPct": 45.8,
+   "byWindow": [
+    {
+     "n": 146,
+     "meanPct": -0.0742
+    },
+    {
+     "n": 96,
+     "meanPct": -0.1019
+    },
+    {
+     "n": 57,
+     "meanPct": -0.1348
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "above 200-day average",
+   "n": 779,
+   "meanPct": -0.0864,
+   "t": -4.644,
+   "winPct": 44.4,
+   "byWindow": [
+    {
+     "n": 506,
+     "meanPct": -0.0676
+    },
+    {
+     "n": 164,
+     "meanPct": -0.1387
+    },
+    {
+     "n": 109,
+     "meanPct": -0.0948
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "below 200-day average",
+   "n": 270,
+   "meanPct": -0.0138,
+   "t": -0.304,
+   "winPct": 48.1,
+   "byWindow": [
+    {
+     "n": 50,
+     "meanPct": 0.0688
+    },
+    {
+     "n": 84,
+     "meanPct": 0.0585
+    },
+    {
+     "n": 136,
+     "meanPct": -0.0889
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "US fell >= 1% overnight",
+   "n": 159,
+   "meanPct": -0.0257,
+   "t": -0.351,
+   "winPct": 48.4,
+   "byWindow": [
+    {
+     "n": 110,
+     "meanPct": -0.0432
+    },
+    {
+     "n": 25,
+     "meanPct": 0.1272
+    },
+    {
+     "n": 24,
+     "meanPct": -0.1047
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "US within +-1%",
+   "n": 892,
+   "meanPct": -0.0726,
+   "t": -3.626,
+   "winPct": 45.4,
+   "byWindow": [
+    {
+     "n": 497,
+     "meanPct": -0.0661
+    },
+    {
+     "n": 199,
+     "meanPct": -0.0823
+    },
+    {
+     "n": 196,
+     "meanPct": -0.0791
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "US rose >= 1% overnight",
+   "n": 177,
+   "meanPct": -0.1514,
+   "t": -2.703,
+   "winPct": 42.4,
+   "byWindow": [
+    {
+     "n": 128,
+     "meanPct": -0.1387
+    },
+    {
+     "n": 24,
+     "meanPct": -0.1933
+    },
+    {
+     "n": 25,
+     "meanPct": -0.1761
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "crude fell >= 3%",
+   "n": 98,
+   "meanPct": -0.1441,
+   "t": -1.598,
+   "winPct": 44.9,
+   "byWindow": [
+    {
+     "n": 62,
+     "meanPct": -0.158
+    },
+    {
+     "n": 9,
+     "meanPct": 0.1462
+    },
+    {
+     "n": 27,
+     "meanPct": -0.2089
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "crude within +-3%",
+   "n": 1029,
+   "meanPct": -0.078,
+   "t": -3.996,
+   "winPct": 44.8,
+   "byWindow": [
+    {
+     "n": 625,
+     "meanPct": -0.0821
+    },
+    {
+     "n": 228,
+     "meanPct": -0.0852
+    },
+    {
+     "n": 176,
+     "meanPct": -0.0543
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "crude rose >= 3%",
+   "n": 101,
+   "meanPct": -0.0118,
+   "t": -0.128,
+   "winPct": 51.5,
+   "byWindow": [
+    {
+     "n": 48,
+     "meanPct": 0.1201
+    },
+    {
+     "n": 11,
+     "meanPct": 0.0245
+    },
+    {
+     "n": 42,
+     "meanPct": -0.1721
+    }
+   ]
+  },
+  {
+   "rule": "B-DAY NIFTY open->close",
+   "situation": "every day",
+   "n": 1248,
+   "meanPct": -0.0767,
+   "t": -4.792,
+   "winPct": 45.3,
+   "byWindow": [
+    {
+     "n": 755,
+     "meanPct": -0.0734
+    },
+    {
+     "n": 248,
+     "meanPct": -0.0719
+    },
+    {
+     "n": 245,
+     "meanPct": -0.0915
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "gap <= -1%",
+   "n": 36,
+   "meanPct": -1.6488,
+   "t": -2.933,
+   "winPct": 25,
+   "byWindow": [
+    {
+     "n": 21,
+     "meanPct": -2.3004
+    },
+    {
+     "n": 6,
+     "meanPct": -0.2477
+    },
+    {
+     "n": 9,
+     "meanPct": -1.0625
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "gap -1%..-0.3%",
+   "n": 176,
+   "meanPct": -0.4859,
+   "t": -2.696,
+   "winPct": 41.5,
+   "byWindow": [
+    {
+     "n": 110,
+     "meanPct": -0.4717
+    },
+    {
+     "n": 26,
+     "meanPct": -0.6042
+    },
+    {
+     "n": 40,
+     "meanPct": -0.448
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "gap -0.3..+0.3%",
+   "n": 689,
+   "meanPct": 0.0382,
+   "t": 0.378,
+   "winPct": 50.9,
+   "byWindow": [
+    {
+     "n": 373,
+     "meanPct": 0.3044
+    },
+    {
+     "n": 166,
+     "meanPct": -0.2774
+    },
+    {
+     "n": 150,
+     "meanPct": -0.2744
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "gap +0.3..+1%",
+   "n": 310,
+   "meanPct": 0.5244,
+   "t": 3.739,
+   "winPct": 65.2,
+   "byWindow": [
+    {
+     "n": 229,
+     "meanPct": 0.616
+    },
+    {
+     "n": 43,
+     "meanPct": 0.5813
+    },
+    {
+     "n": 38,
+     "meanPct": -0.0917
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "gap >= +1%",
+   "n": 37,
+   "meanPct": 2.3045,
+   "t": 4.065,
+   "winPct": 86.5,
+   "byWindow": [
+    {
+     "n": 22,
+     "meanPct": 1.6783
+    },
+    {
+     "n": 7,
+     "meanPct": 3.7476
+    },
+    {
+     "n": 8,
+     "meanPct": 2.7641
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "weekly expiry day",
+   "n": 267,
+   "meanPct": 0.0928,
+   "t": 0.8,
+   "winPct": 49.8,
+   "byWindow": [
+    {
+     "n": 159,
+     "meanPct": 0.2481
+    },
+    {
+     "n": 53,
+     "meanPct": -0.0106
+    },
+    {
+     "n": 55,
+     "meanPct": -0.2563
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "session before an expiry",
+   "n": 266,
+   "meanPct": 0.0857,
+   "t": 0.652,
+   "winPct": 54.9,
+   "byWindow": [
+    {
+     "n": 159,
+     "meanPct": 0.2484
+    },
+    {
+     "n": 52,
+     "meanPct": -0.036
+    },
+    {
+     "n": 55,
+     "meanPct": -0.2696
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "monthly expiry week",
+   "n": 303,
+   "meanPct": 0.2311,
+   "t": 1.105,
+   "winPct": 55.4,
+   "byWindow": [
+    {
+     "n": 180,
+     "meanPct": 0.4699
+    },
+    {
+     "n": 60,
+     "meanPct": -0.0404
+    },
+    {
+     "n": 63,
+     "meanPct": -0.1929
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "India VIX low (< 13.41)",
+   "n": 487,
+   "meanPct": 0.0071,
+   "t": 0.049,
+   "winPct": 51.1,
+   "byWindow": [
+    {
+     "n": 245,
+     "meanPct": 0.3297
+    },
+    {
+     "n": 87,
+     "meanPct": -0.3979
+    },
+    {
+     "n": 155,
+     "meanPct": -0.2756
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "India VIX mid",
+   "n": 415,
+   "meanPct": 0.0926,
+   "t": 0.592,
+   "winPct": 53.5,
+   "byWindow": [
+    {
+     "n": 245,
+     "meanPct": 0.2454
+    },
+    {
+     "n": 131,
+     "meanPct": -0.1738
+    },
+    {
+     "n": 39,
+     "meanPct": 0.0271
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "India VIX high (>= 17.06)",
+   "n": 327,
+   "meanPct": 0.2335,
+   "t": 0.75,
+   "winPct": 55.4,
+   "byWindow": [
+    {
+     "n": 246,
+     "meanPct": 0.16
+    },
+    {
+     "n": 30,
+     "meanPct": 1.512
+    },
+    {
+     "n": 51,
+     "meanPct": -0.1639
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "NIFTY calm (20d vol < 10.1%)",
+   "n": 426,
+   "meanPct": 0.1579,
+   "t": 1.068,
+   "winPct": 53.8,
+   "byWindow": [
+    {
+     "n": 245,
+     "meanPct": 0.2654
+    },
+    {
+     "n": 68,
+     "meanPct": 0.3485
+    },
+    {
+     "n": 113,
+     "meanPct": -0.1899
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "NIFTY normal vol",
+   "n": 434,
+   "meanPct": -0.0788,
+   "t": -0.483,
+   "winPct": 48.6,
+   "byWindow": [
+    {
+     "n": 245,
+     "meanPct": 0.2306
+    },
+    {
+     "n": 118,
+     "meanPct": -0.7641
+    },
+    {
+     "n": 71,
+     "meanPct": -0.0074
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "NIFTY volatile (20d vol >= 14.4%)",
+   "n": 368,
+   "meanPct": 0.2325,
+   "t": 0.812,
+   "winPct": 57.6,
+   "byWindow": [
+    {
+     "n": 245,
+     "meanPct": 0.2414
+    },
+    {
+     "n": 62,
+     "meanPct": 0.8782
+    },
+    {
+     "n": 61,
+     "meanPct": -0.4596
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "regime BULL",
+   "n": 461,
+   "meanPct": 0.0302,
+   "t": 0.207,
+   "winPct": 53.4,
+   "byWindow": [
+    {
+     "n": 339,
+     "meanPct": 0.1228
+    },
+    {
+     "n": 64,
+     "meanPct": -0.238
+    },
+    {
+     "n": 58,
+     "meanPct": -0.2154
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "regime NEUTRAL",
+   "n": 439,
+   "meanPct": 0.0696,
+   "t": 0.407,
+   "winPct": 51.9,
+   "byWindow": [
+    {
+     "n": 221,
+     "meanPct": 0.3027
+    },
+    {
+     "n": 88,
+     "meanPct": -0.1916
+    },
+    {
+     "n": 130,
+     "meanPct": -0.1498
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "regime BEAR",
+   "n": 299,
+   "meanPct": 0.2201,
+   "t": 0.831,
+   "winPct": 53.8,
+   "byWindow": [
+    {
+     "n": 146,
+     "meanPct": 0.437
+    },
+    {
+     "n": 96,
+     "meanPct": 0.209
+    },
+    {
+     "n": 57,
+     "meanPct": -0.3167
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "above 200-day average",
+   "n": 779,
+   "meanPct": 0.1261,
+   "t": 1.083,
+   "winPct": 55.7,
+   "byWindow": [
+    {
+     "n": 506,
+     "meanPct": 0.3188
+    },
+    {
+     "n": 164,
+     "meanPct": -0.2668
+    },
+    {
+     "n": 109,
+     "meanPct": -0.1775
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "below 200-day average",
+   "n": 270,
+   "meanPct": 0.2982,
+   "t": 0.89,
+   "winPct": 49.3,
+   "byWindow": [
+    {
+     "n": 50,
+     "meanPct": 1.5891
+    },
+    {
+     "n": 84,
+     "meanPct": 0.3778
+    },
+    {
+     "n": 136,
+     "meanPct": -0.2255
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "US fell >= 1% overnight",
+   "n": 159,
+   "meanPct": -0.4113,
+   "t": -1.507,
+   "winPct": 44,
+   "byWindow": [
+    {
+     "n": 110,
+     "meanPct": -0.7477
+    },
+    {
+     "n": 25,
+     "meanPct": 0.9192
+    },
+    {
+     "n": 24,
+     "meanPct": -0.2552
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "US within +-1%",
+   "n": 892,
+   "meanPct": 0.095,
+   "t": 0.862,
+   "winPct": 52.5,
+   "byWindow": [
+    {
+     "n": 497,
+     "meanPct": 0.3554
+    },
+    {
+     "n": 199,
+     "meanPct": -0.1851
+    },
+    {
+     "n": 196,
+     "meanPct": -0.2809
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "US rose >= 1% overnight",
+   "n": 177,
+   "meanPct": 0.5607,
+   "t": 3.279,
+   "winPct": 64.4,
+   "byWindow": [
+    {
+     "n": 128,
+     "meanPct": 0.6739
+    },
+    {
+     "n": 24,
+     "meanPct": 0.0761
+    },
+    {
+     "n": 25,
+     "meanPct": 0.4463
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "crude fell >= 3%",
+   "n": 98,
+   "meanPct": 0.6256,
+   "t": 2.504,
+   "winPct": 65.3,
+   "byWindow": [
+    {
+     "n": 62,
+     "meanPct": 0.6825
+    },
+    {
+     "n": 9,
+     "meanPct": 0.7993
+    },
+    {
+     "n": 27,
+     "meanPct": 0.4371
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "crude within +-3%",
+   "n": 1029,
+   "meanPct": 0.0544,
+   "t": 0.477,
+   "winPct": 52.2,
+   "byWindow": [
+    {
+     "n": 625,
+     "meanPct": 0.1834
+    },
+    {
+     "n": 228,
+     "meanPct": -0.0979
+    },
+    {
+     "n": 176,
+     "meanPct": -0.2065
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "crude rose >= 3%",
+   "n": 101,
+   "meanPct": 0.0132,
+   "t": 0.04,
+   "winPct": 50.5,
+   "byWindow": [
+    {
+     "n": 48,
+     "meanPct": 0.494
+    },
+    {
+     "n": 11,
+     "meanPct": 0.2816
+    },
+    {
+     "n": 42,
+     "meanPct": -0.6064
+    }
+   ]
+  },
+  {
+   "rule": "B-WEEK NIFTY 5 sessions",
+   "situation": "every day",
+   "n": 1248,
+   "meanPct": 0.1036,
+   "t": 0.899,
+   "winPct": 53.4,
+   "byWindow": [
+    {
+     "n": 755,
+     "meanPct": 0.2534
+    },
+    {
+     "n": 248,
+     "meanPct": -0.0485
+    },
+    {
+     "n": 245,
+     "meanPct": -0.2042
+    }
+   ]
+  }
+ ],
+ "terciles": {
+  "vix": [
+   13.40999984741211,
+   17.059999465942383
+  ],
+  "rv20": [
+   0.10111402044102631,
+   0.14363453785956723
+  ]
+ }
+}

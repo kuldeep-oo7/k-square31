@@ -1,0 +1,23 @@
+reset RELIANCE 2024-10-28: open/close(t-1) - 1 = -49.7% detected
+reset TATASTEEL 2022-07-28: open/close(t-1) - 1 = -89.8% detected
+reset IRCTC 2021-10-28: open/close(t-1) - 1 = -80.2% detected
+RISING ON THEIR OWN -- run 2026-10-02T18:08:46.079Z, prereg v2 sha256 2c64fd543840ed6b2578f0d679bfdb9cdfdc3635bb541a88d9b70620dbed6284 (verified)
+3377 EQ symbols, 1510 sessions; NIFTY in a downtrend on 311 entry sessions; 54 trades dropped for a reset
+
+H1 NIFTY down, stock RISING -> long  (the live rule)
+  development  mean -0.135%  t -1.43  win 31.9%  (3028 trades, 16 months)
+  validation   mean -0.002%  t -0.01  win 35.2%  (1641 trades, 10 months)
+  final        mean -0.444%  t -3.34  win 26.7%  (1680 trades, 6 months)
+  final one-sided p 9.90e-1 vs Holm 0.0500  ->  VERDICT: FAIL
+
+H2 NIFTY down, stock FALLING -> short (the live puts)
+  development  mean -0.163%  t -1.80  win 31.0%  (9385 trades, 16 months)
+  validation   mean -0.151%  t -1.07  win 31.8%  (6337 trades, 10 months)
+  final        mean -0.123%  t -0.48  win 35.0%  (3019 trades, 6 months)
+  final one-sided p 6.74e-1 vs Holm 0.0167  ->  VERDICT: FAIL
+
+H3 NIFTY not down, stock RISING -> long
+  development  mean +0.021%  t 0.38  win 35.9%  (33250 trades, 35 months)
+  validation   mean -0.173%  t -1.58  win 32.3%  (7416 trades, 13 months)
+  final        mean -0.105%  t -1.83  win 34.3%  (8632 trades, 12 months)
+  final one-sided p 9.53e-1 vs Holm 0.0250  ->  VERDICT: FAIL

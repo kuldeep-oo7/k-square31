@@ -482,17 +482,31 @@ function summarize(open, closed) {
       // win or lose together, so they are one result, not seven. The page
       // judges a hit rate on this count.
       resolvedBets: new Set(filledClosed.map((t) => `${t.sessionDate}|${t.symbol}|${t.kind}`)).size,
-      // THE 95% RANGE OF THE HIT RATE (Wilson score interval, 1927), on the
-      // number of SEPARATE bets rather than trades: strikes of one stock on one
-      // day are one piece of evidence, not several. Still generous when bets on
-      // one day move together, so the page draws no verdict from it below 30.
+      // THE 95% RANGE OF THE HIT RATE. Wilson (1927) on SEPARATE bets was still too narrow (audit F25,
+      // fixed 4 Oct 2026): on 29 Sep the 60 finished futures came from only 4 sessions, and bets on one
+      // day move together -- on the worst days about 95% of these stocks fall at once -- so a day, not a
+      // trade, is the unit of evidence. The range is now the WIDER of Wilson-on-bets and a session-
+      // clustered interval: p +/- t(G-1) x sqrt(G/(G-1) x sum over sessions (wins_s - p x n_s)^2) / N,
+      // G sessions, N trades. It can only be more cautious than before, never less. `sessions` goes
+      // to the page, which draws no verdict below 10 sessions.
       hitRate95: (() => {
         const n = new Set(filledClosed.map((t) => `${t.sessionDate}|${t.symbol}|${t.kind}`)).size;
         if (!resolved || !n) return null;
         const p = wins.length / resolved, z = 1.959964, z2 = z * z;
         const den = 1 + z2 / n, centre = (p + z2 / (2 * n)) / den;
         const half = (z * Math.sqrt((p * (1 - p)) / n + z2 / (4 * n * n))) / den;
-        return { lowPct: round(100 * Math.max(0, centre - half), 1), highPct: round(100 * Math.min(1, centre + half), 1), bets: n };
+        let low = Math.max(0, centre - half), high = Math.min(1, centre + half);
+        const bySession = new Map();
+        for (const t of filledClosed) { const g = bySession.get(t.sessionDate) || { n: 0, w: 0 }; g.n += 1; if (t.status === "TARGET") g.w += 1; bySession.set(t.sessionDate, g); }
+        const G = bySession.size;
+        if (G >= 2) {
+          const tcrit = [0, 12.706, 4.303, 3.182, 2.776, 2.571, 2.447, 2.365, 2.306, 2.262, 2.228, 2.201, 2.179, 2.16, 2.145, 2.131, 2.12, 2.11, 2.101, 2.093, 2.086];
+          const t = G - 1 <= 20 ? tcrit[G - 1] : G - 1 <= 30 ? 2.042 : G - 1 <= 60 ? 2.0 : 1.96;
+          let ss = 0; for (const g of bySession.values()) ss += (g.w - p * g.n) ** 2;
+          const se = Math.sqrt((G / (G - 1)) * ss) / resolved;
+          low = Math.min(low, Math.max(0, p - t * se)); high = Math.max(high, Math.min(1, p + t * se));
+        }
+        return { lowPct: round(100 * low, 1), highPct: round(100 * high, 1), bets: n, sessions: G };
       })(),
       expectedHitRatePct: expectedTarget.length ? round(expectedTarget.reduce((a, b) => a + b, 0) / expectedTarget.length, 1) : null,
       // IF PRICES MOVED AT RANDOM: how often the target would come before the

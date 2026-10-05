@@ -215,6 +215,13 @@ console.log("paper ledger:");
     const w = bets.ALL.hitRate95;
     check("the 95% range of a hit rate uses separate bets, not trades, and is wide when they are few (Wilson)",
       w && w.bets === 2 && w.lowPct < 5 && w.highPct > 65, JSON.stringify(w));
+    // F25: 40 trades on 2 sessions are 2 pieces of evidence, not 40 -- the range must be far wider than Wilson on 40.
+    const many = [];
+    for (let k = 0; k < 20; k += 1) many.push({ kind: "FUT", symbol: `A${k}`, sessionDate: "2026-09-28", status: "STOP", filledAt: "x", pnl: { pct: -1 } });
+    for (let k = 0; k < 20; k += 1) many.push({ kind: "FUT", symbol: `B${k}`, sessionDate: "2026-09-29", status: k < 8 ? "TARGET" : "STOP", filledAt: "x", pnl: { pct: 0 } });
+    const cl = L.summarize([], many).FUT.hitRate95;
+    check("a hit rate from 2 sessions gets a session-clustered range far wider than Wilson on 40 bets (audit F25)",
+      cl && cl.sessions === 2 && cl.lowPct === 0 && cl.highPct > 90, JSON.stringify(cl));
     const none = L.summarize([], []);
     check("no finished trade, no range", none.ALL.hitRate95 === null);
     check("strikes of one stock on one day count as one bet: 4 trades, 2 separate bets", bets.ALL.resolved === 4 && bets.ALL.resolvedBets === 2,

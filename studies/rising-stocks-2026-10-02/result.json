@@ -1,0 +1,84 @@
+{
+  "sha": "2c64fd543840ed6b2578f0d679bfdb9cdfdc3635bb541a88d9b70620dbed6284",
+  "verdicts": {
+    "H1": {
+      "development": {
+        "trades": 3028,
+        "months": 16,
+        "meanPct": -0.1346,
+        "t": -1.429,
+        "winPct": 31.90224570673712
+      },
+      "validation": {
+        "trades": 1641,
+        "months": 10,
+        "meanPct": -0.0021,
+        "t": -0.011,
+        "winPct": 35.16148689823279
+      },
+      "final": {
+        "trades": 1680,
+        "months": 6,
+        "meanPct": -0.4443,
+        "t": -3.341,
+        "winPct": 26.726190476190474
+      },
+      "p": 0.9897349862682525,
+      "holmAlpha": 0.05,
+      "verdict": "FAIL"
+    },
+    "H2": {
+      "development": {
+        "trades": 9385,
+        "months": 16,
+        "meanPct": -0.1628,
+        "t": -1.798,
+        "winPct": 30.996270644645712
+      },
+      "validation": {
+        "trades": 6337,
+        "months": 10,
+        "meanPct": -0.1508,
+        "t": -1.075,
+        "winPct": 31.84472147703961
+      },
+      "final": {
+        "trades": 3019,
+        "months": 6,
+        "meanPct": -0.1232,
+        "t": -0.48,
+        "winPct": 35.044716793640276
+      },
+      "p": 0.6742549667859646,
+      "holmAlpha": 0.016666666666666666,
+      "verdict": "FAIL"
+    },
+    "H3": {
+      "development": {
+        "trades": 33250,
+        "months": 35,
+        "meanPct": 0.0209,
+        "t": 0.381,
+        "winPct": 35.89172932330827
+      },
+      "validation": {
+        "trades": 7416,
+        "months": 13,
+        "meanPct": -0.1726,
+        "t": -1.578,
+        "winPct": 32.32200647249191
+      },
+      "final": {
+        "trades": 8632,
+        "months": 12,
+        "meanPct": -0.1046,
+        "t": -1.832,
+        "winPct": 34.2678405931418
+      },
+      "p": 0.9529300361355092,
+      "holmAlpha": 0.025,
+      "verdict": "FAIL"
+    }
+  },
+  "dropped": 54
+}

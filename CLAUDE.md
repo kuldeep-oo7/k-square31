@@ -75,7 +75,9 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
   gh release download page-check -p page-check.zip --clobber && unzip -o page-check.zip -d page-check
   ```
   Then read `page-check/shots/*.png`, `SHOOT.txt` and `AUDIT.txt`. The `expect` value is the
-  "Built … IST" stamp of the build you are waiting for.
+  "Built … IST" stamp of the build you are waiting for: the PAGE's stamp, which can be a minute
+  before the "desk: rebuilt" commit's time. TRACK's forward paper-test boxes are several screens
+  down: their photos are `*-track-paper-*.png`.
 - **NSE daily equity bhavcopy, every stock, from 2020-09:**
   ```
   gh release download data-nse-cm -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz
@@ -94,12 +96,13 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
   ```
   The same works with curl to api.github.com. Say which route worked.
 - **Packages:** run `npm install` first (the npm registry is allowed), then `npm run check`.
+- **Restore every study's data:** `bash scripts/restore-research-data.sh` (private releases `data-nse-cm` + `data-research`; `--no-sopt` skips the 257 MB stock options). `research/` is git-ignored: code + rules + results live in `studies/` (index: `studies/README.md`).
 - Research studies go in `studies/<name>-<date>/` on a `claude/...` branch: code, the
   registration, and the results. Never the data.
 - Already tested on this desk, all pre-registered:
   - FAIL: the composite rating, NIFTY candlesticks, the NIFTY trend reader, 12-1 momentum,
     time-series momentum, low volatility, the 10-month trend filter, and the US-overnight
-    and crude cues.
+    and crude cues; NIFTY gamma exposure, daily (4 Oct 2026: 0 PASS; branch claude/gex-2026-10-04, PR #1).
   - NOT TESTABLE: gap continuation, VIX spike.
   - Don't re-run these as "new".
 
@@ -114,18 +117,44 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     number exists. Then SOURCE-CHECK.txt, then one run on the `data-nse-cm` release, then
     RESULT.txt and READ-THIS-FIRST.txt.
   - A PASS goes to TRACK as paper only.
-- **Audit findings still open:**
-  - F3: the Global Macro Shock Shield gets a hard-coded `severity: "NORMAL"`
-    (`publish-static-desk.js`), so it never engages.
-  - F21: VWAP is unused (`advanced-quant.js calculateAnchoredVwap` is daily-bar only).
-  - F23: FINNIFTY and MIDCPNIFTY have no history on Yahoo. Use NSE's index history.
-  - F24: no order-flow input (OI build-up, depth) decides anything.
-  - F25: TRACK's "below break-even" range treats trades as independent, but they cluster on a
-    few sessions. It should be judged by session.
-  - F26: the futures tab cites a 5-SESSION study (t 0.75), while the live rule holds 20
-    sessions.
-  - F27: after hours the header shows India VIX's 15:30 value, not NSE's official close.
-  - Google Apps Script calls sometimes return 404 on Google's side. Retry idempotent calls.
+- **Audit findings, as of 4 Oct 2026:**
+  - FIXED:
+    - F3: the page now says no shock gate runs. Its inputs failed their tests. The K2-lang
+      "INDIA_VIX < 22" REQUIRE is evaluated, but nothing reads it.
+    - F23: FINNIFTY and MIDCPNIFTY get 2 years of NSE history from release data-nse-idx
+      (api/_lib/nse-index-history.js).
+    - F26: the false "t = 0.75" citation is replaced by the real rating replay
+      (research/rating-replay-2026-10-04: BUY/ACC −0.03%/trade FAIL; SELL/REDUCE shorts LOSE,
+      t −3.31).
+    - The NSE audit now compares after-hours futures with NSE's OFFICIAL close (closePrice), not
+      the last trade.
+    - F21 (2c21bb0): the futures rows show the day's VWAP (Angel's average traded price) as
+      information only; no VWAP rule has been tested.
+    - F25 (2c21bb0): TRACK's 95% hit-rate range is the wider of Wilson-on-bets and a
+      session-clustered interval, with no verdict under 10 sessions.
+    - F27 (dc428c8): after the close the header shows India VIX's official close from NSE.
+    - Google Apps Script: safe calls (reads, probes, document writes) retry on 404/408/429/5xx;
+      appends never retry (api/_lib/google-store.js).
+  - STARTED: order-flow recording. Each in-session build saves the best-5 order book, totals and
+    OI to the private release orderflow-rec (api/_lib/orderflow-recorder.js). Nothing decides on it
+    until there is a history to test.
+  - Still open:
+    - F24: depth is now recorded but not yet tested.
+- **Forward paper tests on TRACK (rules fixed before 5 Oct 2026; docs/paper-rules/*.json, written by
+  .github/workflows/springy-dip.yml at 07:45 IST):**
+  - springy dip;
+  - long-unwinding bounce;
+  - short build-up;
+  - NIFTY 2% strangle (option selling, information only);
+  - 150-day cross-down shorts A and B (scored against the market);
+  - cheap-vol straddle and industry reversal (studies/forward-v3-2026-10-04; "-" industries are one
+    group, as in the backtest; the industry file is pinned by sha256).
+  - Eight rules in all. Their daily NSE files live in release `data-paper-inputs`.
+- `npm run check` had outgrown Windows' command line: add new tests to `scripts/check-forward.js`,
+  not to the package.json chain.
+- **Testing standard:** protocol v2 (research/audit-2026-10-04/PROTOCOL.txt): the whole sample,
+  excess over the market for stock trades, t >= 3, with Holm and the Deflated Sharpe ratio reported.
+  The old final-year-only verdicts were underpowered.
 - **GM Global:** the workflows `gm-cloud-sync`, `gm-explore` and `gm-portfolio-dump` are
   disabled, and GM's secrets were deleted on 30 Sep. Removing the remaining GM code (the three
   workflows, `api/gm-sync.js`, `scripts/gm-*.js` and their tests) is approved, by pull request.

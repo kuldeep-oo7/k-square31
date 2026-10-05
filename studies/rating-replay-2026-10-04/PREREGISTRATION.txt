@@ -1,0 +1,58 @@
+PRE-REGISTRATION -- THE DESK'S OWN RATING, REPLAYED ON SIX YEARS OF NSE DATA (first real test)
+Written 4 Oct 2026 BEFORE any replayed rating or result was computed. sha256 in PREREGISTRATION.sha256.
+Judged under research/audit-2026-10-04/PROTOCOL.txt (protocol v2).
+
+WHY
+The page has cited "the BUY signal failed its pre-registered final test (1,205 trades, t = 0.75; panel
+study, 24 Sep 2026)". Reading scripts/apex-panel-study.js on 4 Oct 2026 showed it never ran the desk's
+rating. It tested a stand-in ("5-day return > 1%, 20-day > 2%, volume > 1.1x its 20-day average"), with
+the target counted before the stop on the same bar. The desk's actual rating has therefore never been
+tested on history. This replays it, unchanged.
+
+THE RATING (exactly the live code, as of commit b81325b; the candlestick term is neutral since 4 Oct)
+For each session d, for each stock of that month's universe:
+1. analyzeCandidate (api/_lib/unified-quant-scanner.js) on the stock's last 66 completed daily bars up to
+   d-1 (the live desk feeds about three months). Bars come from NSE's CM bhavcopy (open/high/low/close/
+   volume, series EQ, by symbol), unadjusted. A stock with a reset (an open >= 18% from the previous
+   close) inside those 66 bars is skipped that day.
+2. Cross-sectional percentiles across that day's rated stocks (universe-210.js):
+   - neural percentile on rawZ;
+   - composite percentile on rawCompScore. universe-210 also adds a balance-sheet adjustment from TODAY's
+     fundamentals; that is look-ahead on history, so it is NOT applied. Stated.
+3. Arbiter (universe-210.js):
+   - BUY: composite >= 90 and neural >= 75; ACCUMULATE: >= 75 and >= 60;
+   - SELL: <= 10 and <= 25; REDUCE: <= 25 and <= 40;
+   - STAND_ASIDE if NSE's results meeting for the stock falls between d and that week's Friday (the
+     results veto), or if the 20-session average traded value is under Rs 5 crore.
+Universe: the top 200 by 60-session median traded value with >= 250 bars after the last reset (protocol
+v2). The live desk uses the owner's 280-stock F&O list instead; the top 200 stands in for it.
+
+THE TRADES (each signal day is a trade, like TRACK; trades may overlap)
+- DESK GEOMETRY (the live futures rule, research/rising-stocks-2026-10-02):
+  LONG: buy = open(d) x 0.992 rounded down to 0.05, filled only if low(d) < buy; target +2.5%,
+  stop -1.5% (nearest 0.05); the stop first on any bar that touches both; gaps exit at the open; the
+  fill day's target does not count; at most 20 sessions.
+  SHORT: the exact mirror.
+- FIXED HOLD: open(d) to close(d+19), 20 sessions.
+Futures charges both legs, dated, quantity ceil(500000/price), a roll per month end crossed. A trade
+crossing a reset is dropped.
+
+MEMBERS (Holm across all 5)
+  G1  BUY or ACCUMULATE, desk geometry long  -- THE LIVE FUTURES/CALLS RULE. Scored on net return.
+  G2  BUY or ACCUMULATE, fixed 20-session long. Scored in EXCESS of B(d,20).
+  G3  SELL or REDUCE, desk geometry short    -- what the PUTS tab leans on. Scored on net.
+  G4  SELL or REDUCE, fixed 20-session short. Scored in EXCESS (net + B(d,20)).
+  G5  BUY only (the top tier), fixed 20-session long. Scored in EXCESS.
+
+VERDICT (protocol v2)
+Monthly series over the whole sample with a Newey-West(3) t: PASS at t >= 3, PROMISING at 2-3,
+otherwise FAIL. Holm across the 5 and the Deflated Sharpe probability are reported.
+
+WHAT THE RESULT DOES
+- G1 FAILS: the futures and calls tabs say "the desk's own rating was tested on six years of NSE
+  data and failed", with its numbers. That REPLACES the wrong t = 0.75 citation.
+- G1 PASSES: the tabs say so, with the numbers.
+Either way the false citation is removed.
+
+CODE CHECKS FIRST (synthetic only): the replay must reproduce a planted edge in a stock the rating
+favours; noise must not pass; changing future prices must leave earlier ratings and trades identical.

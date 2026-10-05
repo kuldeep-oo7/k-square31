@@ -15,6 +15,21 @@ const path = require("node:path");
 const CACHE_FILE = path.resolve(__dirname, "../../.private/cache/nse-market-context.json");
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36";
 
+const MON = { JAN: "01", FEB: "02", MAR: "03", APR: "04", MAY: "05", JUN: "06", JUL: "07", AUG: "08", SEP: "09", OCT: "10", NOV: "11", DEC: "12" };
+// NSE's official closes for the session in an allIndices timestamp ("01-Oct-2026 15:30:00"), or null.
+async function officialClose(timestamp, { fetcher = fetch } = {}) {
+  const m = /^(\d{2})-([A-Za-z]{3})-(\d{4})/.exec(String(timestamp || "")); if (!m || !MON[m[2].toUpperCase()]) return null;
+  try {
+    const res = await fetcher(`https://nsearchives.nseindia.com/content/indices/ind_close_all_${m[1]}${MON[m[2].toUpperCase()]}${m[3]}.csv`, { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(15_000) });
+    if (!res.ok) return null;
+    const out = {};
+    for (const line of (await res.text()).split(/\r?\n/)) { const f = line.split(",");
+      if (f[0] === "India VIX" && Number(f[5]) > 0) out.vix = { close: Number(f[5]), changePct: Number(f[7]) };
+      if (f[0] === "Nifty 50" && Number(f[5]) > 0) out.nifty = { close: Number(f[5]), changePct: Number(f[7]) }; }
+    return out.vix ? out : null;
+  } catch { return null; }
+}
+
 async function refreshMarketContext({ file = CACHE_FILE } = {}) {
   let record;
   try {
@@ -31,7 +46,16 @@ async function refreshMarketContext({ file = CACHE_FILE } = {}) {
     if (!(Number(vix?.last) > 0)) throw new Error("INDIA VIX not in NSE's reply");
     record = { ok: true, fetchedAt: new Date().toISOString(), nseTimestamp: body.timestamp || null,
       indiaVix: Number(vix.last), indiaVixChangePct: Number(vix.percentChange),
-      nifty: Number(nifty?.last) || null, niftyChangePct: Number.isFinite(Number(nifty?.percentChange)) ? Number(nifty.percentChange) : null };
+      nifty: Number(nifty?.last) || null, niftyChangePct: Number.isFinite(Number(nifty?.percentChange)) ? Number(nifty.percentChange) : null,
+      vixSource: "NSE allIndices" };
+    // THE OFFICIAL CLOSE ONCE THERE IS ONE (audit F27). After the close, allIndices keeps India VIX's
+    // 15:30 value (29 Sep 2026: 13.32), but NSE's official close is different (13.41). NSE publishes it
+    // in content/indices/ind_close_all_DDMMYYYY.csv that evening (checked 4 Oct 2026: 1 Oct 2026
+    // India VIX 14.46, Nifty 50 22,421.95). If that file exists for the session allIndices belongs
+    // to, its closes are used. During a session it does not exist yet, so the live value stands.
+    const official = await officialClose(body.timestamp);
+    if (official?.vix) Object.assign(record, { indiaVix: official.vix.close, indiaVixChangePct: official.vix.changePct, vixSource: "NSE official close (ind_close_all)",
+      ...(official.nifty ? { nifty: official.nifty.close, niftyChangePct: official.nifty.changePct } : {}) });
   } catch (error) {
     record = { ok: false, fetchedAt: new Date().toISOString(), reason: error.message };
   }
@@ -47,4 +71,4 @@ function loadMarketContext({ file = CACHE_FILE, now = Date.now(), maxAgeMs = 2 *
   } catch { return null; }
 }
 
-module.exports = { CACHE_FILE, refreshMarketContext, loadMarketContext };
+module.exports = { CACHE_FILE, refreshMarketContext, loadMarketContext, officialClose };

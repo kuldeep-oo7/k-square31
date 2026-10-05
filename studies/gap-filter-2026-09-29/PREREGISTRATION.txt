@@ -1,0 +1,88 @@
+PRE-REGISTRATION -- THE GAP-DOWN FILTER ON THE DESK'S OWN FUTURES RULES
+Written 2026-09-29 (IST, after midnight), BEFORE any result of this test was computed.
+Its sha256 is recorded before the study runs; nothing below may change after.
+
+WHY
+On Mon 28 Sep 2026 NIFTY 50 fell 1.56% (NSE: 23,140.50 -> 22,780.25) and the desk's
+futures took 23 stops and 1 target of 24 finished. The user asked for "only one" trade
+that makes money and approved a proper test (29 Sep). The desk's own ranking cannot be
+replayed on past days, and the rankings that can be replayed already failed on this
+panel (12-1 momentum, time-series momentum, low volatility, the 10-month trend filter;
+the desk's own ranking t = 0.75). What CAN be tested honestly is a timing rule on the
+desk's own futures geometry: do not take the day's buys on a morning NIFTY opens down.
+This is one rule, tested once.
+
+DATA (all from NSE's own site, saved beside this file before the study runs)
+- Stocks: the 97 names of .cache/panel-bars, daily open/high/low/close from NSE's
+  security-wise history (series EQ, unadjusted), 2021-09-01 .. 2026-09-28, following
+  renames through NSE's symbol-change file (nse-panel/). The Yahoo panel is NOT used: it
+  had wrong bars (IRFC 15 Jan 2024 flat at 109.55; NSE: 116.70 -> 130.10).
+  Today's large caps: survivorship bias, upward; stated.
+- Sessions: NSE's own NIFTY 50 index history (nifty-50-nse.json); a stock bar on a date
+  that is not in it is dropped.
+- NIFTY 50 open and previous close: the same file.
+- Removed stock-days (corporate-actions-nse.json and NSE's dividend filings):
+  (a) the ex-date of every bonus, split, consolidation, demerger, rights issue, scheme of
+      arrangement, capital reduction or amalgamation, and any day whose open/previous-close
+      ratio equals one of that stock's bonus or split ratios within 1.5%
+      (api/_lib/risk-view.js contaminatedDays);
+  (b) every ex-dividend date whose dividend per share is at least 1% of the previous
+      close (an unadjusted share drops by the dividend; a future does not);
+  (c) any day with no range (open = high = low = close).
+  A trade whose entry day or any holding session is a removed day is dropped.
+
+THE DESK'S FUTURES RULES (api/_lib/session-levels.js, scripts/paper-ledger.js), ON DAILY BARS
+Entry day d, every stock with a bar on d:
+- anchor = open(d); buy = anchor x 0.992 rounded DOWN to 0.05.
+- filled on d only if low(d) < buy (a trade through the limit); otherwise UNFILLED (a day
+  order; not a trade).
+- target = buy x 1.025, stop = buy x 0.985, each rounded to the nearest 0.05.
+- the fill day: low(d) <= stop is a STOP at the stop (the ambiguity counts against the
+  rule); a target touched on the fill day is NOT counted.
+- each later session s, up to the 20th session counting d as the first:
+  open(s) <= stop -> exit at open(s) (a gap); open(s) >= target -> exit at open(s);
+  low(s) <= stop -> exit at the stop (the stop first if both are touched);
+  high(s) >= target -> exit at the target. Otherwise exit at the close of the 20th
+  session. A trade still open when the data ends (2026-09-28) exits at the last close.
+- net return = exit / buy - 1 - charges, where charges = api/_lib/shadow-broker.js
+  calculateNseFuturesCharges for the BUY on d and the SELL on the exit day (the dated STT
+  schedule), quantity = ceil(500000 / buy) (about one NSE lot), divided by buy x quantity.
+LIMITATION, stated in advance: daily bars cannot say whether a day's low came before the
+desk's freeze time (09:16-09:33); the open stands in for the price at the freeze.
+
+THE SIGNAL
+gap(d) = NIFTY 50 open(d) / NIFTY 50 close(previous session) - 1.
+GAP-DOWN MORNING: gap(d) <= -0.50%. One threshold, fixed here, not varied.
+
+THE UNIT OF ANALYSIS
+The entry day. The day's return = the mean net return of that day's filled trades (a day
+with no fill is not an observation). Standard errors clustered by ISO week
+(api/_lib/panel.js clusterRobustMean): trades on one day, and days in one week, are not
+independent (on the worst days about 95% of these stocks fall together).
+
+WINDOWS (by entry day; the calendar every earlier study on this panel used)
+- development: before 2024-09-19
+- validation:  2024-09-19 .. 2025-09-17
+- final test:  2025-09-18 .. 2026-09-15
+
+PRIMARY HYPOTHESIS -- THE ONLY ONE THAT CAN PASS
+H1  FILTERED: every entry day EXCEPT gap-down mornings.
+    PASS = validation mean > 0
+           AND final mean > 0
+           AND final t >= the one-sided 5% Student-t critical value with
+               (number of final-window weeks - 1) degrees of freedom.
+    FAIL = anything else.
+
+SECONDARY (reported; none of them can pass anything)
+S1  UNFILTERED: every entry day.
+S2  GAP-DOWN MORNINGS ONLY.
+S3  H1 - S1 per window.
+
+WHAT A PASS MEANS, STATED IN ADVANCE
+- PAPER tracking on the TRACK tab only, never straight to real money; the page keeps
+  saying there is no proven edge until paper tracking agrees.
+- A FAIL means the filter does not make the desk's futures pay on this evidence, and the
+  page and the user are told so plainly.
+- Options are not tested: there is no five-year option price history here.
+- If a coding error surfaces after the first run, it is fixed to THIS text and both runs
+  are reported (as with the momentum study of 25 Sep).

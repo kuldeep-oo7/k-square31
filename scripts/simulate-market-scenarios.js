@@ -192,6 +192,9 @@ function makeMarket(state, dayBook) {
             : angelTradingSymbol(c.symbol, c.expiry, c.kind === "OPT" ? c.strike : null, c.kind === "OPT" ? c.optionType : null),
           // Angel's segment and token, as broker-feed.js now carries them.
           exchange: c.kind === "EQ" ? "NSE" : "NFO",
+          // The order book Angel's FULL quote carries (broker-feed.js bookOf); avg is the day's VWAP.
+          book: { buy: [[+(price * 0.9995).toFixed(2), 500, 3]], sell: [[+(price * 1.0005).toFixed(2), 400, 2]], totBuy: 150000, totSell: 98000,
+            avg: +((rng2.open + rng2.high + rng2.low + price) / 4).toFixed(2), lastQty: 25, tradeTime: null },
           token: String(100000 + ([...key].reduce((a, ch) => (Math.imul(a, 31) + ch.charCodeAt(0)) >>> 0, 7) % 900000)) };
       }
       return out;
@@ -415,6 +418,8 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       f.buy <= liveFut * 0.992 + 1e-6 && liveFut * 0.992 - f.buy < (f.tick || 0.05) + 1e-6, `${f.buy} vs ${(liveFut * 0.992).toFixed(2)}`);
     check("that NOW price is printed on the page", b.html.includes(Number(f.spot).toLocaleString("en-IN")));
     check("futures NOW is labelled live, with its time", /futures, live at \d\d:\d\d/.test(b.html));
+    check(`in session the day's VWAP is shown beside NOW (${f.symbol}), from the broker's average traded price`,
+      Number(f.vwap) > 0 && /day&rsquo;s VWAP/.test(b.html), String(f.vwap));
     check(`and the share's own price is shown beside it for comparison (${f.symbol})`,
       f.referenceKind === "share" && Math.abs(f.referencePrice - b.market.shareOf(f.symbol)) < 0.02, `share ${f.referencePrice}`);
     check("every F&O row is anchored on its contract, every share-only row on the share",

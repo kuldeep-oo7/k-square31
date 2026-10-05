@@ -1,0 +1,55 @@
+PRE-REGISTRATION -- THE DESK'S OWN NIFTY TREND READER, AS A DIRECTION FILTER
+Written 2026-09-29 ~20:55 IST, BEFORE any result of this test was computed.
+Its sha256 is recorded before the study runs; nothing below may change after.
+
+WHY
+On 28-29 Sep 2026 the market fell while the desk showed only buys. The desk has a trend
+reader (api/_lib/market-regime.js classifyMarketRegime) that has read NIFTY as
+BEAR_HOSTILE ("long setups restricted", shorts allowed) every day since at least
+21 Sep 2026, and it was never connected to the page. The user asked for puts when the
+market is going down. This tests whether that reader, used as a direction filter,
+would have made money on NIFTY over five years -- before real money relies on it.
+
+DATA
+- NIFTY 50 daily open/high/low/close from NSE's own index history
+  (research/gap-filter-2026-09-29/nifty-50-nse.json, 1,258 sessions,
+  2021-09-01 .. 2026-09-28).
+- The regime for entry day d = classifyMarketRegime(bars up to and including d-1): known
+  before d's open. Days before the reader has 200 sessions of history are still
+  classified by the module's own rules (it needs 50).
+
+THE DESK'S GEOMETRY, ON NIFTY, ON DAILY BARS (as the ledger scores trades)
+LONG on day d: buy = open(d) x 0.992 rounded down to 0.05; filled only if low(d) < buy;
+  target = buy x 1.025, stop = buy x 0.985 (nearest 0.05).
+SHORT on day d (the stand-in for a put; there is no five-year option history):
+  sell = open(d) x 1.008 rounded up to 0.05; filled only if high(d) > sell;
+  target = sell x 0.975, stop = sell x 1.015 (nearest 0.05).
+Both: the fill day's adverse touch is a STOP at the stop and its favourable touch is not
+counted; each later session up to the 20th: an open through the stop or the target exits
+at the open, else a stop touch exits at the stop (the stop first if both), else a target
+touch at the target; otherwise the 20th session's close. Data end: the last close.
+Net return = the move in the trade's favour / entry - charges (api/_lib/shadow-broker.js
+calculateNseFuturesCharges, entry and exit, quantity = ceil(500000 / entry), dated).
+
+HYPOTHESES
+H1 SHORTS IN DOWNTRENDS: every entry day whose regime is BEAR_HOSTILE, a short.
+   PASS = validation mean > 0 AND final mean > 0 AND final t >= the one-sided 5%
+   Student-t critical value with (final-window months - 1) degrees of freedom.
+H2 LONGS OUTSIDE DOWNTRENDS: every entry day whose regime is NOT BEAR_HOSTILE, a long.
+   PASS = the same three conditions.
+Reported, deciding nothing: longs on every day; longs in downtrends; shorts on every day.
+
+UNIT AND ERRORS
+One trade per entry day (NIFTY only). Consecutive days' 20-session trades overlap, so
+errors are clustered by CALENDAR MONTH (api/_lib/panel.js clusterRobustMean).
+
+WINDOWS (by entry day; the calendar of every earlier study)
+- development: before 2024-09-19; validation: 2024-09-19 .. 2025-09-17;
+- final test: 2025-09-18 .. 2026-09-15.
+
+WHAT THE RESULT DOES, STATED IN ADVANCE
+The reader goes on the page tonight in any case, because the user asked for the market's
+direction and puts when it falls: in a downtrend no new buy levels, index puts instead.
+The result decides only what the page SAYS about it: a PASS is "tested on five years:
+passed"; a FAIL is "tested on five years: did NOT make money -- shown because you asked,
+tracked on TRACK". Nothing here is a claim of an edge unless H1 or H2 passes.

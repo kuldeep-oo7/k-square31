@@ -1,0 +1,53 @@
+PRE-REGISTRATION -- CROSS-SECTIONAL MOMENTUM ON THE K2 F&O PANEL
+Written 2026-09-25, BEFORE any result of this test was computed.
+Its sha256 is recorded before the study runs; nothing below may change after.
+
+WHY
+The user asked to apply the "universal" methods of the trading map to their three
+instruments only (stock futures, calls, puts). Momentum was profiled on this panel
+before as a SHORT-TERM FILTER on 5-session ladder trades and flipped sign. The
+literature's momentum is a different strategy: rank stocks on their past-year
+return and HOLD the winners for a month or more. This tests that strategy once.
+
+DATA
+.cache/panel-bars: 97 NSE F&O large caps, daily bars 2021-09-15 .. 2026-09-15.
+Month-end close = the last daily close in each calendar month (IST date).
+
+THE ONE PRIMARY RULE (no variants will be run)
+- Formation at month-end F. Signal = 12-1 momentum = close(F-1) / close(F-12) - 1
+  (the past twelve months, skipping the most recent month).
+- Eligible: a stock with month-end closes at F-12, F-1, F and H = F+1.
+- Hold during month H (month-end F close to month-end H close), equal weight.
+- LONG leg  = the 10 highest signals.  SHORT leg = the 10 lowest signals.
+- Benchmark = the equal-weight average return of ALL eligible stocks in month H.
+  (Not Nifty: this panel is today's large caps and survivorship-biased; against the
+  index a long-only result would mostly measure that bias.)
+- Costs: 0.20% per month per leg (a full round trip each month: brokerage, STT,
+  exchange, stamp and slippage, assumed; NSE futures costs are not re-verified here).
+
+TWO RESULTS, REPORTED SEPARATELY
+- H1 (futures and calls):  LONG  - benchmark - 0.20%  per month.
+- H2 (puts):               benchmark - SHORT - 0.20%  per month.
+
+WINDOWS (by the last day of the holding month; the calendar of
+K2_PREREGISTERED_OUT_OF_SAMPLE_PROTOCOL.txt)
+- development: holding months ending before 2024-09-19   (Oct 2022 .. Aug 2024)
+- validation:  2024-09-19 .. 2025-09-17                  (Sep 2024 .. Aug 2025)
+- final test:  2025-09-18 .. 2026-09-15, complete months (Sep 2025 .. Aug 2026)
+
+DECISION RULE, FOR EACH OF H1 AND H2
+PASS  = final-test mean net monthly excess > 0
+        AND final-test t >= 1.6648 (plain t on monthly excess returns)
+        AND validation mean net monthly excess > 0
+FAIL  = anything else. There is no third outcome.
+
+WHAT A PASS MEANS, STATED IN ADVANCE
+- This data is NOT untouched: 12-1 momentum was profiled on all three windows before
+  (PANEL_STUDY_ROUND3, as a conditioner). So a PASS promotes the rule to PAPER
+  TRACKING on the desk's TRACK tab, never straight to live suggestions.
+- Low power: about 12 monthly returns per test window. A pass needs a large effect;
+  a FAIL is weak evidence against momentum, not proof that it never works.
+- Options are not backtested (no five-year option price history). H1 decides whether
+  calls on the long names are shown; H2 decides whether puts return at all.
+- Reversal, relative strength and distance from the 52-week high are NOT retested:
+  they flipped sign on this data already, and retesting them is searching.

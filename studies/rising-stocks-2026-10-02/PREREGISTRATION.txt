@@ -1,0 +1,96 @@
+PRE-REGISTRATION -- "RISING ON THEIR OWN" (the rule put live on the K2 desk on 2 Oct 2026)
+Written 2 Oct 2026 BEFORE any signal or result was computed on the real data below.
+Its sha256 is recorded in PREREGISTRATION.sha256 and checked by study.js; if it changes, the result is void.
+
+WHY
+On 2 Oct 2026 the desk began showing futures and calls on stocks in their own uptrend while NIFTY
+is in a downtrend (api/_lib/market-direction.js optionsView), at the owner's request, labelled
+"NOT YET TESTED". This tests it, and its two siblings, on NSE's own data.
+
+WHAT THIS DATA HAS ALREADY BEEN USED FOR
+The same windows were used by about ten earlier studies on this desk, all of which failed (HANDOVER.md).
+The final window is therefore not a clean holdout. A PASS here is a paper candidate, not a proof.
+
+DATA (NSE's own files only)
+- Stocks: NSE CM bhavcopy, every session 2020-09-01 .. 2026-10-01 (release data-nse-cm, built by
+  .github/workflows/nse-data.yml from nsearchives.nseindia.com): one file per session. Series EQ only,
+  keyed by ISIN (a symbol rename keeps its history). Fields: open, high, low, close, prevClose,
+  traded value.
+- NIFTY 50: NSE's own index history, nse-data/nifty-50-nse.json (2021-09-01 .. 2026-09-28).
+- Sessions: the dates that have a bhavcopy file.
+
+CORPORATE ACTIONS (splits, bonuses, other price resets)
+On a session t where a stock's prevClose differs from its own close on its previous session by more
+than 0.5%, factor(t) = prevClose(t) / close(t-1) marks a price reset. Signals are computed on prices
+back-adjusted by the product of later factors. Any trade whose holding window (entry session to exit
+session, both included) contains a reset day for that stock is DROPPED (counted and reported). If
+prevClose turns out NOT to carry the reset (checked on RELIANCE 28 Oct 2024 1:1 bonus, TATASTEEL
+28 Jul 2022 1:10 split, IRCTC 28 Oct 2021 1:5 split), the study stops before any signal is computed.
+Ordinary dividends are not adjusted: a share falls by its dividend and a future does not. Stated, not
+corrected.
+
+UNIVERSE (point in time)
+On the first session of each calendar month, the 200 EQ stocks with the highest median daily traded
+value over the previous 60 sessions, among stocks with at least 66 sessions of history. Held for that
+month. This stands in for the F&O list. Delisted names stay in, so there is no survivorship filter.
+
+THE SIGNALS (for entry session d, using completed sessions up to and including d-1 only)
+- NIFTY regime: api/_lib/market-regime.js classifyMarketRegime on every NIFTY bar up to d-1.
+  NIFTY_DOWN = regime "BEAR_HOSTILE" (close < EMA20 and EMA20 < SMA50).
+- Stock regime: the same function on the stock's last 66 back-adjusted bars up to d-1. That is what
+  the live desk feeds it: about three months of bars, so the 200-day test is not applied.
+  RISING = "BULL_TRENDING" (close >= EMA20 >= SMA50); FALLING = "BEAR_HOSTILE".
+- The live rule also excludes stocks the desk rates SELL or REDUCE. That rating cannot be replayed
+  historically, so it is NOT applied here. Stated.
+
+MEMBERS (the family; Holm across all three)
+H1 (the live rule)  NIFTY_DOWN and the stock RISING                  -> LONG
+H2 (the live puts)  NIFTY_DOWN and the stock FALLING                 -> SHORT
+H3 (normal market)  NIFTY not NIFTY_DOWN and the stock RISING        -> LONG
+Every universe stock on every session where its member's condition holds is one trade (as on the
+desk's TRACK, where each session's frozen level is a new paper trade; trades may overlap).
+
+TRADE GEOMETRY (the desk's futures rules; api/_lib/session-levels.js, scripts/paper-ledger.js)
+LONG: buy = open(d) x 0.992 rounded DOWN to 0.05. Filled on d only if low(d) < buy, otherwise it is not
+a trade. target = buy x 1.025, stop = buy x 0.985, each rounded to the nearest 0.05.
+- Fill day: low(d) <= stop -> exit at the stop. A target touched on the fill day is not counted.
+- Each later session s, up to the 20th session counting d as the first:
+  open(s) <= stop or open(s) >= target -> exit at open(s);
+  low(s) <= stop -> exit at the stop (the stop is first if both are touched);
+  high(s) >= target -> exit at the target.
+- Otherwise exit at the close of the 20th session. A trade still open at the end of the data exits at
+  the last close.
+SHORT (the exact mirror): sell = open(d) x 1.008 rounded UP to 0.05. Filled only if high(d) > sell.
+target = sell x 0.975, stop = sell x 1.015, nearest 0.05. Fill day: high(d) >= stop -> stop.
+Later: open >= stop or open <= target -> exit at open; high >= stop -> stop; low <= target -> target;
+else the 20th close. A short is a stand-in for a put, and does not price the option.
+Prices are the stock's actual (unadjusted) prices.
+
+COSTS
+api/_lib/shadow-broker.js calculateNseFuturesCharges on both legs, dated (asOfDate = the leg's
+session), quantity = ceil(500000 / entry price). Net return = signed price return - charges /
+(entry x quantity). A trade that crosses a month end pays one extra round trip at its exit price as
+a futures roll (an approximation, stated).
+
+WINDOWS (by entry session)
+development: before 2024-09-19 | validation: 2024-09-19 .. 2025-09-17 | final: 2025-09-18 .. 2026-09-15
+
+STATISTICS
+Unit: the trade. Mean net return in %, errors clustered by calendar month of entry
+(api/_lib/panel.js clusterRobustMean). One-sided p from Student-t with (months - 1) degrees of freedom.
+PASS (each member) = validation mean > 0 AND final mean > 0 AND the final p survives Holm-Bonferroni
+across the three members at 5% family-wise (smallest p against 0.05/3, the next against 0.05/2, the
+last against 0.05). Fewer than 30 final trades = NOT TESTABLE.
+Also reported, with no verdict: share of winners, trade counts, and trades dropped for resets.
+
+WHAT THE RESULT DOES, STATED IN ADVANCE
+- H1 FAILS: the page's rising-stocks sentence must say "tested: FAILED" with its numbers. The rows
+  stay (the owner wants them shown), tracked on TRACK.
+- H1 PASSES: the page says "passed on re-used data; paper first" with its numbers.
+- H2 and H3 are reported the same way and change nothing on the page by themselves.
+
+CODE CHECKS BEFORE THE REAL RUN (synthetic data only)
+(1) A planted edge (stocks that keep rising after a rising signal) must come out positive.
+(2) A pure random walk must not pass.
+(3) Changing every price after a cutoff must leave every trade entered before (cutoff - 21 sessions)
+    unchanged (no look-ahead).

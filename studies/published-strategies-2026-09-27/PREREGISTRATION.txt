@@ -1,0 +1,59 @@
+PRE-REGISTRATION -- THREE PUBLISHED STRATEGIES ON THE K2 F&O PANEL
+Written 2026-09-27, BEFORE any result of these tests was computed.
+Its sha256 is recorded before the study runs; nothing below may change after.
+
+WHY
+The user asked to test the best-known published strategies on their instruments
+(long stock futures, bought calls). Published anomalies lose 26% of their return
+out of sample and 58% after publication (McLean & Pontiff 2016, 97 anomalies), and
+with many strategies tried a t of 2 is not enough (Harvey, Liu & Zhu 2016: t > 3).
+So: a short list, rules fixed here, one run, a multiple-testing correction.
+Already tested on this panel and excluded (retesting is searching): 12-1
+cross-sectional momentum (FAIL 2026-09-25), short-term reversal, relative strength,
+distance from the 52-week high (sign flips, PANEL_STUDY_ROUND3).
+
+DATA
+.cache/panel-bars: 97 NSE F&O large caps, daily bars 2021-09-15 .. 2026-09-15.
+Month-end close = last daily close in each calendar month (IST date). Only complete
+months; the partial month holding 2026-09-15 is excluded. Formation month-end F,
+holding month H = F+1, return = close(H) / close(F) - 1.
+Benchmark = equal-weight mean return in month H of all eligible stocks.
+Cost = 0.20% per holding month per position change (as in the momentum study).
+
+THREE HYPOTHESES, EACH ONE RULE, NO VARIANTS
+T1  TIME-SERIES MOMENTUM (Moskowitz, Ooi & Pedersen 2012, applied per stock, long
+    only). Eligible: closes at F-12, F-1, F, H. LONG = every eligible stock with
+    close(F-1)/close(F-12) - 1 > 0, equal weight. Months with fewer than 10 such
+    stocks are skipped. Excess = LONG - benchmark - 0.20%.
+T2  LOW VOLATILITY (Frazzini & Pedersen 2014 "Betting against beta"; the low-risk
+    anomaly). Eligible: at least 60 daily closes in the 3 calendar months ending at
+    F, and a close at H. Volatility = standard deviation of daily log returns over
+    those months. LONG = the 10 lowest-volatility stocks, equal weight.
+    Excess = LONG - benchmark - 0.20%.
+T3  MARKET TREND FILTER (Faber 2007; time-series momentum on the market). Market
+    index = cumulative equal-weight benchmark return. Signal ON at F when the index
+    at F is above the mean of its last 10 month-end values (F-9 .. F). Strategy
+    return in H = benchmark if ON, 0 (cash) if OFF; minus 0.20% in any month the
+    signal changed from the month before. Excess = strategy - benchmark.
+
+WINDOWS (by the last trading day of the holding month; the protocol calendar)
+- development: before 2024-09-19
+- validation:  2024-09-19 .. 2025-09-17
+- final test:  2025-09-18 .. 2026-09-15
+
+DECISION RULE, FOR EACH OF T1, T2, T3
+PASS = final-test mean monthly excess > 0
+       AND final-test t >= the one-sided Student-t critical value at alpha = 0.05/3
+           (Bonferroni over three tests) with the final window's n-1 degrees of
+           freedom, computed numerically in study.js
+       AND validation mean monthly excess > 0.
+FAIL = anything else.
+
+WHAT A PASS MEANS, STATED IN ADVANCE
+- A PASS goes to PAPER tracking on the TRACK tab only, never straight to live
+  suggestions. About 12 months per window: power is low, so a FAIL is weak
+  evidence, not proof; a PASS needs a large effect.
+- The panel is today's large caps (survivorship); the benchmark is the same
+  panel, so the bias largely cancels in the excess.
+- Options are not backtested (no five-year option price history). A T1 or T2 PASS
+  would decide which names get calls; T3 whether calls are shown in a down market.

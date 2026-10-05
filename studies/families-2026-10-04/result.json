@@ -1,0 +1,353 @@
+{
+  "sha": "a28b988757ca3881be43f802c264d5f364a14639bc4f660d3b2e53815f5c1c8f",
+  "verdicts": {
+    "F1 delivery accumulation -> long 5d": {
+      "development": {
+        "trades": 7003,
+        "months": 36,
+        "meanPct": 0.3444,
+        "t": 2.149,
+        "winPct": 51.449378837641014,
+        "worstPct": -27.72701224162548
+      },
+      "validation": {
+        "trades": 2124,
+        "months": 13,
+        "meanPct": -0.0737,
+        "t": -0.206,
+        "winPct": 49.52919020715631,
+        "worstPct": -29.227327279905246
+      },
+      "final": {
+        "trades": 2015,
+        "months": 13,
+        "meanPct": -0.1195,
+        "t": -0.428,
+        "winPct": 45.06203473945409,
+        "worstPct": -23.528843238930992
+      },
+      "p": 0.6618839322809126,
+      "holmAlpha": 0.01,
+      "verdict": "FAIL"
+    },
+    "F2 delivery distribution -> short 5d": {
+      "development": {
+        "trades": 9664,
+        "months": 36,
+        "meanPct": -0.2021,
+        "t": -0.981,
+        "winPct": 48.18915562913907,
+        "worstPct": -42.33263335808346
+      },
+      "validation": {
+        "trades": 3135,
+        "months": 13,
+        "meanPct": 0.1335,
+        "t": 0.317,
+        "winPct": 51.834130781499205,
+        "worstPct": -26.70732860331075
+      },
+      "final": {
+        "trades": 2937,
+        "months": 13,
+        "meanPct": -0.0164,
+        "t": -0.096,
+        "winPct": 51.61729656111679,
+        "worstPct": -26.053134892981568
+      },
+      "p": 0.5374474033064628,
+      "holmAlpha": 0.005555555555555556,
+      "verdict": "FAIL"
+    },
+    "F3 NIFTY PCR high -> long 10d": {
+      "development": {
+        "trades": 252,
+        "months": 37,
+        "meanPct": 0.2749,
+        "t": 0.803,
+        "winPct": 60.317460317460316,
+        "worstPct": -8.982184297726636
+      },
+      "validation": {
+        "trades": 36,
+        "months": 12,
+        "meanPct": -1.1422,
+        "t": -1.691,
+        "winPct": 38.888888888888886,
+        "worstPct": -5.826560853351815
+      },
+      "final": {
+        "trades": 45,
+        "months": 12,
+        "meanPct": -0.1907,
+        "t": -0.37,
+        "winPct": 33.333333333333336,
+        "worstPct": -4.350234894205808
+      },
+      "p": 0.6407961897192076,
+      "holmAlpha": 0.008333333333333333,
+      "verdict": "FAIL"
+    },
+    "F4 NIFTY PCR low -> short 10d": {
+      "development": {
+        "trades": 253,
+        "months": 36,
+        "meanPct": -0.6843,
+        "t": -2.061,
+        "winPct": 40.316205533596836,
+        "worstPct": -9.985632868187519
+      },
+      "validation": {
+        "trades": 136,
+        "months": 12,
+        "meanPct": -0.0006,
+        "t": -0.001,
+        "winPct": 59.55882352941177,
+        "worstPct": -11.85311539851075
+      },
+      "final": {
+        "trades": 96,
+        "months": 13,
+        "meanPct": 0.2306,
+        "t": 0.5,
+        "winPct": 55.208333333333336,
+        "worstPct": -5.736526803472963
+      },
+      "p": 0.3130587985523286,
+      "holmAlpha": 0.004545454545454546,
+      "verdict": "FAIL"
+    },
+    "F5 futures carry top 10% -> long 5d": {
+      "development": {
+        "trades": 8146,
+        "months": 36,
+        "meanPct": 0.0803,
+        "t": 0.426,
+        "winPct": 50.90842131107292,
+        "worstPct": -32.240117894312576
+      },
+      "validation": {
+        "trades": 2786,
+        "months": 13,
+        "meanPct": -0.1696,
+        "t": -0.383,
+        "winPct": 46.37473079684135,
+        "worstPct": -21.23708840609027
+      },
+      "final": {
+        "trades": 2662,
+        "months": 13,
+        "meanPct": -0.096,
+        "t": -0.246,
+        "winPct": 46.95717505634861,
+        "worstPct": -32.907387176316895
+      },
+      "p": 0.5950801931124682,
+      "holmAlpha": 0.00625,
+      "verdict": "FAIL"
+    },
+    "F6 futures carry bottom 10% -> short 5d": {
+      "development": {
+        "trades": 8144,
+        "months": 36,
+        "meanPct": -0.0887,
+        "t": -0.396,
+        "winPct": 49.33693516699411,
+        "worstPct": -45.71208010049331
+      },
+      "validation": {
+        "trades": 2788,
+        "months": 13,
+        "meanPct": 0.0287,
+        "t": 0.068,
+        "winPct": 51.040172166427546,
+        "worstPct": -22.05608828659976
+      },
+      "final": {
+        "trades": 2666,
+        "months": 13,
+        "meanPct": -0.1423,
+        "t": -0.308,
+        "winPct": 51.80045011252813,
+        "worstPct": -44.547311995649295
+      },
+      "p": 0.618318472800693,
+      "holmAlpha": 0.0071428571428571435,
+      "verdict": "FAIL"
+    },
+    "F7 pairs (GGR) spread reversion": {
+      "development": {
+        "trades": 1045,
+        "months": 36,
+        "meanPct": 0.4092,
+        "t": 1.173,
+        "winPct": 62.96650717703349,
+        "worstPct": -45.132619924315
+      },
+      "validation": {
+        "trades": 317,
+        "months": 13,
+        "meanPct": -0.0009,
+        "t": -0.002,
+        "winPct": 56.15141955835962,
+        "worstPct": -32.43445855444892
+      },
+      "final": {
+        "trades": 236,
+        "months": 12,
+        "meanPct": -1.0297,
+        "t": -1.939,
+        "winPct": 55.932203389830505,
+        "worstPct": -96.54830078718112
+      },
+      "p": 0.9607124332514753,
+      "holmAlpha": 0.025,
+      "verdict": "FAIL"
+    },
+    "F8 turn of month NIFTY long": {
+      "development": {
+        "trades": 36,
+        "months": 36,
+        "meanPct": 0.5393,
+        "t": 1.947,
+        "winPct": 63.888888888888886,
+        "worstPct": -3.787536818603975
+      },
+      "validation": {
+        "trades": 12,
+        "months": 12,
+        "meanPct": -0.1573,
+        "t": -0.312,
+        "winPct": 41.666666666666664,
+        "worstPct": -4.086227471384772
+      },
+      "final": {
+        "trades": 12,
+        "months": 12,
+        "meanPct": 0.0407,
+        "t": 0.085,
+        "winPct": 58.333333333333336,
+        "worstPct": -2.7967230757447346
+      },
+      "p": 0.4668943685622396,
+      "holmAlpha": 0.005,
+      "verdict": "NOT TESTABLE"
+    },
+    "F9 monthly expiry week NIFTY long": {
+      "development": {
+        "trades": 36,
+        "months": 36,
+        "meanPct": -0.4413,
+        "t": -1.233,
+        "winPct": 47.22222222222222,
+        "worstPct": -5.7604226799837095
+      },
+      "validation": {
+        "trades": 12,
+        "months": 12,
+        "meanPct": 0.656,
+        "t": 1.154,
+        "winPct": 58.333333333333336,
+        "worstPct": -2.5856733752286987
+      },
+      "final": {
+        "trades": 13,
+        "months": 12,
+        "meanPct": -0.8806,
+        "t": -2.404,
+        "winPct": 23.076923076923077,
+        "worstPct": -2.195561876998571
+      },
+      "p": 0.9825079587336661,
+      "holmAlpha": 0.05,
+      "verdict": "NOT TESTABLE"
+    },
+    "F10 Monday NIFTY short": {
+      "development": {
+        "trades": 150,
+        "months": 37,
+        "meanPct": -0.0268,
+        "t": -0.566,
+        "winPct": 45.333333333333336,
+        "worstPct": -1.9237581850806942
+      },
+      "validation": {
+        "trades": 50,
+        "months": 13,
+        "meanPct": -0.0724,
+        "t": -0.607,
+        "winPct": 48,
+        "worstPct": -2.102965141322888
+      },
+      "final": {
+        "trades": 50,
+        "months": 13,
+        "meanPct": -0.1533,
+        "t": -1.653,
+        "winPct": 40,
+        "worstPct": -1.302704805112225
+      },
+      "p": 0.937882866347969,
+      "holmAlpha": 0.016666666666666666,
+      "verdict": "FAIL"
+    },
+    "F11 short NIFTY straddle to expiry": {
+      "development": {
+        "trades": 148,
+        "months": 37,
+        "meanPct": 0.0926,
+        "t": 1.42,
+        "winPct": 60.810810810810814,
+        "worstPct": -3.894072226113226
+      },
+      "validation": {
+        "trades": 49,
+        "months": 13,
+        "meanPct": 0.1389,
+        "t": 0.947,
+        "winPct": 61.224489795918366,
+        "worstPct": -2.6362839864343988
+      },
+      "final": {
+        "trades": 49,
+        "months": 13,
+        "meanPct": 0.1275,
+        "t": 1.237,
+        "winPct": 63.265306122448976,
+        "worstPct": -2.3922156759189455
+      },
+      "p": 0.11987428426413271,
+      "holmAlpha": 0.004166666666666667,
+      "verdict": "FAIL"
+    },
+    "F12 short BANKNIFTY straddle to expiry": {
+      "development": {
+        "trades": 198,
+        "months": 49,
+        "meanPct": 0.2112,
+        "t": 2.108,
+        "winPct": 61.111111111111114,
+        "worstPct": -11.122846189241454
+      },
+      "validation": {
+        "trades": 18,
+        "months": 10,
+        "meanPct": -0.1962,
+        "t": -0.45,
+        "winPct": 50,
+        "worstPct": -3.7303484285719364
+      },
+      "final": {
+        "trades": 12,
+        "months": 9,
+        "meanPct": -0.8978,
+        "t": -0.606,
+        "winPct": 58.333333333333336,
+        "worstPct": -15.427094773915096
+      },
+      "p": 0.7193444794585511,
+      "holmAlpha": 0.0125,
+      "verdict": "NOT TESTABLE"
+    }
+  }
+}

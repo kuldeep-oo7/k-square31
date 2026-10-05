@@ -201,6 +201,14 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
 
   // India VIX from NSE, read by prepare-static-build.js (null if unread).
   const marketContext = require("../api/_lib/nse-market-context").loadMarketContext();
+  // NO MACRO SHOCK SHIELD RUNS ON THIS PAGE, ON PURPOSE (audit F3, settled 4 Oct 2026). The shield
+  // (market-regime.js evaluateGlobalMacroShock: GIFT Nifty gap, India VIX spike, Brent spike, S&P
+  // futures gap) would stop every buy on a shock morning. Its inputs were tested on NSE's own data
+  // (research/situations-2026-09-29, pre-registered): a US overnight move FAILED (it pointed the wrong
+  // way in validation), a crude spike FAILED, a VIX spike was NOT TESTABLE (12 events). A gate built on
+  // failed signals would empty the page on an unproven premise, so severity stays NORMAL and the page
+  // says so. The K2-lang rule "REQUIRE ... INDIA_VIX < 22" is evaluated (unified-quant-scanner.js) but its
+  // result, k2StrategyPassed, is only reported -- no action reads it -- so there is NO VIX gate either.
   const macro = { severity: "NORMAL", shieldActive: false,
     indiaVix: marketContext ? { price: marketContext.indiaVix, source: "NSE allIndices", at: marketContext.nseTimestamp } : null };
   const reference = loadReference();
@@ -642,6 +650,10 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       symbol: r.symbol, tradingSymbol: levels.tradingSymbol || r.tradingSymbol,
       angelSymbol: levels.angelSymbol || null, expiry: levels.expiry || expiry,
       spot: shown.price, nowSource: shown.source, nowAtText: shown.atText, fnoListed: r.fnoListed === true,
+      // THE DAY'S VWAP (audit F21, 4 Oct 2026): NSE's average traded price for the session, which Angel's
+      // FULL quote carries as avgPrice (broker-feed.js bookOf). Shown only while the quote is live --
+      // information beside NOW, not a signal: no VWAP rule has been tested on this desk.
+      vwap: shown.live && Number(shownQuote?.book?.avg) > 0 ? round(Number(shownQuote.book.avg)) : null,
       liveToken: shownQuote?.token && shownQuote?.exchange ? `${shownQuote.exchange}:${shownQuote.token}` : null,
       priceBasis: levels.priceBasis || (anchorQuote === fq ? "CONTRACT" : "SHARE"),
       referencePrice: shown.referencePrice, referenceKind: shown.referenceKind,
@@ -863,6 +875,12 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     optionsDirection: { rule: view.rule, names: Object.keys(bullish).length, indices: view.indices,
       stocks: view.stocks.length, ratedDownNotFalling: view.ratedDownNotFalling, risingOnTheirOwn: view.risingOnTheirOwn || [] },
     direction,
+    // The OWN "springy dip" forward paper test, written each weekday morning by
+    // .github/workflows/springy-dip.yml from NSE's own files (null if not yet written).
+    springyDip: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "springy-dip.json"), "utf8")); } catch { return null; } })(),
+    oiFlow: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "oi-flow.json"), "utf8")); } catch { return null; } })(),
+    forwardV2: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v2.json"), "utf8")); } catch { return null; } })(),
+    forwardV3: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v3.json"), "utf8")); } catch { return null; } })(),
     gmMinUnits: GM_MIN_UNITS,
     marketContext: marketContext
       ? { ok: true, indiaVix: marketContext.indiaVix, indiaVixChangePct: marketContext.indiaVixChangePct,
@@ -885,6 +903,112 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     options,
     futures
   };
+}
+
+// THE OWN "SPRINGY DIP" RULE, ON PAPER, AGAINST THE FUTURE (studies/springy-dip-forward-2026-10-04).
+function springyBox(sd) {
+  if (!sd) return "";
+  const s = sd.summary || {};
+  const bt = sd.backtest || {};
+  const verdictTone = s.verdict === "PASS" ? "up" : s.verdict === "FAIL" ? "down" : "warn";
+  const pend = (sd.pending || []).map((p) => `<tr><td><b>${esc(p.symbol)}</b></td><td>buy at the open of the next session</td><td class="num">${esc(p.z).replace(/^-/, "&minus;")}</td><td class="num">${esc(p.ac).replace(/^-/, "&minus;")}</td></tr>`).join("");
+  const rows = (sd.trades || []).slice(0, 30).map((t) => `<tr><td><b>${esc(t.symbol)}</b></td><td>${esc(t.entryDate)}${t.exitDate ? ` &rarr; ${esc(t.exitDate)}` : ""}</td>
+    <td class="num">${t.entry ? esc(t.entry) : "&mdash;"}${t.exit ? ` &rarr; ${esc(t.exit)}` : ""}</td>
+    <td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${esc(t.netPct).replace(/^-/, "&minus;")}%`}</td></tr>`).join("");
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
+    <b>OWN RULE, FORWARD PAPER TEST: &ldquo;SPRINGY DIP&rdquo;</b> &mdash; a stock that tends to snap back (its daily moves reverse:
+    lag-1 autocorrelation under &minus;0.05 over 120 sessions) closing 2 standard deviations under its 20-day average; buy at the next open,
+    sell at the close 5 sessions later, after futures charges. <b>Backtest: FAILED</b> (too weak to rule out luck) &mdash; but the only one
+    of 10 dip rules positive in all three periods: ${esc(bt.developmentPct)}%, ${esc(bt.validationPct)}%, ${esc(bt.finalPct)}% a trade
+    (final year ${esc(bt.finalTrades)} trades, t ${esc(bt.finalT)}). So it is tested here on prices nobody has seen yet, from
+    ${esc(sd.start)}, on NSE's official open and close only; rules fixed in ${esc(sd.preregistration)}.
+    <b class="${verdictTone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanNetPct > 0 ? "+" : ""}${esc(s.meanNetPct)}% a trade, ${esc(s.winPct)}% winners, t ${esc(s.t ?? "&mdash;")}` : ""}
+    (a verdict needs 100 trades and 3 months). Data through ${esc(sd.dataThrough)}. <b>Not a recommendation until it passes.</b>
+    ${pend ? `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th><th class="num">Z</th><th class="num">AC</th></tr></thead><tbody>${pend}</tbody></table></div>` : `<div class="sub">No signal for the next session.</div>`}
+    ${rows ? `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">OPEN &rarr; CLOSE</th><th class="num">NET</th></tr></thead><tbody>${rows}</tbody></table></div>` : ""}
+  </div>`;
+}
+
+// TWO OPEN-INTEREST PATTERNS, ON PAPER, AGAINST THE FUTURE (studies/oi-flow-forward-2026-10-04).
+function oiFlowBox(of) {
+  if (!of) return "";
+  const mn = (v) => String(v).replace(/^-/, "&minus;");
+  const part = (k, title, act) => { const r = of[k] || {}; const s = r.summary || {}; const tone = s.verdict === "PASS" ? "up" : s.verdict === "FAIL" ? "down" : "warn";
+    const pend = (r.pending || []).map((p) => `<tr><td><b>${esc(p.symbol)}</b></td><td>${act}</td><td class="num">${mn(esc(p.pricePct))}%</td><td class="num">${mn(esc(p.oiPct))}%</td></tr>`).join("");
+    const done = (r.trades || []).slice(0, 15).map((t) => `<tr><td><b>${esc(t.symbol)}</b></td><td>${esc(t.entryDate)}${t.exitDate ? ` &rarr; ${esc(t.exitDate)}` : ""}</td><td class="num">${t.entry ? esc(t.entry) : "&mdash;"}${t.exit ? ` &rarr; ${esc(t.exit)}` : ""}</td><td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${mn(esc(t.netPct))}%`}</td></tr>`).join("");
+    return `<div style="margin-top:10px"><b>${title}</b> &mdash; ${esc(r.rule || "")}. Backtest: ${esc(r.backtest || "")}.
+      <b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanNetPct > 0 ? "+" : ""}${mn(esc(s.meanNetPct))}% a trade, ${esc(s.winPct)}% winners, t ${mn(esc(s.t ?? "&mdash;"))}` : ""}.
+      ${pend ? `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th><th class="num">PRICE</th><th class="num">OPEN INT.</th></tr></thead><tbody>${pend}</tbody></table></div>` : `<div class="sub">No signal for the next session.</div>`}
+      ${done ? `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">OPEN &rarr; CLOSE</th><th class="num">NET</th></tr></thead><tbody>${done}</tbody></table></div>` : ""}</div>`; };
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
+    <b>FORWARD PAPER TESTS: WHAT THE BIG POSITIONS DO (futures open interest)</b> &mdash; two patterns that FAILED their backtest but held one sign in every period,
+    now judged only on prices from ${esc(of.start)} (NSE&rsquo;s official open and close, after futures charges); rules fixed in ${esc(of.preregistration)}.
+    A verdict needs 100 trades and 3 months each. Data through ${esc(of.dataThrough)}. <b>Not recommendations until they pass.</b>
+    ${part("LU", "LONG-UNWINDING BOUNCE", "buy at the next open, sell 10 sessions later")}
+    ${part("SB", "SHORT BUILD-UP", "short at the next open, cover at the close")}
+  </div>`;
+}
+
+// THE PROTOCOL-v2 SURVIVORS, ON PAPER, AGAINST THE FUTURE (studies/forward-v2-2026-10-04).
+function forwardV2Box(fv) {
+  if (!fv) return "";
+  const mn = (v) => String(v).replace(/^-/, "&minus;");
+  const verdict = (s) => { s = s || {}; const tone = s.verdict === "PASS" ? "up" : s.verdict === "FAIL" ? "down" : "warn";
+    return `<b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a trade, ${esc(s.winPct)}% winners, worst ${mn(esc(s.worstPct))}%, t ${mn(esc(s.t ?? "&mdash;"))}` : ""}`; };
+  const shorts = (k, title) => { const r = fv[k] || {};
+    const pend = (r.pending || []).map((p) => `<tr><td><b>${esc(p.symbol)}</b></td><td>short at the next open, cover 10 sessions later</td></tr>`).join("");
+    const done = (r.trades || []).filter((t) => t.status === "DONE").slice(0, 15).map((t) => `<tr><td><b>${esc(t.symbol)}</b></td><td>${esc(t.entryDate)} &rarr; ${esc(t.exitDate)}</td><td class="num ${t.excessPct > 0 ? "up" : "down"}">${t.excessPct > 0 ? "+" : ""}${mn(esc(t.excessPct))}%</td></tr>`).join("");
+    return `<div style="margin-top:10px"><b>${title}</b> &mdash; ${esc(r.rule || "")}. Backtest: ${esc(r.backtest || "")}. ${verdict(r.summary)}.
+      ${pend ? `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th></tr></thead><tbody>${pend}</tbody></table></div>` : `<div class="sub">No signal for the next session.</div>`}
+      ${done ? `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">VS MARKET</th></tr></thead><tbody>${done}</tbody></table></div>` : ""}</div>`; };
+  const st = fv.STRANGLE || {};
+  const strRows = (st.trades || []).slice(0, 15).map((t) => `<tr><td>${esc(t.entryDate)} &rarr; ${esc(t.expiry)}</td><td class="num">${esc(t.putStrike)} PE / ${esc(t.callStrike)} CE</td><td class="num">${esc(t.premium)}</td>
+    <td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${mn(esc(t.netPct))}%`}</td></tr>`).join("");
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
+    <b>FORWARD PAPER TESTS: WHAT SURVIVED THE PROPER RE-TEST</b> (six years, against the market, t &ge; 3 &mdash; Harvey, Liu &amp; Zhu 2016) &mdash; judged only on
+    prices from ${esc(fv.start)}, NSE&rsquo;s official files; rules fixed in ${esc(fv.preregistration)}. Data through ${esc(fv.dataThrough)}. <b>Not recommendations until they pass.</b>
+    <div style="margin-top:10px"><b>NIFTY 2% STRANGLE (option SELLING)</b> &mdash; ${esc(st.rule || "")}. Backtest: ${esc(st.backtest || "")}. ${verdict(st.summary)} (a verdict needs 26 trades).
+      Selling needs margin and a crash can cost many weeks of premium &mdash; <b>information, not a row to buy on Zerodha</b>.
+      ${strRows ? `<div class="wrap"><table><thead><tr><th>WEEK</th><th class="num">STRIKES</th><th class="num">PREMIUM</th><th class="num">NET</th></tr></thead><tbody>${strRows}</tbody></table></div>` : `<div class="sub">First trade at the next weekly cycle.</div>`}</div>
+    ${shorts("MA150A", "SHORT: CLOSE CROSSES BELOW ITS 150-DAY AVERAGE")}
+    ${shorts("MA150B", "SHORT: 5-DAY AVERAGE CROSSES BELOW THE 150-DAY")}
+  </div>`;
+}
+
+// THE DESK'S OWN RATING, REPLAYED ON SIX YEARS OF NSE DATA (research/rating-replay-2026-10-04, pre-registered,
+// sha256 a7bcce9d..., run 4 Oct 2026, protocol v2). It REPLACES the "t = 0.75" citation, which came from
+// scripts/apex-panel-study.js -- a momentum stand-in, never the rating itself.
+const RATING_TEST = { stockDays: 236746, buyTrades: 32725, buyNetPct: -0.028, buyWinPct: 36.7, buyT: -0.44,
+  sellTrades: 35236, sellNetPct: -0.139, sellT: -3.31, sellVsMarketPct: -0.394 };
+
+// THE TWO NEAR MISSES, ON PAPER, AGAINST THE FUTURE (studies/forward-v3-2026-10-04).
+function forwardV3Box(fv) {
+  if (!fv) return "";
+  const mn = (v) => String(v).replace(/^-/, "&minus;");
+  const verdict = (s) => { s = s || {}; const tone = s.verdict === "PASS" ? "up" : s.verdict === "FAIL" ? "down" : "warn";
+    return `<b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a trade, ${esc(s.winPct)}% winners, worst ${mn(esc(s.worstPct))}%, t ${mn(esc(s.t ?? "&mdash;"))}` : ""}`; };
+  const cv = fv.CHEAPVOL || {}, ir = fv.INDREV || {};
+  const cvRows = (cv.trades || []).slice(0, 15).map((t) => `<tr><td><b>${esc(t.symbol)}</b> ${esc(t.strike)} straddle</td><td>${esc(t.entryDate)}${t.exitDate ? ` &rarr; ${esc(t.exitDate)}` : ""}</td>
+    <td class="num">IV ${esc(t.ivPct)}% / RV ${esc(t.rvPct)}%</td><td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${mn(esc(t.netPct))}%`}</td></tr>`).join("");
+  const irRows = (ir.rebalances || []).slice(0, 10).map((r) => `<tr><td>${esc(r.date)}</td><td>${esc((r.long || []).length)} long / ${esc((r.short || []).length)} short</td>
+    <td class="num ${r.netPct > 0 ? "up" : r.netPct < 0 ? "down" : ""}">${r.netPct === undefined ? esc(r.status) : `${r.netPct > 0 ? "+" : ""}${mn(esc(r.netPct))}%`}</td></tr>`).join("");
+  // * marks the names NSE's filings give no industry for: they are compared with each other as one group,
+  // as in the backtest (studies/forward-v3-2026-10-04/PREREGISTRATION.txt, "DATA LIMIT").
+  const noInd = new Set(ir.pendingNoIndustry || []);
+  const names = (list) => esc(list.map((s) => (noInd.has(s) ? `${s}*` : s)).join(", "));
+  const next = ir.status && ir.status !== "RUN" ? `<div class="sub"><b class="down">${esc(ir.status)}</b> &mdash; it is never computed with any other file.</div>`
+    : ir.pending ? `<div class="sub"><b>Next session is a rebalance.</b> Long (lagged their group): ${names(ir.pending.long)}. Short (led it): ${names(ir.pending.short)}.${noInd.size ? ` * = NSE gives no industry (${esc(noInd.size)} of ${esc(ir.pending.long.length + ir.pending.short.length)} names): compared with all such stocks together, as in the backtest.` : ""}</div>`
+    : `<div class="sub">Next rebalance in ${esc(ir.sessionsToNext)} session${ir.sessionsToNext === 1 ? "" : "s"}.</div>`;
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
+    <b>FORWARD PAPER TESTS: THE TWO NEAR MISSES</b> &mdash; each just missed the bar on six years of NSE data, so now judged only on prices from ${esc(fv.start)};
+    rules fixed in ${esc(fv.preregistration)}. Data through ${esc(fv.dataThrough)}. <b>Not recommendations until they pass.</b>
+    <div style="margin-top:10px"><b>CHEAP-VOLATILITY STRADDLE (option BUYING)</b> &mdash; ${esc(cv.rule || "")}. Backtest: ${esc(cv.backtest || "")}. ${verdict(cv.summary)} (a verdict needs 100 trades and 3 months).
+      Entry is the official close of the signal day &mdash; in practice near 15:25.
+      ${cvRows ? `<div class="wrap"><table><thead><tr><th>STRADDLE</th><th>DAYS</th><th class="num">IV / REALISED</th><th class="num">NET</th></tr></thead><tbody>${cvRows}</tbody></table></div>` : `<div class="sub">No signal yet.</div>`}</div>
+    <div style="margin-top:10px"><b>INDUSTRY-ADJUSTED REVERSAL (long-short futures)</b> &mdash; ${esc(ir.rule || "")}. Backtest: ${esc(ir.backtest || "")}. ${verdict(ir.summary)} (a verdict needs 26 rebalances).
+      ${next}
+      ${irRows ? `<div class="wrap"><table><thead><tr><th>REBALANCE</th><th>LEGS</th><th class="num">NET</th></tr></thead><tbody>${irRows}</tbody></table></div>` : ""}</div>
+  </div>`;
 }
 
 function page(d) {
@@ -1042,7 +1166,7 @@ function page(d) {
         <td class="num"><b>${px(r.buy)}</b>${expLine}</td>
         <td class="num up">${px(r.target1)}<div class="sub">${px(r.target2)}</div></td>
         <td class="num down">${px(r.stop)}</td>
-        <td class="num"${liveAttrs(r.liveToken, r.buy, r.frozen)}><span class="nowv">${px(r.spot)}</span><div class="sub nows ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.referencePrice
+        <td class="num"${liveAttrs(r.liveToken, r.buy, r.frozen)}><span class="nowv">${px(r.spot)}</span><div class="sub nows ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.vwap ? `<div class="sub">day&rsquo;s VWAP ${px(r.vwap)} &middot; NOW is ${r.spot >= r.vwap ? "above" : "below"} it</div>` : ""}${r.referencePrice
           ? `<div class="sub">${r.referenceKind === "future" ? "NSE future" : "share"} ${px(r.referencePrice)}</div>`
           : (r.fnoListed === false ? `<div class="sub">no NSE futures contract</div>` : "")}</td>
         <td class="num">${money(r.minCapital)}<div class="sub">${esc(r.minUnits)} units</div><div class="sub down">stop &minus;${money(r.minLossAtStop)}</div><div class="sub up">target +${money(r.minGainAtTarget)}</div></td>
@@ -1080,10 +1204,10 @@ function page(d) {
         <td class="num up">${esc(s.target)}</td><td class="num down">${esc(s.stop)}</td><td class="num">${esc(s.expired)}</td>
         <td class="num">${esc(s.unfilled)}</td>
         <td class="num"><b>${s.hitRatePct === null ? "&mdash;" : esc(s.hitRatePct) + "%"}</b><div class="sub">of ${esc(s.resolved)} finished${Number(s.resolvedBets) < Number(s.resolved) ? ` (${esc(s.resolvedBets)} separate bet${Number(s.resolvedBets) === 1 ? "" : "s"})` : ""}${Number(s.resolvedBets ?? s.resolved) < 30 ? " &mdash; too few to judge" : ""}</div>${s.hitRate95
-          ? `<div class="sub">95% range ${esc(s.hitRate95.lowPct)}&ndash;${esc(s.hitRate95.highPct)}%${Number(s.resolvedBets) >= 30 && s.randomHitRatePct !== null && s.randomHitRatePct !== undefined
+          ? `<div class="sub">95% range ${esc(s.hitRate95.lowPct)}&ndash;${esc(s.hitRate95.highPct)}%${s.hitRate95.sessions ? ` (${esc(s.hitRate95.sessions)} session${s.hitRate95.sessions === 1 ? "" : "s"}, each day counted as one piece of evidence)` : ""}${Number(s.resolvedBets) >= 30 && Number(s.hitRate95.sessions) >= 10 && s.randomHitRatePct !== null && s.randomHitRatePct !== undefined
             ? (s.hitRate95.lowPct > s.randomHitRatePct ? ` &mdash; <b class="up">above break-even</b>`
               : s.hitRate95.highPct < s.randomHitRatePct ? ` &mdash; <b class="down">below break-even</b>` : " &mdash; not yet distinguishable from break-even")
-            : ""}</div>` : ""}</td>
+            : Number(s.hitRate95.sessions) < 10 ? " &mdash; too few sessions to judge (10 needed)" : ""}</div>` : ""}</td>
         <td class="num">${s.randomHitRatePct === null || s.randomHitRatePct === undefined ? "&mdash;" : esc(s.randomHitRatePct) + "%"}${s.expectedHitRatePct !== null && s.expectedHitRatePct !== undefined ? `<div class="sub">touch odds said ${esc(s.expectedHitRatePct)}%</div>` : ""}</td>
         <td class="num">${hrs(s.medianHoursToFill)}</td><td class="num">${hrs(s.medianHoursToTarget)}</td>
         <td class="num ${Number(s.avgReturnPct) >= 0 ? "up" : "down"}">${label === "ALL"
@@ -1307,8 +1431,12 @@ function page(d) {
         ${signedPct(round(dtest.shortsFinalPct, 2))} a trade in the final year &mdash; ${esc(dtest.shortsFinalTrades)} trades, t = ${esc(dtest.shortsFinalT)},
         no different from nothing (the test was fixed before it was run). These puts are here because you asked for the market&rsquo;s direction,
         not because they are proven. <b>Rising against the market</b>: every build reads each stock&rsquo;s own trend; a stock over its own 20-day
-        average, with that over its 50-day, gets futures and calls even while NIFTY falls (not if the desk rates it SELL or REDUCE). That rule is
-        <b>NOT YET TESTED</b>. Each row is tracked on TRACK from the moment it is shown.`, "red"]
+        average, with that over its 50-day, gets futures and calls even while NIFTY falls (not if the desk rates it SELL or REDUCE).
+        <b>Tested first, and it FAILED</b>: on NSE&rsquo;s own files 2020&ndash;2026 (the 200 most traded stocks, this desk&rsquo;s buy-limit, target and stop, after charges),
+        buying them made ${signedPct(dtest.rising?.finalPct ?? -0.444)} a trade in the final year &mdash; ${esc(dtest.rising?.finalTrades ?? 1680)} trades,
+        ${esc(dtest.rising?.finalWinPct ?? 26.7)}% winners where 37.5% are needed to break even. Shorting the falling stocks in a downtrend also failed
+        (${signedPct(dtest.stockShorts?.finalPct ?? -0.123)} a trade). They are shown because you asked to see them, not because they work.
+        Each row is tracked on TRACK from the moment it is shown.`, "red"]
     : [`<b>MARKET DIRECTION: ${dir.regime === "BULL_TRENDING" ? "UP" : "MIXED"}</b> &mdash; NIFTY is not in a downtrend: buys as usual, and puts only in a downtrend.${dir.stale ? ` <b class="warn">(close of ${dirDay(dir.asOf)})</b>` : ""}`,
        `${dirLevels} The desk&rsquo;s trend reader (market-regime.js) calls a close under the 20-day average, with the 20-day under the
         50-day, a downtrend; then this page shows puts, and buys only on the stocks rising on their own.${dirStale} Tested on five years of NSE&rsquo;s own NIFTY data:
@@ -1444,8 +1572,10 @@ ${feedAlarm}
     <h2>Futures &mdash; ${esc(d.gmMinUnits || 20)} units each (GM Global's minimum)</h2>
     ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`,
       `<b>With no trend, a row's target comes before its stop at most as often as its break-even (about 37.5%)</b> &mdash; a price with no trend is a fair game &mdash;
-       so before GM's charges these rows make money only if the BUY signal works. That signal failed its pre-registered final test
-       (1,205 trades, t = 0.75; panel study, 24 Sep 2026).`)}
+       so before GM's charges these rows make money only if the BUY signal works. <b>It was tested and FAILED</b>: the desk&rsquo;s own rating,
+       replayed day by day on six years of NSE&rsquo;s own prices (${RATING_TEST.stockDays.toLocaleString("en-IN")} stock-days), bought on this tab&rsquo;s limit, target and stop,
+       made &minus;${Math.abs(RATING_TEST.buyNetPct)}% a trade after charges, ${RATING_TEST.buyWinPct}% winners where 37.5% are needed
+       (${RATING_TEST.buyTrades.toLocaleString("en-IN")} trades, t = &minus;${Math.abs(RATING_TEST.buyT)}).`)}
     ${riskBox(d.risk?.futures, "futures")}
     ${d.watchStatus ? `<details class="fold sub lead"><summary>Watching your ${esc(d.watchStatus.stocks)} stocks &mdash; which are priced how<span class="more"></span></summary><div>Watching your ${esc(d.watchStatus.stocks)} stocks
       (${esc(d.watchStatus.source)}): ${esc(d.watchStatus.withFutures)} have an NSE futures contract,
@@ -1488,10 +1618,11 @@ ${feedAlarm}
        about &minus;${money(Math.abs(sumOf(calls, (c) => c.noTrendNet)))} across all ${esc(calls.length)} rows, one lot each${calls.some((c) => c.spreadKnown === false)
          ? `, <b>plus the bid-ask spread</b>, which is not known without a live book (${esc(calls.filter((c) => c.spreadKnown === false).length)} of these rows)` : ""}.
        ${esc(calls.filter((c) => Number(c.vrp) > 1).length)} of ${esc(calls.length)} are priced above the stock&rsquo;s own recent movement (implied above realised), which makes it worse.
-       They make money only if the BUY signal works, and it failed its pre-registered final test (1,205 trades, t = 0.75; panel study, 24 Sep 2026).` : "")}
+       They make money only if the BUY signal works, and <b>it failed</b>: the desk&rsquo;s own rating, replayed on six years of NSE&rsquo;s prices, made
+       &minus;${Math.abs(RATING_TEST.buyNetPct)}% a trade on its BUY and ACCUMULATE rows (${RATING_TEST.buyTrades.toLocaleString("en-IN")} trades, ${RATING_TEST.buyWinPct}% winners).` : "")}
     ${riskBox(d.risk?.calls, "calls")}
     ${d.optionsDirection && !downtrendPage ? `<div class="sub" style="margin:-4px 0 10px">Only on the stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
-    ${downtrendPage ? `<div class="sub" style="margin:-4px 0 10px"><b>NIFTY is falling, so only stocks rising on their own</b> (over their own 20-day and 50-day averages): ${esc(rising.length)} found on this build. Untested rule &mdash; tracked on TRACK.</div>` : ""}
+    ${downtrendPage ? `<div class="sub" style="margin:-4px 0 10px"><b>NIFTY is falling, so only stocks rising on their own</b> (over their own 20-day and 50-day averages): ${esc(rising.length)} found on this build. <b class="down">Tested: FAILED</b> &mdash; ${signedPct(dtest.rising?.finalPct ?? -0.444)} a trade in the final year (MARKET DIRECTION, above). Tracked on TRACK.</div>` : ""}
     ${calls.length ? oldFileNote : ""}
     ${optionTable(calls, downtrendPage
       ? "No call cleared every gate on the stocks rising on their own (NIFTY is in a downtrend, MARKET DIRECTION above). Puts are on the PUTS tab."
@@ -1507,6 +1638,10 @@ ${feedAlarm}
        ${esc(puts.filter((c) => Number(c.vrp) > 1).length)} of ${esc(puts.length)} are priced above their own recent movement (implied above realised), which makes it worse.
        They make money only if the fall continues, and selling NIFTY in these downtrends failed its pre-registered test (final year t = ${esc(dtest.shortsFinalT)}).` : "")}
     ${riskBox(d.risk?.puts, "puts")}
+    ${puts.some((c) => !c.isIndex) ? `<div class="sub warn" style="margin:-4px 0 10px"><b>The stock puts lean on the desk&rsquo;s SELL and REDUCE ratings, and those were tested: shorting them LOST.</b>
+      Replayed on six years of NSE&rsquo;s prices, shorting every SELL/REDUCE row on this desk&rsquo;s limit, target and stop made &minus;${Math.abs(RATING_TEST.sellNetPct)}% a trade
+      (${RATING_TEST.sellTrades.toLocaleString("en-IN")} trades, t = &minus;${Math.abs(RATING_TEST.sellT)} &mdash; reliably negative), and over 20 sessions those stocks did slightly
+      BETTER than the market. They are shown because you asked for the falling names, not because the rating picks fallers.</div>` : ""}
     ${downtrendPage && puts.length ? `<div class="sub" style="margin:-4px 0 10px">Looked for on ${esc((od.indices || []).join(", "))} and on the ${esc(od.stocks ?? 0)} stocks rated SELL or REDUCE that are falling themselves;
       ${esc(putNames.length)} had contracts that cleared every gate, the indices first. One side per name, the side the market&rsquo;s direction points to.</div>` : ""}
     ${puts.length ? oldFileNote : ""}
@@ -1517,6 +1652,10 @@ ${feedAlarm}
 
   <section class="pane pane-trk">
     <h2>Track record &mdash; every price shown, bought on paper the moment it appeared</h2>
+    ${springyBox(d.springyDip)}
+    ${oiFlowBox(d.oiFlow)}
+    ${forwardV2Box(d.forwardV2)}
+    ${forwardV3Box(d.forwardV3)}
     ${trackPane}
   </section>
 </main>
@@ -1530,10 +1669,14 @@ ${feedAlarm}
 </div>
 
 <div class="note" style="margin-top:20px;border-left-color:var(--red)">
+  <b>NO SHOCK SHIELD.</b> Nothing on this page stops buys on a bad global morning &mdash; not a GIFT Nifty gap, a crude or S&amp;P move, or an India VIX spike.
+  Those signals were tested on NSE&rsquo;s own data and failed (or had too few events to test), so they do not gate anything. Check the market yourself before acting on a shock day.
+</div>
+<div class="note" style="margin-top:20px;border-left-color:var(--red)">
   <b>WHAT THIS DOES NOT ESTABLISH.</b> That any of it makes money. The paper ledger
   has ${esc(d.track?.summary?.ALL?.resolved ?? 0)} resolved trade(s) so far &mdash; far too few for a measured hit
   rate &mdash; and every test fixed in advance so far, on data never used to build the rule, found no edge:
-  the desk's own ranking (final year t = 0.75), 12-1 momentum, time-series momentum, low volatility, a
+  the desk's own rating (replayed on six years of NSE data: &minus;0.03% a trade on its buys, and its SELL/REDUCE shorts LOST &minus;0.14% a trade, t = &minus;3.3), 12-1 momentum, time-series momentum, low volatility, a
   10-month market trend filter, and the NIFTY trend reader that now chooses between buys and puts
   (selling NIFTY in its downtrends: final year t = 0.21) &mdash; all six FAIL. The ranking is built on
   things that were measured, which is not the same as an edge that was proven. Size accordingly.

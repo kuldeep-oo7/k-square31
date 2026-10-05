@@ -212,12 +212,36 @@ jobs:
             echo "no broker credentials configured; prices will come from the settlement file"
           fi
 
+      - name: NSE's own index history (FINNIFTY and MIDCPNIFTY have none on Yahoo)
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: mkdir -p nse-idx && gh release download data-nse-idx -p nse-idx.json -D nse-idx --clobber && ls -l nse-idx
+
       - name: Fetch the exchange contract file, the instrument master and today's bars
         # A brand-new runner has none of this. Every step inside is non-fatal:
         # a snapshot that admits what it is beats a blank page, and beats a
         # confident page built on nothing.
         continue-on-error: true
         run: node scripts/prepare-static-build.js
+
+      - name: Record the order books (private release orderflow-rec)
+        # The build saved this session's order books (best 5 bids/asks, totals, OI) to orderflow/<date>.jsonl;
+        # append them to that day's file on the PRIVATE release, so an order-flow history builds up.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          shopt -s nullglob
+          files=(orderflow/*.jsonl)
+          if [ ${#files[@]} -eq 0 ]; then echo "nothing recorded on this build"; exit 0; fi
+          gh release view orderflow-rec >/dev/null 2>&1 || gh release create orderflow-rec --title "Order-flow recordings (data)" --notes "Order books (best 5 bids/asks, totals, OI) from Angel One FULL quotes, one line per in-session desk build. api/_lib/orderflow-recorder.js. Private data, not a release of the desk." --latest=false
+          for f in "${files[@]}"; do
+            day=$(basename "$f" .jsonl); asset="of-$day.jsonl.gz"
+            rm -f "$asset"; gh release download orderflow-rec -p "$asset" --clobber 2>/dev/null || true
+            { [ -f "$asset" ] && gunzip -c "$asset"; cat "$f"; } | gzip -c > "$asset.new" && mv "$asset.new" "$asset"
+            gh release upload orderflow-rec "$asset" --clobber && echo "$asset: $(gunzip -c "$asset" | wc -l) builds recorded"
+          done
 
       - name: Build the page and freeze the day's levels
         run: node scripts/publish-static-desk.js

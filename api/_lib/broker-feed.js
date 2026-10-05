@@ -525,6 +525,7 @@ async function angelOptionChain(symbol, expiry, { timeoutMs = 20_000, strikesEit
       }, null),
       // Angel's quote carries no greeks; the separate optionGreek endpoint does.
       greeksAvailable: false,
+      book: bookOf(row),
       // The exchange's own clock. When we asked is not when the exchange
       // priced it, and after the close those differ by hours.
       exchangeFeedTime: row.exchFeedTime || null,
@@ -562,6 +563,16 @@ async function angelOptionChain(symbol, expiry, { timeoutMs = 20_000, strikesEit
  * Batched, because Angel caps a quote request at 50 tokens and 210 names would
  * otherwise be 210 round trips.
  */
+// THE ORDER BOOK AS ANGEL SENDS IT (mode FULL: best 5 bids and asks with quantity and number of
+// orders, total buy and sell quantity, average traded price; SmartAPI docs, Market Data / Quote,
+// checked 4 Oct 2026). Kept so every build can RECORD order flow (api/_lib/orderflow-recorder.js) --
+// nothing decides on it yet; there is no history of it to test until it has been recorded.
+function bookOf(row) {
+  const side = (xs) => (Array.isArray(xs) ? xs.slice(0, 5).map((x) => [num(x?.price), num(x?.quantity), num(x?.orders)]) : []);
+  return { buy: side(row?.depth?.buy), sell: side(row?.depth?.sell), totBuy: num(row?.totBuyQuan), totSell: num(row?.totSellQuan),
+    avg: num(row?.avgPrice), lastQty: num(row?.lastTradeQty), tradeTime: row?.exchTradeTime || null };
+}
+
 async function futuresQuotes(requests, { timeoutMs = 20_000, batchSize = 50 } = {}) {
   const credentials = credentialsFor("angelone");
   if (!credentials) return { ok: false, reason: "NOT_CONFIGURED_NO_CREDENTIALS", quotes: {} };
@@ -617,6 +628,7 @@ async function futuresQuotes(requests, { timeoutMs = 20_000, batchSize = 50 } = 
           lotSize: contract.lotSize,
           // The exchange's own clock, so staleness is measurable.
           exchangeFeedTime: row.exchFeedTime || null,
+          book: bookOf(row),
           provider: "angelone", source: "ANGELONE_SMARTAPI_FUTURES_LIVE"
         };
       }
@@ -751,6 +763,7 @@ async function contractQuotes(contracts, { timeoutMs = 20_000, batchSize = 50, m
           // hours, and only this one says which session the price belongs to.
           exchangeFeedTime: row.exchFeedTime || null,
           exchangeTradeTime: row.exchTradeTime || null,
+          book: bookOf(row),
           provider: "angelone", source: "ANGELONE_SMARTAPI_QUOTE"
         };
       }

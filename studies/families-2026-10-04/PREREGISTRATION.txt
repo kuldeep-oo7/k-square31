@@ -1,0 +1,82 @@
+PRE-REGISTRATION -- INSTITUTIONAL FOOTPRINTS AND THE UNTESTED TRADING FAMILIES
+Written 4 Oct 2026 BEFORE any signal or result was computed for these rules. sha256 in PREREGISTRATION.sha256.
+
+WHY
+The owner asked to test the institutional footprints (delivery, option positioning) and the
+trading-style families not yet tried: futures carry, pairs trading, calendar effects and the
+options volatility premium. Every member is a short-horizon TRADE (the owner, 4 Oct: "trading,
+not investing"). Bulk/block deals were dropped BEFORE any test. NSE's history API returns at most
+70 rows per request, so a complete history cannot be read (checked 4 Oct: a week and a month both
+returned exactly 70).
+
+DATA (NSE's own files, checked on NSE 3-4 Oct 2026)
+- CM bhavcopy 2020-09..2026-10 (release data-nse-cm); NIFTY 50 history (nifty-50-nse.json).
+- F&O bhavcopy, futures rows (research/orderflow-2026-10-03/nse-fo/fut) and option aggregates
+  (nse-extra/opt), both from content/historical/DERIVATIVES (to 2024-07-05) and content/fo (UDiFF).
+- Delivery: products/content/sec_bhavdata_full_DDMMYYYY.csv (DELIV_PER), series EQ.
+Universe, resets, windows and costs are as in research/ta-atlas-2026-10-03:
+- top 200 by 60-session median traded value, at least 250 bars after the last reset;
+- a reset is an open >= 18% from the previous close; a trade crossing a reset is dropped;
+- futures charges both legs, dated, ceil(500000/price), a roll per month end crossed;
+- options pay api/_lib/trade-costs.js round-trip charges.
+
+MEMBERS (Holm across all 12; each one a trade)
+INSTITUTIONAL FOOTPRINTS
+  F1  Delivery accumulation. DELIV_PER(d-1) >= the 90th percentile of the stock's own previous 60
+      sessions' DELIV_PER, AND close(d-1) > close(d-2) -> long open(d) to close(d+4).
+      Source: IIM Calcutta WP 863: delivery % rises before large institutional (bulk) trades.
+  F2  Delivery distribution. The same delivery condition AND close(d-1) < close(d-2) -> short,
+      open(d) to close(d+4).
+  F3  NIFTY option put-call ratio, contrarian. PCR = total NIFTY put OI / call OI (all expiries)
+      on d-1. Top tercile (cut-offs from development days only) -> long NIFTY open(d) to
+      close(d+9). Source: Jena et al. 2019: OI-PCR predicts NIFTY returns over about 12 days.
+  F4  The same, bottom tercile -> short NIFTY.
+FUTURES CARRY (Koijen, Moskowitz, Pedersen & Vrugt 2018, "Carry", JFE)
+  F5  Each session, the near-month stock future with 5..30 calendar days to expiry:
+      carry = (spot close(d-1) / future close(d-1) - 1) x 365 / days-to-expiry. Universe stocks
+      in the top 10% of carry (the future cheapest against the share) -> long that future,
+      open(d) to close(d+4), only if the contract does not expire inside the hold.
+  F6  The bottom 10% -> short that future.
+PAIRS TRADING (Gatev, Goetzmann & Rouwenhorst 2006, RFS)
+  F7  On the first session of each month: among universe stocks, normalise each price to 1 at the
+      start of the previous 250 sessions; pick the 20 pairs with the smallest sum of squared
+      differences. During the next 125 sessions, when a pair's normalised spread moves more than 2
+      of its formation-period standard deviations, short the high one and buy the low one at the
+      next open. Close at the next open after the spread crosses zero, or at the last close of the
+      125 sessions. Each pair trades at most once at a time. Return = the average of the two legs.
+      Both legs pay futures charges.
+CALENDAR (all on NIFTY, index as the stand-in for its future, futures charges)
+  F8  Turn of the month (Ariel 1987; Lakonishok & Smidt 1988): long from the open of the last
+      session of a month to the close of the 3rd session of the next month.
+  F9  Monthly-expiry week: long from the open of the 4th session before each NIFTY FUTIDX expiry
+      to the close of the expiry session. Expiries from
+      research/situations-2026-09-29/nifty-expiries-nse.json (NSE's own list).
+  F10 Monday: short from the Monday open to the Monday close. A Monday that is a holiday is skipped.
+OPTIONS VOLATILITY PREMIUM (Carr & Wu 2009, "Variance Risk Premiums", RFS)
+  F11 Short NIFTY straddle. On the first session of each NIFTY weekly-expiry cycle with 4 to 10
+      calendar days left, sell the call and the put at the strike nearest to NIFTY's close, at their
+      closing prices; hold to expiry, settled at intrinsic value against NIFTY's close on the
+      expiry date. Return = (premium - payout - charges) / NIFTY close, as % of notional.
+      The worst single trade is also reported.
+  F12 The same with BANKNIFTY (monthly expiries only once NSE dropped its weeklies; nearest expiry
+      with 4..35 days left), against the BANKNIFTY close from the futures file's IDX rows (nearest
+      future's close as the index stand-in).
+
+WINDOWS
+development: before 2024-09-19 | validation: 2024-09-19 .. 2025-09-17 | final: 2025-09-18 .. 2026-09-15
+
+STATISTICS
+The unit is the trade, clustered by calendar month (api/_lib/panel.js clusterRobustMean).
+p is one-sided Student-t with (months - 1) df.
+PASS = validation mean > 0 AND final mean > 0 AND the final p survives Holm across all 12 at 5%.
+Fewer than 30 final trades = NOT TESTABLE.
+
+WHAT THE RESULT DOES
+A PASS goes to TRACK as a forward paper test (like the springy dip), labelled, before any money.
+F11/F12 are option SELLING. Even if they pass, they come with their worst-day loss on the page.
+They need margin, which the owner's Zerodha options buying does not have, so they would be
+information, not a row to buy.
+
+CODE CHECKS FIRST (synthetic only)
+A planted edge per family type must be found; noise must not pass; changing future prices must
+leave earlier trades identical.

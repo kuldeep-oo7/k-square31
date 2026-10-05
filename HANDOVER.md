@@ -5,6 +5,74 @@ Read this together with `CLAUDE.md`. This note covers what lived only on the lap
 secrets in it. `research/` itself stays on the laptop (owner's rule: never commit it), so the
 numbers are copied here.
 
+
+## LATEST STATE: 4 Oct 2026 (read this first; the sections below are older)
+
+**What is live on the page**:
+- FUTURES and CALLS show stocks rising on their own; PUTS show indices plus SELL/REDUCE stocks in
+  their own downtrend, while NIFTY is in its downtrend (since 2 Sep).
+- Every rule above has been TESTED and FAILED. The page quotes the numbers, and the rows are shown
+  because the owner wants them.
+- The desk's own rating was replayed on 6 years of NSE data
+  (studies/rating-replay-2026-10-04):
+  - BUY/ACCUMULATE: −0.03%/trade;
+  - SELL/REDUCE shorts LOSE (t −3.31).
+- The candlestick term is neutral in the rating (it measurably hurt: t −3.33).
+
+**Forward paper tests on TRACK from Mon 5 Oct 2026** (rules locked in studies/*-forward-*; updated
+07:45 IST by .github/workflows/springy-dip.yml):
+- springy dip;
+- long-unwinding bounce;
+- short build-up;
+- NIFTY 2% strangle (selling, information only);
+- 150-day cross-down shorts A and B (scored against the market);
+- cheap-vol straddle and industry-adjusted reversal (studies/forward-v3-2026-10-04; the options
+  study's two near misses, t 1.94 and 1.98).
+
+Eight rules in docs/paper-rules/*.json (springy-dip, oi-flow LU+SB, forward-v2 STRANGLE+MA150A+MA150B,
+forward-v3 CHEAPVOL+INDREV). These are the ONLY candidates; check their running scores before
+anything else. Earliest possible verdicts: about 3 months (100 trades and 3 months); the strangle and
+INDREV need 26 (about 6 months).
+- The NSE daily files they read (F&O, index, NIFTY and stock options) are kept in release
+  data-paper-inputs; the job stops (commits nothing) if a folder no longer reaches back before 5 Oct.
+- INDREV's industries: NSE's filings give "-" for about a third of the top 200; the study treated
+  "-" as one group and so does the forward test (stated in its registration, before commit). Its
+  industry file is pinned by sha256 47c3516e...; another file shows NOT RUN.
+
+**NIFTY gamma exposure (4 Oct, evening):** pre-registered, one run, 0 PASS (studies/gex-2026-10-04 on branch
+claude/gex-2026-10-04, PR #1). Dealers are short gamma on only 2.4% (US convention) / 7.0% (NSE participant split) of days.
+
+**Testing standard: protocol v2** (studies/audit-2026-10-04/PROTOCOL.txt). Earlier "FAIL" verdicts
+from final-year-only tests mean "unproven". Every study's code, rules and results are in studies/
+(see studies/README.md). The data is restored with `bash scripts/restore-research-data.sh` (private
+releases data-nse-cm and data-research).
+
+**Fixed 4 Oct:**
+- the audit's after-hours futures check (official close);
+- F3: the page says no shock gate runs (there is also no VIX gate);
+- F23: FINNIFTY/MIDCPNIFTY history from NSE (release data-nse-idx);
+- F25: TRACK's range is clustered by session, with no verdict below 10 sessions;
+- F26: the false t = 0.75 citation is replaced;
+- F27: official India VIX close after hours;
+- Google 404 retries on safe calls only;
+- F21: the day's VWAP is shown beside NOW in session.
+
+**Recording**: order books (best 5, totals, OI) are recorded on every in-session build, starting
+5 Oct, to the private release orderflow-rec. An order-flow study needs weeks of it first.
+
+**What the evidence says, in one line:** buying options pays the sellers. Buying a straddle across
+results loses −5.6%/trade (t −6.7), and buying NIFTY straddles loses in every period. Breakouts,
+candles, chart patterns, indicators, ML, FII/OI/delivery signals and the desk's rating show no edge
+on daily NSE data after costs. The only survivors are option-selling premia and a few
+mean-reversion / short-weak-stock leads now on forward test.
+
+**Do next (cheap first):**
+1. Monday: verify the 09:16/09:33 builds. Check the order-flow line in the build log ("N futures and
+   N option books recorded"), the 07:45 paper-rule job and the TRACK boxes.
+2. Near misses worth a NEW registration + forward test: the cheap-vol straddle (t 1.94) and the
+   industry-adjusted reversal (t 1.98).
+3. After 4-8 weeks of orderflow-rec: pre-register an order-book imbalance test.
+
 ## Every study run so far (all on the desk's NSE panel; all FAIL or NOT TESTABLE)
 
 Unless noted, every study was pre-registered: the rules were sha256-hashed before any result

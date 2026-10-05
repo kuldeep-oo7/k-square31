@@ -54,11 +54,11 @@ function readHistory(symbol, { dir = DIR } = {}) {
   }
 }
 
-function saveHistory(symbol, rows, { dir = DIR, now = Date.now() } = {}) {
+function saveHistory(symbol, rows, { dir = DIR, now = Date.now(), provider = "YahooFinance" } = {}) {
   fs.mkdirSync(dir, { recursive: true });
   const file = fileFor(symbol, dir);
   const tmp = `${file}.tmp.${process.pid}`;
-  fs.writeFileSync(tmp, JSON.stringify({ symbol, fetchedAt: new Date(now).toISOString(), provider: "YahooFinance", range: RANGE, rows }));
+  fs.writeFileSync(tmp, JSON.stringify({ symbol, fetchedAt: new Date(now).toISOString(), provider, range: RANGE, rows }));
   fs.renameSync(tmp, file);
 }
 

@@ -1,0 +1,76 @@
+PRE-REGISTRATION -- DIRECTION SIGNALS THE USER NAMED, AND EVERY DESK RULE BY MARKET SITUATION
+Written 2026-09-29 ~23:40 IST, BEFORE any result of this study was computed.
+Its sha256 is recorded before the study runs; nothing below may change after.
+
+WHY
+The user, 29 Sep 2026: "do the back test every strategy ... through multiple scenarios like
+gap down gap up near expiry expiry date itself non volatile market high volatile market bullish
+bearish every type of the market situation from around the world", and earlier: "global
+markets ... oil ... Doji and hammer and all of the chart pattern ... something should send the
+market is going to down". Part A tests the direction signals they named. Part B is a
+DESCRIPTIVE breakdown of the desk's rules by situation: it decides nothing.
+
+WHAT THIS DATA HAS ALREADY BEEN USED FOR (stated so no result is read as a clean holdout)
+The windows below are the same calendar every earlier study used; the final window
+2025-09-18 .. 2026-09-15 has now been used by about eight earlier tests (the desk's ranking,
+12-1 momentum, time-series momentum, low volatility, the 10-month trend filter, the NIFTY
+trend reader twice, and more). It is NOT a clean holdout any more. A PASS here is "passed on
+re-used data"; only the forward paper record (TRACK) is a clean test, and a PASS goes there
+before it goes on the page.
+
+DATA
+- NIFTY 50 daily open/high/low/close: NSE's own index history,
+  research/gap-filter-2026-09-29/nifty-50-nse.json (2021-09-01 .. 2026-09-28).
+- NIFTY expiry dates: NSE's own derivatives-history metadata, saved beside this file
+  (nifty-expiries-nse.json: OPTIDX weekly+monthly, FUTIDX monthly). A listed date that is not
+  an NSE session is dropped (a holiday moved that expiry).
+- S&P 500 daily close (^GSPC), Brent crude front-month daily close (BZ=F), India VIX daily
+  close (^INDIAVIX): Yahoo Finance chart API, range 5y, saved beside this file before the
+  study runs (yahoo-*.json). Brent is a rolled front-month series: a roll can add a jump on
+  its roll day; stated, not corrected.
+- Stocks (P1 only): the 97-name NSE panel of research/gap-filter-2026-09-29/nse-panel/
+  (complete files only), with that study's removed stock-days (its contamination rules).
+
+ALIGNMENT (nothing from after the decision may enter it)
+For an NSE session d: "US(d)" is the S&P 500's close-to-close return on the last US session
+dated BEFORE d; "CRUDE(d)" is Brent's close-to-close return on the last Brent session dated
+BEFORE d; "VIX(d)" is India VIX's close on the NSE session before d and its change that day;
+"GAP(d)" = open(d) / close(d-1) - 1 on NIFTY; the regime and candle of d are read from bars up
+to and including d-1 (classifyMarketRegime; identifyCandlestickPatterns on the last 7 bars).
+
+COSTS
+Every trade pays api/_lib/shadow-broker.js calculateNseFuturesCharges on both legs, dated,
+quantity = ceil(500000 / entry), as the regime study did. Returns are NET, in % of entry.
+
+PART A -- DIRECTION HYPOTHESES (each a trade on NIFTY or a stock; signed so a correct call is +)
+A1 US OVERNIGHT. US(d) <= -1%: short NIFTY at open(d), out at close(d). US(d) >= +1%: long.
+A2 CRUDE SPIKE. CRUDE(d) >= +3%: short NIFTY open(d)->close(d). CRUDE(d) <= -3%: long.
+A3 GAP CONTINUATION. GAP(d) <= -1%: short NIFTY open(d)->close(d). GAP(d) >= +1%: long.
+A4 VIX SPIKE. India VIX up >= 10% on the session before d: short NIFTY open(d) -> close(d+4).
+A5 NIFTY CANDLE. The desk's candlestick bias of NIFTY's bar d-1 (identifyCandlestickPatterns):
+   BULLISH -> long NIFTY open(d) -> close(d+4); BEARISH -> short; NEUTRAL or none -> no trade.
+P1 STOCK CANDLE. The same, per stock of the panel, on each stock's own bars: BULLISH -> long
+   the stock open(d) -> close(d+4), BEARISH -> short. Errors clustered by CALENDAR MONTH.
+Unit: one trade per signal-day (per stock-day for P1); errors clustered by calendar month
+(api/_lib/panel.js clusterRobustMean), because consecutive days share a market.
+PASS (each): validation mean > 0 AND final mean > 0 AND the final one-sided p-value passes
+Holm-Bonferroni across the SIX hypotheses at a family-wise 5% (the smallest p against 0.05/6,
+the next against 0.05/5, ...; stop at the first that fails). p from Student-t with
+(final-window months - 1) degrees of freedom. Fewer than 20 final-window trades: NOT TESTABLE.
+
+PART B -- DESCRIPTIVE: EVERY DESK RULE, BY SITUATION (no verdict, no PASS, counts shown)
+Rules on NIFTY: B-LONG the desk's futures buy (limit 0.8% under open(d), target +2.5%, stop
+-1.5%, 20 sessions, as research/regime-2026-09-29); B-SHORT its mirror (the put stand-in);
+B-DAY NIFTY open(d)->close(d), long; B-WEEK NIFTY close(d-1)->close(d+4), long.
+Situations of d (each known at d's open): GAP(d) in <= -1%, -1..-0.3%, -0.3..+0.3%, +0.3..+1%,
+>= +1%; weekly expiry day; the session before an expiry; monthly expiry week (d within the 5
+sessions ending at a FUTIDX expiry); VIX(d) tercile and NIFTY 20-session realised volatility
+tercile (both terciles fixed on the DEVELOPMENT window only); regime BULL / NEUTRAL / BEAR;
+NIFTY above / below its 200-session average; US(d) <= -1%, between, >= +1%; CRUDE(d) <= -3%,
+between, >= +3%. Every bucket: trades, mean, month-clustered t, share of winners, over the whole
+period and per window. A bucket under 30 trades is marked "too few". Nothing here is a test.
+
+WHAT THE RESULT DOES, STATED IN ADVANCE
+A PART A PASS goes onto TRACK as a paper rule, labelled "passed on re-used data", and onto the
+page only after TRACK confirms it forward. A FAIL is reported as a FAIL with its numbers.
+PART B is shown to the user as it comes out, marked descriptive, in the dated folder.

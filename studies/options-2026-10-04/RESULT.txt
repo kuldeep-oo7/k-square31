@@ -1,0 +1,12 @@
+coverage: 1510 sessions; option files 1509; ban days 1509; industries for 2584 symbols
+OPTIONS / PINNING / BAN / INDUSTRY -- run 2026-10-04T10:59:06.919Z, prereg sha256 e2801c12b3c2648378c4ce5eb3b9375765287820ed75c53185e12582417cd50e (verified), judged under protocol v2
+O1 buy ATM call 3d (baseline)                  | -0.884% t -0.40 Sharpe -0.19 worst -99.0% (37063 trades, 60 months) Holm no FAIL
+O2 buy ATM put 3d (baseline)                   | -2.852% t -1.04 Sharpe -0.55 worst -99.5% (37030 trades, 60 months) Holm no FAIL
+O3 buy straddle when IV < 0.8x realised 5d     | +3.295% t 1.94 Sharpe 1.01 worst -96.9% (5126 trades, 60 months) Holm no FAIL
+O4 buy straddle across results                 | -5.623% t -6.70 Sharpe -4.23 worst -85.6% (2821 trades, 41 months) Holm no FAIL
+P1 sell max-OI straddle into expiry            | -0.070% t -0.78 Sharpe -0.35 worst -13.1% (2865 trades, 59 months) Holm no FAIL
+P2 futures toward max-OI strike on expiry day  | -0.128% t -3.88 Sharpe -2.23 worst -12.2% (8455 trades, 59 months) Holm no FAIL
+N1 long on leaving the F&O ban 5d              | -0.192% t -0.78 Sharpe -0.29 worst -28.1% (743 trades, 60 months) Holm no FAIL
+N2 short on leaving the F&O ban 5d             | +0.091% t 0.37 Sharpe 0.14 worst -25.7% (743 trades, 60 months) Holm no FAIL
+I1 industry momentum long-short 21d            | -0.298% t -0.84 Sharpe -0.37 worst -7.6% (60 trades, 60 months) Holm no FAIL
+I2 industry-adjusted reversal long-short 5d    | +0.150% t 1.98 Sharpe 0.87 worst -4.2% (248 trades, 60 months) Holm no FAIL

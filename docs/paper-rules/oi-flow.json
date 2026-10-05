@@ -1,0 +1,92 @@
+{
+ "preregistration": "studies/oi-flow-forward-2026-10-04/PREREGISTRATION.txt",
+ "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
+ "start": "2026-10-05",
+ "dataThrough": "2026-10-01",
+ "builtAt": "2026-10-04T12:17:08.624Z",
+ "LU": {
+  "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
+  "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
+  "pending": [
+   {
+    "symbol": "BAJAJ-AUTO",
+    "signalDate": "2026-10-01",
+    "pricePct": -7.62,
+    "oiPct": -4.46,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "M&M",
+    "signalDate": "2026-10-01",
+    "pricePct": -3.05,
+    "oiPct": -4.8,
+    "status": "SIGNAL"
+   }
+  ],
+  "trades": [],
+  "summary": {
+   "finished": 0,
+   "verdict": "COLLECTING"
+  }
+ },
+ "SB": {
+  "rule": "Short build-up: the share fell at least 1.56% and its futures open interest rose at least 3.04% -> short at the next open, cover at that day's close",
+  "backtest": "FAILED (+0.296% / +0.020% / +0.131% a trade; final t 1.86, not enough after 12 tests)",
+  "pending": [
+   {
+    "symbol": "BOSCHLTD",
+    "signalDate": "2026-10-01",
+    "pricePct": -3.44,
+    "oiPct": 3.98,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "EICHERMOT",
+    "signalDate": "2026-10-01",
+    "pricePct": -3.22,
+    "oiPct": 6.23,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "ULTRACEMCO",
+    "signalDate": "2026-10-01",
+    "pricePct": -2.25,
+    "oiPct": 3.56,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "POLICYBZR",
+    "signalDate": "2026-10-01",
+    "pricePct": -7.89,
+    "oiPct": 6.33,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "KAYNES",
+    "signalDate": "2026-10-01",
+    "pricePct": -2.91,
+    "oiPct": 5.07,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "SHRIRAMFIN",
+    "signalDate": "2026-10-01",
+    "pricePct": -3.84,
+    "oiPct": 3.4,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "SWIGGY",
+    "signalDate": "2026-10-01",
+    "pricePct": -4.84,
+    "oiPct": 3.74,
+    "status": "SIGNAL"
+   }
+  ],
+  "trades": [],
+  "summary": {
+   "finished": 0,
+   "verdict": "COLLECTING"
+  }
+ }
+}

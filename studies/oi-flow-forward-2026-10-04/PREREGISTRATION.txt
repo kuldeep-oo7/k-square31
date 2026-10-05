@@ -1,0 +1,46 @@
+PRE-REGISTRATION -- FORWARD PAPER TESTS of two OPEN-INTEREST patterns
+Written Sunday 4 Oct 2026, BEFORE the first session they cover (Monday 5 Oct 2026). The commit time
+is the proof.
+
+WHERE THEY COME FROM
+research/orderflow-2026-10-03 (pre-registered, sha256 22d0f927..., run once 4 Oct 2026 on NSE's F&O
+and CM bhavcopies 2020-09..2026-10). Both FAILED there.
+  B3  short build-up -> short for 1 session: positive in all three windows (development +0.296%,
+      t 5.87, 5,576 trades; validation +0.020%, 1,604; final +0.131%, t 1.86, 1,325). Not
+      significant after the correction for 12 tests.
+  B8  long unwinding -> SHORT for 10 sessions LOST in all three windows (development -1.970%,
+      t -4.96, 3,225; validation -0.847%, 768; final -1.036%, t -1.76, 433). Read the other way,
+      that is a BOUNCE: the stock rises after a long unwinding. The bounce (going LONG) is a new
+      reading of old numbers. Only future prices can test it, and both patterns have been seen, so
+      both are tested forward.
+
+DEFINITIONS (identical to research/orderflow-2026-10-03 except the bounce's direction)
+Data: NSE's own CM bhavcopy (series EQ, by symbol) and F&O bhavcopy (futures rows; a stock's total
+open interest = the sum over all its futures expiries).
+Universe and resets: as research/orderflow-2026-10-03:
+- the top 200 by 60-session median traded value;
+- a reset is an open >= 18% from the previous close; a trade crossing one is void.
+For entry session d, from sessions d-1 and d-2 (both trading sessions in a row, no reset):
+  R  = close(d-1) / close(d-2) - 1  (the share)
+  OI = totalOI(d-1) / totalOI(d-2) - 1
+  A "moving" day: |R| >= 1.5581% AND |OI| >= 3.0380%. These are the cut-offs fixed on the old
+  development window, frozen here.
+RULE LU (long-unwinding BOUNCE):  R < 0 and OI < 0 on a moving day -> BUY at the official open of d,
+                                   SELL at the official close of d+9 (10 sessions).
+RULE SB (short build-up):          R < 0 and OI > 0 on a moving day -> SELL SHORT at the official open
+                                   of d, BUY back at the official close of d (1 session).
+Net = the signed price return - calculateNseFuturesCharges on both legs (dated, quantity
+ceil(500000/open)) - a roll round trip per month end crossed. Paper futures trades; no option is priced.
+
+WHAT IS COUNTED
+Every signal with entry on or after 2026-10-05, from NSE's official files only.
+
+VERDICT (each rule on its own; two rules, so each is judged at 2.5%)
+COLLECTING until at least 100 finished trades AND 3 calendar months since 2026-10-05.
+Then: PASS if mean net > 0 AND the one-sided t (clustered by ISO week of entry) is at or above the
+2.5% Student-t critical value with (weeks - 1) df. Otherwise FAIL.
+Nothing may change after this commit.
+
+ON THE PAGE
+The TRACK tab, beside the springy dip, labelled "forward paper test", with the backtest numbers.
+Not a recommendation until it passes.

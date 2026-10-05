@@ -1,0 +1,64 @@
+PRE-REGISTRATION -- OPTION BUYING ON REAL PRICES, EXPIRY PINNING, THE F&O BAN LIST, INDUSTRY EFFECTS
+Written 4 Oct 2026 BEFORE any signal or result was computed for these rules (the downloads were
+running; only one day's file was printed to write the parser). sha256 in PREREGISTRATION.sha256.
+Judged under research/audit-2026-10-04/PROTOCOL.txt (protocol v2).
+
+DATA (all NSE's own)
+- Stock options: the F&O bhavcopy (OPTSTK), the two nearest expiries, strikes within +/-12% of the
+  CM close (scripts/nse-stock-options-history.js).
+- CM bhavcopy (series EQ, by symbol); universe and resets as research/ta-atlas-2026-10-03:
+  - the top 200 by 60-session median traded value;
+  - at least 250 bars after the last reset (an open >= 18% from the previous close);
+  - a trade crossing a reset is dropped.
+- F&O ban list: archives/fo/sec_ban/fo_secban_DDMMYYYY.csv. The file for trade date d is published
+  before d opens.
+- Industries: the "sm_indusrty" field of NSE's corporate board-meeting filings (the latest value
+  seen for a symbol). This is a present-day label applied to the past; it changes rarely. Stated.
+- Results events: as research/results-vrp-2026-10-04 (purpose contains "result").
+
+OPTION COSTS
+api/_lib/trade-costs.js roundTripCost .totalCost, quantity = round(100000 / entry premium) (about
+Rs 1 lakh of premium). An option return is (exit - entry - costs per unit) / entry: % of premium.
+Stock options in India settle by DELIVERY at expiry. Pinning (P1) uses intrinsic value as the cash
+equivalent; delivery STT and margin are not modelled. Stated.
+
+MEMBERS (Holm across all 10; PASS = mean > 0 and Newey-West monthly t >= 3 over the whole sample)
+OPTION BUYING on real prices. Universe stocks with options; the nearest expiry with >= 8 calendar
+days left at entry; ATM = the listed strike nearest the CM close of the entry day; entry and exit at
+the option's closing price; a trade with no exit price, or with a price <= 0, is dropped.
+  O1  Baseline: buy the ATM call at the close of every 5th session (session index divisible by 5);
+      sell 3 sessions later.
+  O2  Baseline: the same with the ATM put.
+  O3  Cheap volatility: when the ATM straddle's implied vol, (CE + PE) / (0.8 x S x sqrt(days/365)),
+      is below 0.8 x the stock's 20-session realised vol, buy the straddle at that close; sell 5
+      sessions later. Once per stock per 5 sessions.
+  O4  Results straddle: buy the ATM straddle at the close of the session before the results meeting
+      session M0; sell at the close of M0 + 1.
+EXPIRY PINNING (monthly stock-option expiry E, read at the close of E-1)
+  K* = the strike with the largest call + put open interest for expiry E.
+  P1  If |S - K*| / S <= 3%: sell the K* straddle at E-1's close; settle at intrinsic value against
+      the CM close of E.
+  P2  If K* > S by >= 0.5%, long the share's future from open(E) to close(E); if K* < S by >= 0.5%,
+      short. Futures charges; scored in EXCESS of B(E,1).
+F&O BAN LIST
+  N1  The first session a stock is OUT of the ban after being in it: long from open(d) to
+      close(d+4); excess.
+  N2  The same: short; excess.
+INDUSTRY
+  I1  Industry momentum (Moskowitz & Grinblatt 1999), at a trading horizon. On each month's first
+      session, rank industries with >= 3 universe stocks by the equal-weighted return of their
+      universe stocks over the previous 126 sessions. Long the stocks of the top 3 industries,
+      short those of the bottom 3; hold 21 sessions. The score is the long-short spread per
+      month-start (hedged).
+  I2  Industry-adjusted short-term reversal (Da, Liu & Schaumburg 2014). Every 5th session: a
+      stock's 5-session return minus its industry's equal-weighted 5-session return. Long the
+      bottom 10%, short the top 10%; hold 5 sessions. The score is the long-short spread (hedged).
+Futures charges both legs on I1/I2/N/P2, dated, quantity ceil(500000/price), with a roll per month
+end crossed.
+
+VERDICT AND WHAT IT DOES (protocol v2)
+- PASS (t >= 3) becomes a forward paper test on TRACK before any page rule.
+- PROMISING (2 <= t < 3) may become one.
+- The Deflated Sharpe probability (N = 10) is reported.
+- O1/O2 are baselines: they measure what the owner's option buying costs on stock options, whatever
+  their verdict.

@@ -1,0 +1,161 @@
+DIRECTION SIGNALS AND DESK RULES BY SITUATION -- run 2026-09-29T17:30:37.561Z
+pre-registration sha256 03f93c90f2501a306cb8a701351091fd58bac5c57d1af706cf6b7f27bbb6bdf7 (verified; recorded 2026-09-29T17:27:09Z)
+NIFTY sessions 2021-09-01 .. 2026-09-28 (NSE); days studied 1248; weekly expiries in range 268; monthly 61
+S&P 500 2021-09-29..2026-09-29; Brent 2021-09-29..2026-09-29; India VIX 2021-09-29..2026-09-29 (Yahoo = NSE's EOD closes on all 41 sessions checked, Aug-Sep 2026)
+
+PART A -- the direction signals (NET of futures charges; errors clustered by month)
+A1 US overnight (S&P 500 <= -1%: short NIFTY open->close; >= +1%: long)
+   development   238 trades  36 months  mean -0.081%  t -1.25  winners 47.9%
+   validation     49 trades  10 months  mean -0.197%  t -2.62  winners 40.8%
+   final          49 trades  12 months  mean -0.084%  t -0.57  winners 32.7%
+   final one-sided p 0.7093 vs 0.05/6 = 0.0083 -> FAIL
+
+A2 Crude spike (Brent >= +3%: short NIFTY open->close; <= -3%: long)
+   development   110 trades  30 months  mean -0.167%  t -1.67  winners 41.8%
+   validation     20 trades   8 months  mean +0.013%  t 0.21  winners 55%
+   final          69 trades  12 months  mean -0.042%  t -0.63  winners 44.9%
+   final one-sided p 0.7280 vs 0.05/6 = 0.0083 -> FAIL
+
+A3 Gap continuation (NIFTY gap <= -1%: short open->close; >= +1%: long)
+   development    43 trades  17 months  mean +0.044%  t 0.47  winners 53.5%
+   validation     13 trades   9 months  mean -0.089%  t -0.41  winners 38.5%
+   final          17 trades   4 months  mean -0.245%  t -0.88  winners 41.2%
+   final one-sided p - vs 0.05/6 = 0.0083 -> NOT TESTABLE (under 20 final trades)
+
+A4 India VIX spike (>= +10% the session before: short NIFTY open(d)->close(d+4))
+   development    25 trades  18 months  mean -0.272%  t -0.78  winners 40%
+   validation      3 trades   3 months  mean -2.240%  t -0.95  winners 33.3%
+   final          12 trades   5 months  mean +0.817%  t 1.30  winners 58.3%
+   final one-sided p - vs 0.05/6 = 0.0083 -> NOT TESTABLE (under 20 final trades)
+
+A5 NIFTY candle (desk's candlestick bias of d-1: BULLISH long, BEARISH short, open(d)->close(d+4))
+   development   293 trades  37 months  mean -0.076%  t -0.68  winners 47.8%
+   validation    108 trades  13 months  mean -0.038%  t -0.33  winners 50.9%
+   final          82 trades  13 months  mean +0.022%  t 0.13  winners 48.8%
+   final one-sided p 0.4478 vs 0.05/6 = 0.0083 -> FAIL
+
+P1 (stock candles) waits for the complete NSE panel (NSE refused the history requests on 29 Sep
+after 18; the fetch stopped itself). Its p joins Holm when run; until then each A above is judged
+against 0.05/6, the strictest step, which Holm can only relax.
+
+PART B -- DESCRIPTIVE ONLY: every rule, by the situation of the day it starts (whole period, 2021-09 .. 2026-09-15)
+terciles fixed on the development window: India VIX 13.41 / 17.06; NIFTY 20-day volatility 10.1% / 14.4%
+
+B-LONG desk futures buy:
+   situation                          trades     mean      t  winners   dev / valid / final mean
+   gap <= -1%                             13   +0.93%   2.05    61.5%   +0.97% / -1.54% / +1.47%   (too few)
+   gap -1%..-0.3%                         33   +0.13%   0.28    42.4%   +0.19% / -0.96% / +0.68%
+   gap -0.3..+0.3%                       144   -0.04%  -0.16    39.6%   +0.23% / -0.38% / -0.33%
+   gap +0.3..+1%                          75   +0.22%   0.75      44%   +0.22% / +1.09% / -0.96%
+   gap >= +1%                             12   +0.64%   1.28      50%   +1.05% / +2.63% / -0.60%   (too few)
+   weekly expiry day                      74   +0.21%   0.71    43.2%   +0.25% / +0.42% / -0.15%
+   session before an expiry               52   +0.04%   0.12    40.4%   +0.01% / -0.04% / +0.21%
+   monthly expiry week                    72   +0.29%   1.02    47.2%   +0.26% / +0.50% / +0.22%
+   India VIX low (< 13.41)                61   +0.01%   0.04    39.3%   +0.50% / -0.24% / -0.52%
+   India VIX mid                         104   -0.13%  -0.40    37.5%   +0.14% / -0.61% / -0.14%
+   India VIX high (>= 17.06)             110   +0.42%   1.46    49.1%   +0.32% / +1.89% / +0.32%
+   NIFTY calm (20d vol < 10.1%)           61   +0.30%   1.04    45.9%   +0.32% / +0.88% / -0.26%
+   NIFTY normal vol                      106   -0.40%  -1.31    30.2%   +0.02% / -1.10% / -0.41%
+   NIFTY volatile (20d vol >= 14.4%)     108   +0.54%   1.83    52.8%   +0.48% / +1.29% / +0.25%
+   regime BULL                            76   +0.26%   0.88    47.4%   +0.20% / +0.52% / +0.14%
+   regime NEUTRAL                         92   -0.15%  -0.47      37%   +0.40% / -1.39% / -0.36%
+   regime BEAR                            96   +0.38%   1.19    46.9%   +0.49% / +0.35% / +0.13%
+   above 200-day average                 143   +0.22%   0.86    44.8%   +0.46% / -0.04% / -0.61%
+   below 200-day average                  62   +0.40%   0.88      50%   +2.31% / -0.51% / +0.16%
+   US fell >= 1% overnight                41   +0.34%   0.94    48.8%   +0.14% / +0.66% / +0.89%
+   US within +-1%                        182   -0.10%  -0.43    37.4%   +0.19% / -0.50% / -0.53%
+   US rose >= 1% overnight                52   +0.72%   2.37    55.8%   +0.68% / +0.87% / +0.74%
+   crude fell >= 3%                       28   +0.54%   1.04    53.6%   +0.97% / -5.45% / +0.18%   (too few)
+   crude within +-3%                     216   +0.11%   0.53    42.1%   +0.21% / -0.05% / -0.16%
+   crude rose >= 3%                       31   -0.14%  -0.49    35.5%   +0.06% / -1.77% / -0.12%
+   every day                             277   +0.13%   0.69    42.6%   +0.29% / -0.20% / -0.09%
+
+B-SHORT its mirror (put stand-in):
+   situation                          trades     mean      t  winners   dev / valid / final mean
+   gap <= -1%                             19   +0.61%   0.89    52.6%   +1.26% / -1.82% / +0.74%   (too few)
+   gap -1%..-0.3%                         42   -0.30%  -0.89    33.3%   -0.43% / +1.21% / -1.41%
+   gap -0.3..+0.3%                        93   -0.36%  -1.71    32.3%   -0.83% / +0.15% / -0.06%
+   gap +0.3..+1%                          46   +0.02%   0.06    39.1%   -0.32% / +0.07% / +1.56%
+   gap >= +1%                             10   -1.07%  -1.81      20%   -0.34% / -2.35% / -1.70%   (too few)
+   weekly expiry day                      43   -0.06%  -0.19    39.5%   -0.37% / +1.07% / -0.30%
+   session before an expiry               44   -0.38%  -1.25    36.4%   -0.43% / -0.27% / -0.36%
+   monthly expiry week                    48   -0.11%  -0.31    37.5%   -0.37% / +0.17% / +0.85%
+   India VIX low (< 13.41)                39   +0.28%   0.78    46.2%   -0.56% / +0.80% / +0.97%
+   India VIX mid                          68   -0.36%  -1.19    30.9%   -0.47% / +0.11% / -1.11%
+   India VIX high (>= 17.06)              99   -0.25%  -0.71    35.4%   -0.27% / -1.18% / +0.33%
+   NIFTY calm (20d vol < 10.1%)           36   -0.54%  -1.93    27.8%   -0.53% / -0.58% / -0.50%
+   NIFTY normal vol                       71   -0.06%  -0.19    39.4%   -0.59% / +1.25% / -0.54%
+   NIFTY volatile (20d vol >= 14.4%)      99   -0.14%  -0.41    36.4%   -0.18% / -1.01% / +0.78%
+   regime BULL                            46   -0.50%  -1.70    26.1%   -0.37% / -0.69% / -1.14%
+   regime NEUTRAL                         74   -0.17%  -0.55    36.5%   -0.59% / +0.32% / +0.14%
+   regime BEAR                            81   -0.04%  -0.09    40.7%   -0.23% / +0.12% / +0.29%
+   above 200-day average                  90   -0.22%  -0.80    33.3%   -0.60% / +0.26% / +0.70%
+   below 200-day average                  67   -0.43%  -0.94    32.8%   -1.41% / -0.34% / -0.02%
+   US fell >= 1% overnight                38   -0.47%  -1.25    28.9%   -0.26% / -1.12% / -0.78%
+   US within +-1%                        142   -0.15%  -0.60    37.3%   -0.56% / +0.21% / +0.30%
+   US rose >= 1% overnight                26   +0.02%   0.04    38.5%   +0.13% / -0.21% / -1.70%   (too few)
+   crude fell >= 3%                       15   -0.30%  -0.55    33.3%   -0.07% / -2.28% / +0.43%   (too few)
+   crude within +-3%                     159   -0.11%  -0.51    37.1%   -0.25% / +0.18% / -0.03%
+   crude rose >= 3%                       32   -0.52%  -0.92    31.3%   -1.27% / -0.31% / +0.38%
+   every day                             210   -0.21%  -0.98    35.2%   -0.41% / +0.02% / +0.11%
+
+B-DAY NIFTY open->close:
+   situation                          trades     mean      t  winners   dev / valid / final mean
+   gap <= -1%                             36   +0.06%   0.47    55.6%   -0.03% / +0.33% / +0.11%
+   gap -1%..-0.3%                        176   -0.02%  -0.45    51.7%   -0.02% / +0.03% / -0.08%
+   gap -0.3..+0.3%                       689   -0.10%  -3.87    42.5%   -0.08% / -0.12% / -0.10%
+   gap +0.3..+1%                         310   -0.09%  -3.07    45.5%   -0.10% / -0.06% / -0.07%
+   gap >= +1%                             37   +0.04%   0.33    54.1%   +0.11% / +0.18% / -0.29%
+   weekly expiry day                     267   -0.14%  -3.35    38.6%   -0.12% / -0.08% / -0.24%
+   session before an expiry              266   -0.04%  -0.99    47.7%   -0.07% / +0.02% / +0.00%
+   monthly expiry week                   303   -0.12%  -3.15    41.3%   -0.13% / +0.03% / -0.26%
+   India VIX low (< 13.41)               487   -0.07%  -3.18    43.5%   -0.04% / -0.10% / -0.11%
+   India VIX mid                         415   -0.11%  -3.33    43.9%   -0.11% / -0.10% / -0.13%
+   India VIX high (>= 17.06)             327   -0.05%  -1.57    49.8%   -0.08% / +0.11% / -0.01%
+   NIFTY calm (20d vol < 10.1%)          426   -0.07%  -2.96    44.4%   -0.07% / +0.00% / -0.12%
+   NIFTY normal vol                      434   -0.10%  -3.14    44.5%   -0.08% / -0.15% / -0.10%
+   NIFTY volatile (20d vol >= 14.4%)     368   -0.06%  -1.81    47.6%   -0.07% / +0.00% / -0.04%
+   regime BULL                           461   -0.08%  -3.72      43%   -0.08% / -0.12% / -0.06%
+   regime NEUTRAL                        439   -0.05%  -1.88    47.8%   -0.06% / -0.00% / -0.09%
+   regime BEAR                           299   -0.09%  -2.65    45.8%   -0.07% / -0.10% / -0.13%
+   above 200-day average                 779   -0.09%  -4.64    44.4%   -0.07% / -0.14% / -0.09%
+   below 200-day average                 270   -0.01%  -0.30    48.1%   +0.07% / +0.06% / -0.09%
+   US fell >= 1% overnight               159   -0.03%  -0.35    48.4%   -0.04% / +0.13% / -0.10%
+   US within +-1%                        892   -0.07%  -3.63    45.4%   -0.07% / -0.08% / -0.08%
+   US rose >= 1% overnight               177   -0.15%  -2.70    42.4%   -0.14% / -0.19% / -0.18%
+   crude fell >= 3%                       98   -0.14%  -1.60    44.9%   -0.16% / +0.15% / -0.21%
+   crude within +-3%                    1029   -0.08%  -4.00    44.8%   -0.08% / -0.09% / -0.05%
+   crude rose >= 3%                      101   -0.01%  -0.13    51.5%   +0.12% / +0.02% / -0.17%
+   every day                            1248   -0.08%  -4.79    45.3%   -0.07% / -0.07% / -0.09%
+
+B-WEEK NIFTY 5 sessions:
+   situation                          trades     mean      t  winners   dev / valid / final mean
+   gap <= -1%                             36   -1.65%  -2.93      25%   -2.30% / -0.25% / -1.06%
+   gap -1%..-0.3%                        176   -0.49%  -2.70    41.5%   -0.47% / -0.60% / -0.45%
+   gap -0.3..+0.3%                       689   +0.04%   0.38    50.9%   +0.30% / -0.28% / -0.27%
+   gap +0.3..+1%                         310   +0.52%   3.74    65.2%   +0.62% / +0.58% / -0.09%
+   gap >= +1%                             37   +2.30%   4.07    86.5%   +1.68% / +3.75% / +2.76%
+   weekly expiry day                     267   +0.09%   0.80    49.8%   +0.25% / -0.01% / -0.26%
+   session before an expiry              266   +0.09%   0.65    54.9%   +0.25% / -0.04% / -0.27%
+   monthly expiry week                   303   +0.23%   1.10    55.4%   +0.47% / -0.04% / -0.19%
+   India VIX low (< 13.41)               487   +0.01%   0.05    51.1%   +0.33% / -0.40% / -0.28%
+   India VIX mid                         415   +0.09%   0.59    53.5%   +0.25% / -0.17% / +0.03%
+   India VIX high (>= 17.06)             327   +0.23%   0.75    55.4%   +0.16% / +1.51% / -0.16%
+   NIFTY calm (20d vol < 10.1%)          426   +0.16%   1.07    53.8%   +0.27% / +0.35% / -0.19%
+   NIFTY normal vol                      434   -0.08%  -0.48    48.6%   +0.23% / -0.76% / -0.01%
+   NIFTY volatile (20d vol >= 14.4%)     368   +0.23%   0.81    57.6%   +0.24% / +0.88% / -0.46%
+   regime BULL                           461   +0.03%   0.21    53.4%   +0.12% / -0.24% / -0.22%
+   regime NEUTRAL                        439   +0.07%   0.41    51.9%   +0.30% / -0.19% / -0.15%
+   regime BEAR                           299   +0.22%   0.83    53.8%   +0.44% / +0.21% / -0.32%
+   above 200-day average                 779   +0.13%   1.08    55.7%   +0.32% / -0.27% / -0.18%
+   below 200-day average                 270   +0.30%   0.89    49.3%   +1.59% / +0.38% / -0.23%
+   US fell >= 1% overnight               159   -0.41%  -1.51      44%   -0.75% / +0.92% / -0.26%
+   US within +-1%                        892   +0.10%   0.86    52.5%   +0.36% / -0.19% / -0.28%
+   US rose >= 1% overnight               177   +0.56%   3.28    64.4%   +0.67% / +0.08% / +0.45%
+   crude fell >= 3%                       98   +0.63%   2.50    65.3%   +0.68% / +0.80% / +0.44%
+   crude within +-3%                    1029   +0.05%   0.48    52.2%   +0.18% / -0.10% / -0.21%
+   crude rose >= 3%                      101   +0.01%   0.04    50.5%   +0.49% / +0.28% / -0.61%
+   every day                            1248   +0.10%   0.90    53.4%   +0.25% / -0.05% / -0.20%
+
+Part B decides nothing: 26 situations x 4 rules is ~100 cells, and about 5 of them will look
+significant at t > 2 by chance alone. A cell only becomes a rule by a test fixed before it is run.
