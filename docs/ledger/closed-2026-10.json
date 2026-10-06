@@ -40113,6 +40113,114 @@
     "perLot": -3400,
     "netPerLot": -3456.79
    }
+  },
+  {
+   "id": "2026-10-06|CE|LAURUSLABS26OCT1900CE",
+   "kind": "CE",
+   "symbol": "LAURUSLABS",
+   "contract": "LAURUSLABS26OCT1900CE",
+   "expiry": "2026-10-27",
+   "strike": 1900,
+   "optionType": "CE",
+   "lotSize": 850,
+   "sessionDate": "2026-10-06",
+   "shownAt": "2026-10-06T04:07:30.507Z",
+   "buy": 110.1,
+   "target": 165.15,
+   "target2": null,
+   "stop": 55.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.9,
+     "medianDays": 8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-06T04:28:24.599Z",
+   "hoursToFill": 0.35,
+   "closedAt": "2026-10-06T09:07:44.730Z",
+   "exitPrice": 165.15,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 4.66,
+   "sessionsHeld": 0,
+   "best": 167,
+   "worst": 108.7,
+   "last": 161.3,
+   "lastAt": "2026-10-06T09:07:44.730Z",
+   "marks": 15,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 167,
+    "low": 108.7,
+    "last": 161.3
+   },
+   "pnl": {
+    "perUnit": 55.05,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 46792.5,
+    "netPerLot": 46433.56
+   }
+  },
+  {
+   "id": "2026-10-06|CE|MOTILALOFS26OCT1000CE",
+   "kind": "CE",
+   "symbol": "MOTILALOFS",
+   "contract": "MOTILALOFS26OCT1000CE",
+   "expiry": "2026-10-27",
+   "strike": 1000,
+   "optionType": "CE",
+   "lotSize": 775,
+   "sessionDate": "2026-10-06",
+   "shownAt": "2026-10-06T03:52:16.843Z",
+   "buy": 58.9,
+   "target": 88.35,
+   "target2": null,
+   "stop": 29.45,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.4,
+     "medianDays": 7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-06T03:52:16.854Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-06T09:07:44.730Z",
+   "exitPrice": 88.35,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 5.26,
+   "sessionsHeld": 0,
+   "best": 89,
+   "worst": 56.2,
+   "last": 89,
+   "lastAt": "2026-10-06T09:07:44.730Z",
+   "marks": 17,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 89,
+    "low": 46,
+    "last": 89
+   },
+   "pnl": {
+    "perUnit": 29.45,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 22823.75,
+    "netPerLot": 22624.49
+   }
   }
  ]
 }
