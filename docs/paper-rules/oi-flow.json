@@ -2,28 +2,32 @@
  "preregistration": "studies/oi-flow-forward-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
  "start": "2026-10-05",
- "dataThrough": "2026-10-01",
- "builtAt": "2026-10-04T12:17:08.624Z",
+ "dataThrough": "2026-10-05",
+ "builtAt": "2026-10-06T08:21:48.091Z",
  "LU": {
   "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
   "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
-  "pending": [
-   {
-    "symbol": "BAJAJ-AUTO",
-    "signalDate": "2026-10-01",
-    "pricePct": -7.62,
-    "oiPct": -4.46,
-    "status": "SIGNAL"
-   },
+  "pending": [],
+  "trades": [
    {
     "symbol": "M&M",
     "signalDate": "2026-10-01",
     "pricePct": -3.05,
     "oiPct": -4.8,
-    "status": "SIGNAL"
+    "entryDate": "2026-10-05",
+    "entry": 2857.5,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BAJAJ-AUTO",
+    "signalDate": "2026-10-01",
+    "pricePct": -7.62,
+    "oiPct": -4.46,
+    "entryDate": "2026-10-05",
+    "entry": 10036,
+    "status": "OPEN"
    }
   ],
-  "trades": [],
   "summary": {
    "finished": 0,
    "verdict": "COLLECTING"
@@ -34,58 +38,112 @@
   "backtest": "FAILED (+0.296% / +0.020% / +0.131% a trade; final t 1.86, not enough after 12 tests)",
   "pending": [
    {
-    "symbol": "BOSCHLTD",
-    "signalDate": "2026-10-01",
-    "pricePct": -3.44,
-    "oiPct": 3.98,
+    "symbol": "APOLLOHOSP",
+    "signalDate": "2026-10-05",
+    "pricePct": -1.83,
+    "oiPct": 3.9,
     "status": "SIGNAL"
    },
    {
-    "symbol": "EICHERMOT",
-    "signalDate": "2026-10-01",
-    "pricePct": -3.22,
-    "oiPct": 6.23,
+    "symbol": "DMART",
+    "signalDate": "2026-10-05",
+    "pricePct": -6.45,
+    "oiPct": 18.83,
     "status": "SIGNAL"
-   },
+   }
+  ],
+  "trades": [
    {
-    "symbol": "ULTRACEMCO",
+    "symbol": "SWIGGY",
     "signalDate": "2026-10-01",
-    "pricePct": -2.25,
-    "oiPct": 3.56,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "POLICYBZR",
-    "signalDate": "2026-10-01",
-    "pricePct": -7.89,
-    "oiPct": 6.33,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "KAYNES",
-    "signalDate": "2026-10-01",
-    "pricePct": -2.91,
-    "oiPct": 5.07,
-    "status": "SIGNAL"
+    "pricePct": -4.84,
+    "oiPct": 3.74,
+    "entryDate": "2026-10-05",
+    "entry": 239.2,
+    "exitDate": "2026-10-05",
+    "exit": 238.8,
+    "netPct": 0.101,
+    "status": "DONE"
    },
    {
     "symbol": "SHRIRAMFIN",
     "signalDate": "2026-10-01",
     "pricePct": -3.84,
     "oiPct": 3.4,
-    "status": "SIGNAL"
+    "entryDate": "2026-10-05",
+    "entry": 964,
+    "exitDate": "2026-10-05",
+    "exit": 971.4,
+    "netPct": -0.834,
+    "status": "DONE"
    },
    {
-    "symbol": "SWIGGY",
+    "symbol": "KAYNES",
     "signalDate": "2026-10-01",
-    "pricePct": -4.84,
-    "oiPct": 3.74,
-    "status": "SIGNAL"
+    "pricePct": -2.91,
+    "oiPct": 5.07,
+    "entryDate": "2026-10-05",
+    "entry": 3433,
+    "exitDate": "2026-10-05",
+    "exit": 3394.8,
+    "netPct": 1.046,
+    "status": "DONE"
+   },
+   {
+    "symbol": "POLICYBZR",
+    "signalDate": "2026-10-01",
+    "pricePct": -7.89,
+    "oiPct": 6.33,
+    "entryDate": "2026-10-05",
+    "entry": 984.9,
+    "exitDate": "2026-10-05",
+    "exit": 976.2,
+    "netPct": 0.817,
+    "status": "DONE"
+   },
+   {
+    "symbol": "ULTRACEMCO",
+    "signalDate": "2026-10-01",
+    "pricePct": -2.25,
+    "oiPct": 3.56,
+    "entryDate": "2026-10-05",
+    "entry": 10736,
+    "exitDate": "2026-10-05",
+    "exit": 10850,
+    "netPct": -1.128,
+    "status": "DONE"
+   },
+   {
+    "symbol": "EICHERMOT",
+    "signalDate": "2026-10-01",
+    "pricePct": -3.22,
+    "oiPct": 6.23,
+    "entryDate": "2026-10-05",
+    "entry": 6975,
+    "exitDate": "2026-10-05",
+    "exit": 7021.5,
+    "netPct": -0.733,
+    "status": "DONE"
+   },
+   {
+    "symbol": "BOSCHLTD",
+    "signalDate": "2026-10-01",
+    "pricePct": -3.44,
+    "oiPct": 3.98,
+    "entryDate": "2026-10-05",
+    "entry": 45550,
+    "exitDate": "2026-10-05",
+    "exit": 44960,
+    "netPct": 1.229,
+    "status": "DONE"
    }
   ],
-  "trades": [],
   "summary": {
-   "finished": 0,
+   "finished": 7,
+   "meanNetPct": 0.071,
+   "winPct": 57.1,
+   "weeks": 1,
+   "t": null,
    "verdict": "COLLECTING"
   }
  }

@@ -2,8 +2,8 @@
  "preregistration": "studies/forward-v2-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "8be35cabe66e0d75b3974ad1651427770149888ff660ba9fcf8be0ee215aaea5",
  "start": "2026-10-05",
- "dataThrough": "2026-10-01",
- "builtAt": "2026-10-04T12:17:12.672Z",
+ "dataThrough": "2026-10-05",
+ "builtAt": "2026-10-06T08:21:51.712Z",
  "STRANGLE": {
   "rule": "Sell the NIFTY call about 2% above and the put about 2% below, at the close of the first session with 4-10 days to the weekly expiry; hold to expiry",
   "backtest": "PASS under protocol v2: +0.101% of NIFTY a week, t 4.66, 61 months (not significant after the 73-trial Deflated Sharpe check)",
@@ -17,54 +17,72 @@
  "MA150A": {
   "rule": "Short a stock whose close crosses below its 150-day average; cover 10 sessions later; scored against the market",
   "backtest": "PROMISING: +0.338% a trade above the market, t 2.26",
-  "pending": [
+  "pending": [],
+  "trades": [
    {
-    "symbol": "ADANIPOWER",
+    "symbol": "SAIL",
     "signalDate": "2026-10-01",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "AUBANK",
-    "signalDate": "2026-10-01",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "BAJAJ-AUTO",
-    "signalDate": "2026-10-01",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "GRASIM",
-    "signalDate": "2026-10-01",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "HEROMOTOCO",
-    "signalDate": "2026-10-01",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "LIQUIDBEES",
-    "signalDate": "2026-10-01",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "MANAPPURAM",
-    "signalDate": "2026-10-01",
-    "status": "SIGNAL"
+    "entryDate": "2026-10-05",
+    "entry": 174.21,
+    "status": "OPEN"
    },
    {
     "symbol": "PNB",
     "signalDate": "2026-10-01",
-    "status": "SIGNAL"
+    "entryDate": "2026-10-05",
+    "entry": 110.65,
+    "status": "OPEN"
    },
    {
-    "symbol": "SAIL",
+    "symbol": "MANAPPURAM",
     "signalDate": "2026-10-01",
-    "status": "SIGNAL"
+    "entryDate": "2026-10-05",
+    "entry": 311,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "LIQUIDBEES",
+    "signalDate": "2026-10-01",
+    "entryDate": "2026-10-05",
+    "entry": 1000,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "HEROMOTOCO",
+    "signalDate": "2026-10-01",
+    "entryDate": "2026-10-05",
+    "entry": 5199,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "GRASIM",
+    "signalDate": "2026-10-01",
+    "entryDate": "2026-10-05",
+    "entry": 2968,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BAJAJ-AUTO",
+    "signalDate": "2026-10-01",
+    "entryDate": "2026-10-05",
+    "entry": 10036,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "AUBANK",
+    "signalDate": "2026-10-01",
+    "entryDate": "2026-10-05",
+    "entry": 1000,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ADANIPOWER",
+    "signalDate": "2026-10-01",
+    "entryDate": "2026-10-05",
+    "entry": 197.17,
+    "status": "OPEN"
    }
   ],
-  "trades": [],
   "summary": {
    "finished": 0,
    "verdict": "COLLECTING"
@@ -75,37 +93,80 @@
   "backtest": "PROMISING: +0.307% a trade above the market, t 2.58",
   "pending": [
    {
-    "symbol": "BAJFINANCE",
-    "signalDate": "2026-10-01",
+    "symbol": "CIPLA",
+    "signalDate": "2026-10-05",
     "status": "SIGNAL"
    },
    {
-    "symbol": "BHARATFORG",
-    "signalDate": "2026-10-01",
+    "symbol": "HEROMOTOCO",
+    "signalDate": "2026-10-05",
     "status": "SIGNAL"
    },
    {
-    "symbol": "HINDZINC",
-    "signalDate": "2026-10-01",
+    "symbol": "JSWSTEEL",
+    "signalDate": "2026-10-05",
     "status": "SIGNAL"
    },
    {
-    "symbol": "IFCI",
-    "signalDate": "2026-10-01",
+    "symbol": "LICHSGFIN",
+    "signalDate": "2026-10-05",
     "status": "SIGNAL"
+   },
+   {
+    "symbol": "MANAPPURAM",
+    "signalDate": "2026-10-05",
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "NAM-INDIA",
+    "signalDate": "2026-10-05",
+    "status": "SIGNAL"
+   }
+  ],
+  "trades": [
+   {
+    "symbol": "SUNPHARMA",
+    "signalDate": "2026-10-01",
+    "entryDate": "2026-10-05",
+    "entry": 1785,
+    "status": "OPEN"
    },
    {
     "symbol": "OIL",
     "signalDate": "2026-10-01",
-    "status": "SIGNAL"
+    "entryDate": "2026-10-05",
+    "entry": 444,
+    "status": "OPEN"
    },
    {
-    "symbol": "SUNPHARMA",
+    "symbol": "IFCI",
     "signalDate": "2026-10-01",
-    "status": "SIGNAL"
+    "entryDate": "2026-10-05",
+    "entry": 65.5,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "HINDZINC",
+    "signalDate": "2026-10-01",
+    "entryDate": "2026-10-05",
+    "entry": 562,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BHARATFORG",
+    "signalDate": "2026-10-01",
+    "entryDate": "2026-10-05",
+    "entry": 1868,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BAJFINANCE",
+    "signalDate": "2026-10-01",
+    "entryDate": "2026-10-05",
+    "entry": 962.55,
+    "status": "OPEN"
    }
   ],
-  "trades": [],
   "summary": {
    "finished": 0,
    "verdict": "COLLECTING"

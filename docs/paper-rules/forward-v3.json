@@ -2,14 +2,135 @@
  "preregistration": "studies/forward-v3-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
  "start": "2026-10-05",
- "dataThrough": "2026-10-01",
- "builtAt": "2026-10-04T12:17:16.553Z",
+ "dataThrough": "2026-10-05",
+ "builtAt": "2026-10-06T08:21:54.856Z",
  "industries": 2584,
  "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
  "CHEAPVOL": {
   "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
   "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months — just short of the bar",
-  "trades": [],
+  "trades": [
+   {
+    "symbol": "PATANJALI",
+    "entryDate": "2026-10-05",
+    "expiry": "2026-10-27",
+    "strike": 355,
+    "entry": 25.05,
+    "ivPct": 35.9,
+    "rvPct": 49,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "COCHINSHIP",
+    "entryDate": "2026-10-05",
+    "expiry": "2026-10-27",
+    "strike": 1280,
+    "entry": 74.9,
+    "ivPct": 29.7,
+    "rvPct": 46.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "KEI",
+    "entryDate": "2026-10-05",
+    "expiry": "2026-10-27",
+    "strike": 4600,
+    "entry": 300.5,
+    "ivPct": 33,
+    "rvPct": 41.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "HDFCLIFE",
+    "entryDate": "2026-10-05",
+    "expiry": "2026-10-27",
+    "strike": 530,
+    "entry": 30.05,
+    "ivPct": 28.8,
+    "rvPct": 39.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "POLICYBZR",
+    "entryDate": "2026-10-05",
+    "expiry": "2026-10-27",
+    "strike": 980,
+    "entry": 104,
+    "ivPct": 54.2,
+    "rvPct": 158.7,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "SOLARINDS",
+    "entryDate": "2026-10-05",
+    "expiry": "2026-10-27",
+    "strike": 19500,
+    "entry": 1311.25,
+    "ivPct": 34.2,
+    "rvPct": 61.9,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BAJAJ-AUTO",
+    "entryDate": "2026-10-05",
+    "expiry": "2026-10-27",
+    "strike": 10000,
+    "entry": 442.75,
+    "ivPct": 22.5,
+    "rvPct": 30.2,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ADANIPORTS",
+    "entryDate": "2026-10-05",
+    "expiry": "2026-10-27",
+    "strike": 1780,
+    "entry": 78.95,
+    "ivPct": 22.7,
+    "rvPct": 35,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ADANIENT",
+    "entryDate": "2026-10-05",
+    "expiry": "2026-10-27",
+    "strike": 2850,
+    "entry": 170.65,
+    "ivPct": 30.3,
+    "rvPct": 39.1,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "GVT&D",
+    "entryDate": "2026-10-05",
+    "expiry": "2026-10-27",
+    "strike": 4200,
+    "entry": 268.55,
+    "ivPct": 32.2,
+    "rvPct": 44.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ITC",
+    "entryDate": "2026-10-05",
+    "expiry": "2026-10-27",
+    "strike": 270,
+    "entry": 10.25,
+    "ivPct": 19.4,
+    "rvPct": 25.4,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BHARTIARTL",
+    "entryDate": "2026-10-05",
+    "expiry": "2026-10-27",
+    "strike": 1780,
+    "entry": 56.2,
+    "ivPct": 16.1,
+    "rvPct": 22.6,
+    "status": "OPEN"
+   }
+  ],
   "summary": {
    "finished": 0,
    "verdict": "COLLECTING"
@@ -19,62 +140,47 @@
   "rule": "Every 5th session: buy the 10% of stocks that lagged their industry group most over the last 5 sessions, short the 10% that led it most; close both 5 sessions later. Industry = NSE's own filings, which give none for about a third of the 200 stocks; those are compared with each other as one group, exactly as in the backtest",
   "backtest": "+0.15% a rebalance, t 1.98, 248 rebalances over 60 months — just short of the bar",
   "status": "RUN",
-  "rebalances": [],
-  "pending": {
-   "long": [
-    "POLICYBZR",
-    "PATANJALI",
-    "SWIGGY",
-    "WOCKPHARMA",
-    "MAXHEALTH",
-    "IFCI",
-    "BAJAJ-AUTO",
-    "SBICARD",
-    "NAM-INDIA",
-    "KALYANKJIL",
-    "YESBANK",
-    "OFSS",
-    "UNIONBANK",
-    "JIOFIN"
-   ],
-   "short": [
-    "BHEL",
-    "DMART",
-    "TFCILTD",
-    "INDIGO",
-    "SYRMA",
-    "HDFCLIFE",
-    "POWERINDIA",
-    "COFORGE",
-    "AEGISLOG",
-    "AXISBANK",
-    "ENRIN",
-    "RATNAVEER",
-    "AZAD",
-    "MOREPENLAB"
-   ]
-  },
-  "pendingNoIndustry": [
-   "POLICYBZR",
-   "PATANJALI",
-   "SWIGGY",
-   "MAXHEALTH",
-   "SBICARD",
-   "NAM-INDIA",
-   "KALYANKJIL",
-   "JIOFIN",
-   "DMART",
-   "INDIGO",
-   "SYRMA",
-   "HDFCLIFE",
-   "POWERINDIA",
-   "COFORGE",
-   "AEGISLOG",
-   "ENRIN",
-   "RATNAVEER",
-   "AZAD"
+  "rebalances": [
+   {
+    "date": "2026-10-05",
+    "long": [
+     "POLICYBZR",
+     "PATANJALI",
+     "SWIGGY",
+     "WOCKPHARMA",
+     "MAXHEALTH",
+     "IFCI",
+     "BAJAJ-AUTO",
+     "SBICARD",
+     "NAM-INDIA",
+     "KALYANKJIL",
+     "YESBANK",
+     "OFSS",
+     "UNIONBANK",
+     "JIOFIN"
+    ],
+    "short": [
+     "BHEL",
+     "DMART",
+     "TFCILTD",
+     "INDIGO",
+     "SYRMA",
+     "HDFCLIFE",
+     "POWERINDIA",
+     "COFORGE",
+     "AEGISLOG",
+     "AXISBANK",
+     "ENRIN",
+     "RATNAVEER",
+     "AZAD",
+     "MOREPENLAB"
+    ],
+    "status": "OPEN"
+   }
   ],
-  "sessionsToNext": 0,
+  "pending": null,
+  "pendingNoIndustry": [],
+  "sessionsToNext": 4,
   "summary": {
    "finished": 0,
    "verdict": "COLLECTING"
