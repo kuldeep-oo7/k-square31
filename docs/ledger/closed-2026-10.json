@@ -37575,6 +37575,384 @@
     "perLot": -7140,
     "netPerLot": -7207.34
    }
+  },
+  {
+   "id": "2026-10-05|PE|HYUNDAI26OCT2000PE",
+   "kind": "PE",
+   "symbol": "HYUNDAI",
+   "contract": "HYUNDAI26OCT2000PE",
+   "expiry": "2026-10-27",
+   "strike": 2000,
+   "optionType": "PE",
+   "lotSize": 275,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:06:19.779Z",
+   "buy": 47.35,
+   "target": 71,
+   "target2": null,
+   "stop": 23.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51.6,
+     "medianDays": 7.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-05T04:06:19.794Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-06T06:26:17.411Z",
+   "exitPrice": 71,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 26.33,
+   "sessionsHeld": 1,
+   "best": 72.4,
+   "worst": 44.35,
+   "last": 65.7,
+   "lastAt": "2026-10-06T06:26:17.411Z",
+   "marks": 34,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 72.4,
+    "low": 48,
+    "last": 65.7
+   },
+   "pnl": {
+    "perUnit": 23.65,
+    "pct": 49.95,
+    "basis": "NET",
+    "perLot": 6503.75,
+    "netPerLot": 6413.19
+   }
+  },
+  {
+   "id": "2026-10-05|CE|PHOENIXLTD26OCT1960CE",
+   "kind": "CE",
+   "symbol": "PHOENIXLTD",
+   "contract": "PHOENIXLTD26OCT1960CE",
+   "expiry": "2026-10-27",
+   "strike": 1960,
+   "optionType": "CE",
+   "lotSize": 350,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:06:19.779Z",
+   "buy": 51.95,
+   "target": 77.95,
+   "target2": null,
+   "stop": 26,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51.2,
+     "medianDays": 7.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T05:07:42.522Z",
+   "hoursToFill": 1.02,
+   "closedAt": "2026-10-06T06:26:17.411Z",
+   "exitPrice": 26,
+   "exitReason": "STOP",
+   "hoursFillToExit": 25.31,
+   "sessionsHeld": 1,
+   "best": 51.95,
+   "worst": 24.6,
+   "last": 25.6,
+   "lastAt": "2026-10-06T06:26:17.411Z",
+   "marks": 29,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 39.75,
+    "low": 24.6,
+    "last": 25.6
+   },
+   "pnl": {
+    "perUnit": -25.95,
+    "pct": -49.95,
+    "basis": "NET",
+    "perLot": -9082.5,
+    "netPerLot": -9155.37
+   }
+  },
+  {
+   "id": "2026-10-05|CE|PHOENIXLTD26OCT1940CE",
+   "kind": "CE",
+   "symbol": "PHOENIXLTD",
+   "contract": "PHOENIXLTD26OCT1940CE",
+   "expiry": "2026-10-27",
+   "strike": 1940,
+   "optionType": "CE",
+   "lotSize": 350,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:06:19.779Z",
+   "buy": 61.45,
+   "target": 92.2,
+   "target2": null,
+   "stop": 30.75,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.9,
+     "medianDays": 6.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T04:25:59.453Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-06T06:26:17.411Z",
+   "exitPrice": 30.75,
+   "exitReason": "STOP",
+   "hoursFillToExit": 26,
+   "sessionsHeld": 1,
+   "best": 61.75,
+   "worst": 29.75,
+   "last": 31.5,
+   "lastAt": "2026-10-06T06:26:17.411Z",
+   "marks": 34,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 59.25,
+    "low": 29.75,
+    "last": 31.5
+   },
+   "pnl": {
+    "perUnit": -30.7,
+    "pct": -49.96,
+    "basis": "NET",
+    "perLot": -10745,
+    "netPerLot": -10822.56
+   }
+  },
+  {
+   "id": "2026-10-05|PE|HAL26OCT4600PE",
+   "kind": "PE",
+   "symbol": "HAL",
+   "contract": "HAL26OCT4600PE",
+   "expiry": "2026-10-27",
+   "strike": 4600,
+   "optionType": "PE",
+   "lotSize": 150,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:06:19.779Z",
+   "buy": 84.25,
+   "target": 126.35,
+   "target2": null,
+   "stop": 42.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.3,
+     "medianDays": 8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T04:25:59.453Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-06T06:26:17.411Z",
+   "exitPrice": 42.15,
+   "exitReason": "STOP",
+   "hoursFillToExit": 26,
+   "sessionsHeld": 1,
+   "best": 92.15,
+   "worst": 39.6,
+   "last": 40,
+   "lastAt": "2026-10-06T06:26:17.411Z",
+   "marks": 34,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 72.1,
+    "low": 39.6,
+    "last": 40
+   },
+   "pnl": {
+    "perUnit": -42.1,
+    "pct": -49.97,
+    "basis": "NET",
+    "perLot": -6315,
+    "netPerLot": -6380.03
+   }
+  },
+  {
+   "id": "2026-10-05|PE|HAL26OCT4650PE",
+   "kind": "PE",
+   "symbol": "HAL",
+   "contract": "HAL26OCT4650PE",
+   "expiry": "2026-10-27",
+   "strike": 4650,
+   "optionType": "PE",
+   "lotSize": 150,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:06:19.779Z",
+   "buy": 104.85,
+   "target": 157.25,
+   "target2": null,
+   "stop": 52.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51.9,
+     "medianDays": 7.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T04:25:59.453Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-06T06:26:17.411Z",
+   "exitPrice": 52.4,
+   "exitReason": "STOP",
+   "hoursFillToExit": 26,
+   "sessionsHeld": 1,
+   "best": 114.75,
+   "worst": 51.6,
+   "last": 51.7,
+   "lastAt": "2026-10-06T06:26:17.411Z",
+   "marks": 34,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 93.45,
+    "low": 51.6,
+    "last": 51.7
+   },
+   "pnl": {
+    "perUnit": -52.45,
+    "pct": -50.02,
+    "basis": "NET",
+    "perLot": -7867.5,
+    "netPerLot": -7936.88
+   }
+  },
+  {
+   "id": "2026-09-29|CE|TECHM26OCT1600CE",
+   "kind": "CE",
+   "symbol": "TECHM",
+   "contract": "TECHM26OCT1600CE",
+   "expiry": "2026-10-27",
+   "strike": 1600,
+   "optionType": "CE",
+   "lotSize": 600,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 25.65,
+   "target": 38.45,
+   "target2": null,
+   "stop": 12.8,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 36.1,
+     "medianDays": 12.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T04:06:33.336Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-06T06:26:17.411Z",
+   "exitPrice": 12.8,
+   "exitReason": "STOP",
+   "hoursFillToExit": 170.33,
+   "sessionsHeld": 4,
+   "best": 34.7,
+   "worst": 12.5,
+   "last": 13.15,
+   "lastAt": "2026-10-06T06:26:17.411Z",
+   "marks": 112,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 20.65,
+    "low": 12.5,
+    "last": 13.15
+   },
+   "pnl": {
+    "perUnit": -12.85,
+    "pct": -50.1,
+    "basis": "NET",
+    "perLot": -7710,
+    "netPerLot": -7778.88
+   }
+  },
+  {
+   "id": "2026-09-28|CE|TECHM26OCT1560CE",
+   "kind": "CE",
+   "symbol": "TECHM",
+   "contract": "TECHM26OCT1560CE",
+   "expiry": "2026-10-27",
+   "strike": 1560,
+   "optionType": "CE",
+   "lotSize": 600,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 43.65,
+   "target": 65.45,
+   "target2": null,
+   "stop": 21.8,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 46.9,
+     "medianDays": 10.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T04:06:42.660Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-06T06:26:17.411Z",
+   "exitPrice": 21.8,
+   "exitReason": "STOP",
+   "hoursFillToExit": 194.33,
+   "sessionsHeld": 5,
+   "best": 51.9,
+   "worst": 21.25,
+   "last": 22.15,
+   "lastAt": "2026-10-06T06:26:17.411Z",
+   "marks": 140,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 31.45,
+    "low": 21.25,
+    "last": 22.15
+   },
+   "pnl": {
+    "perUnit": -21.85,
+    "pct": -50.06,
+    "basis": "NET",
+    "perLot": -13110,
+    "netPerLot": -13194.12
+   }
   }
  ]
 }
