@@ -39789,6 +39789,114 @@
     "perLot": -14377.5,
     "netPerLot": -14465.26
    }
+  },
+  {
+   "id": "2026-10-05|PE|HINDUNILVR26OCT1800PE",
+   "kind": "PE",
+   "symbol": "HINDUNILVR",
+   "contract": "HINDUNILVR26OCT1800PE",
+   "expiry": "2026-10-27",
+   "strike": 1800,
+   "optionType": "PE",
+   "lotSize": 300,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:25:59.432Z",
+   "buy": 20.35,
+   "target": 30.55,
+   "target2": null,
+   "stop": 10.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 25.5,
+     "medianDays": 12.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T04:25:59.453Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-06T08:25:55.942Z",
+   "exitPrice": 10.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 28,
+   "sessionsHeld": 1,
+   "best": 24.5,
+   "worst": 9.6,
+   "last": 9.6,
+   "lastAt": "2026-10-06T08:25:55.942Z",
+   "marks": 39,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 20.65,
+    "low": 9.6,
+    "last": 9.6
+   },
+   "pnl": {
+    "perUnit": -10.15,
+    "pct": -49.88,
+    "basis": "NET",
+    "perLot": -3045,
+    "netPerLot": -3100.83
+   }
+  },
+  {
+   "id": "2026-10-05|PE|BLUESTARCO26OCT1500PE",
+   "kind": "PE",
+   "symbol": "BLUESTARCO",
+   "contract": "BLUESTARCO26OCT1500PE",
+   "expiry": "2026-10-27",
+   "strike": 1500,
+   "optionType": "PE",
+   "lotSize": 325,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:25:59.432Z",
+   "buy": 60.45,
+   "target": 90.65,
+   "target2": null,
+   "stop": 30.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.3,
+     "medianDays": 7.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T04:45:55.829Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-06T08:25:55.942Z",
+   "exitPrice": 30.25,
+   "exitReason": "STOP",
+   "hoursFillToExit": 27.67,
+   "sessionsHeld": 1,
+   "best": 62.35,
+   "worst": 29.15,
+   "last": 29.9,
+   "lastAt": "2026-10-06T08:25:55.942Z",
+   "marks": 39,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 60.15,
+    "low": 29.15,
+    "last": 29.9
+   },
+   "pnl": {
+    "perUnit": -30.2,
+    "pct": -49.96,
+    "basis": "NET",
+    "perLot": -9815,
+    "netPerLot": -9889.93
+   }
   }
  ]
 }

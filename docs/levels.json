@@ -258,7 +258,9 @@
   "OPTION|BANKNIFTY|BANKNIFTY26OCT56500PE",
   "OPTION|KOTAKBANK|KOTAKBANK26OCT450CE",
   "OPTION|BSE|BSE26OCT3500PE",
-  "OPTION|LAURUSLABS|LAURUSLABS26OCT2160CE"
+  "OPTION|LAURUSLABS|LAURUSLABS26OCT2160CE",
+  "OPTION|BANKBARODA|BANKBARODA26OCT222.5PE",
+  "OPTION|ADANIGREEN|ADANIGREEN26OCT1240PE"
  ],
  "options": {
   "MFSL26OCT1360PE": {
@@ -3934,6 +3936,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-06T08:07:25.999Z",
    "frozenAtIst": "2026-10-06 13:37 IST",
+   "frozenAtSpot": null
+  },
+  "BANKBARODA26OCT222.5PE": {
+   "buy": 2.64,
+   "sell": 3.96,
+   "stop": 1.32,
+   "tick": 0.01,
+   "lotSize": 2925,
+   "expiry": "2026-10-27",
+   "strike": 222.5,
+   "right": "PE",
+   "symbol": "BANKBARODA",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-06T08:25:55.925Z",
+   "frozenAtIst": "2026-10-06 13:55 IST",
+   "frozenAtSpot": null
+  },
+  "ADANIGREEN26OCT1240PE": {
+   "buy": 18.85,
+   "sell": 28.25,
+   "stop": 9.45,
+   "tick": 0.05,
+   "lotSize": 600,
+   "expiry": "2026-10-27",
+   "strike": 1240,
+   "right": "PE",
+   "symbol": "ADANIGREEN",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-06T08:25:55.925Z",
+   "frozenAtIst": "2026-10-06 13:55 IST",
    "frozenAtSpot": null
   }
  },
