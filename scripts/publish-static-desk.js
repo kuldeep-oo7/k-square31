@@ -1337,6 +1337,15 @@ function page(d) {
              : fc.worstGapPct !== null && fc.worstGapPct !== undefined ? `, last prices within ${esc(fc.worstGapPct)}%` : ""}.`)
         + (fc.priceOff?.length ? ` <b class="warn">Price differs from NSE's:</b> ${esc(fc.priceOff.join("; "))}.` : "")
       : ` Not checked against NSE on this build (${esc(fc.reason || "reason unknown")}).`;
+  // STALE PARTS (api/_lib/freshness.js): anything on this build older than the last finished NSE session,
+  // named in red at the top, so an old part can never pass for a current one (6 Oct 2026).
+  const stale = (() => { try { return require("../api/_lib/freshness").staleParts(d); } catch { return { items: [] }; } })();
+  const staleDay = (iso) => (iso ? new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }) : "missing");
+  const staleAlarm = stale.items.length
+    ? `<div class="note" style="border-left-color:var(--red)"><b class="down">OUT OF DATE ON THIS BUILD:</b>
+        ${stale.items.map((x) => `${esc(x.part)} (${x.have ? `data through ${esc(staleDay(x.have))}` : "missing"})`).join("; ")}.
+        NSE's last finished session is ${esc(staleDay(stale.expected))}. Everything else on the page is current; read these parts as old until this line goes away.</div>`
+    : "";
   const feedAlarm = fc?.checked && fc.wrongContract?.length
     ? `<div class="note" style="border-left-color:var(--red)"><b class="down">DO NOT TRADE THESE ROWS.</b>
         Angel One and NSE disagree on which contract they are: ${esc(fc.wrongContract.join("; "))}.
@@ -1554,6 +1563,7 @@ function page(d) {
 <div class="note ${d.levelsFrozen ? "frozen" : ""}"><details class="fold"><summary>${freezeHead}<span class="more"></span></summary><div>${freezeRest}</div></details></div>
 <div class="note direction" style="border-left-color:var(--${dirTone})"><details class="fold"><summary>${dirHead}<span class="more"></span></summary><div>${dirRest}</div></details></div>
 ${feedAlarm}
+${staleAlarm}
 
 <main class="desk">
   <input type="radio" name="view" id="v-fut" checked>
