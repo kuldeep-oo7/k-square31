@@ -247,7 +247,13 @@
   "OPTION|DRREDDY|DRREDDY26OCT1260CE",
   "OPTION|BANKBARODA|BANKBARODA26OCT225PE",
   "OPTION|IDFCFIRSTB|IDFCFIRSTB26OCT85PE",
-  "OPTION|BLUESTARCO|BLUESTARCO26OCT1460PE"
+  "OPTION|BLUESTARCO|BLUESTARCO26OCT1460PE",
+  "OPTION|NIFTY|NIFTY26O1322950PE",
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13775PE",
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13675PE",
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13575PE",
+  "OPTION|MFSL|MFSL26OCT1280PE",
+  "OPTION|ADANIENT|ADANIENT26OCT2750PE"
  ],
  "options": {
   "MFSL26OCT1360PE": {
@@ -3788,6 +3794,66 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-06T05:46:35.447Z",
    "frozenAtIst": "2026-10-06 11:16 IST",
+   "frozenAtSpot": null
+  },
+  "MIDCPNIFTY26OCT13775PE": {
+   "buy": 213.1,
+   "sell": 319.65,
+   "stop": 106.55,
+   "tick": 0.05,
+   "lotSize": 120,
+   "expiry": "2026-10-27",
+   "strike": 13775,
+   "right": "PE",
+   "symbol": "MIDCPNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-06T06:06:19.215Z",
+   "frozenAtIst": "2026-10-06 11:36 IST",
+   "frozenAtSpot": null
+  },
+  "MIDCPNIFTY26OCT13675PE": {
+   "buy": 171.8,
+   "sell": 257.7,
+   "stop": 85.9,
+   "tick": 0.05,
+   "lotSize": 120,
+   "expiry": "2026-10-27",
+   "strike": 13675,
+   "right": "PE",
+   "symbol": "MIDCPNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-06T06:06:19.215Z",
+   "frozenAtIst": "2026-10-06 11:36 IST",
+   "frozenAtSpot": null
+  },
+  "MIDCPNIFTY26OCT13575PE": {
+   "buy": 137.25,
+   "sell": 205.9,
+   "stop": 68.65,
+   "tick": 0.05,
+   "lotSize": 120,
+   "expiry": "2026-10-27",
+   "strike": 13575,
+   "right": "PE",
+   "symbol": "MIDCPNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-06T06:06:19.215Z",
+   "frozenAtIst": "2026-10-06 11:36 IST",
+   "frozenAtSpot": null
+  },
+  "MFSL26OCT1280PE": {
+   "buy": 17.55,
+   "sell": 26.35,
+   "stop": 8.8,
+   "tick": 0.05,
+   "lotSize": 400,
+   "expiry": "2026-10-27",
+   "strike": 1280,
+   "right": "PE",
+   "symbol": "MFSL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-06T06:06:19.215Z",
+   "frozenAtIst": "2026-10-06 11:36 IST",
    "frozenAtSpot": null
   }
  },
