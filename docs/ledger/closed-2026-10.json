@@ -37953,6 +37953,168 @@
     "perLot": -13110,
     "netPerLot": -13194.12
    }
+  },
+  {
+   "id": "2026-10-05|PE|HAL26OCT4700PE",
+   "kind": "PE",
+   "symbol": "HAL",
+   "contract": "HAL26OCT4700PE",
+   "expiry": "2026-10-27",
+   "strike": 4700,
+   "optionType": "PE",
+   "lotSize": 150,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:06:19.779Z",
+   "buy": 129.65,
+   "target": 194.5,
+   "target2": null,
+   "stop": 64.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.2,
+     "medianDays": 6.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T04:25:59.453Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-06T06:46:39.872Z",
+   "exitPrice": 64.85,
+   "exitReason": "STOP",
+   "hoursFillToExit": 26.34,
+   "sessionsHeld": 1,
+   "best": 140.2,
+   "worst": 63.65,
+   "last": 63.65,
+   "lastAt": "2026-10-06T06:46:39.872Z",
+   "marks": 35,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 112,
+    "low": 63.65,
+    "last": 63.65
+   },
+   "pnl": {
+    "perUnit": -64.8,
+    "pct": -49.98,
+    "basis": "NET",
+    "perLot": -9720,
+    "netPerLot": -9794.64
+   }
+  },
+  {
+   "id": "2026-09-30|PE|HAL26OCT4700PE",
+   "kind": "PE",
+   "symbol": "HAL",
+   "contract": "HAL26OCT4700PE",
+   "expiry": "2026-10-27",
+   "strike": 4700,
+   "optionType": "PE",
+   "lotSize": 150,
+   "sessionDate": "2026-09-30",
+   "shownAt": "2026-09-30T03:49:31.267Z",
+   "buy": 131.35,
+   "target": 197.05,
+   "target2": null,
+   "stop": 65.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 52.8,
+     "medianDays": 8.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-30T03:49:31.276Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-06T06:46:39.872Z",
+   "exitPrice": 65.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 146.95,
+   "sessionsHeld": 3,
+   "best": 195.3,
+   "worst": 63.65,
+   "last": 63.65,
+   "lastAt": "2026-10-06T06:46:39.872Z",
+   "marks": 86,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 112,
+    "low": 63.65,
+    "last": 63.65
+   },
+   "pnl": {
+    "perUnit": -65.7,
+    "pct": -50.02,
+    "basis": "NET",
+    "perLot": -9855,
+    "netPerLot": -9929.99
+   }
+  },
+  {
+   "id": "2026-09-28|CE|SBIN26OCT980CE",
+   "kind": "CE",
+   "symbol": "SBIN",
+   "contract": "SBIN26OCT980CE",
+   "expiry": "2026-10-27",
+   "strike": 980,
+   "optionType": "CE",
+   "lotSize": 750,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 19.35,
+   "target": 29.05,
+   "target2": null,
+   "stop": 9.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 46.6,
+     "medianDays": 10.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T04:26:39.880Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-06T06:46:39.872Z",
+   "exitPrice": 9.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 194.33,
+   "sessionsHeld": 5,
+   "best": 19.35,
+   "worst": 9.4,
+   "last": 9.95,
+   "lastAt": "2026-10-06T06:46:39.872Z",
+   "marks": 141,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 12.85,
+    "low": 9.4,
+    "last": 9.95
+   },
+   "pnl": {
+    "perUnit": -9.65,
+    "pct": -49.87,
+    "basis": "NET",
+    "perLot": -7237.5,
+    "netPerLot": -7305.21
+   }
   }
  ]
 }
