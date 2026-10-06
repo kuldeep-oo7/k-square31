@@ -262,7 +262,8 @@
   "OPTION|BANKBARODA|BANKBARODA26OCT222.5PE",
   "OPTION|ADANIGREEN|ADANIGREEN26OCT1240PE",
   "OPTION|MOTILALOFS|MOTILALOFS26OCT1140CE",
-  "OPTION|POWERGRID|POWERGRID26OCT250PE"
+  "OPTION|POWERGRID|POWERGRID26OCT250PE",
+  "OPTION|BANKNIFTY|BANKNIFTY26OCT54000PE"
  ],
  "options": {
   "MFSL26OCT1360PE": {
@@ -3998,6 +3999,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-06T09:07:44.719Z",
    "frozenAtIst": "2026-10-06 14:37 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26OCT54000PE": {
+   "buy": 374.6,
+   "sell": 561.9,
+   "stop": 187.3,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-10-27",
+   "strike": 54000,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-06T09:45:49.241Z",
+   "frozenAtIst": "2026-10-06 15:15 IST",
    "frozenAtSpot": null
   }
  },
