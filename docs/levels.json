@@ -253,7 +253,8 @@
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13675PE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13575PE",
   "OPTION|MFSL|MFSL26OCT1280PE",
-  "OPTION|ADANIENT|ADANIENT26OCT2750PE"
+  "OPTION|ADANIENT|ADANIENT26OCT2750PE",
+  "OPTION|ADANIENSOL|ADANIENSOL26OCT1280PE"
  ],
  "options": {
   "MFSL26OCT1360PE": {
@@ -3854,6 +3855,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-06T06:06:19.215Z",
    "frozenAtIst": "2026-10-06 11:36 IST",
+   "frozenAtSpot": null
+  },
+  "ADANIENSOL26OCT1280PE": {
+   "buy": 21.8,
+   "sell": 32.7,
+   "stop": 10.9,
+   "tick": 0.05,
+   "lotSize": 675,
+   "expiry": "2026-10-27",
+   "strike": 1280,
+   "right": "PE",
+   "symbol": "ADANIENSOL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-06T07:06:01.463Z",
+   "frozenAtIst": "2026-10-06 12:36 IST",
    "frozenAtSpot": null
   }
  },

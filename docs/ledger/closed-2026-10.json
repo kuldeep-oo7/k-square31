@@ -38115,6 +38115,222 @@
     "perLot": -7237.5,
     "netPerLot": -7305.21
    }
+  },
+  {
+   "id": "2026-10-05|PE|HYUNDAI26OCT2020PE",
+   "kind": "PE",
+   "symbol": "HYUNDAI",
+   "contract": "HYUNDAI26OCT2020PE",
+   "expiry": "2026-10-27",
+   "strike": 2020,
+   "optionType": "PE",
+   "lotSize": 275,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:06:19.779Z",
+   "buy": 56.25,
+   "target": 84.35,
+   "target2": null,
+   "stop": 28.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 54.5,
+     "medianDays": 6.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-05T04:06:19.794Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-06T07:06:01.478Z",
+   "exitPrice": 84.35,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 26.99,
+   "sessionsHeld": 1,
+   "best": 84.45,
+   "worst": 55.2,
+   "last": 84.45,
+   "lastAt": "2026-10-06T07:06:01.478Z",
+   "marks": 33,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 84.45,
+    "low": 59.5,
+    "last": 84.45
+   },
+   "pnl": {
+    "perUnit": 28.1,
+    "pct": 49.96,
+    "basis": "NET",
+    "perLot": 7727.5,
+    "netPerLot": 7628.79
+   }
+  },
+  {
+   "id": "2026-09-30|PE|CUMMINSIND26OCT4600PE",
+   "kind": "PE",
+   "symbol": "CUMMINSIND",
+   "contract": "CUMMINSIND26OCT4600PE",
+   "expiry": "2026-10-27",
+   "strike": 4600,
+   "optionType": "PE",
+   "lotSize": 200,
+   "sessionDate": "2026-09-30",
+   "shownAt": "2026-09-30T09:06:19.472Z",
+   "buy": 49.7,
+   "target": 74.55,
+   "target2": null,
+   "stop": 24.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 36.2,
+     "medianDays": 12.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-30T09:06:19.485Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-06T07:06:01.478Z",
+   "exitPrice": 24.85,
+   "exitReason": "STOP",
+   "hoursFillToExit": 141.99,
+   "sessionsHeld": 3,
+   "best": 55.15,
+   "worst": 24.8,
+   "last": 25,
+   "lastAt": "2026-10-06T07:06:01.478Z",
+   "marks": 70,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 40.35,
+    "low": 24.8,
+    "last": 25
+   },
+   "pnl": {
+    "perUnit": -24.85,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -4970,
+    "netPerLot": -5031.22
+   }
+  },
+  {
+   "id": "2026-09-29|CE|TECHM26OCT1580CE",
+   "kind": "CE",
+   "symbol": "TECHM",
+   "contract": "TECHM26OCT1580CE",
+   "expiry": "2026-10-27",
+   "strike": 1580,
+   "optionType": "CE",
+   "lotSize": 600,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 32.15,
+   "target": 48.2,
+   "target2": null,
+   "stop": 16.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 40.8,
+     "medianDays": 11.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T04:26:36.384Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-06T07:06:01.478Z",
+   "exitPrice": 16.05,
+   "exitReason": "STOP",
+   "hoursFillToExit": 170.66,
+   "sessionsHeld": 4,
+   "best": 42.75,
+   "worst": 15.8,
+   "last": 16.3,
+   "lastAt": "2026-10-06T07:06:01.478Z",
+   "marks": 114,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 24.25,
+    "low": 15.8,
+    "last": 16.3
+   },
+   "pnl": {
+    "perUnit": -16.1,
+    "pct": -50.08,
+    "basis": "NET",
+    "perLot": -9660,
+    "netPerLot": -9734.38
+   }
+  },
+  {
+   "id": "2026-09-28|CE|TECHM26OCT1540CE",
+   "kind": "CE",
+   "symbol": "TECHM",
+   "contract": "TECHM26OCT1540CE",
+   "expiry": "2026-10-27",
+   "strike": 1540,
+   "optionType": "CE",
+   "lotSize": 600,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 53.4,
+   "target": 80.1,
+   "target2": null,
+   "stop": 26.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.7,
+     "medianDays": 9.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T04:06:42.660Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-06T07:06:01.478Z",
+   "exitPrice": 26.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 194.99,
+   "sessionsHeld": 5,
+   "best": 62,
+   "worst": 26.5,
+   "last": 27.5,
+   "lastAt": "2026-10-06T07:06:01.478Z",
+   "marks": 142,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 40.1,
+    "low": 26.5,
+    "last": 27.5
+   },
+   "pnl": {
+    "perUnit": -26.7,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -16020,
+    "netPerLot": -16112.4
+   }
   }
  ]
 }
