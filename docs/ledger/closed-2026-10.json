@@ -36668,6 +36668,211 @@
     "perLot": 17127.5,
     "netPerLot": 16966.19
    }
+  },
+  {
+   "id": "2026-10-06|FUT|SUNTV (share)",
+   "kind": "FUT",
+   "symbol": "SUNTV",
+   "contract": "SUNTV (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-10-06",
+   "shownAt": "2026-10-06T03:52:16.843Z",
+   "buy": 621.95,
+   "target": 637.5,
+   "target2": 653.05,
+   "stop": 612.6,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "TARGET",
+   "filledAt": "2026-10-06T04:47:12.889Z",
+   "hoursToFill": 0.92,
+   "closedAt": "2026-10-06T05:46:35.463Z",
+   "exitPrice": 637.5,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 0.99,
+   "sessionsHeld": 0,
+   "best": 640.95,
+   "worst": 620.6,
+   "last": 635.3,
+   "lastAt": "2026-10-06T05:46:35.463Z",
+   "marks": 7,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 640.95,
+    "low": 620.6,
+    "last": 635.3
+   },
+   "pnl": {
+    "perUnit": 15.55,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-05|CE|COALINDIA26OCT440CE",
+   "kind": "CE",
+   "symbol": "COALINDIA",
+   "contract": "COALINDIA26OCT440CE",
+   "expiry": "2026-10-27",
+   "strike": 440,
+   "optionType": "CE",
+   "lotSize": 1350,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:25:59.432Z",
+   "buy": 5.35,
+   "target": 8,
+   "target2": null,
+   "stop": 2.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.3,
+     "medianDays": 7.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T04:45:55.829Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-06T05:46:35.463Z",
+   "exitPrice": 2.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 25.01,
+   "sessionsHeld": 1,
+   "best": 5.35,
+   "worst": 2.55,
+   "last": 2.55,
+   "lastAt": "2026-10-06T05:46:35.463Z",
+   "marks": 31,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 4.25,
+    "low": 2.55,
+    "last": 2.55
+   },
+   "pnl": {
+    "perUnit": -2.7,
+    "pct": -50.47,
+    "basis": "NET",
+    "perLot": -3645,
+    "netPerLot": -3702.32
+   }
+  },
+  {
+   "id": "2026-10-05|FUT|COALINDIA26OCTFUT",
+   "kind": "FUT",
+   "symbol": "COALINDIA",
+   "contract": "COALINDIA26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1350,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T03:50:43.392Z",
+   "buy": 427.65,
+   "target": 438.35,
+   "target2": 449.05,
+   "stop": 421.25,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 58.4,
+     "medianTradingDays": 0.268
+    },
+    "target": {
+     "probabilityPct": 69.8,
+     "medianTradingDays": 3.29
+    },
+    "sigmaPct": 23.3,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T05:26:07.153Z",
+   "hoursToFill": 1.59,
+   "closedAt": "2026-10-06T05:46:35.463Z",
+   "exitPrice": 421.25,
+   "exitReason": "STOP",
+   "hoursFillToExit": 24.34,
+   "sessionsHeld": 1,
+   "best": 428.75,
+   "worst": 421.1,
+   "last": 421.1,
+   "lastAt": "2026-10-06T05:46:35.463Z",
+   "marks": 33,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 428.75,
+    "low": 421.1,
+    "last": 421.1
+   },
+   "pnl": {
+    "perUnit": -6.4,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-05|FUT|PHOENIXLTD26OCTFUT",
+   "kind": "FUT",
+   "symbol": "PHOENIXLTD",
+   "contract": "PHOENIXLTD26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 350,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T03:50:43.392Z",
+   "buy": 1938.3,
+   "target": 1986.8,
+   "target2": 2035.2,
+   "stop": 1909.2,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 65.3,
+     "medianTradingDays": 0.209
+    },
+    "target": {
+     "probabilityPct": 74.9,
+     "medianTradingDays": 2.449
+    },
+    "sigmaPct": 28.5,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T05:07:42.522Z",
+   "hoursToFill": 1.28,
+   "closedAt": "2026-10-06T05:46:35.463Z",
+   "exitPrice": 1909.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 24.65,
+   "sessionsHeld": 1,
+   "best": 1948.5,
+   "worst": 1901.9,
+   "last": 1902.2,
+   "lastAt": "2026-10-06T05:46:35.463Z",
+   "marks": 33,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 1945.1,
+    "low": 1901.9,
+    "last": 1902.2
+   },
+   "pnl": {
+    "perUnit": -29.1,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
