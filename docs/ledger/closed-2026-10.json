@@ -40221,6 +40221,60 @@
     "perLot": 22823.75,
     "netPerLot": 22624.49
    }
+  },
+  {
+   "id": "2026-10-05|CE|LAURUSLABS26OCT1900CE",
+   "kind": "CE",
+   "symbol": "LAURUSLABS",
+   "contract": "LAURUSLABS26OCT1900CE",
+   "expiry": "2026-10-27",
+   "strike": 1900,
+   "optionType": "CE",
+   "lotSize": 850,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:06:19.779Z",
+   "buy": 112.4,
+   "target": 168.6,
+   "target2": null,
+   "stop": 56.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 46.3,
+     "medianDays": 8.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-05T04:06:19.794Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-06T09:26:49.519Z",
+   "exitPrice": 168.6,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 29.34,
+   "sessionsHeld": 1,
+   "best": 171.95,
+   "worst": 102.9,
+   "last": 171.95,
+   "lastAt": "2026-10-06T09:26:49.519Z",
+   "marks": 41,
+   "obs": {
+    "date": "2026-10-06",
+    "high": 171.95,
+    "low": 111.05,
+    "last": 171.95
+   },
+   "pnl": {
+    "perUnit": 56.2,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 47770,
+    "netPerLot": 47404.55
+   }
   }
  ]
 }
