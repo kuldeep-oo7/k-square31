@@ -257,7 +257,8 @@
   "OPTION|ADANIENSOL|ADANIENSOL26OCT1280PE",
   "OPTION|BANKNIFTY|BANKNIFTY26OCT56500PE",
   "OPTION|KOTAKBANK|KOTAKBANK26OCT450CE",
-  "OPTION|BSE|BSE26OCT3500PE"
+  "OPTION|BSE|BSE26OCT3500PE",
+  "OPTION|LAURUSLABS|LAURUSLABS26OCT2160CE"
  ],
  "options": {
   "MFSL26OCT1360PE": {
@@ -3918,6 +3919,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-06T07:46:36.697Z",
    "frozenAtIst": "2026-10-06 13:16 IST",
+   "frozenAtSpot": null
+  },
+  "LAURUSLABS26OCT2160CE": {
+   "buy": 23.5,
+   "sell": 35.25,
+   "stop": 11.75,
+   "tick": 0.05,
+   "lotSize": 850,
+   "expiry": "2026-10-27",
+   "strike": 2160,
+   "right": "CE",
+   "symbol": "LAURUSLABS",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-06T08:07:25.999Z",
+   "frozenAtIst": "2026-10-06 13:37 IST",
    "frozenAtSpot": null
   }
  },
