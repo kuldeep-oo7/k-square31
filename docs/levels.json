@@ -254,7 +254,10 @@
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13575PE",
   "OPTION|MFSL|MFSL26OCT1280PE",
   "OPTION|ADANIENT|ADANIENT26OCT2750PE",
-  "OPTION|ADANIENSOL|ADANIENSOL26OCT1280PE"
+  "OPTION|ADANIENSOL|ADANIENSOL26OCT1280PE",
+  "OPTION|BANKNIFTY|BANKNIFTY26OCT56500PE",
+  "OPTION|KOTAKBANK|KOTAKBANK26OCT450CE",
+  "OPTION|BSE|BSE26OCT3500PE"
  ],
  "options": {
   "MFSL26OCT1360PE": {
@@ -3885,6 +3888,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-06T07:26:45.813Z",
    "frozenAtIst": "2026-10-06 12:56 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26OCT56500PE": {
+   "buy": 1456.65,
+   "sell": 2185,
+   "stop": 728.35,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-10-27",
+   "strike": 56500,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-06T07:46:36.697Z",
+   "frozenAtIst": "2026-10-06 13:16 IST",
+   "frozenAtSpot": null
+  },
+  "KOTAKBANK26OCT450CE": {
+   "buy": 3.45,
+   "sell": 5.2,
+   "stop": 1.75,
+   "tick": 0.05,
+   "lotSize": 2000,
+   "expiry": "2026-10-27",
+   "strike": 450,
+   "right": "CE",
+   "symbol": "KOTAKBANK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-06T07:46:36.697Z",
+   "frozenAtIst": "2026-10-06 13:16 IST",
    "frozenAtSpot": null
   }
  },
