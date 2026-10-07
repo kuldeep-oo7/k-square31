@@ -48701,6 +48701,114 @@
     "perLot": 21985.35,
     "netPerLot": 21791.64
    }
+  },
+  {
+   "id": "2026-10-05|PE|HYUNDAI26OCT2100PE",
+   "kind": "PE",
+   "symbol": "HYUNDAI",
+   "contract": "HYUNDAI26OCT2100PE",
+   "expiry": "2026-10-27",
+   "strike": 2100,
+   "optionType": "PE",
+   "lotSize": 275,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:25:59.432Z",
+   "buy": 106.6,
+   "target": 159.9,
+   "target2": null,
+   "stop": 53.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 57.2,
+     "medianDays": 6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-05T05:26:07.153Z",
+   "hoursToFill": 1,
+   "closedAt": "2026-10-07T09:45:37.939Z",
+   "exitPrice": 159.9,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 52.33,
+   "sessionsHeld": 2,
+   "best": 160,
+   "worst": 100.65,
+   "last": 160,
+   "lastAt": "2026-10-07T09:45:37.939Z",
+   "marks": 62,
+   "obs": {
+    "date": "2026-10-07",
+    "high": 160,
+    "low": 132.6,
+    "last": 160
+   },
+   "pnl": {
+    "perUnit": 53.3,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 14657.5,
+    "netPerLot": 14512.65
+   }
+  },
+  {
+   "id": "2026-10-01|PE|PRESTIGE26OCT1440PE",
+   "kind": "PE",
+   "symbol": "PRESTIGE",
+   "contract": "PRESTIGE26OCT1440PE",
+   "expiry": "2026-10-27",
+   "strike": 1440,
+   "optionType": "PE",
+   "lotSize": 450,
+   "sessionDate": "2026-10-01",
+   "shownAt": "2026-10-01T04:07:35.772Z",
+   "buy": 32.55,
+   "target": 48.8,
+   "target2": null,
+   "stop": 16.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.4,
+     "medianDays": 8.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-01T04:26:16.830Z",
+   "hoursToFill": 0.31,
+   "closedAt": "2026-10-07T09:45:37.939Z",
+   "exitPrice": 48.8,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 149.32,
+   "sessionsHeld": 3,
+   "best": 49,
+   "worst": 23.7,
+   "last": 49,
+   "lastAt": "2026-10-07T09:45:37.939Z",
+   "marks": 94,
+   "obs": {
+    "date": "2026-10-07",
+    "high": 49,
+    "low": 34.5,
+    "last": 49
+   },
+   "pnl": {
+    "perUnit": 16.25,
+    "pct": 49.92,
+    "basis": "NET",
+    "perLot": 7312.5,
+    "netPerLot": 7216.53
+   }
   }
  ]
 }
