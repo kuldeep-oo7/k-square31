@@ -48647,6 +48647,60 @@
     "perLot": -5937.5,
     "netPerLot": -6001.34
    }
+  },
+  {
+   "id": "2026-10-05|PE|ADANIENT26OCT2950PE",
+   "kind": "PE",
+   "symbol": "ADANIENT",
+   "contract": "ADANIENT26OCT2950PE",
+   "expiry": "2026-10-27",
+   "strike": 2950,
+   "optionType": "PE",
+   "lotSize": 309,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:25:59.432Z",
+   "buy": 142.35,
+   "target": 213.5,
+   "target2": null,
+   "stop": 71.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56,
+     "medianDays": 6.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-05T04:45:55.829Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-07T09:06:12.006Z",
+   "exitPrice": 213.5,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 52.34,
+   "sessionsHeld": 2,
+   "best": 215.4,
+   "worst": 108,
+   "last": 215.4,
+   "lastAt": "2026-10-07T09:06:12.006Z",
+   "marks": 63,
+   "obs": {
+    "date": "2026-10-07",
+    "high": 215.4,
+    "low": 136.8,
+    "last": 215.4
+   },
+   "pnl": {
+    "perUnit": 71.15,
+    "pct": 49.98,
+    "basis": "NET",
+    "perLot": 21985.35,
+    "netPerLot": 21791.64
+   }
   }
  ]
 }
