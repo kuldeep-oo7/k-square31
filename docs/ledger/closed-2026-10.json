@@ -44813,6 +44813,276 @@
     "perLot": -8621.25,
     "netPerLot": -8692.81
    }
+  },
+  {
+   "id": "2026-10-06|PE|ADANIENT26OCT2900PE",
+   "kind": "PE",
+   "symbol": "ADANIENT",
+   "contract": "ADANIENT26OCT2900PE",
+   "expiry": "2026-10-27",
+   "strike": 2900,
+   "optionType": "PE",
+   "lotSize": 309,
+   "sessionDate": "2026-10-06",
+   "shownAt": "2026-10-06T05:06:04.606Z",
+   "buy": 82.35,
+   "target": 123.55,
+   "target2": null,
+   "stop": 41.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.1,
+     "medianDays": 6.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-06T05:06:04.616Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-07T05:25:55.752Z",
+   "exitPrice": 123.55,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 24.33,
+   "sessionsHeld": 1,
+   "best": 124,
+   "worst": 79,
+   "last": 120.85,
+   "lastAt": "2026-10-07T05:25:55.752Z",
+   "marks": 28,
+   "obs": {
+    "date": "2026-10-07",
+    "high": 124,
+    "low": 105.2,
+    "last": 120.85
+   },
+   "pnl": {
+    "perUnit": 41.2,
+    "pct": 50.03,
+    "basis": "NET",
+    "perLot": 12730.8,
+    "netPerLot": 12598.82
+   }
+  },
+  {
+   "id": "2026-10-05|PE|ABCAPITAL26OCT365PE",
+   "kind": "PE",
+   "symbol": "ABCAPITAL",
+   "contract": "ABCAPITAL26OCT365PE",
+   "expiry": "2026-10-27",
+   "strike": 365,
+   "optionType": "PE",
+   "lotSize": 3100,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:25:59.432Z",
+   "buy": 4.8,
+   "target": 7.2,
+   "target2": null,
+   "stop": 2.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 27.7,
+     "medianDays": 11.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-05T04:25:59.453Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-07T05:25:55.752Z",
+   "exitPrice": 7.2,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 49,
+   "sessionsHeld": 2,
+   "best": 7.7,
+   "worst": 4.4,
+   "last": 6.55,
+   "lastAt": "2026-10-07T05:25:55.752Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-07",
+    "high": 7.7,
+    "low": 4.4,
+    "last": 6.55
+   },
+   "pnl": {
+    "perUnit": 2.4,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 7440,
+    "netPerLot": 7343.23
+   }
+  },
+  {
+   "id": "2026-10-05|PE|ABCAPITAL26OCT375PE",
+   "kind": "PE",
+   "symbol": "ABCAPITAL",
+   "contract": "ABCAPITAL26OCT375PE",
+   "expiry": "2026-10-27",
+   "strike": 375,
+   "optionType": "PE",
+   "lotSize": 3100,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:25:59.432Z",
+   "buy": 8,
+   "target": 12,
+   "target2": null,
+   "stop": 4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 40.2,
+     "medianDays": 9.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-05T04:25:59.453Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-07T05:25:55.752Z",
+   "exitPrice": 12,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 49,
+   "sessionsHeld": 2,
+   "best": 12.15,
+   "worst": 7.5,
+   "last": 10.5,
+   "lastAt": "2026-10-07T05:25:55.752Z",
+   "marks": 56,
+   "obs": {
+    "date": "2026-10-07",
+    "high": 12.15,
+    "low": 7.5,
+    "last": 10.5
+   },
+   "pnl": {
+    "perUnit": 4,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 12400,
+    "netPerLot": 12270.19
+   }
+  },
+  {
+   "id": "2026-10-01|PE|NAUKRI26OCT1160PE",
+   "kind": "PE",
+   "symbol": "NAUKRI",
+   "contract": "NAUKRI26OCT1160PE",
+   "expiry": "2026-10-27",
+   "strike": 1160,
+   "optionType": "PE",
+   "lotSize": 550,
+   "sessionDate": "2026-10-01",
+   "shownAt": "2026-10-01T04:07:35.772Z",
+   "buy": 20.9,
+   "target": 31.35,
+   "target2": null,
+   "stop": 10.45,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.4,
+     "medianDays": 9.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-01T04:26:16.830Z",
+   "hoursToFill": 0.31,
+   "closedAt": "2026-10-07T05:25:55.752Z",
+   "exitPrice": 10.45,
+   "exitReason": "STOP",
+   "hoursFillToExit": 144.99,
+   "sessionsHeld": 3,
+   "best": 29.4,
+   "worst": 9.8,
+   "last": 10,
+   "lastAt": "2026-10-07T05:25:55.752Z",
+   "marks": 81,
+   "obs": {
+    "date": "2026-10-07",
+    "high": 16.05,
+    "low": 9.8,
+    "last": 10
+   },
+   "pnl": {
+    "perUnit": -10.45,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -5747.5,
+    "netPerLot": -5810.92
+   }
+  },
+  {
+   "id": "2026-09-29|CE|SHRIRAMFIN26OCT1020CE",
+   "kind": "CE",
+   "symbol": "SHRIRAMFIN",
+   "contract": "SHRIRAMFIN26OCT1020CE",
+   "expiry": "2026-10-27",
+   "strike": 1020,
+   "optionType": "CE",
+   "lotSize": 825,
+   "sessionDate": "2026-09-29",
+   "shownAt": "2026-09-29T04:06:33.315Z",
+   "buy": 14.15,
+   "target": 21.2,
+   "target2": null,
+   "stop": 7.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 35.8,
+     "medianDays": 12.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-29T04:06:33.336Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-07T05:25:55.752Z",
+   "exitPrice": 7.1,
+   "exitReason": "STOP",
+   "hoursFillToExit": 193.32,
+   "sessionsHeld": 5,
+   "best": 18.1,
+   "worst": 6.7,
+   "last": 7.6,
+   "lastAt": "2026-10-07T05:25:55.752Z",
+   "marks": 135,
+   "obs": {
+    "date": "2026-10-07",
+    "high": 10.15,
+    "low": 6.7,
+    "last": 7.6
+   },
+   "pnl": {
+    "perUnit": -7.05,
+    "pct": -49.82,
+    "basis": "NET",
+    "perLot": -5816.25,
+    "netPerLot": -5879.96
+   }
   }
  ]
 }
