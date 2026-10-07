@@ -48323,6 +48323,114 @@
     "perLot": -2565,
     "netPerLot": -2619.61
    }
+  },
+  {
+   "id": "2026-10-06|PE|ADANIENSOL26OCT1280PE",
+   "kind": "PE",
+   "symbol": "ADANIENSOL",
+   "contract": "ADANIENSOL26OCT1280PE",
+   "expiry": "2026-10-27",
+   "strike": 1280,
+   "optionType": "PE",
+   "lotSize": 675,
+   "sessionDate": "2026-10-06",
+   "shownAt": "2026-10-06T07:06:01.463Z",
+   "buy": 21.8,
+   "target": 32.7,
+   "target2": null,
+   "stop": 10.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 27.2,
+     "medianDays": 11.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-06T07:06:01.478Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-07T08:25:47.308Z",
+   "exitPrice": 32.7,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 25.33,
+   "sessionsHeld": 1,
+   "best": 33.05,
+   "worst": 17.3,
+   "last": 32.9,
+   "lastAt": "2026-10-07T08:25:47.308Z",
+   "marks": 31,
+   "obs": {
+    "date": "2026-10-07",
+    "high": 33.05,
+    "low": 17.3,
+    "last": 32.9
+   },
+   "pnl": {
+    "perUnit": 10.9,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 7357.5,
+    "netPerLot": 7261.28
+   }
+  },
+  {
+   "id": "2026-09-28|CE|SBIN26OCT950CE",
+   "kind": "CE",
+   "symbol": "SBIN",
+   "contract": "SBIN26OCT950CE",
+   "expiry": "2026-10-27",
+   "strike": 950,
+   "optionType": "CE",
+   "lotSize": 750,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:06:42.647Z",
+   "buy": 37.35,
+   "target": 56.05,
+   "target2": null,
+   "stop": 18.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.5,
+     "medianDays": 9.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T04:06:42.660Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-07T08:25:47.308Z",
+   "exitPrice": 18.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 220.32,
+   "sessionsHeld": 6,
+   "best": 38,
+   "worst": 18.4,
+   "last": 18.75,
+   "lastAt": "2026-10-07T08:25:47.308Z",
+   "marks": 172,
+   "obs": {
+    "date": "2026-10-07",
+    "high": 28.8,
+    "low": 18.4,
+    "last": 18.75
+   },
+   "pnl": {
+    "perUnit": -18.65,
+    "pct": -49.93,
+    "basis": "NET",
+    "perLot": -13987.5,
+    "netPerLot": -14074.25
+   }
   }
  ]
 }

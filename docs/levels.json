@@ -293,7 +293,8 @@
   "OPTION|TIINDIA|TIINDIA26OCT2300PE",
   "OPTION|NIFTY|NIFTY26O1922250PE",
   "OPTION|ADANIENT|ADANIENT26OCT2650PE",
-  "OPTION|LODHA|LODHA26OCT1060PE"
+  "OPTION|LODHA|LODHA26OCT1060PE",
+  "OPTION|LAURUSLABS|LAURUSLABS26OCT2180CE"
  ],
  "options": {
   "TIINDIA26OCT2450PE": {
@@ -4359,6 +4360,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-07T07:46:29.566Z",
    "frozenAtIst": "2026-10-07 13:16 IST",
+   "frozenAtSpot": null
+  },
+  "LAURUSLABS26OCT2180CE": {
+   "buy": 22.75,
+   "sell": 34.1,
+   "stop": 11.4,
+   "tick": 0.05,
+   "lotSize": 850,
+   "expiry": "2026-10-27",
+   "strike": 2180,
+   "right": "CE",
+   "symbol": "LAURUSLABS",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-07T08:25:47.289Z",
+   "frozenAtIst": "2026-10-07 13:55 IST",
    "frozenAtSpot": null
   }
  },
