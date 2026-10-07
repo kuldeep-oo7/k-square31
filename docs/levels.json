@@ -289,7 +289,8 @@
   "OPTION|PRESTIGE|PRESTIGE26OCT1420PE",
   "OPTION|ADANIENT|ADANIENT26OCT3000PE",
   "OPTION|ADANIPOWER|ADANIPOWER26OCT190PE",
-  "OPTION|UNOMINDA|UNOMINDA26OCT1060PE"
+  "OPTION|UNOMINDA|UNOMINDA26OCT1060PE",
+  "OPTION|TIINDIA|TIINDIA26OCT2300PE"
  ],
  "options": {
   "TIINDIA26OCT2450PE": {
@@ -4295,6 +4296,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-07T05:45:37.048Z",
    "frozenAtIst": "2026-10-07 11:15 IST",
+   "frozenAtSpot": null
+  },
+  "TIINDIA26OCT2300PE": {
+   "buy": 34.1,
+   "sell": 51.15,
+   "stop": 17.05,
+   "tick": 0.05,
+   "lotSize": 200,
+   "expiry": "2026-10-27",
+   "strike": 2300,
+   "right": "PE",
+   "symbol": "TIINDIA",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-07T06:06:05.648Z",
+   "frozenAtIst": "2026-10-07 11:36 IST",
    "frozenAtSpot": null
   }
  },
