@@ -286,7 +286,10 @@
   "OPTION|NIFTY|NIFTY26O1923050PE",
   "OPTION|ADANIENT|ADANIENT26OCT2700PE",
   "OPTION|HINDPETRO|HINDPETRO26OCT330PE",
-  "OPTION|PRESTIGE|PRESTIGE26OCT1420PE"
+  "OPTION|PRESTIGE|PRESTIGE26OCT1420PE",
+  "OPTION|ADANIENT|ADANIENT26OCT3000PE",
+  "OPTION|ADANIPOWER|ADANIPOWER26OCT190PE",
+  "OPTION|UNOMINDA|UNOMINDA26OCT1060PE"
  ],
  "options": {
   "TIINDIA26OCT2450PE": {
@@ -4247,6 +4250,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-07T05:25:55.738Z",
    "frozenAtIst": "2026-10-07 10:55 IST",
+   "frozenAtSpot": null
+  },
+  "ADANIENT26OCT3000PE": {
+   "buy": 192.1,
+   "sell": 288.15,
+   "stop": 96.05,
+   "tick": 0.05,
+   "lotSize": 309,
+   "expiry": "2026-10-27",
+   "strike": 3000,
+   "right": "PE",
+   "symbol": "ADANIENT",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-07T05:45:37.048Z",
+   "frozenAtIst": "2026-10-07 11:15 IST",
+   "frozenAtSpot": null
+  },
+  "ADANIPOWER26OCT190PE": {
+   "buy": 2.63,
+   "sell": 3.94,
+   "stop": 1.32,
+   "tick": 0.01,
+   "lotSize": 3550,
+   "expiry": "2026-10-27",
+   "strike": 190,
+   "right": "PE",
+   "symbol": "ADANIPOWER",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-07T05:45:37.048Z",
+   "frozenAtIst": "2026-10-07 11:15 IST",
+   "frozenAtSpot": null
+  },
+  "UNOMINDA26OCT1060PE": {
+   "buy": 13.55,
+   "sell": 20.3,
+   "stop": 6.8,
+   "tick": 0.05,
+   "lotSize": 550,
+   "expiry": "2026-10-27",
+   "strike": 1060,
+   "right": "PE",
+   "symbol": "UNOMINDA",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-07T05:45:37.048Z",
+   "frozenAtIst": "2026-10-07 11:15 IST",
    "frozenAtSpot": null
   }
  },

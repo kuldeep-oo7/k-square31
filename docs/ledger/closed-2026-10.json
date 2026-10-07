@@ -45083,6 +45083,114 @@
     "perLot": -5816.25,
     "netPerLot": -5879.96
    }
+  },
+  {
+   "id": "2026-10-05|PE|KFINTECH26OCT800PE",
+   "kind": "PE",
+   "symbol": "KFINTECH",
+   "contract": "KFINTECH26OCT800PE",
+   "expiry": "2026-10-27",
+   "strike": 800,
+   "optionType": "PE",
+   "lotSize": 575,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:06:19.779Z",
+   "buy": 13.35,
+   "target": 20.05,
+   "target2": null,
+   "stop": 6.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 27.6,
+     "medianDays": 11.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T04:06:19.794Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-07T05:45:37.068Z",
+   "exitPrice": 6.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 49.65,
+   "sessionsHeld": 2,
+   "best": 13.35,
+   "worst": 6.5,
+   "last": 6.5,
+   "lastAt": "2026-10-07T05:45:37.068Z",
+   "marks": 57,
+   "obs": {
+    "date": "2026-10-07",
+    "high": 8.5,
+    "low": 6.5,
+    "last": 6.5
+   },
+   "pnl": {
+    "perUnit": -6.65,
+    "pct": -49.81,
+    "basis": "NET",
+    "perLot": -3823.75,
+    "netPerLot": -3881.81
+   }
+  },
+  {
+   "id": "2026-10-01|PE|NAUKRI26OCT1200PE",
+   "kind": "PE",
+   "symbol": "NAUKRI",
+   "contract": "NAUKRI26OCT1200PE",
+   "expiry": "2026-10-27",
+   "strike": 1200,
+   "optionType": "PE",
+   "lotSize": 550,
+   "sessionDate": "2026-10-01",
+   "shownAt": "2026-10-01T04:07:35.772Z",
+   "buy": 36,
+   "target": 54,
+   "target2": null,
+   "stop": 18,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 58,
+     "medianDays": 6.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-01T04:07:35.782Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-07T05:45:37.068Z",
+   "exitPrice": 18,
+   "exitReason": "STOP",
+   "hoursFillToExit": 145.63,
+   "sessionsHeld": 3,
+   "best": 47.3,
+   "worst": 17.8,
+   "last": 19.65,
+   "lastAt": "2026-10-07T05:45:37.068Z",
+   "marks": 83,
+   "obs": {
+    "date": "2026-10-07",
+    "high": 28.15,
+    "low": 17.8,
+    "last": 19.65
+   },
+   "pnl": {
+    "perUnit": -18,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -9900,
+    "netPerLot": -9975.13
+   }
   }
  ]
 }
