@@ -50647,6 +50647,60 @@
     "perLot": -10290,
     "netPerLot": -10366.31
    }
+  },
+  {
+   "id": "2026-10-01|PE|PRESTIGE26OCT1400PE",
+   "kind": "PE",
+   "symbol": "PRESTIGE",
+   "contract": "PRESTIGE26OCT1400PE",
+   "expiry": "2026-10-27",
+   "strike": 1400,
+   "optionType": "PE",
+   "lotSize": 450,
+   "sessionDate": "2026-10-01",
+   "shownAt": "2026-10-01T04:07:35.772Z",
+   "buy": 20.65,
+   "target": 30.95,
+   "target2": null,
+   "stop": 10.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38.8,
+     "medianDays": 11.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-01T04:26:16.830Z",
+   "hoursToFill": 0.31,
+   "closedAt": "2026-10-07T10:24:24.803Z",
+   "exitPrice": 30.95,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 149.97,
+   "sessionsHeld": 3,
+   "best": 31.05,
+   "worst": 14.65,
+   "last": 31.05,
+   "lastAt": "2026-10-07T10:24:24.803Z",
+   "marks": 97,
+   "obs": {
+    "date": "2026-10-07",
+    "high": 31.05,
+    "low": 22,
+    "last": 31.05
+   },
+   "pnl": {
+    "perUnit": 10.3,
+    "pct": 49.88,
+    "basis": "NET",
+    "perLot": 4635,
+    "netPerLot": 4556.87
+   }
   }
  ]
 }
