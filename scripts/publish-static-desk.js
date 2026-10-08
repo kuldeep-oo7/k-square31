@@ -872,6 +872,9 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     futuresAnchor: ANCHOR,
     forwardStatus,
     optionsOnLiveForward: options.filter((c) => c.forwardSource === "LIVE").length,
+    // Per index: contracts looked at, cleared, and refused by which gate (contract-screener bySymbol), so
+    // an index with no row says why (8 Oct 2026: every index put vanished and nothing on the page said why).
+    indexScreen: Object.fromEntries((view.indices || []).map((s) => [s, screen.bySymbol?.[s] || null])),
     optionsDirection: { rule: view.rule, names: Object.keys(bullish).length, indices: view.indices,
       stocks: view.stocks.length, ratedDownNotFalling: view.ratedDownNotFalling, risingOnTheirOwn: view.risingOnTheirOwn || [] },
     direction,
@@ -1346,6 +1349,22 @@ function page(d) {
         ${stale.items.map((x) => `${esc(x.part)} (${x.have ? `data through ${esc(staleDay(x.have))}` : "missing"})`).join("; ")}.
         NSE's last finished session is ${esc(staleDay(stale.expected))}. Everything else on the page is current; read these parts as old until this line goes away.</div>`
     : "";
+  // WHY AN INDEX HAS NO PUT ROW: the screener's own count per gate, in words.
+  const GATE_WORDS = { staleDuringSession: "no live price in session", illiquid: "too little volume or open interest",
+    wideSpread: "spread over 10%", tinyPremium: "premium under Rs 1", deltaBand: "too far in or out of the money (delta outside 0.25-0.75)",
+    noIv: "no quote or no implied volatility", belowIntrinsic: "priced below intrinsic value", expiryWindow: "expiry under 7 or over 60 days away",
+    noDirection: "the wrong side for the market's direction", banned: "in NSE's F&O ban", resultsBeforeExit: "results before the exit date" };
+  const indexWhy = (byIndex, rows) => {
+    const lines = Object.entries(byIndex || {}).filter(([sym]) => !rows.some((c) => c.symbol === sym)).map(([sym, t]) => {
+      if (!t) return `<b>${esc(sym)}</b>: no contracts in NSE&rsquo;s list on this build`;
+      const before = ["expiryWindow", "banned", "resultsBeforeExit"];   // counted before a contract is checked
+      const words = (keep) => Object.entries(t.refused || {}).filter(([k, v]) => v > 0 && k !== "noDirection" && keep(k)).sort((a, b) => b[1] - a[1])
+        .map(([k, v]) => `${esc(v)} ${esc(GATE_WORDS[k] || k)}`).join(", ");
+      const why = words((k) => !before.includes(k)), skipped = words((k) => before.includes(k));
+      return `<b>${esc(sym)}</b>: 0 of ${esc(t.examined)} puts checked cleared${why ? ` &mdash; ${why}` : ""}${skipped ? ` (not checked: ${skipped})` : ""}`;
+    });
+    return lines.length ? `<div class="sub" style="margin:-4px 0 10px">Indices with no put on this build: ${lines.join("; ")}.</div>` : "";
+  };
   const feedAlarm = fc?.checked && fc.wrongContract?.length
     ? `<div class="note" style="border-left-color:var(--red)"><b class="down">DO NOT TRADE THESE ROWS.</b>
         Angel One and NSE disagree on which contract they are: ${esc(fc.wrongContract.join("; "))}.
@@ -1654,6 +1673,7 @@ ${staleAlarm}
       BETTER than the market. They are shown because you asked for the falling names, not because the rating picks fallers.</div>` : ""}
     ${downtrendPage && puts.length ? `<div class="sub" style="margin:-4px 0 10px">Looked for on ${esc((od.indices || []).join(", "))} and on the ${esc(od.stocks ?? 0)} stocks rated SELL or REDUCE that are falling themselves;
       ${esc(putNames.length)} had contracts that cleared every gate, the indices first. One side per name, the side the market&rsquo;s direction points to.</div>` : ""}
+    ${downtrendPage ? indexWhy(d.indexScreen, puts) : ""}
     ${puts.length ? oldFileNote : ""}
     ${optionTable(puts, downtrendPage
       ? "No puts cleared every gate on this build."
