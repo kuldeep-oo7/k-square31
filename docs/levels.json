@@ -304,7 +304,9 @@
   "OPTION|SWIGGY|SWIGGY26OCT225PE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13775PE",
   "OPTION|NIFTY|NIFTY26O1921900PE",
-  "OPTION|BANKNIFTY|BANKNIFTY26OCT53700PE"
+  "OPTION|BANKNIFTY|BANKNIFTY26OCT53700PE",
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13200PE",
+  "OPTION|HINDUNILVR|HINDUNILVR26OCT1800PE"
  ],
  "options": {
   "SWIGGY26OCT250PE": {
@@ -4580,6 +4582,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-08T08:26:02.234Z",
    "frozenAtIst": "2026-10-08 13:56 IST",
+   "frozenAtSpot": null
+  },
+  "MIDCPNIFTY26OCT13200PE": {
+   "buy": 128.3,
+   "sell": 192.45,
+   "stop": 64.15,
+   "tick": 0.05,
+   "lotSize": 120,
+   "expiry": "2026-10-27",
+   "strike": 13200,
+   "right": "PE",
+   "symbol": "MIDCPNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-08T09:06:31.465Z",
+   "frozenAtIst": "2026-10-08 14:36 IST",
+   "frozenAtSpot": null
+  },
+  "HINDUNILVR26OCT1800PE": {
+   "buy": 12.55,
+   "sell": 18.8,
+   "stop": 6.3,
+   "tick": 0.05,
+   "lotSize": 300,
+   "expiry": "2026-10-27",
+   "strike": 1800,
+   "right": "PE",
+   "symbol": "HINDUNILVR",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-08T09:06:31.465Z",
+   "frozenAtIst": "2026-10-08 14:36 IST",
    "frozenAtSpot": null
   }
  },
