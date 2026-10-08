@@ -77968,6 +77968,330 @@
     "perLot": -4850,
     "netPerLot": -4910.88
    }
+  },
+  {
+   "id": "2026-10-08|PE|CANBK26OCT117.5PE",
+   "kind": "PE",
+   "symbol": "CANBK",
+   "contract": "CANBK26OCT117.5PE",
+   "expiry": "2026-10-27",
+   "strike": 117.5,
+   "optionType": "PE",
+   "lotSize": 6750,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T05:05:52.196Z",
+   "buy": 2.13,
+   "target": 3.2,
+   "target2": null,
+   "stop": 1.06,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 27.5,
+     "medianDays": 10.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-08T05:05:52.216Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-08T10:24:26.710Z",
+   "exitPrice": 3.2,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 5.31,
+   "sessionsHeld": 0,
+   "best": 3.29,
+   "worst": 2.11,
+   "last": 3.24,
+   "lastAt": "2026-10-08T10:24:26.710Z",
+   "marks": 17,
+   "obs": {
+    "date": "2026-10-08",
+    "high": 3.29,
+    "low": 1.96,
+    "last": 3.24
+   },
+   "pnl": {
+    "perUnit": 1.07,
+    "pct": 50.23,
+    "basis": "NET",
+    "perLot": 7222.5,
+    "netPerLot": 7127.34
+   }
+  },
+  {
+   "id": "2026-10-08|PE|CANBK26OCT118PE",
+   "kind": "PE",
+   "symbol": "CANBK",
+   "contract": "CANBK26OCT118PE",
+   "expiry": "2026-10-27",
+   "strike": 118,
+   "optionType": "PE",
+   "lotSize": 6750,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T05:05:52.196Z",
+   "buy": 2.32,
+   "target": 3.47,
+   "target2": null,
+   "stop": 1.16,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 29.4,
+     "medianDays": 9.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-08T05:05:52.216Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-08T10:24:26.710Z",
+   "exitPrice": 3.47,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 5.31,
+   "sessionsHeld": 0,
+   "best": 3.5,
+   "worst": 2.17,
+   "last": 3.5,
+   "lastAt": "2026-10-08T10:24:26.710Z",
+   "marks": 17,
+   "obs": {
+    "date": "2026-10-08",
+    "high": 3.5,
+    "low": 2.05,
+    "last": 3.5
+   },
+   "pnl": {
+    "perUnit": 1.15,
+    "pct": 49.57,
+    "basis": "NET",
+    "perLot": 7762.5,
+    "netPerLot": 7663.26
+   }
+  },
+  {
+   "id": "2026-10-07|CE|LAURUSLABS26OCT2180CE",
+   "kind": "CE",
+   "symbol": "LAURUSLABS",
+   "contract": "LAURUSLABS26OCT2180CE",
+   "expiry": "2026-10-27",
+   "strike": 2180,
+   "optionType": "CE",
+   "lotSize": 850,
+   "sessionDate": "2026-10-07",
+   "shownAt": "2026-10-07T08:25:47.289Z",
+   "buy": 22.75,
+   "target": 34.1,
+   "target2": null,
+   "stop": 11.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 24.4,
+     "medianDays": 11.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-07T08:25:47.308Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-08T10:24:26.710Z",
+   "exitPrice": 11.4,
+   "exitReason": "STOP",
+   "hoursFillToExit": 25.98,
+   "sessionsHeld": 1,
+   "best": 22.75,
+   "worst": 11.35,
+   "last": 11.9,
+   "lastAt": "2026-10-08T10:24:26.710Z",
+   "marks": 32,
+   "obs": {
+    "date": "2026-10-08",
+    "high": 20.1,
+    "low": 11.35,
+    "last": 11.9
+   },
+   "pnl": {
+    "perUnit": -11.35,
+    "pct": -49.89,
+    "basis": "NET",
+    "perLot": -9647.5,
+    "netPerLot": -9722.02
+   }
+  },
+  {
+   "id": "2026-10-07|CE|SONACOMS26OCT850CE",
+   "kind": "CE",
+   "symbol": "SONACOMS",
+   "contract": "SONACOMS26OCT850CE",
+   "expiry": "2026-10-27",
+   "strike": 850,
+   "optionType": "CE",
+   "lotSize": 1225,
+   "sessionDate": "2026-10-07",
+   "shownAt": "2026-10-07T03:51:21.807Z",
+   "buy": 13.35,
+   "target": 20.05,
+   "target2": null,
+   "stop": 6.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 35.6,
+     "medianDays": 9.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-07T03:51:21.817Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-08T10:24:26.710Z",
+   "exitPrice": 6.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 30.55,
+   "sessionsHeld": 1,
+   "best": 15.95,
+   "worst": 6.3,
+   "last": 6.3,
+   "lastAt": "2026-10-08T10:24:26.710Z",
+   "marks": 46,
+   "obs": {
+    "date": "2026-10-08",
+    "high": 11,
+    "low": 6.3,
+    "last": 6.3
+   },
+   "pnl": {
+    "perUnit": -6.65,
+    "pct": -49.81,
+    "basis": "NET",
+    "perLot": -8146.25,
+    "netPerLot": -8216.58
+   }
+  },
+  {
+   "id": "2026-10-07|CE|SONACOMS26OCT830CE",
+   "kind": "CE",
+   "symbol": "SONACOMS",
+   "contract": "SONACOMS26OCT830CE",
+   "expiry": "2026-10-27",
+   "strike": 830,
+   "optionType": "CE",
+   "lotSize": 1225,
+   "sessionDate": "2026-10-07",
+   "shownAt": "2026-10-07T03:51:21.807Z",
+   "buy": 20.2,
+   "target": 30.3,
+   "target2": null,
+   "stop": 10.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.7,
+     "medianDays": 7.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-07T07:46:29.585Z",
+   "hoursToFill": 3.92,
+   "closedAt": "2026-10-08T10:24:26.710Z",
+   "exitPrice": 10.1,
+   "exitReason": "STOP",
+   "hoursFillToExit": 26.63,
+   "sessionsHeld": 1,
+   "best": 20.55,
+   "worst": 10,
+   "last": 10.05,
+   "lastAt": "2026-10-08T10:24:26.710Z",
+   "marks": 46,
+   "obs": {
+    "date": "2026-10-08",
+    "high": 16.9,
+    "low": 10,
+    "last": 10.05
+   },
+   "pnl": {
+    "perUnit": -10.1,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -12372.5,
+    "netPerLot": -12454.61
+   }
+  },
+  {
+   "id": "2026-10-05|PE|MFSL26OCT1340PE",
+   "kind": "PE",
+   "symbol": "MFSL",
+   "contract": "MFSL26OCT1340PE",
+   "expiry": "2026-10-27",
+   "strike": 1340,
+   "optionType": "PE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:06:19.779Z",
+   "buy": 31.55,
+   "target": 47.3,
+   "target2": null,
+   "stop": 15.8,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 61.2,
+     "medianDays": 5.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-05T04:06:19.794Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-08T10:24:26.710Z",
+   "exitPrice": 47.3,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 78.3,
+   "sessionsHeld": 3,
+   "best": 47.65,
+   "worst": 25.5,
+   "last": 44.5,
+   "lastAt": "2026-10-08T10:24:26.710Z",
+   "marks": 97,
+   "obs": {
+    "date": "2026-10-08",
+    "high": 47.65,
+    "low": 25.5,
+    "last": 44.5
+   },
+   "pnl": {
+    "perUnit": 15.75,
+    "pct": 49.92,
+    "basis": "NET",
+    "perLot": 6300,
+    "netPerLot": 6210.78
+   }
   }
  ]
 }
