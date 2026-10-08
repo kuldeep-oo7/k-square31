@@ -153,7 +153,10 @@
   "OPTION|JSWENERGY|JSWENERGY26OCT470PE",
   "OPTION|MOTILALOFS|MOTILALOFS26OCT1040CE",
   "OPTION|MANKIND|MANKIND26OCT2560CE",
-  "OPTION|ETERNAL|ETERNAL26OCT335CE"
+  "OPTION|ETERNAL|ETERNAL26OCT335CE",
+  "OPTION|UNOMINDA|UNOMINDA26OCT1120PE",
+  "OPTION|HINDPETRO|HINDPETRO26OCT340PE",
+  "OPTION|ETERNAL|ETERNAL26OCT340CE"
  ],
  "options": {
   "SWIGGY26OCT250PE": {
@@ -2164,6 +2167,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-08T04:26:38.438Z",
    "frozenAtIst": "2026-10-08 09:56 IST",
+   "frozenAtSpot": null
+  },
+  "UNOMINDA26OCT1120PE": {
+   "buy": 37.25,
+   "sell": 55.9,
+   "stop": 18.65,
+   "tick": 0.05,
+   "lotSize": 550,
+   "expiry": "2026-10-27",
+   "strike": 1120,
+   "right": "PE",
+   "symbol": "UNOMINDA",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-08T04:46:45.062Z",
+   "frozenAtIst": "2026-10-08 10:16 IST",
+   "frozenAtSpot": null
+  },
+  "HINDPETRO26OCT340PE": {
+   "buy": 9.8,
+   "sell": 14.7,
+   "stop": 4.9,
+   "tick": 0.05,
+   "lotSize": 2025,
+   "expiry": "2026-10-27",
+   "strike": 340,
+   "right": "PE",
+   "symbol": "HINDPETRO",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-08T04:46:45.062Z",
+   "frozenAtIst": "2026-10-08 10:16 IST",
+   "frozenAtSpot": null
+  },
+  "ETERNAL26OCT340CE": {
+   "buy": 4.9,
+   "sell": 7.35,
+   "stop": 2.45,
+   "tick": 0.05,
+   "lotSize": 2425,
+   "expiry": "2026-10-27",
+   "strike": 340,
+   "right": "CE",
+   "symbol": "ETERNAL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-08T04:46:45.062Z",
+   "frozenAtIst": "2026-10-08 10:16 IST",
    "frozenAtSpot": null
   }
  },

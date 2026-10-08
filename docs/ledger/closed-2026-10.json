@@ -58746,6 +58746,276 @@
     "perLot": -11550.5,
     "netPerLot": -11630.29
    }
+  },
+  {
+   "id": "2026-10-06|PE|ADANIGREEN26OCT1280PE",
+   "kind": "PE",
+   "symbol": "ADANIGREEN",
+   "contract": "ADANIGREEN26OCT1280PE",
+   "expiry": "2026-10-27",
+   "strike": 1280,
+   "optionType": "PE",
+   "lotSize": 600,
+   "sessionDate": "2026-10-06",
+   "shownAt": "2026-10-06T05:06:04.606Z",
+   "buy": 23.8,
+   "target": 35.7,
+   "target2": null,
+   "stop": 11.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 29.9,
+     "medianDays": 10.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-06T05:06:04.616Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-08T04:46:45.071Z",
+   "exitPrice": 35.7,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 47.68,
+   "sessionsHeld": 2,
+   "best": 39.5,
+   "worst": 13.1,
+   "last": 37,
+   "lastAt": "2026-10-08T04:46:45.071Z",
+   "marks": 51,
+   "obs": {
+    "date": "2026-10-08",
+    "high": 39.5,
+    "low": 23.5,
+    "last": 37
+   },
+   "pnl": {
+    "perUnit": 11.9,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 7140,
+    "netPerLot": 7045.23
+   }
+  },
+  {
+   "id": "2026-10-06|PE|ADANIGREEN26OCT1300PE",
+   "kind": "PE",
+   "symbol": "ADANIGREEN",
+   "contract": "ADANIGREEN26OCT1300PE",
+   "expiry": "2026-10-27",
+   "strike": 1300,
+   "optionType": "PE",
+   "lotSize": 600,
+   "sessionDate": "2026-10-06",
+   "shownAt": "2026-10-06T05:06:04.606Z",
+   "buy": 30.6,
+   "target": 45.9,
+   "target2": null,
+   "stop": 15.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 35.9,
+     "medianDays": 9.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-06T05:06:04.616Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-08T04:46:45.071Z",
+   "exitPrice": 45.9,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 47.68,
+   "sessionsHeld": 2,
+   "best": 49.4,
+   "worst": 17.1,
+   "last": 45.8,
+   "lastAt": "2026-10-08T04:46:45.071Z",
+   "marks": 51,
+   "obs": {
+    "date": "2026-10-08",
+    "high": 49.4,
+    "low": 28.9,
+    "last": 45.8
+   },
+   "pnl": {
+    "perUnit": 15.3,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 9180,
+    "netPerLot": 9071.64
+   }
+  },
+  {
+   "id": "2026-10-06|CE|COALINDIA26OCT410CE",
+   "kind": "CE",
+   "symbol": "COALINDIA",
+   "contract": "COALINDIA26OCT410CE",
+   "expiry": "2026-10-27",
+   "strike": 410,
+   "optionType": "CE",
+   "lotSize": 1350,
+   "sessionDate": "2026-10-06",
+   "shownAt": "2026-10-06T05:06:04.606Z",
+   "buy": 16.4,
+   "target": 24.6,
+   "target2": null,
+   "stop": 8.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 58.4,
+     "medianDays": 5.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-06T05:26:42.101Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-08T04:46:45.071Z",
+   "exitPrice": 8.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.33,
+   "sessionsHeld": 2,
+   "best": 16.4,
+   "worst": 8.2,
+   "last": 8.3,
+   "lastAt": "2026-10-08T04:46:45.071Z",
+   "marks": 51,
+   "obs": {
+    "date": "2026-10-08",
+    "high": 10.5,
+    "low": 8.2,
+    "last": 8.3
+   },
+   "pnl": {
+    "perUnit": -8.2,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -11070,
+    "netPerLot": -11148.43
+   }
+  },
+  {
+   "id": "2026-10-05|PE|MANAPPURAM26OCT310PE",
+   "kind": "PE",
+   "symbol": "MANAPPURAM",
+   "contract": "MANAPPURAM26OCT310PE",
+   "expiry": "2026-10-27",
+   "strike": 310,
+   "optionType": "PE",
+   "lotSize": 3000,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:06:19.779Z",
+   "buy": 7.3,
+   "target": 10.95,
+   "target2": null,
+   "stop": 3.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 54.2,
+     "medianDays": 6.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-05T04:06:19.794Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-08T04:46:45.071Z",
+   "exitPrice": 10.95,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 72.67,
+   "sessionsHeld": 3,
+   "best": 11.1,
+   "worst": 6.45,
+   "last": 10.3,
+   "lastAt": "2026-10-08T04:46:45.071Z",
+   "marks": 79,
+   "obs": {
+    "date": "2026-10-08",
+    "high": 11.1,
+    "low": 9,
+    "last": 10.3
+   },
+   "pnl": {
+    "perUnit": 3.65,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 10950,
+    "netPerLot": 10829.85
+   }
+  },
+  {
+   "id": "2026-09-30|PE|ADANIENSOL26OCT1260PE",
+   "kind": "PE",
+   "symbol": "ADANIENSOL",
+   "contract": "ADANIENSOL26OCT1260PE",
+   "expiry": "2026-10-27",
+   "strike": 1260,
+   "optionType": "PE",
+   "lotSize": 675,
+   "sessionDate": "2026-09-30",
+   "shownAt": "2026-09-30T04:25:36.188Z",
+   "buy": 22.4,
+   "target": 33.6,
+   "target2": null,
+   "stop": 11.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 36.3,
+     "medianDays": 12.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-09-30T04:25:36.200Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-08T04:46:45.071Z",
+   "exitPrice": 33.6,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 192.35,
+   "sessionsHeld": 5,
+   "best": 33.65,
+   "worst": 12.55,
+   "last": 33.5,
+   "lastAt": "2026-10-08T04:46:45.071Z",
+   "marks": 127,
+   "obs": {
+    "date": "2026-10-08",
+    "high": 33.65,
+    "low": 23.5,
+    "last": 33.5
+   },
+   "pnl": {
+    "perUnit": 11.2,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 7560,
+    "netPerLot": 7462.43
+   }
   }
  ]
 }
