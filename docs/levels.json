@@ -287,7 +287,9 @@
   "OPTION|HINDPETRO|HINDPETRO26OCT320PE",
   "OPTION|TORNTPHARM|TORNTPHARM26OCT4500PE",
   "OPTION|KFINTECH|KFINTECH26OCT800PE",
-  "OPTION|VOLTAS|VOLTAS26OCT1000PE"
+  "OPTION|VOLTAS|VOLTAS26OCT1000PE",
+  "OPTION|NIFTY|NIFTY26O1922100PE",
+  "OPTION|NIFTY|NIFTY26O1922050PE"
  ],
  "options": {
   "SWIGGY26OCT250PE": {
@@ -4308,6 +4310,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-08T06:06:38.998Z",
    "frozenAtIst": "2026-10-08 11:36 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26O1922100PE": {
+   "buy": 106.4,
+   "sell": 159.6,
+   "stop": 53.2,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-10-19",
+   "strike": 22100,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-08T06:26:21.582Z",
+   "frozenAtIst": "2026-10-08 11:56 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26O1922050PE": {
+   "buy": 94.25,
+   "sell": 141.4,
+   "stop": 47.15,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-10-19",
+   "strike": 22050,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-08T06:26:21.582Z",
+   "frozenAtIst": "2026-10-08 11:56 IST",
    "frozenAtSpot": null
   }
  },
