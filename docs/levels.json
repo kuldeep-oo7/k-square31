@@ -280,7 +280,9 @@
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13875PE",
   "OPTION|SWIGGY|SWIGGY26OCT230PE",
   "OPTION|ETERNAL|ETERNAL26OCT310CE",
-  "OPTION|IREDA|IREDA26OCT100PE"
+  "OPTION|IREDA|IREDA26OCT100PE",
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13900PE",
+  "OPTION|HAL|HAL26OCT4900PE"
  ],
  "options": {
   "SWIGGY26OCT250PE": {
@@ -4196,6 +4198,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-08T05:26:05.107Z",
    "frozenAtIst": "2026-10-08 10:56 IST",
+   "frozenAtSpot": null
+  },
+  "MIDCPNIFTY26OCT13900PE": {
+   "buy": 362.95,
+   "sell": 544.45,
+   "stop": 181.45,
+   "tick": 0.05,
+   "lotSize": 120,
+   "expiry": "2026-10-27",
+   "strike": 13900,
+   "right": "PE",
+   "symbol": "MIDCPNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-08T05:45:42.484Z",
+   "frozenAtIst": "2026-10-08 11:15 IST",
+   "frozenAtSpot": null
+  },
+  "HAL26OCT4900PE": {
+   "buy": 204,
+   "sell": 306,
+   "stop": 102,
+   "tick": 0.05,
+   "lotSize": 150,
+   "expiry": "2026-10-27",
+   "strike": 4900,
+   "right": "PE",
+   "symbol": "HAL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-08T05:45:42.484Z",
+   "frozenAtIst": "2026-10-08 11:15 IST",
    "frozenAtSpot": null
   }
  },
