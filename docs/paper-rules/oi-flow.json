@@ -2,21 +2,22 @@
  "preregistration": "studies/oi-flow-forward-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
  "start": "2026-10-05",
- "dataThrough": "2026-10-06",
- "builtAt": "2026-10-07T08:38:59.487Z",
+ "dataThrough": "2026-10-07",
+ "builtAt": "2026-10-08T08:57:53.648Z",
  "LU": {
   "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
   "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
-  "pending": [
+  "pending": [],
+  "trades": [
    {
     "symbol": "KALYANKJIL",
     "signalDate": "2026-10-06",
     "pricePct": -1.56,
     "oiPct": -3.6,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "entryDate": "2026-10-07",
+    "entry": 547.4,
+    "status": "OPEN"
+   },
    {
     "symbol": "M&M",
     "signalDate": "2026-10-01",
@@ -46,14 +47,61 @@
   "backtest": "FAILED (+0.296% / +0.020% / +0.131% a trade; final t 1.86, not enough after 12 tests)",
   "pending": [
    {
-    "symbol": "KEI",
-    "signalDate": "2026-10-06",
+    "symbol": "ADANIENT",
+    "signalDate": "2026-10-07",
+    "pricePct": -3.75,
+    "oiPct": 3.53,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "NATIONALUM",
+    "signalDate": "2026-10-07",
+    "pricePct": -4.73,
+    "oiPct": 4.14,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "TITAN",
+    "signalDate": "2026-10-07",
+    "pricePct": -3.8,
+    "oiPct": 9.8,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "MAZDOCK",
+    "signalDate": "2026-10-07",
     "pricePct": -1.74,
-    "oiPct": 3.17,
+    "oiPct": 3.49,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "SHRIRAMFIN",
+    "signalDate": "2026-10-07",
+    "pricePct": -1.77,
+    "oiPct": 3.34,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "LTF",
+    "signalDate": "2026-10-07",
+    "pricePct": -1.57,
+    "oiPct": 4.98,
     "status": "SIGNAL"
    }
   ],
   "trades": [
+   {
+    "symbol": "KEI",
+    "signalDate": "2026-10-06",
+    "pricePct": -1.74,
+    "oiPct": 3.17,
+    "entryDate": "2026-10-07",
+    "entry": 4560.2,
+    "exitDate": "2026-10-07",
+    "exit": 4677.7,
+    "netPct": -2.643,
+    "status": "DONE"
+   },
    {
     "symbol": "DMART",
     "signalDate": "2026-10-05",
@@ -164,9 +212,9 @@
    }
   ],
   "summary": {
-   "finished": 9,
-   "meanNetPct": 0.003,
-   "winPct": 55.6,
+   "finished": 10,
+   "meanNetPct": -0.261,
+   "winPct": 50,
    "weeks": 1,
    "t": null,
    "verdict": "COLLECTING"
