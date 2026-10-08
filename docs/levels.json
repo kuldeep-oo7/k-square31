@@ -300,7 +300,8 @@
   "OPTION|HAL|HAL26OCT4500PE",
   "OPTION|AUBANK|AUBANK26OCT1040PE",
   "OPTION|NIFTY|NIFTY26O1921950PE",
-  "OPTION|ADANIPOWER|ADANIPOWER26OCT175PE"
+  "OPTION|ADANIPOWER|ADANIPOWER26OCT175PE",
+  "OPTION|SWIGGY|SWIGGY26OCT225PE"
  ],
  "options": {
   "SWIGGY26OCT250PE": {
@@ -4516,6 +4517,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-08T07:26:21.300Z",
    "frozenAtIst": "2026-10-08 12:56 IST",
+   "frozenAtSpot": null
+  },
+  "SWIGGY26OCT225PE": {
+   "buy": 3.35,
+   "sell": 5,
+   "stop": 1.7,
+   "tick": 0.05,
+   "lotSize": 1825,
+   "expiry": "2026-10-27",
+   "strike": 225,
+   "right": "PE",
+   "symbol": "SWIGGY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-08T07:46:24.169Z",
+   "frozenAtIst": "2026-10-08 13:16 IST",
    "frozenAtSpot": null
   }
  },
