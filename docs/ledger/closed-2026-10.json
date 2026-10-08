@@ -72202,6 +72202,60 @@
     "perLot": 10433.5,
     "netPerLot": 10316.74
    }
+  },
+  {
+   "id": "2026-09-28|CE|DIXON26OCT13000CE",
+   "kind": "CE",
+   "symbol": "DIXON",
+   "contract": "DIXON26OCT13000CE",
+   "expiry": "2026-10-27",
+   "strike": 13000,
+   "optionType": "CE",
+   "lotSize": 50,
+   "sessionDate": "2026-09-28",
+   "shownAt": "2026-09-28T04:46:14.503Z",
+   "buy": 562.1,
+   "target": 843.15,
+   "target2": null,
+   "stop": 281.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.4,
+     "medianDays": 10.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-28T05:05:27.876Z",
+   "hoursToFill": 0.32,
+   "closedAt": "2026-10-08T08:26:02.252Z",
+   "exitPrice": 281.05,
+   "exitReason": "STOP",
+   "hoursFillToExit": 243.34,
+   "sessionsHeld": 7,
+   "best": 768.85,
+   "worst": 280.7,
+   "last": 292,
+   "lastAt": "2026-10-08T08:26:02.252Z",
+   "marks": 194,
+   "obs": {
+    "date": "2026-10-08",
+    "high": 409.2,
+    "low": 280.7,
+    "last": 292
+   },
+   "pnl": {
+    "perUnit": -281.05,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -14052.5,
+    "netPerLot": -14139.35
+   }
   }
  ]
 }
