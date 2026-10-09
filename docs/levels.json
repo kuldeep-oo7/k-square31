@@ -297,7 +297,9 @@
   "OPTION|VBL|VBL26OCT460CE",
   "OPTION|GODFRYPHLP|GODFRYPHLP26OCT1850PE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13300PE",
-  "OPTION|ADANIPOWER|ADANIPOWER26OCT180PE"
+  "OPTION|ADANIPOWER|ADANIPOWER26OCT180PE",
+  "OPTION|NIFTY|NIFTY26O1922150PE",
+  "OPTION|ADANIGREEN|ADANIGREEN26OCT1180PE"
  ],
  "options": {
   "POLICYBZR26OCT1020PE": {
@@ -4618,6 +4620,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-09T05:25:05.979Z",
    "frozenAtIst": "2026-10-09 10:55 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26O1922150PE": {
+   "buy": 81.2,
+   "sell": 121.8,
+   "stop": 40.6,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-10-19",
+   "strike": 22150,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-09T06:26:06.908Z",
+   "frozenAtIst": "2026-10-09 11:56 IST",
+   "frozenAtSpot": null
+  },
+  "ADANIGREEN26OCT1180PE": {
+   "buy": 20.35,
+   "sell": 30.5,
+   "stop": 10.2,
+   "tick": 0.05,
+   "lotSize": 600,
+   "expiry": "2026-10-27",
+   "strike": 1180,
+   "right": "PE",
+   "symbol": "ADANIGREEN",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-09T06:26:06.908Z",
+   "frozenAtIst": "2026-10-09 11:56 IST",
    "frozenAtSpot": null
   }
  },

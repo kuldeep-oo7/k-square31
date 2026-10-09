@@ -82439,6 +82439,60 @@
     "perLot": -18600,
     "netPerLot": -18699.68
    }
+  },
+  {
+   "id": "2026-10-08|PE|HINDPETRO26OCT320PE",
+   "kind": "PE",
+   "symbol": "HINDPETRO",
+   "contract": "HINDPETRO26OCT320PE",
+   "expiry": "2026-10-27",
+   "strike": 320,
+   "optionType": "PE",
+   "lotSize": 2025,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T06:06:38.998Z",
+   "buy": 4.45,
+   "target": 6.7,
+   "target2": null,
+   "stop": 2.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 29.3,
+     "medianDays": 9.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-08T06:26:21.593Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-09T06:26:06.928Z",
+   "exitPrice": 6.7,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 24,
+   "sessionsHeld": 1,
+   "best": 6.95,
+   "worst": 4.2,
+   "last": 6.75,
+   "lastAt": "2026-10-09T06:26:06.928Z",
+   "marks": 28,
+   "obs": {
+    "date": "2026-10-09",
+    "high": 6.95,
+    "low": 4.65,
+    "last": 6.75
+   },
+   "pnl": {
+    "perUnit": 2.25,
+    "pct": 50.56,
+    "basis": "NET",
+    "perLot": 4556.25,
+    "netPerLot": 4478.94
+   }
   }
  ]
 }
