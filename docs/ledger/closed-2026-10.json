@@ -78292,6 +78292,60 @@
     "perLot": 6300,
     "netPerLot": 6210.78
    }
+  },
+  {
+   "id": "2026-10-08|FUT|RBLBANK26OCTFUT",
+   "kind": "FUT",
+   "symbol": "RBLBANK",
+   "contract": "RBLBANK26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 3175,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T03:51:39.170Z",
+   "buy": 406.2,
+   "target": 416.35,
+   "target2": 426.5,
+   "stop": 400.1,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 65.1,
+     "medianTradingDays": 0.21
+    },
+    "target": {
+     "probabilityPct": 74.8,
+     "medianTradingDays": 2.457
+    },
+    "sigmaPct": 28.4,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-08T06:06:39.012Z",
+   "hoursToFill": 2.25,
+   "closedAt": "2026-10-09T03:43:58.285Z",
+   "exitPrice": 400.1,
+   "exitReason": "STOP",
+   "hoursFillToExit": 21.62,
+   "sessionsHeld": 1,
+   "best": 406.2,
+   "worst": 400.1,
+   "last": 400.1,
+   "lastAt": "2026-10-09T03:43:58.285Z",
+   "marks": 27,
+   "obs": {
+    "date": "2026-10-09",
+    "high": 400.1,
+    "low": 400.1,
+    "last": 400.1
+   },
+   "pnl": {
+    "perUnit": -6.1,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
