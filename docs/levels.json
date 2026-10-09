@@ -299,7 +299,8 @@
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13300PE",
   "OPTION|ADANIPOWER|ADANIPOWER26OCT180PE",
   "OPTION|NIFTY|NIFTY26O1922150PE",
-  "OPTION|ADANIGREEN|ADANIGREEN26OCT1180PE"
+  "OPTION|ADANIGREEN|ADANIGREEN26OCT1180PE",
+  "OPTION|AUBANK|AUBANK26OCT940PE"
  ],
  "options": {
   "POLICYBZR26OCT1020PE": {
@@ -4650,6 +4651,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-09T06:26:06.908Z",
    "frozenAtIst": "2026-10-09 11:56 IST",
+   "frozenAtSpot": null
+  },
+  "AUBANK26OCT940PE": {
+   "buy": 11.2,
+   "sell": 16.8,
+   "stop": 5.6,
+   "tick": 0.05,
+   "lotSize": 1000,
+   "expiry": "2026-10-27",
+   "strike": 940,
+   "right": "PE",
+   "symbol": "AUBANK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-09T06:45:38.328Z",
+   "frozenAtIst": "2026-10-09 12:15 IST",
    "frozenAtSpot": null
   }
  },
