@@ -82223,6 +82223,114 @@
     "perLot": -4125,
     "netPerLot": -4183.84
    }
+  },
+  {
+   "id": "2026-10-09|CE|VBL26OCT450CE",
+   "kind": "CE",
+   "symbol": "VBL",
+   "contract": "VBL26OCT450CE",
+   "expiry": "2026-10-27",
+   "strike": 450,
+   "optionType": "CE",
+   "lotSize": 1275,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T03:49:28.778Z",
+   "buy": 4.7,
+   "target": 7.05,
+   "target2": null,
+   "stop": 2.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 32,
+     "medianDays": 9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-09T04:06:56.270Z",
+   "hoursToFill": 0.29,
+   "closedAt": "2026-10-09T05:25:05.993Z",
+   "exitPrice": 7.05,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 1.3,
+   "sessionsHeld": 0,
+   "best": 7.45,
+   "worst": 4.4,
+   "last": 6.8,
+   "lastAt": "2026-10-09T05:25:05.993Z",
+   "marks": 6,
+   "obs": {
+    "date": "2026-10-09",
+    "high": 7.45,
+    "low": 4.4,
+    "last": 6.8
+   },
+   "pnl": {
+    "perUnit": 2.35,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 2996.25,
+    "netPerLot": 2929.09
+   }
+  },
+  {
+   "id": "2026-10-09|CE|VBL26OCT445CE",
+   "kind": "CE",
+   "symbol": "VBL",
+   "contract": "VBL26OCT445CE",
+   "expiry": "2026-10-27",
+   "strike": 445,
+   "optionType": "CE",
+   "lotSize": 1275,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T03:49:28.778Z",
+   "buy": 6.2,
+   "target": 9.3,
+   "target2": null,
+   "stop": 3.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38.1,
+     "medianDays": 8.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-09T04:06:56.270Z",
+   "hoursToFill": 0.29,
+   "closedAt": "2026-10-09T05:25:05.993Z",
+   "exitPrice": 9.3,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 1.3,
+   "sessionsHeld": 0,
+   "best": 9.4,
+   "worst": 5.8,
+   "last": 8.85,
+   "lastAt": "2026-10-09T05:25:05.993Z",
+   "marks": 6,
+   "obs": {
+    "date": "2026-10-09",
+    "high": 9.4,
+    "low": 5.8,
+    "last": 8.85
+   },
+   "pnl": {
+    "perUnit": 3.1,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 3952.5,
+    "netPerLot": 3878.97
+   }
   }
  ]
 }
