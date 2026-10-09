@@ -2,14 +2,24 @@
  "preregistration": "studies/forward-v3-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
  "start": "2026-10-05",
- "dataThrough": "2026-10-07",
- "builtAt": "2026-10-08T08:58:01.842Z",
+ "dataThrough": "2026-10-08",
+ "builtAt": "2026-10-09T09:03:44.791Z",
  "industries": 2584,
  "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
  "CHEAPVOL": {
   "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
   "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months — just short of the bar",
   "trades": [
+   {
+    "symbol": "LICHSGFIN",
+    "entryDate": "2026-10-08",
+    "expiry": "2026-10-27",
+    "strike": 535,
+    "entry": 23.9,
+    "ivPct": 24.4,
+    "rvPct": 35,
+    "status": "OPEN"
+   },
    {
     "symbol": "ICICIGI",
     "entryDate": "2026-10-06",
@@ -210,7 +220,7 @@
   ],
   "pending": null,
   "pendingNoIndustry": [],
-  "sessionsToNext": 2,
+  "sessionsToNext": 1,
   "summary": {
    "finished": 0,
    "verdict": "COLLECTING"
