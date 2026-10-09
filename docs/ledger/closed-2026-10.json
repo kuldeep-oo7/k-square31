@@ -82007,6 +82007,114 @@
     "perLot": 14880,
     "netPerLot": 14733.62
    }
+  },
+  {
+   "id": "2026-10-08|PE|NIFTY26O1921950PE",
+   "kind": "PE",
+   "symbol": "NIFTY",
+   "contract": "NIFTY26O1921950PE",
+   "expiry": "2026-10-19",
+   "strike": 21950,
+   "optionType": "PE",
+   "lotSize": 65,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T07:26:21.300Z",
+   "buy": 95.65,
+   "target": 143.5,
+   "target2": null,
+   "stop": 47.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 25.8,
+     "medianDays": 6.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-08T08:05:51.040Z",
+   "hoursToFill": 0.66,
+   "closedAt": "2026-10-09T04:46:12.643Z",
+   "exitPrice": 47.85,
+   "exitReason": "STOP",
+   "hoursFillToExit": 20.67,
+   "sessionsHeld": 1,
+   "best": 118.25,
+   "worst": 45.2,
+   "last": 48.4,
+   "lastAt": "2026-10-09T04:46:12.643Z",
+   "marks": 19,
+   "obs": {
+    "date": "2026-10-09",
+    "high": 81,
+    "low": 45.2,
+    "last": 48.4
+   },
+   "pnl": {
+    "perUnit": -47.8,
+    "pct": -49.97,
+    "basis": "NET",
+    "perLot": -3107,
+    "netPerLot": -3162.97
+   }
+  },
+  {
+   "id": "2026-10-08|PE|ABCAPITAL26OCT360PE",
+   "kind": "PE",
+   "symbol": "ABCAPITAL",
+   "contract": "ABCAPITAL26OCT360PE",
+   "expiry": "2026-10-27",
+   "strike": 360,
+   "optionType": "PE",
+   "lotSize": 3100,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T05:05:52.196Z",
+   "buy": 5.4,
+   "target": 8.1,
+   "target2": null,
+   "stop": 2.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 33.4,
+     "medianDays": 9.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-08T05:26:05.125Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-09T04:46:12.643Z",
+   "exitPrice": 2.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 23.34,
+   "sessionsHeld": 1,
+   "best": 5.5,
+   "worst": 2.7,
+   "last": 2.7,
+   "lastAt": "2026-10-09T04:46:12.643Z",
+   "marks": 26,
+   "obs": {
+    "date": "2026-10-09",
+    "high": 5.3,
+    "low": 2.7,
+    "last": 2.7
+   },
+   "pnl": {
+    "perUnit": -2.7,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -8370,
+    "netPerLot": -8440.81
+   }
   }
  ]
 }
