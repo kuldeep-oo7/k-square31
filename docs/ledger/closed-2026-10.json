@@ -82493,6 +82493,60 @@
     "perLot": 4556.25,
     "netPerLot": 4478.94
    }
+  },
+  {
+   "id": "2026-10-06|PE|BLUESTARCO26OCT1460PE",
+   "kind": "PE",
+   "symbol": "BLUESTARCO",
+   "contract": "BLUESTARCO26OCT1460PE",
+   "expiry": "2026-10-27",
+   "strike": 1460,
+   "optionType": "PE",
+   "lotSize": 325,
+   "sessionDate": "2026-10-06",
+   "shownAt": "2026-10-06T05:26:42.084Z",
+   "buy": 21.8,
+   "target": 32.7,
+   "target2": null,
+   "stop": 10.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 30.9,
+     "medianDays": 10.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-06T05:46:35.463Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-09T07:25:58.177Z",
+   "exitPrice": 10.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 73.66,
+   "sessionsHeld": 3,
+   "best": 24.85,
+   "worst": 10.35,
+   "last": 10.4,
+   "lastAt": "2026-10-09T07:25:58.177Z",
+   "marks": 80,
+   "obs": {
+    "date": "2026-10-09",
+    "high": 16.55,
+    "low": 10.35,
+    "last": 10.4
+   },
+   "pnl": {
+    "perUnit": -10.9,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3542.5,
+    "netPerLot": -3599.69
+   }
   }
  ]
 }

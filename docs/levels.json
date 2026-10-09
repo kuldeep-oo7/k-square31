@@ -301,7 +301,9 @@
   "OPTION|NIFTY|NIFTY26O1922150PE",
   "OPTION|ADANIGREEN|ADANIGREEN26OCT1180PE",
   "OPTION|AUBANK|AUBANK26OCT940PE",
-  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13275PE"
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13275PE",
+  "OPTION|NIFTY|NIFTY26O1922800PE",
+  "OPTION|ADANIENSOL|ADANIENSOL26OCT1360PE"
  ],
  "options": {
   "POLICYBZR26OCT1020PE": {
@@ -4682,6 +4684,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-09T07:05:56.574Z",
    "frozenAtIst": "2026-10-09 12:35 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26O1922800PE": {
+   "buy": 335.7,
+   "sell": 503.55,
+   "stop": 167.85,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-10-19",
+   "strike": 22800,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-09T07:25:58.161Z",
+   "frozenAtIst": "2026-10-09 12:55 IST",
+   "frozenAtSpot": null
+  },
+  "ADANIENSOL26OCT1360PE": {
+   "buy": 104.4,
+   "sell": 156.6,
+   "stop": 52.2,
+   "tick": 0.05,
+   "lotSize": 675,
+   "expiry": "2026-10-27",
+   "strike": 1360,
+   "right": "PE",
+   "symbol": "ADANIENSOL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-09T07:25:58.161Z",
+   "frozenAtIst": "2026-10-09 12:55 IST",
    "frozenAtSpot": null
   }
  },
