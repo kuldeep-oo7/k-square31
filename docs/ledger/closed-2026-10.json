@@ -82385,6 +82385,60 @@
     "perLot": -14570,
     "netPerLot": -14658.31
    }
+  },
+  {
+   "id": "2026-10-08|PE|ABCAPITAL26OCT375PE",
+   "kind": "PE",
+   "symbol": "ABCAPITAL",
+   "contract": "ABCAPITAL26OCT375PE",
+   "expiry": "2026-10-27",
+   "strike": 375,
+   "optionType": "PE",
+   "lotSize": 3100,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T05:05:52.196Z",
+   "buy": 12,
+   "target": 18,
+   "target2": null,
+   "stop": 6,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.1,
+     "medianDays": 6.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-08T05:05:52.216Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-09T06:05:08.931Z",
+   "exitPrice": 6,
+   "exitReason": "STOP",
+   "hoursFillToExit": 24.99,
+   "sessionsHeld": 1,
+   "best": 12,
+   "worst": 6,
+   "last": 6.25,
+   "lastAt": "2026-10-09T06:05:08.931Z",
+   "marks": 29,
+   "obs": {
+    "date": "2026-10-09",
+    "high": 10.2,
+    "low": 6,
+    "last": 6.25
+   },
+   "pnl": {
+    "perUnit": -6,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -18600,
+    "netPerLot": -18699.68
+   }
   }
  ]
 }
