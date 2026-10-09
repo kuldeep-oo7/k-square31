@@ -2,8 +2,8 @@
  "preregistration": "studies/forward-v2-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "8be35cabe66e0d75b3974ad1651427770149888ff660ba9fcf8be0ee215aaea5",
  "start": "2026-10-05",
- "dataThrough": "2026-10-08",
- "builtAt": "2026-10-09T09:03:39.999Z",
+ "dataThrough": "2026-10-07",
+ "builtAt": "2026-10-08T08:57:57.851Z",
  "STRANGLE": {
   "rule": "Sell the NIFTY call about 2% above and the put about 2% below, at the close of the first session with 4-10 days to the weekly expiry; hold to expiry",
   "backtest": "PASS under protocol v2: +0.101% of NIFTY a week, t 4.66, 61 months (not significant after the 73-trial Deflated Sharpe check)",
@@ -29,94 +29,37 @@
   "backtest": "PROMISING: +0.338% a trade above the market, t 2.26",
   "pending": [
    {
-    "symbol": "ABB",
-    "signalDate": "2026-10-08",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "ABCAPITAL",
-    "signalDate": "2026-10-08",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "ADANIENT",
-    "signalDate": "2026-10-08",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "ADANIGREEN",
-    "signalDate": "2026-10-08",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "GLENMARK",
-    "signalDate": "2026-10-08",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "POWERINDIA",
-    "signalDate": "2026-10-08",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "SIEMENS",
-    "signalDate": "2026-10-08",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "DATAPATTNS",
-    "signalDate": "2026-10-08",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "ENRIN",
-    "signalDate": "2026-10-08",
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
-   {
-    "symbol": "TITAN",
+    "symbol": "AUBANK",
     "signalDate": "2026-10-07",
-    "entryDate": "2026-10-08",
-    "entry": 4380,
-    "status": "OPEN"
-   },
-   {
-    "symbol": "SAIL",
-    "signalDate": "2026-10-07",
-    "entryDate": "2026-10-08",
-    "entry": 175.65,
-    "status": "OPEN"
-   },
-   {
-    "symbol": "PIDILITIND",
-    "signalDate": "2026-10-07",
-    "entryDate": "2026-10-08",
-    "entry": 1485,
-    "status": "OPEN"
-   },
-   {
-    "symbol": "MPHASIS",
-    "signalDate": "2026-10-07",
-    "entryDate": "2026-10-08",
-    "entry": 2299,
-    "status": "OPEN"
+    "status": "SIGNAL"
    },
    {
     "symbol": "JSWSTEEL",
     "signalDate": "2026-10-07",
-    "entryDate": "2026-10-08",
-    "entry": 1225.1,
-    "status": "OPEN"
+    "status": "SIGNAL"
    },
    {
-    "symbol": "AUBANK",
+    "symbol": "MPHASIS",
     "signalDate": "2026-10-07",
-    "entryDate": "2026-10-08",
-    "entry": 997.9,
-    "status": "OPEN"
+    "status": "SIGNAL"
    },
+   {
+    "symbol": "PIDILITIND",
+    "signalDate": "2026-10-07",
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "SAIL",
+    "signalDate": "2026-10-07",
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "TITAN",
+    "signalDate": "2026-10-07",
+    "status": "SIGNAL"
+   }
+  ],
+  "trades": [
    {
     "symbol": "HYUNDAI",
     "signalDate": "2026-10-06",
@@ -198,29 +141,12 @@
   "backtest": "PROMISING: +0.307% a trade above the market, t 2.58",
   "pending": [
    {
-    "symbol": "SAIL",
-    "signalDate": "2026-10-08",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "TITAN",
-    "signalDate": "2026-10-08",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "HYUNDAI",
-    "signalDate": "2026-10-08",
+    "symbol": "AUBANK",
+    "signalDate": "2026-10-07",
     "status": "SIGNAL"
    }
   ],
   "trades": [
-   {
-    "symbol": "AUBANK",
-    "signalDate": "2026-10-07",
-    "entryDate": "2026-10-08",
-    "entry": 997.9,
-    "status": "OPEN"
-   },
    {
     "symbol": "GRASIM",
     "signalDate": "2026-10-06",
