@@ -1,5 +1,5 @@
 - [Verify against the internet](verify-against-the-internet.md) — standing rule: check every external fact against a PRIMARY source before coding or stating it
-- [Verify the live page with screenshots](verify-live-page-with-screenshots.md) — USER RULE: after every push, screenshot every tab on the PHONE (Galaxy M32, 412px) and laptop, read the images before saying done
+- [Verify the live page with screenshots](verify-live-page-with-screenshots.md) — USER RULE: after every push, screenshot every tab on the PHONE (Galaxy S25 base, 360x780 @3x since 11 Oct 2026; was M32 412px) and laptop, read the images before saying done
 - [K² trading rules](k2-trading-rules.md) — NSE futures only, Monday-open anchor, 2-3% target; the Friday forced book-out is superseded by a continuous 20-session hold
 - [K² ladder has no measured edge](k2-ladder-has-no-measured-edge.md) — 0 of 24 geometries survive validation; at no trend +2.5/-1.5 is a fair game (37.5% = break-even); touch odds ignore the stop
 - [K² Apex engine runs on synthetic data](k2-apex-engine-runs-on-synthetic-data.md) — the deployed k-square31 desk prices from a hash/stale table and scores from a sine wave; track record was seeded

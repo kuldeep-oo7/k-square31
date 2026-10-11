@@ -38,7 +38,7 @@ const SHOTS_ROOT = process.env.K2_SHOTS_ROOT || path.join(os.homedir(), "Downloa
 const OUT = /[\\/:]/.test(arg3) ? arg3
   : path.join(SHOTS_ROOT, istNow.slice(0, 10), `${istNow.slice(11, 16).replace(":", "")}-${(arg3 || "check").replace(/[^A-Za-z0-9_-]+/g, "-")}`);
 const DEVICES = [
-  { name: "phone", viewport: { width: 412, height: 915 }, deviceScaleFactor: 2.625, isMobile: true, hasTouch: true, scrolls: 4 },
+  { name: "phone", viewport: { width: 360, height: 780 }, deviceScaleFactor: 3, isMobile: true, hasTouch: true, scrolls: 4 },
   { name: "laptop", viewport: { width: 1536, height: 864 }, deviceScaleFactor: 1.25, isMobile: false, hasTouch: false, scrolls: 2 }
 ];
 

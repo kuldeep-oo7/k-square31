@@ -25,9 +25,9 @@ browser cannot open the page, say so plainly instead of reporting success. Do
 not rely on the user to find visual defects. See [[k2-find-defects-by-distribution]].
 
 **Screens (27 Sep):** the user reads the desk MOSTLY ON A PHONE -- Samsung Galaxy
-M32 4G (6.4", 1080x2400, ~411 ppi; a ~412 px CSS page at 2.625x). The laptop
+Galaxy S25 base model since 11 Oct 2026 (1080x2340, a 360x780 CSS page at 3x per YesViz; before: Galaxy M32 at 412 px). The laptop
 (1920x1080 at Windows 125% = a 1536 px page) is for development. Check the PHONE
-first. `scripts/shoot-live-page.js` shoots phone (412x915 @2.625, isMobile) then
+first. `scripts/shoot-live-page.js` shoots phone (360x780 @3, isMobile) then
 laptop (1536x864 @1.25) and flags any page/table wider than the screen. Shooting
 at a plain 1920 missed a TRACK table that hid its money column on the user's
 screen; below 720 px every table row renders as a labelled card (labelCells +

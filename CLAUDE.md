@@ -7,7 +7,7 @@ and no `research/`. This file carries what it needs. Nothing secret belongs here
 
 - The page is https://kuldeep-oo7.github.io/k2-desk/: NSE F&O, with tabs FUTURES, CALLS, PUTS
   and TRACK.
-- The owner reads it **mostly on a phone** (Samsung Galaxy M32: a 412 px page at 2.625x),
+- The owner reads it **mostly on a phone** (Samsung Galaxy S25, base model, from 11 Oct 2026: a 360 x 780 px page at 3x, per YesViz; was a Galaxy M32 at 412 px),
   usually at the office during market hours.
 - They trade futures **by hand** on GM Global, a paper competition among friends.
   **Fetch, read and store NOTHING from GM Global. Never add a GM data source.** "Broker" on

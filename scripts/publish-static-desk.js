@@ -1456,6 +1456,15 @@ function page(d) {
   const od = d.optionsDirection || {};
   const dtest = dir?.test || {};
   const downtrendPage = Boolean(dir?.available && dir.downtrend);
+  // NOT RECOMMENDED WHILE NIFTY FALLS (11 Oct 2026, owner: "whatever is best for me to earn money and not
+  // losing it"). In a downtrend every futures and call row comes from the rising-on-their-own rule, which
+  // FAILED its pre-registered test (-0.44% a trade) and lost on TRACK (futures 12.9%, calls 17.2% hit over
+  // 11 sessions). A gate on the desk's own touch odds would not help: on TRACK calls lost either side of
+  // break-even and puts won either side. So the rows are folded shut, still listed and still tracked.
+  const ts = d.track?.summary || {};
+  const notRecommended = (label, n, inner) => !downtrendPage || !n ? inner
+    : `<details class="fold"><summary><b class="down">NOT RECOMMENDED</b> &mdash; ${esc(n)} ${label} from the rising-stock rule: it lost on its test
+       (&minus;0.44% a trade) and on TRACK (futures ${esc(ts.FUT?.hitRatePct ?? "?")}%, calls ${esc(ts.CE?.hitRatePct ?? "?")}% hit). Tap to see them anyway.<span class="more"></span></summary><div>${inner}</div></details>`;
   // What the page SHOWS, not what was eligible: "5 indices and 36 stocks" sat
   // above 3 indices and 21 stocks on the simulated page (29 Sep).
   const putNames = [...new Set(puts.map((c) => c.symbol))];
@@ -1524,6 +1533,13 @@ function page(d) {
   .note { border:1px solid var(--line); border-left:3px solid var(--amber); border-radius:8px;
           padding:10px 12px; margin-bottom:16px; font-size:12px; line-height:1.6; color:var(--muted) }
   .note.frozen { border-left-color:var(--green) }
+  /* PHONE: explanations show their first lines; one tap opens them (owner, 11 Oct 2026: "only useful
+     information, not the lectures"; Galaxy S25, a 360 px page). Nothing is removed. */
+  @media (max-width: 480px) {
+    .note.clamp { max-height:5.9em; overflow:hidden; position:relative; cursor:pointer }
+    .note.clamp::after { content:"▸ tap to read"; position:absolute; left:0; right:0; bottom:0; padding:14px 12px 4px;
+      text-align:right; color:var(--amber); font-weight:600; background:linear-gradient(transparent, var(--bg) 60%) }
+  }
   .wrap { overflow-x:auto; border:1px solid var(--line); border-radius:10px; background:var(--panel) }
   table { border-collapse:collapse; width:100%; min-width:760px }
   /* The TRACK summary's notes wrap: on a 1536-px screen (1920 at 125%) its
@@ -1618,15 +1634,15 @@ ${staleAlarm}
   <input type="radio" name="view" id="v-trk">
 
   <nav class="tabs">
-    <label for="v-fut" class="t-fut">FUTURES <span>${d.futures.length}</span></label>
-    <label for="v-ce" class="t-ce">CALLS <span>${calls.length}</span></label>
+    <label for="v-fut" class="t-fut">FUTURES <span>${downtrendPage ? 0 : d.futures.length}</span></label>
+    <label for="v-ce" class="t-ce">CALLS <span>${downtrendPage ? 0 : calls.length}</span></label>
     <label for="v-pe" class="t-pe">PUTS <span>${puts.length}</span></label>
     <label for="v-trk" class="t-trk">TRACK <span>${trackCount}</span></label>
   </nav>
 
   <section class="pane pane-fut">
     <h2>Futures &mdash; ${esc(d.gmMinUnits || 20)} units each (GM Global's minimum)</h2>
-    ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`,
+    ${notRecommended("futures rows", d.futures.length, `    ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`,
       `<b>With no trend, a row's target comes before its stop at most as often as its break-even (about 37.5%)</b> &mdash; a price with no trend is a fair game &mdash;
        so before GM's charges these rows make money only if the BUY signal works. <b>It was tested and FAILED</b>: the desk&rsquo;s own rating,
        replayed day by day on six years of NSE&rsquo;s own prices (${RATING_TEST.stockDays.toLocaleString("en-IN")} stock-days), bought on this tab&rsquo;s limit, target and stop,
@@ -1658,7 +1674,7 @@ ${staleAlarm}
       </tr></thead><tbody>${futRows || `<tr><td colspan="7">${downtrendPage
         ? "No stock is rising on its own on this build (NIFTY is in a downtrend, MARKET DIRECTION above), so no futures buys. Futures shown on earlier days stay on TRACK until they finish."
         : "No futures cleared the hurdle on this build."}</td></tr>`}</tbody>
-    </table></div>
+    </table></div>`)}
     <div class="sub" style="margin-top:8px">${d.resultsCalendar?.ok
       ? `Results dates are NSE's own board-meeting filings, read ${esc(String(d.resultsCalendar.fetchedAt).slice(0, 10))}:
          ${esc(d.resultsCalendar.meetings)} results meetings filed for the next ${esc(d.resultsCalendar.days)} days. Companies must file at least
@@ -1669,7 +1685,7 @@ ${staleAlarm}
 
   <section class="pane pane-ce">
     <h2>Calls &mdash; you BUY the call, it pays if the stock RISES</h2>
-    ${allRowsBox(calls, sumOf(calls, (c) => c.costPerLot), sumOf(calls, (c) => Math.abs(c.netLossAtStop)), "one lot each",
+    ${notRecommended("call rows", calls.length, `    ${allRowsBox(calls, sumOf(calls, (c) => c.costPerLot), sumOf(calls, (c) => Math.abs(c.netLossAtStop)), "one lot each",
       calls.length ? `<b>With no trend and fairly priced options, a call is expected to lose about its charges</b>:
        about &minus;${money(Math.abs(sumOf(calls, (c) => c.noTrendNet)))} across all ${esc(calls.length)} rows, one lot each${calls.some((c) => c.spreadKnown === false)
          ? `, <b>plus the bid-ask spread</b>, which is not known without a live book (${esc(calls.filter((c) => c.spreadKnown === false).length)} of these rows)` : ""}.
@@ -1682,7 +1698,7 @@ ${staleAlarm}
     ${calls.length ? oldFileNote : ""}
     ${optionTable(calls, downtrendPage
       ? "No call cleared every gate on the stocks rising on their own (NIFTY is in a downtrend, MARKET DIRECTION above). Puts are on the PUTS tab."
-      : "No calls cleared every gate on this build.")}
+      : "No calls cleared every gate on this build.")}`)}
   </section>
 
   <section class="pane pane-pe">
@@ -1738,6 +1754,17 @@ ${staleAlarm}
   things that were measured, which is not the same as an edge that was proven. Size accordingly.
 </div>
 
+<script>
+/* Phone: fold every explanation box to its first lines; a tap opens it for good. */
+(function () {
+  if (!window.matchMedia || !window.matchMedia("(max-width: 480px)").matches) return;
+  document.querySelectorAll(".note").forEach(function (n) {
+    if ((n.textContent || "").length < 260) return;   // short notes stay whole (hidden tabs have no height yet)
+    n.classList.add("clamp");
+    n.addEventListener("click", function () { n.classList.remove("clamp"); }, { once: true });
+  });
+})();
+</script>
 <script>
 /* HOW OLD THIS PAGE IS, AND THE NEXT ONE AS SOON AS IT EXISTS. The page is a
    snapshot rebuilt every 20 minutes in market hours, not a live feed; at 09:31
