@@ -42,6 +42,10 @@ INDREV need 26 (about 6 months).
 **NIFTY gamma exposure (4 Oct, evening):** pre-registered, one run, 0 PASS (studies/gex-2026-10-04 on branch
 claude/gex-2026-10-04, PR #1). Dealers are short gamma on only 2.4% (US convention) / 7.0% (NSE participant split) of days.
 
+**NSE data atlas (11 Oct):** studies/nse-data-atlas-2026-10-11/ATLAS.md lists everything NSE publishes. The 16 datasets are
+kept automatically (release data-nse-atlas, by springy-dip.yml). A 14-member study is LOCKED on branch claude/nse-atlas-2026-10-11
+(not yet run): see its HOW-TO-RUN.txt. Run it once, after --coverage shows full years.
+
 **Testing standard: protocol v2** (studies/audit-2026-10-04/PROTOCOL.txt). Earlier "FAIL" verdicts
 from final-year-only tests mean "unproven". Every study's code, rules and results are in studies/
 (see studies/README.md). The data is restored with `bash scripts/restore-research-data.sh` (private
