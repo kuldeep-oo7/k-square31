@@ -38,3 +38,4 @@
 - [GEX 4 Oct](k2-gex-2026-10-04.md) — NIFTY gamma exposure, 2 sign conventions x 3 trades, pre-registered, one run: 0 PASS; dealers short gamma only 2.4%/7.0% of days; branch claude/gex-2026-10-04, PR #1
 - [Hedging the strangle kills its edge](condor-hedge-kills-edge.md) — NIFTY iron condors all FAIL (t 1.75 best); the naked strangle's t 4.57 is pay for crash risk
 - [Out-of-sample replication 2005-2020](oos-replication-2005-2020.md) — only short build-up holds on unseen NSE data; dip/cheap-vol 'STRONG' verdicts collapse per trade
+- [Audit 11 Oct](k2-audit-2026-10-11.md) — after the trip: desk builds reverted paper files, ledger missed a stop, FINNIFTY history frozen, paper job 6 h late, night builds a day behind: all fixed; PR #2 merged; FII/DII recorded daily; index-put drop cause still to read Monday
