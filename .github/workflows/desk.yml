@@ -361,6 +361,10 @@ jobs:
           # 2026-09-24 audit; no commit had hit it yet.)
           git fetch --quiet origin "${GITHUB_REF_NAME}"
           git reset --mixed --quiet "origin/${GITHUB_REF_NAME}"
+          # docs/paper-rules is written ONLY by springy-dip.yml. The reset above keeps this build's
+          # older copy in the working tree, and "git add docs/" then committed it back: on 9 Oct 2026
+          # the 14:35 build undid the paper job's 14:33 update (data through 8 Oct -> 7 Oct). Take main's.
+          git checkout "origin/${GITHUB_REF_NAME}" -- docs/paper-rules 2>/dev/null || true
           git add docs/
           if git diff --cached --quiet; then
             echo "nothing changed this run"
@@ -369,7 +373,7 @@ jobs:
             # One retry: a push can still lose a race with a laptop. A second
             # failure is left LOUD rather than swallowed -- the next run rebuilds
             # from the remote tip anyway, so a lost push costs one snapshot.
-            git push || { git fetch --quiet origin "${GITHUB_REF_NAME}"; git reset --mixed --quiet "origin/${GITHUB_REF_NAME}"; git add docs/; git commit -m "desk: rebuilt $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M IST')"; git push; }
+            git push || { git fetch --quiet origin "${GITHUB_REF_NAME}"; git reset --mixed --quiet "origin/${GITHUB_REF_NAME}"; git checkout "origin/${GITHUB_REF_NAME}" -- docs/paper-rules 2>/dev/null || true; git add docs/; git commit -m "desk: rebuilt $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M IST')"; git push; }
           fi
 
       - name: Keep this build's exchange data and price histories for the next build
