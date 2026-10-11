@@ -361,9 +361,9 @@ jobs:
           # 2026-09-24 audit; no commit had hit it yet.)
           git fetch --quiet origin "${GITHUB_REF_NAME}"
           git reset --mixed --quiet "origin/${GITHUB_REF_NAME}"
-          # docs/paper-rules/ belongs to springy-dip.yml: this build only READS it. Its working copy
-          # is from checkout time, so adding it would revert a paper-job commit made while this ran
-          # (9 Oct 14:35: the 14:33 results, data through 8 Oct, went back to 7 Oct). Take main's.
+          # docs/paper-rules is written ONLY by springy-dip.yml. The reset above keeps this build's
+          # older copy in the working tree, and "git add docs/" then committed it back: on 9 Oct 2026
+          # the 14:35 build undid the paper job's 14:33 update (data through 8 Oct -> 7 Oct). Take main's.
           git checkout "origin/${GITHUB_REF_NAME}" -- docs/paper-rules 2>/dev/null || true
           git add docs/
           if git diff --cached --quiet; then
