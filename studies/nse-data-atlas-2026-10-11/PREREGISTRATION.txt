@@ -1,0 +1,75 @@
+PRE-REGISTRATION -- THE NSE DATA ATLAS, 14 members, scored under PROTOCOL v2
+Written Sunday 11 Oct 2026, BEFORE any member has been computed on real data (the files were only
+downloaded and their column layouts read). Commit time + PREREGISTRATION.sha256 are the proof; study.js
+refuses to run if this file changes. Owner, 11 Oct: "use every data ... find out how they gonna help us".
+Datasets and history: ATLAS.md (same folder). All files are NSE's own (nsearchives / www.nseindia.com).
+
+TIMING (one rule for every member; no look-ahead)
+NSE posts many of these files late (the short-selling file dated D carries D-1's trades; category turnover
+and margin files arrive a day or two late). So a signal from data of trading day d is acted on at the OPEN
+of the SECOND session after d (call it e = d+2), never earlier. Insider filings: d = the IST calendar date
+of NSE's broadcast time ("date" field); e = the first session strictly after d.
+
+PRICES AND CHARGES
+- NIFTY members trade NIFTY futures, priced on NSE's NIFTY 50 index open/close (ind_close_all), with
+  futures charges (api/_lib/shadow-broker calculateNseFuturesCharges, dated, quantity ceil(500000/price),
+  both sides) and one extra round trip per month end crossed (the roll). Net = side x (close/open - 1) - charges.
+- Stock members trade stock futures, priced on NSE's CM bhavcopy (EQ series) open/close, same charges,
+  universe = each month's top 200 EQ stocks by 60-session median traded value with >= 250 bars after the
+  last reset (an open >= 18% from the previous close); a window crossing a reset is skipped
+  (api/_lib/forward-v3.js context(), identical to the earlier studies). Scored IN EXCESS of B(e,h) = the
+  equal-weighted gross return of the universe stocks from open(e) to close(e+h-1) (side-signed).
+- Hold h sessions: exit at the close of the h-th session counted from e (e itself is the first).
+- At most one open trade per member per name: a new signal while a trade is open is ignored.
+
+SIGNAL VARIABLES. z = (x - mean) / SD of the same variable over the previous 250 available observations
+(at least 120, else no signal).
+
+NIFTY MEMBERS (h = 5 unless stated; position +1 = long, -1 = short)
+ N1 FII index futures flow: x = FII "Future Index Long" - "Future Index Short" contracts traded on d
+    (fao_participant_vol). z >= +1 -> long; z <= -1 -> short.
+ N2 Pro index futures flow: as N1 for "Pro".
+ N3 Client index futures flow, contrarian: as N1 for "Client", with the side reversed.
+ N4 FII index options flow: x = (Call Long - Call Short) - (Put Long - Put Short) contracts traded by FII.
+    z >= +1 -> long; z <= -1 -> short.
+ N5 FPI cash flow: x = FPI buy - sell (Rs crore) in NSE's CM category-wise turnover (cat_turnover).
+    Exists only where NSE's file has an FPI row (from about mid-2023). z >= +1 -> long; z <= -1 -> short.
+ N6 Mutual-fund cash flow: as N5 for "Mutual Funds".
+ N7 Retail cash flow, contrarian: as N5 for "Retail", side reversed.
+ N8 NIFTY valuation, h = 20: x = NIFTY 50 P/E (ind_close_all). Percentile of x within the previous 750
+    observations (>= 500): >= 90th -> short; <= 10th -> long.
+
+STOCK MEMBERS
+ S1 Heavy short selling, short, h = 5: x = disclosed short-sold quantity on trade date d (shortselling file,
+    its own "Trade Date") / that stock's traded quantity on d (CM bhavcopy). Each d: the top 10% of the
+    universe stocks with x > 0 -> short.
+ S2 Borrowing surge, short, h = 5: x = SLB outstanding quantity on d (slb_openpos, summed over series) /
+    its average over the previous 20 available days (>= 10). x >= 2 and outstanding >= 100,000 shares -> short.
+ S3 Approaching the F&O ban, short, h = 5: u = Future Equivalent Open Interest / MWPL (combineoi). u crosses
+    80% from below (u(d) >= 0.80 and u(previous file) < 0.80) -> short.
+ S4 Promoter market purchase, long, h = 10: an insider filing with personCategory containing "Promoter",
+    acqMode "Market Purchase", transaction "Buy", value (secVal) >= Rs 1 crore -> long.
+ S5 Promoter pledge created, short, h = 10: personCategory containing "Promoter", acqMode "Pledge Creation"
+    -> short.
+ S6 Director/KMP market sale, short, h = 10: personCategory "Director" or containing "Key Managerial",
+    acqMode "Market Sale", value >= Rs 1 crore -> short.
+Several filings for one stock on one broadcast date count once.
+
+NOT IN THIS STUDY, and why: NSE daily volatility (accuracy input, not a signal; low volatility already
+FAILED), FII derivative statistics (same flows as N1/N4 in rupees), market-activity report (free text),
+top-10 clearing members and category F&O turnover (no stated hypothesis), surveillance flags and margin
+trading (about 2 years; flag meanings not yet verified), index weights (current only).
+
+SCORING: PROTOCOL v2 (studies/audit-2026-10-04/PROTOCOL.txt), unchanged. One value per calendar month = the
+mean of that month's trade values (by entry date); Newey-West(3) t on the monthly series; >= 24 months else
+NOT TESTABLE. PASS: mean > 0 and t >= 3. PROMISING: mean > 0 and 2 <= t < 3. Else FAIL. Reported beside it:
+Holm across the testable members (one-sided 5%) and the Deflated Sharpe Ratio (N = testable members),
+trades, months, winners. Run ONCE on real data; nothing may change after this commit. A PASS goes to TRACK
+as a forward paper rule first, with its own registration.
+
+SYNTHETIC CHECKS (study.js --synthetic; must pass before the real run)
+1. A planted edge in N1 (NIFTY rises after FII-buying days) is found.
+2. A planted edge in S1 (heavily shorted stocks fall) is found, in excess of the market.
+3. Noise: at most one member PASSes by chance.
+4. No look-ahead: changing every price and file after a cut date leaves every trade entered at least 25
+   sessions before the cut identical.
