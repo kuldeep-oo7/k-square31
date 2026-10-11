@@ -2,8 +2,8 @@
  "preregistration": "studies/oi-flow-forward-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
  "start": "2026-10-05",
- "dataThrough": "2026-10-07",
- "builtAt": "2026-10-08T08:57:53.648Z",
+ "dataThrough": "2026-10-09",
+ "builtAt": "2026-10-11T16:50:46.951Z",
  "LU": {
   "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
   "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
@@ -47,49 +47,182 @@
   "backtest": "FAILED (+0.296% / +0.020% / +0.131% a trade; final t 1.86, not enough after 12 tests)",
   "pending": [
    {
-    "symbol": "ADANIENT",
-    "signalDate": "2026-10-07",
-    "pricePct": -3.75,
-    "oiPct": 3.53,
+    "symbol": "AMBER",
+    "signalDate": "2026-10-09",
+    "pricePct": -1.68,
+    "oiPct": 4.74,
     "status": "SIGNAL"
+   }
+  ],
+  "trades": [
+   {
+    "symbol": "ATHERENERG",
+    "signalDate": "2026-10-08",
+    "pricePct": -3.37,
+    "oiPct": 3.84,
+    "entryDate": "2026-10-09",
+    "entry": 1406,
+    "exitDate": "2026-10-09",
+    "exit": 1434.4,
+    "netPct": -2.086,
+    "status": "DONE"
    },
    {
-    "symbol": "NATIONALUM",
-    "signalDate": "2026-10-07",
-    "pricePct": -4.73,
-    "oiPct": 4.14,
-    "status": "SIGNAL"
+    "symbol": "KAYNES",
+    "signalDate": "2026-10-08",
+    "pricePct": -3.92,
+    "oiPct": 7.04,
+    "entryDate": "2026-10-09",
+    "entry": 3259.9,
+    "exitDate": "2026-10-09",
+    "exit": 3264,
+    "netPct": -0.192,
+    "status": "DONE"
    },
    {
-    "symbol": "TITAN",
-    "signalDate": "2026-10-07",
-    "pricePct": -3.8,
-    "oiPct": 9.8,
-    "status": "SIGNAL"
+    "symbol": "MOTHERSON",
+    "signalDate": "2026-10-08",
+    "pricePct": -3.84,
+    "oiPct": 4.96,
+    "entryDate": "2026-10-09",
+    "entry": 154,
+    "exitDate": "2026-10-09",
+    "exit": 153,
+    "netPct": 0.583,
+    "status": "DONE"
    },
    {
-    "symbol": "MAZDOCK",
-    "signalDate": "2026-10-07",
-    "pricePct": -1.74,
-    "oiPct": 3.49,
-    "status": "SIGNAL"
+    "symbol": "ZYDUSLIFE",
+    "signalDate": "2026-10-08",
+    "pricePct": -3.56,
+    "oiPct": 7.21,
+    "entryDate": "2026-10-09",
+    "entry": 1112,
+    "exitDate": "2026-10-09",
+    "exit": 1117.5,
+    "netPct": -0.561,
+    "status": "DONE"
    },
    {
-    "symbol": "SHRIRAMFIN",
-    "signalDate": "2026-10-07",
-    "pricePct": -1.77,
-    "oiPct": 3.34,
-    "status": "SIGNAL"
+    "symbol": "SBILIFE",
+    "signalDate": "2026-10-08",
+    "pricePct": -2.53,
+    "oiPct": 3.66,
+    "entryDate": "2026-10-09",
+    "entry": 1677.7,
+    "exitDate": "2026-10-09",
+    "exit": 1684.6,
+    "netPct": -0.478,
+    "status": "DONE"
+   },
+   {
+    "symbol": "ITC",
+    "signalDate": "2026-10-08",
+    "pricePct": -4.03,
+    "oiPct": 13.14,
+    "entryDate": "2026-10-09",
+    "entry": 255.45,
+    "exitDate": "2026-10-09",
+    "exit": 266,
+    "netPct": -4.196,
+    "status": "DONE"
+   },
+   {
+    "symbol": "INDHOTEL",
+    "signalDate": "2026-10-08",
+    "pricePct": -2.69,
+    "oiPct": 3.19,
+    "entryDate": "2026-10-09",
+    "entry": 712.5,
+    "exitDate": "2026-10-09",
+    "exit": 715.65,
+    "netPct": -0.508,
+    "status": "DONE"
+   },
+   {
+    "symbol": "APOLLOHOSP",
+    "signalDate": "2026-10-08",
+    "pricePct": -3.17,
+    "oiPct": 5.21,
+    "entryDate": "2026-10-09",
+    "entry": 7950,
+    "exitDate": "2026-10-09",
+    "exit": 8027.5,
+    "netPct": -1.041,
+    "status": "DONE"
    },
    {
     "symbol": "LTF",
     "signalDate": "2026-10-07",
     "pricePct": -1.57,
     "oiPct": 4.98,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "entryDate": "2026-10-08",
+    "entry": 258,
+    "exitDate": "2026-10-08",
+    "exit": 257.4,
+    "netPct": 0.166,
+    "status": "DONE"
+   },
+   {
+    "symbol": "SHRIRAMFIN",
+    "signalDate": "2026-10-07",
+    "pricePct": -1.77,
+    "oiPct": 3.34,
+    "entryDate": "2026-10-08",
+    "entry": 950,
+    "exitDate": "2026-10-08",
+    "exit": 917.25,
+    "netPct": 3.381,
+    "status": "DONE"
+   },
+   {
+    "symbol": "MAZDOCK",
+    "signalDate": "2026-10-07",
+    "pricePct": -1.74,
+    "oiPct": 3.49,
+    "entryDate": "2026-10-08",
+    "entry": 2055,
+    "exitDate": "2026-10-08",
+    "exit": 1990,
+    "netPct": 3.097,
+    "status": "DONE"
+   },
+   {
+    "symbol": "TITAN",
+    "signalDate": "2026-10-07",
+    "pricePct": -3.8,
+    "oiPct": 9.8,
+    "entryDate": "2026-10-08",
+    "entry": 4380,
+    "exitDate": "2026-10-08",
+    "exit": 4359.5,
+    "netPct": 0.402,
+    "status": "DONE"
+   },
+   {
+    "symbol": "NATIONALUM",
+    "signalDate": "2026-10-07",
+    "pricePct": -4.73,
+    "oiPct": 4.14,
+    "entryDate": "2026-10-08",
+    "entry": 321.4,
+    "exitDate": "2026-10-08",
+    "exit": 313.1,
+    "netPct": 2.516,
+    "status": "DONE"
+   },
+   {
+    "symbol": "ADANIENT",
+    "signalDate": "2026-10-07",
+    "pricePct": -3.75,
+    "oiPct": 3.53,
+    "entryDate": "2026-10-08",
+    "entry": 2740,
+    "exitDate": "2026-10-08",
+    "exit": 2596,
+    "netPct": 5.189,
+    "status": "DONE"
+   },
    {
     "symbol": "KEI",
     "signalDate": "2026-10-06",
@@ -212,8 +345,8 @@
    }
   ],
   "summary": {
-   "finished": 10,
-   "meanNetPct": -0.261,
+   "finished": 24,
+   "meanNetPct": 0.152,
    "winPct": 50,
    "weeks": 1,
    "t": null,
