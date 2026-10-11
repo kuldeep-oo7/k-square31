@@ -783,6 +783,34 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     }
   })();
 
+  // THE RISK REPLAY'S OWN PRICE COPIES, MEASURED (11 Oct 2026: the replay sat a session behind
+  // through three builds with the per-run cache, and nothing said whether the copies were never
+  // refreshed or refreshed before the provider had the day). For every name on the page: the last
+  // date each copy holds and whether it was fetched after the latest close had settled, plus what
+  // the prepare step's refresh reported (.private/cache/risk-refresh.json).
+  const riskCache = (() => {
+    try {
+      const H = require("../api/_lib/risk-history");
+      const { latestSessionCloseMs } = require("../api/_lib/bar-cache");
+      const settled = latestSessionCloseMs(Date.now()) + 30 * 60_000;
+      const names = new Set([H.MARKET, H.VIX, ...futures.map((r) => r.symbol), ...options.map((c) => c.symbol)].map((s) => INDEX_TICKER[s] || s));
+      const byLastDate = {}; let fetchedAfterClose = 0, fetchedBeforeClose = 0, missing = 0;
+      for (const sym of names) {
+        const h = H.readHistory(sym);
+        if (!h) { missing += 1; continue; }
+        const rows = H.completedRows(h.rows);
+        const last = rows.length ? rows[rows.length - 1][0] : "none";
+        byLastDate[last] = (byLastDate[last] || 0) + 1;
+        if (Date.parse(h.fetchedAt || "") > settled) fetchedAfterClose += 1; else fetchedBeforeClose += 1;
+      }
+      let refresh = null;
+      try { refresh = JSON.parse(fs.readFileSync(path.join(H.DIR, "..", "risk-refresh.json"), "utf8")); } catch { refresh = null; }
+      return { names: names.size, missing, byLastDate, fetchedAfterClose, fetchedBeforeClose, settledAt: new Date(settled).toISOString(), refresh };
+    } catch (error) {
+      return { error: error.message };
+    }
+  })();
+
   // OUR PRICES AGAINST NSE'S OWN, ON EVERY BUILD (api/_lib/nse-crosscheck.js;
   // Global Trading Atlas, 30: reconcile a sample against an independent
   // source). A rotating sample of this page's rows is quoted again from Angel
@@ -877,6 +905,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     // ...and, from the live-quote cache, how many option books the in-session fetch brought for each
     // index and the broker's own failure text for it: the 8 Oct puts came back after the close, so the
     // missing piece was the in-session books, and the reason lived only in the build log.
+    riskCache,
     indexScreen: (() => {
       let cache = null; try { cache = live.load(); } catch { cache = null; }
       const at = cache?.fetchedAt || null;

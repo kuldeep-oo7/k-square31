@@ -164,6 +164,11 @@ async function step(label, fn) {
     const { refreshRiskHistory } = require("../api/_lib/risk-history");
     const { INDEX_TICKER } = require("../api/_lib/market-direction");
     const r = await refreshRiskHistory([...(fnoUniverseEngine.symbols || []), ...Object.values(INDEX_TICKER)], { budgetMs: 120_000 });
+    // Kept beside the copies, so the build can put this refresh's own numbers in data.json (riskCache).
+    try {
+      const { DIR } = require("../api/_lib/risk-history");
+      require("node:fs").writeFileSync(require("node:path").join(DIR, "..", "risk-refresh.json"), JSON.stringify({ at: new Date().toISOString(), ...r }));
+    } catch (error) { /* a diagnostic only */ }
     return `${r.due} due: ${r.fetched} fetched, ${r.failed} failed${r.notReached ? `, ${r.notReached} not reached in time` : ""}; `
       + `${r.have} of ${r.wanted} on hand (${r.seconds}s)${r.failures.length ? ` -- ${r.failures.join("; ")}` : ""}`;
   });
