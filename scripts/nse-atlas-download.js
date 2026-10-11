@@ -49,7 +49,7 @@ async function main() {
           const r = await fetch(url(parts(d)), { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(45000) });
           if (r.status === 404) { fs.writeFileSync(path.join(dir, `${d}.none`), ""); none += 1; ok = true; break; }
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
-          const buf = Buffer.from(await r.arrayBuffer()); if (buf.length < 20) throw new Error("empty");
+          const buf = Buffer.from(await r.arrayBuffer()); if (buf.length === 0) throw new Error("empty");   // NSE's "No records." (12 bytes) is a real answer: kept
           fs.writeFileSync(path.join(dir, `${d}.${ext}`), buf); got += 1; ok = true;
         } catch (e) { if (attempt === 3) console.log(`${name} ${d}: FAILED ${e.message}`); await pause(5000 * attempt); }
       }
