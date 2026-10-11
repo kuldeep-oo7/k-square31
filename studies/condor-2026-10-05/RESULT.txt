@@ -1,0 +1,21 @@
+CONDOR STUDY, registration sha256 f075f21cc371cfb3442ce3c0d599620dbe1f8574487207253d68566e2076dc8d (verified), run 2026-10-05T04:30:45.057Z
+CODE CHECKS (synthetic):
+(1) planted premium, IC1: +0.223%/wk t 6.33 Sharpe 2.50 win 78% worst week -1.74% worst month -0.70% (319 trades, 74 months)
+(2) 3 fair-priced markets x 3 members, zero costs: 0 PASS (want <= 1)
+(3) changing every price from 2024-03-20: 620 earlier trades IDENTICAL
+
+REAL DATA: NIFTY 2021-09-01 .. 2026-09-28; 715 condor trades. Return = % of NIFTY a week, after charges + 1 point slippage a condor.
+IC1 fixed 2%/4% iron condor: +0.030%/wk t 1.75 Sharpe 0.69 win 84% worst week -1.77% worst month -0.48% (247 trades, 61 months) | on max risk 2.27%/trade | Holm no | DSR 0.00 | FAIL
+    development: 148 trades, mean 0.039%
+    validation: 49 trades, mean -0.006%
+    final: 49 trades, mean 0.060%
+IC2 market-range condor (short +-M, long +-2M): +0.003%/wk t 0.15 Sharpe 0.06 win 68% worst week -1.83% worst month -0.66% (247 trades, 61 months) | on max risk -1.26%/trade | Holm no | DSR 0.00 | FAIL
+    development: 148 trades, mean 0.017%
+    validation: 49 trades, mean -0.039%
+    final: 49 trades, mean 0.023%
+IC3 IC2 + volatility-clustering brake: +0.016%/wk t 0.70 Sharpe 0.27 win 67% worst week -1.70% worst month -0.42% (221 trades, 58 months) | on max risk -1.13%/trade | Holm no | DSR 0.00 | FAIL
+    development: 131 trades, mean 0.011%
+    validation: 45 trades, mean 0.003%
+    final: 44 trades, mean 0.022%
+
+Comparison (not a member): V2 naked 2% strangle, same costs: +0.099%/wk t 4.57 Sharpe 1.89 win 86% worst week -3.22% worst month -0.48% (247 trades, 61 months)

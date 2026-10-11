@@ -235,6 +235,14 @@ function screenContracts({
   };
   let examined = 0;
   const survivors = [];
+  // PER NAME, the same counts: how many contracts of each underlying were looked at, how many
+  // cleared, and which gate refused the rest -- so the page can say WHY an index has no row
+  // (on 8 Oct 2026 every index put vanished and the totals above could not say which gate).
+  const bySymbol = {};
+  const tally = (symbol, key, n = 1) => {
+    const b = bySymbol[symbol] || (bySymbol[symbol] = { examined: 0, survived: 0, refused: {} });
+    if (key === "examined" || key === "survived") b[key] += n; else b.refused[key] = (b.refused[key] || 0) + n;
+  };
 
   const bannedSet = banned instanceof Set ? banned : new Set(Array.isArray(banned) ? banned : []);
   for (const [symbol, entry] of Object.entries(reference.symbols)) {
@@ -242,13 +250,13 @@ function screenContracts({
     // reason even for a name the desk has no view on.
     if (bannedSet.has(symbol)) {
       for (const bucket of Object.values(entry.expiries || {})) {
-        refused.banned += (bucket.callStrikes?.length || 0) + (bucket.putStrikes?.length || 0);
+        { const n_ = (bucket.callStrikes?.length || 0) + (bucket.putStrikes?.length || 0); refused.banned += n_; tally(symbol, "banned", n_); }
       }
       continue;
     }
     if (requireView && typeof bullish[symbol] !== "boolean") {
       for (const bucket of Object.values(entry.expiries || {})) {
-        refused.noDirection += (bucket.callStrikes?.length || 0) + (bucket.putStrikes?.length || 0);
+        { const n_ = (bucket.callStrikes?.length || 0) + (bucket.putStrikes?.length || 0); refused.noDirection += n_; tally(symbol, "noDirection", n_); }
       }
       continue;
     }
@@ -256,12 +264,12 @@ function screenContracts({
     for (const [expiry, bucket] of Object.entries(entry.expiries || {})) {
       const daysToExpiry = (Date.parse(`${expiry}T15:30:00+05:30`) - now) / 86400000;
       if (!(daysToExpiry >= rules.minDaysToExpiry && daysToExpiry <= rules.maxDaysToExpiry)) {
-        refused.expiryWindow += (bucket.callStrikes?.length || 0) + (bucket.putStrikes?.length || 0);
+        { const n_ = (bucket.callStrikes?.length || 0) + (bucket.putStrikes?.length || 0); refused.expiryWindow += n_; tally(symbol, "expiryWindow", n_); }
         continue;
       }
       const exitBy = exitByFor ? exitByFor(symbol, expiry) : expiry;
       if (results?.status === "ANNOUNCED" && results.date <= exitBy) {
-        refused.resultsBeforeExit += (bucket.callStrikes?.length || 0) + (bucket.putStrikes?.length || 0);
+        { const n_ = (bucket.callStrikes?.length || 0) + (bucket.putStrikes?.length || 0); refused.resultsBeforeExit += n_; tally(symbol, "resultsBeforeExit", n_); }
         continue;
       }
       // Price off the FORWARD. For an F&O name the market's forward is the
@@ -289,18 +297,18 @@ function screenContracts({
       for (const optionType of ["CE", "PE"]) {
         const wantsCall = bullish[symbol];
         if (typeof wantsCall === "boolean") {
-          if (wantsCall && optionType === "PE") { refused.noDirection += 1; continue; }
-          if (!wantsCall && optionType === "CE") { refused.noDirection += 1; continue; }
+          if (wantsCall && optionType === "PE") { { const n_ = 1; refused.noDirection += n_; tally(symbol, "noDirection", n_); } continue; }
+          if (!wantsCall && optionType === "CE") { { const n_ = 1; refused.noDirection += n_; tally(symbol, "noDirection", n_); } continue; }
         }
         const strikes = optionType === "CE" ? bucket.callStrikes : bucket.putStrikes;
         for (const strike of strikes || []) {
-          examined += 1;
+          examined += 1; tally(symbol, "examined");
           const quote = bucket.quotes?.[`${strike}|${optionType}`];
-          if (!quote) { refused.noIv += 1; continue; }
+          if (!quote) { { const n_ = 1; refused.noIv += n_; tally(symbol, "noIv", n_); } continue; }
 
           const volume = Number(quote.volume) || 0;
           const openInterest = Number(quote.openInterest) || 0;
-          if (volume < rules.minVolume || openInterest < rules.minOpenInterest) { refused.illiquid += 1; continue; }
+          if (volume < rules.minVolume || openInterest < rules.minOpenInterest) { { const n_ = 1; refused.illiquid += n_; tally(symbol, "illiquid", n_); } continue; }
 
           // THE PRICE MUST BE TODAY'S, NOT YESTERDAY'S.
           //
@@ -336,12 +344,12 @@ function screenContracts({
           const spreadPct = book && book.bid > 0 && book.ask > 0 && liveMid > 0
             ? (100 * (book.ask - book.bid)) / liveMid
             : null;
-          if (!(premium >= rules.minPremium)) { refused.tinyPremium += 1; continue; }
-          if (spreadPct !== null && spreadPct > rules.maxSpreadPct) { refused.wideSpread += 1; continue; }
+          if (!(premium >= rules.minPremium)) { { const n_ = 1; refused.tinyPremium += n_; tally(symbol, "tinyPremium", n_); } continue; }
+          if (spreadPct !== null && spreadPct > rules.maxSpreadPct) { { const n_ = 1; refused.wideSpread += n_; tally(symbol, "wideSpread", n_); } continue; }
           // During market hours a settled price is not an entry price. If the
           // session is open and no live book was seen, the contract is refused
           // rather than quoted at yesterday's close.
-          if (marketOpen === true && !priceIsLive) { refused.staleDuringSession += 1; continue; }
+          if (marketOpen === true && !priceIsLive) { { const n_ = 1; refused.staleDuringSession += n_; tally(symbol, "staleDuringSession", n_); } continue; }
 
           // NSE derives a settlement price for contracts that did not trade, and
           // 972 of them came out BELOW intrinsic value last time this was
@@ -349,14 +357,14 @@ function screenContracts({
           const intrinsic = optionType === "CE"
             ? Math.max(0, forward - strike)
             : Math.max(0, strike - forward);
-          if (premium < intrinsic) { refused.belowIntrinsic += 1; continue; }
+          if (premium < intrinsic) { { const n_ = 1; refused.belowIntrinsic += n_; tally(symbol, "belowIntrinsic", n_); } continue; }
 
           const solved = impliedVolatility({
             underlyingPrice: forward, strike, timeToExpiryYears: years,
             riskFreeRate: RISK_FREE, dividendYield: 0, optionType, model: pricingModel
           }, premium);
           const impliedVol = Number(solved?.iv);
-          if (!(impliedVol > rules.minIv && impliedVol < rules.maxIv)) { refused.noIv += 1; continue; }
+          if (!(impliedVol > rules.minIv && impliedVol < rules.maxIv)) { { const n_ = 1; refused.noIv += n_; tally(symbol, "noIv", n_); } continue; }
 
           const greeks = europeanOption({
             underlyingPrice: forward, strike, timeToExpiryYears: years,
@@ -365,7 +373,7 @@ function screenContracts({
           });
           const delta = Number(greeks?.delta);
           if (!(Math.abs(delta) >= rules.minDelta && Math.abs(delta) <= rules.maxDelta)) {
-            refused.deltaBand += 1; continue;
+            { const n_ = 1; refused.deltaBand += n_; tally(symbol, "deltaBand", n_); } continue;
           }
 
           // Where the underlying has to get for a 50% gain on the premium, and
@@ -476,6 +484,7 @@ function screenContracts({
             ivPercentile: rank?.available ? rank.ivPercentile : null
           });
           survivors.push({ ...row, screenScore: scored.score, screenParts: scored.parts });
+          tally(symbol, "survived");
         }
       }
     }
@@ -487,6 +496,7 @@ function screenContracts({
     examined,
     survived: survivors.length,
     refused,
+    bySymbol,
     gates: rules,
     asOfSession: reference.session || null,
     pricedLive: survivors.filter((c) => c.priceIsLive).length,

@@ -1,0 +1,37 @@
+OUT-OF-SAMPLE REPLICATION, registration sha256 b4669e429d2d1f7ce82380dc6a8ffa7cab07c63ceb47bcbb4cafe32da3914c3a (verified), run 2026-10-05T07:37:56.563Z
+CODE CHECKS (synthetic):
+(1) planted mean reversion, SD: mean 0.130% t 3.84 (11468 trades)
+    noise pass: seed 4036 MA150B mean 0.177 t 1.93
+    noise pass: seed 11099 SD mean 0.243 t 3.14
+(2) 12 random-walk markets x SD, MA150A, MA150B: 2 of 36 REPLICATED at unadjusted 5% (want <= 4)
+(3) changing every price from 2009-03-23: 12349 earlier trades IDENTICAL
+(4) US charge replacement = 0.05% of turnover: yes
+
+NSE OLD data: {"niftyFallbacks":1776,"sessions":"2005-01-03 .. 2020-10-30 (3909)","stocks":2792}
+US data: {"industrySha256":"21bddb0e33afa9a0a66e2ea5800d10d230b276f866b562b25cc042595d7176e5","sessions":"2005-01-03 .. 2026-10-01 (5471)","stocks":503}
+
+rule | trades | months | mean/trade | t (NW) | win | worst month | Holm(12) | VERDICT
+NSE SD | 7458 | 172 | +0.640% | 3.58 | 50% | -7.96% | yes | STRONG
+    periods: 2005-09 +0.319% (1501); 2010-14 +0.020% (2196); 2015-20 -0.341% (3761) | crashes: 2008 crash -1.884% (482); 2020 COVID -2.930% (302)
+NSE LU | 22558 | 184 | +1.399% | 3.68 | 52% | -14.63% | yes | STRONG
+    periods: 2005-09 +1.642% (9644); 2010-14 +0.333% (6659); 2015-20 -0.261% (6255) | crashes: 2008 crash -0.992% (3976); 2020 COVID -5.447% (792)
+NSE SB | 33979 | 184 | +0.208% | 4.66 | 54% | -1.45% | yes | STRONG
+    periods: 2005-09 +0.397% (11163); 2010-14 +0.311% (11266); 2015-20 +0.139% (11550) | crashes: 2008 crash +0.681% (4315); 2020 COVID -0.484% (620)
+NSE STRANGLE | 241 | 183 | +0.467% | 2.51 | 76% | -7.52% | yes | REPLICATED
+    periods: 2005-09 +1.244% (56); 2010-14 +0.176% (59); 2015-20 +0.038% (126) | crashes: 2008 crash +0.895% (13); 2020 COVID -1.662% (10)
+NSE MA150A | 12136 | 175 | +0.119% | 1.04 | 52% | -7.71% | no | FAILED
+    periods: 2005-09 -0.158% (2897); 2010-14 +0.078% (4380); 2015-20 -0.037% (4859) | crashes: 2008 crash -0.937% (847); 2020 COVID -0.628% (207)
+NSE MA150B | 5767 | 175 | +0.307% | 2.23 | 52% | -5.74% | no | FAILED
+    periods: 2005-09 +0.065% (1388); 2010-14 +0.016% (2081); 2015-20 +0.052% (2298) | crashes: 2008 crash -0.657% (424); 2020 COVID +0.291% (132)
+NSE CHEAPVOL | 8176 | 117 | +7.267% | 5.13 | 43% | -15.15% | yes | STRONG
+    periods: 2005-09 -% (0); 2010-14 +11.755% (3142); 2015-20 +3.149% (5034) | crashes: 2008 crash -% (0); 2020 COVID +9.622% (414)
+NSE INDREV | 720 | 175 | +0.065% | 1.05 | 55% | -2.89% | no | FAILED
+    periods: 2005-09 +0.356% (193); 2010-14 +0.077% (247); 2015-20 -0.089% (280) | crashes: 2008 crash +0.420% (61); 2020 COVID -0.061% (12)
+US SD | 19889 | 248 | +0.840% | 8.13 | 54% | -4.04% | yes | STRONG
+    periods: 2005-09 -0.122% (5112); 2010-14 +0.841% (4454); 2015-19 +0.430% (4344); 2020-26 +0.621% (5979) | crashes: 2008 crash -0.785% (2968); 2020 COVID +0.209% (487)
+US MA150A | 21274 | 249 | -0.060% | -1.14 | 50% | -2.77% | no | FAILED
+    periods: 2005-09 -0.061% (4277); 2010-14 -0.041% (4869); 2015-19 +0.005% (5111); 2020-26 -0.052% (7017) | crashes: 2008 crash +0.111% (1247); 2020 COVID -0.298% (408)
+US MA150B | 9963 | 249 | -0.080% | -1.10 | 51% | -4.73% | no | FAILED
+    periods: 2005-09 +0.016% (1836); 2010-14 -0.189% (2361); 2015-19 +0.007% (2416); 2020-26 -0.006% (3350) | crashes: 2008 crash -0.013% (551); 2020 COVID +0.392% (199)
+US INDREV | 1041 | 249 | -0.045% | -1.10 | 45% | -2.14% | no | FAILED
+    periods: 2005-09 +0.050% (201); 2010-14 -0.115% (252); 2015-19 -0.052% (251); 2020-26 -0.062% (337) | crashes: 2008 crash +0.277% (63); 2020 COVID +0.365% (12)

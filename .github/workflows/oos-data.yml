@@ -1,0 +1,87 @@
+name: oos-data
+# Out-of-sample data for studies/oos-replication-2026-10-05 (registered before any of it is used):
+# NSE's own old daily files 2005-01 .. 2020-10 (scripts/nse-old-history.js) and US large caps 2005 ..
+# (scripts/us-history.js). Published to the private release data-oos, apart from data-nse-cm, so no
+# earlier study's data changes. Runs on push of this file to a claude/ branch, or by hand.
+on:
+  workflow_dispatch:
+  push:
+    branches: ["claude/**"]
+    paths: [".github/workflows/oos-data.yml"]
+permissions:
+  contents: write
+concurrency:
+  group: oos-data
+  cancel-in-progress: false
+jobs:
+  nse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    strategy:
+      fail-fast: false
+      max-parallel: 4
+      matrix:
+        part:
+          - { from: "2005-01-01", to: "2008-12-31" }
+          - { from: "2009-01-01", to: "2012-12-31" }
+          - { from: "2013-01-01", to: "2016-12-31" }
+          - { from: "2017-01-01", to: "2020-10-31" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: "Fetch NSE's old files, two passes (the second resumes anything that failed)"
+        run: |
+          K2_OLD_DIR=nse-old node scripts/nse-old-history.js ${{ matrix.part.from }} ${{ matrix.part.to }} || true
+          K2_OLD_DIR=nse-old node scripts/nse-old-history.js ${{ matrix.part.from }} ${{ matrix.part.to }} || true
+          grep -E "HEADER|done|STOPPED|FAILED|404" nse-old/download.log | head -60 >> "$GITHUB_STEP_SUMMARY" || true
+          for s in cm fut opt sopt idx; do echo "$s: $(ls nse-old/$s | wc -l) files" >> "$GITHUB_STEP_SUMMARY"; done
+          tar -czf nse-old-${{ matrix.part.from }}.tar.gz nse-old
+      - name: Publish this part's download log to the release (readable from a cloud session)
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view data-oos >/dev/null 2>&1 || gh release create data-oos --title "Out-of-sample data (NSE 2005-2020, US)" --notes "Built by .github/workflows/oos-data.yml for studies/oos-replication-2026-10-05. Data only." --latest=false || true
+          cp nse-old/download.log log-nse-${{ matrix.part.from }}.txt || echo "no log" > log-nse-${{ matrix.part.from }}.txt
+          for i in 1 2 3; do gh release upload data-oos log-nse-${{ matrix.part.from }}.txt --clobber && break; sleep 10; done
+      - uses: actions/upload-artifact@v4
+        with:
+          name: nse-old-${{ matrix.part.from }}
+          path: nse-old-${{ matrix.part.from }}.tar.gz
+          retention-days: 3
+  us:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: Fetch US large caps
+        run: |
+          K2_US_DIR=us node scripts/us-history.js || true
+          tail -15 us/download.log >> "$GITHUB_STEP_SUMMARY" || true
+          tar -czf us.tar.gz us/cm us/industries.json us/download.log
+      - name: Publish the US download log
+        if: always()
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          sleep 30; cp us/download.log log-us.txt || echo "no log" > log-us.txt
+          for i in 1 2 3; do gh release upload data-oos log-us.txt --clobber && break; sleep 20; done
+      - uses: actions/upload-artifact@v4
+        with: { name: us, path: us.tar.gz, retention-days: 3 }
+  publish:
+    needs: [nse, us]
+    if: always()
+    runs-on: ubuntu-latest
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/download-artifact@v4
+        with: { path: parts }
+      - name: Publish to the private release data-oos
+        run: |
+          ls -lR parts | head -20
+          gh release view data-oos -R "$GITHUB_REPOSITORY" >/dev/null 2>&1 || gh release create data-oos -R "$GITHUB_REPOSITORY" --title "Out-of-sample data (NSE 2005-2020, US)" --notes "Built by .github/workflows/oos-data.yml for studies/oos-replication-2026-10-05. Data only." --latest=false
+          for f in parts/*/*.tar.gz; do gh release upload data-oos "$f" -R "$GITHUB_REPOSITORY" --clobber; done

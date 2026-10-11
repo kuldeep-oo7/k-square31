@@ -182,8 +182,15 @@ jobs:
         uses: actions/cache/restore@v4
         with:
           path: .private/cache
-          key: k2-desk-cache-${{ env.IST_DATE }}-${{ env.IST_HALF }}
-          restore-keys: k2-desk-cache-
+          # ONE ENTRY PER RUN (6 Oct 2026). With one key per half-day only the FIRST build's cache was
+          # kept: every later build re-fetched the same part of the ~290 risk histories inside its
+          # 2-minute budget and then lost it, so most of them never got past 1 Oct and the bad-day risk
+          # replay stayed four sessions old. Now each build restores the newest entry and saves its own,
+          # so the refresh adds up. Entries are ~23 MB; GitHub evicts unused ones after 7 days.
+          key: k2-desk-cache-${{ env.IST_DATE }}-${{ env.IST_HALF }}-${{ github.run_id }}-${{ github.run_attempt }}
+          restore-keys: |
+            k2-desk-cache-${{ env.IST_DATE }}-${{ env.IST_HALF }}-
+            k2-desk-cache-
 
       - name: Install
         run: npm install --omit=dev --no-audit --no-fund
@@ -350,11 +357,11 @@ jobs:
             git push || { git fetch --quiet origin "${GITHUB_REF_NAME}"; git reset --mixed --quiet "origin/${GITHUB_REF_NAME}"; git add docs/; git commit -m "desk: rebuilt $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M IST')"; git push; }
           fi
 
-      - name: Keep this half-day's exchange data for the next build
-        # Only on a miss: a cache cannot be overwritten, and on an exact hit
-        # there is nothing new to keep. Before the gate, so a red run still
-        # keeps it; never fatal, because losing a cache costs one slow build.
-        if: ${{ !cancelled() && steps.desk-cache.outputs.cache-hit != 'true' }}
+      - name: Keep this build's exchange data and price histories for the next build
+        # Every run saves under its own key (see the restore step), so what this build
+        # fetched is never thrown away. Before the gate, so a red run still keeps it;
+        # never fatal, because losing a cache costs one slow build.
+        if: ${{ !cancelled() }}
         continue-on-error: true
         uses: actions/cache/save@v4
         with:

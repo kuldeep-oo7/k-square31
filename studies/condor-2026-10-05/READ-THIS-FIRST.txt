@@ -1,0 +1,25 @@
+NIFTY IRON CONDOR TEST, 5 Oct 2026 -- plain words
+
+Question: the naked NIFTY 2% strangle (sell a call 2% up and a put 2% down each week) was the desk's
+best result. It has unlimited crash risk. Does a HEDGED version (also buy a cheaper call and put
+further out, an "iron condor") still make money?
+
+Answer: NO. All three hedged versions FAILED. Rules were locked and pushed first (commit af9ce97),
+then run once on NSE's own NIFTY option prices, Sep 2021 - Sep 2026, after charges and slippage.
+
+  IC1 fixed 2% / 4% condor        +0.030% of NIFTY a week, t 1.75, 84% winning weeks, 247 trades  FAIL
+  IC2 market's own range          +0.003% a week, t 0.15, 68% winning weeks                       FAIL
+  IC3 IC2 + calm-market brake     +0.016% a week, t 0.70, 67% winning weeks                       FAIL
+  (pass needs t >= 3)
+
+For comparison, the naked 2% strangle with the same costs: +0.099% a week, t 4.57, but its worst
+week lost 3.22% of NIFTY (about Rs 54,000 on one 75-unit lot at NIFTY 22,500), against 1.77% for the
+condor.
+
+What it means: the buyers of far-out NIFTY options pay about the same "insurance premium" the
+strangle seller collects. Buying the wings hands back roughly 70% of the edge, and what is left is
+too small to tell apart from luck. The edge is in carrying crash risk; remove the risk and the
+edge goes with it.
+
+Nothing goes to the page or to TRACK from this study. The naked strangle stays on TRACK as
+information only (it needs margin and can lose months of gains in one week).

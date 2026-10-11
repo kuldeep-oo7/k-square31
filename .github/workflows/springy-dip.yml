@@ -6,6 +6,11 @@ name: springy-dip
 on:
   schedule:
     - cron: "15 2 * * 1-5"      # 07:45 IST; GitHub may start it late, which only delays the list
+    # Backstops: GitHub's scheduler dropped the whole 6 Oct 2026 morning run (TRACK stayed on 1 Oct data).
+    # A re-run with nothing new exits "no change". None lands in 09:13-09:40 IST (the freeze).
+    - cron: "5 3 * * 1-5"       # 08:35 IST
+    - cron: "35 5 * * 1-5"      # 11:05 IST
+    - cron: "45 13 * * 1-5"     # 19:15 IST, after NSE posts the day's files
   workflow_dispatch:
 permissions:
   contents: write

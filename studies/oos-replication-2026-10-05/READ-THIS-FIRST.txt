@@ -1,0 +1,42 @@
+OUT-OF-SAMPLE TEST OF THE 8 TRACK RULES -- plain words (5 Oct 2026)
+
+What was done: the rules on TRACK were chosen on NSE 2020-2026. Here the SAME code (start date moved back)
+ran once on data it was never chosen on: NSE's own files 2005-2020 (the 2008 crash and COVID included)
+and today's S&P 500 stocks 2005-2026. Rules locked and pushed first (commit 19a87a0). After charges.
+
+VERDICTS AS REGISTERED (monthly score, Holm across 12)       ... AND WHAT ONE TRADE ACTUALLY EARNED
+                                                                (descriptive check, not the registered test)
+NSE short build-up (SB)      +0.21%/month-avg, t 4.66 STRONG    +0.28% a trade, median +0.26%. Positive in
+                                                                2005-09, 2010-14, 2015-20 and in the 2008
+                                                                crash. Shrinking: +0.40 -> +0.31 -> +0.14.
+NSE NIFTY 2% strangle        +0.47%, t 2.51 REPLICATED          +0.35% a trade, median +0.39%. But fading to
+                                                                +0.04% in 2015-20; lost 1.7% in COVID.
+NSE long-unwinding bounce    +1.40%, t 3.68 STRONG              +0.73% a trade, median +0.47%, but LOST in
+                                                                2015-20 (-0.26%) and in both crashes.
+NSE springy dip              +0.64%, t 3.58 STRONG              -0.10% a trade, median -0.03%: trading every
+                                                                signal LOST money. The month-average was lifted
+                                                                by quiet months and a few +100% outliers.
+NSE cheap-vol straddle       +7.27%, t 5.13 STRONG              median -3.2% a trade; the average comes from a
+                                                                few +500% to +1,771% trades on stale, thinly
+                                                                traded old option prices. NOT TRUSTWORTHY.
+NSE 150-day shorts A / B     t 1.04 / 2.23 FAILED
+NSE industry reversal        t 1.05 FAILED
+US springy dip               +0.84%, t 8.13 STRONG              but the US list is TODAY's S&P 500: stocks that
+                                                                died after a dip are missing, which flatters
+                                                                exactly this kind of rule. Lost in 2005-09 and
+                                                                in the 2008 crash.
+US 150-day shorts A / B, US industry reversal                    FAILED (all slightly negative)
+
+THE HONEST READING
+- Only ONE rule holds up every way we look at it: SHORT BUILD-UP (the stock fell >= 1.56% and its futures
+  open interest rose >= 3.04% -> short at the next open, cover at that day's close). Positive on unseen
+  NSE data in every 5-year period, not driven by outliers, and positive in its own 2020-26 backtest too.
+  But it has been shrinking for 15 years, slippage at the open is not counted, and it is a 1-day trade.
+- The strangle replicated, but its edge has almost gone since 2015 and it carries crash risk.
+- The springy dip and cheap-vol straddle "STRONG" verdicts do not survive a look at single trades.
+- The 150-day shorts and the industry reversal failed everywhere: little reason to trust them.
+
+DATA NOTES: NSE CM + F&O for 3,909 sessions (2005-01-03 .. 2020-10-30); 2 sessions without an F&O file
+(2012-05-14 parse failure, 2013-10-09 NSE 404). NSE's index-close file exists only from about 2012, so
+1,776 sessions used the registered futures fallback for NIFTY's close. US: 503 symbols, 5,471 sessions.
+Nothing on the page or on TRACK changes because of this test.

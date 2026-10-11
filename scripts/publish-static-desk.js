@@ -872,6 +872,21 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     futuresAnchor: ANCHOR,
     forwardStatus,
     optionsOnLiveForward: options.filter((c) => c.forwardSource === "LIVE").length,
+    // Per index: contracts looked at, cleared, and refused by which gate (contract-screener bySymbol), so
+    // an index with no row says why (8 Oct 2026: every index put vanished and nothing on the page said why).
+    // ...and, from the live-quote cache, how many option books the in-session fetch brought for each
+    // index and the broker's own failure text for it: the 8 Oct puts came back after the close, so the
+    // missing piece was the in-session books, and the reason lived only in the build log.
+    indexScreen: (() => {
+      let cache = null; try { cache = live.load(); } catch { cache = null; }
+      const at = cache?.fetchedAt || null;
+      return Object.fromEntries((view.indices || []).map((s) => {
+        const t = screen.bySymbol?.[s] || null;
+        const books = cache?.quotes ? Object.values(cache.quotes).filter((q) => q.symbol === s && q.fetchedAt === at).length : null;
+        const failure = (cache?.failures || []).find((f) => String(f).startsWith(`${s}:`)) || null;
+        return [s, t ? { ...t, liveBooks: books, liveFailure: failure, liveFetchedAt: at } : (books !== null || failure ? { examined: 0, survived: 0, refused: {}, liveBooks: books, liveFailure: failure, liveFetchedAt: at } : null)];
+      }));
+    })(),
     optionsDirection: { rule: view.rule, names: Object.keys(bullish).length, indices: view.indices,
       stocks: view.stocks.length, ratedDownNotFalling: view.ratedDownNotFalling, risingOnTheirOwn: view.risingOnTheirOwn || [] },
     direction,
@@ -1337,6 +1352,33 @@ function page(d) {
              : fc.worstGapPct !== null && fc.worstGapPct !== undefined ? `, last prices within ${esc(fc.worstGapPct)}%` : ""}.`)
         + (fc.priceOff?.length ? ` <b class="warn">Price differs from NSE's:</b> ${esc(fc.priceOff.join("; "))}.` : "")
       : ` Not checked against NSE on this build (${esc(fc.reason || "reason unknown")}).`;
+  // STALE PARTS (api/_lib/freshness.js): anything on this build older than the last finished NSE session,
+  // named in red at the top, so an old part can never pass for a current one (6 Oct 2026).
+  const stale = (() => { try { return require("../api/_lib/freshness").staleParts(d); } catch { return { items: [] }; } })();
+  const staleDay = (iso) => (iso ? new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }) : "missing");
+  const staleAlarm = stale.items.length
+    ? `<div class="note" style="border-left-color:var(--red)"><b class="down">OUT OF DATE ON THIS BUILD:</b>
+        ${stale.items.map((x) => `${esc(x.part)} (${x.have ? `data through ${esc(staleDay(x.have))}` : "missing"})`).join("; ")}.
+        NSE's last finished session is ${esc(staleDay(stale.expected))}. Everything else on the page is current; read these parts as old until this line goes away.</div>`
+    : "";
+  // WHY AN INDEX HAS NO PUT ROW: the screener's own count per gate, in words.
+  const GATE_WORDS = { staleDuringSession: "no live price in session", illiquid: "too little volume or open interest",
+    wideSpread: "spread over 10%", tinyPremium: "premium under Rs 1", deltaBand: "too far in or out of the money (delta outside 0.25-0.75)",
+    noIv: "no quote or no implied volatility", belowIntrinsic: "priced below intrinsic value", expiryWindow: "expiry under 7 or over 60 days away",
+    noDirection: "the wrong side for the market's direction", banned: "in NSE's F&O ban", resultsBeforeExit: "results before the exit date" };
+  const indexWhy = (byIndex, rows) => {
+    const lines = Object.entries(byIndex || {}).filter(([sym]) => !rows.some((c) => c.symbol === sym)).map(([sym, t]) => {
+      if (!t) return `<b>${esc(sym)}</b>: no contracts in NSE&rsquo;s list on this build`;
+      const before = ["expiryWindow", "banned", "resultsBeforeExit"];   // counted before a contract is checked
+      const words = (keep) => Object.entries(t.refused || {}).filter(([k, v]) => v > 0 && k !== "noDirection" && keep(k)).sort((a, b) => b[1] - a[1])
+        .map(([k, v]) => `${esc(v)} ${esc(GATE_WORDS[k] || k)}`).join(", ");
+      const why = words((k) => !before.includes(k)), skipped = words((k) => before.includes(k));
+      const feed = t.liveFailure ? `; the broker refused its live prices: ${esc(String(t.liveFailure).replace(/^[^:]+:\s*/, ""))}`
+        : t.liveBooks === 0 && (t.refused?.staleDuringSession || 0) > 0 ? "; the in-session fetch brought no live prices for it" : "";
+      return `<b>${esc(sym)}</b>: 0 of ${esc(t.examined)} puts checked cleared${why ? ` &mdash; ${why}` : ""}${skipped ? ` (not checked: ${skipped})` : ""}${feed}`;
+    });
+    return lines.length ? `<div class="sub" style="margin:-4px 0 10px">Indices with no put on this build: ${lines.join("; ")}.</div>` : "";
+  };
   const feedAlarm = fc?.checked && fc.wrongContract?.length
     ? `<div class="note" style="border-left-color:var(--red)"><b class="down">DO NOT TRADE THESE ROWS.</b>
         Angel One and NSE disagree on which contract they are: ${esc(fc.wrongContract.join("; "))}.
@@ -1554,6 +1596,7 @@ function page(d) {
 <div class="note ${d.levelsFrozen ? "frozen" : ""}"><details class="fold"><summary>${freezeHead}<span class="more"></span></summary><div>${freezeRest}</div></details></div>
 <div class="note direction" style="border-left-color:var(--${dirTone})"><details class="fold"><summary>${dirHead}<span class="more"></span></summary><div>${dirRest}</div></details></div>
 ${feedAlarm}
+${staleAlarm}
 
 <main class="desk">
   <input type="radio" name="view" id="v-fut" checked>
@@ -1644,6 +1687,7 @@ ${feedAlarm}
       BETTER than the market. They are shown because you asked for the falling names, not because the rating picks fallers.</div>` : ""}
     ${downtrendPage && puts.length ? `<div class="sub" style="margin:-4px 0 10px">Looked for on ${esc((od.indices || []).join(", "))} and on the ${esc(od.stocks ?? 0)} stocks rated SELL or REDUCE that are falling themselves;
       ${esc(putNames.length)} had contracts that cleared every gate, the indices first. One side per name, the side the market&rsquo;s direction points to.</div>` : ""}
+    ${downtrendPage ? indexWhy(d.indexScreen, puts) : ""}
     ${puts.length ? oldFileNote : ""}
     ${optionTable(puts, downtrendPage
       ? "No puts cleared every gate on this build."

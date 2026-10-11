@@ -1,0 +1,38 @@
+name: oos-repair
+# Re-fetches only the listed parts of the out-of-sample NSE data (scripts/nse-old-history.js) and uploads
+# each straight to the release data-oos (tar + log). Runs on push of this file to a claude/ branch.
+on:
+  workflow_dispatch:
+  push:
+    branches: ["claude/**"]
+    paths: [".github/workflows/oos-repair.yml"]
+permissions:
+  contents: write
+concurrency:
+  group: oos-repair
+  cancel-in-progress: false
+jobs:
+  nse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      GH_TOKEN: ${{ github.token }}
+    strategy:
+      fail-fast: false
+      matrix:
+        part:
+          - { from: "2005-01-01", to: "2008-12-31" }
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: "Fetch, two passes"
+        run: |
+          K2_OLD_DIR=nse-old node scripts/nse-old-history.js ${{ matrix.part.from }} ${{ matrix.part.to }} || true
+          K2_OLD_DIR=nse-old node scripts/nse-old-history.js ${{ matrix.part.from }} ${{ matrix.part.to }} || true
+          tar -czf nse-old-${{ matrix.part.from }}.tar.gz nse-old
+      - name: Upload tar and log to data-oos
+        if: always()
+        run: |
+          cp nse-old/download.log log-nse-${{ matrix.part.from }}.txt || echo "no log" > log-nse-${{ matrix.part.from }}.txt
+          for f in nse-old-${{ matrix.part.from }}.tar.gz log-nse-${{ matrix.part.from }}.txt; do for i in 1 2 3; do gh release upload data-oos "$f" --clobber && break; sleep 15; done; done

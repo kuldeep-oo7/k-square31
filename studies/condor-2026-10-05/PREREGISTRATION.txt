@@ -1,0 +1,73 @@
+PRE-REGISTRATION -- NIFTY weekly IRON CONDORS (hedged option selling), written 5 Oct 2026 BEFORE any
+condor number exists on real data. sha256 in PREREGISTRATION.sha256. Judged by PROTOCOL v2
+(studies/audit-2026-10-04/PROTOCOL.txt).
+
+WHY THIS FAMILY (and what was already seen)
+- research/results-vrp-2026-10-04 V2, the naked short NIFTY 2% strangle, re-scored under protocol v2:
+  +0.101% of NIFTY a week, t 4.66, 61 months, 246 trades, annual Sharpe 1.93, DSR 0.39 (not
+  significant after selection). A naked strangle has unlimited crash risk; the owner asked for the
+  hedged version. These members are MOTIVATED by that result on the SAME data, so a PASS here is a
+  PASS on re-used data and goes to TRACK as a forward paper test only.
+- V1 (sell only when straddle IV > 1.2x realised) FAILED (t 1.15), so no IV/RV filter is used here.
+- Before writing this, only the STRUCTURE of the option files was looked at (expiries per day,
+  strike range relative to NIFTY: it spans far beyond +-4% on sampled days). No condor P&L, no
+  wing price and no outcome was computed.
+
+DATA (NSE's own, from the private releases)
+- NIFTY option rows, two nearest expiries per day: research/families-2026-10-04/nse-extra/opt
+  (row = [expiry, strike, CE/PE, close, settle, oi]); closing prices; rows with close > 0 only.
+- NIFTY 50 daily closes: nifty-50-nse.json (2021-09-01 ..); NSE expiry dates:
+  research/situations-2026-09-29/nifty-expiries-nse.json, OPTIDX.
+
+CYCLE (identical to V2 / F11)
+For each NIFTY option expiry E (sorted): the entry day d is the first session after the previous
+expiry with 4..10 calendar days to E that has NIFTY option rows and a NIFTY close. E must have a
+NIFTY close. Enter at d's closing option prices; hold to expiry; every leg settles at intrinsic
+value on NIFTY's close on E. S = NIFTY close on d.
+
+MEMBERS (all short the inner pair and long the outer pair: a defined-risk iron condor)
+"nearest(x, type)" = the listed strike of that expiry and type with a positive close nearest x.
+  IC1  Fixed 2% / 4%: short CE nearest S x 1.02, short PE nearest S x 0.98; long CE nearest
+       S x 1.04, long PE nearest S x 0.96.
+  IC2  The market's own range (OWN): M = CE + PE at the strike nearest S (the ATM straddle, the
+       market's priced expected move). Short CE nearest S + M, short PE nearest S - M; long CE
+       nearest S + 2M, long PE nearest S - 2M.
+  IC3  IC2 with a volatility-clustering brake (OWN; Mandelbrot 1963, Engle 1982: big moves cluster):
+       skip the week when NIFTY's 5-session realised volatility exceeds 1.5x its 60-session realised
+       volatility, both from daily log closes up to and including d.
+A week is skipped if any leg is missing, or a long strike is not strictly beyond its short strike.
+
+RETURN (per condor, in % of S, after costs)
+  net = (credit - settlement loss - costs) / S, where credit = shortCE + shortPE - longCE - longPE,
+  settlement loss = max(SE - KshortCE, 0) - max(SE - KlongCE, 0) + max(KshortPE - SE, 0)
+                    - max(KlongPE - SE, 0), SE = NIFTY close on E.
+  Costs per leg: api/_lib/trade-costs.js roundTripCost({entryPremium, exitPremium:
+  max(intrinsic, 0.05), quantity: 75}).totalCost / 75 (as V2), PLUS slippage of 0.25 index points
+  per leg (4 legs = 1.0 point a condor), because closing prices are not fills and wings are cheap.
+  Also reported, descriptively: net as % of the condor's maximum risk (wider wing width - credit).
+
+VERDICT (protocol v2)
+Monthly series: for each calendar month with a trade, the mean net per trade (% of S) of the trades
+entered that month. t = mean / Newey-West SE (lag 3) over ALL months. Annual Sharpe = mean / sd x
+sqrt(12).
+  PASS       mean > 0 AND t >= 3.0
+  PROMISING  mean > 0 AND 2.0 <= t < 3.0 (a forward-test candidate, never a trading rule)
+  FAIL       otherwise;  NOT TESTABLE = fewer than 24 months with trades.
+Also reported: Holm across the 3 members (one-sided normal p, 5%); the Deflated Sharpe Ratio
+probability against the protocol-v2 audit's benchmark of 2.05 (expected best annual Sharpe of 73
+skill-less trials), DSR = Phi((Sharpe - 2.05) x sqrt(years)); the old three windows
+(development < 2024-09-19, validation .. 2025-09-17, final 2025-09-18 .. 2026-09-15), descriptively;
+win rate, worst week, worst month, and the naked V2 strangle recomputed with the same slippage,
+for comparison only (not a member).
+
+CODE CHECKS FIRST (synthetic data only; the real run is refused unless all three pass)
+ (1) a planted premium (options priced at 1.3x the true volatility) must give IC1 mean > 0, t > 2;
+ (2) fair prices (implied = true volatility) and zero costs, 3 markets x 3 members: at most 1 PASS;
+ (3) changing every price after a cut date must leave every earlier trade identical.
+
+WHAT HAPPENS NEXT
+- Whatever the result, RESULT.txt and READ-THIS-FIRST.txt are written, FAIL as FAIL.
+- A PASS or PROMISING member goes to TRACK as a FORWARD PAPER TEST only (rules fixed here), never
+  straight to the page as a recommendation. Option selling needs margin (about Rs 1 lakh+ per NIFTY
+  condor lot) and can lose the full wing width in one week.
+- Run once. Any later change to these rules is a new registration.
