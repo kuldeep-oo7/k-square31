@@ -26,7 +26,9 @@ const SETS = {
   reg_ind: [(p) => `${A}/content/cm/REG_IND${p.dd}${p.m}${p.yy}.csv`, "csv"],
   // cash-market buy/sell by category (FPI, MF, insurance, banks, retail, AIF, PMS...), from 2020-09; found 11 Oct
   // in NSE's archived-report list (api/merged-daily-reports?key=favCapital), not in the daily-reports list
-  cm_cat_turnover: [(p) => `${A}/archives/equities/cat/cat_turnover_${p.dd}${p.m}${p.yy}.xls`, "xls"]
+  cm_cat_turnover: [(p) => `${A}/archives/equities/cat/cat_turnover_${p.dd}${p.m}${p.yy}.xls`, "xls"],
+  // every NSE index, every column: open/high/low/close, volume, turnover, P/E, P/B, dividend yield (from 2020)
+  ind_close_all: [(p) => `${A}/content/indices/ind_close_all_${p.dd}${p.m}${p.y}.csv`, "csv"]
 };
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 

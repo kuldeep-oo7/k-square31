@@ -20,7 +20,7 @@ concurrency:
 jobs:
   forward:
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 45
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -63,6 +63,18 @@ jobs:
       - name: NSE's FII/DII cash figures (NSE keeps only the latest day, so every day is saved here)
         continue-on-error: true
         run: K2_FLOWS_DIR=nse-flows node scripts/nse-fii-dii.js
+      - name: NSE data atlas -- every daily file the atlas lists, kept automatically (release data-nse-atlas)
+        # studies/nse-data-atlas-2026-10-11/ATLAS.md. One tarball per month; each run re-fetches the last 12
+        # days (NSE posts some files a day late) and re-uploads only this month and last. ".none" (404) is not
+        # kept, so a day NSE had not posted yet is tried again. Never fatal.
+        continue-on-error: true
+        run: |
+          gh release view data-nse-atlas >/dev/null 2>&1 || gh release create data-nse-atlas --title "NSE data atlas (raw daily files)" --notes "NSE's own daily files listed in studies/nse-data-atlas-2026-10-11/ATLAS.md, one tarball per month. Built by springy-dip.yml." --latest=false
+          m=$(TZ=Asia/Kolkata date +%Y-%m); pm=$(TZ=Asia/Kolkata date -d "$(TZ=Asia/Kolkata date +%Y-%m-15) -1 month" +%Y-%m)
+          mkdir -p nse-atlas
+          for mm in $pm $m; do gh release download data-nse-atlas -p "atlas-$mm.tar.gz" --clobber 2>/dev/null && tar -xzf "atlas-$mm.tar.gz" && rm "atlas-$mm.tar.gz" || echo "no atlas-$mm yet"; done
+          K2_ATLAS_DIR=nse-atlas K2_FROM=$(date -u -d '-12 days' +%F) node scripts/nse-atlas-download.js
+          for mm in $pm $m; do files=$(ls nse-atlas/*/$mm-* 2>/dev/null | grep -v '\.none$' || true); [ -n "$files" ] && tar -czf "atlas-$mm.tar.gz" $files && gh release upload data-nse-atlas "atlas-$mm.tar.gz" --clobber && echo "atlas-$mm: $(echo "$files" | wc -l) files"; done
       - name: Keep the paper tests' daily NSE files (release data-paper-inputs)
         run: |
           # The tests count from 2026-10-05 and are replayed from there on every run, but the steps above
