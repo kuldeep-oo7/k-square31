@@ -997,6 +997,19 @@ const RATING_TEST = { stockDays: 236746, buyTrades: 32725, buyNetPct: -0.028, bu
   sellTrades: 35236, sellNetPct: -0.139, sellT: -3.31, sellVsMarketPct: -0.394 };
 
 // THE TWO NEAR MISSES, ON PAPER, AGAINST THE FUTURE (studies/forward-v3-2026-10-04).
+// WHAT TRACK HAS MEASURED SO FAR (11 Oct 2026). The sentence used to say "far too few for a measured hit
+// rate" whatever the count -- at 1,723 resolved trades it hid that futures hit 12.9% and calls 17.2% while
+// puts hit 84%, all in 9 sessions of one falling market. Say the numbers, their ranges and how few sessions.
+function trackSoFar(s) {
+  if (!s || !s.ALL || !(s.ALL.resolved > 0)) return "The paper ledger has no resolved trades yet.";
+  const part = (k, label) => { const x = s[k]; if (!x || !(x.resolved > 0)) return null; const r = x.hitRate95 || {};
+    return `${label} ${esc(x.target)} targets and ${esc(x.stop)} stops, <b>${esc(x.hitRatePct)}%</b> hit (95% range ${esc(r.lowPct ?? "?")}&ndash;${esc(r.highPct ?? "?")}%)`; };
+  const parts = [part("FUT", "futures"), part("CE", "calls"), part("PE", "puts")].filter(Boolean).join("; ");
+  const sessions = s.ALL.hitRate95?.sessions;
+  return `The paper ledger so far: ${parts}${sessions ? `, over only ${esc(sessions)} sessions of the same market` : ""}. `
+    + "That says how this market went, not that a rule works &mdash; each row shows its own break-even.";
+}
+
 function forwardV3Box(fv) {
   if (!fv) return "";
   const mn = (v) => String(v).replace(/^-/, "&minus;");
@@ -1499,7 +1512,7 @@ function page(d) {
 <html lang="en"><head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
-<title>K&sup2; Desk</title>
+<title>K&sup2; Desk</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%230b0d12%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-size=%2716%27 text-anchor=%27middle%27 fill=%27%23f5b400%27 font-family=%27monospace%27%3EK%C2%B2%3C/text%3E%3C/svg%3E">
 <style>
   :root { color-scheme: dark; --bg:#0c0d14; --panel:#14161f; --line:#262a40; --muted:#8e93a6;
           --text:#e6e8f0; --green:#00e676; --red:#ff5252; --amber:#ffb300; }
@@ -1717,9 +1730,8 @@ ${staleAlarm}
   Those signals were tested on NSE&rsquo;s own data and failed (or had too few events to test), so they do not gate anything. Check the market yourself before acting on a shock day.
 </div>
 <div class="note" style="margin-top:20px;border-left-color:var(--red)">
-  <b>WHAT THIS DOES NOT ESTABLISH.</b> That any of it makes money. The paper ledger
-  has ${esc(d.track?.summary?.ALL?.resolved ?? 0)} resolved trade(s) so far &mdash; far too few for a measured hit
-  rate &mdash; and every test fixed in advance so far, on data never used to build the rule, found no edge:
+  <b>WHAT THIS DOES NOT ESTABLISH.</b> That any of it makes money. ${trackSoFar(d.track?.summary)}
+  And every test fixed in advance so far, on data never used to build the rule, found no edge:
   the desk's own rating (replayed on six years of NSE data: &minus;0.03% a trade on its buys, and its SELL/REDUCE shorts LOST &minus;0.14% a trade, t = &minus;3.3), 12-1 momentum, time-series momentum, low volatility, a
   10-month market trend filter, and the NIFTY trend reader that now chooses between buys and puts
   (selling NIFTY in its downtrends: final year t = 0.21) &mdash; all six FAIL. The ranking is built on
