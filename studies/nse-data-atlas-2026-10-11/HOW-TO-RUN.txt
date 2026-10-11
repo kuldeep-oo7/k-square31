@@ -1,0 +1,15 @@
+THE ONE REAL RUN (only after the downloads are complete; run it ONCE, then commit RESULT.txt and result.json here)
+
+Laptop (data already in research/nse-atlas once research/nse-atlas/upload.log shows the monthly uploads):
+  K2_CM_DIR=<CM json dir, e.g. nse-data/cm from release data-nse-cm> node studies/nse-data-atlas-2026-10-11/study.js --coverage
+  node studies/nse-data-atlas-2026-10-11/study.js
+
+Cloud session (no laptop):
+  gh release download data-nse-cm -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz           # -> nse-data/cm
+  mkdir -p research && cd research && for a in $(gh release view data-nse-atlas --json assets -q '.assets[].name'); do gh release download data-nse-atlas -p "$a" && tar -xzf "$a" && rm "$a"; done && cd ..
+  npm i --no-save xlsx@0.18.5          # reads NSE's cash category-turnover .xls (N5-N7)
+  K2_CM_DIR=nse-data/cm node studies/nse-data-atlas-2026-10-11/study.js --coverage    # every dataset must show years 2020/21..2026
+  K2_CM_DIR=nse-data/cm node studies/nse-data-atlas-2026-10-11/study.js
+
+Check --coverage FIRST: if a dataset is missing years, finish the download (scripts/nse-atlas-download.js resumes)
+before the run. Running twice, or changing PREREGISTRATION.txt, voids the study.
