@@ -42,6 +42,20 @@
 | Takeover disclosures, SAST (API) | large holders crossing thresholds | stake building |
 | Announcements (API) | every company filing | event days (orders, pledges, rating changes) |
 
+## B2. Found AFTER the first list (11 Oct 2026, same day): the first list was not complete
+
+How the first list was made: NSE's daily-reports API, which lists only daily report FILES. Checking NSE's
+sitemap and its archived-report lists (`api/merged-daily-reports?key=favCapital|favDerivatives|favDebt`) found:
+
+| Dataset | What it is | History | Why it matters |
+|---|---|---|---|
+| **CM category-wise turnover** (`archives/equities/cat/cat_turnover_DDMMYY.xls`) | cash-market buy and sell per day, ₹ crore, on NSE, by FPI, mutual funds, insurance, banks, AIF, PMS, retail, others (14 Jun 2024: FPI bought 16,558.87, sold 13,406.87) | from 2020-09 (categories changed over time) | **the FII/DII-type flow history, testable now.** It corrects "NSE keeps only the latest FII/DII day": the API is latest-only, this file is not |
+| Historical report archives (CM and F&O daily/monthly archive pages) | older and monthly reports by date | yes | to inventory fully: the list is built in the browser |
+| NSE Indices (niftyindices.com, NSE's index company) | index constituents and weights, index P/E, P/B and dividend yield history, India VIX history | yes | not yet inventoried |
+| NSE research (Market Pulse monthly) | investor-category statistics, market reports | monthly | context, not daily signals |
+| Price bands and surveillance actions; foreign-investment limits | per-stock limits and FPI ownership caps | partly | accuracy (bands); FPI caps near the limit |
+| Paid NSE data products (tick-by-tick, real-time, end-of-day subscriptions) | full trade and order data | yes, paid | not free; outside this desk |
+
 ## C. NOT used yet, history only from about 2024 (2 years: testable, but weaker)
 
 | Dataset | What it is | How it could help |

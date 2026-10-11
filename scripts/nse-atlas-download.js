@@ -23,7 +23,10 @@ const SETS = {
   top10cm: [(p) => `${A}/content/nsccl/fao_top10cm_to_${p.dd}${p.m}${p.y}.csv`, "csv"],
   mrg_trading: [(p) => `${A}/content/equities/mrg_trading_${p.dd}${p.m}${p.yy}.zip`, "zip"],
   deleq: [(p) => `${A}/archives/nsccl/mwpl/combineoi_deleq_${p.dd}${p.m}${p.y}.csv`, "csv"],
-  reg_ind: [(p) => `${A}/content/cm/REG_IND${p.dd}${p.m}${p.yy}.csv`, "csv"]
+  reg_ind: [(p) => `${A}/content/cm/REG_IND${p.dd}${p.m}${p.yy}.csv`, "csv"],
+  // cash-market buy/sell by category (FPI, MF, insurance, banks, retail, AIF, PMS...), from 2020-09; found 11 Oct
+  // in NSE's archived-report list (api/merged-daily-reports?key=favCapital), not in the daily-reports list
+  cm_cat_turnover: [(p) => `${A}/archives/equities/cat/cat_turnover_${p.dd}${p.m}${p.yy}.xls`, "xls"]
 };
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
 
