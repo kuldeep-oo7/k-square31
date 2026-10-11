@@ -303,6 +303,23 @@ console.log("paper ledger:");
   check("no volatility, no estimate -- never a made-up number", L.firstPassage({ from: 100, to: 99, sigma: 0, tradingDays: 1 }) === null);
 }
 
+// --- the last trade always counts (8 Oct 2026, MANKIND 2600 CE) ---------------
+{
+  // The broker's day-low field can lag the last trade by a tick. On 8 Oct the
+  // ledger saw last 18.10 under a stop of 18.20 and left the trade OPEN because
+  // the low field said otherwise; the health gate failed that build.
+  const t = futTrade();
+  L.observe(t, q(99.6, 100.5, 99.5, "10:13"), at("10:13"));                 // fill (low 99.5 < 99.2? no)
+  t.status = "OPEN"; t.filledAt = new Date(at("10:13")).toISOString(); t.best = 99.2; t.worst = 99.2;
+  t.obs = { date: "2026-09-24", high: 100.5, low: 98.5, last: 98.6 };
+  L.observe(t, q(97.6, 100.5, 98.0, "10:33"), at("10:33"));                 // new low field 98.0, but LAST 97.6
+  check("a last trade under the stop stops the trade even when the low field lags", t.status === "STOP");
+  const n = futTrade(); n.status = "OPEN"; n.filledAt = new Date(at("10:13")).toISOString(); n.best = 99.2; n.worst = 99.2;
+  n.obs = { date: "2026-09-23", high: 100.5, low: 98.5, last: 98.6 };
+  L.observe(n, q(97.6, 99.0, 98.0, "09:33", "24-Sep-2026", 98.4), at("09:33"));
+  check("the same on the first mark of a new session", n.status === "STOP");
+}
+
 function round2(v) { return Math.round(v * 100) / 100; }
 
 console.log("\n" + passed + " passed, " + failed + " failed");

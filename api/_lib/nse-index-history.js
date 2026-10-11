@@ -31,10 +31,17 @@ function fillThinIndices({ archive, tickers = Object.keys(NAME_FOR_TICKER), barC
   for (const t of tickers) {
     const rows = clean(archive[NAME_FOR_TICKER[t]]); if (!rows.length) { done[t] = "not in NSE archive"; continue; }
     const notes = [];
+    // TOO SHORT, OR OLDER THAN NSE'S OWN ARCHIVE (11 Oct 2026). Yahoo's refresh of FINNIFTY and MIDCPNIFTY
+    // fails every build ("only 1 sessions"), so a copy filled from NSE once was never extended: it froze on
+    // the day it was filled while the page kept using it. Refill whenever NSE's archive is newer.
+    const lastNse = rows[rows.length - 1][0];
     const rh = riskHistory.readHistory(t);
-    if (!rh || rh.rows.length < MIN_RISK_ROWS) { riskHistory.saveHistory(t, rows.slice(-520), { now, provider: "NSE ind_close_all" }); notes.push(`2-year history from NSE (${Math.min(rows.length, 520)} sessions; Yahoo had ${rh ? rh.rows.length : 0})`); }
+    const rhLast = rh && rh.rows.length && /^\d{4}-\d\d-\d\d/.test(String(rh.rows[rh.rows.length - 1][0])) ? String(rh.rows[rh.rows.length - 1][0]).slice(0, 10) : null;
+    if (!rh || rh.rows.length < MIN_RISK_ROWS || (rhLast !== null && rhLast < lastNse)) { riskHistory.saveHistory(t, rows.slice(-520), { now, provider: "NSE ind_close_all" }); notes.push(`2-year history from NSE (${Math.min(rows.length, 520)} sessions to ${lastNse}; the copy had ${rh ? rh.rows.length : 0}${rhLast ? ` to ${rhLast}` : ""})`); }
     const bc = barCache.getCachedBars(t, Number.MAX_SAFE_INTEGER);
-    if (!bc || bc.bars.length < MIN_BARS) { barCache.saveCachedBars(t, rows.slice(-66).map(toBar), { provider: "NSE ind_close_all" }); notes.push(`3-month bars from NSE (66; Yahoo had ${bc ? bc.bars.length : 0})`); }
+    const ts = bc && bc.bars.length ? Number(bc.bars[bc.bars.length - 1].timestamp) : NaN;
+    const bcLast = ts > 0 ? new Date(ts * 1000 + 330 * 60000).toISOString().slice(0, 10) : null;   // null: date unknown
+    if (!bc || bc.bars.length < MIN_BARS || (bcLast !== null && bcLast < lastNse)) { barCache.saveCachedBars(t, rows.slice(-66).map(toBar), { provider: "NSE ind_close_all" }); notes.push(`3-month bars from NSE (66; Yahoo had ${bc ? bc.bars.length : 0})`); }
     done[t] = notes.length ? notes.join("; ") : "Yahoo history sufficient, left as is";
   }
   return done;

@@ -301,6 +301,11 @@ function observe(trade, quote, now) {
     gapOpen = Number(quote.open) > 0 ? Number(quote.open) : null;
     if (trade.status === "OPEN") trade.sessionsHeld += 1;
   }
+  // THE LAST TRADE ALWAYS COUNTS (8 Oct 2026). The broker's day high/low can lag
+  // its own last trade by a tick: MANKIND 2600 CE showed last 18.10 under an
+  // 18.20 stop with a low field above it, the trade stayed OPEN and the health
+  // gate failed the build. The price just seen traded this session (checked above).
+  if (o) { hi = Math.max(hi, price); lo = Math.min(lo, price); }
   trade.obs = {
     date,
     high: o && o.date === date ? Math.max(o.high, dayHigh) : dayHigh,

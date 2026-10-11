@@ -16,4 +16,8 @@ check("an index missing from the archive is reported, not invented", /not in NSE
 check("a '-' open from NSE's file falls back to the close", JSON.stringify(clean([["2024-10-01", NaN, NaN, NaN, 16109.05]])) === JSON.stringify([["2024-10-01", 16109.05, 16109.05, 16109.05, 16109.05]]));
 const m = mergeDaily({ "Nifty 50": [["2026-09-30", 1, 2, 0.5, 1.5]] }, { "2026-10-01": { "Nifty 50": [22543.7, 22610.6, 22217.3, 22421.95], "Nifty MidSmall Financial Services": [1, 1, 1, 1] } });
 check("daily files merge in date order, and only the five option indices are kept", m["Nifty 50"].length === 2 && m["Nifty 50"][1][4] === 22421.95 && !m["Nifty MidSmall Financial Services"]);
+// a full-length copy that stopped on an older day (Yahoo's refresh fails for FINNIFTY every build) is refilled
+{ const stale = { rh: { "NIFTY_FIN_SERVICE.NS": { rows: days.slice(0, 560).map((d) => [d, 1, 1, 1, 1]) } }, bc: { "NIFTY_FIN_SERVICE.NS": { bars: days.slice(500, 560).map((d) => ({ timestamp: Date.parse(`${d}T03:45:00Z`) / 1000 })) } }, saved: [] };
+  const r2 = fillThinIndices({ archive, tickers: ["NIFTY_FIN_SERVICE.NS"], riskHistory: { readHistory: (t) => stale.rh[t], saveHistory: (t, rows, o) => stale.saved.push(["rh", t, rows.at(-1)[0]]) }, barCache: { getCachedBars: (t) => stale.bc[t], saveCachedBars: (t, bars) => { stale.saved.push(["bc", t, bars.length]); return true; } } });
+  check("a long but STALE copy is refilled from NSE up to its last session", stale.saved.some((x) => x[0] === "rh" && x[2] === days.at(-1)) && stale.saved.some((x) => x[0] === "bc"), JSON.stringify(r2)); }
 console.log(`\n${passed} passed, ${failed} failed`); process.exit(failed ? 1 : 0);
