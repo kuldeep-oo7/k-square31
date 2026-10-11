@@ -13,6 +13,7 @@ const steps = [
   ["scripts/test-nse-official-close.js"], ["scripts/test-google-retry.js"],
   ["--check", "api/_lib/freshness.js"], ["scripts/test-freshness.js"],
   ["--check", "api/_lib/contract-screener.js"], ["scripts/test-screener-by-symbol.js"],
+  ["--check", "scripts/nse-fii-dii.js"], ["scripts/test-nse-fii-dii.js"],
   ["scripts/test-live-worker.mjs"]
 ];
 const root = path.resolve(__dirname, "..");

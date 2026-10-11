@@ -60,6 +60,9 @@ jobs:
         run: |
           K2_CM_DIR=nse-data/cm K2_SOPT_DIR=nse-sopt K2_FROM=$(date -u -d '-40 days' +%F) node scripts/nse-stock-options-history.js
           gh release download data-research -p research-misc.tar.gz --clobber && tar -xzf research-misc.tar.gz research/industry-2026-10-04/industries.json && cp research/industry-2026-10-04/industries.json industries.json
+      - name: NSE's FII/DII cash figures (NSE keeps only the latest day, so every day is saved here)
+        continue-on-error: true
+        run: K2_FLOWS_DIR=nse-flows node scripts/nse-fii-dii.js
       - name: Keep the paper tests' daily NSE files (release data-paper-inputs)
         run: |
           # The tests count from 2026-10-05 and are replayed from there on every run, but the steps above
@@ -75,7 +78,7 @@ jobs:
           for f in nse-idx/*.json; do d=$(basename "$f" .json); [ -f "nse-data/cm/$d.json" ] || { echo "::error::NSE held a session on $d but nse-data/cm has no file for it"; exit 1; }; done
           gh release view data-paper-inputs >/dev/null 2>&1 || gh release create data-paper-inputs --title "Paper-test inputs (NSE daily files)" --notes "NSE's own F&O, index and option files from late Aug 2026 on, read by the forward paper tests (docs/paper-rules). Built by springy-dip.yml." --latest=false
           # .none (NSE answered 404) is not kept: a day missing today is fetched again tomorrow, within 40 days
-          tar --exclude='*.none' -czf paper-inputs.tar.gz nse-fo nse-idx nse-extra nse-sopt
+          mkdir -p nse-flows && tar --exclude='*.none' -czf paper-inputs.tar.gz nse-fo nse-idx nse-extra nse-sopt nse-flows
           gh release upload data-paper-inputs paper-inputs.tar.gz --clobber
       - name: Signals and the running score
         run: |
