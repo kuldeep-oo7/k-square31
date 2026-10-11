@@ -1463,7 +1463,7 @@ function page(d) {
   // break-even and puts won either side. So the rows are folded shut, still listed and still tracked.
   const ts = d.track?.summary || {};
   const notRecommended = (label, n, inner) => !downtrendPage || !n ? inner
-    : `<details class="fold"><summary><b class="down">NOT RECOMMENDED</b> &mdash; ${esc(n)} ${label} from the rising-stock rule: it lost on its test
+    : `<details class="fold nr"><summary><b class="down">NOT RECOMMENDED</b> &mdash; ${esc(n)} ${label} from the rising-stock rule: it lost on its test
        (&minus;0.44% a trade) and on TRACK (futures ${esc(ts.FUT?.hitRatePct ?? "?")}%, calls ${esc(ts.CE?.hitRatePct ?? "?")}% hit). Tap to see them anyway.<span class="more"></span></summary><div>${inner}</div></details>`;
   // What the page SHOWS, not what was eligible: "5 indices and 36 stocks" sat
   // above 3 indices and 21 stocks on the simulated page (29 Sep).
@@ -1570,8 +1570,11 @@ function page(d) {
                       padding:8px 12px; margin:0 0 12px; font-size:11px; line-height:1.55; color:var(--muted) }
   @media (min-width: 721px) {
     details.fold::details-content { content-visibility:visible; display:block }
+    /* ...except NOT RECOMMENDED (11 Oct 2026): on the laptop it opened by itself and its rows read as picks */
+    details.fold.nr:not([open])::details-content { content-visibility:hidden; display:none }
     details.fold > summary { cursor:default }
     details.fold > summary .more { display:none }
+    details.fold.nr > summary { cursor:pointer } details.fold.nr > summary .more { display:inline }
   }
   /* Three tabs, no JavaScript: a radio button per tab, and CSS shows the pane
      whose button is checked. Works on any phone, with scripts off, forever. */
