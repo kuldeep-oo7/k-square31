@@ -298,7 +298,8 @@
   "OPTION|TIINDIA|TIINDIA26OCT2150PE",
   "OPTION|COCHINSHIP|COCHINSHIP26OCT1200PE",
   "OPTION|AUROPHARMA|AUROPHARMA26OCT1780CE",
-  "OPTION|SUZLON|SUZLON26OCT42PE"
+  "OPTION|SUZLON|SUZLON26OCT42PE",
+  "OPTION|INDIGO|INDIGO26OCT4650PE"
  ],
  "options": {
   "POLICYBZR26OCT1040PE": {
@@ -4544,6 +4545,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-12T07:06:00.685Z",
    "frozenAtIst": "2026-10-12 12:36 IST",
+   "frozenAtSpot": null
+  },
+  "INDIGO26OCT4650PE": {
+   "buy": 48.1,
+   "sell": 72.15,
+   "stop": 24.05,
+   "tick": 0.05,
+   "lotSize": 150,
+   "expiry": "2026-10-27",
+   "strike": 4650,
+   "right": "PE",
+   "symbol": "INDIGO",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-12T07:25:54.446Z",
+   "frozenAtIst": "2026-10-12 12:55 IST",
    "frozenAtSpot": null
   }
  },

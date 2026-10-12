@@ -89071,6 +89071,114 @@
     "perLot": -4916.25,
     "netPerLot": -4977.32
    }
+  },
+  {
+   "id": "2026-10-09|PE|KFINTECH26OCT840PE",
+   "kind": "PE",
+   "symbol": "KFINTECH",
+   "contract": "KFINTECH26OCT840PE",
+   "expiry": "2026-10-27",
+   "strike": 840,
+   "optionType": "PE",
+   "lotSize": 575,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T03:49:28.778Z",
+   "buy": 22.8,
+   "target": 34.2,
+   "target2": null,
+   "stop": 11.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 41.1,
+     "medianDays": 7.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-09T03:49:28.793Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-12T07:25:54.458Z",
+   "exitPrice": 11.4,
+   "exitReason": "STOP",
+   "hoursFillToExit": 75.61,
+   "sessionsHeld": 1,
+   "best": 26.55,
+   "worst": 11.2,
+   "last": 13.25,
+   "lastAt": "2026-10-12T07:25:54.458Z",
+   "marks": 37,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 19.1,
+    "low": 11.2,
+    "last": 13.25
+   },
+   "pnl": {
+    "perUnit": -11.4,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -6555,
+    "netPerLot": -6620.69
+   }
+  },
+  {
+   "id": "2026-10-09|PE|LODHA26OCT1020PE",
+   "kind": "PE",
+   "symbol": "LODHA",
+   "contract": "LODHA26OCT1020PE",
+   "expiry": "2026-10-27",
+   "strike": 1020,
+   "optionType": "PE",
+   "lotSize": 625,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T03:49:28.778Z",
+   "buy": 18.1,
+   "target": 27.15,
+   "target2": null,
+   "stop": 9.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 25.6,
+     "medianDays": 10,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-09T03:49:28.793Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-12T07:25:54.458Z",
+   "exitPrice": 9.05,
+   "exitReason": "STOP",
+   "hoursFillToExit": 75.61,
+   "sessionsHeld": 1,
+   "best": 22.25,
+   "worst": 9,
+   "last": 9.85,
+   "lastAt": "2026-10-12T07:25:54.458Z",
+   "marks": 37,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 13.15,
+    "low": 9,
+    "last": 9.85
+   },
+   "pnl": {
+    "perUnit": -9.05,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -5656.25,
+    "netPerLot": -5719.41
+   }
   }
  ]
 }
