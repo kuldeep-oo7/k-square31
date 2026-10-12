@@ -1462,6 +1462,10 @@ function page(d) {
   // 11 sessions). A gate on the desk's own touch odds would not help: on TRACK calls lost either side of
   // break-even and puts won either side. So the rows are folded shut, still listed and still tracked.
   const ts = d.track?.summary || {};
+  // FUTURES ARE SHOWN, WITH THE RECORD ON TOP (owner, 12 Oct 2026: "even market is falling there are some stock
+  // will rise ... give me that in the futures section"). His call; the page states what the rule did.
+  const futuresWarned = (inner) => !downtrendPage || !d.futures.length ? inner
+    : `<div class="sub" style="margin:0 0 10px"><b class="down">Rising-stock buys while NIFTY falls:</b> this rule lost on its test (&minus;0.44% a trade, 27% winners where 37.5% are needed) and on TRACK so far (futures ${esc(ts.FUT?.hitRatePct ?? "?")}% hit). Your call &mdash; size small.</div>${inner}`;
   const notRecommended = (label, n, inner) => !downtrendPage || !n ? inner
     : `<details class="fold nr"><summary><b class="down">NOT RECOMMENDED</b> &mdash; ${esc(n)} ${label} from the rising-stock rule: it lost on its test
        (&minus;0.44% a trade) and on TRACK (futures ${esc(ts.FUT?.hitRatePct ?? "?")}%, calls ${esc(ts.CE?.hitRatePct ?? "?")}% hit). Tap to see them anyway.<span class="more"></span></summary><div>${inner}</div></details>`;
@@ -1637,7 +1641,7 @@ ${staleAlarm}
   <input type="radio" name="view" id="v-trk">
 
   <nav class="tabs">
-    <label for="v-fut" class="t-fut">FUTURES <span>${downtrendPage ? 0 : d.futures.length}</span></label>
+    <label for="v-fut" class="t-fut">FUTURES <span>${d.futures.length}</span></label>
     <label for="v-ce" class="t-ce">CALLS <span>${downtrendPage ? 0 : calls.length}</span></label>
     <label for="v-pe" class="t-pe">PUTS <span>${puts.length}</span></label>
     <label for="v-trk" class="t-trk">TRACK <span>${trackCount}</span></label>
@@ -1645,7 +1649,7 @@ ${staleAlarm}
 
   <section class="pane pane-fut">
     <h2>Futures &mdash; ${esc(d.gmMinUnits || 20)} units each (GM Global's minimum)</h2>
-    ${notRecommended("futures rows", d.futures.length, `    ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`,
+    ${futuresWarned(`    ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`,
       `<b>With no trend, a row's target comes before its stop at most as often as its break-even (about 37.5%)</b> &mdash; a price with no trend is a fair game &mdash;
        so before GM's charges these rows make money only if the BUY signal works. <b>It was tested and FAILED</b>: the desk&rsquo;s own rating,
        replayed day by day on six years of NSE&rsquo;s own prices (${RATING_TEST.stockDays.toLocaleString("en-IN")} stock-days), bought on this tab&rsquo;s limit, target and stop,
