@@ -16,7 +16,7 @@ assert.strictEqual(expectedSession(at("2026-10-12T17:02:00Z")), "2026-10-09");
 assert.strictEqual(expectedSession(at("2026-10-13T04:00:00Z")), "2026-10-12");
 const side = (to) => ({ available: true, to });
 const fresh = { springyDip: { dataThrough: "2026-10-05" }, oiFlow: { dataThrough: "2026-10-05" }, forwardV2: { dataThrough: "2026-10-05" },
-  forwardV3: { dataThrough: "2026-10-05" }, risk: { available: true, futures: side("2026-10-05") }, direction: { available: true, asOf: "2026-10-05" } };
+  forwardV3: { dataThrough: "2026-10-05" }, forwardV4: { dataThrough: "2026-10-05" }, risk: { available: true, futures: side("2026-10-05") }, direction: { available: true, asOf: "2026-10-05" } };
 assert.deepStrictEqual(staleParts(fresh, now).items, []);
 // What the owner saw on 6 Oct: paper tests and the risk replay on 1 Oct.
 const old = { ...fresh, springyDip: { dataThrough: "2026-10-01" }, risk: { available: true, futures: side("2026-10-01") }, forwardV3: null };

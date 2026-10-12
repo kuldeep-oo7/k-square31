@@ -26,7 +26,7 @@ function staleParts(d, now = Date.now()) {
   const items = [];
   const check = (part, have) => { if (!have || String(have).slice(0, 10) < want) items.push({ part, have: have ? String(have).slice(0, 10) : null, want }); };
   const paper = [["the springy-dip paper test", d.springyDip], ["the open-interest paper tests", d.oiFlow],
-    ["the strangle and 150-day paper tests", d.forwardV2], ["the cheap-vol and industry paper tests", d.forwardV3]];
+    ["the strangle and 150-day paper tests", d.forwardV2], ["the cheap-vol and industry paper tests", d.forwardV3], ["the borrowing-surge paper test", d.forwardV4]];
   for (const [part, doc] of paper) check(part, doc?.dataThrough);
   if (d.risk?.available) {
     const side = [d.risk.futures, d.risk.calls, d.risk.puts].find((s) => s?.available && s.to);

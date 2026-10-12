@@ -97,4 +97,4 @@ function summarise(obs, minN, needMonths, start) {
   return { finished: n, meanPct: +mean.toFixed(3), winPct: +((100 * obs.filter((o) => o.v > 0).length) / n).toFixed(1), worstPct: +Math.min(...obs.map((o) => o.v)).toFixed(3), t: t === null ? null : +t.toFixed(2),
     verdict: !ready ? "COLLECTING" : mean > 0 && t !== null && t >= tCrit025(G - 1) ? "PASS" : "FAIL" };
 }
-module.exports = { START, context, cheapVol, indRev };
+module.exports = { START, context, cheapVol, indRev, summarise };

@@ -8,6 +8,7 @@ const steps = [
   ["--check", "api/_lib/oi-flow-forward.js"], ["scripts/test-oi-flow-forward.js"],
   ["--check", "api/_lib/forward-v2.js"], ["scripts/test-forward-v2.js"],
   ["--check", "api/_lib/forward-v3.js"], ["scripts/test-forward-v3.js"],
+  ["--check", "api/_lib/forward-v4.js"], ["scripts/test-forward-v4.js"],
   ["--check", "api/_lib/nse-index-history.js"], ["scripts/test-nse-index-history.js"],
   ["--check", "api/_lib/orderflow-recorder.js"], ["scripts/test-orderflow-recorder.js"],
   ["scripts/test-nse-official-close.js"], ["scripts/test-google-retry.js"],
