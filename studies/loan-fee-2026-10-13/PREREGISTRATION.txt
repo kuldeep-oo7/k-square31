@@ -1,0 +1,66 @@
+PRE-REGISTRATION -- THE LOAN-FEE TEST on NSE's securities lending market, scored under PROTOCOL v2
+Written Tuesday 13 Oct 2026, about 00:30 IST, BEFORE any fee has been set against any return. The commit time
+and PREREGISTRATION.sha256 are the proof; study.js refuses to run if this file changes. Owner, 12 Oct: "do 1 and 2"
+(2 = the loan-fee study).
+
+WHERE THE IDEA COMES FROM (published, checked on its own page 12 Oct 2026)
+Engelberg, Evans, Leonard, Reed & Ringgenberg, "The Loan Fee Anomaly: A Short Seller's Best Ideas",
+Management Science 71(7), 5529-5551 (2025), DOI 10.1287/mnsc.2023.00152: of 102 anomalies, equity loan fees
+gave the highest monthly long-short return (4.01%) and Sharpe (0.66), US data. High fee -> low later return.
+On this desk: the atlas study's S2 (a SURGE in shares on loan -> short 5 days) was PROMISING, t 2.23
+(studies/nse-data-atlas-2026-10-11). The fee is the price side of the same market.
+
+WHAT WAS SEEN BEFORE THIS FILE (format only, no returns)
+- NSE's SLB bhavcopy, nsearchives .../archives/slbs/bhavcopy/SLBM_BC_DDMMYYYY.DAT, 17 comma-separated
+  fields with no header, the same layout in 2020 and 2026. Read as: 0 name, 1 symbol, 2 series, 3 the series'
+  end date (DD-MON-YYYY), 4 flag, 5 previous close fee, 6 open, 7 high, 8 low, 9 close, 10 blank,
+  11 quantity (shares), 12 value (Rs), 13 and 14 two more fee levels, 15 trade date, 16 number of trades.
+- The fee is Rs PER SHARE for the contract's remaining tenure, not a yearly rate: NSE Clearing's SLB FAQ
+  ("participants shall quote the lending fee per share ... for the balance tenure"); in the file, value =
+  quantity x a fee between the day's low and high (seen on a handful of rows, 2020 and 2026).
+- Stock-option files (research/options-2026-10-04/nse-sopt, NSE F&O bhavcopy) 2020-09-01 .. 2026-10-01.
+
+FORMAT GATE (run first; the study stops with NOT RUN if it fails)
+On every file: value / quantity must lie within [low - 0.01, high + 0.01] on at least 99% of rows with
+quantity > 0. If not, the column reading above is wrong and nothing is computed.
+
+THE FEE RATE (one number per stock per file day d)
+For each series row of stock s on d with quantity > 0 and at least 7 calendar days from d to the series'
+end date: rate = (value / quantity) / P x 365 / days, where P = the stock's NSE CM close (EQ) on d.
+The stock's rate on d = the quantity-weighted mean of its rows' rates. Eligible on d if: total quantity x P
+>= Rs 10 lakh, s has stock options in NSE's F&O file on d (F&O membership), and s is in that month's
+universe (below).
+
+COMMON RULES (identical to the atlas study, studies/nse-data-atlas-2026-10-11/PREREGISTRATION.txt)
+- Timing: a signal from the file of day d is acted on at the OPEN of the SECOND session after d (e = d+2).
+- Universe: each month's top 200 EQ stocks by 60-session median traded value with >= 250 bars after the
+  last reset (an open >= 18% from the previous close); a window crossing a reset is skipped
+  (api/_lib/forward-v3.js context()).
+- Charges: stock futures, calculateNseFuturesCharges (dated, quantity ceil(500000/price), both sides) plus one
+  round trip per month end crossed. Hold h sessions: exit at the close of the h-th session from e.
+- One-sided members are scored IN EXCESS of B(e,h), the equal-weighted gross return of the universe from
+  open(e) to close(e+h-1), side-signed (B needs >= 20 stocks). At most one open trade per member per name.
+
+MEMBERS (a day d needs >= 20 eligible stocks; deciles = floor(n / 10) names)
+ F1 High fee, short, h = 5: each d, the top decile by rate -> short.
+ F2 High fee, short, h = 20: as F1, h = 20.
+ F3 Long-short, h = 20: entry sessions e = every 20th session of the CM session list counted from
+    2020-09-01 (index divisible by 20); the signal is the file of d = the session 2 before e (as above):
+    LONG the bottom decile, SHORT the top decile, from open(e) to close(e+19). Score = (mean long net + mean
+    short net) / 2, not in excess of the market (it is hedged), one value per rebalance.
+ S2 (already measured, t 2.23) is the fourth member of the family for Holm and the Deflated Sharpe; it is not
+    re-run, its registered result is used.
+
+SCORING: PROTOCOL v2, unchanged. One value per calendar month = the mean of that month's trade values (by
+entry date); Newey-West(3) t on the monthly series; >= 24 months else NOT TESTABLE. PASS: mean > 0 and t >= 3.
+PROMISING: mean > 0 and 2 <= t < 3. Else FAIL. Holm across F1, F2, F3 and S2 (one-sided 5%), Deflated
+Sharpe with N = 4. Window: every file day whose trade can be scored from 2020-09 to the last session with
+both a stock-option file and an SLB file. Run ONCE on real data; nothing may change after this commit.
+A PASS or PROMISING goes to TRACK as a forward paper rule first, with its own registration.
+
+SYNTHETIC CHECKS (study.js --synthetic; must pass before the real run)
+1. A planted edge (high-fee stocks fall) is found by F1 and F3.
+2. Noise: at most one member PASSes by chance.
+3. No look-ahead: changing every price and file after a cut leaves every trade entered 25+ sessions
+   before the cut identical.
+4. The format gate rejects a file whose value is not quantity x fee.
