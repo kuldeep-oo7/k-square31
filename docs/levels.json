@@ -296,7 +296,9 @@
   "OPTION|CGPOWER|CGPOWER26OCT830PE",
   "OPTION|VBL|VBL26OCT420CE",
   "OPTION|TIINDIA|TIINDIA26OCT2150PE",
-  "OPTION|COCHINSHIP|COCHINSHIP26OCT1200PE"
+  "OPTION|COCHINSHIP|COCHINSHIP26OCT1200PE",
+  "OPTION|AUROPHARMA|AUROPHARMA26OCT1780CE",
+  "OPTION|SUZLON|SUZLON26OCT42PE"
  ],
  "options": {
   "POLICYBZR26OCT1040PE": {
@@ -4512,6 +4514,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-12T06:46:04.632Z",
    "frozenAtIst": "2026-10-12 12:16 IST",
+   "frozenAtSpot": null
+  },
+  "AUROPHARMA26OCT1780CE": {
+   "buy": 13.8,
+   "sell": 20.7,
+   "stop": 6.9,
+   "tick": 0.05,
+   "lotSize": 550,
+   "expiry": "2026-10-27",
+   "strike": 1780,
+   "right": "CE",
+   "symbol": "AUROPHARMA",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-12T07:06:00.685Z",
+   "frozenAtIst": "2026-10-12 12:36 IST",
+   "frozenAtSpot": null
+  },
+  "SUZLON26OCT42PE": {
+   "buy": 2.83,
+   "sell": 4.25,
+   "stop": 1.42,
+   "tick": 0.01,
+   "lotSize": 12700,
+   "expiry": "2026-10-27",
+   "strike": 42,
+   "right": "PE",
+   "symbol": "SUZLON",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-12T07:06:00.685Z",
+   "frozenAtIst": "2026-10-12 12:36 IST",
    "frozenAtSpot": null
   }
  },
