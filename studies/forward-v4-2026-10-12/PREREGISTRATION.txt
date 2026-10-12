@@ -1,0 +1,48 @@
+PRE-REGISTRATION -- FORWARD PAPER TEST of S2 "borrowing surge" from the NSE data atlas study
+Written Monday 12 Oct 2026, about 23:45 IST, BEFORE the first session it counts (Tuesday 13 Oct 2026 opens
+at 09:15). The commit time is the proof. Owner, 12 Oct: "do 1 and 2" (1 = put S2 on TRACK as a paper test).
+
+WHERE IT COMES FROM (studies/nse-data-atlas-2026-10-11, branch claude/nse-atlas-2026-10-11; rules locked in
+commit 4ac22fa, PREREGISTRATION sha256 f78faaf76cd5a70df248945132d8038542e038bb3da3906e29758430f276f69a;
+run ONCE on 12 Oct 2026, result commit 2e52202, protocol v2)
+  S2 borrowing surge -> short 5d: 61 months, 2,085 trades, +0.256% a trade in excess of the market (mean of
+  monthly means), 55.3% winners, Newey-West t 2.23, annual Sharpe 0.96. PROMISING (2 <= t < 3), not PASS;
+  not significant after Holm across the 12 testable members; Deflated Sharpe 0.50.
+It has been looked at, so only future prices can test it.
+
+THE RULE (copied word for word from the atlas registration; the code is copied from its study.js)
+ S2 Borrowing surge, short, h = 5: x = SLB outstanding quantity on d (slb_openpos, summed over series) /
+    its average over the previous 20 available days (>= 10). x >= 2 and outstanding >= 100,000 shares -> short.
+With the atlas study's common rules, unchanged:
+- TIMING: a signal from the file of trading day d is acted on at the OPEN of the SECOND session after d
+  (e = d+2), never earlier.
+- Hold h = 5 sessions: exit at the close of the 5th session counted from e (e itself is the first).
+- At most one open trade per name: a new signal while a trade is open is ignored.
+- Prices: NSE CM bhavcopy (EQ series) open/close. Universe = each month's top 200 EQ stocks by 60-session
+  median traded value with >= 250 bars after the last reset (an open >= 18% from the previous close); a
+  window crossing a reset is skipped (api/_lib/forward-v3.js context()).
+- Charges: stock futures, calculateNseFuturesCharges (dated, quantity ceil(500000/price), both sides) plus
+  one extra round trip per month end crossed (the roll).
+- Score: net IN EXCESS of B(e,5) = the equal-weighted gross return of the universe stocks from open(e) to
+  close(e+4) (side-signed); B needs >= 20 stocks, else no trade.
+- Data: NSE's own slb_openpos files (nsearchives .../archives/slbs/open_pos/slb_openpos_DDMMYYYY.csv), as the
+  atlas downloader saves them. Only the SLB history from 2026-08-01 is needed for the 20-day averages.
+
+WHAT IS COUNTED
+- Every S2 trade whose ENTRY session e >= 2026-10-13. A signal from a file dated before 13 Oct can enter on
+  or after 13 Oct; its entry and exit prices are all after this commit, so it counts.
+- Official NSE files only.
+
+A LIMIT STATED BEFORE COMMIT (not a rule change)
+The universe is the top 200 stocks by traded value, as in the backtest. Some of them may have no NSE stock
+futures. The page marks each signal "has NSE futures" or "no NSE futures (cash short is intraday only in
+India)", from the latest NSE F&O futures file. Every signal is counted either way, as in the backtest.
+
+VERDICT (judged at 2.5% one-sided, as forward-v3's CHEAPVOL)
+COLLECTING until 100 finished trades and 3 months from 13 Oct 2026. Then PASS if the mean excess > 0 AND
+the one-sided t (clustered by ISO week of entry) is at or above the 2.5% Student-t critical value with
+(clusters - 1) df. Otherwise FAIL. Nothing may change after this commit.
+
+REPLAY CHECK (before the first forward number): the forward code, run over the backtest window with the
+laptop's SLB history, must reproduce the atlas S2 numbers (2,085 trades, +0.256% mean of monthly means).
+The result of that check is written to REPLAY.txt in this folder.
