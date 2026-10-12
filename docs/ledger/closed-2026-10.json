@@ -88261,6 +88261,276 @@
     "perLot": -9257.5,
     "netPerLot": -9330.82
    }
+  },
+  {
+   "id": "2026-10-12|FUTS|PGEL26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "PGEL",
+   "contract": "PGEL26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 950,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T03:50:41.585Z",
+   "buy": 519.4,
+   "target": 506.4,
+   "target2": 493.45,
+   "stop": 527.2,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 71.9,
+     "medianTradingDays": 0.149
+    },
+    "target": {
+     "probabilityPct": 81.3,
+     "medianTradingDays": 1.765
+    },
+    "sigmaPct": 36.1,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-12T04:45:58.806Z",
+   "hoursToFill": 0.92,
+   "closedAt": "2026-10-12T06:27:09.049Z",
+   "exitPrice": 527.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 1.69,
+   "sessionsHeld": 0,
+   "best": 519.4,
+   "worst": 529.15,
+   "last": 525.15,
+   "lastAt": "2026-10-12T06:27:09.049Z",
+   "marks": 9,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 529.15,
+    "low": 513.85,
+    "last": 525.15
+   },
+   "pnl": {
+    "perUnit": -7.8,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-09|PE|PGEL26OCT490PE",
+   "kind": "PE",
+   "symbol": "PGEL",
+   "contract": "PGEL26OCT490PE",
+   "expiry": "2026-10-27",
+   "strike": 490,
+   "optionType": "PE",
+   "lotSize": 950,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T04:06:56.261Z",
+   "buy": 6.6,
+   "target": 9.9,
+   "target2": null,
+   "stop": 3.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 36.5,
+     "medianDays": 8.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-09T04:46:12.643Z",
+   "hoursToFill": 0.65,
+   "closedAt": "2026-10-12T06:27:09.049Z",
+   "exitPrice": 3.3,
+   "exitReason": "STOP",
+   "hoursFillToExit": 73.68,
+   "sessionsHeld": 1,
+   "best": 7,
+   "worst": 3.1,
+   "last": 3.5,
+   "lastAt": "2026-10-12T06:27:09.049Z",
+   "marks": 34,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 5.75,
+    "low": 3.1,
+    "last": 3.5
+   },
+   "pnl": {
+    "perUnit": -3.3,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3135,
+    "netPerLot": -3191.04
+   }
+  },
+  {
+   "id": "2026-10-05|PE|KFINTECH26OCT840PE",
+   "kind": "PE",
+   "symbol": "KFINTECH",
+   "contract": "KFINTECH26OCT840PE",
+   "expiry": "2026-10-27",
+   "strike": 840,
+   "optionType": "PE",
+   "lotSize": 575,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:06:19.779Z",
+   "buy": 28.95,
+   "target": 43.45,
+   "target2": null,
+   "stop": 14.5,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.5,
+     "medianDays": 8.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T04:25:59.453Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-12T06:27:09.049Z",
+   "exitPrice": 14.5,
+   "exitReason": "STOP",
+   "hoursFillToExit": 170.02,
+   "sessionsHeld": 5,
+   "best": 28.95,
+   "worst": 14.05,
+   "last": 14.45,
+   "lastAt": "2026-10-12T06:27:09.049Z",
+   "marks": 136,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 19.1,
+    "low": 14.05,
+    "last": 14.45
+   },
+   "pnl": {
+    "perUnit": -14.45,
+    "pct": -49.91,
+    "basis": "NET",
+    "perLot": -8308.75,
+    "netPerLot": -8379.46
+   }
+  },
+  {
+   "id": "2026-10-05|CE|DRREDDY26OCT1200CE",
+   "kind": "CE",
+   "symbol": "DRREDDY",
+   "contract": "DRREDDY26OCT1200CE",
+   "expiry": "2026-10-27",
+   "strike": 1200,
+   "optionType": "CE",
+   "lotSize": 625,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T04:06:19.779Z",
+   "buy": 32.2,
+   "target": 48.3,
+   "target2": null,
+   "stop": 16.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.1,
+     "medianDays": 7.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-05T04:06:19.794Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-12T06:27:09.049Z",
+   "exitPrice": 48.3,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 170.35,
+   "sessionsHeld": 5,
+   "best": 48.35,
+   "worst": 16.4,
+   "last": 43.2,
+   "lastAt": "2026-10-12T06:27:09.049Z",
+   "marks": 137,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 48.35,
+    "low": 28.6,
+    "last": 43.2
+   },
+   "pnl": {
+    "perUnit": 16.1,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 10062.5,
+    "netPerLot": 9948.26
+   }
+  },
+  {
+   "id": "2026-10-01|PE|KFINTECH26OCT860PE",
+   "kind": "PE",
+   "symbol": "KFINTECH",
+   "contract": "KFINTECH26OCT860PE",
+   "expiry": "2026-10-27",
+   "strike": 860,
+   "optionType": "PE",
+   "lotSize": 575,
+   "sessionDate": "2026-10-01",
+   "shownAt": "2026-10-01T05:05:41.171Z",
+   "buy": 44.4,
+   "target": 66.6,
+   "target2": null,
+   "stop": 22.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.2,
+     "medianDays": 8.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-01T05:05:41.185Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-12T06:27:09.049Z",
+   "exitPrice": 22.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 265.36,
+   "sessionsHeld": 6,
+   "best": 64,
+   "worst": 21.8,
+   "last": 23,
+   "lastAt": "2026-10-12T06:27:09.049Z",
+   "marks": 154,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 29.05,
+    "low": 21.8,
+    "last": 23
+   },
+   "pnl": {
+    "perUnit": -22.2,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -12765,
+    "netPerLot": -12848.21
+   }
   }
  ]
 }

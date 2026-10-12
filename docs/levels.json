@@ -291,7 +291,10 @@
   "OPTION|MCX|MCX26OCT3200CE",
   "OPTION|FINNIFTY|FINNIFTY26OCT24300PE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13375PE",
-  "OPTION|DRREDDY|DRREDDY26OCT1280CE"
+  "OPTION|DRREDDY|DRREDDY26OCT1280CE",
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13300PE",
+  "OPTION|CGPOWER|CGPOWER26OCT830PE",
+  "OPTION|VBL|VBL26OCT420CE"
  ],
  "options": {
   "POLICYBZR26OCT1040PE": {
@@ -4432,6 +4435,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-12T06:06:01.651Z",
    "frozenAtIst": "2026-10-12 11:36 IST",
+   "frozenAtSpot": null
+  },
+  "MIDCPNIFTY26OCT13300PE": {
+   "buy": 107.65,
+   "sell": 161.45,
+   "stop": 53.85,
+   "tick": 0.05,
+   "lotSize": 120,
+   "expiry": "2026-10-27",
+   "strike": 13300,
+   "right": "PE",
+   "symbol": "MIDCPNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-12T06:27:09.027Z",
+   "frozenAtIst": "2026-10-12 11:57 IST",
+   "frozenAtSpot": null
+  },
+  "CGPOWER26OCT830PE": {
+   "buy": 10.3,
+   "sell": 15.45,
+   "stop": 5.15,
+   "tick": 0.05,
+   "lotSize": 850,
+   "expiry": "2026-10-27",
+   "strike": 830,
+   "right": "PE",
+   "symbol": "CGPOWER",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-12T06:27:09.027Z",
+   "frozenAtIst": "2026-10-12 11:57 IST",
+   "frozenAtSpot": null
+  },
+  "VBL26OCT420CE": {
+   "buy": 21.2,
+   "sell": 31.8,
+   "stop": 10.6,
+   "tick": 0.05,
+   "lotSize": 1275,
+   "expiry": "2026-10-27",
+   "strike": 420,
+   "right": "CE",
+   "symbol": "VBL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-12T06:27:09.027Z",
+   "frozenAtIst": "2026-10-12 11:57 IST",
    "frozenAtSpot": null
   }
  },
