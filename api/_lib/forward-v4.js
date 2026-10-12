@@ -25,7 +25,7 @@ function borrowingSurge({ sessions, stocks, slb, start = START, ctx = context({ 
   const label = (sym) => (futSyms ? futSyms.has(sym) : null);
   const signal = (sym, d, x, q) => { const i = sIdx.get(d); if (i === undefined) return;
     const e = S[i + 2];
-    if (!e) { if (!ctx.uni(d.slice(0, 7)).has(sym) || (busy.has(sym) && busy.get(sym) >= d)) return; pending.push({ symbol: sym, signalDate: d, ratio: +x.toFixed(2), outstanding: q, entry: S[i + 1] ? "next session's open" : "the open of the 2nd session from now", hasFutures: label(sym) }); busy.set(sym, "9999-12-31"); return; }
+    if (!e) { if (!ctx.uni(d.slice(0, 7)).has(sym) || (busy.has(sym) && busy.get(sym) >= d)) return; pending.push({ symbol: sym, signalDate: d, ratio: +x.toFixed(2), outstanding: q, entry: `the open of the 2nd NSE session after ${d}`, hasFutures: label(sym) }); busy.set(sym, "9999-12-31"); return; }
     if (!ctx.uni(e.slice(0, 7)).has(sym)) return; if (busy.has(sym) && busy.get(sym) >= e) return;
     const w = ctx.window(sym, e, H); if (!w) return; const b = w.st.bars;
     if (!w.complete) { busy.set(sym, "9999-12-31"); if (e >= start) trades.push({ symbol: sym, signalDate: d, entryDate: e, entry: b[w.i].o, ratio: +x.toFixed(2), outstanding: q, hasFutures: label(sym), status: "OPEN" }); return; }

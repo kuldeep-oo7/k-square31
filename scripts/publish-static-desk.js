@@ -1092,12 +1092,12 @@ function forwardV4Box(fv) {
   const fut = (h) => (h === true ? "" : h === false ? ` <span class="down">no NSE futures</span>` : "");
   const rows = (s2.trades || []).slice(0, 15).map((t) => `<tr><td><b>${esc(t.symbol)}</b>${fut(t.hasFutures)}</td><td>${esc(t.entryDate)}${t.exitDate ? ` &rarr; ${esc(t.exitDate)}` : ""}</td>
     <td class="num">${esc(t.ratio)}x</td><td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${mn(esc(t.netPct))}%`}</td></tr>`).join("");
-  const wait = (s2.pending || []).map((p) => `<b>${esc(p.symbol)}</b>${fut(p.hasFutures)} (${esc(p.ratio)}x on ${esc(p.signalDate)}; short at ${esc(p.entry)})`).join(", ");
+  const wait = (s2.pending || []).map((p) => `<b>${esc(p.symbol)}</b>${fut(p.hasFutures)} (${esc(p.ratio)}x; short at ${esc(p.entry)})`).join(", ");
   return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
     <b>FORWARD PAPER TEST: BORROWING SURGE (short futures)</b> &mdash; ${esc(s2.rule)}. Backtest: ${esc(s2.backtest)}.
     Judged only on prices from ${esc(fv.start)}; rules fixed in ${esc(fv.preregistration)}. Data through ${esc(fv.dataThrough)}. <b>Not a recommendation until it passes.</b>
     <div style="margin-top:6px"><b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a trade over the market, ${esc(s.winPct)}% winners, worst ${mn(esc(s.worstPct))}%, t ${mn(esc(s.t ?? "&mdash;"))}` : ""} (a verdict needs 100 trades and 3 months).</div>
-    ${wait ? `<div class="sub">Waiting for entry: ${wait}.</div>` : ""}
+    ${wait ? `<div class="sub">Waiting for entry: ${wait}. Counted only if that session is on or after ${esc(fv.start)}.</div>` : ""}
     ${rows ? `<div class="wrap"><table><thead><tr><th>STOCK</th><th>DAYS</th><th class="num">SURGE</th><th class="num">NET</th></tr></thead><tbody>${rows}</tbody></table></div>` : `<div class="sub">No trade yet.</div>`}
   </div>`;
 }
