@@ -5,7 +5,7 @@
  "dataThrough": "2026-10-09",
  "slbThrough": "2026-10-09",
  "slbFiles": 48,
- "builtAt": "2026-10-12T18:10:04.211Z",
+ "builtAt": "2026-10-12T18:18:51.914Z",
  "S2": {
   "rule": "When the shares out on loan in NSE's lending market (SLB) jump to at least 2x their 20-day average, and at least 1 lakh shares: short the stock at the open of the 2nd session after that day's file, cover at the close 5 sessions later",
   "backtest": "+0.26% a trade over the market, 55% winners, t 2.23, 2,085 trades over 61 months (NSE data atlas study, 12 Oct 2026) — promising, not proven",
@@ -16,7 +16,7 @@
     "signalDate": "2026-10-08",
     "ratio": 2.12,
     "outstanding": 362756,
-    "entry": "next session's open",
+    "entry": "the open of the 2nd NSE session after 2026-10-08",
     "hasFutures": true
    },
    {
@@ -24,7 +24,7 @@
     "signalDate": "2026-10-08",
     "ratio": 2.74,
     "outstanding": 235323,
-    "entry": "next session's open",
+    "entry": "the open of the 2nd NSE session after 2026-10-08",
     "hasFutures": true
    }
   ],
