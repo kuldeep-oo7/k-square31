@@ -2,29 +2,45 @@
  "preregistration": "studies/forward-v4-2026-10-12/PREREGISTRATION.txt",
  "preregSha256": "a166456d30ddcfdd8cef3dbc16e02060273dc0f1931420fe3953973920f9f68d",
  "start": "2026-10-13",
- "dataThrough": "2026-10-09",
- "slbThrough": "2026-10-09",
- "slbFiles": 48,
- "builtAt": "2026-10-12T18:18:51.914Z",
+ "dataThrough": "2026-10-12",
+ "slbThrough": "2026-10-12",
+ "slbFiles": 49,
+ "builtAt": "2026-10-12T21:55:13.292Z",
  "S2": {
   "rule": "When the shares out on loan in NSE's lending market (SLB) jump to at least 2x their 20-day average, and at least 1 lakh shares: short the stock at the open of the 2nd session after that day's file, cover at the close 5 sessions later",
   "backtest": "+0.26% a trade over the market, 55% winners, t 2.23, 2,085 trades over 61 months (NSE data atlas study, 12 Oct 2026) — promising, not proven",
   "trades": [],
   "pending": [
    {
-    "symbol": "ICICIBANK",
-    "signalDate": "2026-10-08",
-    "ratio": 2.12,
-    "outstanding": 362756,
-    "entry": "the open of the 2nd NSE session after 2026-10-08",
+    "symbol": "KALYANKJIL",
+    "signalDate": "2026-10-12",
+    "ratio": 33.35,
+    "outstanding": 346402,
+    "entry": "the open of the 2nd NSE session after 2026-10-12",
     "hasFutures": true
    },
    {
-    "symbol": "SONACOMS",
-    "signalDate": "2026-10-08",
+    "symbol": "PAYTM",
+    "signalDate": "2026-10-12",
     "ratio": 2.74,
-    "outstanding": 235323,
-    "entry": "the open of the 2nd NSE session after 2026-10-08",
+    "outstanding": 128078,
+    "entry": "the open of the 2nd NSE session after 2026-10-12",
+    "hasFutures": true
+   },
+   {
+    "symbol": "PFC",
+    "signalDate": "2026-10-12",
+    "ratio": 13.31,
+    "outstanding": 410764,
+    "entry": "the open of the 2nd NSE session after 2026-10-12",
+    "hasFutures": true
+   },
+   {
+    "symbol": "PREMIERENE",
+    "signalDate": "2026-10-12",
+    "ratio": 2.5,
+    "outstanding": 157872,
+    "entry": "the open of the 2nd NSE session after 2026-10-12",
     "hasFutures": true
    }
   ],
