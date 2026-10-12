@@ -89773,6 +89773,114 @@
     "perLot": 11625,
     "netPerLot": 11500.28
    }
+  },
+  {
+   "id": "2026-10-12|FUTS|TIINDIA26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "TIINDIA",
+   "contract": "TIINDIA26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 200,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T03:50:41.585Z",
+   "buy": 2294,
+   "target": 2236.7,
+   "target2": 2179.3,
+   "stop": 2328.4,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 67.8,
+     "medianTradingDays": 0.184
+    },
+    "target": {
+     "probabilityPct": 78.2,
+     "medianTradingDays": 2.222
+    },
+    "sigmaPct": 31.1,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-12T04:07:08.912Z",
+   "hoursToFill": 0.27,
+   "closedAt": "2026-10-12T08:45:38.863Z",
+   "exitPrice": 2236.7,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 4.64,
+   "sessionsHeld": 0,
+   "best": 2230.8,
+   "worst": 2317.6,
+   "last": 2231.8,
+   "lastAt": "2026-10-12T08:45:38.863Z",
+   "marks": 16,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 2317.6,
+    "low": 2230.8,
+    "last": 2231.8
+   },
+   "pnl": {
+    "perUnit": 57.3,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-12|CE|NYKAA26OCT355CE",
+   "kind": "CE",
+   "symbol": "NYKAA",
+   "contract": "NYKAA26OCT355CE",
+   "expiry": "2026-10-27",
+   "strike": 355,
+   "optionType": "CE",
+   "lotSize": 3125,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T03:50:41.585Z",
+   "buy": 3.95,
+   "target": 5.95,
+   "target2": null,
+   "stop": 2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 43.1,
+     "medianDays": 6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-12T03:50:41.601Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-12T08:45:38.863Z",
+   "exitPrice": 2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 4.92,
+   "sessionsHeld": 0,
+   "best": 3.95,
+   "worst": 2,
+   "last": 2,
+   "lastAt": "2026-10-12T08:45:38.863Z",
+   "marks": 16,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 4.1,
+    "low": 2,
+    "last": 2
+   },
+   "pnl": {
+    "perUnit": -1.95,
+    "pct": -49.37,
+    "basis": "NET",
+    "perLot": -6093.75,
+    "netPerLot": -6158.51
+   }
   }
  ]
 }

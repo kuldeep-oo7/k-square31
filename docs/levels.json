@@ -299,7 +299,9 @@
   "OPTION|COCHINSHIP|COCHINSHIP26OCT1200PE",
   "OPTION|AUROPHARMA|AUROPHARMA26OCT1780CE",
   "OPTION|SUZLON|SUZLON26OCT42PE",
-  "OPTION|INDIGO|INDIGO26OCT4650PE"
+  "OPTION|INDIGO|INDIGO26OCT4650PE",
+  "OPTION|NAUKRI|NAUKRI26OCT1160PE",
+  "OPTION|GMRAIRPORT|GMRAIRPORT26OCT87PE"
  ],
  "options": {
   "POLICYBZR26OCT1040PE": {
@@ -4560,6 +4562,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-12T07:25:54.446Z",
    "frozenAtIst": "2026-10-12 12:55 IST",
+   "frozenAtSpot": null
+  },
+  "NAUKRI26OCT1160PE": {
+   "buy": 11.6,
+   "sell": 17.4,
+   "stop": 5.8,
+   "tick": 0.05,
+   "lotSize": 550,
+   "expiry": "2026-10-27",
+   "strike": 1160,
+   "right": "PE",
+   "symbol": "NAUKRI",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-12T08:45:38.842Z",
+   "frozenAtIst": "2026-10-12 14:15 IST",
+   "frozenAtSpot": null
+  },
+  "GMRAIRPORT26OCT87PE": {
+   "buy": 1.02,
+   "sell": 1.52,
+   "stop": 0.51,
+   "tick": 0.01,
+   "lotSize": 6975,
+   "expiry": "2026-10-27",
+   "strike": 87,
+   "right": "PE",
+   "symbol": "GMRAIRPORT",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-12T08:45:38.842Z",
+   "frozenAtIst": "2026-10-12 14:15 IST",
    "frozenAtSpot": null
   }
  },
