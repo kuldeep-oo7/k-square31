@@ -642,6 +642,13 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     };
     const anchorQuote = ANCHOR === "CONTRACT" && fq ? fq : sq;
     const anchorView = view(anchorQuote);
+    // AFTER THE CLOSE, NSE'S OFFICIAL CLOSE (audit 12 Oct 2026, A4). Once NSE's settlement file for the session
+    // that just traded is loaded, a contract's NOW is its official close (the bhavcopy's ClsPric), not Angel's
+    // last print: PAGEIND showed 36,985 against NSE's 36,885. Before the file exists, the last price stays.
+    const officialClose = anchorQuote === fq && phase.open !== true && reference?.session
+      && reference.session === (quoteStatus?.lastExchangeDate || null)
+      ? Number(reference.symbols?.[r.symbol]?.expiries?.[String(expiry || "").slice(0, 10)]?.futuresFile?.close) : NaN;
+    if (officialClose > 0) { anchorView.price = round(officialClose); anchorView.source = "FUTURES_OFFICIAL_CLOSE"; anchorView.atText = null; }
     const liveNow = anchorView.live;
     const nowPrice = anchorView.price;
     const nowSource = anchorView.source;
@@ -1205,6 +1212,7 @@ function page(d) {
     // Not "last trade": NSE has no trading in derivatives after 15:30, so the
     // 15:39 stamp after the close is the day's last price update, not a trade.
     FUTURES_LAST_TRADED: "futures, last price &mdash; NOT live",
+    FUTURES_OFFICIAL_CLOSE: "futures, NSE official close &mdash; NOT live",
     SHARE_LIVE: "share, live",
     SHARE_LAST_TRADED: "share, last trade &mdash; NOT live",
     SHARE_CLOSE_FROM_HISTORY: "share, last close &mdash; NOT live"
