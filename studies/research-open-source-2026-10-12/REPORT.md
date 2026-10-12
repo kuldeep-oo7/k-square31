@@ -58,3 +58,97 @@ Noguer i Alonso & Pereira Franklin, June 2026):
 4. **One pre-registered test of TimesFM-2.5 and Chronos-2** on NSE: forecasts as signals, under protocol v2.
 5. **Qlib's Alpha158 factors on NSE,** as one pre-registered study (158 factors: SPA is a must).
 6. **OFI on the recorded order books** once there are about 3 months of them.
+
+---
+
+# Part 2: the wider sweep (12 Oct 2026, late evening)
+
+The owner: "i expect it more". Below are 25 more items across statistics, econometrics, finance,
+physics and machine learning. Each was checked on its publisher, its authors' page or a repository index
+(RePEc/IDEAS, NBER, SSRN, arXiv, GitHub) on 12 Oct 2026. Where only a secondary page confirmed a number,
+it says so.
+
+## 5. The fact that matters most for the owner's own money
+
+**SEBI, "Profitability of Individual Traders in the Equity Derivatives Segment (FY25-FY26)", August 2026**
+(Patankar & Rath, SEBI DEPA). The PDF was opened and read: sebi.gov.in/sebi_data/attachdocs/aug-2026/1787233506209.pdf.
+- 87.7% of individual F&O traders made a net loss in FY26 (90.9% in FY25).
+- Loss-makers: **87.7% in options vs 66.0% in futures.** Options caused **92%** of individuals' aggregate losses.
+- Individuals' net loss in FY26 was Rs 91,685 crore, and the average loss per person was Rs 1.17 lakh.
+- 99% of FPI and prop-trader profits went to "algo entities". The top 10 prop firms took ~75% of prop profits.
+- 59% of index-option turnover in FY26 was on expiry day itself (0DTE), and 97% within a week of expiry.
+- The earlier SEBI study (Sep 2024, FY22-FY24) found that 93% of individuals lost money, over Rs 1.8 lakh crore in all. The 2026 study restates this, and news reports agree.
+
+What it means for the desk:
+- Buying options is where Indian individuals lose most.
+- This agrees with our own tests: buying straddles across results lost −5.6%/trade (t −6.7), and TRACK calls hit ~17%.
+- The CALLS and PUTS tabs should keep saying so.
+- No new test is needed for this: it is the regulator's own count.
+
+## 6. Testing standard: how to know a "PASS" is real
+
+| Item | Source (checked) | Use here |
+|---|---|---|
+| White's Reality Check -> **Hansen's SPA** | Hansen, *J. Business & Economic Statistics* 23, 365-380 (2005) | is the BEST of our ~220 tried rules better than nothing, once the search is counted? |
+| **StepM** | Romano & Wolf, *Econometrica* 73(4), 1237-1282 (2005) | which rules, if any, survive the search (a set, not one p-value) |
+| Model Confidence Set | Hansen, Lunde & Nason (Econometrica 2011), in Sheppard's `arch` | ranks volatility models (HAR vs GARCH vs today's) |
+| **t > 3** | Harvey, Liu & Zhu, *Rev. Financial Studies* 29(1), 5-68 (2016) | already our bar (protocol v2) |
+| **Deflated Sharpe** | Bailey & López de Prado, *J. Portfolio Management* 40(5), 94-107 (2014) | already reported in every v2 study |
+| **Replication** | Hou, Xue & Zhang (RFS 2020): 64% of anomalies insignificant (NBER version); Jensen, Kelly & Pedersen, *J. Finance* 78(5), 2465-2518 (2023): most factors replicate, in 13 themes, across 93 countries | read both sides: broad factors replicate, single signals often do not |
+| Purged cross-validation, triple-barrier labels | López de Prado, *Advances in Financial Machine Learning*, Wiley 2018, ch. 3 and 7 (table of contents checked; book text not opened) | the desk's buy/target/stop/20-session geometry IS a triple barrier, so any ML study must purge overlapping labels |
+
+**Plan:** one script reads every study's per-trade results (studies/*/result.json) and reports SPA and StepM
+across ALL of them. That puts one honest number on "we tried ~220 things".
+
+## 7. Leads that fit data we already hold (each needs its own pre-registration)
+
+| # | Lead | Primary source (checked) | Our data | Why test it |
+|---|---|---|---|---|
+| L1 | **Loan fee predicts returns (short high-fee stocks)** | Engelberg, Evans, Leonard, Reed & Ringgenberg, "The Loan Fee Anomaly", *Management Science* 71(7), 5529-5551 (2025): of 102 anomalies, the highest monthly long-short return (4.01%) and Sharpe (0.66) | **NSE's SLB bhavcopy carries the lending fee per contract.** Checked tonight: SLBM_BC_12102026.DAT exists, and SLBM_BC_01102021.DAT (2021) still downloads from nsearchives. nse-all now collects it nightly | atlas S2 (borrowing SURGE) was PROMISING (t 2.23); the fee is the better-sourced form of the same idea. Read NSE's file format for the column meanings before coding |
+| L2 | Shorting demand predicts returns | Cohen, Diether & Malloy, *J. Finance* 62(5), 2061-2096 (2007): a rise in shorting demand is followed by −2.98% the next month | slb_openpos (atlas) + fee (L1) | the paper behind S2; it separates demand (fee up AND quantity up) from supply |
+| L3 | Short-selling risk | Engelberg, Reed & Ringgenberg, *J. Finance* 73, 755-786 (2018): stocks with more short-selling risk have lower returns | fee volatility from L1 | a second cut of the same SLB data |
+| L4 | **Implied minus realised volatility (stocks)** | Goyal & Saretto, *J. Financial Economics* 94(2), 310-326 (2009) | NSE F&O bhavcopy, 6 years | our cheap-vol straddle near miss (t 1.94) is this paper's long leg; the published form is long-short |
+| L5 | NIFTY variance risk premium | Bollerslev, Tauchen & Zhou, *RFS* 22(11), 4463-4492 (2009). India: Sankar, Ramachandran & Lukose, *Int. Rev. Economics & Finance* 70 (2020): variance risk IS priced in India | India VIX + NIFTY | explains why our short NIFTY strangle PASSED (t 4.66): a known, priced premium that carries crash risk |
+| L6 | Weekly reversal | Lehmann, *QJE* 105(1), 1-28 (1990): last week's losers bounce, and this survives spreads | CM bhavcopy | close to springy-dip and the OU dip (positive in all 3 windows, t 0.41); the published benchmark, not a new rule |
+| L7 | Sector-neutral stat-arb residuals | Avellaneda & Lee, *Quantitative Finance* 10(7), 761-782 (2010): residuals as Ornstein-Uhlenbeck; Sharpe 1.44 after costs 1997-2007, only 0.9 in 2003-07 | CM bhavcopy + industries | the published form of our industry-reversal near miss (t 1.98); note its decay |
+| L8 | Lottery stocks (MAX) | Bali, Cakici & Whitelaw, *J. Financial Economics* 99, 427-446 (2011): a high max daily return last month means lower returns, >1%/month spread | CM bhavcopy | a SHORT candidate list; retail-heavy India may show it more |
+| L9 | Overnight vs intraday | Lou, Polk & Skouras, *J. Financial Economics* 134(1), 192-213 (2019): momentum earns overnight, reversal intraday | open/close in CM bhavcopy | tells the desk WHEN its 09:13 levels should be set; descriptive first |
+| L10 | Intraday momentum | Gao, Han, Li & Zhou, *J. Financial Economics* (2018), 394-414: the first half-hour predicts the last half-hour (SPY) | NOT HELD: needs intraday bars (Angel gives 1-min, 30 days a request) | needs a recorder first; NIFTY futures only |
+| L11 | Promoter pledging | Chauhan, Mishra & Spahr, *Financial Management* (2021) (secondary page; not opened): heavy pledging means more volatility and lower value | atlas pit (pledge filings) | our S5 near miss (t 1.89) fits this; it needs a registration and a fresh window |
+
+## 8. Volatility and risk models (accuracy, not signals)
+
+| Model | Source (checked) | Use |
+|---|---|---|
+| HAR-RV | Corsi, *J. Financial Econometrics* 7(2), 2009 | mixes daily, weekly and monthly volatility; better touch odds and option values |
+| Realized GARCH | Hansen, Huang & Shek, *J. Applied Econometrics* 27(6), 877-906 (2012) | a joint model of returns and a realised measure (we can use the high-low range) |
+| Regime switching | Hamilton, *Econometrica* 57(2), 357-384 (1989); its replication is fragile (Boldin 1996) | a testable replacement for "NIFTY close < EMA20 < SMA50", whose own test FAILED |
+| Random-matrix cleaning of correlations | Laloux, Cizeau, Bouchaud & Potters, *Phys. Rev. Lett.* 83(7) (1999): most of a stock correlation matrix is noise | the bad-day risk view adds rows together; cleaned correlations make that total more honest |
+| Market impact | Bouchaud, Bonart, Donier & Gould, *Trades, Quotes and Prices*, Cambridge UP 2018 (square-root law) | small for 1-lot trades; matters only if size grows |
+| Variance ratio / long memory | Lo & MacKinlay, *RFS* 1, 41-66 (1988); DFA: Peng et al., *Phys. Rev. E* 49(2), 1685 (1994) | the desk's rating gives a Hurst term 25% weight with no tested value: test it or drop it |
+
+## 9. Machine learning beyond TimesFM and Chronos
+
+| Item | Source (checked) | Fit |
+|---|---|---|
+| **Kronos** (Tsinghua; AAAI 2026) | github.com/shiyu-coder/Kronos (opened). MIT licence. mini 4.1M, small 24.7M and base 102.3M parameters; large (499M) is not released. Trained on 12bn+ candles from 45 exchanges; has a fine-tuning pipeline for daily data | the only foundation model trained on candles (OHLCV). Probably small enough for a CPU (*unverified*: the page shows GPU only). Add it to the forecasting test of section 1 |
+| Trees and nets on many signals | Gu, Kelly & Xiu, *RFS* 33(5), 2223-2273 (2020) | trees and nets beat linear models; the signals that matter are momentum, liquidity and volatility. Our ridge ML FAILED, so a tree test on the same panel is the published next step |
+| Complexity | Kelly, Malamud & Zhou, *J. Finance* 79(1), 459-503 (2024) | argues that big models predict better; the counterweight is arXiv 2606.27100 (section 1) |
+| Nixtla statsforecast | PyPI metadata: Apache-2.0; fast AutoARIMA, ETS and Theta | cheap baselines that any ML must beat |
+| skfolio | github.com/skfolio/skfolio (opened): BSD-3; risk parity, CVaR, combinatorial purged CV | for when the desk holds several paper rules together |
+
+## 10. Plan, in order
+
+Each step ends in a pre-registration or an accuracy fix. None goes straight onto the page.
+
+1. **S2 forward paper test on TRACK** (PROMISING, t 2.23): register it unchanged now, as with cheap-vol and INDREV.
+2. **L1 loan-fee test:**
+   - download the SLB bhavcopy history (2020-09 on) into a private release;
+   - read NSE's file format;
+   - register "short the top fee decile, 5 and 20 days" BEFORE computing anything.
+3. **SPA and StepM across every study** (section 6).
+4. **Touch-odds calibration** (section 4, item 1) and **HAR-RV** (section 8).
+5. **One forecasting study:** TimesFM-2.5, Chronos-2 and Kronos-small on NSE, under protocol v2.
+6. **Gu-Kelly-Xiu trees** on the same panel: one registration, with SPA mandatory.
+7. **An intraday recorder** for NIFTY futures (L10); then OFI after ~3 months of order books.
+8. **The Hamilton regime model** as a pre-registered replacement test for the failed market-direction rule.
