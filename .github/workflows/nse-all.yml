@@ -1,0 +1,39 @@
+name: nse-all
+# EVERY DAILY FILE NSE PUBLISHES (owner, 12 Oct 2026: "every data that nse publish ... from even a minor to major").
+# scripts/nse-all-reports.js reads NSE's own All Reports list (CM, FO, INDEX, SLBS, CD, COM, NBF) and downloads
+# every file on it for the current and previous trading day (~140 MB a day). Kept in release data-nse-all-<year>,
+# one tarball per trading day (GitHub: no limit on a release's total size, 2 GiB a file, 1000 files a release).
+on:
+  schedule:
+    - cron: "15 15 * * 1-5"     # 20:45 IST, after NSE posts the day's files
+    - cron: "45 1 * * 2-6"      # 07:15 IST next morning, a backstop for late files
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: nse-all
+  cancel-in-progress: false
+jobs:
+  collect:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: Download every file on NSE's daily list
+        run: K2_ALL_DIR=nse-all node scripts/nse-all-reports.js | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep each trading day as one tarball (release data-nse-all-<year>)
+        run: |
+          for d in nse-all/*/; do
+            day=$(basename "$d"); year=${day:0:4}; rel="data-nse-all-$year"
+            gh release view "$rel" >/dev/null 2>&1 || gh release create "$rel" --title "NSE all daily reports $year" --notes "Every file on NSE's own All Reports list, one tarball per trading day. Built by nse-all.yml." --latest=false
+            # merge with what the release already holds for that day, so a re-run never loses a file
+            if gh release download "$rel" -p "all-$day.tar.gz" -D prev --clobber 2>/dev/null; then tar -xzf "prev/all-$day.tar.gz" -C . --skip-old-files || true; fi
+            tar -czf "all-$day.tar.gz" "nse-all/$day"
+            gh release upload "$rel" "all-$day.tar.gz" --clobber
+            echo "$day: $(find "nse-all/$day" -type f | wc -l) files, $(du -sh "all-$day.tar.gz" | cut -f1)" | tee -a "$GITHUB_STEP_SUMMARY"
+          done
