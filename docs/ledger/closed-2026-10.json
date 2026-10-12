@@ -89881,6 +89881,168 @@
     "perLot": -6093.75,
     "netPerLot": -6158.51
    }
+  },
+  {
+   "id": "2026-10-12|PE|TIINDIA26OCT2200PE",
+   "kind": "PE",
+   "symbol": "TIINDIA",
+   "contract": "TIINDIA26OCT2200PE",
+   "expiry": "2026-10-27",
+   "strike": 2200,
+   "optionType": "PE",
+   "lotSize": 200,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T03:50:41.585Z",
+   "buy": 33.85,
+   "target": 50.8,
+   "target2": null,
+   "stop": 16.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 35.9,
+     "medianDays": 7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-12T04:07:08.912Z",
+   "hoursToFill": 0.27,
+   "closedAt": "2026-10-12T09:05:16.667Z",
+   "exitPrice": 50.8,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 4.97,
+   "sessionsHeld": 0,
+   "best": 52,
+   "worst": 24.8,
+   "last": 52,
+   "lastAt": "2026-10-12T09:05:16.667Z",
+   "marks": 17,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 52,
+    "low": 24.8,
+    "last": 52
+   },
+   "pnl": {
+    "perUnit": 16.95,
+    "pct": 50.07,
+    "basis": "NET",
+    "perLot": 3390,
+    "netPerLot": 3320.24
+   }
+  },
+  {
+   "id": "2026-10-12|PE|MFSL26OCT1300PE",
+   "kind": "PE",
+   "symbol": "MFSL",
+   "contract": "MFSL26OCT1300PE",
+   "expiry": "2026-10-27",
+   "strike": 1300,
+   "optionType": "PE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T03:50:41.585Z",
+   "buy": 20.2,
+   "target": 30.3,
+   "target2": null,
+   "stop": 10.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 67.3,
+     "medianDays": 2.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-12T03:50:41.601Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-12T09:05:16.667Z",
+   "exitPrice": 30.3,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 5.24,
+   "sessionsHeld": 0,
+   "best": 30.5,
+   "worst": 17.95,
+   "last": 29,
+   "lastAt": "2026-10-12T09:05:16.667Z",
+   "marks": 17,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 30.5,
+    "low": 17.95,
+    "last": 29
+   },
+   "pnl": {
+    "perUnit": 10.1,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 4040,
+    "netPerLot": 3965.88
+   }
+  },
+  {
+   "id": "2026-10-12|PE|SWIGGY26OCT225PE",
+   "kind": "PE",
+   "symbol": "SWIGGY",
+   "contract": "SWIGGY26OCT225PE",
+   "expiry": "2026-10-27",
+   "strike": 225,
+   "optionType": "PE",
+   "lotSize": 1825,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T03:50:41.585Z",
+   "buy": 3.15,
+   "target": 4.7,
+   "target2": null,
+   "stop": 1.55,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 31.4,
+     "medianDays": 7.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-12T03:50:41.601Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-12T09:05:16.667Z",
+   "exitPrice": 4.7,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 5.24,
+   "sessionsHeld": 0,
+   "best": 4.75,
+   "worst": 3,
+   "last": 4.6,
+   "lastAt": "2026-10-12T09:05:16.667Z",
+   "marks": 17,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 4.75,
+    "low": 3,
+    "last": 4.6
+   },
+   "pnl": {
+    "perUnit": 1.55,
+    "pct": 49.21,
+    "basis": "NET",
+    "perLot": 2828.75,
+    "netPerLot": 2762.49
+   }
   }
  ]
 }
