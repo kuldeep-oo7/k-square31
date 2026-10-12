@@ -1,0 +1,19 @@
+LOAN-FEE TEST -- run 2026-10-12T18:41:16.662Z, prereg sha256 dbe6a16344ba9e3cc266468085c483dad309159a11befd634e8fdce6f14f4998 (verified); protocol v2
+Prices: 1515 CM sessions 2020-09-01 .. 2026-10-09; SLB files 1508; F&O files 1509. DSR benchmark: 0.36
+member | months | trades | mean/trade | winners | t (NW) | annual Sharpe | Holm | DSR | VERDICT
+F1 high fee -> short 5d | 59 | 717 | +0.309% | 55.2% | 1.90 | 0.76 | no | 0.82 | FAIL
+F2 high fee -> short 20d | 58 | 447 | +0.146% | 52.1% | 0.30 | 0.16 | no | 0.33 | FAIL
+F3 long low fee / short high fee, 20d | 21 | 23 | - | - | - | - | - | - | NOT TESTABLE
+S2 borrowing surge -> short 5d (atlas, not re-run) | 61 | 2085 | +0.256% | 55.3% | 2.23 | 0.96 | yes | 0.91 | PROMISING
+
+PASS (t >= 3): none. PROMISING: S2 borrowing surge -> short 5d (atlas, not re-run).
+
+READ THIS (13 Oct 2026, written after the one run)
+- PASS: none. F1 (short the highest-fee tenth, 5 days) +0.309% a trade over the market, t 1.90: a near miss, FAIL.
+  F2 (same, 20 days) +0.146%, t 0.30: FAIL. F3 (the paper's long-short) NOT TESTABLE: only 23 rebalances had
+  >= 20 eligible F&O stocks (the Rs 10 lakh borrowed-value minimum leaves few names on most days).
+- S2's "Holm yes" is within THIS 3-member family only; across the atlas's 12 members it was "no". It stays PROMISING.
+- The registration's header says "about 00:30 IST, Tuesday"; the commit (4270f8d) is stamped 23:43 IST Monday 12 Oct.
+  Either way it was committed before this run.
+- Data: CM 2020-09-01..2026-10-09; SLB fee files 1,508 (86 days NSE serves none); F&O membership from stock-option
+  files to 2026-10-01, so trades after that date could not be formed.

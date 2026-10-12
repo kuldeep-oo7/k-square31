@@ -1,0 +1,47 @@
+[
+ {
+  "k": "F1 high fee -> short 5d",
+  "months": 59,
+  "trades": 717,
+  "meanPct": 0.3092895792620432,
+  "t": 1.904663141924731,
+  "sharpe": 0.7643532181396588,
+  "win": 55.23012552301255,
+  "verdict": "FAIL",
+  "p": 0.028411865213432752,
+  "holm": false,
+  "dsr": 0.817064274529029
+ },
+ {
+  "k": "F2 high fee -> short 20d",
+  "months": 58,
+  "trades": 447,
+  "meanPct": 0.14594019464421584,
+  "t": 0.2971684087917034,
+  "sharpe": 0.15811176165713975,
+  "win": 52.12527964205817,
+  "verdict": "FAIL",
+  "p": 0.3831689314406199,
+  "holm": false,
+  "dsr": 0.331318709786326
+ },
+ {
+  "k": "F3 long low fee / short high fee, 20d",
+  "months": 21,
+  "trades": 23,
+  "verdict": "NOT TESTABLE"
+ },
+ {
+  "k": "S2 borrowing surge -> short 5d (atlas, not re-run)",
+  "months": 61,
+  "trades": 2085,
+  "meanPct": 0.256,
+  "t": 2.23,
+  "sharpe": 0.96,
+  "win": 55.3,
+  "verdict": "PROMISING",
+  "p": 0.012873676711545934,
+  "holm": true,
+  "dsr": 0.9131707022266033
+ }
+]
