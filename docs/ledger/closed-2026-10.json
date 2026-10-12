@@ -88531,6 +88531,276 @@
     "perLot": -12765,
     "netPerLot": -12848.21
    }
+  },
+  {
+   "id": "2026-10-12|PE|MFSL26OCT1280PE",
+   "kind": "PE",
+   "symbol": "MFSL",
+   "contract": "MFSL26OCT1280PE",
+   "expiry": "2026-10-27",
+   "strike": 1280,
+   "optionType": "PE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T04:07:08.896Z",
+   "buy": 13.75,
+   "target": 20.6,
+   "target2": null,
+   "stop": 6.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 60.9,
+     "medianDays": 3.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-12T04:07:08.912Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-12T06:46:04.650Z",
+   "exitPrice": 20.6,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 2.65,
+   "sessionsHeld": 0,
+   "best": 21.75,
+   "worst": 12.8,
+   "last": 20.25,
+   "lastAt": "2026-10-12T06:46:04.650Z",
+   "marks": 9,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 21.75,
+    "low": 12.8,
+    "last": 20.25
+   },
+   "pnl": {
+    "perUnit": 6.85,
+    "pct": 49.82,
+    "basis": "NET",
+    "perLot": 2740,
+    "netPerLot": 2674.5
+   }
+  },
+  {
+   "id": "2026-10-07|PE|MFSL26OCT1400PE",
+   "kind": "PE",
+   "symbol": "MFSL",
+   "contract": "MFSL26OCT1400PE",
+   "expiry": "2026-10-27",
+   "strike": 1400,
+   "optionType": "PE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-07",
+   "shownAt": "2026-10-07T04:05:54.209Z",
+   "buy": 66.55,
+   "target": 99.8,
+   "target2": null,
+   "stop": 33.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 71.6,
+     "medianDays": 2.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-07T04:46:28.770Z",
+   "hoursToFill": 0.68,
+   "closedAt": "2026-10-12T06:46:04.650Z",
+   "exitPrice": 99.8,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 121.99,
+   "sessionsHeld": 3,
+   "best": 101.4,
+   "worst": 58.95,
+   "last": 101.4,
+   "lastAt": "2026-10-12T06:46:04.650Z",
+   "marks": 71,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 101.4,
+    "low": 98.4,
+    "last": 101.4
+   },
+   "pnl": {
+    "perUnit": 33.25,
+    "pct": 49.96,
+    "basis": "NET",
+    "perLot": 13300,
+    "netPerLot": 13164.15
+   }
+  },
+  {
+   "id": "2026-10-07|CE|VBL26OCT460CE",
+   "kind": "CE",
+   "symbol": "VBL",
+   "contract": "VBL26OCT460CE",
+   "expiry": "2026-10-27",
+   "strike": 460,
+   "optionType": "CE",
+   "lotSize": 1275,
+   "sessionDate": "2026-10-07",
+   "shownAt": "2026-10-07T03:51:21.807Z",
+   "buy": 4.75,
+   "target": 7.15,
+   "target2": null,
+   "stop": 2.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 29.2,
+     "medianDays": 10.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-07T09:45:37.939Z",
+   "hoursToFill": 5.9,
+   "closedAt": "2026-10-12T06:46:04.650Z",
+   "exitPrice": 2.4,
+   "exitReason": "STOP",
+   "hoursFillToExit": 117.01,
+   "sessionsHeld": 3,
+   "best": 4.75,
+   "worst": 2.4,
+   "last": 2.5,
+   "lastAt": "2026-10-12T06:46:04.650Z",
+   "marks": 87,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 4,
+    "low": 2.4,
+    "last": 2.5
+   },
+   "pnl": {
+    "perUnit": -2.35,
+    "pct": -49.47,
+    "basis": "NET",
+    "perLot": -2996.25,
+    "netPerLot": -3052.05
+   }
+  },
+  {
+   "id": "2026-10-06|PE|MFSL26OCT1400PE",
+   "kind": "PE",
+   "symbol": "MFSL",
+   "contract": "MFSL26OCT1400PE",
+   "expiry": "2026-10-27",
+   "strike": 1400,
+   "optionType": "PE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-06",
+   "shownAt": "2026-10-06T04:07:30.507Z",
+   "buy": 66.1,
+   "target": 99.15,
+   "target2": null,
+   "stop": 33.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 70.2,
+     "medianDays": 3.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-06T04:07:30.514Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-12T06:46:04.650Z",
+   "exitPrice": 99.15,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 146.64,
+   "sessionsHeld": 4,
+   "best": 101.4,
+   "worst": 57.25,
+   "last": 101.4,
+   "lastAt": "2026-10-12T06:46:04.650Z",
+   "marks": 96,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 101.4,
+    "low": 98.4,
+    "last": 101.4
+   },
+   "pnl": {
+    "perUnit": 33.05,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 13220,
+    "netPerLot": 13084.73
+   }
+  },
+  {
+   "id": "2026-09-30|PE|KFINTECH26OCT860PE",
+   "kind": "PE",
+   "symbol": "KFINTECH",
+   "contract": "KFINTECH26OCT860PE",
+   "expiry": "2026-10-27",
+   "strike": 860,
+   "optionType": "PE",
+   "lotSize": 575,
+   "sessionDate": "2026-09-30",
+   "shownAt": "2026-09-30T03:49:31.267Z",
+   "buy": 43.25,
+   "target": 64.9,
+   "target2": null,
+   "stop": 21.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.8,
+     "medianDays": 10.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-09-30T03:49:31.276Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-12T06:46:04.650Z",
+   "exitPrice": 21.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 290.94,
+   "sessionsHeld": 7,
+   "best": 64,
+   "worst": 20.45,
+   "last": 21,
+   "lastAt": "2026-10-12T06:46:04.650Z",
+   "marks": 180,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 29.05,
+    "low": 20.45,
+    "last": 21
+   },
+   "pnl": {
+    "perUnit": -21.6,
+    "pct": -49.94,
+    "basis": "NET",
+    "perLot": -12420,
+    "netPerLot": -12502.31
+   }
   }
  ]
 }

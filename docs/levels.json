@@ -294,7 +294,9 @@
   "OPTION|DRREDDY|DRREDDY26OCT1280CE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13300PE",
   "OPTION|CGPOWER|CGPOWER26OCT830PE",
-  "OPTION|VBL|VBL26OCT420CE"
+  "OPTION|VBL|VBL26OCT420CE",
+  "OPTION|TIINDIA|TIINDIA26OCT2150PE",
+  "OPTION|COCHINSHIP|COCHINSHIP26OCT1200PE"
  ],
  "options": {
   "POLICYBZR26OCT1040PE": {
@@ -4480,6 +4482,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-12T06:27:09.027Z",
    "frozenAtIst": "2026-10-12 11:57 IST",
+   "frozenAtSpot": null
+  },
+  "TIINDIA26OCT2150PE": {
+   "buy": 30.3,
+   "sell": 45.45,
+   "stop": 15.15,
+   "tick": 0.05,
+   "lotSize": 200,
+   "expiry": "2026-10-27",
+   "strike": 2150,
+   "right": "PE",
+   "symbol": "TIINDIA",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-12T06:46:04.632Z",
+   "frozenAtIst": "2026-10-12 12:16 IST",
+   "frozenAtSpot": null
+  },
+  "COCHINSHIP26OCT1200PE": {
+   "buy": 12.55,
+   "sell": 18.8,
+   "stop": 6.3,
+   "tick": 0.05,
+   "lotSize": 400,
+   "expiry": "2026-10-27",
+   "strike": 1200,
+   "right": "PE",
+   "symbol": "COCHINSHIP",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-12T06:46:04.632Z",
+   "frozenAtIst": "2026-10-12 12:16 IST",
    "frozenAtSpot": null
   }
  },
