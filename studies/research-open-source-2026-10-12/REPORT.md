@@ -152,3 +152,59 @@ Each step ends in a pre-registration or an accuracy fix. None goes straight onto
 6. **Gu-Kelly-Xiu trees** on the same panel: one registration, with SPA mandatory.
 7. **An intraday recorder** for NIFTY futures (L10); then OFI after ~3 months of order books.
 8. **The Hamilton regime model** as a pre-registered replacement test for the failed market-direction rule.
+
+---
+
+# Part 3: the field-by-field sweep, and what was DONE (13 Oct 2026, night)
+
+The owner asked for the top papers in mathematics, physics, statistics and economics. Parts 1-2 were mostly
+finance and econometrics. This part goes field by field. It keeps only papers that fit data we hold, or that fix
+something on the desk; the rest is marked as a reading list. Each paper was checked on its publisher, authors'
+or repository page.
+
+## Mathematics and probability
+
+| Paper | Checked | What it does for the desk |
+|---|---|---|
+| Two-barrier exit of Brownian motion with drift: P(target first) = (e^{2μL} − 1)/(e^{2μL} − e^{−2μU}), which is L/(L+U) with no drift (the standard martingale result; Borodin & Salminen's handbook NOT opened) | derivation checked against two worked examples | **The desk already shows this:** TRACK's "IF RANDOM 37.5%" is 1.5/(1.5+2.5). The card's "touch odds" (69.8%) ignore the stop, so they mislead. Fix: show the two-barrier number as the main odds. No test is needed: it is arithmetic |
+| Kelly, *Bell System Technical Journal* 1956 | part 1 | stake nothing without a measured edge |
+| Ornstein-Uhlenbeck mean reversion (Avellaneda & Lee 2010, part 2 L7) | part 2 | the dip and reversal family |
+
+## Physics (econophysics)
+
+| Paper | Checked | Use |
+|---|---|---|
+| Gopikrishnan, Plerou, Amaral, Meyer & Stanley, *Phys. Rev. E* 60, 5305 (1999) | arXiv cond-mat/9905305 | returns have power-law tails, α ≈ 3, up to ~4 days. **Our stops assume normal moves; gaps through a stop are far likelier than normal.** The bad-day risk box already uses real history (not a normal), which is right |
+| Laloux, Cizeau, Bouchaud & Potters, *PRL* 83 (1999) | part 2 | clean the correlation matrix before adding rows together |
+| Bouchaud et al., *Trades, Quotes and Prices* (CUP 2018) | part 2 | impact: small at one lot |
+| Peng et al., *PRE* 49 (1994) (DFA) | part 2 | test or drop the rating's Hurst term |
+
+## Statistics
+
+| Paper | Checked | Use |
+|---|---|---|
+| Politis & Romano, *JASA* 89(428), 1303-1313 (1994): stationary bootstrap | publisher record | p-values for dependent returns, needed by SPA/StepM; next to our Newey-West t |
+| Benjamini & Hochberg, *JRSS B* 57(1), 289-300 (1995): false discovery rate | DOI record | report FDR beside Holm across ~230 tries |
+| Hansen SPA (2005), Romano-Wolf StepM (2005), Harvey-Liu-Zhu t > 3 (2016), Deflated Sharpe (2014) | part 2 | the testing standard |
+| Ledoit & Wolf, *J. Portfolio Management* 30(4), 110-119 (2004): covariance shrinkage | UPF working paper | the same use as random-matrix cleaning, simpler |
+
+## Economics
+
+| Paper | Checked | Use |
+|---|---|---|
+| **Barber & Odean, *J. Finance* 55(2), 773-806 (2000)**: the households that trade most earned 11.4% a year vs the market's 17.9% | abstract | trading often costs money: fewer, better trades |
+| **Barber, Lee, Liu & Odean, *RFS* 22(2), 609-632 (2009)**: Taiwan individuals lose 3.8 points a year by trading, "virtually all" from aggressive orders | abstract | use LIMIT orders, never market orders. The desk's buy levels are limits, which is right |
+| **SEBI FY25-26 study** (part 2, section 5) | PDF read | 87.7% of option traders lost money |
+| Grossman & Stiglitz, *AER* 70(3), 393-408 (1980) | records | if anyone could see the edge for free, it would be gone. Expect small, costly edges, so t > 3 and costs matter |
+| Engle, *Econometrica* 50(4), 987 (1982): ARCH (Nobel 2003) | ScienceOpen + Engle's page | volatility clusters; the HAR/GARCH item in part 2 |
+
+Reading list only (no data fit or desk fix yet): Bachelier 1900; Black-Scholes-Merton 1973; Fama 1970; Shiller 1981;
+Kyle 1985; Kahneman & Tversky 1979; Sornette's log-periodic crash model (contested); Mantegna & Stanley 1995.
+
+## What was run tonight (all pre-registered: rules hashed and committed before any real-data number)
+
+| Item | Status |
+|---|---|
+| **S2 borrowing surge** forward paper test | LIVE on TRACK from 13 Oct (studies/forward-v4-2026-10-12). Its code reproduces the study exactly: 2,085 trades, +0.256% |
+| **Loan-fee study** (Engelberg et al. 2025, on NSE's own SLB fee file, 1,508 days) | one run, branch claude/loan-fee-2026-10-13: **0 PASS**. Short the highest-fee tenth for 5 days: +0.309% a trade over the market, t 1.90 (near miss, FAIL). 20 days: t 0.30. The long-short form: NOT TESTABLE (too few liquid F&O names on most days) |
+| **TimesFM-2.5, Chronos-2, Kronos-small, their blend, boosted trees, 5-day reversal** | registered (branch claude/forecast-models-2026-10-13, sha256 b5914c71...); scored only from July 2024, because Kronos was trained on data to June 2024 including NSE. Running on the laptop |
