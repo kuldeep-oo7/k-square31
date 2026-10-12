@@ -114,6 +114,10 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     time-series momentum, low volatility, the 10-month trend filter, and the US-overnight
     and crude cues; NIFTY gamma exposure, daily (4 Oct 2026: 0 PASS; branch claude/gex-2026-10-04, PR #1).
   - NOT TESTABLE: gap continuation, VIX spike.
+  - 12-13 Oct 2026: NSE data atlas (14 members, 0 PASS, S2 PROMISING; branch claude/nse-atlas-2026-10-11); loan fee
+    on NSE's SLB bhavcopy (0 PASS, F1 t 1.90; branch claude/loan-fee-2026-10-13); foundation models TimesFM-2.5 /
+    Chronos-2 / Kronos-small + blend + trees + reversal (branch claude/forecast-models-2026-10-13, scored only from
+    Jul 2024 because Kronos trained on NSE to Jun 2024). Research list: studies/research-open-source-2026-10-12/REPORT.md.
   - Don't re-run these as "new".
 
 ## Open work (as of 2 Oct 2026). Pick up from here
@@ -155,7 +159,9 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
   - 150-day cross-down shorts A and B (scored against the market);
   - cheap-vol straddle and industry reversal (studies/forward-v3-2026-10-04; "-" industries are one
     group, as in the backtest; the industry file is pinned by sha256).
-  - Eight rules in all. Their daily NSE files live in release `data-paper-inputs`.
+  - S2 borrowing surge (from 13 Oct 2026; studies/forward-v4-2026-10-12, the NSE atlas study's only PROMISING
+    member, t 2.23; its forward code replays the study exactly). Reads NSE slb_openpos (nse-slb/, fetched from 1 Aug).
+  - Nine rules in all. Their daily NSE files live in release `data-paper-inputs`.
 - `npm run check` had outgrown Windows' command line: add new tests to `scripts/check-forward.js`,
   not to the package.json chain.
 - **Testing standard:** protocol v2 (research/audit-2026-10-04/PROTOCOL.txt): the whole sample,
