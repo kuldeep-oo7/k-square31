@@ -301,7 +301,8 @@
   "OPTION|SUZLON|SUZLON26OCT42PE",
   "OPTION|INDIGO|INDIGO26OCT4650PE",
   "OPTION|NAUKRI|NAUKRI26OCT1160PE",
-  "OPTION|GMRAIRPORT|GMRAIRPORT26OCT87PE"
+  "OPTION|GMRAIRPORT|GMRAIRPORT26OCT87PE",
+  "OPTION|SWIGGY|SWIGGY26OCT220PE"
  ],
  "options": {
   "POLICYBZR26OCT1040PE": {
@@ -4592,6 +4593,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-12T08:45:38.842Z",
    "frozenAtIst": "2026-10-12 14:15 IST",
+   "frozenAtSpot": null
+  },
+  "SWIGGY26OCT220PE": {
+   "buy": 3.15,
+   "sell": 4.7,
+   "stop": 1.55,
+   "tick": 0.05,
+   "lotSize": 1825,
+   "expiry": "2026-10-27",
+   "strike": 220,
+   "right": "PE",
+   "symbol": "SWIGGY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-12T09:28:08.982Z",
+   "frozenAtIst": "2026-10-12 14:58 IST",
    "frozenAtSpot": null
   }
  },
