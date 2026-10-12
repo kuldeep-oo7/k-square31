@@ -396,7 +396,7 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("the worst day is at least as bad as the 1-in-20 day, which is a loss", rf.worst.rupees <= -rf.var && rf.var > 0 && rc.var > 0);
     // LIVE NOW (worker/k2-live.mjs): every NOW cell carries its contract's token and its buy.
     const liveCells = (b.html.match(/data-live="N(?:SE|FO):\d+" data-buy="[\d.]+" data-frozen="[01]"/g) || []).length;
-    const withToken = d.futures.filter((x) => x.liveToken).length + d.options.filter((x) => x.liveToken).length;
+    const withToken = [...d.futures, ...(d.futuresShort || [])].filter((x) => x.liveToken).length + d.options.filter((x) => x.liveToken).length;
     check("every NOW cell carries its contract's Angel token, its buy and whether it is an order -- for the live service",
       withToken > 0 && liveCells === withToken && d.options.every((x) => x.liveToken) && /class="nowv"/.test(b.html),
       `${liveCells} cells, ${withToken} rows with a token`);
@@ -471,7 +471,7 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     ];
     check("every row says the win rate it needs to break even, worked from its own levels",
       d.futures.length > 0 && d.options.length > 0 && beOff.length === 0
-        && (b.html.match(/needs [\d.]+% wins to break even/g) || []).length === d.futures.length + d.options.length,
+        && (b.html.match(/needs [\d.]+% wins to break even/g) || []).length === d.futures.length + (d.futuresShort || []).length + d.options.length,
       `${beOff.length} rows off`);
     // EXPECTANCY, NOT TOUCH ODDS: the odds that ignore the stop say so, and
     // each tab says what the rows are worth if prices have no trend.
@@ -483,6 +483,12 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("each tab totals every row -- the capital, and the loss if every stop is hit -- and warns a gap can cost more",
       (b.html.match(/If you take every row here/g) || []).length >= 2 && /more if prices gap through the stops/.test(b.html)
         && /Rows in one sector tend to fall together/.test(b.html));
+    // SHORT FUTURES (12 Oct 2026): falling SELL/REDUCE stocks, the mirror of a buy, each a FUTS paper trade.
+    const sh = d.futuresShort || [];
+    check("short futures: on falling SELL/REDUCE names only, sell over the price, target under, stop over, each on TRACK as a short",
+      sh.length > 0 && sh.every((x) => x.side === -1 && x.target1 < x.buy && x.buy < x.stop && x.minLossAtStop > 0 && x.minGainAtTarget > 0)
+        && (d.track.summary.FUTS?.shown ?? 0) === sh.length && /Shorts &mdash; falling stocks/.test(b.html) && /data-side="-1"/.test(b.html),
+      `${sh.length} shorts, ${d.track.summary.FUTS?.shown ?? 0} on TRACK`);
     const onTick = (v, t) => t > 0 && Math.abs(Math.round(v / t) * t - v) < 1e-6;
     const offGrid = [...d.options.filter((x) => ![x.buy, x.sell, x.stop].every((v) => onTick(v, x.tick))).map((x) => x.display),
       ...d.futures.filter((x) => ![x.buy, x.target1, x.target2, x.stop].every((v) => onTick(v, x.tick))).map((x) => x.symbol)];
@@ -498,7 +504,7 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("every stock option carries an exit-by date before its expiry",
       d.options.filter((c) => !["NIFTY", "BANKNIFTY", "FINNIFTY", "MIDCPNIFTY"].includes(c.symbol)).every((c) => c.exitBy && c.exitBy < c.expiry));
     check("nothing on the page expires inside a week", d.options.every((c) => c.daysLeft >= 7));
-    check("every frozen level became a paper trade", d.track.tally.added === d.options.length + d.futures.filter((x) => x.frozen).length,
+    check("every frozen level became a paper trade", d.track.tally.added === d.options.length + [...d.futures, ...(d.futuresShort || [])].filter((x) => x.frozen).length,
       `${d.track.tally.added} recorded`);
     // NO CAP: every contract that cleared every gate is on the page (the page
     // once kept 40 of 162 beside a header saying 162 had cleared).
@@ -839,7 +845,7 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       notFalling.length > 0 && notFalling.every((s) => stockTrend(s) !== "BEAR_HOSTILE") && !puts.some((x) => notFalling.includes(x.symbol))
         && /more are rated SELL or REDUCE but are not falling/.test(b.html), `${notFalling.length} not falling`);
     check("puts, calls and futures freeze on live books, and every one becomes a paper trade on TRACK",
-      d.levelsFrozen === true && d.track.tally.added === d.options.length + d.futures.length && (d.track.summary.PE?.shown ?? 0) === puts.length,
+      d.levelsFrozen === true && d.track.tally.added === d.options.length + d.futures.length + (d.futuresShort || []).length && (d.track.summary.PE?.shown ?? 0) === puts.length,
       `${d.track.tally.added} added (${d.options.length} options + ${d.futures.length} futures), PE shown ${d.track.summary.PE?.shown}`);
     const onTick = (v, t) => t > 0 && Math.abs(Math.round(v / t) * t - v) < 1e-6;
     const bent = puts.filter((x) => !(onTick(x.buy, x.tick) && onTick(x.sell, x.tick) && onTick(x.stop, x.tick) && x.sell > x.buy && x.stop < x.buy

@@ -166,6 +166,23 @@ function previewState(limit, now) {
   return { word: under > 0 ? `PREVIEW, not an order — ${under.toFixed(1)}% under the last price` : "PREVIEW, not an order", tone: "" };
 }
 
+// SHORT FUTURES (12 Oct 2026): a SELL limit fills when the price comes UP to it.
+function shortPreviewState(limit, now) {
+  const l = numeric(limit), p = numeric(now);
+  if (l === null || p === null || l <= 0) return { word: "NO PRICE", tone: "" };
+  const over = ((l - p) / p) * 100;
+  return { word: over > 0 ? `PREVIEW, not an order — ${over.toFixed(1)}% over the last price` : "PREVIEW, not an order", tone: "" };
+}
+function shortFillState(limit, now) {
+  const l = numeric(limit), p = numeric(now);
+  if (l === null || p === null || l <= 0) return { word: "NO PRICE", tone: "" };
+  const gap = ((l - p) / l) * 100;
+  if (gap <= 0) return { word: "AT OR ABOVE LIMIT", tone: "up" };
+  if (gap <= 0.1) return { word: "AT THE LIMIT", tone: "up" };
+  const rise = ((l - p) / p) * 100;
+  return { word: `WAITING — needs a ${rise.toFixed(1)}% rise`, tone: rise > 5 ? "down" : "" };
+}
+
 function fillState(limit, now) {
   const l = numeric(limit);
   const p = numeric(now);
@@ -377,6 +394,16 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     .slice(0, futuresLimit)
     .map((r) => ({ row: r, expiry: tradableExpiry(r.symbol, { minDays: 7, reference })?.expiry || null }));
 
+  // SHORTS (owner, 12 Oct 2026: "if you think it will be down ... I will short it"): the stocks the desk rates
+  // SELL/REDUCE that are in their own downtrend -- the same names as the stock puts. Their test: shorting
+  // SELL/REDUCE rows LOST (-0.139% a trade, t -3.31); the page says so above the rows.
+  const indexNames = new Set(view.indices || []);
+  const futuresShortPicked = universe
+    .filter((r) => bullish[r.symbol] === false && !indexNames.has(r.symbol) && r.fnoListed && r.perUnit)
+    .sort((a, b) => (a.compositeScore || 0) - (b.compositeScore || 0))
+    .slice(0, futuresLimit)
+    .map((r) => ({ row: r, expiry: tradableExpiry(r.symbol, { minDays: 7, reference })?.expiry || null }));
+
   let ledger = null;
   let ledgerError = null;
   try { ledger = ledgerLib.openLedger(ledgerDir ? { dir: ledgerDir } : {}); }
@@ -384,16 +411,17 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
 
   // A futures trade is marked on the instrument its level was anchored to: the
   // share (priceBasis SHARE) or the NSE contract.
-  const asRequest = (t) => (t.kind === "FUT" && t.priceBasis === "SHARE"
+  const isFut = (t) => t.kind === "FUT" || t.kind === "FUTS";
+  const asRequest = (t) => (isFut(t) && t.priceBasis === "SHARE"
     ? { kind: "EQ", symbol: t.symbol }
-    : { kind: t.kind === "FUT" ? "FUT" : "OPT", symbol: t.symbol, expiry: t.expiry, strike: t.strike, optionType: t.optionType });
+    : { kind: isFut(t) ? "FUT" : "OPT", symbol: t.symbol, expiry: t.expiry, strike: t.strike, optionType: t.optionType });
   let quotes = {};
   let quoteStatus = null;
   try {
     const result = await brokers.contractQuotes([
       // Futures already priced for the forwards are not asked for twice.
-      ...futuresPicked.map((f) => ({ kind: "EQ", symbol: f.row.symbol })),
-      ...futuresPicked.filter((f) => f.row.fnoListed && f.expiry && !forwardQuotes[`${f.row.symbol}|${f.expiry}`])
+      ...[...futuresPicked, ...futuresShortPicked].map((f) => ({ kind: "EQ", symbol: f.row.symbol })),
+      ...[...futuresPicked, ...futuresShortPicked].filter((f) => f.row.fnoListed && f.expiry && !forwardQuotes[`${f.row.symbol}|${f.expiry}`])
         .map((f) => ({ kind: "FUT", symbol: f.row.symbol, expiry: f.expiry })),
       ...(screen.contracts || []).map((c) => ({ kind: "OPT", symbol: c.symbol, expiry: c.expiry, strike: c.strike, optionType: c.optionType })),
       ...(ledger ? ledger.open.map(asRequest) : [])
@@ -582,7 +610,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     return phase.open === true && ledgerLib.feedDate(q.exchangeFeedTime) === session.sessionDate
       && at !== null && Date.now() - at <= 10 * 60_000;
   };
-  const futures = futuresPicked.map(({ row: r, expiry }) => {
+  const futureRowFor = (side) => ({ row: r, expiry }) => {
     const sq = quoteFor({ kind: "EQ", symbol: r.symbol });
     const fq = r.fnoListed && expiry ? quoteFor({ kind: "FUT", symbol: r.symbol, expiry }) : null;
     // What a quote says on the row: its price, where it came from, when, and
@@ -613,16 +641,17 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     const nowPrice = anchorView.price;
     const nowSource = anchorView.source;
     const sigma = Number(r.odds?.realizedVolPct) > 0 ? Number(r.odds.realizedVolPct) / 100 : null;
-    const levels = session.level("futures", r.symbol, () => {
+    const levels = session.level("futures", side > 0 ? r.symbol : `SHORT:${r.symbol}`, () => {
       if (!(nowPrice > 0)) return null;
       // On the anchor instrument's own tick (0.01 to 5.00 for stock futures).
       const tick = (anchorQuote === fq
         ? brokers.tickSizeFor({ kind: "FUT", symbol: r.symbol, expiry })
         : brokers.tickSizeFor({ kind: "EQ", symbol: r.symbol })) || 0.05;
-      const buy = toTick(nowPrice * ENTRY_DISCOUNT, tick, "down");
-      const target1 = toTick(buy * TARGET_1, tick, "nearest");
+      // A short is the mirror: sell 0.8% OVER the anchor (rounded up), target -2.5% / -5%, stop +1.5%.
+      const buy = side > 0 ? toTick(nowPrice * ENTRY_DISCOUNT, tick, "down") : toTick(nowPrice * (2 - ENTRY_DISCOUNT), tick, "up");
+      const target1 = toTick(buy * (side > 0 ? TARGET_1 : 2 - TARGET_1), tick, "nearest");
       return {
-        buy, target1, target2: toTick(buy * TARGET_2, tick, "nearest"), stop: toTick(buy * STOP, tick, "nearest"), tick,
+        side, buy, target1, target2: toTick(buy * (side > 0 ? TARGET_2 : 2 - TARGET_2), tick, "nearest"), stop: toTick(buy * (side > 0 ? STOP : 2 - STOP), tick, "nearest"), tick,
         anchor: nowPrice, anchorSource: nowSource, priceBasis: anchorQuote === fq ? "CONTRACT" : "SHARE",
         tradingSymbol: r.tradingSymbol, angelSymbol: fq?.tradingSymbol || r.angelSymbol || null,
         expiry, lotSize: r.lotSize, symbol: r.symbol,
@@ -642,12 +671,12 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     // -- the "two prices for one row" the user objected to on 2026-09-22.
     const shownQuote = levels.priceBasis === "SHARE" ? sq : levels.priceBasis === "CONTRACT" ? fq : anchorQuote;
     const shown = shownQuote === anchorQuote ? anchorView : view(shownQuote);
-    const risk = round(levels.buy - levels.stop);
-    const reward = round(levels.target1 - levels.buy);
+    const risk = round(side * (levels.buy - levels.stop));
+    const reward = round(side * (levels.target1 - levels.buy));
     const fnames = contractNames(r.symbol, levels.expiry || expiry, null, null, reference);
     return {
       display: fnames.display, expiryText: fnames.expiryText, exitBy: fnames.exitBy, exitByText: fnames.exitByText,
-      symbol: r.symbol, tradingSymbol: levels.tradingSymbol || r.tradingSymbol,
+      side, symbol: r.symbol, tradingSymbol: levels.tradingSymbol || r.tradingSymbol,
       angelSymbol: levels.angelSymbol || null, expiry: levels.expiry || expiry,
       spot: shown.price, nowSource: shown.source, nowAtText: shown.atText, fnoListed: r.fnoListed === true,
       // THE DAY'S VWAP (audit F21, 4 Oct 2026): NSE's average traded price for the session, which Angel's
@@ -669,7 +698,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
         fill: (() => {
           const sigma = Number(levels.expected.sigmaPct) / 100;
           if (!(sigma > 0) || !(shown.price > 0) || phase.open !== true) return null;
-          if (shown.price <= levels.buy) return { probabilityPct: 100, medianTradingDays: 0, atLimit: true };
+          if (side > 0 ? shown.price <= levels.buy : shown.price >= levels.buy) return { probabilityPct: 100, medianTradingDays: 0, atLimit: true };
           return ledgerLib.firstPassage({ from: shown.price, to: levels.buy, sigma, tradingDays: ledgerLib.sessionTradingDaysLeft(Date.now()) });
         })()
       } : null,
@@ -679,15 +708,15 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       // not known here.
       minUnits: GM_MIN_UNITS,
       minCapital: round(levels.buy * GM_MIN_UNITS),
-      minLossAtStop: round((levels.buy - levels.stop) * GM_MIN_UNITS),
-      minGainAtTarget: round((levels.target1 - levels.buy) * GM_MIN_UNITS),
+      minLossAtStop: round(risk * GM_MIN_UNITS),
+      minGainAtTarget: round(reward * GM_MIN_UNITS),
       riskPerUnit: risk, rewardPerUnit: reward,
       rewardToRisk: risk > 0 ? round(reward / risk) : null,
       exchangeLot: r.lotSize, score: r.compositeScore, sector: r.sector || null,
       // THE WIN RATE THIS TRADE NEEDS TO BREAK EVEN: loss / (win + loss), from
       // its own levels, before GM's charges. "Expectancy, not a required win
       // rate" (Global Trading Atlas, 28): a rate of wins means nothing without it.
-      breakEvenPct: (levels.target1 - levels.stop) > 0 ? round(100 * (levels.buy - levels.stop) / (levels.target1 - levels.stop), 1) : null,
+      breakEvenPct: (risk + reward) > 0 ? round(100 * risk / (risk + reward), 1) : null,
       ...(() => {
         const res = resultsFor(r.symbol);
         const exitBy = fnames.exitBy || null;
@@ -695,7 +724,9 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
           resultsBeforeExit: res.status === "ANNOUNCED" && exitBy ? res.date <= exitBy : null };
       })()
     };
-  }).filter(Boolean);
+  };
+  const futures = futuresPicked.map(futureRowFor(1)).filter(Boolean);
+  const futuresShort = futuresShortPicked.map(futureRowFor(-1)).filter(Boolean);
 
   /**
    * THE TRACK RECORD. Every frozen level is a hypothetical order from the
@@ -720,10 +751,10 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
           }
         }), quoteFor({ kind: "OPT", symbol: c.symbol, expiry: c.expiry, strike: c.strike, optionType: c.right }));
       }
-      for (const f of futures) {
+      for (const f of [...futures, ...futuresShort]) {
         if (!f.frozen) continue;
         ledger.add(ledgerLib.tradeFromLevel({
-          kind: "FUT", symbol: f.symbol, contract: f.tradingSymbol || (f.symbol + " (share)"),
+          kind: f.side < 0 ? "FUTS" : "FUT", symbol: f.symbol, contract: f.tradingSymbol || (f.symbol + " (share)"),
           expiry: f.fnoListed ? f.expiry : null, lotSize: f.exchangeLot, priceBasis: f.priceBasis,
           buy: f.buy, target: f.target1, target2: f.target2, stop: f.stop,
           sessionDate: session.sessionDate, shownAt: f.frozenAt, anchorSource: f.anchorSource,
@@ -870,6 +901,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     feedCheck,
     watchStatus,
     futuresAnchor: ANCHOR,
+    futuresShort,
     forwardStatus,
     optionsOnLiveForward: options.filter((c) => c.forwardSource === "LIVE").length,
     // Per index: contracts looked at, cleared, and refused by which gate (contract-screener bySymbol), so
@@ -1004,7 +1036,7 @@ function trackSoFar(s) {
   if (!s || !s.ALL || !(s.ALL.resolved > 0)) return "The paper ledger has no resolved trades yet.";
   const part = (k, label) => { const x = s[k]; if (!x || !(x.resolved > 0)) return null; const r = x.hitRate95 || {};
     return `${label} ${esc(x.target)} targets and ${esc(x.stop)} stops, <b>${esc(x.hitRatePct)}%</b> hit (95% range ${esc(r.lowPct ?? "?")}&ndash;${esc(r.highPct ?? "?")}%)`; };
-  const parts = [part("FUT", "futures"), part("CE", "calls"), part("PE", "puts")].filter(Boolean).join("; ");
+  const parts = [part("FUT", "futures"), part("FUTS", "short futures"), part("CE", "calls"), part("PE", "puts")].filter(Boolean).join("; ");
   const sessions = s.ALL.hitRate95?.sessions;
   return `The paper ledger so far: ${parts}${sessions ? `, over only ${esc(sessions)} sessions of the same market` : ""}. `
     + "That says how this market went, not that a rule works &mdash; each row shows its own break-even.";
@@ -1128,8 +1160,8 @@ function page(d) {
   const pctOrDash = (v) => (numeric(v) === null ? "&mdash;" : `${esc(v)}%`);
   // What the live-prices service (worker/k2-live.mjs) needs to move a NOW cell:
   // the contract's Angel token, the row's buy limit, and whether it is an order.
-  const liveAttrs = (token, buy, frozen) => (token && Number(buy) > 0
-    ? ` data-live="${esc(token)}" data-buy="${esc(buy)}" data-frozen="${frozen ? 1 : 0}"` : "");
+  const liveAttrs = (token, buy, frozen, side = 1) => (token && Number(buy) > 0
+    ? ` data-live="${esc(token)}" data-buy="${esc(buy)}" data-frozen="${frozen ? 1 : 0}"${side < 0 ? ' data-side="-1"' : ""}` : "");
   const optionRows = (list) => list.map((c, i) => {
     const state = c.frozen ? fillState(c.buy, c.now) : previewState(c.buy, c.now);
     const sameStock = i > 0 && list[i - 1].symbol === c.symbol;
@@ -1171,8 +1203,9 @@ function page(d) {
     SHARE_LAST_TRADED: "share, last trade &mdash; NOT live",
     SHARE_CLOSE_FROM_HISTORY: "share, last close &mdash; NOT live"
   };
-  const futRows = d.futures.map((r) => {
-    const state = r.frozen ? fillState(r.buy, r.spot) : previewState(r.buy, r.spot);
+  const futRowHtml = (r) => {
+    const state = r.side < 0 ? (r.frozen ? shortFillState(r.buy, r.spot) : shortPreviewState(r.buy, r.spot))
+      : (r.frozen ? fillState(r.buy, r.spot) : previewState(r.buy, r.spot));
     const exp = r.expected;
     const fillMinutes = exp?.fill ? Math.round(exp.fill.medianTradingDays * 375) : null;
     const expLine = [
@@ -1194,13 +1227,15 @@ function page(d) {
         <td class="num"><b>${px(r.buy)}</b>${expLine}</td>
         <td class="num up">${px(r.target1)}<div class="sub">${px(r.target2)}</div></td>
         <td class="num down">${px(r.stop)}</td>
-        <td class="num"${liveAttrs(r.liveToken, r.buy, r.frozen)}><span class="nowv">${px(r.spot)}</span><div class="sub nows ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.vwap ? `<div class="sub">day&rsquo;s VWAP ${px(r.vwap)} &middot; NOW is ${r.spot >= r.vwap ? "above" : "below"} it</div>` : ""}${r.referencePrice
+        <td class="num"${liveAttrs(r.liveToken, r.buy, r.frozen, r.side)}><span class="nowv">${px(r.spot)}</span><div class="sub nows ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.vwap ? `<div class="sub">day&rsquo;s VWAP ${px(r.vwap)} &middot; NOW is ${r.spot >= r.vwap ? "above" : "below"} it</div>` : ""}${r.referencePrice
           ? `<div class="sub">${r.referenceKind === "future" ? "NSE future" : "share"} ${px(r.referencePrice)}</div>`
           : (r.fnoListed === false ? `<div class="sub">no NSE futures contract</div>` : "")}</td>
         <td class="num">${money(r.minCapital)}<div class="sub">${esc(r.minUnits)} units</div><div class="sub down">stop &minus;${money(r.minLossAtStop)}</div><div class="sub up">target +${money(r.minGainAtTarget)}</div></td>
         <td class="num">${esc(r.rewardToRisk)}<div class="sub">+${money(r.rewardPerUnit)} / &minus;${money(r.riskPerUnit)}</div>${r.breakEvenPct !== null && r.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(r.breakEvenPct)}% wins to break even</div>` : ""}</td>
       </tr>`;
-  }).join("");
+  };
+  const futRows = d.futures.map(futRowHtml).join("");
+  const futShortRows = (d.futuresShort || []).map(futRowHtml).join("");
 
   // ---- the track record tab -------------------------------------------------
   const t = d.track;
@@ -1208,7 +1243,7 @@ function page(d) {
   // A median of a few minutes rounds to 0 hours; "0 h" read as nothing at all.
   const hrs = (h) => (h === null || h === undefined ? "&mdash;" : Number(h) < 0.05 ? "within minutes"
     : Number(h) < 24 ? `${esc(h)} h` : `${esc(round(h / 24, 1))} d`);
-  const KIND = { FUT: "FUTURE", CE: "CALL", PE: "PUT" };
+  const KIND = { FUT: "FUTURE", FUTS: "SHORT FUTURE", CE: "CALL", PE: "PUT" };
   const OUTCOME = {
     TARGET: '<b class="up">TARGET ✓</b>', STOP: '<b class="down">STOP ✗</b>',
     EXPIRED: "EXPIRED", TIMED_OUT: "TIMED OUT", UNFILLED: '<span class="sub">UNFILLED</span>',
@@ -1283,7 +1318,7 @@ function page(d) {
         <th class="num">TIME TO FILL</th><th class="num">FILL &rarr; TARGET</th>
         <th class="num">AVG RETURN</th><th class="num">NET / LOT &middot; FUTURES AT 20 UNITS</th>
       </tr></thead><tbody>
-        ${summaryRow("FUTURES", t.summary.FUT)}${summaryRow("CALLS", t.summary.CE)}${summaryRow("PUTS", t.summary.PE)}${summaryRow("ALL", t.summary.ALL)}
+        ${summaryRow("FUTURES", t.summary.FUT)}${t.summary.FUTS?.shown ? summaryRow("SHORT FUTURES", t.summary.FUTS) : ""}${summaryRow("CALLS", t.summary.CE)}${summaryRow("PUTS", t.summary.PE)}${summaryRow("ALL", t.summary.ALL)}
       </tbody>
     </table></div>
     <div class="sub" style="margin:6px 0 18px">Hit rate counts only trades that filled and then finished. IF RANDOM is how often
@@ -1641,7 +1676,7 @@ ${staleAlarm}
   <input type="radio" name="view" id="v-trk">
 
   <nav class="tabs">
-    <label for="v-fut" class="t-fut">FUTURES <span>${d.futures.length}</span></label>
+    <label for="v-fut" class="t-fut">FUTURES <span>${d.futures.length + (d.futuresShort || []).length}</span></label>
     <label for="v-ce" class="t-ce">CALLS <span>${downtrendPage ? 0 : calls.length}</span></label>
     <label for="v-pe" class="t-pe">PUTS <span>${puts.length}</span></label>
     <label for="v-trk" class="t-trk">TRACK <span>${trackCount}</span></label>
@@ -1682,6 +1717,15 @@ ${staleAlarm}
         ? "No stock is rising on its own on this build (NIFTY is in a downtrend, MARKET DIRECTION above), so no futures buys. Futures shown on earlier days stay on TRACK until they finish."
         : "No futures cleared the hurdle on this build."}</td></tr>`}</tbody>
     </table></div>`)}
+    ${(d.futuresShort || []).length ? `<h2 style="margin-top:22px">Shorts &mdash; falling stocks: SELL first, buy back lower</h2>
+    <div class="sub" style="margin:0 0 10px"><b class="down">Tested:</b> shorting the desk&rsquo;s SELL/REDUCE stocks on this geometry LOST on six years of NSE data
+      (&minus;${Math.abs(RATING_TEST.sellNetPct)}% a trade, ${RATING_TEST.sellTrades.toLocaleString("en-IN")} trades, t = &minus;${Math.abs(RATING_TEST.sellT)}). New on TRACK from 12 Oct. Your call &mdash; size small.</div>
+    <div class="wrap"><table>
+      <thead><tr>
+        <th>SYMBOL</th><th class="num">SELL LIMIT</th><th class="num">TARGET 1 &middot; 2</th>
+        <th class="num">STOP</th><th class="num">NOW</th><th class="num">GM MIN (20 UNITS)</th><th class="num">R : R</th>
+      </tr></thead><tbody>${futShortRows}</tbody>
+    </table></div>` : ""}
     <div class="sub" style="margin-top:8px">${d.resultsCalendar?.ok
       ? `Results dates are NSE's own board-meeting filings, read ${esc(String(d.resultsCalendar.fetchedAt).slice(0, 10))}:
          ${esc(d.resultsCalendar.meetings)} results meetings filed for the next ${esc(d.resultsCalendar.days)} days. Companies must file at least
@@ -1837,7 +1881,15 @@ ${staleAlarm}
   var MON = { Jan: "01", Feb: "02", Mar: "03", Apr: "04", May: "05", Jun: "06", Jul: "07", Aug: "08", Sep: "09", Oct: "10", Nov: "11", Dec: "12" };
   // Backslashes doubled: this script is inside a template literal, which drops single ones.
   var today = function (stamp) { var p = String(stamp || "").match(/^(\\d{2})-([A-Za-z]{3})-(\\d{4}) (\\d{2}:\\d{2}:\\d{2})/); return p && p[3] + "-" + MON[p[2]] + "-" + p[1] === ist().date ? p[4] : null; };
-  function state(p, l, frozen) {
+  function state(p, l, frozen, side) {
+    if (side < 0) {   // short future: the sell limit fills when the price comes UP to it
+      if (!frozen) { var over = (l - p) / p * 100; return { word: over > 0 ? "PREVIEW, not an order — " + over.toFixed(1) + "% over the last price" : "PREVIEW, not an order", tone: "" }; }
+      var g = (l - p) / l * 100;
+      if (g <= 0) return { word: "AT OR ABOVE LIMIT", tone: "up" };
+      if (g <= 0.1) return { word: "AT THE LIMIT", tone: "up" };
+      var rise = (l - p) / p * 100;
+      return { word: "WAITING — needs a " + rise.toFixed(1) + "% rise", tone: rise > 5 ? "down" : "" };
+    }
     if (!frozen) { var under = (p - l) / p * 100; return { word: under > 0 ? "PREVIEW, not an order \u2014 " + under.toFixed(1) + "% under the last price" : "PREVIEW, not an order", tone: "" }; }
     var gap = (p - l) / l * 100;
     if (gap <= 0) return { word: "AT OR BELOW LIMIT", tone: "up" };
@@ -1858,7 +1910,7 @@ ${staleAlarm}
           if (!q || !(q.ltp > 0)) return;
           var v = c.querySelector(".nowv"); if (v) v.textContent = fmt(q.ltp);
           var s = c.querySelector(".nows"), buy = Number(c.getAttribute("data-buy"));
-          if (s && buy > 0) { var st = state(q.ltp, buy, c.getAttribute("data-frozen") === "1"); s.textContent = st.word; s.className = "sub nows " + st.tone; }
+          if (s && buy > 0) { var st = state(q.ltp, buy, c.getAttribute("data-frozen") === "1", Number(c.getAttribute("data-side") || 1)); s.textContent = st.word; s.className = "sub nows " + st.tone; }
           var tag = c.querySelector(".livetag");
           if (!tag) { tag = document.createElement("div"); c.insertBefore(tag, s ? s.nextSibling : null); }
           var t = today(q.tradeTime);

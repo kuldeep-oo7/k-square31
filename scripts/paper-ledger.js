@@ -207,11 +207,15 @@ function tradeFromLevel({ kind, symbol, contract, expiry, strike = null, optionT
   };
 }
 
+// SHORT FUTURES (12 Oct 2026, owner: "if you think it will be down ... I will short it"). kind "FUTS": the
+// `buy` field holds the SELL limit; everything is the mirror of a long future.
+const isShort = (trade) => trade.kind === "FUTS";
+
 function settlePnl(trade) {
   if (trade.exitPrice === null || trade.filledAt === null) return null;
-  const perUnit = round(trade.exitPrice - trade.buy);
+  const perUnit = round(isShort(trade) ? trade.buy - trade.exitPrice : trade.exitPrice - trade.buy);
   const result = { perUnit, pct: round((perUnit / trade.buy) * 100), basis: "GROSS" };
-  if (trade.kind !== "FUT" && trade.lotSize > 0) {
+  if (trade.kind !== "FUT" && !isShort(trade) && trade.lotSize > 0) {
     result.perLot = round(perUnit * trade.lotSize);
     try {
       const { roundTripCost } = require("../api/_lib/trade-costs");
@@ -321,31 +325,35 @@ function observe(trade, quote, now) {
     // price does not establish that an order had queue priority or sufficient
     // available volume" (Global Trading Atlas, 32). A touch counted as a fill
     // flattered the record every time the low printed exactly at the limit.
-    if (lo < trade.buy) {
+    if (isShort(trade) ? hi > trade.buy : lo < trade.buy) {
       trade.status = "OPEN";
       trade.filledAt = at;
       trade.hoursToFill = hoursBetween(trade.shownAt, at);
       trade.best = trade.buy;
-      trade.worst = Math.min(trade.buy, lo);
+      trade.worst = isShort(trade) ? Math.max(trade.buy, hi) : Math.min(trade.buy, lo);
       // Inside the fill window the order of events is unknown. A stop here is
       // counted, because it can only make the record worse; a target is not,
       // because it could only flatter it.
-      if (lo <= trade.stop) close(trade, "STOP", gapOpen !== null && gapOpen < trade.stop ? gapOpen : trade.stop, at);
+      if (isShort(trade) ? hi >= trade.stop : lo <= trade.stop) close(trade, "STOP", isShort(trade)
+        ? (gapOpen !== null && gapOpen > trade.stop ? gapOpen : trade.stop)
+        : (gapOpen !== null && gapOpen < trade.stop ? gapOpen : trade.stop), at);
     }
     return trade;
   }
 
   // OPEN
-  trade.best = Math.max(trade.best ?? trade.buy, hi);
-  trade.worst = Math.min(trade.worst ?? trade.buy, lo);
+  trade.best = isShort(trade) ? Math.min(trade.best ?? trade.buy, lo) : Math.max(trade.best ?? trade.buy, hi);
+  trade.worst = isShort(trade) ? Math.max(trade.worst ?? trade.buy, hi) : Math.min(trade.worst ?? trade.buy, lo);
   // The stop counts on a touch (the harsh reading); the target, like the buy,
   // only when the price trades THROUGH it -- a sell limit resting at the target
   // is not filled by one print at that price.
-  const stopHit = lo <= trade.stop;
-  const targetHit = hi > trade.target;
+  const stopHit = isShort(trade) ? hi >= trade.stop : lo <= trade.stop;
+  const targetHit = isShort(trade) ? lo < trade.target : hi > trade.target;
   if (stopHit) {
     // Both in one window is a stop. A gap through the stop exits at the open.
-    close(trade, "STOP", gapOpen !== null && gapOpen < trade.stop ? gapOpen : trade.stop, at);
+    close(trade, "STOP", isShort(trade)
+      ? (gapOpen !== null && gapOpen > trade.stop ? gapOpen : trade.stop)
+      : (gapOpen !== null && gapOpen < trade.stop ? gapOpen : trade.stop), at);
   } else if (targetHit) {
     close(trade, "TARGET", trade.target, at);
   }
@@ -362,7 +370,7 @@ function settle(trade, now) {
     close(trade, "TIME_EXIT", trade.last ?? trade.buy, new Date(sessionCloseMs(exitByDate(trade.expiry))).toISOString());
   } else if (trade.status === "OPEN" && trade.expiry && now >= sessionCloseMs(trade.expiry)) {
     close(trade, "EXPIRED", trade.last ?? 0, new Date(sessionCloseMs(trade.expiry)).toISOString());
-  } else if (trade.status === "OPEN" && trade.kind === "FUT" && trade.sessionsHeld >= FUTURES_MAX_SESSIONS) {
+  } else if (trade.status === "OPEN" && (trade.kind === "FUT" || isShort(trade)) && trade.sessionsHeld >= FUTURES_MAX_SESSIONS) {
     close(trade, "TIMED_OUT", trade.last ?? trade.buy, at);
   }
   return trade;
@@ -461,7 +469,7 @@ function openLedger({ dir = LEDGER_DIR, now = Date.now() } = {}) {
  * happen, the desk is wrong, and this is where that shows.
  */
 function summarize(open, closed) {
-  const kinds = ["ALL", "FUT", "CE", "PE"];
+  const kinds = ["ALL", "FUT", "FUTS", "CE", "PE"];
   const out = {};
   for (const kind of kinds) {
     const pick = (t) => kind === "ALL" || t.kind === kind;

@@ -62,13 +62,14 @@ function checkDatabase({ ledgerDir = path.join(DOCS, "ledger"), levelsFile = pat
     for (const f of ["id", "kind", "symbol", "contract", "sessionDate", "shownAt", "buy", "target", "stop"]) {
       if (t[f] === undefined || t[f] === null || t[f] === "") problems.push(`${t.id}: missing ${f}`);
     }
-    if (!(t.stop < t.buy && t.buy < t.target)) problems.push(`${t.id}: levels out of order (stop ${t.stop}, buy ${t.buy}, target ${t.target})`);
+    const short = t.kind === "FUTS";   // short future: target < sell (stored as buy) < stop
+    if (!(short ? t.target < t.buy && t.buy < t.stop : t.stop < t.buy && t.buy < t.target)) problems.push(`${t.id}: levels out of order (stop ${t.stop}, buy ${t.buy}, target ${t.target})`);
     if (t.filledAt && t.filledAt < t.shownAt) problems.push(`${t.id}: filled ${t.filledAt} before it was shown ${t.shownAt}`);
     if (t.closedAt && t.filledAt && t.closedAt < t.filledAt) problems.push(`${t.id}: closed ${t.closedAt} before it filled ${t.filledAt}`);
     if (t.status === "OPEN" && !t.filledAt) problems.push(`${t.id}: OPEN without a fill time`);
     if (t.status === "UNFILLED" && (t.filledAt || t.pnl)) problems.push(`${t.id}: unfilled but carries a fill or P&L`);
-    if (t.status === "STOP" && !(Number(t.exitPrice) <= Number(t.stop) + 1e-9)) problems.push(`${t.id}: stopped at ${t.exitPrice}, above its stop ${t.stop}`);
-    if (t.status === "OPEN" && t.last !== null && t.last !== undefined && Number(t.last) <= Number(t.stop) - 1e-9) {
+    if (t.status === "STOP" && !(short ? Number(t.exitPrice) >= Number(t.stop) - 1e-9 : Number(t.exitPrice) <= Number(t.stop) + 1e-9)) problems.push(`${t.id}: stopped at ${t.exitPrice}, on the wrong side of its stop ${t.stop}`);
+    if (t.status === "OPEN" && t.last !== null && t.last !== undefined && (short ? Number(t.last) >= Number(t.stop) + 1e-9 : Number(t.last) <= Number(t.stop) - 1e-9)) {
       problems.push(`${t.id}: OPEN at ${t.last}, already through its stop ${t.stop}`);
     }
   }
@@ -80,10 +81,11 @@ function checkDatabase({ ledgerDir = path.join(DOCS, "ledger"), levelsFile = pat
       const kind = key.endsWith("PE") ? "PE" : "CE";
       if (!ids.has(`${levels.sessionDate}|${kind}|${key}`)) problems.push(`frozen option level without its trade: ${key}`);
     }
-    for (const [symbol, l] of Object.entries(levels.futures || {})) {
+    for (const [key, l] of Object.entries(levels.futures || {})) {
       levelCount += 1;
+      const short = key.startsWith("SHORT:"), symbol = short ? key.slice(6) : key;   // short futures, 12 Oct 2026
       const contract = l.tradingSymbol || `${symbol} (share)`;
-      if (!ids.has(`${levels.sessionDate}|FUT|${contract}`)) problems.push(`frozen futures level without its trade: ${symbol}`);
+      if (!ids.has(`${levels.sessionDate}|${short ? "FUTS" : "FUT"}|${contract}`)) problems.push(`frozen futures level without its trade: ${key}`);
     }
   }
   return { problems, trades: all.length, open: open.length, closed: closed.length, levels: levelCount };

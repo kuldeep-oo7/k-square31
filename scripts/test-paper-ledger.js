@@ -320,6 +320,27 @@ console.log("paper ledger:");
   check("the same on the first mark of a new session", n.status === "STOP");
 }
 
+// --- short futures (FUTS, 12 Oct 2026): the mirror of a long future -----------
+{
+  const mk = () => L.tradeFromLevel({ kind: "FUTS", symbol: "XYZ", contract: "XYZ26OCTFUT", expiry: "2026-10-27",
+    buy: 100.8, target: 98.3, target2: 95.75, stop: 102.3, sessionDate: "2026-09-24", shownAt: "2026-09-24T04:00:00.000Z", anchorSource: "TEST" });
+  const a = mk(); a.obs = { date: "2026-09-24", high: 100.5, low: 99.8, last: 100.2 };
+  L.observe(a, q(100.6, 100.7, 99.8, "09:53"), at("09:53"));
+  check("a short is not filled until the price trades ABOVE its sell limit", a.status === "WAITING");
+  L.observe(a, q(100.7, 100.9, 99.8, "10:13"), at("10:13"));
+  check("a new high above the sell limit fills the short", a.status === "OPEN");
+  L.observe(a, q(98.4, 100.9, 98.2, "10:33"), at("10:33"));
+  check("a fall through the target closes it at the target, as a PROFIT", a.status === "TARGET" && a.exitPrice === 98.3 && a.pnl.perUnit > 0, JSON.stringify(a.pnl));
+  const b = mk(); b.obs = { date: "2026-09-24", high: 100.5, low: 99.8, last: 100.2 };
+  L.observe(b, q(100.9, 100.95, 99.8, "10:13"), at("10:13"));
+  L.observe(b, q(102.2, 102.35, 99.8, "10:33"), at("10:33"));
+  check("a rise to the stop closes it at the stop, as a LOSS", b.status === "STOP" && b.exitPrice === 102.3 && b.pnl.perUnit < 0, JSON.stringify(b.pnl));
+  const c = mk(); c.obs = { date: "2026-09-24", high: 100.5, low: 99.8, last: 100.2 };
+  L.observe(c, q(100.9, 100.95, 99.8, "10:13"), at("10:13"));
+  L.observe(c, q(103.4, 103.6, 103.0, "09:33", "25-Sep-2026", 103.2), at("09:33", "2026-09-25"));
+  check("a gap UP through the stop exits at the open, not at the stop", c.status === "STOP" && c.exitPrice === 103.2, String(c.exitPrice));
+}
+
 function round2(v) { return Math.round(v * 100) / 100; }
 
 console.log("\n" + passed + " passed, " + failed + " failed");
