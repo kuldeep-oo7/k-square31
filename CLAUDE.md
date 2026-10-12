@@ -41,6 +41,16 @@ and no `research/`. This file carries what it needs. Nothing secret belongs here
 7. **Never ask for, print or commit secrets.** They live in GitHub Actions secrets and in
    Cloudflare. The owner sets them; you don't.
 8. Don't commit downloaded market data. It lives on releases (below).
+9. **Audit like a sceptic, and follow every change through the web (owner, 12 Oct 2026).**
+   - Question every figure and feature from several angles: what is it, why is it there, where does
+     the number come from, when was it true, who uses it, is it right, what would prove it wrong.
+   - Check it against its primary source on the live internet and against the logs and data, not
+     against what the code intends.
+   - Before and after any fix, trace what it touches: if this changes, what else reads it (page,
+     TRACK, tests, health gate, workflows, Sheet, live script, memory), and what do THOSE feed?
+     Change, test and photograph every link in that chain, phone and laptop.
+   - After the market closes, audit the whole day's screen: what was right, what was wrong, with
+     the evidence. Then update memory and this file.
 
 ## How the desk runs (no server)
 
