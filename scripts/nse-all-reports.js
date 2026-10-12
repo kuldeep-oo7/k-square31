@@ -45,16 +45,21 @@ async function main() {
     const file = path.join(dir, f.name); const entry = { segment: f.segment, name: f.name, display: f.display, url: f.url };
     if (fs.existsSync(file)) { had += 1; entry.bytes = fs.statSync(file).size; }
     else {
-      for (let attempt = 1; attempt <= 3; attempt += 1) {
+      // nsearchives serves plain files without the website's cookie (the atlas downloader never sends one, and
+      // runs fast on GitHub); the cookie goes only to www.nseindia.com. 60 s and two tries, so one slow file
+      // cannot eat the job (the first GitHub run spent its whole hour here).
+      const www = /^https:\/\/www\.nseindia\.com\//.test(f.url);
+      for (let attempt = 1; attempt <= 2; attempt += 1) {
         try {
-          const r = await fetch(f.url, { headers: { "User-Agent": UA, Cookie: cookie, Referer: "https://www.nseindia.com/all-reports" }, signal: AbortSignal.timeout(120000) });
+          const r = await fetch(f.url, { headers: { "User-Agent": UA, ...(www ? { Cookie: cookie, Referer: "https://www.nseindia.com/all-reports" } : {}) }, signal: AbortSignal.timeout(60000) });
           if (r.status === 404) { entry.missing = "404 on NSE"; break; }
           if (!r.ok) throw new Error(`HTTP ${r.status}`);
           const buf = Buffer.from(await r.arrayBuffer()); if (!buf.length) throw new Error("empty");
           fs.writeFileSync(file, buf); entry.bytes = buf.length; entry.sha256 = crypto.createHash("sha256").update(buf).digest("hex"); got += 1; bytes += buf.length; break;
-        } catch (e) { if (attempt === 3) { entry.missing = e.message; failed += 1; } else await pause(5000 * attempt); }
+        } catch (e) { if (attempt === 2) { entry.missing = e.message; failed += 1; console.log(`  ${f.date} ${f.segment} ${f.name}: FAILED ${e.message}`); } else await pause(5000); }
       }
       await pause(500);
+      if ((got + failed) % 25 === 0) console.log(`  ${got} downloaded, ${failed} failed, ${(bytes / 1048576).toFixed(0)} MB so far`);
     }
     (byDate[f.date] ||= []).push(entry);
   }
