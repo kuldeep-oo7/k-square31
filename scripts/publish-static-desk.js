@@ -1175,6 +1175,13 @@ function page(d) {
   // the contract's Angel token, the row's buy limit, and whether it is an order.
   const liveAttrs = (token, buy, frozen, side = 1) => (token && Number(buy) > 0
     ? ` data-live="${esc(token)}" data-buy="${esc(buy)}" data-frozen="${frozen ? 1 : 0}"${side < 0 ? ' data-side="-1"' : ""}` : "");
+  // MEASURED BESIDE MODELLED (audit 12 Oct 2026, B6): the touch odds ignore the stop and the trend, and on
+  // TRACK they were far off (futures said 69.8%, hit 12.9%; puts said 42.6%, hit 84%). Each card shows what
+  // TRACK has actually measured for its kind, once 20 trades of that kind have finished.
+  const trackLine = (kind) => { const x = d.track?.summary?.[kind]; const n = (x?.target || 0) + (x?.stop || 0);
+    if (!(n >= 20)) return "";
+    const what = { FUT: "futures", FUTS: "short futures", CE: "calls", PE: "puts" }[kind];
+    return `<div class="sub ${x.hitRatePct >= (kind === "FUT" || kind === "FUTS" ? 37.5 : 50) ? "up" : "down"}">TRACK so far: ${esc(x.hitRatePct)}% of ${what} hit target (${esc(x.target)} of ${esc(n)})</div>`; };
   const optionRows = (list) => list.map((c, i) => {
     const state = c.frozen ? fillState(c.buy, c.now) : previewState(c.buy, c.now);
     const sameStock = i > 0 && list[i - 1].symbol === c.symbol;
@@ -1189,7 +1196,7 @@ function page(d) {
         <td class="num down">${px(c.stop)}${c.netLossAtStop !== null && c.netLossAtStop !== undefined ? `<div class="sub down">net &minus;${money(Math.abs(c.netLossAtStop))} a lot</div>` : ""}</td>
         <td class="num"${liveAttrs(c.liveToken, c.buy, c.frozen)}><span class="nowv">${px(c.now)}</span><div class="sub nows ${state.tone}">${esc(state.word)}</div></td>
         <td class="num">${pctOrDash(c.iv)} / ${pctOrDash(c.rv)}<div class="sub">VRP ${numeric(c.vrp) === null ? "&mdash;" : esc(c.vrp)}</div></td>
-        <td class="num">${pctOrDash(c.touchPct)}${numeric(c.touchPct) === null ? `<div class="sub">touch odds need the price history</div>` : `<div class="sub">touch, ~${esc(c.daysToTarget)}d &mdash; ignores the stop</div>`}${c.breakEvenPct !== null && c.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(c.breakEvenPct)}% wins to break even</div>` : ""}${c.noTrendNet !== null && c.noTrendNet !== undefined ? `<div class="sub down">no trend: about &minus;${money(Math.abs(c.noTrendNet))} a lot${c.spreadKnown === false ? ", plus the spread" : ""}</div>` : ""}</td>
+        <td class="num">${pctOrDash(c.touchPct)}${numeric(c.touchPct) === null ? `<div class="sub">touch odds need the price history</div>` : `<div class="sub">touch, ~${esc(c.daysToTarget)}d &mdash; ignores the stop</div>${trackLine(c.right)}`}${c.breakEvenPct !== null && c.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(c.breakEvenPct)}% wins to break even</div>` : ""}${c.noTrendNet !== null && c.noTrendNet !== undefined ? `<div class="sub down">no trend: about &minus;${money(Math.abs(c.noTrendNet))} a lot${c.spreadKnown === false ? ", plus the spread" : ""}</div>` : ""}</td>
         <td class="num ${Number(c.thetaBurnPct) > 12 ? "down" : ""}">${pctOrDash(c.thetaBurnPct)}</td>
         <td class="num">${esc(c.score)}</td>
       </tr>`;
@@ -1225,7 +1232,8 @@ function page(d) {
     const expLine = [
       exp?.fill ? (exp.fill.atLimit ? "at the limit now" : `fill ${esc(exp.fill.probabilityPct)}% by the close (~${esc(fillMinutes)} min)`) : null,
       exp?.target ? `touch odds ${esc(exp.target.probabilityPct)}% (~${esc(round(exp.target.medianTradingDays, 1))} sessions)` : null,
-      exp?.target ? "&mdash; ignores the stop" : null
+      exp?.target ? "&mdash; ignores the stop" : null,
+      exp?.target ? trackLine(r.side < 0 ? "FUTS" : "FUT").replace(/^<div class="sub[^"]*">|<\/div>$/g, "") || null : null
     ].filter(Boolean).map((line) => `<div class="sub">${line}</div>`).join("");
     return `
       <tr>
