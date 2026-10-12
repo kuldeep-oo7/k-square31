@@ -102,10 +102,11 @@ function optionTickets(data) {
 }
 
 function futureTickets(data) {
-  return data.futures.filter((r) => r.frozen).map((r) => ({
+  // Short futures (12 Oct 2026) go to the Sheet too, as action SELL: entryTrigger is the sell limit.
+  return [...data.futures, ...(data.futuresShort || [])].filter((r) => r.frozen).map((r) => ({
     symbol: r.symbol,
     assetClass: "FUTURE",
-    action: "BUY",
+    action: r.side < 0 ? "SELL" : "BUY",
     // A share-only name has no contract; its NSE symbol is what is searched.
     tradingSymbol: r.tradingSymbol || r.symbol,
     frozenAt: r.frozenAt || null,

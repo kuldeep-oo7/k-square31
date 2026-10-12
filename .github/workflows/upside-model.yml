@@ -19,9 +19,9 @@ on:
         description: "Forward horizon in sessions"
         required: false
         default: "5"
-  schedule:
-    # Saturday morning IST: after the week has closed, before Monday's anchor.
-    - cron: "30 2 * * 6"
+  # SCHEDULE OFF (audit 12 Oct 2026, B1): nothing on the desk reads this model (not desk.yml, the build,
+  # the page, the Sheet or the screener), so the weekly retrain spent ~27 Actions minutes for nothing.
+  # Still runnable by hand (workflow_dispatch).
 
 concurrency:
   group: k2-upside-model

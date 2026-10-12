@@ -348,6 +348,15 @@ console.log("\nthe history cache round-trips, and the fetch keeps its budget");
       && H.lastCompletedSession(Date.parse("2026-09-27T10:00:00+05:30")) === "2026-09-25"
       && H.lastCompletedSession(Date.parse("2026-10-02T18:00:00+05:30")) === "2026-10-01",
       [H.lastCompletedSession(now), H.lastCompletedSession(Date.parse("2026-10-02T18:00:00+05:30"))].join(" "));
+    // SHORT FUTURES (12 Oct 2026): the mirror of a long -- loses when the stock rises.
+    {
+      const p = R.shortFuturesPosition({ symbol: "X", buy: 100, stop: 101.5, target1: 97.5 }, 20);
+      const day = (g, l, h, c) => { const o = R.exitPrice(p, p.priceAt(1 + g), p.priceAt(1 + h), p.priceAt(1 + l), p.priceAt(1 + c)); return [o.how, Math.round(p.qty * (o.price - p.entry) * 100) / 100]; };
+      check("a short stops out when the stock rises to its stop (-1.5 x 20 = -30)", JSON.stringify(day(0, -0.002, 0.03, 0.02)) === JSON.stringify(["STOP", -30]));
+      check("a short takes its target when the stock falls 2.5% (+50)", JSON.stringify(day(0, -0.03, 0.002, -0.02)) === JSON.stringify(["TARGET", 50]));
+      check("a gap UP through a short's stop exits at the open (-100 on a 5% gap)", JSON.stringify(day(0.05, 0.04, 0.06, 0.05)) === JSON.stringify(["GAP_STOP", -100]));
+      check("a short gains when the stock closes lower (+10 on -0.5%)", JSON.stringify(day(0, -0.006, 0.004, -0.005)) === JSON.stringify(["CLOSE", 10]));
+    }
     console.log("\n" + passed + " passed, " + failed + " failed");
     process.exit(failed ? 1 : 0);
   })();

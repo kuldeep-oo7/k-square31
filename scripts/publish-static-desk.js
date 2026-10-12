@@ -809,7 +809,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       const { readHistory } = require("../api/_lib/risk-history");
       const { loadCorporateActions } = require("../api/_lib/nse-corporate-actions");
       return riskView({
-        futures, calls: options.filter((c) => c.right === "CE"), puts: options.filter((c) => c.right === "PE"), units: GM_MIN_UNITS,
+        futures, futuresShort, calls: options.filter((c) => c.right === "CE"), puts: options.filter((c) => c.right === "PE"), units: GM_MIN_UNITS,
         // An index's history is kept under its Yahoo ticker.
         historyFor: (symbol) => (riskHistoryFor || ((s) => readHistory(s)))(INDEX_TICKER[symbol] || symbol),
         actions: riskActions === undefined ? loadCorporateActions() : riskActions
@@ -841,7 +841,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
   } else if (quoteStatus?.ok) {
     try {
       const nseCheck = require("../api/_lib/nse-crosscheck");
-      feedCheck = await nseCheck.crossCheck(nseCheck.sampleRows({ futures, options, nowMs: Date.now() }), {
+      feedCheck = await nseCheck.crossCheck(nseCheck.sampleRows({ futures: [...futures, ...futuresShort], options, nowMs: Date.now() }), {
         session: quoteStatus.lastExchangeDate || null,
         // The last settlement file's own figures for each contract, to tell a
         // page NSE has not yet rolled over from a different contract.
@@ -1108,11 +1108,12 @@ function page(d) {
     if (!side) return "";
     if (!side.available) return off(side.reason || "reason unknown");
     const w = side.worst;
-    const what = kind === "futures" ? `${esc(r.units)} units each` : "one lot each";
+    const what = kind === "futures" || kind === "short futures" ? `${esc(r.units)} units each` : "one lot each";
     // A put loses when its index or stock RISES: every "fell" below reads the
     // other way round, and so does the gap.
     const isPut = kind === "puts";
-    const moved = isPut ? "rose" : "fell";
+    const losesOnRise = isPut || kind === "short futures";   // a short future, like a put, loses when prices rise
+    const moved = losesOnRise ? "rose" : "fell";
     const gapWord = side.gap && Number(side.gap.shockPct) > 0 ? "higher" : "lower";
     const stops = !w.stopsHit ? "no stop was hit"
       : `${esc(w.stopsHit)} stop${w.stopsHit === 1 ? " was" : "s were"} hit${w.throughGap ? `, ${esc(w.throughGap)} of them by a gap at the open` : ""}`;
@@ -1729,6 +1730,8 @@ ${staleAlarm}
     ${(d.futuresShort || []).length ? `<h2 style="margin-top:22px">Shorts &mdash; falling stocks: SELL first, buy back lower</h2>
     <div class="sub" style="margin:0 0 10px"><b class="down">Tested:</b> shorting the desk&rsquo;s SELL/REDUCE stocks on this geometry LOST on six years of NSE data
       (&minus;${Math.abs(RATING_TEST.sellNetPct)}% a trade, ${RATING_TEST.sellTrades.toLocaleString("en-IN")} trades, t = &minus;${Math.abs(RATING_TEST.sellT)}). New on TRACK from 12 Oct. Your call &mdash; size small.</div>
+    ${allRowsBox(d.futuresShort, sumOf(d.futuresShort, (r) => r.minCapital), sumOf(d.futuresShort, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, sold short, before GM's charges`, "")}
+    ${riskBox(d.risk?.futuresShort, "short futures")}
     <div class="wrap"><table>
       <thead><tr>
         <th>SYMBOL</th><th class="num">SELL LIMIT</th><th class="num">TARGET 1 &middot; 2</th>
@@ -1785,6 +1788,8 @@ ${staleAlarm}
 
   <section class="pane pane-trk">
     <h2>Track record &mdash; every price shown, bought on paper the moment it appeared</h2>
+    <div class="sub" style="margin:-4px 0 10px">Checked every 20 minutes in market hours, against each build&rsquo;s quotes and the day&rsquo;s high and low.
+      A dip between two checks that is not a new day low (or high) is not seen &mdash; for fills and stops alike (audit 12 Oct 2026).</div>
     ${springyBox(d.springyDip)}
     ${oiFlowBox(d.oiFlow)}
     ${forwardV2Box(d.forwardV2)}

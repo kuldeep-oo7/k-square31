@@ -134,6 +134,18 @@ function futuresPosition(r, units) {
 }
 
 /**
+ * A SHORT futures row (12 Oct 2026), as a mirror price q = 2*entry - price: q falls when the stock rises,
+ * so the short's P&L is qty * (q - entry) = qty * (entry - price). Its stop (above the entry) becomes a
+ * mirror stop below it; `inverse` makes simulate() read the day's high as the mirror's low, as for a put.
+ */
+function shortFuturesPosition(r, units) {
+  const entry = num(r.buy);
+  if (!(entry > 0) || !(units > 0)) return null;
+  const mirror = (v) => (v === null ? null : 2 * entry - v);
+  return { symbol: r.symbol, qty: units, entry, stop: mirror(num(r.stop)), target: mirror(num(r.target1)), inverse: true, priceAt: (m) => entry * (2 - m) };
+}
+
+/**
  * An option at one lot -- a call, or a put (c.right "PE") -- repriced with
  * Black-76 at its implied volatility, one day nearer expiry, scaled so that
  * today's model value is exactly the buy price. A put gains as the index FALLS,
@@ -258,7 +270,7 @@ function simulate(positions, index, { tail = TAIL, minSessions = MIN_SESSIONS, g
  * The risk view for the page: futures at `units` each, calls at one lot each.
  * Never throws; a failure is a reason, and the page says it.
  */
-function riskView({ futures = [], calls = [], puts = [], units = 20, historyFor, actions, now = Date.now() }) {
+function riskView({ futures = [], futuresShort = [], calls = [], puts = [], units = 20, historyFor, actions, now = Date.now() }) {
   try {
     if (!actions || !Array.isArray(actions.rows)) {
       return { available: false, reason: "NSE's corporate-action filings could not be read, so a demerger could not be told from a crash" };
@@ -268,7 +280,7 @@ function riskView({ futures = [], calls = [], puts = [], units = 20, historyFor,
       if (!bySymbol.has(a.symbol)) bySymbol.set(a.symbol, []);
       bySymbol.get(a.symbol).push(a);
     }
-    const symbols = [...new Set([...futures, ...calls, ...puts].map((r) => r.symbol))];
+    const symbols = [...new Set([...futures, ...futuresShort, ...calls, ...puts].map((r) => r.symbol))];
     const index = historyIndex({ symbols, historyFor, actionsFor: (s) => bySymbol.get(s) || [], now });
     if (!index.calendar.length) return { available: false, reason: "no price history on this build" };
     const side = (rows, make, opts = {}) => {
@@ -285,6 +297,8 @@ function riskView({ futures = [], calls = [], puts = [], units = 20, historyFor,
       available: true,
       actionsAsOf: actions.fetchedAt || null,
       futures: side(futures, (r) => futuresPosition(r, units)),
+      // A short loses when the market RISES: its gap is the market opening 5% higher, as for puts.
+      futuresShort: side(futuresShort, (r) => shortFuturesPosition(r, units), { gapShock: -GAP_SHOCK }),
       calls: side(calls, callPosition),
       // A put loses when the market RISES: its gap is the market opening 5% higher.
       puts: side(puts, callPosition, { gapShock: -GAP_SHOCK }),
@@ -295,4 +309,4 @@ function riskView({ futures = [], calls = [], puts = [], units = 20, historyFor,
   }
 }
 
-module.exports = { riskView, simulate, historyIndex, contaminatedDays, exitPrice, betaOf, futuresPosition, callPosition, TAIL, MIN_SESSIONS, GAP_SHOCK };
+module.exports = { riskView, simulate, historyIndex, contaminatedDays, exitPrice, betaOf, futuresPosition, shortFuturesPosition, callPosition, TAIL, MIN_SESSIONS, GAP_SHOCK };

@@ -67,7 +67,10 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
   const afterClose = data.sessionOver === true || data.marketPhase !== "OPEN";
 
   // 1 + 2: every futures row as the page shows it, and its arithmetic.
-  for (const f of data.futures) {
+  // Short futures (12 Oct 2026) are checked the same way, against the mirrored arithmetic.
+  const allFutures = [...data.futures, ...(data.futuresShort || [])];
+  for (const f of allFutures) {
+    const sh = f.side < 0;
     for (const [what, v] of [["buy", f.buy], ["target 1", f.target1], ["target 2", f.target2], ["stop", f.stop], ["now", f.spot]]) {
       if (v === null || v === undefined) continue;
       if (!text.includes(px(v))) bad(`${f.display || f.symbol}: its ${what} ${px(v)} is not on the page`);
@@ -75,10 +78,11 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
     const tick = Number(f.tick) || 0.05;
     const onGrid = (v) => Math.abs(v / tick - Math.round(v / tick)) < 1e-6;
     if (![f.buy, f.target1, f.target2, f.stop].every(onGrid)) bad(`${f.symbol}: a level is off its ${tick} tick`);
-    const wantBuy = toTick(f.anchor * ENTRY_DISCOUNT, tick, "down");
-    if (!eq(f.buy, wantBuy)) bad(`${f.symbol}: buy ${f.buy} is not ${wantBuy} (anchor ${f.anchor} x ${ENTRY_DISCOUNT}, rounded down)`);
-    if (!eq(f.target1, toTick(f.buy * TARGET_1, tick, "nearest")) || !eq(f.target2, toTick(f.buy * TARGET_2, tick, "nearest"))
-        || !eq(f.stop, toTick(f.buy * STOP, tick, "nearest"))) bad(`${f.symbol}: target or stop is not buy x ${TARGET_1}/${TARGET_2}/${STOP}`);
+    const m = (x) => (sh ? 2 - x : x);
+    const wantBuy = toTick(f.anchor * m(ENTRY_DISCOUNT), tick, sh ? "up" : "down");
+    if (!eq(f.buy, wantBuy)) bad(`${f.symbol}${sh ? " SHORT" : ""}: ${sh ? "sell" : "buy"} ${f.buy} is not ${wantBuy} (anchor ${f.anchor} x ${m(ENTRY_DISCOUNT)}, rounded ${sh ? "up" : "down"})`);
+    if (!eq(f.target1, toTick(f.buy * m(TARGET_1), tick, "nearest")) || !eq(f.target2, toTick(f.buy * m(TARGET_2), tick, "nearest"))
+        || !eq(f.stop, toTick(f.buy * m(STOP), tick, "nearest"))) bad(`${f.symbol}${sh ? " SHORT" : ""}: target or stop is not ${sh ? "sell" : "buy"} x ${m(TARGET_1)}/${m(TARGET_2)}/${m(STOP)}`);
   }
   // Every option, calls and puts: what the page shows, the stop, and the tick.
   const calls = data.options;
@@ -94,13 +98,13 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
     if (!(c.lotSize > 0) || Math.abs(c.costPerLot - c.buy * c.lotSize) > 0.02) bad(`${c.display}: cost per lot ${c.costPerLot} is not ${c.buy} x ${c.lotSize}`);
   }
   const putCount = calls.filter((c) => c.right === "PE").length;
-  console.log(`page vs build: ${data.futures.length} futures, ${calls.length - putCount} calls and ${putCount} puts read off the page`
+  console.log(`page vs build: ${data.futures.length} futures + ${(data.futuresShort || []).length} short futures, ${calls.length - putCount} calls and ${putCount} puts read off the page`
     + (data.direction ? ` | direction ${data.direction.available ? `${data.direction.regime} since ${data.direction.since} (close of ${data.direction.asOf}${data.direction.stale ? ", STALE" : ""})` : "not read"}` : ""));
 
   // 3 + 4: against NSE's own site.
   const cookie = await nseSession();
   let compared = 0;
-  const futRows = data.futures.filter((f) => f.priceBasis === "CONTRACT" && f.expiry);
+  const futRows = allFutures.filter((f) => f.priceBasis === "CONTRACT" && f.expiry);
   const bySymbol = new Map();
   for (const f of futRows) {
     let body = bySymbol.get(f.symbol);
@@ -163,7 +167,7 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
         bad(`${c.zerodha}: Zerodha lists expiry ${k.expiry}, strike ${k.strike}, ${k.type}, lot ${k.lot}; the page says ${c.expiry}, ${c.strike}, ${c.right}, lot ${c.lotSize}`);
       }
     }
-    for (const f of data.futures.filter((x) => x.priceBasis === "CONTRACT" && x.tradingSymbol)) {
+    for (const f of allFutures.filter((x) => x.priceBasis === "CONTRACT" && x.tradingSymbol)) {
       const k = kite.get(f.tradingSymbol);
       named += 1;
       if (!k) bad(`${f.symbol}: Zerodha has no contract named ${f.tradingSymbol}`);
@@ -189,7 +193,7 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
       lotChecked += 1;
       if (Number(c.lotSize) !== want) bad(`${c.display}: lot ${c.lotSize} on the page, ${want} in NSE's lot file`);
     }
-    for (const f of data.futures.filter((x) => x.expiry && x.exchangeLot)) {
+    for (const f of allFutures.filter((x) => x.expiry && x.exchangeLot)) {
       const want = lots.get(f.symbol)?.[col(f.expiry)];
       if (want && Number(f.exchangeLot) !== want) bad(`${f.symbol} FUT: lot ${f.exchangeLot}, ${want} in NSE's lot file`);
     }
@@ -199,7 +203,7 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
   // TRACK's verdicts on today's futures trades against NSE's own day range.
   const today = data.sessionDate;
   const trades = [...(data.track?.open || []), ...(data.track?.recentClosed || [])]
-    .filter((t) => t.kind === "FUT" && t.sessionDate === today && t.priceBasis !== "SHARE" && t.expiry);
+    .filter((t) => (t.kind === "FUT" || t.kind === "FUTS") && t.sessionDate === today && t.priceBasis !== "SHARE" && t.expiry);
   let judged = 0;
   for (const t of trades) {
     const body = bySymbol.get(t.symbol);
@@ -208,6 +212,12 @@ const pause = (ms) => new Promise((r) => setTimeout(r, ms));
     const hi = Number(row?.highPrice), lo = Number(row?.lowPrice);
     if (!(hi > 0) || !(lo > 0)) continue;
     judged += 1;
+    if (t.kind === "FUTS") {   // a short: the mirror (12 Oct 2026)
+      if (t.filledAt && !(hi > t.buy)) bad(`TRACK SHORT ${t.contract}: filled, but NSE's high ${hi} never traded over the sell ${t.buy}`);
+      if (t.status === "STOP" && !(hi >= t.stop)) bad(`TRACK SHORT ${t.contract}: STOP, but NSE's high ${hi} is under the stop ${t.stop}`);
+      if (t.status === "TARGET" && !(lo < t.target)) bad(`TRACK SHORT ${t.contract}: TARGET, but NSE's low ${lo} is not through ${t.target}`);
+      continue;
+    }
     if (t.filledAt && !(lo < t.buy)) bad(`TRACK ${t.contract}: filled, but NSE's low ${lo} never traded under the buy ${t.buy}`);
     if (t.status === "STOP" && !(lo <= t.stop)) bad(`TRACK ${t.contract}: STOP, but NSE's low ${lo} is above the stop ${t.stop}`);
     if (t.status === "TARGET" && !(hi > t.target)) bad(`TRACK ${t.contract}: TARGET, but NSE's high ${hi} is not through ${t.target}`);

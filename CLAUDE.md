@@ -118,15 +118,11 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
 
 ## Open work (as of 2 Oct 2026). Pick up from here
 
-- **Strategy atlas** (branch `claude/strategy-atlas-2026-09-30`, `studies/strategy-atlas-2026-09-30/`):
-  - Families: Turtle S1/S2, Connors RSI(2), NR7 and the 52-week high (George & Hwang 2004),
-    each in its original form and in the desk-geometry form, plus the desk's candlestick and
-    chart-pattern detectors per stock. 24 members in all.
-  - Minervini is dropped: no primary source and no sourced exit.
-  - A registration with study.js was written in a cloud session. Push it BEFORE any real-data
-    number exists. Then SOURCE-CHECK.txt, then one run on the `data-nse-cm` release, then
-    RESULT.txt and READ-THIS-FIRST.txt.
-  - A PASS goes to TRACK as paper only.
+- **Strategy atlas (30 Sep): SUPERSEDED, do not run.** Its folder only ever held a downloader. The 3 Oct
+  TA atlas tested the same families (Turtle, Connors RSI-2, NR7, the desk's candle and pattern detectors)
+  and all FAILED; the 52-week high (George & Hwang) failed in the families studies.
+- **Whole-project audit 12 Oct 2026:** studies/audit-2026-10-12/PROBLEMS.md lists every problem found, with
+  evidence and status. Read it first; continue the OPEN items.
 - **Audit findings, as of 4 Oct 2026:**
   - FIXED:
     - F3: the page now says no shock gate runs. Its inputs failed their tests. The K2-lang
