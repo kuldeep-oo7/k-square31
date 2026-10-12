@@ -86803,6 +86803,492 @@
     "perLot": -15750,
     "netPerLot": -15841.99
    }
+  },
+  {
+   "id": "2026-10-12|FUTS|SAIL26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "SAIL",
+   "contract": "SAIL26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 4700,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T03:50:41.585Z",
+   "buy": 174.19,
+   "target": 169.84,
+   "target2": 165.48,
+   "stop": 176.8,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 75,
+     "medianTradingDays": 0.124
+    },
+    "target": {
+     "probabilityPct": 83.6,
+     "medianTradingDays": 1.444
+    },
+    "sigmaPct": 40.8,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-12T04:07:08.912Z",
+   "hoursToFill": 0.27,
+   "closedAt": "2026-10-12T04:26:36.546Z",
+   "exitPrice": 176.8,
+   "exitReason": "STOP",
+   "hoursFillToExit": 0.32,
+   "sessionsHeld": 0,
+   "best": 174.19,
+   "worst": 178,
+   "last": 178,
+   "lastAt": "2026-10-12T04:26:36.546Z",
+   "marks": 3,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 178,
+    "low": 172.2,
+    "last": 178
+   },
+   "pnl": {
+    "perUnit": -2.61,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-09|PE|BHARTIARTL26OCT1860PE",
+   "kind": "PE",
+   "symbol": "BHARTIARTL",
+   "contract": "BHARTIARTL26OCT1860PE",
+   "expiry": "2026-10-27",
+   "strike": 1860,
+   "optionType": "PE",
+   "lotSize": 475,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T04:26:18.603Z",
+   "buy": 50.45,
+   "target": 75.65,
+   "target2": null,
+   "stop": 25.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 65,
+     "medianDays": 3.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-09T04:26:18.619Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-12T04:26:36.546Z",
+   "exitPrice": 75.65,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 72,
+   "sessionsHeld": 1,
+   "best": 95.5,
+   "worst": 50.2,
+   "last": 95.4,
+   "lastAt": "2026-10-12T04:26:36.546Z",
+   "marks": 25,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 95.5,
+    "low": 84.05,
+    "last": 95.4
+   },
+   "pnl": {
+    "perUnit": 25.2,
+    "pct": 49.95,
+    "basis": "NET",
+    "perLot": 11970,
+    "netPerLot": 11843
+   }
+  },
+  {
+   "id": "2026-10-09|PE|TIINDIA26OCT2150PE",
+   "kind": "PE",
+   "symbol": "TIINDIA",
+   "contract": "TIINDIA26OCT2150PE",
+   "expiry": "2026-10-27",
+   "strike": 2150,
+   "optionType": "PE",
+   "lotSize": 200,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T04:06:56.261Z",
+   "buy": 34.5,
+   "target": 51.75,
+   "target2": null,
+   "stop": 17.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 30.4,
+     "medianDays": 9.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-09T04:26:18.619Z",
+   "hoursToFill": 0.32,
+   "closedAt": "2026-10-12T04:26:36.546Z",
+   "exitPrice": 17.25,
+   "exitReason": "STOP",
+   "hoursFillToExit": 72,
+   "sessionsHeld": 1,
+   "best": 35.4,
+   "worst": 17.25,
+   "last": 17.25,
+   "lastAt": "2026-10-12T04:26:36.546Z",
+   "marks": 27,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 24,
+    "low": 17.65,
+    "last": 17.25
+   },
+   "pnl": {
+    "perUnit": -17.25,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3450,
+    "netPerLot": -3506.93
+   }
+  },
+  {
+   "id": "2026-10-08|PE|HAL26OCT4500PE",
+   "kind": "PE",
+   "symbol": "HAL",
+   "contract": "HAL26OCT4500PE",
+   "expiry": "2026-10-27",
+   "strike": 4500,
+   "optionType": "PE",
+   "lotSize": 150,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T07:06:59.222Z",
+   "buy": 50.4,
+   "target": 75.6,
+   "target2": null,
+   "stop": 25.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 28.2,
+     "medianDays": 10.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-08T07:06:59.232Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-12T04:26:36.546Z",
+   "exitPrice": 25.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 93.33,
+   "sessionsHeld": 2,
+   "best": 68,
+   "worst": 24.9,
+   "last": 25.95,
+   "lastAt": "2026-10-12T04:26:36.546Z",
+   "marks": 45,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 35,
+    "low": 24.9,
+    "last": 25.95
+   },
+   "pnl": {
+    "perUnit": -25.2,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3780,
+    "netPerLot": -3837.86
+   }
+  },
+  {
+   "id": "2026-10-08|CE|INDUSTOWER26OCT380CE",
+   "kind": "CE",
+   "symbol": "INDUSTOWER",
+   "contract": "INDUSTOWER26OCT380CE",
+   "expiry": "2026-10-27",
+   "strike": 380,
+   "optionType": "CE",
+   "lotSize": 1700,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T04:26:38.438Z",
+   "buy": 11.4,
+   "target": 17.1,
+   "target2": null,
+   "stop": 5.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 59.3,
+     "medianDays": 4.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-08T04:46:45.071Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-12T04:26:36.546Z",
+   "exitPrice": 5.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 95.66,
+   "sessionsHeld": 2,
+   "best": 11.4,
+   "worst": 5.7,
+   "last": 6.1,
+   "lastAt": "2026-10-12T04:26:36.546Z",
+   "marks": 53,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 7.75,
+    "low": 5.7,
+    "last": 6.1
+   },
+   "pnl": {
+    "perUnit": -5.7,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -9690,
+    "netPerLot": -9764.54
+   }
+  },
+  {
+   "id": "2026-10-08|PE|UNOMINDA26OCT1100PE",
+   "kind": "PE",
+   "symbol": "UNOMINDA",
+   "contract": "UNOMINDA26OCT1100PE",
+   "expiry": "2026-10-27",
+   "strike": 1100,
+   "optionType": "PE",
+   "lotSize": 550,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T03:51:39.170Z",
+   "buy": 31.35,
+   "target": 47,
+   "target2": null,
+   "stop": 15.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 52.7,
+     "medianDays": 6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-08T03:51:39.183Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-12T04:26:36.546Z",
+   "exitPrice": 15.5,
+   "exitReason": "STOP",
+   "hoursFillToExit": 96.58,
+   "sessionsHeld": 2,
+   "best": 38.35,
+   "worst": 14.75,
+   "last": 15.85,
+   "lastAt": "2026-10-12T04:26:36.546Z",
+   "marks": 52,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 16.6,
+    "low": 14.75,
+    "last": 15.85
+   },
+   "pnl": {
+    "perUnit": -15.85,
+    "pct": -50.56,
+    "basis": "NET",
+    "perLot": -8717.5,
+    "netPerLot": -8788.84
+   }
+  },
+  {
+   "id": "2026-10-07|CE|INDUSTOWER26OCT375CE",
+   "kind": "CE",
+   "symbol": "INDUSTOWER",
+   "contract": "INDUSTOWER26OCT375CE",
+   "expiry": "2026-10-27",
+   "strike": 375,
+   "optionType": "CE",
+   "lotSize": 1700,
+   "sessionDate": "2026-10-07",
+   "shownAt": "2026-10-07T04:05:54.209Z",
+   "buy": 16.55,
+   "target": 24.85,
+   "target2": null,
+   "stop": 8.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 57.8,
+     "medianDays": 5.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-07T04:25:53.928Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-12T04:26:36.546Z",
+   "exitPrice": 8.3,
+   "exitReason": "STOP",
+   "hoursFillToExit": 120.01,
+   "sessionsHeld": 3,
+   "best": 16.55,
+   "worst": 7.85,
+   "last": 8.5,
+   "lastAt": "2026-10-12T04:26:36.546Z",
+   "marks": 77,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 10.75,
+    "low": 7.85,
+    "last": 8.5
+   },
+   "pnl": {
+    "perUnit": -8.25,
+    "pct": -49.85,
+    "basis": "NET",
+    "perLot": -14025,
+    "netPerLot": -14111.97
+   }
+  },
+  {
+   "id": "2026-10-07|PE|UNOMINDA26OCT1100PE",
+   "kind": "PE",
+   "symbol": "UNOMINDA",
+   "contract": "UNOMINDA26OCT1100PE",
+   "expiry": "2026-10-27",
+   "strike": 1100,
+   "optionType": "PE",
+   "lotSize": 550,
+   "sessionDate": "2026-10-07",
+   "shownAt": "2026-10-07T03:51:21.807Z",
+   "buy": 29.65,
+   "target": 44.45,
+   "target2": null,
+   "stop": 14.8,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.6,
+     "medianDays": 6.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-07T04:05:54.228Z",
+   "hoursToFill": 0.24,
+   "closedAt": "2026-10-12T04:26:36.546Z",
+   "exitPrice": 14.8,
+   "exitReason": "STOP",
+   "hoursFillToExit": 120.35,
+   "sessionsHeld": 3,
+   "best": 38.35,
+   "worst": 14.75,
+   "last": 15.85,
+   "lastAt": "2026-10-12T04:26:36.546Z",
+   "marks": 77,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 16.6,
+    "low": 14.75,
+    "last": 15.85
+   },
+   "pnl": {
+    "perUnit": -14.85,
+    "pct": -50.08,
+    "basis": "NET",
+    "perLot": -8167.5,
+    "netPerLot": -8237.68
+   }
+  },
+  {
+   "id": "2026-10-05|PE|UNOMINDA26OCT1100PE",
+   "kind": "PE",
+   "symbol": "UNOMINDA",
+   "contract": "UNOMINDA26OCT1100PE",
+   "expiry": "2026-10-27",
+   "strike": 1100,
+   "optionType": "PE",
+   "lotSize": 550,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T03:50:43.392Z",
+   "buy": 30.8,
+   "target": 46.2,
+   "target2": null,
+   "stop": 15.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.2,
+     "medianDays": 7.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T04:25:59.453Z",
+   "hoursToFill": 0.59,
+   "closedAt": "2026-10-12T04:26:36.546Z",
+   "exitPrice": 15.4,
+   "exitReason": "STOP",
+   "hoursFillToExit": 168.01,
+   "sessionsHeld": 5,
+   "best": 39.35,
+   "worst": 14.75,
+   "last": 15.85,
+   "lastAt": "2026-10-12T04:26:36.546Z",
+   "marks": 129,
+   "obs": {
+    "date": "2026-10-12",
+    "high": 16.6,
+    "low": 14.75,
+    "last": 15.85
+   },
+   "pnl": {
+    "perUnit": -15.4,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -8470,
+    "netPerLot": -8541.1
+   }
   }
  ]
 }
