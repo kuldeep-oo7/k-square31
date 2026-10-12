@@ -6,7 +6,8 @@ name: nse-all
 on:
   schedule:
     - cron: "15 15 * * 1-5"     # 20:45 IST, after NSE posts the day's files
-    - cron: "45 1 * * 2-6"      # 07:15 IST next morning, a backstop for late files
+    # No morning backstop: each evening run also collects the previous trading day, so a missed run
+    # catches up the next evening without downloading everything twice (Actions minutes).
   workflow_dispatch:
 permissions:
   contents: write
