@@ -13,7 +13,10 @@
 // next morning's jobs never raises a false alarm, and a whole missed day always does.
 const { lastCompletedSession } = require("./risk-history");
 
-const GRACE_MS = 6 * 3600_000;
+// 17 h, not 6 (audit 12 Oct 2026): the paper tests are rebuilt by the 07:50 morning job, so from 16:00 to
+// about 09:00 the next day the previous session is what they SHOULD hold. With 6 h the page showed a red
+// OUT OF DATE line every evening after 22:00 -- a false alarm, against this file's own stated intent.
+const GRACE_MS = 17 * 3600_000;
 
 function expectedSession(now = Date.now()) { return lastCompletedSession(now - GRACE_MS); }
 

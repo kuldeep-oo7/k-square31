@@ -10,6 +10,10 @@ assert.strictEqual(expectedSession(now), "2026-10-05");
 assert.strictEqual(expectedSession(at("2026-10-05T03:30:00Z")), "2026-10-01");
 // Tue 6 Oct 20:00 IST: still Mon 5 Oct (the evening grace), so no false alarm before the evening job.
 assert.strictEqual(expectedSession(at("2026-10-06T14:30:00Z")), "2026-10-05");
+// Mon 12 Oct 22:32 IST: the morning job has not run yet, so Fri 9 Oct is still what is expected (no false alarm);
+// by Tue 13 Oct 09:30 IST Mon 12 Oct is.
+assert.strictEqual(expectedSession(at("2026-10-12T17:02:00Z")), "2026-10-09");
+assert.strictEqual(expectedSession(at("2026-10-13T04:00:00Z")), "2026-10-12");
 const side = (to) => ({ available: true, to });
 const fresh = { springyDip: { dataThrough: "2026-10-05" }, oiFlow: { dataThrough: "2026-10-05" }, forwardV2: { dataThrough: "2026-10-05" },
   forwardV3: { dataThrough: "2026-10-05" }, risk: { available: true, futures: side("2026-10-05") }, direction: { available: true, asOf: "2026-10-05" } };
