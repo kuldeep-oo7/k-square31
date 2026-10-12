@@ -14,6 +14,10 @@ const SETS = {
   fii_stats: [(p) => `${A}/content/fo/fii_stats_${p.dd}-${p.mon}-${p.y}.xls`, "xls"],
   shortselling: [(p) => `${A}/archives/equities/shortSelling/shortselling_${p.dd}${p.m}${p.y}.csv`, "csv"],
   slb_openpos: [(p) => `${A}/archives/slbs/open_pos/slb_openpos_${p.dd}${p.m}${p.y}.csv`, "csv"],
+  // SLB bhavcopy: each lending series' fee (Rs per share for the contract's remaining tenure, NSE Clearing SLB FAQ),
+  // quantity, value and trades; for the loan-fee study (studies/research-open-source-2026-10-12, L1). Checked 12 Oct 2026:
+  // the 2021 files are still served.
+  slbm_bc: [(p) => `${A}/archives/slbs/bhavcopy/SLBM_BC_${p.dd}${p.m}${p.y}.DAT`, "dat"],
   combineoi: [(p) => `${A}/archives/nsccl/mwpl/combineoi_${p.dd}${p.m}${p.y}.zip`, "zip"],
   cmvolt: [(p) => `${A}/archives/nsccl/volt/CMVOLT_${p.dd}${p.m}${p.y}.CSV`, "csv"],
   fovolt: [(p) => `${A}/archives/nsccl/volt/FOVOLT_${p.dd}${p.m}${p.y}.csv`, "csv"],
