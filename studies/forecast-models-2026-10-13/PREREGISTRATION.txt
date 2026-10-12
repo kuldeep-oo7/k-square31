@@ -1,0 +1,54 @@
+PRE-REGISTRATION -- FOUNDATION MODELS, A BLEND, TREES AND A BASELINE ON NSE, scored under PROTOCOL v2
+Written Tuesday 13 Oct 2026 shortly after midnight IST, BEFORE any model has seen a real NSE price (only synthetic
+random walks, to check code, run time and memory). Commit time + PREREGISTRATION.sha256 are the proof; score.js
+refuses to run if this file changes. Owner, 12-13 Oct: "about the open source model please use it and implement and
+audit it blend it ... the time fm and etc".
+
+THE MODELS (each checked on its own page, 12-13 Oct 2026)
+ M1 TimesFM 2.5, 200M (google/timesfm-2.5-200m-pytorch, Apache-2.0; NOT 3.0, whose weights are non-commercial).
+    Close prices only; median of its quantile head; normalize_inputs, flip invariance, positive inputs.
+ M2 Chronos-2, 120M (amazon/chronos-2, Apache-2.0; pip chronos-forecasting 2.3.2). Close prices only; median.
+ M3 Kronos-small, 24.7M (NeoQuasar/Kronos-small + Kronos-Tokenizer-base, MIT; github.com/shiyu-coder/Kronos).
+    Open/high/low/close/volume, amount = close x volume; T = 1.0, top_p = 0.9, ONE sample (its own example; five
+    samples took > 6 s a series on this laptop), torch seed 0.
+ M4 Blend: for each stock, the equal-weight mean of its cross-sectional ranks under M1, M2 and M3 (all three
+    needed). Weights fixed here; never chosen from results.
+ M5 Boosted trees (Gu, Kelly & Xiu, Rev. Financial Studies 33(5) 2020, in spirit): sklearn
+    HistGradientBoostingRegressor(max_iter=200, learning_rate=0.05, max_leaf_nodes=15, min_samples_leaf=50,
+    random_state=0) on 8 features from bars up to d: log returns over 1, 5, 20, 60 sessions; 20-session SD of
+    daily log returns; 20-session mean (high-low)/close; 5- over 60-session mean volume; close / 250-session high
+    - 1. Target: the stock's gross open(e)->close(e+4) return minus the mean of the names that rebalance. Walk-
+    forward: at rebalance index i it is trained only on rebalances with index <= i - 10 (history from Sep 2021).
+ M6 Baseline: 5-day reversal (Lehmann, QJE 105(1) 1990): forecast = -(close(d) / close(d-5) - 1).
+Forecast of M1-M3 = the model's 5-bars-ahead median close / close(d) - 1, from at most the last 512 daily bars up
+to d (fewer if a reset is nearer; at least 250).
+
+CONTAMINATION, AND THE WINDOW
+Kronos' paper (arXiv 2508.02739) says its pre-training data "extends up to June 2024" and lists India (XNSE) among
+its in-distribution exchanges, so it has very likely seen NSE prices before July 2024. TimesFM 2.5's card lists
+GiftEvalPretrain (no dates), Wikipedia to Nov 2023, Google Trends to end-2022 and synthetic data; Chronos-2's page
+states no training data. So every member is scored ONLY on entries from 2024-07-01 on. Even that cannot rule out
+that a model saw these stocks; the forward paper test after a PASS is the real test.
+
+THE TRADE (identical for every member)
+- Rebalance entry sessions e = every 10th session of the NSE CM session list counted from 2020-09-01 (index
+  divisible by 10), e >= 2024-07-01, with 5 sessions of data after it. d = the session before e.
+- Names: the first 100 of e's month's universe ordered by 60-session median traded value (the universe rule of
+  api/_lib/forward-v3.js context(): top 200 EQ with >= 250 bars after the last reset, an open >= 18% from the
+  previous close), that traded on d, have >= 250 bars since their last reset up to d, and a clean 5-session
+  window from e. A rebalance needs >= 20 names with a forecast.
+- LONG the top tenth by forecast, SHORT the bottom tenth (floor(n / 10) each), from open(e) to close(e+4),
+  stock-futures charges (calculateNseFuturesCharges, dated, quantity ceil(500000/price), both sides, + a round
+  trip per month end crossed). Value = (mean long net + mean short net) / 2, one per rebalance; not in excess of
+  the market (it is hedged).
+
+SCORING: PROTOCOL v2, unchanged. One value per calendar month = the mean of that month's rebalance values; Newey-
+West(3) t; >= 24 months else NOT TESTABLE. PASS: mean > 0 and t >= 3. PROMISING: mean > 0 and 2 <= t < 3. Else
+FAIL. Holm across the six members (one-sided 5%), Deflated Sharpe with N = 6. Also reported, not judged: each
+member's mean Spearman rank correlation between forecast and the realised 5-session gross return.
+Run ONCE on real data. A PASS or PROMISING goes to TRACK as a forward paper rule first, with its own registration.
+
+SYNTHETIC CHECKS (before the real run)
+1. forecast.py runs every model on synthetic random walks and returns finite forecasts.
+2. score.js --synthetic: a planted forecaster is found (PASS) and the blend carries part of it; noise gives at
+   most one chance PASS; changing prices after a date leaves earlier rebalances identical.
