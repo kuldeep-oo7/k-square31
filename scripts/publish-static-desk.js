@@ -341,7 +341,12 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
   const exitByFor = (symbol, expiry) => (ledgerDates.isIndexUnderlying(symbol) ? expiry : ledgerDates.exitByDate(expiry));
   const screen = screenContracts({
     reference, underlyingScores: scores, limit, bullish, requireView: true, resultsFor, exitByFor,
-    liveQuoteFor: (s, e, k, t) => { try { return live.liveQuote(s, e, k, t); } catch (err) { return null; } },
+    // A BOOK FROM THIS BUILD IS A LIVE BOOK (12 Oct 2026). The default 120-second window is shorter than the
+    // build itself: 45 option chains take 60-190 s to fetch before screening starts, so at 09:20 every book
+    // was already over 2 minutes old -- 0 index puts and 72 options instead of ~250 in the first three builds
+    // (and at 14:58). 10 minutes covers this build's fetch; the previous scheduled build's books (saved in
+    // .private/cache, about 20 minutes old) are still refused.
+    liveQuoteFor: (s, e, k, t) => { try { return live.liveQuote(s, e, k, t, { maxAgeMs: 10 * 60_000 }); } catch (err) { return null; } },
     marketOpen: phase.open === true,
     banned: bannedSet,
     forwardFor
@@ -1435,7 +1440,11 @@ function page(d) {
 
   const liveNote = d.pricedLive > 0
     ? `<b class="up">${d.pricedLive}</b> priced from a live broker book, <b>${d.pricedFromSettlement}</b> from the ${esc(d.settlementFile)} settlement file.`
-    : `All prices are from the <b>${esc(d.settlementFile)}</b> settlement file. The market was ${esc(phaseWords(d.marketPhase))} when this was built, so nothing here is executable right now.`;
+    // 12 Oct 2026: after the close, before NSE posts the day's file (~19:00 IST), "All prices are from the 9 Oct
+    // settlement file" was false -- the futures already showed 12 Oct's last trades. Say which is which.
+    : (d.settlementFile && d.quoteStatus?.lastExchangeDate && d.settlementFile < d.quoteStatus.lastExchangeDate
+      ? `Option premiums are from NSE&rsquo;s <b>${esc(d.settlementFile)}</b> settlement file (NSE posts the ${esc(d.quoteStatus.lastExchangeDate)} file after about 19:00 IST; the next build uses it); futures NOW is the ${esc(d.quoteStatus.lastExchangeDate)} last trade. The market was ${esc(phaseWords(d.marketPhase))} when this was built, so nothing here is executable right now.`
+      : `All prices are from the <b>${esc(d.settlementFile)}</b> settlement file. The market was ${esc(phaseWords(d.marketPhase))} when this was built, so nothing here is executable right now.`);
 
   const nextText = d.nextSession ? new Date(`${d.nextSession}T00:00:00Z`).toLocaleDateString("en-IN", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" }) : "the next session";
   // The options are priced from a settlement file OLDER than the last session

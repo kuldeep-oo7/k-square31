@@ -125,4 +125,13 @@ const future = classifyBook(AT_1130_IST + 10 * 60 * 1000, { now: AT_1130_IST });
 assert.equal(future.executable, false, "a stamp from the future cannot be executable");
 console.log("  ✓ A future-dated exchange stamp is rejected rather than read as fresh");
 
+// 12 Oct 2026: a book stamped 5 minutes before screening is stale under the default 2-minute window
+// (which emptied the 09:20-09:56 builds) and live under the screener's 10-minute build window.
+{
+  const fiveMin = classifyBook(parseExchangeClock("17-Sep-2026 11:25:00"), { now: AT_1130_IST });
+  const screener = classifyBook(parseExchangeClock("17-Sep-2026 11:25:00"), { now: AT_1130_IST, maxAgeMs: 10 * 60_000 });
+  assert.equal(fiveMin.executable, false); assert.equal(screener.executable, true);
+  console.log("  ✓ A 5-minute-old book is refused by the 2-minute window and accepted by the screener's build window");
+}
+
 console.log("Live-quote tests passed: IST exchange clock independent of host timezone, never-traded sentinel refused, session boundaries, three-state freshness with only REALTIME executable, and a future stamp rejected");
