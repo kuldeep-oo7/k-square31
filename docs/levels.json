@@ -322,7 +322,9 @@
   "OPTION|RBLBANK|RBLBANK26OCT410CE",
   "OPTION|VBL|VBL26OCT460CE",
   "OPTION|DRREDDY|DRREDDY26OCT1290CE",
-  "OPTION|MFSL|MFSL26OCT1320PE"
+  "OPTION|MFSL|MFSL26OCT1320PE",
+  "OPTION|INDIGO|INDIGO26OCT4600PE",
+  "OPTION|TIINDIA|TIINDIA26OCT2100PE"
  ],
  "options": {
   "NIFTY26OCT22600PE": {
@@ -4358,6 +4360,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-13T05:07:51.240Z",
    "frozenAtIst": "2026-10-13 10:37 IST",
+   "frozenAtSpot": null
+  },
+  "INDIGO26OCT4600PE": {
+   "buy": 44.55,
+   "sell": 66.8,
+   "stop": 22.25,
+   "tick": 0.05,
+   "lotSize": 150,
+   "expiry": "2026-10-27",
+   "strike": 4600,
+   "right": "PE",
+   "symbol": "INDIGO",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-13T05:27:05.251Z",
+   "frozenAtIst": "2026-10-13 10:57 IST",
+   "frozenAtSpot": null
+  },
+  "TIINDIA26OCT2100PE": {
+   "buy": 30.5,
+   "sell": 45.75,
+   "stop": 15.25,
+   "tick": 0.05,
+   "lotSize": 200,
+   "expiry": "2026-10-27",
+   "strike": 2100,
+   "right": "PE",
+   "symbol": "TIINDIA",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-13T05:27:05.251Z",
+   "frozenAtIst": "2026-10-13 10:57 IST",
    "frozenAtSpot": null
   }
  },
