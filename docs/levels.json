@@ -326,7 +326,8 @@
   "OPTION|INDIGO|INDIGO26OCT4600PE",
   "OPTION|TIINDIA|TIINDIA26OCT2100PE",
   "OPTION|SWIGGY|SWIGGY26OCT220PE",
-  "OPTION|ADANIPOWER|ADANIPOWER26OCT175PE"
+  "OPTION|ADANIPOWER|ADANIPOWER26OCT175PE",
+  "OPTION|INOXWIND|INOXWIND26OCT68PE"
  ],
  "options": {
   "NIFTY26OCT22600PE": {
@@ -4422,6 +4423,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-13T06:06:22.827Z",
    "frozenAtIst": "2026-10-13 11:36 IST",
+   "frozenAtSpot": null
+  },
+  "INOXWIND26OCT68PE": {
+   "buy": 1.55,
+   "sell": 2.33,
+   "stop": 0.78,
+   "tick": 0.01,
+   "lotSize": 6400,
+   "expiry": "2026-10-27",
+   "strike": 68,
+   "right": "PE",
+   "symbol": "INOXWIND",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-13T07:05:58.295Z",
+   "frozenAtIst": "2026-10-13 12:35 IST",
    "frozenAtSpot": null
   }
  },
