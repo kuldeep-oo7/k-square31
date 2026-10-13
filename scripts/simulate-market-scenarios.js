@@ -362,8 +362,12 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     const d = b.data;
     console.log(`  09:33 the freeze  -> ${d.futures.length} futures, ${tabCount(b.html, "t-ce")} calls, ${tabCount(b.html, "t-pe")} puts`);
     check("at 09:33 with live books the levels FREEZE and the page says so", d.levelsFrozen === true && /FIXED FOR TODAY/.test(b.html));
-    check("the page has all four tabs with rows in them",
-      tabCount(b.html, "t-fut") > 0 && tabCount(b.html, "t-ce") + tabCount(b.html, "t-pe") > 0 && /class="t-trk"/.test(b.html));
+    // PROVEN ONLY (13 Oct 2026): no rule has passed, so the tab counts are 0 and each tab opens on NO TRADE,
+    // with its rows folded as UNTESTED -- still on the page.
+    check("the page has all four tabs; the counts are proven trades (none), the rows are still there, folded",
+      tabCount(b.html, "t-fut") === 0 && tabCount(b.html, "t-ce") === 0 && tabCount(b.html, "t-pe") === 0 && /class="t-trk"/.test(b.html)
+      && d.futures.length > 0 && d.options.length > 0 && (b.html.match(/<b class="down">NO TRADE<\/b>/g) || []).length === 3
+      && b.html.includes(`UNTESTED &mdash; WATCH ONLY</b> &mdash; ${d.futures.length + (d.futuresShort || []).length} futures rows`));
     // Implied volatility on the page against the volatility the market was built with.
     const errs = d.options.map((c) => {
       const truth = b.market.trueVol(c.symbol, c.expiry, c.strike, c.right);
@@ -826,7 +830,8 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       d.options.filter((x) => x.right === "CE").every((x) => rising.has(x.symbol)) && /only stocks rising on their own/.test(b.html)
         && !/Only on the stocks the desk rates BUY or ACCUMULATE/.test(b.html),
       `${d.options.filter((x) => x.right === "CE").length} calls`);
-    check("puts ARE on the page (not an empty pass), and the tab counts them", puts.length > 0 && tabCount(b.html, "t-pe") === puts.length, `${puts.length} puts`);
+    check("puts ARE on the page (not an empty pass), folded as untested and counted there; the tab counts proven trades (0)",
+      puts.length > 0 && tabCount(b.html, "t-pe") === 0 && b.html.includes(`UNTESTED &mdash; WATCH ONLY</b> &mdash; ${puts.length} put rows`), `${puts.length} puts`);
     check("index puts are among them", names.some((s) => INDICES.includes(s)), names.filter((s) => INDICES.includes(s)).join(", ") || "none");
     const shownIdx = names.filter((s) => INDICES.includes(s));
     check("the banner counts the puts SHOWN -- rows, names, indices, stocks -- not the names that were eligible",

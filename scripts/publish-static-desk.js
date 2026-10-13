@@ -1551,7 +1551,19 @@ function page(d) {
   // will rise ... give me that in the futures section"). His call; the page states what the rule did.
   const futuresWarned = (inner) => !downtrendPage || !d.futures.length ? inner
     : `<div class="sub" style="margin:0 0 10px"><b class="down">Rising-stock buys while NIFTY falls:</b> this rule lost on its test (&minus;0.44% a trade, 27% winners where 37.5% are needed) and on TRACK so far (futures ${esc(ts.FUT?.hitRatePct ?? "?")}% hit). Your call &mdash; size small.</div>${inner}`;
-  const notRecommended = (label, n, inner) => !downtrendPage || !n ? inner
+  // PROVEN ONLY (owner, 13 Oct 2026, after a NIFTY put lost on a +1.6% day: "suggest me only that you are sure else
+  // you are just filling the track"). A row is a suggestion only if the rule that made it passed a pre-registered test
+  // (CLAUDE.md rule 4). None has, so every tab opens on NO TRADE and its rows fold shut as UNTESTED -- still listed,
+  // still priced, still scored on TRACK, because that is how a real edge would be found. Tab counts are proven trades.
+  // When a rule passes, its rows go in PROVEN_KINDS and come out of the fold.
+  const PROVEN_KINDS = new Set();
+  const provenCount = (kind, n) => (PROVEN_KINDS.has(kind) ? n : 0);
+  const noTrade = (what) => `<div class="note" style="border-left-color:var(--red);margin:0 0 12px"><b class="down">NO TRADE</b> &mdash; nothing on this tab has passed a test, so there is
+    nothing here the desk can call a suggestion. Every rule tried on six years of NSE data failed (TRACK and the notes below have the numbers).
+    The ${esc(what)} under the fold are untested ideas, scored on paper on TRACK. Watching them costs nothing; trading them is a guess.</div>`;
+  const untested = (kind, label, n, inner) => PROVEN_KINDS.has(kind) ? inner
+    : `${noTrade(label)}${n ? `<details class="fold nr"><summary><b class="warn">UNTESTED &mdash; WATCH ONLY</b> &mdash; ${esc(n)} ${esc(label)}. Not a suggestion. Tap to see them.<span class="more"></span></summary><div>${inner}</div></details>` : inner}`;
+  const notRecommended = (label, n, inner) => !downtrendPage || !n || !PROVEN_KINDS.has("CE") ? inner
     : `<details class="fold nr"><summary><b class="down">NOT RECOMMENDED</b> &mdash; ${esc(n)} ${label} from the rising-stock rule: it lost on its test
        (&minus;0.44% a trade) and on TRACK (futures ${esc(ts.FUT?.hitRatePct ?? "?")}%, calls ${esc(ts.CE?.hitRatePct ?? "?")}% hit). Tap to see them anyway.<span class="more"></span></summary><div>${inner}</div></details>`;
   // What the page SHOWS, not what was eligible: "5 indices and 36 stocks" sat
@@ -1726,15 +1738,15 @@ ${staleAlarm}
   <input type="radio" name="view" id="v-trk">
 
   <nav class="tabs">
-    <label for="v-fut" class="t-fut">FUTURES <span>${d.futures.length + (d.futuresShort || []).length}</span></label>
-    <label for="v-ce" class="t-ce">CALLS <span>${downtrendPage ? 0 : calls.length}</span></label>
-    <label for="v-pe" class="t-pe">PUTS <span>${puts.length}</span></label>
+    <label for="v-fut" class="t-fut">FUTURES <span>${provenCount("FUT", d.futures.length + (d.futuresShort || []).length)}</span></label>
+    <label for="v-ce" class="t-ce">CALLS <span>${provenCount("CE", downtrendPage ? 0 : calls.length)}</span></label>
+    <label for="v-pe" class="t-pe">PUTS <span>${provenCount("PE", puts.length)}</span></label>
     <label for="v-trk" class="t-trk">TRACK <span>${trackCount}</span></label>
   </nav>
 
   <section class="pane pane-fut">
     <h2>Futures &mdash; ${esc(d.gmMinUnits || 20)} units each (GM Global's minimum)</h2>
-    ${futuresWarned(`    ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`,
+    ${untested("FUT", "futures rows", d.futures.length + (d.futuresShort || []).length, `${futuresWarned(`    ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`,
       `<b>With no trend, a row's target comes before its stop at most as often as its break-even (about 37.5%)</b> &mdash; a price with no trend is a fair game &mdash;
        so before GM's charges these rows make money only if the BUY signal works. <b>It was tested and FAILED</b>: the desk&rsquo;s own rating,
        replayed day by day on six years of NSE&rsquo;s own prices (${RATING_TEST.stockDays.toLocaleString("en-IN")} stock-days), bought on this tab&rsquo;s limit, target and stop,
@@ -1777,7 +1789,7 @@ ${staleAlarm}
         <th>SYMBOL</th><th class="num">SELL LIMIT</th><th class="num">TARGET 1 &middot; 2</th>
         <th class="num">STOP</th><th class="num">NOW</th><th class="num">GM MIN (20 UNITS)</th><th class="num">R : R</th>
       </tr></thead><tbody>${futShortRows}</tbody>
-    </table></div>` : ""}
+    </table></div>` : ""}`)}
     <div class="sub" style="margin-top:8px">${d.resultsCalendar?.ok
       ? `Results dates are NSE's own board-meeting filings, read ${esc(String(d.resultsCalendar.fetchedAt).slice(0, 10))}:
          ${esc(d.resultsCalendar.meetings)} results meetings filed for the next ${esc(d.resultsCalendar.days)} days. Companies must file at least
@@ -1788,7 +1800,7 @@ ${staleAlarm}
 
   <section class="pane pane-ce">
     <h2>Calls &mdash; you BUY the call, it pays if the stock RISES</h2>
-    ${notRecommended("call rows", calls.length, `    ${allRowsBox(calls, sumOf(calls, (c) => c.costPerLot), sumOf(calls, (c) => Math.abs(c.netLossAtStop)), "one lot each",
+    ${untested("CE", "call rows", calls.length, `${notRecommended("call rows", calls.length, `    ${allRowsBox(calls, sumOf(calls, (c) => c.costPerLot), sumOf(calls, (c) => Math.abs(c.netLossAtStop)), "one lot each",
       calls.length ? `<b>With no trend and fairly priced options, a call is expected to lose about its charges</b>:
        about &minus;${money(Math.abs(sumOf(calls, (c) => c.noTrendNet)))} across all ${esc(calls.length)} rows, one lot each${calls.some((c) => c.spreadKnown === false)
          ? `, <b>plus the bid-ask spread</b>, which is not known without a live book (${esc(calls.filter((c) => c.spreadKnown === false).length)} of these rows)` : ""}.
@@ -1801,12 +1813,12 @@ ${staleAlarm}
     ${calls.length ? oldFileNote : ""}
     ${optionTable(calls, downtrendPage
       ? "No call cleared every gate on the stocks rising on their own (NIFTY is in a downtrend, MARKET DIRECTION above). Puts are on the PUTS tab."
-      : "No calls cleared every gate on this build.")}`)}
+      : "No calls cleared every gate on this build.")}`)}`)}
   </section>
 
   <section class="pane pane-pe">
     <h2>Puts &mdash; you BUY the put, it pays if the index or stock FALLS</h2>
-    ${allRowsBox(puts, sumOf(puts, (c) => c.costPerLot), sumOf(puts, (c) => Math.abs(c.netLossAtStop)), "one lot each",
+    ${untested("PE", "put rows", puts.length, `${allRowsBox(puts, sumOf(puts, (c) => c.costPerLot), sumOf(puts, (c) => Math.abs(c.netLossAtStop)), "one lot each",
       puts.length ? `<b>With no trend and fairly priced options, a put is expected to lose about its charges</b>:
        about &minus;${money(Math.abs(sumOf(puts, (c) => c.noTrendNet)))} across all ${esc(puts.length)} rows, one lot each${puts.some((c) => c.spreadKnown === false)
          ? `, <b>plus the bid-ask spread</b>, which is not known without a live book (${esc(puts.filter((c) => c.spreadKnown === false).length)} of these rows)` : ""}.
@@ -1823,7 +1835,7 @@ ${staleAlarm}
     ${puts.length ? oldFileNote : ""}
     ${optionTable(puts, downtrendPage
       ? "No puts cleared every gate on this build."
-      : "No put cleared every gate on this build. Outside a NIFTY downtrend, puts are looked for on the stocks rated SELL or REDUCE that are falling themselves; in a downtrend also on the indices.")}
+      : "No put cleared every gate on this build. Outside a NIFTY downtrend, puts are looked for on the stocks rated SELL or REDUCE that are falling themselves; in a downtrend also on the indices.")}`)}
   </section>
 
   <section class="pane pane-trk">
