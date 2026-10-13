@@ -63,6 +63,9 @@ and no `research/`. This file carries what it needs. Nothing secret belongs here
 - Market direction (`api/_lib/market-direction.js`): when NIFTY's close < EMA20 < SMA50, the
   page shows puts only (index puts, plus SELL/REDUCE stocks in their own downtrend). It has
   done so since 2 Sep 2026. That rule's own pre-registered test FAILED, and the page says so.
+- **Proven only (owner, 13 Oct 2026):** every tab opens on NO TRADE and its rows fold as UNTESTED - WATCH ONLY; tab counts
+  are proven trades. A kind leaves the fold only when its rule passes and is added to `PROVEN_KINDS` (publish-static-desk.js).
+  Don't present untested rows as suggestions anywhere (owner: "suggest me only that you are sure").
 - Futures geometry (`api/_lib/session-levels.js`):
   - buy = open × 0.992, rounded down to 0.05;
   - target +2.5%, stop −1.5%;
