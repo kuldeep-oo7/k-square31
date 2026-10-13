@@ -120,7 +120,8 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
   - 12-13 Oct 2026: NSE data atlas (14 members, 0 PASS, S2 PROMISING; branch claude/nse-atlas-2026-10-11); loan fee
     on NSE's SLB bhavcopy (0 PASS, F1 t 1.90; branch claude/loan-fee-2026-10-13); foundation models TimesFM-2.5 /
     Chronos-2 / Kronos-small + blend + trees + reversal (branch claude/forecast-models-2026-10-13, scored only from
-    Jul 2024 because Kronos trained on NSE to Jun 2024). Research list: studies/research-open-source-2026-10-12/REPORT.md.
+    Jul 2024 because Kronos trained on NSE to Jun 2024): 0 PASS, best t 0.62 (reversal). Audit file for the owner:
+    studies/ALL-TESTS-2026-10-13.txt. Research list: studies/research-open-source-2026-10-12/REPORT.md.
   - Don't re-run these as "new".
 
 ## Open work (as of 2 Oct 2026). Pick up from here
