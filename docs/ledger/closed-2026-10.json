@@ -95729,6 +95729,114 @@
     "perLot": -5700,
     "netPerLot": -5763.28
    }
+  },
+  {
+   "id": "2026-10-12|FUTS|CGPOWER26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "CGPOWER",
+   "contract": "CGPOWER26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 850,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T03:50:41.585Z",
+   "buy": 875.65,
+   "target": 853.75,
+   "target2": 831.85,
+   "stop": 888.8,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 65.7,
+     "medianTradingDays": 0.202
+    },
+    "target": {
+     "probabilityPct": 76.5,
+     "medianTradingDays": 2.489
+    },
+    "sigmaPct": 28.9,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-12T04:07:08.912Z",
+   "hoursToFill": 0.27,
+   "closedAt": "2026-10-13T03:44:09.517Z",
+   "exitPrice": 853.75,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 23.62,
+   "sessionsHeld": 1,
+   "best": 850.5,
+   "worst": 881.7,
+   "last": 850.5,
+   "lastAt": "2026-10-13T03:44:09.517Z",
+   "marks": 33,
+   "obs": {
+    "date": "2026-10-13",
+    "high": 850.5,
+    "low": 850.5,
+    "last": 850.5
+   },
+   "pnl": {
+    "perUnit": 21.9,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-12|FUT|RBLBANK26OCTFUT",
+   "kind": "FUT",
+   "symbol": "RBLBANK",
+   "contract": "RBLBANK26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 3175,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T03:50:41.585Z",
+   "buy": 416.55,
+   "target": 426.95,
+   "target2": 437.4,
+   "stop": 410.3,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 66.8,
+     "medianTradingDays": 0.196
+    },
+    "target": {
+     "probabilityPct": 76.2,
+     "medianTradingDays": 2.246
+    },
+    "sigmaPct": 30.1,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-12T09:45:58.671Z",
+   "hoursToFill": 5.92,
+   "closedAt": "2026-10-13T03:44:09.517Z",
+   "exitPrice": 399.5,
+   "exitReason": "STOP",
+   "hoursFillToExit": 17.97,
+   "sessionsHeld": 1,
+   "best": 419.6,
+   "worst": 399.5,
+   "last": 399.5,
+   "lastAt": "2026-10-13T03:44:09.517Z",
+   "marks": 33,
+   "obs": {
+    "date": "2026-10-13",
+    "high": 399.5,
+    "low": 399.5,
+    "last": 399.5
+   },
+   "pnl": {
+    "perUnit": -17.05,
+    "pct": -4.09,
+    "basis": "GROSS"
+   }
   }
  ]
 }
