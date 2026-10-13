@@ -70,19 +70,36 @@ def run_kronos(rows):
     tok = KronosTokenizer.from_pretrained("NeoQuasar/Kronos-Tokenizer-base")
     mod = Kronos.from_pretrained("NeoQuasar/Kronos-small")
     pr = KronosPredictor(mod, tok, device="cpu", max_context=CTX)
-    preds = []
-    for i in range(0, len(rows), 32):
-        batch = rows[i:i + 32]
-        dfs, xs, ys = [], [], []
-        for r in batch:
-            n = len(r["c"])
-            df = pd.DataFrame({"open": r["o"], "high": r["h"], "low": r["l"], "close": r["c"], "volume": r["v"]})
-            df["amount"] = df["close"] * df["volume"]
-            dfs.append(df)
-            xs.append(pd.Series(pd.bdate_range(end="2030-01-01", periods=n)))
-            ys.append(pd.Series(pd.bdate_range(start="2030-01-02", periods=H)))
-        out = pr.predict_batch(df_list=dfs, x_timestamp_list=xs, y_timestamp_list=ys, pred_len=H, T=1.0, top_p=0.9, sample_count=int(os.environ.get("K2_KRONOS_SAMPLES", "1")), verbose=False)
-        preds += [float(out[j]["close"].iloc[H - 1] / batch[j]["c"][-1] - 1) for j in range(len(batch))]
+    # predict_batch needs equal-length series in one batch: group by length (a few names have < 512 bars), keep order.
+    # Each finished batch is appended to K2_KRONOS_PART (if set), so a stopped run resumes where it left off.
+    part = os.environ.get("K2_KRONOS_PART")
+    preds = [None] * len(rows)
+    if part and os.path.exists(part):
+        with open(part, encoding="utf8") as f:
+            for x in f:
+                k, v = x.split(","); preds[int(k)] = float(v)
+    groups = {}
+    for k, r in enumerate(rows):
+        if preds[k] is None:
+            groups.setdefault(len(r["c"]), []).append(k)
+    for n, ks in sorted(groups.items()):
+        for i in range(0, len(ks), 32):
+            idx = ks[i:i + 32]
+            batch = [rows[k] for k in idx]
+            dfs, xs, ys = [], [], []
+            for r in batch:
+                df = pd.DataFrame({"open": r["o"], "high": r["h"], "low": r["l"], "close": r["c"], "volume": r["v"]})
+                df["amount"] = df["close"] * df["volume"]
+                dfs.append(df)
+                xs.append(pd.Series(pd.bdate_range(end="2030-01-01", periods=n)))
+                ys.append(pd.Series(pd.bdate_range(start="2030-01-02", periods=H)))
+            out = pr.predict_batch(df_list=dfs, x_timestamp_list=xs, y_timestamp_list=ys, pred_len=H, T=1.0, top_p=0.9, sample_count=int(os.environ.get("K2_KRONOS_SAMPLES", "1")), verbose=False)
+            got = [float(out[j]["close"].iloc[H - 1] / batch[j]["c"][-1] - 1) for j in range(len(batch))]
+            for k, v in zip(idx, got):
+                preds[k] = v
+            if part:
+                with open(part, "a", encoding="utf8") as f:
+                    f.writelines(f"{k},{v!r}\n" for k, v in zip(idx, got))
     return preds
 
 
