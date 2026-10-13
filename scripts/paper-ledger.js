@@ -127,6 +127,58 @@ function firstPassage({ from, to, sigma, tradingDays }) {
   return { probabilityPct: round(touch * 100, 1), medianTradingDays: round(high * TRADING_DAYS, 3) };
 }
 
+/**
+ * TARGET BEFORE STOP, IF PRICES MOVE AT RANDOM (two barriers; report part 3, 13 Oct 2026).
+ *
+ * The touch odds above ignore the stop: a trade that falls to its stop first and only later reaches the
+ * target is counted as a win, so they always read higher than any result a trader can get. Here both
+ * levels count: the probability that a martingale price (log-drift -sigma^2/2, the same assumption as
+ * firstPassage) reaches `target` before `stop`, within `tradingDays`. Either side: a short has its target
+ * below and its stop above. With no time limit and no volatility drag this is (entry - stop) / (target -
+ * stop) -- TRACK's IF RANDOM, 37.5% for +2.5/-1.5; the time limit can only lower it ("neither" is the rest).
+ *
+ * Solved numerically (implicit finite differences on log price, backward equation); scripts/test-paper-ledger.js
+ * checks it against the closed form for an unlimited window and against a seeded simulation.
+ */
+function twoBarrier({ from, target, stop, sigma, tradingDays }) {
+  const T = Number(tradingDays) / TRADING_DAYS;
+  if (!(from > 0) || !(target > 0) || !(stop > 0) || !(sigma > 0) || !(T > 0)) return null;
+  const up = target > from;
+  if (up ? !(stop < from) : !(stop > from)) return null;
+  // x = log price relative to the entry; hi/lo are the barriers, `win` says which is the target.
+  const hi = Math.log((up ? target : stop) / from), lo = Math.log((up ? stop : target) / from);
+  const N = 300, dx = (hi - lo) / N, steps = 600, dt = T / steps;
+  const D = 0.5 * sigma * sigma, mu = -0.5 * sigma * sigma;
+  // u[i] = P(target first by the remaining time | x = lo + i dx); hit = P(stop first by then).
+  const solve = (atHi) => {
+    let u = new Float64Array(N + 1); u[N] = atHi ? 1 : 0; u[0] = atHi ? 0 : 1;
+    const a = -dt * (D / (dx * dx) - mu / (2 * dx)), c = -dt * (D / (dx * dx) + mu / (2 * dx)), b = 1 + 2 * dt * D / (dx * dx);
+    const cp = new Float64Array(N + 1), dp = new Float64Array(N + 1);
+    for (let s = 0; s < steps; s += 1) {
+      const rhs = Float64Array.from(u);
+      rhs[1] -= a * u[0]; rhs[N - 1] -= c * u[N];
+      cp[1] = c / b; dp[1] = rhs[1] / b;
+      for (let i = 2; i < N; i += 1) { const m = b - a * cp[i - 1]; cp[i] = c / m; dp[i] = (rhs[i] - a * dp[i - 1]) / m; }
+      const next = new Float64Array(N + 1); next[0] = u[0]; next[N] = u[N];
+      next[N - 1] = dp[N - 1];
+      for (let i = N - 2; i >= 1; i -= 1) next[i] = dp[i] - cp[i] * next[i + 1];
+      u = next;
+    }
+    // Value at the entry (x = 0), interpolated between grid points.
+    const k = -lo / dx, i0 = Math.floor(k), w = k - i0;
+    return u[i0] * (1 - w) + u[Math.min(N, i0 + 1)] * w;
+  };
+  const pHi = solve(true), pLo = solve(false);
+  const pTarget = up ? pHi : pLo, pStop = up ? pLo : pHi;
+  return {
+    targetFirstPct: round(100 * pTarget, 1),
+    stopFirstPct: round(100 * pStop, 1),
+    neitherPct: round(Math.max(0, 100 * (1 - pTarget - pStop)), 1),
+    // What a hit rate has to beat to break even on the move (charges not included): risk / (risk + reward).
+    breakEvenPct: round(100 * Math.abs(from - stop) / Math.abs(target - stop), 1)
+  };
+}
+
 /** Trading days left in a session at a given moment, 0 after the close. */
 function sessionTradingDaysLeft(now) {
   const left = (sessionCloseMs(istDate(now)) - now) / 3_600_000;
@@ -544,6 +596,6 @@ function summarize(open, closed) {
 
 module.exports = {
   LEDGER_DIR, FUTURES_MAX_SESSIONS,
-  feedDate, feedMs, firstPassage, sessionTradingDaysLeft, exitByDate, isIndexUnderlying, isTradingDate, nextTradingDate, sessionCloseMs,
+  feedDate, feedMs, firstPassage, twoBarrier, sessionTradingDaysLeft, exitByDate, isIndexUnderlying, isTradingDate, nextTradingDate, sessionCloseMs,
   tradeFromLevel, observe, settle, openLedger, summarize
 };

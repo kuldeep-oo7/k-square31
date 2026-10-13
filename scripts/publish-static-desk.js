@@ -707,6 +707,11 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       // 78%. The target odds run from the frozen buy and stay as frozen.
       expected: levels.expected ? {
         ...levels.expected,
+        // TARGET BEFORE STOP (13 Oct 2026): the touch odds count a trade that hit its stop first as a win.
+        // This is the honest no-edge figure: from the buy, both levels counted, within the 20-session hold.
+        // Computed each build from the frozen levels, so rows frozen before this change get it too.
+        twoBarrier: ledgerLib.twoBarrier({ from: levels.buy, target: levels.target1, stop: levels.stop,
+          sigma: Number(levels.expected.sigmaPct) / 100, tradingDays: ledgerLib.FUTURES_MAX_SESSIONS }),
         fill: (() => {
           const sigma = Number(levels.expected.sigmaPct) / 100;
           if (!(sigma > 0) || !(shown.price > 0) || phase.open !== true) return null;
@@ -982,7 +987,7 @@ function springyBox(sd) {
     of 10 dip rules positive in all three periods: ${esc(bt.developmentPct)}%, ${esc(bt.validationPct)}%, ${esc(bt.finalPct)}% a trade
     (final year ${esc(bt.finalTrades)} trades, t ${esc(bt.finalT)}). So it is tested here on prices nobody has seen yet, from
     ${esc(sd.start)}, on NSE's official open and close only; rules fixed in ${esc(sd.preregistration)}.
-    <b class="${verdictTone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanNetPct > 0 ? "+" : ""}${esc(s.meanNetPct)}% a trade, ${esc(s.winPct)}% winners, t ${esc(s.t ?? "&mdash;")}` : ""}
+    <b class="${verdictTone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanNetPct > 0 ? "+" : ""}${String(esc(s.meanNetPct)).replace(/^-/, "&minus;")}% a trade, ${esc(s.winPct)}% winners, t ${String(esc(s.t ?? "&mdash;")).replace(/^-/, "&minus;")}` : ""}
     (a verdict needs 100 trades and 3 months). Data through ${esc(sd.dataThrough)}. <b>Not a recommendation until it passes.</b>
     ${pend ? `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th><th class="num">Z</th><th class="num">AC</th></tr></thead><tbody>${pend}</tbody></table></div>` : `<div class="sub">No signal for the next session.</div>`}
     ${rows ? `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">OPEN &rarr; CLOSE</th><th class="num">NET</th></tr></thead><tbody>${rows}</tbody></table></div>` : ""}
@@ -1250,8 +1255,8 @@ function page(d) {
     const fillMinutes = exp?.fill ? Math.round(exp.fill.medianTradingDays * 375) : null;
     const expLine = [
       exp?.fill ? (exp.fill.atLimit ? "at the limit now" : `fill ${esc(exp.fill.probabilityPct)}% by the close (~${esc(fillMinutes)} min)`) : null,
-      exp?.target ? `touch odds ${esc(exp.target.probabilityPct)}% (~${esc(round(exp.target.medianTradingDays, 1))} sessions)` : null,
-      exp?.target ? "&mdash; ignores the stop" : null,
+      exp?.twoBarrier ? `<b>target before stop: ${esc(exp.twoBarrier.targetFirstPct)}%</b> if prices move at random (stop first ${esc(exp.twoBarrier.stopFirstPct)}%${exp.twoBarrier.neitherPct >= 1 ? `, neither in 20 sessions ${esc(exp.twoBarrier.neitherPct)}%` : ""}); break-even ${esc(exp.twoBarrier.breakEvenPct)}% before charges` : null,
+      exp?.target ? `touch odds ${esc(exp.target.probabilityPct)}% (~${esc(round(exp.target.medianTradingDays, 1))} sessions) &mdash; ignores the stop` : null,
       exp?.target ? trackLine(r.side < 0 ? "FUTS" : "FUT").replace(/^<div class="sub[^"]*">|<\/div>$/g, "") || null : null
     ].filter(Boolean).map((line) => `<div class="sub">${line}</div>`).join("");
     return `

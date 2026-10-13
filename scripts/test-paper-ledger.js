@@ -303,6 +303,24 @@ console.log("paper ledger:");
   check("no volatility, no estimate -- never a made-up number", L.firstPassage({ from: 100, to: 99, sigma: 0, tradingDays: 1 }) === null);
 }
 
+// --- target before stop (two barriers, 13 Oct 2026) ---------------------------
+{
+  // Unlimited window: a martingale price hits +2.5% before -1.5% exactly 1.5/4 = 37.5% of the time.
+  const long = L.twoBarrier({ from: 1000, target: 1025, stop: 985, sigma: 0.3, tradingDays: 5000 });
+  check("two barriers, no time limit: 37.5% for +2.5/-1.5 (the closed form)", Math.abs(long.targetFirstPct - 37.5) < 0.2);
+  const short = L.twoBarrier({ from: 1000, target: 975, stop: 1015, sigma: 0.3, tradingDays: 5000 });
+  check("a short mirrors it", Math.abs(short.targetFirstPct - 37.5) < 0.2 && short.breakEvenPct === 37.5);
+  // A short window: checked against a seeded 40,000-path simulation with Brownian-bridge crossings (13 Oct:
+  // 20% vol, 5 sessions -> target 33.0%, stop 57.2%; the solver says 32.5 / 57.4 / neither 10.0).
+  const five = L.twoBarrier({ from: 1000, target: 1025, stop: 985, sigma: 0.2, tradingDays: 5 });
+  check("two barriers, 5 sessions at 20% vol match the simulation within 1 point",
+    Math.abs(five.targetFirstPct - 33.0) < 1 && Math.abs(five.stopFirstPct - 57.2) < 1 && five.neitherPct > 5);
+  check("the time limit only lowers the target odds", five.targetFirstPct < five.breakEvenPct);
+  const touch = L.firstPassage({ from: 1000, to: 1025, sigma: 0.3, tradingDays: 20 });
+  check("the touch odds (no stop) read higher than target-before-stop", touch.probabilityPct > long.targetFirstPct + 10);
+  check("a stop on the wrong side gives no number", L.twoBarrier({ from: 1000, target: 1025, stop: 1010, sigma: 0.3, tradingDays: 20 }) === null);
+}
+
 // --- the last trade always counts (8 Oct 2026, MANKIND 2600 CE) ---------------
 {
   // The broker's day-low field can lag the last trade by a tick. On 8 Oct the
