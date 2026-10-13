@@ -105312,6 +105312,60 @@
     "perLot": -6750,
     "netPerLot": -6816.24
    }
+  },
+  {
+   "id": "2026-10-09|PE|NIFTY26O1922400PE",
+   "kind": "PE",
+   "symbol": "NIFTY",
+   "contract": "NIFTY26O1922400PE",
+   "expiry": "2026-10-19",
+   "strike": 22400,
+   "optionType": "PE",
+   "lotSize": 65,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T05:05:15.799Z",
+   "buy": 142.4,
+   "target": 213.6,
+   "target2": null,
+   "stop": 71.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.3,
+     "medianDays": 3.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-09T05:05:15.819Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-13T08:25:48.150Z",
+   "exitPrice": 71.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 99.34,
+   "sessionsHeld": 2,
+   "best": 210,
+   "worst": 69.25,
+   "last": 73,
+   "lastAt": "2026-10-13T08:25:48.150Z",
+   "marks": 69,
+   "obs": {
+    "date": "2026-10-13",
+    "high": 206.6,
+    "low": 69.25,
+    "last": 73
+   },
+   "pnl": {
+    "perUnit": -71.2,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -4628,
+    "netPerLot": -4688.26
+   }
   }
  ]
 }
