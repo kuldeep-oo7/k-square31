@@ -1,0 +1,113 @@
+PRE-REGISTRATION -- THE COMBINED MODEL: EVERY NSE DATA FAMILY AND THE DESK'S EQUATIONS IN ONE WALK-FORWARD MODEL
+Written 2026-10-13 ~23:30 IST, BEFORE any result of this test was computed. Branch claude/combined-model-2026-10-13.
+Run ONCE on real data after the checks in section 7 pass. Judged by protocol v2 (studies/audit-2026-10-04/PROTOCOL.txt).
+
+1. WHY, AND WHAT THIS SAMPLE HAS ALREADY SHOWN
+Every single rule tested on this desk failed. Quant funds do not trade one signal: they combine many weak ones and
+let the data set the weights (Gu, Kelly and Xiu, Review of Financial Studies 2020: trees and neural nets on 94
+characteristics beat any single one). This test does that with every NSE daily data family this desk holds.
+HONEST LIMIT: the same 2020-2026 NSE sample was already used to test each family one at a time (atlas, families,
+orderflow, ta-atlas, dip-ml, loan-fee). The near misses (SLB borrowing surge t 2.23, loan fee t 1.90, pledge t 1.89)
+were noticed on this sample. All families are included below by their earlier definitions, whatever their verdict,
+so nothing is picked for having looked good. Even so, a PASS here is weaker than a fresh one: it goes to TRACK as a
+paper test first, never to the tabs.
+NOT INCLUDED, and why (decided now, not after a result):
+- TimesFM / Chronos-2 / Kronos forecasts: they exist only for 100 names, every 10th session, from Jul 2024 (study
+  forecast-models-2026-10-13, 0 PASS, rank IC 0.00-0.03). Too short to train on.
+- Value and quality (earnings, book value, ROE, debt): needs company financials (NSE XBRL); no reader yet.
+- Kalman filter trend: no fixed definition was registered before; trend is covered by P2-P10.
+
+2. DATA (NSE's own files; laptop copies; none committed)
+- Prices: NSE CM bhavcopy json (K2_CM_DIR, nse-data/cm), series EQ, 2020-09-01 .. 2026-10-09.
+- Futures: F&O bhavcopy futures rows, research/orderflow-2026-10-03/nse-fo/fut/<d>.json, rows
+  [sym, type, expiry, open, high, low, close, settle, OI, chgOI, contracts], type STK only. To 2026-10-01.
+- Delivery: research/families-2026-10-04/nse-extra/deliv/<d>.json {SYM: [traded qty, deliverable qty, %]}. To 2026-10-01.
+- Stock option OI: research/families-2026-10-04/nse-extra/opt/<d>.json .oi {SYM: [call OI, put OI, ...]} (as the
+  families study read it). To 2026-10-01.
+- research/nse-atlas (scripts/nse-atlas-download.js, NSE archives), to 2026-10-09:
+  shortselling (short qty by trade date), slb_openpos (SLB open position qty), slbm_bc (SLB bhavcopy: lending fee,
+  parsed as studies/loan-fee-2026-10-13 parseBc), combineoi (MWPL and futures-equivalent OI), mrg_trading (margin
+  trading funded qty per symbol), pit (insider and promoter filings, months 2020-09 .. 2026-10), ind_close_all
+  (NIFTY 50 open/close/P/E, India VIX close), part_vol (participant-wise FII / DII / PRO / CLIENT index futures and
+  options), cm_cat_turnover (FPI / mutual fund / retail cash buy and sell; read with the npm package xlsx@0.18.5).
+- A missing file or field is MISSING (NaN), never 0. The model handles NaN natively.
+
+3. TIMING, UNIVERSE, TARGET
+- Feature date d = an NSE session. Everything dated d, or earlier, may be used. Entry e = the open of the 2nd CM
+  session after d (S[i+2]): one lag for every file, as the atlas and forward-v4 tests used. Exit = the close of the
+  5th session counting e (S[i+6]).
+- Universe on d: api/_lib/forward-v3.js context(): the top 200 EQ stocks by 60-session median traded value with >= 250
+  bars after their last reset (|open/prev close - 1| >= 18%), for the month of e, AND a STK futures row on d (so the
+  short side is a futures trade the owner can place), AND a CM bar on d. Price features use bars after the last reset
+  only (NaN if too few).
+- Target (training only): y = close(exit)/open(e) - 1 minus the equal-weight mean of the same over the universe;
+  label = cross-sectional percentile rank of y on d, minus 0.5.
+
+4. FEATURES (computed from data dated <= d; stock features are converted to their cross-sectional percentile rank
+   among the universe on d; market features are left raw)
+ PRICE AND VOLUME (CM bars; r_k = c_d / c_{d-k} - 1):
+  P1 r1  P2 r5  P3 r20  P4 r60  P5 r120  P6 mom12_1 = c_{d-21}/c_{d-252} - 1  P7 dist52 = c_d / max(high, 250) - 1
+  P8 c/SMA20 - 1  P9 c/SMA50 - 1  P10 c/SMA200 - 1  P11 RSI(14, Wilder)  P12 IBS = (c-l)/(h-l)  P13 gap = o_d/c_{d-1} - 1
+  P14 rv20 = sd(log returns, 20) x sqrt(252)  P15 Parkinson vol 20  P16 rv5/rv60 (volatility clustering, the GARCH idea)
+  P17 log(value_d / median value 60)  P18 Amihud 20 = mean(|r|/value)  P19 max daily return 20
+  P20 lag-1 autocorrelation of daily log returns, 120 (the springy-dip measure)
+  P21 OU z = (c - SMA20)/sd(close, 20)  P22 Hurst exponent, rescaled range on the last 128 log returns,
+      slope of log(R/S) on log(n) for n = 8, 16, 32, 64, 128  P23 beta to NIFTY 50, 120 daily returns
+ DELIVERY: D1 delivery %  D2 (delivery % - mean 60) / sd 60
+ FUTURES: F1 OI_d/OI_{d-1} - 1 (all STK expiries summed)  F2 OI_d/OI_{d-5} - 1
+  F3 carry = (nearest-expiry futures close / CM close - 1) x 365 / calendar days to that expiry (expiry >= d+1)
+  F4 log(contracts_d / median contracts 60)
+ OPTIONS: O1 put OI / call OI  O2 O1_d - O1_{d-5}
+ SHORT SELLING: X1 short qty (trade date d) / CM traded qty d
+ SLB: L1 open position qty_d / mean of the previous 20 files (NaN if < 10)  L2 open position qty_d / CM traded qty d
+  L3 lending fee, annualised: per contract row (qty > 0, end >= d + 7 days) rate = (value/qty)/close_d x 365/days to end;
+     qty-weighted mean over the symbol's rows (as the loan-fee study, without its size and universe filters)
+ MWPL: W1 futures-equivalent OI / MWPL  W2 W1_d - W1_{d-5}
+ MARGIN TRADING: M1 funded qty_d / funded qty 5 files earlier - 1  M2 funded qty_d / mean CM traded qty 20
+ INSIDER FILINGS (broadcast date <= d, the last 28 calendar days): I1 log(1 + promoter market-purchase value Rs)
+  I2 count of promoter pledge creations  I3 log(1 + director/KMP market-sale value Rs). NaN for a symbol-day when that
+  month's pit file is missing or empty.
+ MARKET (same for every stock on d; each as a z-score against its own previous 250 values, NaN under 120):
+  K1 NIFTY r5  K2 NIFTY r20  K3 desk regime flag (NIFTY close < EMA20 < SMA50: 1, else 0; not z-scored)
+  K4 India VIX close  K5 India VIX 5-day change  K6 FII index futures long - short  K7 PRO same  K8 CLIENT same
+  K9 DII same  K10 FII index options (call long - call short) - (put long - put short)
+  K11 FPI cash buy - sell  K12 mutual fund same  K13 retail same  K14 NIFTY P/E percentile of its previous 750 (raw)
+
+5. MODELS (walk-forward; every setting fixed here)
+- Rebalance feature dates: every 5th CM session, starting with the first session on or after 2022-10-03 (so at least
+  ~12 months of training from Sep 2021). Entries do not overlap (e_k + 5 sessions = e_{k+1}).
+- Training rows: EVERY session's universe rows (not only rebalances) with a finite label whose exit is strictly before
+  the entry of the prediction (purge: feature index j <= i_k - 5). Retrained every 4th rebalance (~monthly); a block
+  uses the purge of its FIRST rebalance.
+- T (trees): sklearn HistGradientBoostingRegressor(max_iter=200, learning_rate=0.05, max_leaf_nodes=15,
+  min_samples_leaf=200, l2_regularization=1.0, random_state=0), native NaN.
+- R (ridge baseline): stock features only (ranks; NaN -> 0.5), market features dropped; closed-form ridge, alpha = 10,
+  on the same rows and schedule.
+- Predictions are appended to disk after every retrain block (the laptop has 8 GB; runs can be stopped and resumed;
+  a resumed block is recomputed identically from the same seed).
+
+6. TRADES, MEMBERS, VERDICT
+- Each rebalance: rank the universe by prediction (n >= 50 names, else skipped); k = floor(n/10).
+  Long the top k, short the bottom k, at NSE futures prices proxied by the CM open/close (as every stock study here),
+  notional Rs 5 lakh a name, futures charges (api/_lib/shadow-broker.js, by date) both sides, a roll charged if the
+  exit is in a later month. A name whose 5-session window breaks (missing bar or reset) is dropped from that rebalance.
+- C1 trees long-short: R = 1/2 (mean net of longs + mean net of shorts).
+- C2 ridge long-short: same book from R.
+- C3 trees long-only: mean over the top k of (net - B), B = universe equal-weight open(e)->close(exit) return.
+- Score: monthly mean of rebalance returns; Newey-West t (lag 3); PASS = mean > 0 and t >= 3; PROMISING = mean > 0 and
+  t >= 2; FAIL otherwise; NOT TESTABLE under 24 months. Holm across C1-C3; Deflated Sharpe with N = 3.
+- Reported, not judged: mean rank IC (Spearman of prediction vs y) per rebalance; turnover; months positive;
+  permutation importance of the last trees model (20,000 rows, 3 repeats) to say which families carried weight.
+- A PASS goes to TRACK as a forward paper test with these exact settings; nothing reaches the tabs from this run.
+
+7. CHECKS BEFORE THE REAL RUN (all must pass; results written into RESULT.txt)
+ 7.1 Synthetic market with a planted edge in ONE feature (names whose L1 SLB surge >= 2 fall 0.8% over the next 5
+     sessions, entry as section 3): C1 and C2 must PASS and L1 must be the top permutation feature.
+ 7.2 Synthetic market with no edge, 3 seeds: at most 1 PASS among the 9 member results.
+ 7.3 No look-ahead: change every input dated after a cutoff; every feature dated <= cutoff, and every prediction of a
+     block whose last feature date and training rows are all <= cutoff, must be identical.
+ 7.4 Coverage (counts only, no returns): feature non-missing share by year; universe size by year.
+
+8. FILES
+ features.js (panel builder, --synthetic, --coverage), model.py (walk-forward T and R), score.js (book + protocol v2),
+ run.sh (order of steps). Data and the panel stay in research/combined-model (git-ignored).
