@@ -324,7 +324,8 @@
   "OPTION|DRREDDY|DRREDDY26OCT1290CE",
   "OPTION|MFSL|MFSL26OCT1320PE",
   "OPTION|INDIGO|INDIGO26OCT4600PE",
-  "OPTION|TIINDIA|TIINDIA26OCT2100PE"
+  "OPTION|TIINDIA|TIINDIA26OCT2100PE",
+  "OPTION|SWIGGY|SWIGGY26OCT220PE"
  ],
  "options": {
   "NIFTY26OCT22600PE": {
@@ -4390,6 +4391,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-13T05:27:05.251Z",
    "frozenAtIst": "2026-10-13 10:57 IST",
+   "frozenAtSpot": null
+  },
+  "SWIGGY26OCT220PE": {
+   "buy": 3.15,
+   "sell": 4.75,
+   "stop": 1.55,
+   "tick": 0.05,
+   "lotSize": 1825,
+   "expiry": "2026-10-27",
+   "strike": 220,
+   "right": "PE",
+   "symbol": "SWIGGY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-13T05:46:34.661Z",
+   "frozenAtIst": "2026-10-13 11:16 IST",
    "frozenAtSpot": null
   }
  },
