@@ -104718,6 +104718,60 @@
     "perLot": 13272.5,
     "netPerLot": 13136.88
    }
+  },
+  {
+   "id": "2026-10-09|PE|TIINDIA26OCT2400PE",
+   "kind": "PE",
+   "symbol": "TIINDIA",
+   "contract": "TIINDIA26OCT2400PE",
+   "expiry": "2026-10-27",
+   "strike": 2400,
+   "optionType": "PE",
+   "lotSize": 200,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T03:49:28.778Z",
+   "buy": 165.65,
+   "target": 248.45,
+   "target2": null,
+   "stop": 82.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 46.7,
+     "medianDays": 6.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-09T03:49:28.793Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-13T06:46:17.326Z",
+   "exitPrice": 248.45,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 98.95,
+   "sessionsHeld": 2,
+   "best": 251.7,
+   "worst": 120.55,
+   "last": 249.3,
+   "lastAt": "2026-10-13T06:46:17.326Z",
+   "marks": 66,
+   "obs": {
+    "date": "2026-10-13",
+    "high": 251.7,
+    "low": 190.1,
+    "last": 249.3
+   },
+   "pnl": {
+    "perUnit": 82.8,
+    "pct": 49.98,
+    "basis": "NET",
+    "perLot": 16560,
+    "netPerLot": 16402.45
+   }
   }
  ]
 }
