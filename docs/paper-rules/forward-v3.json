@@ -2,14 +2,144 @@
  "preregistration": "studies/forward-v3-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
  "start": "2026-10-05",
- "dataThrough": "2026-10-12",
- "builtAt": "2026-10-13T12:54:17.968Z",
+ "dataThrough": "2026-10-13",
+ "builtAt": "2026-10-13T19:59:46.527Z",
  "industries": 2584,
  "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
  "CHEAPVOL": {
   "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
   "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months — just short of the bar",
   "trades": [
+   {
+    "symbol": "UPL",
+    "entryDate": "2026-10-13",
+    "expiry": "2026-10-27",
+    "strike": 525,
+    "entry": 24,
+    "ivPct": 29.2,
+    "rvPct": 39.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "PIDILITIND",
+    "entryDate": "2026-10-13",
+    "expiry": "2026-10-27",
+    "strike": 1500,
+    "entry": 47.15,
+    "ivPct": 20.1,
+    "rvPct": 27.4,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "RBLBANK",
+    "entryDate": "2026-10-13",
+    "expiry": "2026-10-27",
+    "strike": 390,
+    "entry": 17.6,
+    "ivPct": 28.9,
+    "rvPct": 44,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "MANAPPURAM",
+    "entryDate": "2026-10-13",
+    "expiry": "2026-10-27",
+    "strike": 325,
+    "entry": 14.15,
+    "ivPct": 27.6,
+    "rvPct": 34.7,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "NAUKRI",
+    "entryDate": "2026-10-13",
+    "expiry": "2026-10-27",
+    "strike": 1220,
+    "entry": 52.6,
+    "ivPct": 27.5,
+    "rvPct": 35.5,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "MOTHERSON",
+    "entryDate": "2026-10-13",
+    "expiry": "2026-10-27",
+    "strike": 160,
+    "entry": 6.64,
+    "ivPct": 26.5,
+    "rvPct": 34.2,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "SAIL",
+    "entryDate": "2026-10-13",
+    "expiry": "2026-10-27",
+    "strike": 172.5,
+    "entry": 7.41,
+    "ivPct": 27.4,
+    "rvPct": 38.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "GRASIM",
+    "entryDate": "2026-10-13",
+    "expiry": "2026-10-27",
+    "strike": 2920,
+    "entry": 84,
+    "ivPct": 18.4,
+    "rvPct": 23.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "HINDUNILVR",
+    "entryDate": "2026-10-13",
+    "expiry": "2026-10-27",
+    "strike": 1880,
+    "entry": 50.35,
+    "ivPct": 17.1,
+    "rvPct": 24.2,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "EICHERMOT",
+    "entryDate": "2026-10-13",
+    "expiry": "2026-10-27",
+    "strike": 7200,
+    "entry": 223.6,
+    "ivPct": 19.9,
+    "rvPct": 25.2,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "HAL",
+    "entryDate": "2026-10-13",
+    "expiry": "2026-10-27",
+    "strike": 4850,
+    "entry": 176.45,
+    "ivPct": 23.1,
+    "rvPct": 31.9,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "HCLTECH",
+    "entryDate": "2026-10-13",
+    "expiry": "2026-10-27",
+    "strike": 1330,
+    "entry": 55.4,
+    "ivPct": 26.7,
+    "rvPct": 39,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "TCS",
+    "entryDate": "2026-10-13",
+    "expiry": "2026-10-27",
+    "strike": 2260,
+    "entry": 94.45,
+    "ivPct": 26.6,
+    "rvPct": 35.8,
+    "status": "OPEN"
+   },
    {
     "symbol": "PATANJALI",
     "entryDate": "2026-10-12",
@@ -238,7 +368,10 @@
     "entry": 86.6,
     "ivPct": 28.2,
     "rvPct": 35.5,
-    "status": "OPEN"
+    "exitDate": "2026-10-13",
+    "exit": 120.65,
+    "netPct": 38.959,
+    "status": "DONE"
    },
    {
     "symbol": "PIDILITIND",
@@ -248,7 +381,10 @@
     "entry": 61.45,
     "ivPct": 21.1,
     "rvPct": 27.7,
-    "status": "OPEN"
+    "exitDate": "2026-10-13",
+    "exit": 50.15,
+    "netPct": -18.638,
+    "status": "DONE"
    },
    {
     "symbol": "HAL",
@@ -258,7 +394,10 @@
     "entry": 220.55,
     "ivPct": 23.9,
     "rvPct": 31.5,
-    "status": "OPEN"
+    "exitDate": "2026-10-13",
+    "exit": 189.65,
+    "netPct": -14.268,
+    "status": "DONE"
    },
    {
     "symbol": "PATANJALI",
@@ -418,9 +557,9 @@
    }
   ],
   "summary": {
-   "finished": 12,
-   "meanPct": -2.6,
-   "winPct": 25,
+   "finished": 15,
+   "meanPct": -1.676,
+   "winPct": 26.7,
    "worstPct": -21.152,
    "t": null,
    "verdict": "COLLECTING"
@@ -509,7 +648,7 @@
   ],
   "pending": null,
   "pendingNoIndustry": [],
-  "sessionsToNext": 4,
+  "sessionsToNext": 3,
   "summary": {
    "finished": 1,
    "meanPct": 0.145,
