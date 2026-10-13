@@ -325,7 +325,8 @@
   "OPTION|MFSL|MFSL26OCT1320PE",
   "OPTION|INDIGO|INDIGO26OCT4600PE",
   "OPTION|TIINDIA|TIINDIA26OCT2100PE",
-  "OPTION|SWIGGY|SWIGGY26OCT220PE"
+  "OPTION|SWIGGY|SWIGGY26OCT220PE",
+  "OPTION|ADANIPOWER|ADANIPOWER26OCT175PE"
  ],
  "options": {
   "NIFTY26OCT22600PE": {
@@ -4406,6 +4407,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-13T05:46:34.661Z",
    "frozenAtIst": "2026-10-13 11:16 IST",
+   "frozenAtSpot": null
+  },
+  "ADANIPOWER26OCT175PE": {
+   "buy": 2.21,
+   "sell": 3.32,
+   "stop": 1.11,
+   "tick": 0.01,
+   "lotSize": 3550,
+   "expiry": "2026-10-27",
+   "strike": 175,
+   "right": "PE",
+   "symbol": "ADANIPOWER",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-13T06:06:22.827Z",
+   "frozenAtIst": "2026-10-13 11:36 IST",
    "frozenAtSpot": null
   }
  },
