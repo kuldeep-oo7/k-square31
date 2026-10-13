@@ -103740,6 +103740,60 @@
     "perLot": -15895,
     "netPerLot": -15987.04
    }
+  },
+  {
+   "id": "2026-10-12|CE|AUROPHARMA26OCT1780CE",
+   "kind": "CE",
+   "symbol": "AUROPHARMA",
+   "contract": "AUROPHARMA26OCT1780CE",
+   "expiry": "2026-10-27",
+   "strike": 1780,
+   "optionType": "CE",
+   "lotSize": 550,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T07:06:00.685Z",
+   "buy": 13.8,
+   "target": 20.7,
+   "target2": null,
+   "stop": 6.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 30.7,
+     "medianDays": 7.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-12T07:25:54.458Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-13T05:07:51.622Z",
+   "exitPrice": 6.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 21.7,
+   "sessionsHeld": 1,
+   "best": 15.4,
+   "worst": 6.65,
+   "last": 6.65,
+   "lastAt": "2026-10-13T05:07:51.622Z",
+   "marks": 27,
+   "obs": {
+    "date": "2026-10-13",
+    "high": 11.3,
+    "low": 6.65,
+    "last": 6.65
+   },
+   "pnl": {
+    "perUnit": -6.9,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3795,
+    "netPerLot": -3852.91
+   }
   }
  ]
 }
