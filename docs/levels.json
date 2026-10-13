@@ -330,7 +330,8 @@
   "OPTION|INOXWIND|INOXWIND26OCT68PE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13300PE",
   "OPTION|LAURUSLABS|LAURUSLABS26OCT2140CE",
-  "OPTION|NIFTY|NIFTY26OCT23100PE"
+  "OPTION|NIFTY|NIFTY26OCT23100PE",
+  "OPTION|NIFTY|NIFTY26OCT23150PE"
  ],
  "options": {
   "NIFTY26OCT22600PE": {
@@ -4486,6 +4487,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-13T09:06:47.847Z",
    "frozenAtIst": "2026-10-13 14:36 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26OCT23150PE": {
+   "buy": 438,
+   "sell": 657,
+   "stop": 219,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-10-27",
+   "strike": 23150,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-13T09:26:57.325Z",
+   "frozenAtIst": "2026-10-13 14:56 IST",
    "frozenAtSpot": null
   }
  },
