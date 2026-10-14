@@ -89,7 +89,7 @@ const get = async (url) => fetch(url, { headers: { "User-Agent": UA, Accept: "*/
       }
       if (!fs.existsSync(path.join(OUT, "part", `${d}.csv`)) && !fs.existsSync(path.join(OUT, "part", `${d}.none`))) {
         const r = await get(partUrl(d));
-        if (r.status === 404) fs.writeFileSync(path.join(OUT, "part", `${d}.none`), "");
+        if (r.status === 404 && d < new Date(Date.now() + 330 * 60_000).toISOString().slice(0, 10)) fs.writeFileSync(path.join(OUT, "part", `${d}.none`), "");   // not on the day itself: it may not be posted yet
         else if (!r.ok) throw new Error(`participant HTTP ${r.status}`);
         else fs.writeFileSync(path.join(OUT, "part", `${d}.csv`), await r.text());
       }

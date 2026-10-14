@@ -19,7 +19,11 @@ const LOG = path.join(path.dirname(OUT), "download.log");
 const UA = "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0 Safari/537.36";
 const MON = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
 const FROM = process.argv[2] || "2020-09-01";
-const TO = process.argv[3] || new Date(Date.now() + 330 * 60_000 - 86_400_000).toISOString().slice(0, 10); // default: yesterday, IST
+// Default: yesterday (IST); from 19:00 IST, today too -- NSE posts the day's file in the evening, and the evening paper
+// job needs it to make the next session's list (14 Oct 2026: the focus rule's list waited for the next morning).
+const TODAY_IST = new Date(Date.now() + 330 * 60_000).toISOString().slice(0, 10);
+const AFTER_7PM = new Date(Date.now() + 330 * 60_000).getUTCHours() >= 19;
+const TO = process.argv[3] || (AFTER_7PM ? TODAY_IST : new Date(Date.now() + 330 * 60_000 - 86_400_000).toISOString().slice(0, 10));
 const SWITCH = "2024-07-08";
 const SERIES = new Set(["EQ", "BE", "BZ"]);
 const pause = (ms) => new Promise((r) => setTimeout(r, ms));
@@ -95,7 +99,9 @@ function urlFor(iso) {
     if (pastDeadline()) { log(`STOPPED: ${STOP.join(":")} IST deadline`); break; }
     try {
       const res = await fetch(urlFor(iso), { headers: { "User-Agent": UA, Accept: "*/*" }, signal: AbortSignal.timeout(30_000) });
-      if (res.status === 404) {
+      if (res.status === 404 && iso === TODAY_IST) {
+        log(`${iso}: not posted yet -- tried again on the next run (never marked a holiday on the day itself)`);
+      } else if (res.status === 404) {
         fs.writeFileSync(path.join(OUT, `${iso}.none`), "");
         none += 1;
         if (nseSessions.has(iso)) log(`${iso}: 404 but NSE's NIFTY history has a session that day -- MISSING FILE`);
