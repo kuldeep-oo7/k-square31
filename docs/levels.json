@@ -300,7 +300,10 @@
   "OPTION|GMRAIRPORT|GMRAIRPORT26OCT92PE",
   "OPTION|SAIL|SAIL26OCT170PE",
   "OPTION|VEDL|VEDL26OCT265PE",
-  "OPTION|PAYTM|PAYTM26OCT1640CE"
+  "OPTION|PAYTM|PAYTM26OCT1640CE",
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT14100PE",
+  "OPTION|BLUESTARCO|BLUESTARCO26OCT1660CE",
+  "OPTION|AUROPHARMA|AUROPHARMA26OCT1740CE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4051,6 +4054,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-14T05:07:11.958Z",
    "frozenAtIst": "2026-10-14 10:37 IST",
+   "frozenAtSpot": null
+  },
+  "MIDCPNIFTY26OCT14100PE": {
+   "buy": 374.3,
+   "sell": 561.45,
+   "stop": 187.15,
+   "tick": 0.05,
+   "lotSize": 120,
+   "expiry": "2026-10-27",
+   "strike": 14100,
+   "right": "PE",
+   "symbol": "MIDCPNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T05:25:44.457Z",
+   "frozenAtIst": "2026-10-14 10:55 IST",
+   "frozenAtSpot": null
+  },
+  "BLUESTARCO26OCT1660CE": {
+   "buy": 12.8,
+   "sell": 19.2,
+   "stop": 6.4,
+   "tick": 0.05,
+   "lotSize": 325,
+   "expiry": "2026-10-27",
+   "strike": 1660,
+   "right": "CE",
+   "symbol": "BLUESTARCO",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T05:25:44.457Z",
+   "frozenAtIst": "2026-10-14 10:55 IST",
+   "frozenAtSpot": null
+  },
+  "AUROPHARMA26OCT1740CE": {
+   "buy": 12.9,
+   "sell": 19.35,
+   "stop": 6.45,
+   "tick": 0.05,
+   "lotSize": 550,
+   "expiry": "2026-10-27",
+   "strike": 1740,
+   "right": "CE",
+   "symbol": "AUROPHARMA",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T05:25:44.457Z",
+   "frozenAtIst": "2026-10-14 10:55 IST",
    "frozenAtSpot": null
   }
  },
