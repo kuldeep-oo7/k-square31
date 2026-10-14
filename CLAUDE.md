@@ -66,6 +66,10 @@ and no `research/`. This file carries what it needs. Nothing secret belongs here
 - **Proven only (owner, 13 Oct 2026):** every tab opens on NO TRADE and its rows fold as UNTESTED - WATCH ONLY; tab counts
   are proven trades. A kind leaves the fold only when its rule passes and is added to `PROVEN_KINDS` (publish-static-desk.js).
   Don't present untested rows as suggestions anywhere (owner: "suggest me only that you are sure").
+- **Focus rule (owner, 14 Oct 2026: "focus on the one thing ... for a period of time"):** short build-up only, at the top
+  of FUTURES (sbFocusBox, never folded on the phone), for GM Global (paper) only, until its forward verdict (100 trades +
+  3 months from 5 Oct, ~Jan 2027). Signals from docs/paper-rules/oi-flow.json; a list made for another session is never
+  shown. The NSE downloaders fetch today's file from 19:00 IST so the evening job makes the next day's list.
 - Futures geometry (`api/_lib/session-levels.js`):
   - buy = open × 0.992, rounded down to 0.05;
   - target +2.5%, stop −1.5%;
