@@ -133685,6 +133685,552 @@
     "perLot": 11595,
     "netPerLot": 11470.55
    }
+  },
+  {
+   "id": "2026-10-14|PE|ADANIPOWER26OCT195PE",
+   "kind": "PE",
+   "symbol": "ADANIPOWER",
+   "contract": "ADANIPOWER26OCT195PE",
+   "expiry": "2026-10-27",
+   "strike": 195,
+   "optionType": "PE",
+   "lotSize": 3550,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T04:07:00.985Z",
+   "buy": 11.2,
+   "target": 16.81,
+   "target2": null,
+   "stop": 5.6,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.7,
+     "medianDays": 4.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-14T04:46:21.340Z",
+   "hoursToFill": 0.66,
+   "closedAt": "2026-10-14T08:26:12.707Z",
+   "exitPrice": 5.6,
+   "exitReason": "STOP",
+   "hoursFillToExit": 3.66,
+   "sessionsHeld": 0,
+   "best": 11.2,
+   "worst": 5.2,
+   "last": 5.44,
+   "lastAt": "2026-10-14T08:26:12.707Z",
+   "marks": 12,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 10.54,
+    "low": 5.2,
+    "last": 5.44
+   },
+   "pnl": {
+    "perUnit": -5.6,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -19880,
+    "netPerLot": -19983.29
+   }
+  },
+  {
+   "id": "2026-10-14|FUTS|INOXWIND26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "INOXWIND",
+   "contract": "INOXWIND26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 6400,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T03:51:32.467Z",
+   "buy": 69.97,
+   "target": 68.22,
+   "target2": 66.47,
+   "stop": 71.02,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 74.5,
+     "medianTradingDays": 0.128
+    },
+    "target": {
+     "probabilityPct": 83.3,
+     "medianTradingDays": 1.489
+    },
+    "sigmaPct": 40.1,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-14T04:46:21.340Z",
+   "hoursToFill": 0.91,
+   "closedAt": "2026-10-14T08:26:12.707Z",
+   "exitPrice": 71.02,
+   "exitReason": "STOP",
+   "hoursFillToExit": 3.66,
+   "sessionsHeld": 0,
+   "best": 69.96,
+   "worst": 71.25,
+   "last": 71.12,
+   "lastAt": "2026-10-14T08:26:12.707Z",
+   "marks": 15,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 71.25,
+    "low": 69.15,
+    "last": 71.12
+   },
+   "pnl": {
+    "perUnit": -1.05,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-13|PE|ADANIPOWER26OCT195PE",
+   "kind": "PE",
+   "symbol": "ADANIPOWER",
+   "contract": "ADANIPOWER26OCT195PE",
+   "expiry": "2026-10-27",
+   "strike": 195,
+   "optionType": "PE",
+   "lotSize": 3550,
+   "sessionDate": "2026-10-13",
+   "shownAt": "2026-10-13T04:11:53.695Z",
+   "buy": 11.29,
+   "target": 16.93,
+   "target2": null,
+   "stop": 5.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.7,
+     "medianDays": 4.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-13T04:29:02.043Z",
+   "hoursToFill": 0.29,
+   "closedAt": "2026-10-14T08:26:12.707Z",
+   "exitPrice": 5.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 27.95,
+   "sessionsHeld": 1,
+   "best": 13.17,
+   "worst": 5.2,
+   "last": 5.44,
+   "lastAt": "2026-10-14T08:26:12.707Z",
+   "marks": 37,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 10.54,
+    "low": 5.2,
+    "last": 5.44
+   },
+   "pnl": {
+    "perUnit": -5.64,
+    "pct": -49.96,
+    "basis": "NET",
+    "perLot": -20022,
+    "netPerLot": -20125.77
+   }
+  },
+  {
+   "id": "2026-10-13|PE|SUZLON26OCT40PE",
+   "kind": "PE",
+   "symbol": "SUZLON",
+   "contract": "SUZLON26OCT40PE",
+   "expiry": "2026-10-27",
+   "strike": 40,
+   "optionType": "PE",
+   "lotSize": 12700,
+   "sessionDate": "2026-10-13",
+   "shownAt": "2026-10-13T03:51:21.959Z",
+   "buy": 1.48,
+   "target": 2.21,
+   "target2": null,
+   "stop": 0.74,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 43.1,
+     "medianDays": 5.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-13T03:51:22.519Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-14T08:26:12.707Z",
+   "exitPrice": 0.74,
+   "exitReason": "STOP",
+   "hoursFillToExit": 28.58,
+   "sessionsHeld": 1,
+   "best": 1.49,
+   "worst": 0.7,
+   "last": 0.7,
+   "lastAt": "2026-10-14T08:26:12.707Z",
+   "marks": 42,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 1.25,
+    "low": 0.71,
+    "last": 0.7
+   },
+   "pnl": {
+    "perUnit": -0.74,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -9398,
+    "netPerLot": -9471.71
+   }
+  },
+  {
+   "id": "2026-10-12|PE|ADANIPOWER26OCT187.5PE",
+   "kind": "PE",
+   "symbol": "ADANIPOWER",
+   "contract": "ADANIPOWER26OCT187.5PE",
+   "expiry": "2026-10-27",
+   "strike": 187.5,
+   "optionType": "PE",
+   "lotSize": 3550,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T05:05:44.144Z",
+   "buy": 5.21,
+   "target": 7.82,
+   "target2": null,
+   "stop": 2.61,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 45.8,
+     "medianDays": 5.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-12T05:05:44.159Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-14T08:26:12.707Z",
+   "exitPrice": 2.61,
+   "exitReason": "STOP",
+   "hoursFillToExit": 51.34,
+   "sessionsHeld": 2,
+   "best": 7.75,
+   "worst": 2.35,
+   "last": 2.43,
+   "lastAt": "2026-10-14T08:26:12.707Z",
+   "marks": 70,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 6.67,
+    "low": 2.35,
+    "last": 2.43
+   },
+   "pnl": {
+    "perUnit": -2.6,
+    "pct": -49.9,
+    "basis": "NET",
+    "perLot": -9230,
+    "netPerLot": -9303.32
+   }
+  },
+  {
+   "id": "2026-10-12|PE|ADANIPOWER26OCT190PE",
+   "kind": "PE",
+   "symbol": "ADANIPOWER",
+   "contract": "ADANIPOWER26OCT190PE",
+   "expiry": "2026-10-27",
+   "strike": 190,
+   "optionType": "PE",
+   "lotSize": 3550,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T04:45:58.785Z",
+   "buy": 6.51,
+   "target": 9.76,
+   "target2": null,
+   "stop": 3.26,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.1,
+     "medianDays": 5.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-12T04:45:58.806Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-14T08:26:12.707Z",
+   "exitPrice": 3.26,
+   "exitReason": "STOP",
+   "hoursFillToExit": 51.67,
+   "sessionsHeld": 2,
+   "best": 9.43,
+   "worst": 3.09,
+   "last": 3.21,
+   "lastAt": "2026-10-14T08:26:12.707Z",
+   "marks": 71,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 8.27,
+    "low": 3.09,
+    "last": 3.21
+   },
+   "pnl": {
+    "perUnit": -3.25,
+    "pct": -49.92,
+    "basis": "NET",
+    "perLot": -11537.5,
+    "netPerLot": -11617.33
+   }
+  },
+  {
+   "id": "2026-10-09|PE|MIDCPNIFTY26OCT13550PE",
+   "kind": "PE",
+   "symbol": "MIDCPNIFTY",
+   "contract": "MIDCPNIFTY26OCT13550PE",
+   "expiry": "2026-10-27",
+   "strike": 13550,
+   "optionType": "PE",
+   "lotSize": 120,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T04:46:12.624Z",
+   "buy": 187.2,
+   "target": 280.8,
+   "target2": null,
+   "stop": 93.6,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.6,
+     "medianDays": 6.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-09T05:05:15.819Z",
+   "hoursToFill": 0.32,
+   "closedAt": "2026-10-14T08:26:12.707Z",
+   "exitPrice": 93.6,
+   "exitReason": "STOP",
+   "hoursFillToExit": 123.35,
+   "sessionsHeld": 3,
+   "best": 208.4,
+   "worst": 93.5,
+   "last": 97.9,
+   "lastAt": "2026-10-14T08:26:12.707Z",
+   "marks": 97,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 138,
+    "low": 93.5,
+    "last": 97.9
+   },
+   "pnl": {
+    "perUnit": -93.6,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -11232,
+    "netPerLot": -11310.89
+   }
+  },
+  {
+   "id": "2026-10-08|PE|VOLTAS26OCT1000PE",
+   "kind": "PE",
+   "symbol": "VOLTAS",
+   "contract": "VOLTAS26OCT1000PE",
+   "expiry": "2026-10-27",
+   "strike": 1000,
+   "optionType": "PE",
+   "lotSize": 375,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T06:06:38.998Z",
+   "buy": 12.4,
+   "target": 18.6,
+   "target2": null,
+   "stop": 6.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 26.2,
+     "medianDays": 10.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-08T06:06:39.012Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-14T08:26:12.707Z",
+   "exitPrice": 6.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 146.33,
+   "sessionsHeld": 4,
+   "best": 17.05,
+   "worst": 6,
+   "last": 6.3,
+   "lastAt": "2026-10-14T08:26:12.707Z",
+   "marks": 119,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 14,
+    "low": 6,
+    "last": 6.3
+   },
+   "pnl": {
+    "perUnit": -6.2,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -2325,
+    "netPerLot": -2378.76
+   }
+  },
+  {
+   "id": "2026-10-08|PE|ADANIPOWER26OCT192.5PE",
+   "kind": "PE",
+   "symbol": "ADANIPOWER",
+   "contract": "ADANIPOWER26OCT192.5PE",
+   "expiry": "2026-10-27",
+   "strike": 192.5,
+   "optionType": "PE",
+   "lotSize": 3550,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T05:05:52.196Z",
+   "buy": 8.34,
+   "target": 12.51,
+   "target2": null,
+   "stop": 4.17,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 40.5,
+     "medianDays": 8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-08T05:26:05.125Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-14T08:26:12.707Z",
+   "exitPrice": 4.17,
+   "exitReason": "STOP",
+   "hoursFillToExit": 147,
+   "sessionsHeld": 4,
+   "best": 11.48,
+   "worst": 4,
+   "last": 4.2,
+   "lastAt": "2026-10-14T08:26:12.707Z",
+   "marks": 115,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 7.8,
+    "low": 4,
+    "last": 4.2
+   },
+   "pnl": {
+    "perUnit": -4.17,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -14803.5,
+    "netPerLot": -14892.47
+   }
+  },
+  {
+   "id": "2026-10-08|PE|ADANIPOWER26OCT190PE",
+   "kind": "PE",
+   "symbol": "ADANIPOWER",
+   "contract": "ADANIPOWER26OCT190PE",
+   "expiry": "2026-10-27",
+   "strike": 190,
+   "optionType": "PE",
+   "lotSize": 3550,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T05:05:52.196Z",
+   "buy": 6.93,
+   "target": 10.39,
+   "target2": null,
+   "stop": 3.47,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38.6,
+     "medianDays": 8.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-08T05:05:52.216Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-14T08:26:12.707Z",
+   "exitPrice": 3.47,
+   "exitReason": "STOP",
+   "hoursFillToExit": 147.34,
+   "sessionsHeld": 4,
+   "best": 9.81,
+   "worst": 3.09,
+   "last": 3.21,
+   "lastAt": "2026-10-14T08:26:12.707Z",
+   "marks": 122,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 8.27,
+    "low": 3.09,
+    "last": 3.21
+   },
+   "pnl": {
+    "perUnit": -3.46,
+    "pct": -49.93,
+    "basis": "NET",
+    "perLot": -12283,
+    "netPerLot": -12364.94
+   }
   }
  ]
 }
