@@ -323,7 +323,8 @@
   "OPTION|INDIGO|INDIGO26OCT4550PE",
   "OPTION|SWIGGY|SWIGGY26OCT220PE",
   "OPTION|POLICYBZR|POLICYBZR26OCT1140PE",
-  "OPTION|KOTAKBANK|KOTAKBANK26OCT425CE"
+  "OPTION|KOTAKBANK|KOTAKBANK26OCT425CE",
+  "OPTION|VEDL|VEDL26OCT240PE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4419,6 +4420,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-14T09:08:14.675Z",
    "frozenAtIst": "2026-10-14 14:38 IST",
+   "frozenAtSpot": null
+  },
+  "VEDL26OCT240PE": {
+   "buy": 2.55,
+   "sell": 3.8,
+   "stop": 1.25,
+   "tick": 0.05,
+   "lotSize": 1150,
+   "expiry": "2026-10-27",
+   "strike": 240,
+   "right": "PE",
+   "symbol": "VEDL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T09:28:22.987Z",
+   "frozenAtIst": "2026-10-14 14:58 IST",
    "frozenAtSpot": null
   }
  },
