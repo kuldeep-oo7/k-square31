@@ -994,6 +994,41 @@ function springyBox(sd) {
   </div>`;
 }
 
+// THE FOCUS RULE (owner, 14 Oct 2026: "let's focus on the one thing and use that for a period of time"). Short build-up is
+// the only rule here that held on data it had never seen: pre-registered replication on NSE 2005-2020
+// (studies/oos-replication-2026-10-05): 33,979 trades, +0.208% a trade after charges, t 4.66, positive in every 5-year
+// period but shrinking. Its full Deflated Sharpe was never computed, and its forward test (from 5 Oct) is far from a
+// verdict, so it is shown for GM Global (paper money) only, at the top of FUTURES, until that verdict (~Jan 2027).
+// The signals come from docs/paper-rules/oi-flow.json; a list for another session is never shown as today's.
+function sbFocusBox(d) {
+  const of = d.oiFlow; if (!of || !of.SB) return "";
+  const mn = (v) => String(v).replace(/^-/, "&minus;");
+  const { nextTradingDate } = require("./paper-ledger");
+  const target = d.sessionOver || d.tradingDay === false ? d.nextSession : d.sessionDate;
+  const dayText = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
+  const sb = of.SB; const s = sb.summary || {};
+  const pend = (sb.pending || []).filter((p) => p.signalDate && nextTradingDate(p.signalDate) === target);
+  const ready = of.dataThrough && nextTradingDate(of.dataThrough) === target;
+  const rows = pend.map((p) => `<tr><td><b>${esc(p.symbol)}</b><div class="sub">Zerodha/GM: ${esc(p.symbol)} futures, nearest month</div></td>
+    <td class="num down">${mn(esc(p.pricePct))}%</td><td class="num">+${esc(p.oiPct)}%</td><td>SELL at the open, BUY BACK before the close</td></tr>`).join("");
+  const day = esc(dayText(target));
+  return `<div class="note" style="border-left-color:var(--amber);margin:0 0 14px">
+    <b class="warn">FOCUS RULE &mdash; SHORT BUILD-UP</b> &middot; <b>paper test: for GM Global only, not real money</b>
+    <div style="margin-top:6px">${!ready
+      ? `<b class="warn">The list for ${day} is not ready yet</b> &mdash; it is made from NSE&rsquo;s evening files (data so far through ${esc(of.dataThrough || "?")}). Check again after 09:30.`
+      : rows ? `<b>${day}:</b> these stocks fell at least 1.56% in the last session while their futures open interest rose at least 3.04% (new shorts piling in).
+        <div class="wrap"><table><thead><tr><th>STOCK</th><th class="num">PRICE</th><th class="num">OPEN INT.</th><th>TRADE (same day)</th></tr></thead><tbody>${rows}</tbody></table></div>`
+      : `<b>No short build-up signal for ${day}.</b> No trade from this rule today.`}</div>
+    <details class="fold sub"><summary>The evidence, and why it is paper only<span class="more"></span></summary><div>
+      Tested on NSE 2005&ndash;2020, data it had never seen, with its rules fixed first: 33,979 trades, <b>+0.21% a trade after futures charges, t 4.66</b>,
+      positive in every 5-year period but shrinking (+0.40%, +0.31%, +0.14%); it lost &minus;0.48% a trade in the 2020 COVID crash. Found on 2020&ndash;2026
+      (+0.30% then +0.13% a trade). Not yet checked with the full deflated Sharpe. <b>On paper since ${esc(of.start)}:</b> ${esc(s.finished ?? 0)} trades${s.finished
+        ? `, ${s.meanNetPct > 0 ? "+" : ""}${mn(esc(s.meanNetPct))}% a trade, ${esc(s.winPct)}% winners` : ""} &mdash; a verdict needs 100 trades and 3 months
+      (about early January 2027). One trade is about +0.2% on average and can lose several percent on a rally day; it works only over many trades.
+      Real money on Zerodha only after a PASS.</div></details>
+  </div>`;
+}
+
 // TWO OPEN-INTEREST PATTERNS, ON PAPER, AGAINST THE FUTURE (studies/oi-flow-forward-2026-10-04).
 function oiFlowBox(of) {
   if (!of) return "";
@@ -1560,7 +1595,8 @@ function page(d) {
   const provenCount = (kind, n) => (PROVEN_KINDS.has(kind) ? n : 0);
   const noTrade = (what) => `<div class="note" style="border-left-color:var(--red);margin:0 0 12px"><b class="down">NO TRADE</b> &mdash; nothing on this tab has passed a test, so there is
     nothing here the desk can call a suggestion. Every rule tried on six years of NSE data failed (TRACK and the notes below have the numbers).
-    The ${esc(what)} under the fold are untested ideas, scored on paper on TRACK. Watching them costs nothing; trading them is a guess.</div>`;
+    The ${esc(what)} under the fold are untested ideas, scored on paper on TRACK. Watching them costs nothing; trading them is a guess.${what === "futures rows"
+      ? " The FOCUS RULE above is the one exception under watch: it held on unseen data, and is on paper for GM only until its forward verdict." : ""}</div>`;
   const untested = (kind, label, n, inner) => PROVEN_KINDS.has(kind) ? inner
     : `${noTrade(label)}${n ? `<details class="fold nr"><summary><b class="warn">UNTESTED &mdash; WATCH ONLY</b> &mdash; ${esc(n)} ${esc(label)}. Not a suggestion. Tap to see them.<span class="more"></span></summary><div>${inner}</div></details>` : inner}`;
   const notRecommended = (label, n, inner) => !downtrendPage || !n || !PROVEN_KINDS.has("CE") ? inner
@@ -1746,6 +1782,7 @@ ${staleAlarm}
 
   <section class="pane pane-fut">
     <h2>Futures &mdash; ${esc(d.gmMinUnits || 20)} units each (GM Global's minimum)</h2>
+    ${sbFocusBox(d)}
     ${untested("FUT", "futures rows", d.futures.length + (d.futuresShort || []).length, `${futuresWarned(`    ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`,
       `<b>With no trend, a row's target comes before its stop at most as often as its break-even (about 37.5%)</b> &mdash; a price with no trend is a fair game &mdash;
        so before GM's charges these rows make money only if the BUY signal works. <b>It was tested and FAILED</b>: the desk&rsquo;s own rating,
@@ -2019,7 +2056,7 @@ async function main() {
   return data;
 }
 
-module.exports = { build, page, fillState, main };
+module.exports = { build, page, fillState, main, sbFocusBox };
 
 // Exported above so a test can drive build() twice and prove the levels did not
 // move. Run directly, it is still just a build.

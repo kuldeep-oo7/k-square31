@@ -5,7 +5,7 @@ const { spawnSync } = require("node:child_process");
 const path = require("node:path");
 const steps = [
   ["--check", "api/_lib/springy-dip.js"], ["scripts/test-springy-dip.js"],
-  ["--check", "api/_lib/oi-flow-forward.js"], ["scripts/test-oi-flow-forward.js"],
+  ["--check", "api/_lib/oi-flow-forward.js"], ["scripts/test-oi-flow-forward.js"], ["scripts/test-sb-focus.js"],
   ["--check", "api/_lib/forward-v2.js"], ["scripts/test-forward-v2.js"],
   ["--check", "api/_lib/forward-v3.js"], ["scripts/test-forward-v3.js"],
   ["--check", "api/_lib/forward-v4.js"], ["scripts/test-forward-v4.js"],
