@@ -303,7 +303,9 @@
   "OPTION|PAYTM|PAYTM26OCT1640CE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT14100PE",
   "OPTION|BLUESTARCO|BLUESTARCO26OCT1660CE",
-  "OPTION|AUROPHARMA|AUROPHARMA26OCT1740CE"
+  "OPTION|AUROPHARMA|AUROPHARMA26OCT1740CE",
+  "OPTION|GLENMARK|GLENMARK26OCT2280PE",
+  "OPTION|SAIL|SAIL26OCT167.5PE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4099,6 +4101,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-14T05:25:44.457Z",
    "frozenAtIst": "2026-10-14 10:55 IST",
+   "frozenAtSpot": null
+  },
+  "GLENMARK26OCT2280PE": {
+   "buy": 49.3,
+   "sell": 73.95,
+   "stop": 24.65,
+   "tick": 0.05,
+   "lotSize": 375,
+   "expiry": "2026-10-27",
+   "strike": 2280,
+   "right": "PE",
+   "symbol": "GLENMARK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T05:45:31.266Z",
+   "frozenAtIst": "2026-10-14 11:15 IST",
+   "frozenAtSpot": null
+  },
+  "SAIL26OCT167.5PE": {
+   "buy": 1.73,
+   "sell": 2.6,
+   "stop": 0.87,
+   "tick": 0.01,
+   "lotSize": 4700,
+   "expiry": "2026-10-27",
+   "strike": 167.5,
+   "right": "PE",
+   "symbol": "SAIL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T05:45:31.266Z",
+   "frozenAtIst": "2026-10-14 11:15 IST",
    "frozenAtSpot": null
   }
  },
