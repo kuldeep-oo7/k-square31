@@ -1,0 +1,21 @@
+COMBINED MODEL -- CHECKS BEFORE THE REAL RUN (no real-data result exists; the real run has NOT been made)
+
+Pre-registration committed 2026-10-13 22:44 IST (e44b3fd; the header says ~23:30, it was 22:44). Amendment A1 added
+2026-10-14 ~08:00 IST after an independent review, before any real-data result (section 9 of PREREGISTRATION.txt).
+
+CHECK 7.1, synthetic market with a planted SLB-surge edge (seed 1), three builds, all recorded:
+ run 1 (surges overlapping; planted effect measured -0.48%): C1 trees t 3.82 PASS (old rule), C2 ridge t 2.87, L1 top feature
+ run 2 (overlaps blocked, fewer surges; top-decile effect -0.33%): C1 t 2.64, C2 t 1.11, L1 top feature
+   (re-scored with the amended DSR: C1 DSR 0.93, PROMISING)
+ run 3 (amendment A1 design: 12 of 120 names surge each session, none twice within 6 sessions; planted effect measured
+   in the panel: surge names -0.395% vs others +0.044%, difference -0.439% over 5 sessions):
+   C1 trees long-short +0.067%/rebalance, t 1.79, Holm no, DSR 0.86 -> FAIL
+   C2 ridge long-short +0.047%, t 1.27 -> FAIL;  C3 trees long-only -0.000%, t -0.11 -> FAIL
+   L1 IS the top permutation feature (0.0085; next P23 0.0063). Mean rank IC trees 0.014.
+ VERDICT OF CHECK 7.1: FAILED. The pipeline ranks the planted feature first but cannot turn a ~0.44% 5-day excess edge
+ on 10% of names into a book that clears t >= 3 in 44 months. By section 7 the real run is NOT made with this design.
+
+CHECKS 7.2-7.4: not run (7.1 failed first).
+
+Implementation notes: sklearn 1.9 HistGradientBoosting fails on an all-missing training column; such a column is set
+to a constant for that block (model.py fit_trees). Synthetic data only; no real-data panel was built.

@@ -111,3 +111,22 @@ NOT INCLUDED, and why (decided now, not after a result):
 8. FILES
  features.js (panel builder, --synthetic, --coverage), model.py (walk-forward T and R), score.js (book + protocol v2),
  run.sh (order of steps). Data and the panel stay in research/combined-model (git-ignored).
+
+9. AMENDMENT A1 -- 2026-10-14, BEFORE any real-data result (only synthetic checks had run)
+Prompted by an independent review (K2-Audit-Conclusion-2026-10-14.pdf), which found the desk's Deflated Sharpe omitted
+the skewness/kurtosis term and that "PASS" did not require Holm or the DSR. The real-data verdict is tightened here.
+One CHECK is loosened, and said so: check 7.1 no longer requires C2 (reason at the end of this section).
+- Deflated Sharpe as Bailey and Lopez de Prado (2014), on the monthly series: sr = mean/sd (monthly, not annualised),
+  skew g3 and kurtosis g4 (not excess) of the monthly returns, T months;
+  SR0 = sqrt(Var[sr over the N = 3 members]) x ((1 - 0.5772) Phi^-1(1 - 1/N) + 0.5772 Phi^-1(1 - 1/(N e)));
+  DSR = Phi( (sr - SR0) sqrt(T - 1) / sqrt(1 - g3 sr + (g4 - 1)/4 sr^2) ).
+- PASS now needs ALL of: mean > 0, Newey-West t >= 3, Holm significant (alpha 0.05 over C1-C3), and DSR >= 0.95.
+  PROMISING = mean > 0 and t >= 2 but not PASS. FAIL otherwise.
+- Check 7.1 (synthetic planted edge): its first build let surges overlap, so the planted effect measured -0.48% instead of
+  -0.8% (C1 t 3.82 PASS with L1 the top feature, C2 t 2.87). A second build blocked overlaps but cut surge frequency, and
+  the top-decile effect measured -0.33% (C1 t 2.64, C2 t 1.11, L1 still the top feature). Both runs are recorded in
+  RESULT.txt. Final design of the check, fixed now: surges on a fixed 10% of names per session, chosen so that no name
+  surges twice within 6 sessions; the effect measured inside the panel (mean excess of surge names minus others) is
+  reported beside the verdicts; the check passes if C1 is PASS by the amended rule and L1 is the top permutation
+  feature. C2 (ridge) is reported, not required: a linear model on ranks cannot represent a threshold effect, which the
+  first two runs showed.
