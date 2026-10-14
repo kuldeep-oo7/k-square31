@@ -18,3 +18,7 @@ RUN NOTES (added after the run, 13 Oct 2026 22:30 IST)
   Kronos samples (1 path, T=1.0, top_p 0.9, as registered), so the restart re-seeded the random draws for the rest.
   Its forecasts are wide (5th-95th percentile -15.6% .. +12.6% over 5 days) because one sample is a draw, not a median.
 - TimesFM took 5,320 s on CPU; Chronos-2 279 s; Kronos 4,136 s for the second piece.
+
+VOID NOTE (14 Oct 2026, independent review): forecast.py gave Kronos fake business dates ending 2030-01-01; Kronos
+reads weekday/day/month features (Kronos repo model/kronos.py lines 474-478). M3 Kronos and M4 blend are VOID.
+M1 TimesFM, M2 Chronos-2, M5 trees and M6 reversal do not use dates; their results stand. A corrected Kronos run is a new run.
