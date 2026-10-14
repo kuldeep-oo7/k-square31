@@ -311,7 +311,8 @@
   "OPTION|MFSL|MFSL26OCT1260PE",
   "OPTION|GLENMARK|GLENMARK26OCT2300PE",
   "OPTION|INDUSTOWER|INDUSTOWER26OCT395CE",
-  "OPTION|INDIGO|INDIGO26OCT4600PE"
+  "OPTION|INDIGO|INDIGO26OCT4600PE",
+  "OPTION|LODHA|LODHA26OCT1020PE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4227,6 +4228,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-14T07:06:15.855Z",
    "frozenAtIst": "2026-10-14 12:36 IST",
+   "frozenAtSpot": null
+  },
+  "LODHA26OCT1020PE": {
+   "buy": 11.75,
+   "sell": 17.65,
+   "stop": 5.9,
+   "tick": 0.05,
+   "lotSize": 625,
+   "expiry": "2026-10-27",
+   "strike": 1020,
+   "right": "PE",
+   "symbol": "LODHA",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T07:25:36.340Z",
+   "frozenAtIst": "2026-10-14 12:55 IST",
    "frozenAtSpot": null
   }
  },
