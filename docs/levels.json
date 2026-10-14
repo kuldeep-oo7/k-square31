@@ -299,7 +299,8 @@
   "OPTION|PETRONET|PETRONET26OCT300CE",
   "OPTION|GMRAIRPORT|GMRAIRPORT26OCT92PE",
   "OPTION|SAIL|SAIL26OCT170PE",
-  "OPTION|VEDL|VEDL26OCT265PE"
+  "OPTION|VEDL|VEDL26OCT265PE",
+  "OPTION|PAYTM|PAYTM26OCT1640CE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4035,6 +4036,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-14T04:46:20.886Z",
    "frozenAtIst": "2026-10-14 10:16 IST",
+   "frozenAtSpot": null
+  },
+  "PAYTM26OCT1640CE": {
+   "buy": 97.75,
+   "sell": 146.6,
+   "stop": 48.9,
+   "tick": 0.05,
+   "lotSize": 725,
+   "expiry": "2026-10-27",
+   "strike": 1640,
+   "right": "CE",
+   "symbol": "PAYTM",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T05:07:11.958Z",
+   "frozenAtIst": "2026-10-14 10:37 IST",
    "frozenAtSpot": null
   }
  },
