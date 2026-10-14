@@ -134987,6 +134987,228 @@
     "perLot": 22132.5,
     "netPerLot": 21937.83
    }
+  },
+  {
+   "id": "2026-10-14|FUT|LICHSGFIN26OCTFUT",
+   "kind": "FUT",
+   "symbol": "LICHSGFIN",
+   "contract": "LICHSGFIN26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T03:51:32.467Z",
+   "buy": 545.25,
+   "target": 558.9,
+   "target2": 572.5,
+   "stop": 537.05,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 71.7,
+     "medianTradingDays": 0.155
+    },
+    "target": {
+     "probabilityPct": 79.3,
+     "medianTradingDays": 1.767
+    },
+    "sigmaPct": 35.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-14T04:07:01.470Z",
+   "hoursToFill": 0.26,
+   "closedAt": "2026-10-14T09:45:23.201Z",
+   "exitPrice": 537.05,
+   "exitReason": "STOP",
+   "hoursFillToExit": 5.64,
+   "sessionsHeld": 0,
+   "best": 545.25,
+   "worst": 536.3,
+   "last": 537.15,
+   "lastAt": "2026-10-14T09:45:23.201Z",
+   "marks": 19,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 565.05,
+    "low": 536.3,
+    "last": 537.15
+   },
+   "pnl": {
+    "perUnit": -8.2,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-14|CE|LAURUSLABS26OCT2100CE",
+   "kind": "CE",
+   "symbol": "LAURUSLABS",
+   "contract": "LAURUSLABS26OCT2100CE",
+   "expiry": "2026-10-27",
+   "strike": 2100,
+   "optionType": "CE",
+   "lotSize": 850,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T03:51:32.467Z",
+   "buy": 29.55,
+   "target": 44.3,
+   "target2": null,
+   "stop": 14.8,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 35.1,
+     "medianDays": 6.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-14T03:51:32.916Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-14T09:45:23.201Z",
+   "exitPrice": 14.8,
+   "exitReason": "STOP",
+   "hoursFillToExit": 5.9,
+   "sessionsHeld": 0,
+   "best": 29.55,
+   "worst": 14.5,
+   "last": 15.8,
+   "lastAt": "2026-10-14T09:45:23.201Z",
+   "marks": 19,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 31.95,
+    "low": 14.5,
+    "last": 15.8
+   },
+   "pnl": {
+    "perUnit": -14.75,
+    "pct": -49.92,
+    "basis": "NET",
+    "perLot": -12537.5,
+    "netPerLot": -12620.17
+   }
+  },
+  {
+   "id": "2026-10-12|PE|INDIGO26OCT5100PE",
+   "kind": "PE",
+   "symbol": "INDIGO",
+   "contract": "INDIGO26OCT5100PE",
+   "expiry": "2026-10-27",
+   "strike": 5100,
+   "optionType": "PE",
+   "lotSize": 150,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T04:45:58.785Z",
+   "buy": 270.2,
+   "target": 405.3,
+   "target2": null,
+   "stop": 135.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 45.2,
+     "medianDays": 5.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-12T05:05:44.159Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-14T09:45:23.201Z",
+   "exitPrice": 405.3,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 52.66,
+   "sessionsHeld": 2,
+   "best": 408.55,
+   "worst": 244,
+   "last": 408.55,
+   "lastAt": "2026-10-14T09:45:23.201Z",
+   "marks": 60,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 408.55,
+    "low": 328,
+    "last": 408.55
+   },
+   "pnl": {
+    "perUnit": 135.1,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 20265,
+    "netPerLot": 20082.79
+   }
+  },
+  {
+   "id": "2026-10-12|CE|LAURUSLABS26OCT2040CE",
+   "kind": "CE",
+   "symbol": "LAURUSLABS",
+   "contract": "LAURUSLABS26OCT2040CE",
+   "expiry": "2026-10-27",
+   "strike": 2040,
+   "optionType": "CE",
+   "lotSize": 850,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T03:50:41.585Z",
+   "buy": 65.75,
+   "target": 98.6,
+   "target2": null,
+   "stop": 32.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 39.6,
+     "medianDays": 6.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-12T03:50:41.601Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-14T09:45:23.201Z",
+   "exitPrice": 32.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 53.91,
+   "sessionsHeld": 2,
+   "best": 69.4,
+   "worst": 32.85,
+   "last": 34.8,
+   "lastAt": "2026-10-14T09:45:23.201Z",
+   "marks": 78,
+   "obs": {
+    "date": "2026-10-14",
+    "high": 61.25,
+    "low": 32.85,
+    "last": 34.8
+   },
+   "pnl": {
+    "perUnit": -32.85,
+    "pct": -49.96,
+    "basis": "NET",
+    "perLot": -27922.5,
+    "netPerLot": -28048.58
+   }
   }
  ]
 }
