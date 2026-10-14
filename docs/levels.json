@@ -294,7 +294,11 @@
   "OPTION|PAGEIND|PAGEIND26OCT37000CE",
   "OPTION|PAGEIND|PAGEIND26OCT37500CE",
   "OPTION|COCHINSHIP|COCHINSHIP26OCT1260PE",
-  "OPTION|GODFRYPHLP|GODFRYPHLP26OCT1800PE"
+  "OPTION|GODFRYPHLP|GODFRYPHLP26OCT1800PE",
+  "OPTION|FORTIS|FORTIS26OCT720PE",
+  "OPTION|PETRONET|PETRONET26OCT300CE",
+  "OPTION|GMRAIRPORT|GMRAIRPORT26OCT92PE",
+  "OPTION|SAIL|SAIL26OCT170PE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -3955,6 +3959,66 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-14T04:07:00.985Z",
    "frozenAtIst": "2026-10-14 09:37 IST",
+   "frozenAtSpot": null
+  },
+  "FORTIS26OCT720PE": {
+   "buy": 7.05,
+   "sell": 10.6,
+   "stop": 3.55,
+   "tick": 0.05,
+   "lotSize": 775,
+   "expiry": "2026-10-27",
+   "strike": 720,
+   "right": "PE",
+   "symbol": "FORTIS",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T04:26:29.362Z",
+   "frozenAtIst": "2026-10-14 09:56 IST",
+   "frozenAtSpot": null
+  },
+  "PETRONET26OCT300CE": {
+   "buy": 2,
+   "sell": 3,
+   "stop": 1,
+   "tick": 0.05,
+   "lotSize": 1900,
+   "expiry": "2026-10-27",
+   "strike": 300,
+   "right": "CE",
+   "symbol": "PETRONET",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T04:26:29.362Z",
+   "frozenAtIst": "2026-10-14 09:56 IST",
+   "frozenAtSpot": null
+  },
+  "GMRAIRPORT26OCT92PE": {
+   "buy": 3.07,
+   "sell": 4.6,
+   "stop": 1.54,
+   "tick": 0.01,
+   "lotSize": 6975,
+   "expiry": "2026-10-27",
+   "strike": 92,
+   "right": "PE",
+   "symbol": "GMRAIRPORT",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T04:26:29.362Z",
+   "frozenAtIst": "2026-10-14 09:56 IST",
+   "frozenAtSpot": null
+  },
+  "SAIL26OCT170PE": {
+   "buy": 2.3,
+   "sell": 3.45,
+   "stop": 1.15,
+   "tick": 0.01,
+   "lotSize": 4700,
+   "expiry": "2026-10-27",
+   "strike": 170,
+   "right": "PE",
+   "symbol": "SAIL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T04:26:29.362Z",
+   "frozenAtIst": "2026-10-14 09:56 IST",
    "frozenAtSpot": null
   }
  },
