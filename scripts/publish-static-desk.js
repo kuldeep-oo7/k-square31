@@ -1012,7 +1012,7 @@ function sbFocusBox(d) {
   const rows = pend.map((p) => `<tr><td><b>${esc(p.symbol)}</b><div class="sub">Zerodha/GM: ${esc(p.symbol)} futures, nearest month</div></td>
     <td class="num down">${mn(esc(p.pricePct))}%</td><td class="num">+${esc(p.oiPct)}%</td><td>SELL at the open, BUY BACK before the close</td></tr>`).join("");
   const day = esc(dayText(target));
-  return `<div class="note" style="border-left-color:var(--amber);margin:0 0 14px">
+  return `<div class="note focus" style="border-left-color:var(--amber);margin:0 0 14px">
     <b class="warn">FOCUS RULE &mdash; SHORT BUILD-UP</b> &middot; <b>paper test: for GM Global only, not real money</b>
     <div style="margin-top:6px">${!ready
       ? `<b class="warn">The list for ${day} is not ready yet</b> &mdash; it is made from NSE&rsquo;s evening files (data so far through ${esc(of.dataThrough || "?")}). Check again after 09:30.`
@@ -1915,6 +1915,7 @@ ${staleAlarm}
   if (!window.matchMedia || !window.matchMedia("(max-width: 480px)").matches) return;
   document.querySelectorAll(".note").forEach(function (n) {
     if ((n.textContent || "").length < 260) return;   // short notes stay whole (hidden tabs have no height yet)
+    if (n.classList.contains("focus")) return;          // the focus rule's list is the point of the tab: never folded
     n.classList.add("clamp");
     n.addEventListener("click", function () { n.classList.remove("clamp"); }, { once: true });
   });
