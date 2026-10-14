@@ -322,7 +322,8 @@
   "OPTION|COCHINSHIP|COCHINSHIP26OCT1220PE",
   "OPTION|INDIGO|INDIGO26OCT4550PE",
   "OPTION|SWIGGY|SWIGGY26OCT220PE",
-  "OPTION|POLICYBZR|POLICYBZR26OCT1140PE"
+  "OPTION|POLICYBZR|POLICYBZR26OCT1140PE",
+  "OPTION|KOTAKBANK|KOTAKBANK26OCT425CE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4403,6 +4404,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-14T08:26:12.249Z",
    "frozenAtIst": "2026-10-14 13:56 IST",
+   "frozenAtSpot": null
+  },
+  "KOTAKBANK26OCT425CE": {
+   "buy": 16.35,
+   "sell": 24.55,
+   "stop": 8.2,
+   "tick": 0.05,
+   "lotSize": 2000,
+   "expiry": "2026-10-27",
+   "strike": 425,
+   "right": "CE",
+   "symbol": "KOTAKBANK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T09:08:14.675Z",
+   "frozenAtIst": "2026-10-14 14:38 IST",
    "frozenAtSpot": null
   }
  },
