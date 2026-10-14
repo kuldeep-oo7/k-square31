@@ -1,0 +1,26 @@
+PRE-REGISTRATION -- KRONOS RE-RUN WITH REAL DATES (corrects M3, and M4 which blends it)
+Written 2026-10-14 ~23:55 IST, BEFORE this run. Branch claude/forecast-models-2026-10-13.
+
+WHY
+The first run gave Kronos fake business dates ending 2030-01-01 for every series and fake forecast dates from
+2030-01-02 (forecast.py). Kronos reads minute/hour/weekday/day/month of each bar (Kronos repo model/kronos.py, lines
+474-478), so M3 and M4 were VOID (independent review, 14 Oct 2026; RESULT.txt void note). This is a SECOND look at the
+same model on the same data: its result is reported beside the void one, never instead of the study's other members.
+
+WHAT CHANGES (only this)
+- x_timestamp of each series = the real NSE session date of each bar (the bars' own dates in the CM bhavcopy).
+- y_timestamp = the next 5 NSE trading days after d, from the NSE holiday calendar (scripts/paper-ledger.js
+  nextTradingDate), not from data after d.
+- Seeding: torch and numpy are seeded with the batch number before each batch, so an interrupted run that resumes
+  from its checkpoint gives exactly the same forecasts as an uninterrupted one. (The first run seeded once.)
+
+WHAT DOES NOT CHANGE
+- Same series: inputs are rebuilt by prepare.js with dates added; the open/high/low/close/volume arrays must be
+  IDENTICAL to research/fm-data/inputs.jsonl, line by line, for the same 5,481 (rebalance, stock) rows, or the run
+  stops.
+- Same model and settings: NeoQuasar/Kronos-small + Kronos-Tokenizer-base, max_context 512, pred_len 5, T 1.0,
+  top_p 0.9, sample_count 1; equal-length batches of up to 32.
+- Same scoring: score.js as registered (protocol v2, 6 members, Holm over 6, its DSR), with forecasts-kronos.csv
+  replaced by the real-date forecasts; M1, M2, M5, M6 are unchanged and re-printed only because score.js scores all six.
+- STRICTER READING (14 Oct standard): an M3 or M4 "PASS" counts only if it also clears Holm and the full Deflated
+  Sharpe (Bailey and Lopez de Prado 2014, with skew and kurtosis) >= 0.95, computed on its monthly series and reported.
