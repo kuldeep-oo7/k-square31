@@ -67,6 +67,17 @@ function check(label, ok, detail = "") {
 }
 
 // ---- deterministic randomness (xoshiro128**) ---------------------------------
+// HOW CLOSE AN IMPLIED VOL CAN BE RECOVERED (14 Oct 2026): NSE option prices move in Rs 0.05 ticks, so a price is only
+// known to half a tick, and half a tick is worth (0.025 / vega) vol points. On a Rs 39 stock (SUZLON 40 PE, Rs 3.25,
+// 32 days) that is 0.55 points by itself. The bar is half a point, or that rounding error where it is larger.
+function ivTolerance(c, truth) {
+  const F = Number(c.forward), K = Number(c.strike), T = Number(c.daysLeft) / 365;
+  if (!(F > 0 && K > 0 && T > 0 && truth > 0)) return 0.5;
+  const d1 = (Math.log(F / K) + 0.5 * truth * truth * T) / (truth * Math.sqrt(T));
+  const vega = F * Math.exp(-0.5 * d1 * d1) / Math.sqrt(2 * Math.PI) * Math.sqrt(T) / 100;   // Rs per vol point
+  return Math.max(0.5, vega > 0 ? 0.025 / vega : 0.5);
+}
+
 function rng(seed) {
   let a = seed >>> 0, b = 0x9e3779b9, c = 0x243f6a88, d = 0xb7e15162;
   const rotl = (x, k) => (x << k) | (x >>> (32 - k));
@@ -369,13 +380,11 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
       && d.futures.length > 0 && d.options.length > 0 && (b.html.match(/<b class="down">NO TRADE<\/b>/g) || []).length === 3
       && b.html.includes(`UNTESTED &mdash; WATCH ONLY</b> &mdash; ${d.futures.length + (d.futuresShort || []).length} futures rows`));
     // Implied volatility on the page against the volatility the market was built with.
-    const errs = d.options.map((c) => {
-      const truth = b.market.trueVol(c.symbol, c.expiry, c.strike, c.right);
-      return truth ? Math.abs(Number(c.iv) / 100 - truth) * 100 : null;
-    }).filter((x) => x !== null);
-    const worstIv = Math.max(...errs);
-    check("every option's implied vol on the page is the market's own, to half a point", errs.length > 0 && worstIv < 0.5,
-      `worst ${worstIv.toFixed(2)} vol pts over ${errs.length} options`);
+    const ivs = d.options.map((c) => { const truth = b.market.trueVol(c.symbol, c.expiry, c.strike, c.right);
+      return truth ? { e: Math.abs(Number(c.iv) / 100 - truth) * 100, tol: ivTolerance(c, truth), c } : null; }).filter(Boolean);
+    const errs = ivs.map((x) => x.e); const worstIv = Math.max(...errs); const over = ivs.filter((x) => x.e >= x.tol);
+    check("every option's implied vol on the page is the market's own, to half a point (or the 5-paise tick's own error)", ivs.length > 0 && over.length === 0,
+      `worst ${worstIv.toFixed(2)} vol pts over ${errs.length} options; ${over.length} over their bar${over.length ? ": " + over.slice(0, 3).map((x) => `${x.c.symbol} ${x.c.strike}${x.c.right} ${x.e.toFixed(2)} > ${x.tol.toFixed(2)}`).join(", ") : ""}`);
     check("every option priced against the LIVE forward, none against yesterday's", d.options.every((c) => c.forwardSource === "LIVE"));
     // BAD-DAY RISK on both tabs (api/_lib/risk-view.js), from the simulated history.
     const futPane = b.html.split('class="pane pane-fut"')[1].split('class="pane pane-ce"')[0];
@@ -574,12 +583,11 @@ const ist = (day, hhmm) => Date.parse(`${day}T${hhmm}:00+05:30`);
     check("yesterday's open futures are stopped by the gap", openBefore.length === 0 || gapStops.length > 0, `${gapStops.length} of ${openBefore.length}`);
     check("a gap through the stop exits at the OPEN, below the stop -- the real loss, not the planned one",
       gapStops.every((t) => t.exitPrice <= t.stop), gapStops.slice(0, 2).map((t) => `${t.contract} stop ${t.stop} exit ${t.exitPrice}`).join("; "));
-    const errs = d.options.map((c) => {
-      const truth = b.market.trueVol(c.symbol, c.expiry, c.strike, c.right);
-      return truth ? Math.abs(Number(c.iv) / 100 - truth) * 100 : null;
-    }).filter((x) => x !== null);
-    check("implied vol on a shock day is still the market's own, to half a point", errs.length > 0 && Math.max(...errs) < 0.5,
-      `worst ${Math.max(...errs).toFixed(2)} over ${errs.length}`);
+    const ivs = d.options.map((c) => { const truth = b.market.trueVol(c.symbol, c.expiry, c.strike, c.right);
+      return truth ? { e: Math.abs(Number(c.iv) / 100 - truth) * 100, tol: ivTolerance(c, truth), c } : null; }).filter(Boolean);
+    const over = ivs.filter((x) => x.e >= x.tol);
+    check("implied vol on a shock day is still the market's own, to half a point (or the 5-paise tick's own error)", ivs.length > 0 && over.length === 0,
+      `worst ${Math.max(...ivs.map((x) => x.e)).toFixed(2)} over ${ivs.length}; ${over.length} over their bar${over.length ? ": " + over.slice(0, 3).map((x) => `${x.c.symbol} ${x.c.strike}${x.c.right} ${x.e.toFixed(2)} > ${x.tol.toFixed(2)}`).join(", ") : ""}`);
     // What the OLD code would have printed: yesterday's forward, spot BSM.
     const sample = d.options.slice(0, 20).map((c) => {
       const bucket = REF.symbols[c.symbol].expiries[c.expiry];
