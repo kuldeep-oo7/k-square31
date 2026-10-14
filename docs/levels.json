@@ -305,7 +305,11 @@
   "OPTION|BLUESTARCO|BLUESTARCO26OCT1660CE",
   "OPTION|AUROPHARMA|AUROPHARMA26OCT1740CE",
   "OPTION|GLENMARK|GLENMARK26OCT2280PE",
-  "OPTION|SAIL|SAIL26OCT167.5PE"
+  "OPTION|SAIL|SAIL26OCT167.5PE",
+  "OPTION|NIFTY|NIFTY26OCT22300PE",
+  "OPTION|FINNIFTY|FINNIFTY26OCT24600PE",
+  "OPTION|MFSL|MFSL26OCT1260PE",
+  "OPTION|GLENMARK|GLENMARK26OCT2300PE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4131,6 +4135,66 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-14T05:45:31.266Z",
    "frozenAtIst": "2026-10-14 11:15 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26OCT22300PE": {
+   "buy": 97.05,
+   "sell": 145.55,
+   "stop": 48.5,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-10-27",
+   "strike": 22300,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T06:06:25.619Z",
+   "frozenAtIst": "2026-10-14 11:36 IST",
+   "frozenAtSpot": null
+  },
+  "FINNIFTY26OCT24600PE": {
+   "buy": 138.35,
+   "sell": 207.5,
+   "stop": 69.15,
+   "tick": 0.05,
+   "lotSize": 60,
+   "expiry": "2026-10-27",
+   "strike": 24600,
+   "right": "PE",
+   "symbol": "FINNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T06:06:25.619Z",
+   "frozenAtIst": "2026-10-14 11:36 IST",
+   "frozenAtSpot": null
+  },
+  "MFSL26OCT1260PE": {
+   "buy": 12.25,
+   "sell": 18.4,
+   "stop": 6.15,
+   "tick": 0.05,
+   "lotSize": 400,
+   "expiry": "2026-10-27",
+   "strike": 1260,
+   "right": "PE",
+   "symbol": "MFSL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T06:06:25.619Z",
+   "frozenAtIst": "2026-10-14 11:36 IST",
+   "frozenAtSpot": null
+  },
+  "GLENMARK26OCT2300PE": {
+   "buy": 56.45,
+   "sell": 84.7,
+   "stop": 28.25,
+   "tick": 0.05,
+   "lotSize": 375,
+   "expiry": "2026-10-27",
+   "strike": 2300,
+   "right": "PE",
+   "symbol": "GLENMARK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T06:06:25.619Z",
+   "frozenAtIst": "2026-10-14 11:36 IST",
    "frozenAtSpot": null
   }
  },
