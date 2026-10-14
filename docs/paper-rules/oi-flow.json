@@ -2,12 +2,20 @@
  "preregistration": "studies/oi-flow-forward-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
  "start": "2026-10-05",
- "dataThrough": "2026-10-13",
- "builtAt": "2026-10-14T16:01:26.759Z",
+ "dataThrough": "2026-10-14",
+ "builtAt": "2026-10-14T16:07:58.762Z",
  "LU": {
   "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
   "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
-  "pending": [],
+  "pending": [
+   {
+    "symbol": "HDFCLIFE",
+    "signalDate": "2026-10-14",
+    "pricePct": -2.85,
+    "oiPct": -3.32,
+    "status": "SIGNAL"
+   }
+  ],
   "trades": [
    {
     "symbol": "APOLLOHOSP",
@@ -56,28 +64,71 @@
   "backtest": "FAILED (+0.296% / +0.020% / +0.131% a trade; final t 1.86, not enough after 12 tests)",
   "pending": [
    {
-    "symbol": "POWERINDIA",
-    "signalDate": "2026-10-13",
-    "pricePct": -3.32,
-    "oiPct": 6.18,
+    "symbol": "DIVISLAB",
+    "signalDate": "2026-10-14",
+    "pricePct": -2.82,
+    "oiPct": 5.3,
     "status": "SIGNAL"
+   },
+   {
+    "symbol": "LICHSGFIN",
+    "signalDate": "2026-10-14",
+    "pricePct": -5.14,
+    "oiPct": 13.64,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "LTF",
+    "signalDate": "2026-10-14",
+    "pricePct": -3.29,
+    "oiPct": 7.21,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "ATHERENERG",
+    "signalDate": "2026-10-14",
+    "pricePct": -1.87,
+    "oiPct": 3.35,
+    "status": "SIGNAL"
+   }
+  ],
+  "trades": [
+   {
+    "symbol": "VEDL",
+    "signalDate": "2026-10-13",
+    "pricePct": -3.25,
+    "oiPct": 3.99,
+    "entryDate": "2026-10-14",
+    "entry": 253.75,
+    "exitDate": "2026-10-14",
+    "exit": 250,
+    "netPct": 1.411,
+    "status": "DONE"
    },
    {
     "symbol": "RBLBANK",
     "signalDate": "2026-10-13",
     "pricePct": -7.1,
     "oiPct": 29.91,
-    "status": "SIGNAL"
+    "entryDate": "2026-10-14",
+    "entry": 388.05,
+    "exitDate": "2026-10-14",
+    "exit": 386,
+    "netPct": 0.462,
+    "status": "DONE"
    },
    {
-    "symbol": "VEDL",
+    "symbol": "POWERINDIA",
     "signalDate": "2026-10-13",
-    "pricePct": -3.25,
-    "oiPct": 3.99,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "pricePct": -3.32,
+    "oiPct": 6.18,
+    "entryDate": "2026-10-14",
+    "entry": 30250,
+    "exitDate": "2026-10-14",
+    "exit": 30390,
+    "netPct": -0.529,
+    "status": "DONE"
+   },
    {
     "symbol": "MAXHEALTH",
     "signalDate": "2026-10-12",
@@ -428,11 +479,11 @@
    }
   ],
   "summary": {
-   "finished": 29,
-   "meanNetPct": -0.165,
-   "winPct": 41.4,
+   "finished": 32,
+   "meanNetPct": -0.107,
+   "winPct": 43.8,
    "weeks": 2,
-   "t": -0.31,
+   "t": -0.28,
    "verdict": "COLLECTING"
   }
  }
