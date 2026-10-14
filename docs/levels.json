@@ -310,7 +310,8 @@
   "OPTION|FINNIFTY|FINNIFTY26OCT24600PE",
   "OPTION|MFSL|MFSL26OCT1260PE",
   "OPTION|GLENMARK|GLENMARK26OCT2300PE",
-  "OPTION|INDUSTOWER|INDUSTOWER26OCT395CE"
+  "OPTION|INDUSTOWER|INDUSTOWER26OCT395CE",
+  "OPTION|INDIGO|INDIGO26OCT4600PE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4211,6 +4212,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-14T06:45:25.002Z",
    "frozenAtIst": "2026-10-14 12:15 IST",
+   "frozenAtSpot": null
+  },
+  "INDIGO26OCT4600PE": {
+   "buy": 42.45,
+   "sell": 63.65,
+   "stop": 21.25,
+   "tick": 0.05,
+   "lotSize": 150,
+   "expiry": "2026-10-27",
+   "strike": 4600,
+   "right": "PE",
+   "symbol": "INDIGO",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T07:06:15.855Z",
+   "frozenAtIst": "2026-10-14 12:36 IST",
    "frozenAtSpot": null
   }
  },
