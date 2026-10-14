@@ -10,10 +10,14 @@ const { load, plan, FEATURES, features } = require("./common");
 const out = path.resolve(process.argv[2] || "fm-data"); fs.mkdirSync(out, { recursive: true });
 const data = load(process.env.K2_CM_DIR || "nse-data/cm");
 const p = plan(data);
-const inp = fs.createWriteStream(path.join(out, "inputs.jsonl"));
+const { nextTradingDate } = require(path.join(__dirname, "..", "..", "scripts", "paper-ledger"));
+const inp = fs.createWriteStream(path.join(out, process.env.K2_WITH_DATES ? "inputs-dated.jsonl" : "inputs.jsonl"));
 let n = 0;
 for (const r of p.rebalances) for (const s of r.names) { const b = s.bars;   // bars up to d, since the last reset, at most 512
-  inp.write(JSON.stringify({ d: r.d, e: r.e, sym: s.sym, o: b.map((x) => x.o), h: b.map((x) => x.h), l: b.map((x) => x.l), c: b.map((x) => x.c), v: b.map((x) => x.qty) }) + "\n"); n += 1; }
+  const row = { d: r.d, e: r.e, sym: s.sym, o: b.map((x) => x.o), h: b.map((x) => x.h), l: b.map((x) => x.l), c: b.map((x) => x.c), v: b.map((x) => x.qty) };
+  // K2_WITH_DATES (PREREGISTRATION-KRONOS-REAL-DATES.txt): each bar's own NSE date, and the next 5 NSE trading days after d
+  if (process.env.K2_WITH_DATES) { row.t = b.map((x) => x.d); row.ty = []; let q = r.d; for (let k = 0; k < 5; k += 1) { q = nextTradingDate(q); row.ty.push(q); } }
+  inp.write(JSON.stringify(row) + "\n"); n += 1; }
 inp.end();
 const f = [["i", "e", "sym", ...FEATURES, "target"].join(",")];
 for (const r of p.history) for (const s of r.names) { const x = features(s.bars); if (!x) continue; f.push([r.i, r.e, s.sym, ...x.map((v) => v.toFixed(6)), s.target === null ? "" : s.target.toFixed(6)].join(",")); }

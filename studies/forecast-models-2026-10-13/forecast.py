@@ -78,21 +78,29 @@ def run_kronos(rows):
         with open(part, encoding="utf8") as f:
             for x in f:
                 k, v = x.split(","); preds[int(k)] = float(v)
+    # Batches are always formed from ALL rows (the same on every run); a batch already saved is skipped whole, so a
+    # resumed run draws exactly what an uninterrupted one would (Kronos samples, and a batch shares its random draws).
     groups = {}
     for k, r in enumerate(rows):
-        if preds[k] is None:
-            groups.setdefault(len(r["c"]), []).append(k)
+        groups.setdefault(len(r["c"]), []).append(k)
     for n, ks in sorted(groups.items()):
         for i in range(0, len(ks), 32):
             idx = ks[i:i + 32]
+            if all(preds[k] is not None for k in idx):
+                continue
             batch = [rows[k] for k in idx]
             dfs, xs, ys = [], [], []
             for r in batch:
                 df = pd.DataFrame({"open": r["o"], "high": r["h"], "low": r["l"], "close": r["c"], "volume": r["v"]})
                 df["amount"] = df["close"] * df["volume"]
                 dfs.append(df)
-                xs.append(pd.Series(pd.bdate_range(end="2030-01-01", periods=n)))
-                ys.append(pd.Series(pd.bdate_range(start="2030-01-02", periods=H)))
+                if "t" in r:   # PREREGISTRATION-KRONOS-REAL-DATES.txt: the bars' own NSE dates and the next 5 NSE trading days
+                    xs.append(pd.Series(pd.to_datetime(r["t"]))); ys.append(pd.Series(pd.to_datetime(r["ty"])))
+                else:          # the first run (VOID): fake dates
+                    xs.append(pd.Series(pd.bdate_range(end="2030-01-01", periods=n)))
+                    ys.append(pd.Series(pd.bdate_range(start="2030-01-02", periods=H)))
+            if "t" in batch[0]:   # seeded per batch, so a resumed run gives the same forecasts as an uninterrupted one
+                bno = (n * 100003 + idx[0]) % (2 ** 31); torch.manual_seed(bno); np.random.seed(bno)
             out = pr.predict_batch(df_list=dfs, x_timestamp_list=xs, y_timestamp_list=ys, pred_len=H, T=1.0, top_p=0.9, sample_count=int(os.environ.get("K2_KRONOS_SAMPLES", "1")), verbose=False)
             got = [float(out[j]["close"].iloc[H - 1] / batch[j]["c"][-1] - 1) for j in range(len(batch))]
             for k, v in zip(idx, got):
