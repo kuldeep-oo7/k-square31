@@ -120,8 +120,9 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
   - 12-13 Oct 2026: NSE data atlas (14 members, 0 PASS, S2 PROMISING; branch claude/nse-atlas-2026-10-11); loan fee
     on NSE's SLB bhavcopy (0 PASS, F1 t 1.90; branch claude/loan-fee-2026-10-13); foundation models TimesFM-2.5 /
     Chronos-2 / Kronos-small + blend + trees + reversal (branch claude/forecast-models-2026-10-13, scored only from
-    Jul 2024 because Kronos trained on NSE to Jun 2024): 0 PASS, best t 0.62 (reversal). Audit file for the owner:
-    studies/ALL-TESTS-2026-10-13.txt. Research list: studies/research-open-source-2026-10-12/REPORT.md.
+    Jul 2024 because Kronos trained on NSE to Jun 2024): 0 PASS, best t 0.62 (reversal); Kronos and the blend VOID
+    (fake dates, review 14 Oct). Combined model (branch claude/combined-model-2026-10-13): NOT RUN, its synthetic
+    power check failed (t 1.79). Audit file for the owner: studies/ALL-TESTS-2026-10-13.txt. Research list: studies/research-open-source-2026-10-12/REPORT.md.
   - Don't re-run these as "new".
 
 ## Open work (as of 2 Oct 2026). Pick up from here
@@ -170,7 +171,9 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
   not to the package.json chain.
 - **Testing standard:** protocol v2 (research/audit-2026-10-04/PROTOCOL.txt): the whole sample,
   excess over the market for stock trades, t >= 3, with Holm and the Deflated Sharpe ratio reported.
-  The old final-year-only verdicts were underpowered.
+  The old final-year-only verdicts were underpowered. From 14 Oct (independent review): PASS needs t >= 3 AND Holm AND
+  the FULL Deflated Sharpe (Bailey & Lopez de Prado 2014, with skew/kurtosis) >= 0.95. Older DSR figures omit that term;
+  the strangle's t 4.66 had DSR 0.39, so it is NOT a PASS.
 - **GM Global:** the workflows `gm-cloud-sync`, `gm-explore` and `gm-portfolio-dump` are
   disabled, and GM's secrets were deleted on 30 Sep. Removing the remaining GM code (the three
   workflows, `api/gm-sync.js`, `scripts/gm-*.js` and their tests) is approved, by pull request.

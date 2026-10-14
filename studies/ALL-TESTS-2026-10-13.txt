@@ -45,6 +45,16 @@ C5. The gap filter (29 Sep): rules locked (sha 05b43924...), but there is no RES
     I cannot show it was run. Count it as NOT RUN.
 C6. Before 23 Sep 2026 the deployed desk priced from a synthetic table and its old "track record" was seeded
     (memory note k2-apex-engine-runs-on-synthetic-data). Nothing below uses that data.
+C8. (Independent review, 14 Oct) The Deflated Sharpe the v2 studies report (audit re-score, GEX, atlas, loan fee,
+    forecast models) left out the paper's skewness/kurtosis term, and "PASS" needed only t >= 3, not Holm or DSR.
+    The strangle "PASS" (t 4.66) had DSR 0.39: NOT significant after deflation. From the combined model on, PASS needs
+    t >= 3 AND Holm AND the full DSR >= 0.95. Older DSR figures are NOT recomputed here; read them as approximate.
+C9. (Same review) Several tests are ADAPTATIONS, not exact replications: the TA atlas replaced original exits with a
+    fixed 10-day hold; the rating replay left out the live fundamentals adjustment (it would have used today's data
+    on the past). A FAIL there judges the adaptation.
+C10. (Same review) The forecast-models study gave Kronos fake calendar dates (ending 1 Jan 2030); Kronos reads weekday,
+    day and month. Its result (M3) and the blend (M4) are VOID. TimesFM, Chronos-2, trees and reversal do not use dates;
+    those results stand. A corrected Kronos run would be a new registered run.
 C7. Situations study (29 Sep) used Yahoo for S&P 500, Brent and India VIX. India VIX was checked equal to NSE's
     close on 41 sessions; S&P 500 and Brent cannot come from NSE.
 
@@ -133,7 +143,7 @@ Notation: mean = average net % per trade; t = t-statistic (> 3 needed under v2, 
    (sha b5914c71...). Members: M1 Google TimesFM-2.5 (deep learning, 200M), M2 Amazon Chronos-2 (120M),
    M3 Kronos-small (trained on stock candles incl. NSE), M4 blend of the three, M5 gradient-boosted trees,
    M6 5-day reversal. Scored only from Jul 2024 (Kronos saw NSE data to Jun 2024).
-   RESULT (one run, 13 Oct 22:23 IST, commit 22b7396): 0 PASS. Long top tenth, short bottom tenth, 57 rebalances:
+   RESULT (one run, 13 Oct 22:23 IST, commit 22b7396): 0 PASS. M3 Kronos and M4 blend VOID (fake dates, caveat C10). Long top tenth, short bottom tenth, 57 rebalances:
      TimesFM -0.019% t -0.14 | Chronos-2 -0.129% t -0.95 | Kronos -0.040% t -0.25 | blend -0.034% t -0.30 |
      trees -0.040% t -0.34 | 5-day reversal +0.066% t 0.62. Rank IC 0.00-0.03 (near zero).
  NOT YET BUILT: one combined model using ALL the features above (announced 13 Oct; rules to be locked first).
