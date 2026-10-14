@@ -298,7 +298,8 @@
   "OPTION|FORTIS|FORTIS26OCT720PE",
   "OPTION|PETRONET|PETRONET26OCT300CE",
   "OPTION|GMRAIRPORT|GMRAIRPORT26OCT92PE",
-  "OPTION|SAIL|SAIL26OCT170PE"
+  "OPTION|SAIL|SAIL26OCT170PE",
+  "OPTION|VEDL|VEDL26OCT265PE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4019,6 +4020,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-14T04:26:29.362Z",
    "frozenAtIst": "2026-10-14 09:56 IST",
+   "frozenAtSpot": null
+  },
+  "VEDL26OCT265PE": {
+   "buy": 14.25,
+   "sell": 21.35,
+   "stop": 7.15,
+   "tick": 0.05,
+   "lotSize": 1150,
+   "expiry": "2026-10-27",
+   "strike": 265,
+   "right": "PE",
+   "symbol": "VEDL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-14T04:46:20.886Z",
+   "frozenAtIst": "2026-10-14 10:16 IST",
    "frozenAtSpot": null
   }
  },
