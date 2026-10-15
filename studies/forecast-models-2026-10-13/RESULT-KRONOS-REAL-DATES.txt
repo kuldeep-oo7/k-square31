@@ -1,0 +1,18 @@
+FOUNDATION MODELS ON NSE -- run 2026-10-15T16:56:21.752Z, prereg sha256 b5914c71761aef25f3f25e44200e3f2b0ac77df847dc4c39ffe32deddc79d4fd (verified); protocol v2
+Rebalances 57 (2024-07-02 .. 2026-10-05); CM to 2026-10-14. DSR benchmark: 0.47
+member | months | rebalances | mean/rebalance | winners | t (NW) | annual Sharpe | mean rank IC | Holm | DSR | VERDICT
+M1 TimesFM-2.5 | 28 | 57 | -0.019% | 40.4% | -0.14 | -0.07 | 0.0101 | no | 0.20 | FAIL
+M2 Chronos-2 | 28 | 57 | -0.129% | 43.9% | -0.95 | -0.47 | -0.0008 | no | 0.08 | FAIL
+M3 Kronos-small | 28 | 57 | +0.135% | 50.9% | 1.35 | 0.56 | 0.0296 | no | 0.55 | FAIL
+M4 blend of M1-M3 (equal-weight ranks) | 28 | 57 | +0.035% | 52.6% | 0.28 | 0.16 | 0.0195 | no | 0.32 | FAIL
+M5 boosted trees (walk-forward) | 28 | 57 | -0.040% | 43.9% | -0.34 | -0.17 | 0.0134 | no | 0.17 | FAIL
+M6 5-day reversal (Lehmann 1990) | 28 | 57 | +0.066% | 47.4% | 0.62 | 0.24 | 0.0311 | no | 0.36 | FAIL
+
+PASS (t >= 3): none. PROMISING: none.
+READING (PREREGISTRATION-KRONOS-REAL-DATES.txt, sha256 3a573419...): M3 Kronos-small with the real NSE dates: +0.135% a
+rebalance, t 1.35 -> FAIL (needs t >= 3). M4 blend: +0.035%, t 0.28 -> FAIL. Neither reaches t >= 3, so the stricter
+full-DSR reading cannot make either a PASS (the full DSR was not computed). M1, M2, M5 and M6 reproduce RESULT.txt
+exactly (same 57 rebalances, same means and t), as they must. The DSR column differs from RESULT.txt for every member
+because its benchmark depends on all six Sharpes (0.47 here vs 0.30). This result stands beside the VOID one in
+RESULT.txt, never instead of it. Forecasts: 5,481 (research/fm-data-dated/forecasts-kronos.csv, not committed),
+run 14-15 Oct 2026 in four resumed parts, seeded per batch (resume tested identical).
