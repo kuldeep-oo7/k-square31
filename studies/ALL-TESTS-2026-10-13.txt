@@ -55,6 +55,8 @@ C9. (Same review) Several tests are ADAPTATIONS, not exact replications: the TA 
 C10. (Same review) The forecast-models study gave Kronos fake calendar dates (ending 1 Jan 2030); Kronos reads weekday,
     day and month. Its result (M3) and the blend (M4) are VOID. TimesFM, Chronos-2, trees and reversal do not use dates;
     those results stand. A corrected Kronos run would be a new registered run.
+    RE-RUN with real NSE dates (registered 14 Oct, sha256 3a573419..., scored once 15 Oct, branch commit b9dbcfb):
+    M3 Kronos +0.135% a rebalance, t 1.35 -> FAIL; M4 blend +0.035%, t 0.28 -> FAIL. The other four reproduce exactly.
 C7. Situations study (29 Sep) used Yahoo for S&P 500, Brent and India VIX. India VIX was checked equal to NSE's
     close on 41 sessions; S&P 500 and Brent cannot come from NSE.
 

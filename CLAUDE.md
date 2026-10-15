@@ -125,7 +125,7 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     on NSE's SLB bhavcopy (0 PASS, F1 t 1.90; branch claude/loan-fee-2026-10-13); foundation models TimesFM-2.5 /
     Chronos-2 / Kronos-small + blend + trees + reversal (branch claude/forecast-models-2026-10-13, scored only from
     Jul 2024 because Kronos trained on NSE to Jun 2024): 0 PASS, best t 0.62 (reversal); Kronos and the blend VOID
-    (fake dates, review 14 Oct). Combined model (branch claude/combined-model-2026-10-13): NOT RUN, its synthetic
+    (fake dates, review 14 Oct); re-run with real dates 15 Oct: Kronos t 1.35, blend t 0.28, both FAIL. Combined model (branch claude/combined-model-2026-10-13): NOT RUN, its synthetic
     power check failed (t 1.79). Audit file for the owner: studies/ALL-TESTS-2026-10-13.txt. Research list: studies/research-open-source-2026-10-12/REPORT.md.
   - Don't re-run these as "new".
 
