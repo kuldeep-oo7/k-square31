@@ -306,7 +306,8 @@
   "OPTION|NYKAA|NYKAA26OCT350CE",
   "OPTION|NIFTY|NIFTY26OCT23400PE",
   "OPTION|KOTAKBANK|KOTAKBANK26OCT460CE",
-  "OPTION|MFSL|MFSL26OCT1240PE"
+  "OPTION|MFSL|MFSL26OCT1240PE",
+  "OPTION|PIIND|PIIND26OCT2140PE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4192,6 +4193,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-15T08:45:10.651Z",
    "frozenAtIst": "2026-10-15 14:15 IST",
+   "frozenAtSpot": null
+  },
+  "PIIND26OCT2140PE": {
+   "buy": 16.3,
+   "sell": 24.45,
+   "stop": 8.15,
+   "tick": 0.05,
+   "lotSize": 175,
+   "expiry": "2026-10-27",
+   "strike": 2140,
+   "right": "PE",
+   "symbol": "PIIND",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T09:05:45.891Z",
+   "frozenAtIst": "2026-10-15 14:35 IST",
    "frozenAtSpot": null
   }
  },
