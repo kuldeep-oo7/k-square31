@@ -2,21 +2,22 @@
  "preregistration": "studies/oi-flow-forward-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
  "start": "2026-10-05",
- "dataThrough": "2026-10-14",
- "builtAt": "2026-10-15T10:13:27.840Z",
+ "dataThrough": "2026-10-15",
+ "builtAt": "2026-10-15T16:14:53.415Z",
  "LU": {
   "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
   "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
-  "pending": [
+  "pending": [],
+  "trades": [
    {
     "symbol": "HDFCLIFE",
     "signalDate": "2026-10-14",
     "pricePct": -2.85,
     "oiPct": -3.32,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "entryDate": "2026-10-15",
+    "entry": 544.05,
+    "status": "OPEN"
+   },
    {
     "symbol": "APOLLOHOSP",
     "signalDate": "2026-10-12",
@@ -64,35 +65,118 @@
   "backtest": "FAILED (+0.296% / +0.020% / +0.131% a trade; final t 1.86, not enough after 12 tests)",
   "pending": [
    {
-    "symbol": "DIVISLAB",
-    "signalDate": "2026-10-14",
-    "pricePct": -2.82,
-    "oiPct": 5.3,
+    "symbol": "ABB",
+    "signalDate": "2026-10-15",
+    "pricePct": -2.61,
+    "oiPct": 3.6,
     "status": "SIGNAL"
    },
    {
-    "symbol": "LICHSGFIN",
-    "signalDate": "2026-10-14",
-    "pricePct": -5.14,
-    "oiPct": 13.64,
+    "symbol": "BHEL",
+    "signalDate": "2026-10-15",
+    "pricePct": -6.41,
+    "oiPct": 3.62,
     "status": "SIGNAL"
+   },
+   {
+    "symbol": "CGPOWER",
+    "signalDate": "2026-10-15",
+    "pricePct": -5.21,
+    "oiPct": 11.14,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "HINDZINC",
+    "signalDate": "2026-10-15",
+    "pricePct": -1.67,
+    "oiPct": 3.22,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "KEI",
+    "signalDate": "2026-10-15",
+    "pricePct": -1.65,
+    "oiPct": 5.08,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "NESTLEIND",
+    "signalDate": "2026-10-15",
+    "pricePct": -7.76,
+    "oiPct": 11.63,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "POWERINDIA",
+    "signalDate": "2026-10-15",
+    "pricePct": -5.33,
+    "oiPct": 5.65,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "VEDL",
+    "signalDate": "2026-10-15",
+    "pricePct": -1.64,
+    "oiPct": 4.69,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "GVT&D",
+    "signalDate": "2026-10-15",
+    "pricePct": -5.75,
+    "oiPct": 4.8,
+    "status": "SIGNAL"
+   }
+  ],
+  "trades": [
+   {
+    "symbol": "ATHERENERG",
+    "signalDate": "2026-10-14",
+    "pricePct": -1.87,
+    "oiPct": 3.35,
+    "entryDate": "2026-10-15",
+    "entry": 1470.7,
+    "exitDate": "2026-10-15",
+    "exit": 1470,
+    "netPct": -0.019,
+    "status": "DONE"
    },
    {
     "symbol": "LTF",
     "signalDate": "2026-10-14",
     "pricePct": -3.29,
     "oiPct": 7.21,
-    "status": "SIGNAL"
+    "entryDate": "2026-10-15",
+    "entry": 261,
+    "exitDate": "2026-10-15",
+    "exit": 262,
+    "netPct": -0.45,
+    "status": "DONE"
    },
    {
-    "symbol": "ATHERENERG",
+    "symbol": "LICHSGFIN",
     "signalDate": "2026-10-14",
-    "pricePct": -1.87,
-    "oiPct": 3.35,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "pricePct": -5.14,
+    "oiPct": 13.64,
+    "entryDate": "2026-10-15",
+    "entry": 533,
+    "exitDate": "2026-10-15",
+    "exit": 533.2,
+    "netPct": -0.104,
+    "status": "DONE"
+   },
+   {
+    "symbol": "DIVISLAB",
+    "signalDate": "2026-10-14",
+    "pricePct": -2.82,
+    "oiPct": 5.3,
+    "entryDate": "2026-10-15",
+    "entry": 9085,
+    "exitDate": "2026-10-15",
+    "exit": 9030,
+    "netPct": 0.539,
+    "status": "DONE"
+   },
    {
     "symbol": "VEDL",
     "signalDate": "2026-10-13",
@@ -479,11 +563,11 @@
    }
   ],
   "summary": {
-   "finished": 32,
-   "meanNetPct": -0.107,
-   "winPct": 43.8,
+   "finished": 36,
+   "meanNetPct": -0.096,
+   "winPct": 41.7,
    "weeks": 2,
-   "t": -0.28,
+   "t": -0.29,
    "verdict": "COLLECTING"
   }
  }

@@ -12,19 +12,45 @@
   "study": "research/dip-ml-2026-10-04"
  },
  "start": "2026-10-05",
- "dataThrough": "2026-10-14",
- "builtAt": "2026-10-15T10:13:23.575Z",
+ "dataThrough": "2026-10-15",
+ "builtAt": "2026-10-15T16:14:49.192Z",
  "pending": [
   {
-   "symbol": "SBILIFE",
-   "signalDate": "2026-10-14",
-   "ac": -0.095,
-   "z": -2.2,
+   "symbol": "APARINDS",
+   "signalDate": "2026-10-15",
+   "ac": -0.113,
+   "z": -2.24,
+   "entryDate": "next session",
+   "status": "SIGNAL"
+  },
+  {
+   "symbol": "CGPOWER",
+   "signalDate": "2026-10-15",
+   "ac": -0.116,
+   "z": -2.61,
+   "entryDate": "next session",
+   "status": "SIGNAL"
+  },
+  {
+   "symbol": "NESTLEIND",
+   "signalDate": "2026-10-15",
+   "ac": -0.21,
+   "z": -2.18,
    "entryDate": "next session",
    "status": "SIGNAL"
   }
  ],
  "trades": [
+  {
+   "symbol": "SBILIFE",
+   "signalDate": "2026-10-14",
+   "ac": -0.095,
+   "z": -2.2,
+   "entryDate": "2026-10-15",
+   "entry": 1657.7,
+   "status": "OPEN",
+   "sessionsHeld": 1
+  },
   {
    "symbol": "LUPIN",
    "signalDate": "2026-10-12",
@@ -33,7 +59,7 @@
    "entryDate": "2026-10-13",
    "entry": 1935,
    "status": "OPEN",
-   "sessionsHeld": 2
+   "sessionsHeld": 3
   },
   {
    "symbol": "IOC",
@@ -43,7 +69,7 @@
    "entryDate": "2026-10-13",
    "entry": 125.85,
    "status": "OPEN",
-   "sessionsHeld": 2
+   "sessionsHeld": 3
   },
   {
    "symbol": "COALINDIA",
@@ -53,7 +79,7 @@
    "entryDate": "2026-10-13",
    "entry": 405,
    "status": "OPEN",
-   "sessionsHeld": 2
+   "sessionsHeld": 3
   },
   {
    "symbol": "MOTHERSON",
@@ -63,7 +89,7 @@
    "entryDate": "2026-10-12",
    "entry": 153,
    "status": "OPEN",
-   "sessionsHeld": 3
+   "sessionsHeld": 4
   },
   {
    "symbol": "IOC",
@@ -73,7 +99,7 @@
    "entryDate": "2026-10-12",
    "entry": 127.4,
    "status": "OPEN",
-   "sessionsHeld": 3
+   "sessionsHeld": 4
   },
   {
    "symbol": "HEROMOTOCO",
@@ -83,7 +109,7 @@
    "entryDate": "2026-10-12",
    "entry": 4913.5,
    "status": "OPEN",
-   "sessionsHeld": 3
+   "sessionsHeld": 4
   },
   {
    "symbol": "GAIL",
@@ -93,7 +119,7 @@
    "entryDate": "2026-10-12",
    "entry": 167.75,
    "status": "OPEN",
-   "sessionsHeld": 3
+   "sessionsHeld": 4
   },
   {
    "symbol": "BEL",
@@ -103,7 +129,7 @@
    "entryDate": "2026-10-12",
    "entry": 370,
    "status": "OPEN",
-   "sessionsHeld": 3
+   "sessionsHeld": 4
   },
   {
    "symbol": "VMM",
@@ -112,8 +138,10 @@
    "z": -2.16,
    "entryDate": "2026-10-09",
    "entry": 97.5,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 96.25,
+   "netPct": -1.348,
+   "status": "DONE"
   },
   {
    "symbol": "MOTHERSON",
@@ -122,8 +150,10 @@
    "z": -2.5,
    "entryDate": "2026-10-09",
    "entry": 154,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 160.66,
+   "netPct": 4.256,
+   "status": "DONE"
   },
   {
    "symbol": "UPL",
@@ -132,8 +162,10 @@
    "z": -2.27,
    "entryDate": "2026-10-09",
    "entry": 482.95,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 541.05,
+   "netPct": 11.958,
+   "status": "DONE"
   },
   {
    "symbol": "TORNTPHARM",
@@ -142,8 +174,10 @@
    "z": -2.52,
    "entryDate": "2026-10-09",
    "entry": 4618,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 4584.1,
+   "netPct": -0.8,
+   "status": "DONE"
   },
   {
    "symbol": "SUNPHARMA",
@@ -152,8 +186,10 @@
    "z": -2.32,
    "entryDate": "2026-10-09",
    "entry": 1756.2,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 1764,
+   "netPct": 0.378,
+   "status": "DONE"
   },
   {
    "symbol": "POWERGRID",
@@ -162,8 +198,10 @@
    "z": -2.72,
    "entryDate": "2026-10-09",
    "entry": 246.15,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 249.85,
+   "netPct": 1.436,
+   "status": "DONE"
   },
   {
    "symbol": "NTPC",
@@ -172,8 +210,10 @@
    "z": -2.45,
    "entryDate": "2026-10-09",
    "entry": 309.75,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 314.65,
+   "netPct": 1.515,
+   "status": "DONE"
   },
   {
    "symbol": "MARUTI",
@@ -182,8 +222,10 @@
    "z": -2.06,
    "entryDate": "2026-10-09",
    "entry": 11291,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 11445,
+   "netPct": 1.297,
+   "status": "DONE"
   },
   {
    "symbol": "LUPIN",
@@ -192,8 +234,10 @@
    "z": -2.78,
    "entryDate": "2026-10-09",
    "entry": 1948,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 1980.9,
+   "netPct": 1.622,
+   "status": "DONE"
   },
   {
    "symbol": "ITC",
@@ -202,8 +246,10 @@
    "z": -2.05,
    "entryDate": "2026-10-09",
    "entry": 255.45,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 263.9,
+   "netPct": 3.24,
+   "status": "DONE"
   },
   {
    "symbol": "IOC",
@@ -212,8 +258,10 @@
    "z": -2.59,
    "entryDate": "2026-10-09",
    "entry": 126.05,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 128.83,
+   "netPct": 2.138,
+   "status": "DONE"
   },
   {
    "symbol": "HEROMOTOCO",
@@ -222,8 +270,10 @@
    "z": -2.68,
    "entryDate": "2026-10-09",
    "entry": 4864,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 5210,
+   "netPct": 7.043,
+   "status": "DONE"
   },
   {
    "symbol": "GRASIM",
@@ -232,8 +282,10 @@
    "z": -2.13,
    "entryDate": "2026-10-09",
    "entry": 2863.8,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 2885.9,
+   "netPct": 0.705,
+   "status": "DONE"
   },
   {
    "symbol": "GLENMARK",
@@ -242,8 +294,10 @@
    "z": -2.63,
    "entryDate": "2026-10-09",
    "entry": 2207,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 2250.5,
+   "netPct": 1.904,
+   "status": "DONE"
   },
   {
    "symbol": "GAIL",
@@ -252,8 +306,10 @@
    "z": -2.12,
    "entryDate": "2026-10-09",
    "entry": 167.07,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 169.35,
+   "netPct": 1.298,
+   "status": "DONE"
   },
   {
    "symbol": "BEL",
@@ -262,8 +318,10 @@
    "z": -2.51,
    "entryDate": "2026-10-09",
    "entry": 367.3,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 380.4,
+   "netPct": 3.498,
+   "status": "DONE"
   },
   {
    "symbol": "ASIANPAINT",
@@ -272,8 +330,10 @@
    "z": -2.62,
    "entryDate": "2026-10-09",
    "entry": 2324,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 2350,
+   "netPct": 1.052,
+   "status": "DONE"
   },
   {
    "symbol": "APLAPOLLO",
@@ -282,8 +342,10 @@
    "z": -2.54,
    "entryDate": "2026-10-09",
    "entry": 2052.2,
-   "status": "OPEN",
-   "sessionsHeld": 4
+   "exitDate": "2026-10-15",
+   "exit": 2139,
+   "netPct": 4.161,
+   "status": "DONE"
   },
   {
    "symbol": "UPL",
@@ -719,9 +781,9 @@
   }
  ],
  "summary": {
-  "finished": 36,
-  "meanNetPct": -0.333,
-  "winPct": 44.4,
+  "finished": 54,
+  "meanNetPct": 0.618,
+  "winPct": 59.3,
   "weeks": 1,
   "t": null,
   "verdict": "COLLECTING"

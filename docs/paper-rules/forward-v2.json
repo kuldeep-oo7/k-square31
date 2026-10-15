@@ -2,8 +2,8 @@
  "preregistration": "studies/forward-v2-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "8be35cabe66e0d75b3974ad1651427770149888ff660ba9fcf8be0ee215aaea5",
  "start": "2026-10-05",
- "dataThrough": "2026-10-14",
- "builtAt": "2026-10-15T10:13:33.084Z",
+ "dataThrough": "2026-10-15",
+ "builtAt": "2026-10-15T16:14:58.238Z",
  "STRANGLE": {
   "rule": "Sell the NIFTY call about 2% above and the put about 2% below, at the close of the first session with 4-10 days to the weekly expiry; hold to expiry",
   "backtest": "PASS under protocol v2: +0.101% of NIFTY a week, t 4.66, 61 months (not significant after the 73-trial Deflated Sharpe check)",
@@ -45,47 +45,83 @@
   "backtest": "PROMISING: +0.338% a trade above the market, t 2.26",
   "pending": [
    {
-    "symbol": "BAJFINANCE",
-    "signalDate": "2026-10-14",
+    "symbol": "ANANTRAJ",
+    "signalDate": "2026-10-15",
     "status": "SIGNAL"
    },
    {
-    "symbol": "EXIDEIND",
-    "signalDate": "2026-10-14",
+    "symbol": "CGPOWER",
+    "signalDate": "2026-10-15",
     "status": "SIGNAL"
    },
    {
-    "symbol": "ICICIBANK",
-    "signalDate": "2026-10-14",
+    "symbol": "ICICIGI",
+    "signalDate": "2026-10-15",
     "status": "SIGNAL"
    },
    {
-    "symbol": "IDEA",
-    "signalDate": "2026-10-14",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "IFCI",
-    "signalDate": "2026-10-14",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "INDIGO",
-    "signalDate": "2026-10-14",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "LICHSGFIN",
-    "signalDate": "2026-10-14",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "TORNTPHARM",
-    "signalDate": "2026-10-14",
+    "symbol": "SIEMENS",
+    "signalDate": "2026-10-15",
     "status": "SIGNAL"
    }
   ],
   "trades": [
+   {
+    "symbol": "TORNTPHARM",
+    "signalDate": "2026-10-14",
+    "entryDate": "2026-10-15",
+    "entry": 4581,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "LICHSGFIN",
+    "signalDate": "2026-10-14",
+    "entryDate": "2026-10-15",
+    "entry": 533,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "INDIGO",
+    "signalDate": "2026-10-14",
+    "entryDate": "2026-10-15",
+    "entry": 4721.9,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "IFCI",
+    "signalDate": "2026-10-14",
+    "entryDate": "2026-10-15",
+    "entry": 69.1,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "IDEA",
+    "signalDate": "2026-10-14",
+    "entryDate": "2026-10-15",
+    "entry": 12.67,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ICICIBANK",
+    "signalDate": "2026-10-14",
+    "entryDate": "2026-10-15",
+    "entry": 1342.1,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "EXIDEIND",
+    "signalDate": "2026-10-14",
+    "entryDate": "2026-10-15",
+    "entry": 383.1,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BAJFINANCE",
+    "signalDate": "2026-10-14",
+    "entryDate": "2026-10-15",
+    "entry": 951.9,
+    "status": "OPEN"
+   },
    {
     "symbol": "GLENMARK",
     "signalDate": "2026-10-13",
@@ -300,12 +336,24 @@
   "backtest": "PROMISING: +0.307% a trade above the market, t 2.58",
   "pending": [
    {
-    "symbol": "INDIGO",
-    "signalDate": "2026-10-14",
+    "symbol": "CGPOWER",
+    "signalDate": "2026-10-15",
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "EXIDEIND",
+    "signalDate": "2026-10-15",
     "status": "SIGNAL"
    }
   ],
   "trades": [
+   {
+    "symbol": "INDIGO",
+    "signalDate": "2026-10-14",
+    "entryDate": "2026-10-15",
+    "entry": 4721.9,
+    "status": "OPEN"
+   },
    {
     "symbol": "DATAPATTNS",
     "signalDate": "2026-10-13",

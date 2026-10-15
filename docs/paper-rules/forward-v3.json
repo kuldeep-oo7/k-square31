@@ -2,14 +2,54 @@
  "preregistration": "studies/forward-v3-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
  "start": "2026-10-05",
- "dataThrough": "2026-10-14",
- "builtAt": "2026-10-15T10:13:38.191Z",
+ "dataThrough": "2026-10-15",
+ "builtAt": "2026-10-15T16:15:03.075Z",
  "industries": 2584,
  "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
  "CHEAPVOL": {
   "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
   "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months — just short of the bar",
   "trades": [
+   {
+    "symbol": "ICICIGI",
+    "entryDate": "2026-10-15",
+    "expiry": "2026-10-27",
+    "strike": 1700,
+    "entry": 62.35,
+    "ivPct": 25.4,
+    "rvPct": 36.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "LICHSGFIN",
+    "entryDate": "2026-10-15",
+    "expiry": "2026-10-27",
+    "strike": 535,
+    "entry": 18.2,
+    "ivPct": 23.5,
+    "rvPct": 39.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "NESTLEIND",
+    "entryDate": "2026-10-15",
+    "expiry": "2026-10-27",
+    "strike": 1280,
+    "entry": 53.05,
+    "ivPct": 28.7,
+    "rvPct": 38,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BHEL",
+    "entryDate": "2026-10-15",
+    "expiry": "2026-10-27",
+    "strike": 435,
+    "entry": 20.15,
+    "ivPct": 32,
+    "rvPct": 44.8,
+    "status": "OPEN"
+   },
    {
     "symbol": "BANDHANBNK",
     "entryDate": "2026-10-14",
@@ -368,7 +408,10 @@
     "entry": 23.9,
     "ivPct": 24.4,
     "rvPct": 35,
-    "status": "OPEN"
+    "exitDate": "2026-10-15",
+    "exit": 18.2,
+    "netPct": -24.088,
+    "status": "DONE"
    },
    {
     "symbol": "ICICIGI",
@@ -567,10 +610,10 @@
    }
   ],
   "summary": {
-   "finished": 15,
-   "meanPct": -1.676,
-   "winPct": 26.7,
-   "worstPct": -21.152,
+   "finished": 16,
+   "meanPct": -3.077,
+   "winPct": 25,
+   "worstPct": -24.088,
    "t": null,
    "verdict": "COLLECTING"
   }
@@ -658,7 +701,7 @@
   ],
   "pending": null,
   "pendingNoIndustry": [],
-  "sessionsToNext": 2,
+  "sessionsToNext": 1,
   "summary": {
    "finished": 1,
    "meanPct": 0.145,
