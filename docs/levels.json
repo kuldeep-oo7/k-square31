@@ -301,7 +301,8 @@
   "OPTION|SHRIRAMFIN|SHRIRAMFIN26OCT1000PE",
   "OPTION|AMBER|AMBER26OCT6400PE",
   "OPTION|COALINDIA|COALINDIA26OCT430CE",
-  "OPTION|GAIL|GAIL26OCT175PE"
+  "OPTION|GAIL|GAIL26OCT175PE",
+  "OPTION|BANKNIFTY|BANKNIFTY26OCT57000PE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4112,6 +4113,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-15T06:45:24.212Z",
    "frozenAtIst": "2026-10-15 12:15 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26OCT57000PE": {
+   "buy": 1214,
+   "sell": 1821,
+   "stop": 607,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-10-27",
+   "strike": 57000,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T07:05:06.549Z",
+   "frozenAtIst": "2026-10-15 12:35 IST",
    "frozenAtSpot": null
   }
  },
