@@ -303,7 +303,8 @@
   "OPTION|COALINDIA|COALINDIA26OCT430CE",
   "OPTION|GAIL|GAIL26OCT175PE",
   "OPTION|BANKNIFTY|BANKNIFTY26OCT57000PE",
-  "OPTION|NYKAA|NYKAA26OCT350CE"
+  "OPTION|NYKAA|NYKAA26OCT350CE",
+  "OPTION|NIFTY|NIFTY26OCT23400PE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4144,6 +4145,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-15T07:25:00.305Z",
    "frozenAtIst": "2026-10-15 12:55 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26OCT23400PE": {
+   "buy": 438.15,
+   "sell": 657.2,
+   "stop": 219.05,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-10-27",
+   "strike": 23400,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T07:45:28.488Z",
+   "frozenAtIst": "2026-10-15 13:15 IST",
    "frozenAtSpot": null
   }
  },
