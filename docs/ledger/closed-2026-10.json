@@ -152703,6 +152703,168 @@
     "perLot": -18699,
     "netPerLot": -18798.96
    }
+  },
+  {
+   "id": "2026-10-15|CE|BHEL26OCT470CE",
+   "kind": "CE",
+   "symbol": "BHEL",
+   "contract": "BHEL26OCT470CE",
+   "expiry": "2026-10-27",
+   "strike": 470,
+   "optionType": "CE",
+   "lotSize": 2625,
+   "sessionDate": "2026-10-15",
+   "shownAt": "2026-10-15T04:05:44.488Z",
+   "buy": 4.2,
+   "target": 6.3,
+   "target2": null,
+   "stop": 2.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 36.9,
+     "medianDays": 5.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-15T04:05:44.914Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T08:45:10.961Z",
+   "exitPrice": 2.1,
+   "exitReason": "STOP",
+   "hoursFillToExit": 4.66,
+   "sessionsHeld": 0,
+   "best": 4.2,
+   "worst": 1.95,
+   "last": 1.95,
+   "lastAt": "2026-10-15T08:45:10.961Z",
+   "marks": 15,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 5.95,
+    "low": 2,
+    "last": 1.95
+   },
+   "pnl": {
+    "perUnit": -2.1,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -5512.5,
+    "netPerLot": -5575.25
+   }
+  },
+  {
+   "id": "2026-10-15|CE|BHEL26OCT465CE",
+   "kind": "CE",
+   "symbol": "BHEL",
+   "contract": "BHEL26OCT465CE",
+   "expiry": "2026-10-27",
+   "strike": 465,
+   "optionType": "CE",
+   "lotSize": 2625,
+   "sessionDate": "2026-10-15",
+   "shownAt": "2026-10-15T04:05:44.488Z",
+   "buy": 5.35,
+   "target": 8,
+   "target2": null,
+   "stop": 2.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 42.8,
+     "medianDays": 4.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-15T04:05:44.914Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T08:45:10.961Z",
+   "exitPrice": 2.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 4.66,
+   "sessionsHeld": 0,
+   "best": 5.35,
+   "worst": 2.55,
+   "last": 2.55,
+   "lastAt": "2026-10-15T08:45:10.961Z",
+   "marks": 15,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 7.95,
+    "low": 2.55,
+    "last": 2.55
+   },
+   "pnl": {
+    "perUnit": -2.7,
+    "pct": -50.47,
+    "basis": "NET",
+    "perLot": -7087.5,
+    "netPerLot": -7154.38
+   }
+  },
+  {
+   "id": "2026-10-06|PE|BSE26OCT3500PE",
+   "kind": "PE",
+   "symbol": "BSE",
+   "contract": "BSE26OCT3500PE",
+   "expiry": "2026-10-27",
+   "strike": 3500,
+   "optionType": "PE",
+   "lotSize": 200,
+   "sessionDate": "2026-10-06",
+   "shownAt": "2026-10-06T07:26:45.813Z",
+   "buy": 239.75,
+   "target": 359.65,
+   "target2": null,
+   "stop": 119.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.2,
+     "medianDays": 6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-06T07:46:36.714Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-15T08:45:10.961Z",
+   "exitPrice": 119.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 216.98,
+   "sessionsHeld": 7,
+   "best": 268,
+   "worst": 118.3,
+   "last": 123.25,
+   "lastAt": "2026-10-15T08:45:10.961Z",
+   "marks": 191,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 201.65,
+    "low": 118.3,
+    "last": 123.25
+   },
+   "pnl": {
+    "perUnit": -119.85,
+    "pct": -49.99,
+    "basis": "NET",
+    "perLot": -23970,
+    "netPerLot": -24084.85
+   }
   }
  ]
 }
