@@ -293,7 +293,10 @@
   "OPTION|SWIGGY|SWIGGY26OCT220PE",
   "OPTION|GMRAIRPORT|GMRAIRPORT26OCT89PE",
   "OPTION|LAURUSLABS|LAURUSLABS26OCT2120CE",
-  "OPTION|GODFRYPHLP|GODFRYPHLP26OCT1850PE"
+  "OPTION|GODFRYPHLP|GODFRYPHLP26OCT1850PE",
+  "OPTION|PIIND|PIIND26OCT2240PE",
+  "OPTION|PRESTIGE|PRESTIGE26OCT1500PE",
+  "OPTION|BHEL|BHEL26OCT425CE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -3984,6 +3987,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-15T04:45:33.304Z",
    "frozenAtIst": "2026-10-15 10:15 IST",
+   "frozenAtSpot": null
+  },
+  "PIIND26OCT2240PE": {
+   "buy": 53.8,
+   "sell": 80.7,
+   "stop": 26.9,
+   "tick": 0.05,
+   "lotSize": 175,
+   "expiry": "2026-10-27",
+   "strike": 2240,
+   "right": "PE",
+   "symbol": "PIIND",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T05:05:05.421Z",
+   "frozenAtIst": "2026-10-15 10:35 IST",
+   "frozenAtSpot": null
+  },
+  "PRESTIGE26OCT1500PE": {
+   "buy": 35.85,
+   "sell": 53.75,
+   "stop": 17.95,
+   "tick": 0.05,
+   "lotSize": 450,
+   "expiry": "2026-10-27",
+   "strike": 1500,
+   "right": "PE",
+   "symbol": "PRESTIGE",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T05:05:05.421Z",
+   "frozenAtIst": "2026-10-15 10:35 IST",
+   "frozenAtSpot": null
+  },
+  "BHEL26OCT425CE": {
+   "buy": 21.15,
+   "sell": 31.75,
+   "stop": 10.55,
+   "tick": 0.05,
+   "lotSize": 2625,
+   "expiry": "2026-10-27",
+   "strike": 425,
+   "right": "CE",
+   "symbol": "BHEL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T05:05:05.421Z",
+   "frozenAtIst": "2026-10-15 10:35 IST",
    "frozenAtSpot": null
   }
  },
