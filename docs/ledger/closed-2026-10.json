@@ -153081,6 +153081,265 @@
     "perLot": -9307.5,
     "netPerLot": -9381.11
    }
+  },
+  {
+   "id": "2026-10-15|FUT|SUNTV (share)",
+   "kind": "FUT",
+   "symbol": "SUNTV",
+   "contract": "SUNTV (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-10-15",
+   "shownAt": "2026-10-15T03:48:56.440Z",
+   "buy": 636.1,
+   "target": 652,
+   "target2": 667.9,
+   "stop": 626.55,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "STOP",
+   "filledAt": "2026-10-15T08:05:05.380Z",
+   "hoursToFill": 4.27,
+   "closedAt": "2026-10-15T09:45:40.206Z",
+   "exitPrice": 626.55,
+   "exitReason": "STOP",
+   "hoursFillToExit": 1.68,
+   "sessionsHeld": 0,
+   "best": 638.05,
+   "worst": 625.25,
+   "last": 629.95,
+   "lastAt": "2026-10-15T09:45:40.206Z",
+   "marks": 19,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 673.95,
+    "low": 625.25,
+    "last": 629.95
+   },
+   "pnl": {
+    "perUnit": -9.55,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-14|PE|FINNIFTY26OCT24650PE",
+   "kind": "PE",
+   "symbol": "FINNIFTY",
+   "contract": "FINNIFTY26OCT24650PE",
+   "expiry": "2026-10-27",
+   "strike": 24650,
+   "optionType": "PE",
+   "lotSize": 60,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T04:07:00.985Z",
+   "buy": 132.2,
+   "target": 198.3,
+   "target2": null,
+   "stop": 66.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 32.8,
+     "medianDays": 6.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-14T04:07:01.470Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T09:45:40.206Z",
+   "exitPrice": 66.1,
+   "exitReason": "STOP",
+   "hoursFillToExit": 29.64,
+   "sessionsHeld": 1,
+   "best": 187.65,
+   "worst": 64.95,
+   "last": 70.5,
+   "lastAt": "2026-10-15T09:45:40.206Z",
+   "marks": 43,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 126.2,
+    "low": 64.95,
+    "last": 70.5
+   },
+   "pnl": {
+    "perUnit": -66.1,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3966,
+    "netPerLot": -4024.39
+   }
+  },
+  {
+   "id": "2026-10-14|CE|VBL26OCT440CE",
+   "kind": "CE",
+   "symbol": "VBL",
+   "contract": "VBL26OCT440CE",
+   "expiry": "2026-10-27",
+   "strike": 440,
+   "optionType": "CE",
+   "lotSize": 1275,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T03:51:32.467Z",
+   "buy": 10.65,
+   "target": 15.95,
+   "target2": null,
+   "stop": 5.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.1,
+     "medianDays": 4.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-14T03:51:32.916Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T09:45:40.206Z",
+   "exitPrice": 5.35,
+   "exitReason": "STOP",
+   "hoursFillToExit": 29.9,
+   "sessionsHeld": 1,
+   "best": 11.8,
+   "worst": 5.25,
+   "last": 5.25,
+   "lastAt": "2026-10-15T09:45:40.206Z",
+   "marks": 45,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 11.8,
+    "low": 5.25,
+    "last": 5.25
+   },
+   "pnl": {
+    "perUnit": -5.3,
+    "pct": -49.77,
+    "basis": "NET",
+    "perLot": -6757.5,
+    "netPerLot": -6823.92
+   }
+  },
+  {
+   "id": "2026-10-12|PE|AMBER26OCT6500PE",
+   "kind": "PE",
+   "symbol": "AMBER",
+   "contract": "AMBER26OCT6500PE",
+   "expiry": "2026-10-27",
+   "strike": 6500,
+   "optionType": "PE",
+   "lotSize": 100,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T04:45:58.785Z",
+   "buy": 130.7,
+   "target": 196.05,
+   "target2": null,
+   "stop": 65.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.2,
+     "medianDays": 5.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-12T04:45:58.806Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T09:45:40.206Z",
+   "exitPrice": 65.35,
+   "exitReason": "STOP",
+   "hoursFillToExit": 76.99,
+   "sessionsHeld": 3,
+   "best": 152.25,
+   "worst": 59,
+   "last": 66.2,
+   "lastAt": "2026-10-15T09:45:40.206Z",
+   "marks": 101,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 100.5,
+    "low": 59,
+    "last": 66.2
+   },
+   "pnl": {
+    "perUnit": -65.35,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -6535,
+    "netPerLot": -6600.64
+   }
+  },
+  {
+   "id": "2026-10-12|PE|AMBER26OCT6600PE",
+   "kind": "PE",
+   "symbol": "AMBER",
+   "contract": "AMBER26OCT6600PE",
+   "expiry": "2026-10-27",
+   "strike": 6600,
+   "optionType": "PE",
+   "lotSize": 100,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T04:45:58.785Z",
+   "buy": 177.7,
+   "target": 266.55,
+   "target2": null,
+   "stop": 88.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 54.2,
+     "medianDays": 4.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-12T04:45:58.806Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T09:45:40.206Z",
+   "exitPrice": 88.85,
+   "exitReason": "STOP",
+   "hoursFillToExit": 76.99,
+   "sessionsHeld": 3,
+   "best": 215,
+   "worst": 86.35,
+   "last": 108.95,
+   "lastAt": "2026-10-15T09:45:40.206Z",
+   "marks": 101,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 140,
+    "low": 86.35,
+    "last": 108.95
+   },
+   "pnl": {
+    "perUnit": -88.85,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -8885,
+    "netPerLot": -8957.27
+   }
   }
  ]
 }

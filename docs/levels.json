@@ -309,7 +309,9 @@
   "OPTION|MFSL|MFSL26OCT1240PE",
   "OPTION|PIIND|PIIND26OCT2140PE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13450PE",
-  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13475PE"
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13475PE",
+  "OPTION|BANDHANBNK|BANDHANBNK26OCT162.5PE",
+  "OPTION|BHEL|BHEL26OCT420CE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4240,6 +4242,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-15T09:25:43.311Z",
    "frozenAtIst": "2026-10-15 14:55 IST",
+   "frozenAtSpot": null
+  },
+  "BANDHANBNK26OCT162.5PE": {
+   "buy": 2.32,
+   "sell": 3.47,
+   "stop": 1.16,
+   "tick": 0.01,
+   "lotSize": 3600,
+   "expiry": "2026-10-27",
+   "strike": 162.5,
+   "right": "PE",
+   "symbol": "BANDHANBNK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T09:45:39.790Z",
+   "frozenAtIst": "2026-10-15 15:15 IST",
+   "frozenAtSpot": null
+  },
+  "BHEL26OCT420CE": {
+   "buy": 19.6,
+   "sell": 29.4,
+   "stop": 9.8,
+   "tick": 0.05,
+   "lotSize": 2625,
+   "expiry": "2026-10-27",
+   "strike": 420,
+   "right": "CE",
+   "symbol": "BHEL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T09:45:39.790Z",
+   "frozenAtIst": "2026-10-15 15:15 IST",
    "frozenAtSpot": null
   }
  },
