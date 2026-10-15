@@ -296,7 +296,9 @@
   "OPTION|GODFRYPHLP|GODFRYPHLP26OCT1850PE",
   "OPTION|PIIND|PIIND26OCT2240PE",
   "OPTION|PRESTIGE|PRESTIGE26OCT1500PE",
-  "OPTION|BHEL|BHEL26OCT425CE"
+  "OPTION|BHEL|BHEL26OCT425CE",
+  "OPTION|NIFTY|NIFTY26OCT23300PE",
+  "OPTION|SHRIRAMFIN|SHRIRAMFIN26OCT1000PE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4032,6 +4034,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-15T05:05:05.421Z",
    "frozenAtIst": "2026-10-15 10:35 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26OCT23300PE": {
+   "buy": 421.65,
+   "sell": 632.45,
+   "stop": 210.8,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-10-27",
+   "strike": 23300,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T05:24:48.968Z",
+   "frozenAtIst": "2026-10-15 10:54 IST",
+   "frozenAtSpot": null
+  },
+  "SHRIRAMFIN26OCT1000PE": {
+   "buy": 51.4,
+   "sell": 77.1,
+   "stop": 25.7,
+   "tick": 0.05,
+   "lotSize": 825,
+   "expiry": "2026-10-27",
+   "strike": 1000,
+   "right": "PE",
+   "symbol": "SHRIRAMFIN",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T05:24:48.968Z",
+   "frozenAtIst": "2026-10-15 10:54 IST",
    "frozenAtSpot": null
   }
  },
