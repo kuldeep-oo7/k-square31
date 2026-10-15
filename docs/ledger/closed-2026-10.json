@@ -147950,6 +147950,103 @@
     "perLot": -9100,
     "netPerLot": -9172.76
    }
+  },
+  {
+   "id": "2026-10-15|FUT|LALPATHLAB (share)",
+   "kind": "FUT",
+   "symbol": "LALPATHLAB",
+   "contract": "LALPATHLAB (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 250,
+   "sessionDate": "2026-10-15",
+   "shownAt": "2026-10-15T03:48:56.440Z",
+   "buy": 1900.1,
+   "target": 1947.6,
+   "target2": 1995.1,
+   "stop": 1871.6,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "STOP",
+   "filledAt": "2026-10-15T05:24:49.428Z",
+   "hoursToFill": 1.6,
+   "closedAt": "2026-10-15T06:25:53.888Z",
+   "exitPrice": 1871.6,
+   "exitReason": "STOP",
+   "hoursFillToExit": 1.02,
+   "sessionsHeld": 0,
+   "best": 1900.1,
+   "worst": 1870.3,
+   "last": 1872.5,
+   "lastAt": "2026-10-15T06:25:53.888Z",
+   "marks": 9,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 1936.8,
+    "low": 1870.3,
+    "last": 1872.5
+   },
+   "pnl": {
+    "perUnit": -28.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-05|PE|INDHOTEL26OCT740PE",
+   "kind": "PE",
+   "symbol": "INDHOTEL",
+   "contract": "INDHOTEL26OCT740PE",
+   "expiry": "2026-10-27",
+   "strike": 740,
+   "optionType": "PE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-05",
+   "shownAt": "2026-10-05T05:45:47.033Z",
+   "buy": 25.75,
+   "target": 38.65,
+   "target2": null,
+   "stop": 12.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 58.3,
+     "medianDays": 5.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-05T05:45:47.054Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T06:25:53.888Z",
+   "exitPrice": 12.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 240.67,
+   "sessionsHeld": 8,
+   "best": 32.8,
+   "worst": 11,
+   "last": 11.4,
+   "lastAt": "2026-10-15T06:25:53.888Z",
+   "marks": 208,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 18.95,
+    "low": 11,
+    "last": 11.4
+   },
+   "pnl": {
+    "perUnit": -12.85,
+    "pct": -49.9,
+    "basis": "NET",
+    "perLot": -12850,
+    "netPerLot": -12933.57
+   }
   }
  ]
 }
