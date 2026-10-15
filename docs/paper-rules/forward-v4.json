@@ -3,9 +3,9 @@
  "preregSha256": "a166456d30ddcfdd8cef3dbc16e02060273dc0f1931420fe3953973920f9f68d",
  "start": "2026-10-13",
  "dataThrough": "2026-10-14",
- "slbThrough": "2026-10-13",
- "slbFiles": 50,
- "builtAt": "2026-10-14T18:12:26.818Z",
+ "slbThrough": "2026-10-14",
+ "slbFiles": 51,
+ "builtAt": "2026-10-15T03:45:12.620Z",
  "S2": {
   "rule": "When the shares out on loan in NSE's lending market (SLB) jump to at least 2x their 20-day average, and at least 1 lakh shares: short the stock at the open of the 2nd session after that day's file, cover at the close 5 sessions later",
   "backtest": "+0.26% a trade over the market, 55% winners, t 2.23, 2,085 trades over 61 months (NSE data atlas study, 12 Oct 2026) — promising, not proven",
@@ -78,6 +78,14 @@
     "ratio": 6.14,
     "outstanding": 1004450,
     "entry": "the open of the 2nd NSE session after 2026-10-13",
+    "hasFutures": true
+   },
+   {
+    "symbol": "BEL",
+    "signalDate": "2026-10-14",
+    "ratio": 2.51,
+    "outstanding": 116709,
+    "entry": "the open of the 2nd NSE session after 2026-10-14",
     "hasFutures": true
    }
   ],
