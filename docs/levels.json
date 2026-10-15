@@ -307,7 +307,9 @@
   "OPTION|NIFTY|NIFTY26OCT23400PE",
   "OPTION|KOTAKBANK|KOTAKBANK26OCT460CE",
   "OPTION|MFSL|MFSL26OCT1240PE",
-  "OPTION|PIIND|PIIND26OCT2140PE"
+  "OPTION|PIIND|PIIND26OCT2140PE",
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13450PE",
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26OCT13475PE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4208,6 +4210,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-15T09:05:45.891Z",
    "frozenAtIst": "2026-10-15 14:35 IST",
+   "frozenAtSpot": null
+  },
+  "MIDCPNIFTY26OCT13450PE": {
+   "buy": 83.05,
+   "sell": 124.6,
+   "stop": 41.5,
+   "tick": 0.05,
+   "lotSize": 120,
+   "expiry": "2026-10-27",
+   "strike": 13450,
+   "right": "PE",
+   "symbol": "MIDCPNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T09:25:43.311Z",
+   "frozenAtIst": "2026-10-15 14:55 IST",
+   "frozenAtSpot": null
+  },
+  "MIDCPNIFTY26OCT13475PE": {
+   "buy": 87.45,
+   "sell": 131.2,
+   "stop": 43.75,
+   "tick": 0.05,
+   "lotSize": 120,
+   "expiry": "2026-10-27",
+   "strike": 13475,
+   "right": "PE",
+   "symbol": "MIDCPNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T09:25:43.311Z",
+   "frozenAtIst": "2026-10-15 14:55 IST",
    "frozenAtSpot": null
   }
  },
