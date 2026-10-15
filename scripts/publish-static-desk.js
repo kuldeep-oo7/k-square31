@@ -1012,6 +1012,28 @@ function sbFocusBox(d) {
   const rows = pend.map((p) => `<tr><td><b>${esc(p.symbol)}</b><div class="sub">Zerodha/GM: ${esc(p.symbol)} futures, nearest month</div></td>
     <td class="num down">${mn(esc(p.pricePct))}%</td><td class="num">+${esc(p.oiPct)}%</td><td>SELL at the open, BUY BACK before the close</td></tr>`).join("");
   const day = esc(dayText(target));
+  // The last session's result on futures (owner, 15 Oct 2026: GM is futures). Information only, written by the paper
+  // job from NSE's F&O file (oi-flow.json SB.futuresLast); rupees at GM's minimum units, before GM's charges.
+  const lastFut = (() => {
+    const fl = sb.futuresLast; if (!fl || !fl.date || !Array.isArray(fl.rows)) return "";
+    const head = `<b>Last result, ${esc(dayText(fl.date))}</b>`;
+    if (!fl.rows.length) return `<div class="sbres">${head}: no short build-up trade that day.</div>`;
+    const units = d.gmMinUnits || 20; const priced = fl.rows.filter((r) => !r.missing);
+    const pct = (r) => (1 - r.close / r.open) * 100; const rs = (r) => Math.round((r.open - r.close) * units);
+    const tone = (v) => (v > 0 ? "up" : v < 0 ? "down" : ""); const plus = (v) => `${v > 0 ? "+" : ""}${money(v)}`;
+    const price = (v) => esc(Number(v).toLocaleString("en-IN"));
+    const exp = [...new Set(priced.map((r) => r.expiry))];
+    const contract = exp.length === 1 ? `${new Date(`${exp[0]}T00:00:00Z`).toLocaleDateString("en-GB", { month: "long", timeZone: "UTC" })} futures (expiry ${
+      esc(new Date(`${exp[0]}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }))})` : "nearest-month futures";
+    const cells = fl.rows.map((r) => (r.missing ? `<div><b>${esc(r.symbol)}</b></div><div class="sub" style="grid-column:2 / -1">no futures price in NSE&rsquo;s file</div>`
+      : `<div><b>${esc(r.symbol)}</b><div class="sub">${price(r.open)} &rarr; ${price(r.close)}</div></div><div class="num ${tone(pct(r))}">${signedPct(round(pct(r)))}</div><div class="num ${tone(rs(r))}">${plus(rs(r))}</div>`)).join("");
+    const won = priced.filter((r) => pct(r) > 0).length; const total = priced.reduce((a, r) => a + rs(r), 0);
+    return `<div class="sbres">${head} on ${contract} &middot; <b>information only</b>: sold at NSE&rsquo;s official futures open, bought back at its official close.
+      <div class="sbgrid"><div class="h">STOCK</div><div class="h num">RESULT</div><div class="h num">${esc(units)} UNITS</div>${cells}</div>
+      ${priced.length ? `<div>${won} of ${priced.length} won &middot; average ${signedPct(round(priced.reduce((a, r) => a + pct(r), 0) / priced.length))} &middot; <b class="${tone(total)}">${plus(total)}</b> on ${esc(units)} units each, before GM&rsquo;s charges.</div>` : ""}
+      ${fl.void ? `<div class="sub">${esc(fl.void)} trade(s) void that day (corporate action).</div>` : ""}
+      <div class="sub">Your GM fills will differ. The test itself is scored on share prices (TRACK).</div></div>`;
+  })();
   return `<div class="note focus" style="border-left-color:var(--amber);margin:0 0 14px">
     <b class="warn">FOCUS RULE &mdash; SHORT BUILD-UP</b> &middot; <b>paper test: for GM Global only, not real money</b>
     <div style="margin-top:6px">${!ready
@@ -1019,6 +1041,7 @@ function sbFocusBox(d) {
       : rows ? `<b>${day}:</b> these stocks fell at least 1.56% in the last session while their futures open interest rose at least 3.04% (new shorts piling in).
         <div class="wrap"><table><thead><tr><th>STOCK</th><th class="num">PRICE</th><th class="num">OPEN INT.</th><th>TRADE (same day)</th></tr></thead><tbody>${rows}</tbody></table></div>`
       : `<b>No short build-up signal for ${day}.</b> No trade from this rule today.`}</div>
+    ${lastFut}
     <details class="fold sub"><summary>The evidence, and why it is paper only<span class="more"></span></summary><div>
       Tested on NSE 2005&ndash;2020, data it had never seen, with its rules fixed first: 33,979 trades, <b>+0.21% a trade after futures charges, t 4.66</b>,
       positive in every 5-year period but shrinking (+0.40%, +0.31%, +0.14%); it lost &minus;0.48% a trade in the 2020 COVID crash. Found on 2020&ndash;2026
@@ -1687,6 +1710,9 @@ function page(d) {
   td { padding:9px 10px; border-bottom:1px solid rgba(255,255,255,.05); vertical-align:top }
   .num { text-align:right; white-space:nowrap }
   .sub { font-size:10px; color:var(--muted); margin-top:2px }
+  .sbres { margin-top:10px; padding-top:8px; border-top:1px solid var(--line) }
+  .sbgrid { display:grid; grid-template-columns:auto auto auto; justify-content:start; gap:4px 18px; margin:6px 0; align-items:baseline }
+  .sbgrid .h { font-size:9px; letter-spacing:.06em; color:var(--muted) }
   code { font-size:10px; color:var(--text); white-space:nowrap }
   .up { color:var(--green) } .down { color:var(--red) }
   .name { font-size:15px; letter-spacing:.02em }
