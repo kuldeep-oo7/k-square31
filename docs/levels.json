@@ -298,7 +298,8 @@
   "OPTION|PRESTIGE|PRESTIGE26OCT1500PE",
   "OPTION|BHEL|BHEL26OCT425CE",
   "OPTION|NIFTY|NIFTY26OCT23300PE",
-  "OPTION|SHRIRAMFIN|SHRIRAMFIN26OCT1000PE"
+  "OPTION|SHRIRAMFIN|SHRIRAMFIN26OCT1000PE",
+  "OPTION|AMBER|AMBER26OCT6400PE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4064,6 +4065,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-15T05:24:48.968Z",
    "frozenAtIst": "2026-10-15 10:54 IST",
+   "frozenAtSpot": null
+  },
+  "AMBER26OCT6400PE": {
+   "buy": 59.75,
+   "sell": 89.65,
+   "stop": 29.9,
+   "tick": 0.05,
+   "lotSize": 100,
+   "expiry": "2026-10-27",
+   "strike": 6400,
+   "right": "PE",
+   "symbol": "AMBER",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T05:44:44.947Z",
+   "frozenAtIst": "2026-10-15 11:14 IST",
    "frozenAtSpot": null
   }
  },

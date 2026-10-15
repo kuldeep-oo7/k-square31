@@ -146863,6 +146863,552 @@
     "perLot": -23020.5,
     "netPerLot": -23132.65
    }
+  },
+  {
+   "id": "2026-10-15|PE|LICI26OCT390PE",
+   "kind": "PE",
+   "symbol": "LICI",
+   "contract": "LICI26OCT390PE",
+   "expiry": "2026-10-27",
+   "strike": 390,
+   "optionType": "PE",
+   "lotSize": 1400,
+   "sessionDate": "2026-10-15",
+   "shownAt": "2026-10-15T03:48:56.440Z",
+   "buy": 4.15,
+   "target": 6.2,
+   "target2": null,
+   "stop": 2.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 43.3,
+     "medianDays": 4.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-15T03:48:56.856Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T05:44:45.351Z",
+   "exitPrice": 2.1,
+   "exitReason": "STOP",
+   "hoursFillToExit": 1.93,
+   "sessionsHeld": 0,
+   "best": 4.55,
+   "worst": 2.05,
+   "last": 3,
+   "lastAt": "2026-10-15T05:44:45.351Z",
+   "marks": 7,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 4.55,
+    "low": 2.05,
+    "last": 3
+   },
+   "pnl": {
+    "perUnit": -2.05,
+    "pct": -49.4,
+    "basis": "NET",
+    "perLot": -2870,
+    "netPerLot": -2925.46
+   }
+  },
+  {
+   "id": "2026-10-14|PE|FINNIFTY26OCT24500PE",
+   "kind": "PE",
+   "symbol": "FINNIFTY",
+   "contract": "FINNIFTY26OCT24500PE",
+   "expiry": "2026-10-27",
+   "strike": 24500,
+   "optionType": "PE",
+   "lotSize": 60,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T07:45:55.669Z",
+   "buy": 150.75,
+   "target": 226.15,
+   "target2": null,
+   "stop": 75.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 37.6,
+     "medianDays": 5.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-14T08:05:25.905Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-15T05:44:45.351Z",
+   "exitPrice": 75.4,
+   "exitReason": "STOP",
+   "hoursFillToExit": 21.66,
+   "sessionsHeld": 1,
+   "best": 150.75,
+   "worst": 74.15,
+   "last": 76.1,
+   "lastAt": "2026-10-15T05:44:45.351Z",
+   "marks": 21,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 127.35,
+    "low": 74.15,
+    "last": 76.1
+   },
+   "pnl": {
+    "perUnit": -75.35,
+    "pct": -49.98,
+    "basis": "NET",
+    "perLot": -4521,
+    "netPerLot": -4580.96
+   }
+  },
+  {
+   "id": "2026-10-13|PE|GMRAIRPORT26OCT87PE",
+   "kind": "PE",
+   "symbol": "GMRAIRPORT",
+   "contract": "GMRAIRPORT26OCT87PE",
+   "expiry": "2026-10-27",
+   "strike": 87,
+   "optionType": "PE",
+   "lotSize": 6975,
+   "sessionDate": "2026-10-13",
+   "shownAt": "2026-10-13T04:11:53.695Z",
+   "buy": 1.02,
+   "target": 1.53,
+   "target2": null,
+   "stop": 0.51,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 31.2,
+     "medianDays": 7.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-13T04:11:54.119Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T05:44:45.351Z",
+   "exitPrice": 0.51,
+   "exitReason": "STOP",
+   "hoursFillToExit": 49.55,
+   "sessionsHeld": 2,
+   "best": 1.04,
+   "worst": 0.49,
+   "last": 0.54,
+   "lastAt": "2026-10-15T05:44:45.351Z",
+   "marks": 56,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 0.88,
+    "low": 0.49,
+    "last": 0.54
+   },
+   "pnl": {
+    "perUnit": -0.51,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3557.25,
+    "netPerLot": -3614.49
+   }
+  },
+  {
+   "id": "2026-10-13|FUTS|GMRAIRPORT26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "GMRAIRPORT",
+   "contract": "GMRAIRPORT26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 6975,
+   "sessionDate": "2026-10-13",
+   "shownAt": "2026-10-13T03:51:21.959Z",
+   "buy": 90.17,
+   "target": 87.92,
+   "target2": 85.66,
+   "stop": 91.52,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 63.2,
+     "medianTradingDays": 0.222
+    },
+    "target": {
+     "probabilityPct": 74.9,
+     "medianTradingDays": 2.745
+    },
+    "sigmaPct": 27,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-13T04:11:54.119Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-15T05:44:45.351Z",
+   "exitPrice": 91.52,
+   "exitReason": "STOP",
+   "hoursFillToExit": 49.55,
+   "sessionsHeld": 2,
+   "best": 89.44,
+   "worst": 91.8,
+   "last": 91.37,
+   "lastAt": "2026-10-15T05:44:45.351Z",
+   "marks": 60,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 91.8,
+    "low": 89.76,
+    "last": 91.37
+   },
+   "pnl": {
+    "perUnit": -1.35,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-13|PE|GMRAIRPORT26OCT89PE",
+   "kind": "PE",
+   "symbol": "GMRAIRPORT",
+   "contract": "GMRAIRPORT26OCT89PE",
+   "expiry": "2026-10-27",
+   "strike": 89,
+   "optionType": "PE",
+   "lotSize": 6975,
+   "sessionDate": "2026-10-13",
+   "shownAt": "2026-10-13T03:51:21.959Z",
+   "buy": 1.98,
+   "target": 2.96,
+   "target2": null,
+   "stop": 0.99,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 45.8,
+     "medianDays": 5.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-13T03:51:22.519Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T05:44:45.351Z",
+   "exitPrice": 0.99,
+   "exitReason": "STOP",
+   "hoursFillToExit": 49.89,
+   "sessionsHeld": 2,
+   "best": 1.98,
+   "worst": 0.92,
+   "last": 0.99,
+   "lastAt": "2026-10-15T05:44:45.351Z",
+   "marks": 58,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 1.54,
+    "low": 0.92,
+    "last": 0.99
+   },
+   "pnl": {
+    "perUnit": -0.99,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -6905.25,
+    "netPerLot": -6971.93
+   }
+  },
+  {
+   "id": "2026-10-13|PE|HINDPETRO26OCT335PE",
+   "kind": "PE",
+   "symbol": "HINDPETRO",
+   "contract": "HINDPETRO26OCT335PE",
+   "expiry": "2026-10-27",
+   "strike": 335,
+   "optionType": "PE",
+   "lotSize": 2025,
+   "sessionDate": "2026-10-13",
+   "shownAt": "2026-10-13T03:51:21.959Z",
+   "buy": 9.7,
+   "target": 14.55,
+   "target2": null,
+   "stop": 4.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.1,
+     "medianDays": 5.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-13T03:51:22.519Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T05:44:45.351Z",
+   "exitPrice": 4.85,
+   "exitReason": "STOP",
+   "hoursFillToExit": 49.89,
+   "sessionsHeld": 2,
+   "best": 13.4,
+   "worst": 4.4,
+   "last": 4.6,
+   "lastAt": "2026-10-15T05:44:45.351Z",
+   "marks": 57,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 8.25,
+    "low": 4.4,
+    "last": 4.6
+   },
+   "pnl": {
+    "perUnit": -4.85,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -9821.25,
+    "netPerLot": -9896.16
+   }
+  },
+  {
+   "id": "2026-10-12|PE|GMRAIRPORT26OCT87PE",
+   "kind": "PE",
+   "symbol": "GMRAIRPORT",
+   "contract": "GMRAIRPORT26OCT87PE",
+   "expiry": "2026-10-27",
+   "strike": 87,
+   "optionType": "PE",
+   "lotSize": 6975,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T08:45:38.842Z",
+   "buy": 1.02,
+   "target": 1.52,
+   "target2": null,
+   "stop": 0.51,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 33.6,
+     "medianDays": 7.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-12T08:45:38.863Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T05:44:45.351Z",
+   "exitPrice": 0.51,
+   "exitReason": "STOP",
+   "hoursFillToExit": 68.99,
+   "sessionsHeld": 3,
+   "best": 1.33,
+   "worst": 0.49,
+   "last": 0.54,
+   "lastAt": "2026-10-15T05:44:45.351Z",
+   "marks": 74,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 0.88,
+    "low": 0.49,
+    "last": 0.54
+   },
+   "pnl": {
+    "perUnit": -0.51,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3557.25,
+    "netPerLot": -3614.49
+   }
+  },
+  {
+   "id": "2026-10-09|PE|INDHOTEL26OCT730PE",
+   "kind": "PE",
+   "symbol": "INDHOTEL",
+   "contract": "INDHOTEL26OCT730PE",
+   "expiry": "2026-10-27",
+   "strike": 730,
+   "optionType": "PE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T04:26:18.603Z",
+   "buy": 20.25,
+   "target": 30.4,
+   "target2": null,
+   "stop": 10.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.4,
+     "medianDays": 5.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-09T04:26:18.619Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T05:44:45.351Z",
+   "exitPrice": 10.15,
+   "exitReason": "STOP",
+   "hoursFillToExit": 145.31,
+   "sessionsHeld": 4,
+   "best": 25.1,
+   "worst": 9.85,
+   "last": 10.05,
+   "lastAt": "2026-10-15T05:44:45.351Z",
+   "marks": 116,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 15,
+    "low": 9.85,
+    "last": 10.05
+   },
+   "pnl": {
+    "perUnit": -10.1,
+    "pct": -49.88,
+    "basis": "NET",
+    "perLot": -10100,
+    "netPerLot": -10175.81
+   }
+  },
+  {
+   "id": "2026-10-09|PE|INDHOTEL26OCT740PE",
+   "kind": "PE",
+   "symbol": "INDHOTEL",
+   "contract": "INDHOTEL26OCT740PE",
+   "expiry": "2026-10-27",
+   "strike": 740,
+   "optionType": "PE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T04:06:56.261Z",
+   "buy": 28.65,
+   "target": 42.95,
+   "target2": null,
+   "stop": 14.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 52.7,
+     "medianDays": 5.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-09T04:06:56.270Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-15T05:44:45.351Z",
+   "exitPrice": 14.3,
+   "exitReason": "STOP",
+   "hoursFillToExit": 145.63,
+   "sessionsHeld": 4,
+   "best": 32.8,
+   "worst": 14.3,
+   "last": 14.5,
+   "lastAt": "2026-10-15T05:44:45.351Z",
+   "marks": 114,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 18.95,
+    "low": 14.3,
+    "last": 14.5
+   },
+   "pnl": {
+    "perUnit": -14.35,
+    "pct": -50.09,
+    "basis": "NET",
+    "perLot": -14350,
+    "netPerLot": -14437.57
+   }
+  },
+  {
+   "id": "2026-10-09|PE|GAIL26OCT165PE",
+   "kind": "PE",
+   "symbol": "GAIL",
+   "contract": "GAIL26OCT165PE",
+   "expiry": "2026-10-27",
+   "strike": 165,
+   "optionType": "PE",
+   "lotSize": 3550,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T03:49:28.778Z",
+   "buy": 2.33,
+   "target": 3.5,
+   "target2": null,
+   "stop": 1.17,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 36.5,
+     "medianDays": 8.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-09T04:06:56.270Z",
+   "hoursToFill": 0.29,
+   "closedAt": "2026-10-15T05:44:45.351Z",
+   "exitPrice": 1.17,
+   "exitReason": "STOP",
+   "hoursFillToExit": 145.63,
+   "sessionsHeld": 4,
+   "best": 2.45,
+   "worst": 1.07,
+   "last": 1.1,
+   "lastAt": "2026-10-15T05:44:45.351Z",
+   "marks": 118,
+   "obs": {
+    "date": "2026-10-15",
+    "high": 2.1,
+    "low": 1.07,
+    "last": 1.1
+   },
+   "pnl": {
+    "perUnit": -1.16,
+    "pct": -49.79,
+    "basis": "NET",
+    "perLot": -4118,
+    "netPerLot": -4176.9
+   }
   }
  ]
 }
