@@ -304,7 +304,8 @@
   "OPTION|GAIL|GAIL26OCT175PE",
   "OPTION|BANKNIFTY|BANKNIFTY26OCT57000PE",
   "OPTION|NYKAA|NYKAA26OCT350CE",
-  "OPTION|NIFTY|NIFTY26OCT23400PE"
+  "OPTION|NIFTY|NIFTY26OCT23400PE",
+  "OPTION|KOTAKBANK|KOTAKBANK26OCT460CE"
  ],
  "options": {
   "NIFTY26OCT22800PE": {
@@ -4160,6 +4161,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-15T07:45:28.488Z",
    "frozenAtIst": "2026-10-15 13:15 IST",
+   "frozenAtSpot": null
+  },
+  "KOTAKBANK26OCT460CE": {
+   "buy": 2.95,
+   "sell": 4.4,
+   "stop": 1.5,
+   "tick": 0.05,
+   "lotSize": 2000,
+   "expiry": "2026-10-27",
+   "strike": 460,
+   "right": "CE",
+   "symbol": "KOTAKBANK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-15T08:25:14.400Z",
+   "frozenAtIst": "2026-10-15 13:55 IST",
    "frozenAtSpot": null
   }
  },
