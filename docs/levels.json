@@ -472,7 +472,8 @@
   "OPTION|HAVELLS|HAVELLS26OCT1180CE",
   "OPTION|MARUTI|MARUTI26OCT11800CE",
   "OPTION|DELHIVERY|DELHIVERY26OCT395PE",
-  "OPTION|MPHASIS|MPHASIS26OCT2600CE"
+  "OPTION|MPHASIS|MPHASIS26OCT2600CE",
+  "OPTION|ADANIENT|ADANIENT26OCT2600PE"
  ],
  "options": {
   "MAXHEALTH26OCT860CE": {
@@ -6128,6 +6129,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-16T09:05:19.480Z",
    "frozenAtIst": "2026-10-16 14:35 IST",
+   "frozenAtSpot": null
+  },
+  "ADANIENT26OCT2600PE": {
+   "buy": 22.85,
+   "sell": 34.3,
+   "stop": 11.45,
+   "tick": 0.05,
+   "lotSize": 309,
+   "expiry": "2026-10-27",
+   "strike": 2600,
+   "right": "PE",
+   "symbol": "ADANIENT",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-16T09:45:12.309Z",
+   "frozenAtIst": "2026-10-16 15:15 IST",
    "frozenAtSpot": null
   }
  },
