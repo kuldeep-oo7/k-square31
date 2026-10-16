@@ -462,7 +462,9 @@
   "OPTION|RECLTD|RECLTD26OCT300CE",
   "OPTION|PIIND|PIIND26OCT2220PE",
   "OPTION|BAJAJHLDNG|BAJAJHLDNG26OCT11300CE",
-  "OPTION|POWERGRID|POWERGRID26OCT257.5CE"
+  "OPTION|POWERGRID|POWERGRID26OCT257.5CE",
+  "OPTION|BAJAJ-AUTO|BAJAJ-AUTO26OCT10700CE",
+  "OPTION|LAURUSLABS|LAURUSLABS26OCT2140CE"
  ],
  "options": {
   "MAXHEALTH26OCT860CE": {
@@ -5968,6 +5970,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-16T05:45:02.881Z",
    "frozenAtIst": "2026-10-16 11:15 IST",
+   "frozenAtSpot": null
+  },
+  "BAJAJ-AUTO26OCT10700CE": {
+   "buy": 60.1,
+   "sell": 90.15,
+   "stop": 30.05,
+   "tick": 0.05,
+   "lotSize": 75,
+   "expiry": "2026-10-27",
+   "strike": 10700,
+   "right": "CE",
+   "symbol": "BAJAJ-AUTO",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-16T06:05:04.351Z",
+   "frozenAtIst": "2026-10-16 11:35 IST",
+   "frozenAtSpot": null
+  },
+  "LAURUSLABS26OCT2140CE": {
+   "buy": 16.2,
+   "sell": 24.3,
+   "stop": 8.1,
+   "tick": 0.05,
+   "lotSize": 850,
+   "expiry": "2026-10-27",
+   "strike": 2140,
+   "right": "CE",
+   "symbol": "LAURUSLABS",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-16T06:05:04.351Z",
+   "frozenAtIst": "2026-10-16 11:35 IST",
    "frozenAtSpot": null
   }
  },
