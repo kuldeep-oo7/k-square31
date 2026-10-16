@@ -1,0 +1,76 @@
+name: kronos
+# The Kronos forward paper watch (studies/kronos-forward-2026-10-16/PREREGISTRATION.txt). Kronos FAILED its test
+# (t 1.35); this only watches it on future prices, for GM Global paper. After NSE's evening files: forecast every
+# futures stock of the month's top 100, store the next session's list ONCE in docs/paper-rules/kronos.json, and score
+# the earlier lists from NSE's official open/close. Kept apart from springy-dip.yml so a torch or model download
+# failure can never stop the other paper tests. A day already stored exits early (no Python, no model).
+on:
+  schedule:
+    - cron: "45 14 * * 1-5"     # 20:15 IST, after NSE posts the day's files
+    - cron: "30 1 * * 2-6"      # 07:00 IST backstop (the list must be committed before 09:15 IST to count)
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: kronos
+  cancel-in-progress: false
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 45
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - name: NSE's bhavcopy archive, extended to the last session
+        env:
+          K2_CM_DIR: nse-data/cm
+          K2_STOP_IST: "23:59"
+        run: |
+          gh release download data-nse-cm -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz && rm nse-cm.tar.gz
+          node scripts/nse-cm-bhavcopy.js 2020-09-01
+      - name: NSE's F&O futures files (which stocks have futures, and their expiries)
+        run: |
+          if gh release download data-paper-inputs -p paper-inputs.tar.gz; then tar -xzf paper-inputs.tar.gz && rm paper-inputs.tar.gz; fi
+          K2_CM_DIR=nse-data/cm K2_FO_DIR=nse-fo K2_FROM=$(date -u -d '-7 days' +%F) node scripts/nse-fo-history.js
+      - name: Inputs for the last session (skips the rest if that day is already stored)
+        id: prep
+        run: |
+          set +e
+          K2_CM_DIR=nse-data/cm K2_FUT_DIR=nse-fo/fut node scripts/kronos-forward.js prepare kf-inputs.jsonl
+          rc=$?
+          if [ $rc -eq 0 ]; then echo "run=yes" >> "$GITHUB_OUTPUT"; elif [ $rc -eq 3 ] || [ $rc -eq 4 ]; then echo "run=no" >> "$GITHUB_OUTPUT"; else exit $rc; fi
+      - uses: actions/setup-python@v5
+        if: steps.prep.outputs.run == 'yes'
+        with:
+          python-version: "3.12"
+      - uses: actions/cache@v4
+        if: steps.prep.outputs.run == 'yes'
+        with:
+          path: |
+            ~/.cache/pip
+            ~/.cache/huggingface
+          key: kronos-torch2.14.1-k67b630e-s901c26c-t0e01173
+      - name: Kronos (code, model and libraries pinned as registered)
+        if: steps.prep.outputs.run == 'yes'
+        run: |
+          pip install torch==2.14.1 --index-url https://download.pytorch.org/whl/cpu
+          pip install numpy==2.5.4 pandas==3.0.6 einops==0.8.2 huggingface_hub==2.2.0 safetensors==0.8.0 tqdm==4.70.1
+          git clone -q https://github.com/shiyu-coder/Kronos.git kronos-src && git -C kronos-src checkout -q 67b630e67f6a18c9e9be918d9b4337c960db1e9a
+          K2_KRONOS_REPO=kronos-src python scripts/kronos-forecast.py kf-inputs.jsonl kf-preds.csv
+          K2_CM_DIR=nse-data/cm K2_FUT_DIR=nse-fo/fut node scripts/kronos-forward.js store kf-preds.csv | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Score the earlier lists
+        if: steps.prep.outputs.run != 'yes'
+        run: K2_CM_DIR=nse-data/cm node scripts/kronos-forward.js score | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Commit
+        run: |
+          git config user.name "k2-desk-bot"
+          git config user.email "k2-desk-bot@users.noreply.github.com"
+          git add docs/paper-rules/kronos.json
+          if git diff --cached --quiet; then echo "no change"; exit 0; fi
+          git commit -q -m "kronos watch: updated"
+          for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin HEAD:main && exit 0; sleep 10; done
+          exit 1

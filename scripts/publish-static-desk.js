@@ -942,6 +942,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     // The OWN "springy dip" forward paper test, written each weekday morning by
     // .github/workflows/springy-dip.yml from NSE's own files (null if not yet written).
     springyDip: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "springy-dip.json"), "utf8")); } catch { return null; } })(),
+    kronos: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "kronos.json"), "utf8")); } catch { return null; } })(),
     oiFlow: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "oi-flow.json"), "utf8")); } catch { return null; } })(),
     forwardV2: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v2.json"), "utf8")); } catch { return null; } })(),
     forwardV3: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v3.json"), "utf8")); } catch { return null; } })(),
@@ -1049,6 +1050,45 @@ function sbFocusBox(d) {
         ? `, ${s.meanNetPct > 0 ? "+" : ""}${mn(esc(s.meanNetPct))}% a trade, ${esc(s.winPct)}% winners` : ""} &mdash; a verdict needs 100 trades and 3 months
       (about early January 2027). One trade is about +0.2% on average and can lose several percent on a rally day; it works only over many trades.
       Real money on Zerodha only after a PASS.</div></details>
+  </div>`;
+}
+
+// KRONOS WATCH (owner, 16 Oct 2026: "i think kronnos will work here live it ... on the portal"). Kronos FAILED its
+// pre-registered test (t 1.35), so this is a labelled paper watch for GM Global, never a suggestion; the FUTURES count
+// stays 0 and PROVEN_KINDS is unchanged. Lists come from docs/paper-rules/kronos.json (.github/workflows/kronos.yml),
+// rules in studies/kronos-forward-2026-10-16/PREREGISTRATION.txt. A list made for another session is never shown as today's.
+function kronosBox(d) {
+  const k = d.kronos; if (!k || !k.days) return "";
+  const target = d.sessionOver || d.tradingDay === false ? d.nextSession : d.sessionDate;
+  const dayText = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  const mon = (iso) => (iso ? new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) + " fut" : "no futures");
+  const days = Object.values(k.days); const onTime = (x) => Date.parse(x.madeAt) < Date.parse(`${x.entry}T09:15:00+05:30`);
+  const today = days.find((x) => x.entry === target && x.enough && onTime(x));   // a list made after 09:15 on its day is never shown
+  const held = days.filter((x) => x.enough && x.entry < target && x.exit >= target).sort((a, b) => (a.entry < b.entry ? -1 : 1));
+  const names = (list) => list.map((p) => `<div><b>${esc(p.symbol)}</b> <span class="sub">${esc(mon(p.expiry))}</span></div>`).join("");
+  const s = k.summary || {}; const mn = (v) => String(v).replace(/^-/, "&minus;");
+  return `<div class="note focus" style="border-left-color:var(--muted);margin:0 0 14px">
+    <b>KRONOS WATCH &mdash; AI forecast</b> &middot; <b class="down">FAILED its test (t 1.35, needs 3)</b> &middot; <b>paper only, for GM Global</b>
+    <div style="margin-top:6px">${today
+      ? `<b>${esc(dayText(today.entry))}:</b> Kronos&rsquo;s top and bottom tenth of ${esc(today.names)} futures stocks. Enter at the open; close at the close on <b>${esc(dayText(today.exit))}</b> (5 sessions).
+        <div class="sbgrid" style="grid-template-columns:auto auto;gap:4px 28px"><div class="h">BUY (${esc(d.gmMinUnits || 20)} units)</div><div class="h">SELL (${esc(d.gmMinUnits || 20)} units)</div>
+          <div class="up">${names(today.long)}</div><div class="down">${names(today.short)}</div></div>`
+      : `<b class="warn">No Kronos list for ${esc(dayText(target))}.</b> It is made from NSE&rsquo;s evening files (about 20:15 IST); counting starts with Mon 19 Oct.`}</div>
+    ${held.length ? `<div class="sub" style="margin-top:6px">Still held from earlier lists: ${held.map((x) => `${esc(dayText(x.entry))} list &rarr; close at the close on ${esc(dayText(x.exit))}`).join("; ")}.</div>` : ""}
+    <div class="sub" style="margin-top:6px">Kronos reads only each stock&rsquo;s last 512 daily bars (one random draw, as tested); its own % forecasts are too noisy to show.
+      In its test (Jul 2024&ndash;Oct 2026) this book made +0.135% a round, t 1.35: not proven. On paper since ${esc(k.start)}: ${esc(s.finished ?? 0)} lists finished${s.finished
+        ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a list, ${esc(s.winPct)}% up` : ""}; a verdict needs 52 weeks (about Oct 2027). Not for real money.</div>
+  </div>`;
+}
+function kronosTrackBox(k) {
+  if (!k || !k.summary) return "";
+  const s = k.summary; const mn = (v) => String(v).replace(/^-/, "&minus;");
+  const rows = (k.books || []).slice(-15).reverse().map((b) => `<tr><td><b>${esc(b.entry)}</b></td><td>${esc(b.status)}</td><td class="num ${b.valuePct > 0 ? "up" : b.valuePct < 0 ? "down" : ""}">${b.valuePct === undefined ? "&mdash;" : `${b.valuePct > 0 ? "+" : ""}${mn(esc(b.valuePct))}%`}</td></tr>`).join("");
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--muted)">
+    <b>FORWARD PAPER WATCH: KRONOS (AI forecast)</b> &mdash; ${esc(k.rule)}. Backtest: ${esc(k.backtest)}. Rules fixed in ${esc(k.preregistration)} before any forecast.
+    <b class="warn">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} lists finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a list (half longs, half shorts, after futures charges), ${esc(s.winPct)}% up, ${esc(s.weeks)} weeks, t ${mn(esc(s.t ?? "&mdash;"))}` : ""}.
+    A verdict needs 52 weeks and t &ge; 3. Data through ${esc(k.dataThrough)}.
+    ${rows ? `<div class="wrap"><table><thead><tr><th>ENTRY</th><th>STATUS</th><th class="num">LIST NET</th></tr></thead><tbody>${rows}</tbody></table></div>` : ""}
   </div>`;
 }
 
@@ -1809,6 +1849,7 @@ ${staleAlarm}
   <section class="pane pane-fut">
     <h2>Futures &mdash; ${esc(d.gmMinUnits || 20)} units each (GM Global's minimum)</h2>
     ${sbFocusBox(d)}
+    ${kronosBox(d)}
     ${untested("FUT", "futures rows", d.futures.length + (d.futuresShort || []).length, `${futuresWarned(`    ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`,
       `<b>With no trend, a row's target comes before its stop at most as often as its break-even (about 37.5%)</b> &mdash; a price with no trend is a fair game &mdash;
        so before GM's charges these rows make money only if the BUY signal works. <b>It was tested and FAILED</b>: the desk&rsquo;s own rating,
@@ -1907,6 +1948,7 @@ ${staleAlarm}
       A dip between two checks that is not a new day low (or high) is not seen &mdash; for fills and stops alike (audit 12 Oct 2026).</div>
     ${springyBox(d.springyDip)}
     ${oiFlowBox(d.oiFlow)}
+    ${kronosTrackBox(d.kronos)}
     ${forwardV2Box(d.forwardV2)}
     ${forwardV3Box(d.forwardV3)}
     ${forwardV4Box(d.forwardV4)}
@@ -2083,7 +2125,7 @@ async function main() {
   return data;
 }
 
-module.exports = { build, page, fillState, main, sbFocusBox };
+module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox };
 
 // Exported above so a test can drive build() twice and prove the levels did not
 // move. Run directly, it is still just a build.
