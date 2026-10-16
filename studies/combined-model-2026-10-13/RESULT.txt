@@ -19,3 +19,16 @@ CHECKS 7.2-7.4: not run (7.1 failed first).
 
 Implementation notes: sklearn 1.9 HistGradientBoosting fails on an all-missing training column; such a column is set
 to a constant for that block (model.py fit_trees). Synthetic data only; no real-data panel was built.
+
+AMENDMENT A2 CHECKS -- 2026-10-16, synthetic markets only, before the real run:
+CHECK 7.3 (no look-ahead), synthetic seed 1 with the plant, cutoff session 1000 (2024-07-02):
+ rows dated <= cutoff: 88800 vs 88800, same keys: true; features compared 4972800, different 0
+ predictions of blocks fully before the cutoff: 11040 compared, 0 different (92 rebalances; 25 later blocks)
+ control (the change must matter after the cutoff): later features differ true, later predictions differ 11880
+ CHECK 7.3: PASSED
+CHECK 7.2 (no-edge synthetic markets, A1 rule; at most 1 PASS among the 9 member results):
+ seed 1: C1 -0.077% t -2.60 DSR 0.01 FAIL | C2 -0.083% t -2.23 DSR 0.01 FAIL | C3 -0.059% t -1.53 DSR 0.02 FAIL
+ seed 2: C1 -0.078% t -2.37 DSR 0.01 FAIL | C2 -0.049% t -1.76 DSR 0.04 FAIL | C3 -0.094% t -2.13 DSR 0.02 FAIL
+ seed 3: C1 -0.025% t -0.72 DSR 0.15 FAIL | C2 -0.036% t -1.23 DSR 0.05 FAIL | C3 -0.086% t -2.22 DSR 0.01 FAIL
+ PASS results: 0 of 9. CHECK 7.2: PASSED
+ (The negative means on no-edge markets are the futures charges: about -0.05% to -0.09% a rebalance.)
