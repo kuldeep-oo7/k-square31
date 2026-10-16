@@ -166789,6 +166789,114 @@
     "perLot": -1811.25,
     "netPerLot": -1863.75
    }
+  },
+  {
+   "id": "2026-10-14|CE|AUROPHARMA26OCT1720CE",
+   "kind": "CE",
+   "symbol": "AUROPHARMA",
+   "contract": "AUROPHARMA26OCT1720CE",
+   "expiry": "2026-10-27",
+   "strike": 1720,
+   "optionType": "CE",
+   "lotSize": 550,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T03:51:32.467Z",
+   "buy": 17.45,
+   "target": 26.2,
+   "target2": null,
+   "stop": 8.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 37.7,
+     "medianDays": 5.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-14T03:51:32.916Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-16T09:25:36.147Z",
+   "exitPrice": 8.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 53.57,
+   "sessionsHeld": 2,
+   "best": 20.4,
+   "worst": 8.5,
+   "last": 8.8,
+   "lastAt": "2026-10-16T09:25:36.147Z",
+   "marks": 71,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 15.75,
+    "low": 8.5,
+    "last": 8.8
+   },
+   "pnl": {
+    "perUnit": -8.75,
+    "pct": -50.14,
+    "basis": "NET",
+    "perLot": -4812.5,
+    "netPerLot": -4873.21
+   }
+  },
+  {
+   "id": "2026-10-14|PE|BANKNIFTY26OCT54500PE",
+   "kind": "PE",
+   "symbol": "BANKNIFTY",
+   "contract": "BANKNIFTY26OCT54500PE",
+   "expiry": "2026-10-27",
+   "strike": 54500,
+   "optionType": "PE",
+   "lotSize": 30,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T03:51:32.467Z",
+   "buy": 264.3,
+   "target": 396.45,
+   "target2": null,
+   "stop": 132.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38.3,
+     "medianDays": 5.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-14T04:07:01.470Z",
+   "hoursToFill": 0.26,
+   "closedAt": "2026-10-16T09:25:36.147Z",
+   "exitPrice": 132.15,
+   "exitReason": "STOP",
+   "hoursFillToExit": 53.31,
+   "sessionsHeld": 2,
+   "best": 333,
+   "worst": 131.4,
+   "last": 137.2,
+   "lastAt": "2026-10-16T09:25:36.147Z",
+   "marks": 71,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 207.4,
+    "low": 131.4,
+    "last": 137.2
+   },
+   "pnl": {
+    "perUnit": -132.15,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3964.5,
+    "netPerLot": -4022.89
+   }
   }
  ]
 }
