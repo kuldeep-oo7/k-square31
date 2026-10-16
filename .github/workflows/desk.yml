@@ -237,8 +237,8 @@ jobs:
       - name: NSE's own index history (FINNIFTY and MIDCPNIFTY have none on Yahoo)
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN || github.token }}
-          GH_REPO: ${{ secrets.K2_DATA_TOKEN && 'kuldeep-oo7/k2-data' || github.repository }}
+          GH_TOKEN: ${{ vars.K2_DATA_REPO && secrets.K2_DATA_TOKEN || github.token }}
+          GH_REPO: ${{ vars.K2_DATA_REPO || github.repository }}
         run: mkdir -p nse-idx && gh release download data-nse-idx -p nse-idx.json -D nse-idx --clobber && ls -l nse-idx
 
       - name: Fetch the exchange contract file, the instrument master and today's bars
@@ -253,8 +253,8 @@ jobs:
         # append them to that day's file on the PRIVATE release, so an order-flow history builds up.
         continue-on-error: true
         env:
-          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN || github.token }}
-          GH_REPO: ${{ secrets.K2_DATA_TOKEN && 'kuldeep-oo7/k2-data' || github.repository }}
+          GH_TOKEN: ${{ vars.K2_DATA_REPO && secrets.K2_DATA_TOKEN || github.token }}
+          GH_REPO: ${{ vars.K2_DATA_REPO || github.repository }}
         run: |
           shopt -s nullglob
           files=(orderflow/*.jsonl)

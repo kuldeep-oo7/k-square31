@@ -40,8 +40,8 @@ jobs:
       - name: Publish this part's download log to the release (readable from a cloud session)
         if: always()
         env:
-          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN || github.token }}
-          GH_REPO: ${{ secrets.K2_DATA_TOKEN && 'kuldeep-oo7/k2-data' || github.repository }}
+          GH_TOKEN: ${{ vars.K2_DATA_REPO && secrets.K2_DATA_TOKEN || github.token }}
+          GH_REPO: ${{ vars.K2_DATA_REPO || github.repository }}
         run: |
           gh release view data-oos >/dev/null 2>&1 || gh release create data-oos --title "Out-of-sample data (NSE 2005-2020, US)" --notes "Built by .github/workflows/oos-data.yml for studies/oos-replication-2026-10-05. Data only." --latest=false || true
           cp nse-old/download.log log-nse-${{ matrix.part.from }}.txt || echo "no log" > log-nse-${{ matrix.part.from }}.txt
@@ -66,8 +66,8 @@ jobs:
       - name: Publish the US download log
         if: always()
         env:
-          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN || github.token }}
-          GH_REPO: ${{ secrets.K2_DATA_TOKEN && 'kuldeep-oo7/k2-data' || github.repository }}
+          GH_TOKEN: ${{ vars.K2_DATA_REPO && secrets.K2_DATA_TOKEN || github.token }}
+          GH_REPO: ${{ vars.K2_DATA_REPO || github.repository }}
         run: |
           sleep 30; cp us/download.log log-us.txt || echo "no log" > log-us.txt
           for i in 1 2 3; do gh release upload data-oos log-us.txt --clobber && break; sleep 20; done
@@ -78,8 +78,8 @@ jobs:
     if: always()
     runs-on: ubuntu-latest
     env:
-      GH_TOKEN: ${{ secrets.K2_DATA_TOKEN || github.token }}
-      GH_REPO: ${{ secrets.K2_DATA_TOKEN && 'kuldeep-oo7/k2-data' || github.repository }}
+      GH_TOKEN: ${{ vars.K2_DATA_REPO && secrets.K2_DATA_TOKEN || github.token }}
+      GH_REPO: ${{ vars.K2_DATA_REPO || github.repository }}
     steps:
       - uses: actions/download-artifact@v4
         with: { path: parts }

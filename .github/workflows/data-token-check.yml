@@ -1,0 +1,21 @@
+name: data-token-check
+# Tests secret K2_DATA_TOKEN against the private data repo before the workflows switch to it (repo variable
+# K2_DATA_REPO). Read, then write (a tiny test asset, deleted again). Prints only what GitHub answers.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 3
+    env:
+      GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+      GH_REPO: kuldeep-oo7/k2-data
+    steps:
+      - run: |
+          [ -n "$GH_TOKEN" ] && echo "secret K2_DATA_TOKEN is set (${#GH_TOKEN} characters)" || { echo "::error::secret K2_DATA_TOKEN is empty"; exit 1; }
+          echo "--- the repo:"; gh api repos/kuldeep-oo7/k2-data --jq '.full_name + " private=" + (.private|tostring) + " push=" + (.permissions.push|tostring)' || true
+          echo "--- releases:"; gh release list -L 20 || true
+          echo "--- read:"; gh release download data-nse-idx -p nse-idx.json -D t --clobber && ls -l t
+          echo "--- write:"; echo test > token-check.txt && gh release upload data-nse-idx token-check.txt --clobber && gh release delete-asset data-nse-idx token-check.txt -y && echo "write ok"
