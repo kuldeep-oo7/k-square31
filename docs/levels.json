@@ -470,7 +470,8 @@
   "OPTION|OIL|OIL26OCT460CE",
   "OPTION|PIIND|PIIND26OCT2150PE",
   "OPTION|HAVELLS|HAVELLS26OCT1180CE",
-  "OPTION|MARUTI|MARUTI26OCT11800CE"
+  "OPTION|MARUTI|MARUTI26OCT11800CE",
+  "OPTION|DELHIVERY|DELHIVERY26OCT395PE"
  ],
  "options": {
   "MAXHEALTH26OCT860CE": {
@@ -6096,6 +6097,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-16T06:45:12.306Z",
    "frozenAtIst": "2026-10-16 12:15 IST",
+   "frozenAtSpot": null
+  },
+  "DELHIVERY26OCT395PE": {
+   "buy": 3.1,
+   "sell": 4.65,
+   "stop": 1.55,
+   "tick": 0.05,
+   "lotSize": 2075,
+   "expiry": "2026-10-27",
+   "strike": 395,
+   "right": "PE",
+   "symbol": "DELHIVERY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-16T08:45:33.540Z",
+   "frozenAtIst": "2026-10-16 14:15 IST",
    "frozenAtSpot": null
   }
  },
