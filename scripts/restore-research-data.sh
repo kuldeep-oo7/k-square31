@@ -6,6 +6,8 @@
 # After this, every study runs unchanged from research/<name>/ (e.g. node research/rating-replay-2026-10-04/study.js).
 # If `gh release download` fails in a cloud session, use the REST fallback in CLAUDE.md.
 set -euo pipefail
+# Data releases live in the PRIVATE repo kuldeep-oo7/k2-data (16 Oct 2026). Override with GH_REPO if needed.
+export GH_REPO="${GH_REPO:-kuldeep-oo7/k2-data}"
 cd "$(git rev-parse --show-toplevel)"
 mkdir -p research
 

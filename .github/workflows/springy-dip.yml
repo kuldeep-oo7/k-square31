@@ -22,7 +22,10 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 45
     env:
-      GH_TOKEN: ${{ github.token }}
+      # Release data lives in the PRIVATE repo kuldeep-oo7/k2-data (16 Oct 2026, so this repo can be public).
+      # Until the K2_DATA_TOKEN secret exists, both fall back to this repo, so nothing breaks in between.
+      GH_TOKEN: ${{ secrets.K2_DATA_TOKEN || github.token }}
+      GH_REPO: ${{ secrets.K2_DATA_TOKEN && 'kuldeep-oo7/k2-data' || github.repository }}
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4

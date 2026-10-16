@@ -40,7 +40,8 @@ and no `research/`. This file carries what it needs. Nothing secret belongs here
    levels freeze. Prefer a branch plus a pull request that the owner merges.
 7. **Never ask for, print or commit secrets.** They live in GitHub Actions secrets and in
    Cloudflare. The owner sets them; you don't.
-8. Don't commit downloaded market data. It lives on releases (below).
+8. Don't commit downloaded market data. It lives on releases of the PRIVATE repo `kuldeep-oo7/k2-data` (from 16 Oct 2026,
+   so this repo can be public). Workflows reach it with secret `K2_DATA_TOKEN` via `GH_TOKEN`/`GH_REPO`; `page-check` stays here.
 9. **Audit like a sceptic, and follow every change through the web (owner, 12 Oct 2026).**
    - Question every figure and feature from several angles: what is it, why is it there, where does
      the number come from, when was it true, who uses it, is it right, what would prove it wrong.
@@ -97,7 +98,7 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
   down: their photos are `*-track-paper-*.png`.
 - **NSE daily equity bhavcopy, every stock, from 2020-09:**
   ```
-  gh release download data-nse-cm -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz
+  gh release download data-nse-cm -R kuldeep-oo7/k2-data -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz
   ```
   This gives `nse-data/cm/YYYY-MM-DD.json` = `[isin, symbol, series, open, high, low, close,
   prevClose, volume, value]`, with series EQ/BE/BZ, unadjusted. A `.none` file marks a
