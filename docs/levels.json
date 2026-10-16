@@ -471,7 +471,8 @@
   "OPTION|PIIND|PIIND26OCT2150PE",
   "OPTION|HAVELLS|HAVELLS26OCT1180CE",
   "OPTION|MARUTI|MARUTI26OCT11800CE",
-  "OPTION|DELHIVERY|DELHIVERY26OCT395PE"
+  "OPTION|DELHIVERY|DELHIVERY26OCT395PE",
+  "OPTION|MPHASIS|MPHASIS26OCT2600CE"
  ],
  "options": {
   "MAXHEALTH26OCT860CE": {
@@ -6112,6 +6113,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-16T08:45:33.540Z",
    "frozenAtIst": "2026-10-16 14:15 IST",
+   "frozenAtSpot": null
+  },
+  "MPHASIS26OCT2600CE": {
+   "buy": 22.2,
+   "sell": 33.3,
+   "stop": 11.1,
+   "tick": 0.05,
+   "lotSize": 275,
+   "expiry": "2026-10-27",
+   "strike": 2600,
+   "right": "CE",
+   "symbol": "MPHASIS",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-16T09:02:36.712Z",
+   "frozenAtIst": "2026-10-16 14:32 IST",
    "frozenAtSpot": null
   }
  },
