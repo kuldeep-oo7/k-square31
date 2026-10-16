@@ -461,7 +461,8 @@
   "OPTION|LAURUSLABS|LAURUSLABS26OCT2120CE",
   "OPTION|RECLTD|RECLTD26OCT300CE",
   "OPTION|PIIND|PIIND26OCT2220PE",
-  "OPTION|BAJAJHLDNG|BAJAJHLDNG26OCT11300CE"
+  "OPTION|BAJAJHLDNG|BAJAJHLDNG26OCT11300CE",
+  "OPTION|POWERGRID|POWERGRID26OCT257.5CE"
  ],
  "options": {
   "MAXHEALTH26OCT860CE": {
@@ -5952,6 +5953,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-16T05:24:53.625Z",
    "frozenAtIst": "2026-10-16 10:54 IST",
+   "frozenAtSpot": null
+  },
+  "POWERGRID26OCT257.5CE": {
+   "buy": 1.35,
+   "sell": 2.05,
+   "stop": 0.7,
+   "tick": 0.05,
+   "lotSize": 1900,
+   "expiry": "2026-10-27",
+   "strike": 257.5,
+   "right": "CE",
+   "symbol": "POWERGRID",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-16T05:45:02.881Z",
+   "frozenAtIst": "2026-10-16 11:15 IST",
    "frozenAtSpot": null
   }
  },
