@@ -170524,6 +170524,66 @@
     "perLot": -6902.5,
     "netPerLot": -6969.17
    }
+  },
+  {
+   "id": "2026-10-14|FUT|PAGEIND26OCTFUT",
+   "kind": "FUT",
+   "symbol": "PAGEIND",
+   "contract": "PAGEIND26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 20,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T03:51:32.467Z",
+   "buy": 36745,
+   "target": 37665,
+   "target2": 38580,
+   "stop": 36195,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 60.3,
+     "medianTradingDays": 0.251
+    },
+    "target": {
+     "probabilityPct": 71.5,
+     "medianTradingDays": 2.994
+    },
+    "sigmaPct": 24.9,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.4,
+     "stopFirstPct": 62.6,
+     "neitherPct": 0,
+     "breakEvenPct": 37.4
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-14T05:45:31.719Z",
+   "hoursToFill": 1.9,
+   "closedAt": "2026-10-16T10:25:06.111Z",
+   "exitPrice": 36195,
+   "exitReason": "STOP",
+   "hoursFillToExit": 52.66,
+   "sessionsHeld": 2,
+   "best": 36920,
+   "worst": 36185,
+   "last": 36320,
+   "lastAt": "2026-10-16T10:25:06.111Z",
+   "marks": 74,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 36680,
+    "low": 36185,
+    "last": 36320
+   },
+   "pnl": {
+    "perUnit": -550,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
