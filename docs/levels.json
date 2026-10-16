@@ -452,7 +452,11 @@
   "OPTION|FORCEMOT|FORCEMOT26OCT18500CE",
   "OPTION|OFSS|OFSS26OCT11100CE",
   "OPTION|CGPOWER|CGPOWER26OCT860PE",
-  "OPTION|GMRAIRPORT|GMRAIRPORT26OCT90PE"
+  "OPTION|GMRAIRPORT|GMRAIRPORT26OCT90PE",
+  "OPTION|HEROMOTOCO|HEROMOTOCO26OCT5350CE",
+  "OPTION|KOTAKBANK|KOTAKBANK26OCT465CE",
+  "OPTION|CAMS|CAMS26OCT730CE",
+  "OPTION|CGPOWER|CGPOWER26OCT870PE"
  ],
  "options": {
   "MAXHEALTH26OCT860CE": {
@@ -5808,6 +5812,66 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-16T04:46:18.485Z",
    "frozenAtIst": "2026-10-16 10:16 IST",
+   "frozenAtSpot": null
+  },
+  "HEROMOTOCO26OCT5350CE": {
+   "buy": 34.75,
+   "sell": 52.1,
+   "stop": 17.4,
+   "tick": 0.05,
+   "lotSize": 150,
+   "expiry": "2026-10-27",
+   "strike": 5350,
+   "right": "CE",
+   "symbol": "HEROMOTOCO",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-16T05:05:05.729Z",
+   "frozenAtIst": "2026-10-16 10:35 IST",
+   "frozenAtSpot": null
+  },
+  "KOTAKBANK26OCT465CE": {
+   "buy": 3.05,
+   "sell": 4.55,
+   "stop": 1.5,
+   "tick": 0.05,
+   "lotSize": 2000,
+   "expiry": "2026-10-27",
+   "strike": 465,
+   "right": "CE",
+   "symbol": "KOTAKBANK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-16T05:05:05.729Z",
+   "frozenAtIst": "2026-10-16 10:35 IST",
+   "frozenAtSpot": null
+  },
+  "CAMS26OCT730CE": {
+   "buy": 4.75,
+   "sell": 7.1,
+   "stop": 2.4,
+   "tick": 0.05,
+   "lotSize": 825,
+   "expiry": "2026-10-27",
+   "strike": 730,
+   "right": "CE",
+   "symbol": "CAMS",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-16T05:05:05.729Z",
+   "frozenAtIst": "2026-10-16 10:35 IST",
+   "frozenAtSpot": null
+  },
+  "CGPOWER26OCT870PE": {
+   "buy": 49.6,
+   "sell": 74.4,
+   "stop": 24.8,
+   "tick": 0.05,
+   "lotSize": 850,
+   "expiry": "2026-10-27",
+   "strike": 870,
+   "right": "PE",
+   "symbol": "CGPOWER",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-16T05:05:05.729Z",
+   "frozenAtIst": "2026-10-16 10:35 IST",
    "frozenAtSpot": null
   }
  },
