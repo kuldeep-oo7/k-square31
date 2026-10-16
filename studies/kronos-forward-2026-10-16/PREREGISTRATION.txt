@@ -1,0 +1,59 @@
+PRE-REGISTRATION -- FORWARD PAPER WATCH of Kronos-small on NSE stock futures ("KF")
+Written Friday 16 Oct 2026, about 09:00 IST, BEFORE any Kronos forecast is made for it. The commit time is the proof.
+Owner, 16 Oct 2026: "i think kronnos will work here live it and make it dynamic on the portal please".
+
+WHAT IS KNOWN ALREADY (so this is a SECOND look at Kronos, not a fresh idea)
+Studies/forecast-models-2026-10-13, re-run with real NSE dates (PREREGISTRATION-KRONOS-REAL-DATES.txt, scored once
+15 Oct, branch commit b9dbcfb): long top tenth / short bottom tenth of 100 stocks by Kronos's 5-day forecast, every
+10th session from Jul 2024: +0.135% a rebalance, Newey-West t 1.35 -> FAIL (the bar is t >= 3). Mean rank IC 0.030.
+It goes on the page as a WATCH, labelled FAILED, for GM Global paper only. It is never a suggestion for real money
+unless this forward test passes.
+
+THE MODEL (identical to the tested run)
+- NeoQuasar/Kronos-small (Hugging Face snapshot 901c26c1332695a2a8f243eb2f37243a37bea320) with
+  NeoQuasar/Kronos-Tokenizer-base (snapshot 0e0117387f39004a9016484a186a908917e22426); Kronos code: github.com/
+  shiyu-coder/Kronos at commit 67b630e67f6a18c9e9be918d9b4337c960db1e9a. CPU.
+- Inputs per stock: its last <= 512 NSE CM EQ daily bars up to and including d, after its last reset (an open >= 18%
+  from the previous close); open, high, low, close, volume, amount = close x volume; x_timestamp = each bar's own
+  NSE date; y_timestamp = the next 5 NSE trading days after d (scripts/paper-ledger.js nextTradingDate).
+- max_context 512, pred_len 5, T 1.0, top_p 0.9, sample_count 1 (as tested; 20 draws took > 45 s a series on the
+  laptop, too slow for a daily run).
+- Forecast = predicted close of the 5th future bar / close(d) - 1.
+- Seeds: names sorted by symbol, grouped by series length (shortest group first), batches of up to 32 in that
+  order; before each batch torch and numpy are seeded with (YYYYMMDD of d x 100 + batch number) mod 2^31.
+- Each day's list is computed ONCE and stored; a stored day is never recomputed or overwritten.
+
+THE NAMES (differs from the study in two stated ways)
+- Each month's universe: EQ stocks ranked by the median traded value of their last 60 bars before the month's first
+  session, with >= 250 bars after the last reset (studies/forecast-models-2026-10-13/common.js ranked()); the first
+  100 are taken.
+- DIFFERENCE 1 (live only): a stock is ranked only if it has a bar on the last NSE session before the month's first
+  session. The study's code also ranked symbols that had stopped trading (e.g. HDFC, ZOMATO) by their old values;
+  they could take places and then drop out. Found 15-16 Oct 2026, before this registration.
+- DIFFERENCE 2 (tradable): a stock is used only if NSE's F&O bhavcopy of d lists stock futures (STF) for it.
+- A name also needs a bar on d and >= 250 bars after its last reset (as in the study). A day needs >= 20 names.
+
+THE TRADE (every NSE session, not every 10th)
+- After NSE's files for session d: rank the names by forecast. LONG the top floor(n/10), SHORT the bottom floor(n/10).
+- Entry: the official open of e = the next NSE session after d (CM EQ open). Exit: the official close of the 5th
+  session counted from e (e is the first). Books overlap: each day's book is its own trade.
+- A day's book counts only if its list was committed to the repository before 09:15 IST on e. A list made later is
+  shown as LATE and not counted.
+- A trade whose window crosses a reset (an open >= 18% from the previous close) is VOID.
+- Charges: stock futures, calculateNseFuturesCharges (dated, quantity ceil(500000 / entry price), both sides) plus
+  one extra round trip per month end crossed (the roll), as in the study.
+- Value of a day's book V(e) = (mean net of its longs + mean net of its shorts) / 2.
+- The page shows, for information, the contract to use: the earliest NSE stock-futures expiry on or after the exit
+  date, read from NSE's F&O file of d (never computed), and GM's 20 units.
+
+SCORING AND VERDICT
+- Counted: every book with e >= Monday 19 Oct 2026 whose exit close exists.
+- Weekly series: the mean of V(e) over the books entered in each ISO week. t = Newey-West, 4 lags, on that series.
+- VERDICT only at >= 52 weekly values (about Oct 2027): PASS if mean > 0 AND t >= 3; otherwise FAIL. Before that,
+  COLLECTING, with the running mean, winners and t shown. Power stated now: t >= 3 in 52 weeks needs a weekly
+  Sharpe of about 0.42, far above what the study measured (about 0.16 a month), so a PASS is unlikely; a FAIL is
+  the expected result unless Kronos does better than in its test.
+- Official NSE files only. Nothing from GM Global.
+
+WHAT WOULD MAKE THIS VOID
+Changing any rule above after the first forecast; recomputing a stored day; using any price after d to make d's list.
