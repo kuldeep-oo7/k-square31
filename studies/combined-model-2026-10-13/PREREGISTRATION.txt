@@ -130,3 +130,29 @@ One CHECK is loosened, and said so: check 7.1 no longer requires C2 (reason at t
   reported beside the verdicts; the check passes if C1 is PASS by the amended rule and L1 is the top permutation
   feature. C2 (ridge) is reported, not required: a linear model on ranks cannot represent a threshold effect, which the
   first two runs showed.
+
+10. AMENDMENT A2 -- 2026-10-16 ~22:00 IST, BEFORE any real-data result (no real-data panel has ever been built)
+Why the real run is now made: the owner asked for it on 16 Oct 2026 ("blend it ... create a cocktail"). Section 7 said
+no real run after check 7.1 failed. This amendment overrides that, and says what the result can and cannot mean.
+- LOW POWER, stated before the result: on the synthetic market a real planted edge of ~0.44% over 5 sessions on 10% of
+  names gave C1 t 1.79 only (RESULT.txt). So a FAIL here means "no edge shown", not "no edge exists". A PASS still needs
+  every A1 condition (mean > 0, NW t >= 3, Holm, full DSR >= 0.95) and goes to TRACK as a paper test only.
+- Checks 7.2 (no-edge synthetic market, seeds 1, 2, 3: at most 1 PASS by the A1 rule among the 9 member results) and 7.3
+  (no look-ahead) are run first, by checks.js. If either fails, the real run is NOT made and the failure is reported.
+  7.3 as implemented: synthetic seed 1 with the plant; every input dated after a cutoff session (index 1000) is changed
+  (bars, every daily file, market series). Every feature of every row dated <= cutoff must be identical, and every
+  prediction of a block whose rebalances are all <= cutoff and whose training labels end <= cutoff (first rebalance + 1
+  <= cutoff) must be identical. 7.4 (coverage, counts only) is reported.
+- UNIVERSE FIX 1 (dead symbols), in this study's own code only (features.js liveContext), not in api/_lib/forward-v3.js:
+  a stock is ranked for month m only if it has a CM bar on the session before m's first session. The top 200 are then
+  taken from the live stocks as before. (forward-v3 ranked stocks that had stopped trading by their old values; in Oct
+  2026, 16 of its top 200 were dead, e.g. HDFC, ZOMATO, TATAMOTORS.)
+- UNIVERSE FIX 2 (look-ahead), found while writing check 7.3: section 3 took the universe "for the month of e" (entry =
+  2 sessions after d). When e falls in the next month, that month's ranking uses bars before its first session, which
+  can include the session after d. The universe of a row is now the month of its FEATURE DATE d, ranked on bars
+  strictly before that month's first session, so nothing after d is used.
+- DATA END: CM bhavcopy files dated <= 2026-10-09 (K2_CM_END, as section 2); F&O futures, delivery and option OI to
+  2026-10-01; atlas files to 2026-10-09 (cm_cat_turnover to 2026-10-07). Rows need a futures row on d, so the last
+  feature date is 2026-10-01. Labels are complete through exits on or before 2026-10-09.
+- Libraries, as the synthetic runs: Python 3.12 venv with scikit-learn 1.9.1, numpy 2.5.4, pandas 3.0.6; node xlsx@0.18.5.
+- The real run is made ONCE. Its output (RESULT.txt, result.json, importance) is committed whatever it says.
