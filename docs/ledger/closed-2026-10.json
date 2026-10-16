@@ -167059,6 +167059,3471 @@
     "perLot": -7230,
     "netPerLot": -7292.9
    }
+  },
+  {
+   "id": "2026-10-16|CE|TATAPOWER26OCT360CE",
+   "kind": "CE",
+   "symbol": "TATAPOWER",
+   "contract": "TATAPOWER26OCT360CE",
+   "expiry": "2026-10-27",
+   "strike": 360,
+   "optionType": "CE",
+   "lotSize": 1450,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T04:46:18.485Z",
+   "buy": 2.05,
+   "target": 3.05,
+   "target2": null,
+   "stop": 1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 45.7,
+     "medianDays": 4.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 2.2,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 17,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 3.05,
+    "low": 1.45,
+    "last": 2.2
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|BAJAJ-AUTO26OCT10600CE",
+   "kind": "CE",
+   "symbol": "BAJAJ-AUTO",
+   "contract": "BAJAJ-AUTO26OCT10600CE",
+   "expiry": "2026-10-27",
+   "strike": 10600,
+   "optionType": "CE",
+   "lotSize": 75,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T04:46:18.485Z",
+   "buy": 65.25,
+   "target": 97.85,
+   "target2": null,
+   "stop": 32.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 59.5,
+     "medianDays": 2.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 74,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 17,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 92.25,
+    "low": 48,
+    "last": 74
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUTS|GMRAIRPORT26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "GMRAIRPORT",
+   "contract": "GMRAIRPORT26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 6975,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 91.23,
+   "target": 88.95,
+   "target2": 86.67,
+   "stop": 92.6,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 65,
+     "medianTradingDays": 0.208
+    },
+    "target": {
+     "probabilityPct": 76.2,
+     "medianTradingDays": 2.538
+    },
+    "sigmaPct": 28.5,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 89.45,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 90.59,
+    "low": 89.39,
+    "last": 89.45
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUTS|DELHIVERY26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "DELHIVERY",
+   "contract": "DELHIVERY26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 2075,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 414.9,
+   "target": 404.55,
+   "target2": 394.15,
+   "stop": 421.1,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 69.8,
+     "medianTradingDays": 0.168
+    },
+    "target": {
+     "probabilityPct": 79.6,
+     "medianTradingDays": 2.013
+    },
+    "sigmaPct": 33.1,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 408.5,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 413,
+    "low": 405.25,
+    "last": 408.5
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUTS|ADANIENT26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "ADANIENT",
+   "contract": "ADANIENT26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 309,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 2722.3,
+   "target": 2654.2,
+   "target2": 2586.2,
+   "stop": 2763.1,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 71.4,
+     "medianTradingDays": 0.154
+    },
+    "target": {
+     "probabilityPct": 80.8,
+     "medianTradingDays": 1.836
+    },
+    "sigmaPct": 35.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 2690.4,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 2724.2,
+    "low": 2680.7,
+    "last": 2690.4
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUTS|SHRIRAMFIN26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "SHRIRAMFIN",
+   "contract": "SHRIRAMFIN26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 825,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 944.95,
+   "target": 921.35,
+   "target2": 897.7,
+   "stop": 959.1,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 69.8,
+     "medianTradingDays": 0.168
+    },
+    "target": {
+     "probabilityPct": 79.6,
+     "medianTradingDays": 2.017
+    },
+    "sigmaPct": 33.1,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 938.35,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 949.6,
+    "low": 929.25,
+    "last": 938.35
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUTS|INOXWIND26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "INOXWIND",
+   "contract": "INOXWIND26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 6400,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 69.24,
+   "target": 67.51,
+   "target2": 65.78,
+   "stop": 70.28,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 75.7,
+     "medianTradingDays": 0.12
+    },
+    "target": {
+     "probabilityPct": 83.9,
+     "medianTradingDays": 1.4
+    },
+    "sigmaPct": 41.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 67.76,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 69.68,
+    "low": 67.58,
+    "last": 67.76
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUTS|YESBANK26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "YESBANK",
+   "contract": "YESBANK26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 31100,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 17.94,
+   "target": 17.49,
+   "target2": 17.04,
+   "stop": 18.21,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 83.7,
+     "medianTradingDays": 0.062
+    },
+    "target": {
+     "probabilityPct": 90.3,
+     "medianTradingDays": 0.631
+    },
+    "sigmaPct": 66.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 17.6,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 18.07,
+    "low": 17.53,
+    "last": 17.6
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUTS|CANBK26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "CANBK",
+   "contract": "CANBK26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 6750,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 119.88,
+   "target": 116.88,
+   "target2": 113.89,
+   "stop": 121.68,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 66.7,
+     "medianTradingDays": 0.193
+    },
+    "target": {
+     "probabilityPct": 77.5,
+     "medianTradingDays": 2.342
+    },
+    "sigmaPct": 30.1,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 118.81,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 119.72,
+    "low": 117.28,
+    "last": 118.81
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUTS|JUBLFOOD26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "JUBLFOOD",
+   "contract": "JUBLFOOD26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1250,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 426.8,
+   "target": 416.15,
+   "target2": 405.45,
+   "stop": 433.2,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 69.2,
+     "medianTradingDays": 0.173
+    },
+    "target": {
+     "probabilityPct": 79.2,
+     "medianTradingDays": 2.072
+    },
+    "sigmaPct": 32.5,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 419.7,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 426.15,
+    "low": 419,
+    "last": 419.7
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|HEROMOTOCO26OCTFUT",
+   "kind": "FUT",
+   "symbol": "HEROMOTOCO",
+   "contract": "HEROMOTOCO26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 150,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 5123,
+   "target": 5251,
+   "target2": 5379,
+   "stop": 5046,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 68.5,
+     "medianTradingDays": 0.183
+    },
+    "target": {
+     "probabilityPct": 77.1,
+     "medianTradingDays": 2.107
+    },
+    "sigmaPct": 31.4,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.6,
+     "stopFirstPct": 62.4,
+     "neitherPct": 0,
+     "breakEvenPct": 37.6
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 5213,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 5237.5,
+    "low": 5145.5,
+    "last": 5213
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|UBL (share)",
+   "kind": "FUT",
+   "symbol": "UBL",
+   "contract": "UBL (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 500,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1197.1,
+   "target": 1227,
+   "target2": 1257,
+   "stop": 1179.1,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 1201.6,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 1209.7,
+    "low": 1198.6,
+    "last": 1201.6
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|M&M26OCTFUT",
+   "kind": "FUT",
+   "symbol": "M&M",
+   "contract": "M&M26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 200,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 2825.2,
+   "target": 2895.8,
+   "target2": 2966.5,
+   "stop": 2782.8,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 62.2,
+     "medianTradingDays": 0.237
+    },
+    "target": {
+     "probabilityPct": 72.5,
+     "medianTradingDays": 2.835
+    },
+    "sigmaPct": 25.8,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 2920.4,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 2938.9,
+    "low": 2843.5,
+    "last": 2920.4
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|GUJENERGY (share)",
+   "kind": "FUT",
+   "symbol": "GUJENERGY",
+   "contract": "GUJENERGY (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 2500,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 220.45,
+   "target": 225.96,
+   "target2": 231.47,
+   "stop": 217.14,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 222.62,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 224.8,
+    "low": 220.82,
+    "last": 222.62
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|INDIAMART (share)",
+   "kind": "FUT",
+   "symbol": "INDIAMART",
+   "contract": "INDIAMART (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 250,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1608,
+   "target": 1648.2,
+   "target2": 1688.4,
+   "stop": 1583.9,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 1627.2,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 1632.6,
+    "low": 1611.9,
+    "last": 1627.2
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|ASIANPAINT26OCTFUT",
+   "kind": "FUT",
+   "symbol": "ASIANPAINT",
+   "contract": "ASIANPAINT26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 250,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 2334.1,
+   "target": 2392.5,
+   "target2": 2450.8,
+   "stop": 2299.1,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 62.2,
+     "medianTradingDays": 0.237
+    },
+    "target": {
+     "probabilityPct": 72.6,
+     "medianTradingDays": 2.824
+    },
+    "sigmaPct": 25.9,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 2335.5,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 2379.6,
+    "low": 2335.3,
+    "last": 2335.5
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|PREMIERENE26OCTFUT",
+   "kind": "FUT",
+   "symbol": "PREMIERENE",
+   "contract": "PREMIERENE26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 650,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 895.25,
+   "target": 917.65,
+   "target2": 940,
+   "stop": 881.8,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 71.2,
+     "medianTradingDays": 0.161
+    },
+    "target": {
+     "probabilityPct": 78.9,
+     "medianTradingDays": 1.822
+    },
+    "sigmaPct": 34.5,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 908,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 912.5,
+    "low": 897.5,
+    "last": 908
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|HAL26OCTFUT",
+   "kind": "FUT",
+   "symbol": "HAL",
+   "contract": "HAL26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 150,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 4893.3,
+   "target": 5015.6,
+   "target2": 5138,
+   "stop": 4819.9,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 59.1,
+     "medianTradingDays": 0.264
+    },
+    "target": {
+     "probabilityPct": 70.3,
+     "medianTradingDays": 3.206
+    },
+    "sigmaPct": 23.7,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 4974.1,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 4986,
+    "low": 4914,
+    "last": 4974.1
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|ACC (share)",
+   "kind": "FUT",
+   "symbol": "ACC",
+   "contract": "ACC (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 500,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1128.3,
+   "target": 1156.5,
+   "target2": 1184.7,
+   "stop": 1111.4,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 1187.2,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 1195,
+    "low": 1131.6,
+    "last": 1187.2
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|CHAMBLFERT (share)",
+   "kind": "FUT",
+   "symbol": "CHAMBLFERT",
+   "contract": "CHAMBLFERT (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 385.4,
+   "target": 395.05,
+   "target2": 404.65,
+   "stop": 379.6,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 388.1,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 394.75,
+    "low": 386.85,
+    "last": 388.1
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|TATASTEEL26OCTFUT",
+   "kind": "FUT",
+   "symbol": "TATASTEEL",
+   "contract": "TATASTEEL26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 2750,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 175.24,
+   "target": 179.62,
+   "target2": 184,
+   "stop": 172.61,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 64.5,
+     "medianTradingDays": 0.217
+    },
+    "target": {
+     "probabilityPct": 74.2,
+     "medianTradingDays": 2.552
+    },
+    "sigmaPct": 27.7,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 176,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 178.9,
+    "low": 175.59,
+    "last": 176
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|LAURUSLABS26OCTFUT",
+   "kind": "FUT",
+   "symbol": "LAURUSLABS",
+   "contract": "LAURUSLABS26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 850,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 2023.5,
+   "target": 2074.1,
+   "target2": 2124.7,
+   "stop": 1993.1,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 62.3,
+     "medianTradingDays": 0.236
+    },
+    "target": {
+     "probabilityPct": 72.7,
+     "medianTradingDays": 2.805
+    },
+    "sigmaPct": 26,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 2065.1,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 2087.7,
+    "low": 2034.1,
+    "last": 2065.1
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|ARE&M (share)",
+   "kind": "FUT",
+   "symbol": "ARE&M",
+   "contract": "ARE&M (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 730.6,
+   "target": 748.85,
+   "target2": 767.15,
+   "stop": 719.65,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 743,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 749.35,
+    "low": 734.15,
+    "last": 743
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|EICHERMOT26OCTFUT",
+   "kind": "FUT",
+   "symbol": "EICHERMOT",
+   "contract": "EICHERMOT26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 100,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 7192,
+   "target": 7372,
+   "target2": 7551.5,
+   "stop": 7084,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 61.1,
+     "medianTradingDays": 0.246
+    },
+    "target": {
+     "probabilityPct": 71.7,
+     "medianTradingDays": 2.975
+    },
+    "sigmaPct": 25,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 7281,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 7295,
+    "low": 7202.5,
+    "last": 7281
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|MPHASIS26OCTFUT",
+   "kind": "FUT",
+   "symbol": "MPHASIS",
+   "contract": "MPHASIS26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 275,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 2451.1,
+   "target": 2512.4,
+   "target2": 2573.7,
+   "stop": 2414.3,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 73.1,
+     "medianTradingDays": 0.145
+    },
+    "target": {
+     "probabilityPct": 80.2,
+     "medianTradingDays": 1.636
+    },
+    "sigmaPct": 36.9,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 2502.2,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 2527.9,
+    "low": 2457,
+    "last": 2502.2
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|JINDALSTEL26OCTFUT",
+   "kind": "FUT",
+   "symbol": "JINDALSTEL",
+   "contract": "JINDALSTEL26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 625,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1032.8,
+   "target": 1058.6,
+   "target2": 1084.4,
+   "stop": 1017.3,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 73.3,
+     "medianTradingDays": 0.144
+    },
+    "target": {
+     "probabilityPct": 80.5,
+     "medianTradingDays": 1.598
+    },
+    "sigmaPct": 37.4,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 1045,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 1057,
+    "low": 1032.8,
+    "last": 1045
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|UNOMINDA26OCTFUT",
+   "kind": "FUT",
+   "symbol": "UNOMINDA",
+   "contract": "UNOMINDA26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 550,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1106.4,
+   "target": 1134.1,
+   "target2": 1161.7,
+   "stop": 1089.8,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 65.6,
+     "medianTradingDays": 0.207
+    },
+    "target": {
+     "probabilityPct": 75.1,
+     "medianTradingDays": 2.413
+    },
+    "sigmaPct": 28.8,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 1110.6,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 1122.5,
+    "low": 1108.9,
+    "last": 1110.6
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|CHOLAFIN26OCTFUT",
+   "kind": "FUT",
+   "symbol": "CHOLAFIN",
+   "contract": "CHOLAFIN26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 625,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1563.3,
+   "target": 1602.4,
+   "target2": 1641.5,
+   "stop": 1539.9,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 63.8,
+     "medianTradingDays": 0.223
+    },
+    "target": {
+     "probabilityPct": 73.8,
+     "medianTradingDays": 2.625
+    },
+    "sigmaPct": 27.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.4,
+     "stopFirstPct": 62.6,
+     "neitherPct": 0,
+     "breakEvenPct": 37.4
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 1574.4,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 1591.1,
+    "low": 1564.8,
+    "last": 1574.4
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|INFY26OCTFUT",
+   "kind": "FUT",
+   "symbol": "INFY",
+   "contract": "INFY26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 400,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1126.1,
+   "target": 1154.25,
+   "target2": 1182.4,
+   "stop": 1109.2,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 67.6,
+     "medianTradingDays": 0.19
+    },
+    "target": {
+     "probabilityPct": 76.4,
+     "medianTradingDays": 2.206
+    },
+    "sigmaPct": 30.5,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 1163.9,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 1167,
+    "low": 1121.05,
+    "last": 1163.9
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|TATAPOWER26OCTFUT",
+   "kind": "FUT",
+   "symbol": "TATAPOWER",
+   "contract": "TATAPOWER26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1450,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 347.85,
+   "target": 356.55,
+   "target2": 365.25,
+   "stop": 342.65,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 59,
+     "medianTradingDays": 0.264
+    },
+    "target": {
+     "probabilityPct": 70.6,
+     "medianTradingDays": 3.152
+    },
+    "sigmaPct": 24,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.4,
+     "stopFirstPct": 62.6,
+     "neitherPct": 0,
+     "breakEvenPct": 37.4
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 354,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 355.5,
+    "low": 348.25,
+    "last": 354
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|HAVELLS26OCTFUT",
+   "kind": "FUT",
+   "symbol": "HAVELLS",
+   "contract": "HAVELLS26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 500,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1114.9,
+   "target": 1142.8,
+   "target2": 1170.6,
+   "stop": 1098.2,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 62.3,
+     "medianTradingDays": 0.236
+    },
+    "target": {
+     "probabilityPct": 72.6,
+     "medianTradingDays": 2.824
+    },
+    "sigmaPct": 25.9,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.4,
+     "stopFirstPct": 62.6,
+     "neitherPct": 0,
+     "breakEvenPct": 37.4
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 1124.5,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 1142.3,
+    "low": 1117.1,
+    "last": 1124.5
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|ICICIGI26OCTFUT",
+   "kind": "FUT",
+   "symbol": "ICICIGI",
+   "contract": "ICICIGI26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 325,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1657,
+   "target": 1698.4,
+   "target2": 1739.9,
+   "stop": 1632.1,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 73.5,
+     "medianTradingDays": 0.142
+    },
+    "target": {
+     "probabilityPct": 80.6,
+     "medianTradingDays": 1.584
+    },
+    "sigmaPct": 37.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.6,
+     "stopFirstPct": 62.4,
+     "neitherPct": 0,
+     "breakEvenPct": 37.6
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 1677.5,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 1701.3,
+    "low": 1660,
+    "last": 1677.5
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|COALINDIA26OCTFUT",
+   "kind": "FUT",
+   "symbol": "COALINDIA",
+   "contract": "COALINDIA26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1350,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 413.1,
+   "target": 423.45,
+   "target2": 433.75,
+   "stop": 406.9,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 58.7,
+     "medianTradingDays": 0.266
+    },
+    "target": {
+     "probabilityPct": 70.1,
+     "medianTradingDays": 3.236
+    },
+    "sigmaPct": 23.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 416.8,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 418.65,
+    "low": 413.5,
+    "last": 416.8
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|RAMCOCEM (share)",
+   "kind": "FUT",
+   "symbol": "RAMCOCEM",
+   "contract": "RAMCOCEM (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 500,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 775.85,
+   "target": 795.25,
+   "target2": 814.65,
+   "stop": 764.2,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 805.4,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 810.1,
+    "low": 779.5,
+    "last": 805.4
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|MARUTI26OCTFUT",
+   "kind": "FUT",
+   "symbol": "MARUTI",
+   "contract": "MARUTI26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 50,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 11291,
+   "target": 11573,
+   "target2": 11856,
+   "stop": 11122,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 57.4,
+     "medianTradingDays": 0.278
+    },
+    "target": {
+     "probabilityPct": 69.3,
+     "medianTradingDays": 3.363
+    },
+    "sigmaPct": 22.9,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 11485,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 11538,
+    "low": 11362,
+    "last": 11485
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|JIOFIN26OCTFUT",
+   "kind": "FUT",
+   "symbol": "JIOFIN",
+   "contract": "JIOFIN26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 2350,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 212.8,
+   "target": 218.12,
+   "target2": 223.44,
+   "stop": 209.61,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 61,
+     "medianTradingDays": 0.247
+    },
+    "target": {
+     "probabilityPct": 71.7,
+     "medianTradingDays": 2.97
+    },
+    "sigmaPct": 25,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 216.98,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 219.05,
+    "low": 213.37,
+    "last": 216.98
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|DRREDDY26OCTFUT",
+   "kind": "FUT",
+   "symbol": "DRREDDY",
+   "contract": "DRREDDY26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 625,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1213.6,
+   "target": 1243.9,
+   "target2": 1274.3,
+   "stop": 1195.4,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 60.3,
+     "medianTradingDays": 0.253
+    },
+    "target": {
+     "probabilityPct": 71.2,
+     "medianTradingDays": 3.052
+    },
+    "sigmaPct": 24.5,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 1234.3,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 1235.3,
+    "low": 1217,
+    "last": 1234.3
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|SBILIFE26OCTFUT",
+   "kind": "FUT",
+   "symbol": "SBILIFE",
+   "contract": "SBILIFE26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 375,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1637.3,
+   "target": 1678.2,
+   "target2": 1719.2,
+   "stop": 1612.7,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 64.3,
+     "medianTradingDays": 0.219
+    },
+    "target": {
+     "probabilityPct": 74.2,
+     "medianTradingDays": 2.564
+    },
+    "sigmaPct": 27.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.6,
+     "stopFirstPct": 62.4,
+     "neitherPct": 0,
+     "breakEvenPct": 37.6
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 1662.2,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 1684.7,
+    "low": 1641.6,
+    "last": 1662.2
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|PATANJALI26OCTFUT",
+   "kind": "FUT",
+   "symbol": "PATANJALI",
+   "contract": "PATANJALI26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1075,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 362.85,
+   "target": 371.9,
+   "target2": 381,
+   "stop": 357.4,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 66.5,
+     "medianTradingDays": 0.2
+    },
+    "target": {
+     "probabilityPct": 75.8,
+     "medianTradingDays": 2.301
+    },
+    "sigmaPct": 29.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.6,
+     "stopFirstPct": 62.4,
+     "neitherPct": 0,
+     "breakEvenPct": 37.6
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 363.6,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 368.45,
+    "low": 362.9,
+    "last": 363.6
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|TITAGARH (share)",
+   "kind": "FUT",
+   "symbol": "TITAGARH",
+   "contract": "TITAGARH (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 733.5,
+   "target": 751.85,
+   "target2": 770.2,
+   "stop": 722.5,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 749.15,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 760.6,
+    "low": 735.65,
+    "last": 749.15
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|ICICIBANK26OCTFUT",
+   "kind": "FUT",
+   "symbol": "ICICIBANK",
+   "contract": "ICICIBANK26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 700,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1378.7,
+   "target": 1413.2,
+   "target2": 1447.6,
+   "stop": 1358,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 52.1,
+     "medianTradingDays": 0.324
+    },
+    "target": {
+     "probabilityPct": 65.3,
+     "medianTradingDays": 4.063
+    },
+    "sigmaPct": 20,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 1397.3,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 1399.9,
+    "low": 1381.2,
+    "last": 1397.3
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|CANFINHOME (share)",
+   "kind": "FUT",
+   "symbol": "CANFINHOME",
+   "contract": "CANFINHOME (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 719.25,
+   "target": 737.25,
+   "target2": 755.2,
+   "stop": 708.45,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 732.15,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 734.95,
+    "low": 724.15,
+    "last": 732.15
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|BAJAJ-AUTO26OCTFUT",
+   "kind": "FUT",
+   "symbol": "BAJAJ-AUTO",
+   "contract": "BAJAJ-AUTO26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 75,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 10228,
+   "target": 10484,
+   "target2": 10739,
+   "stop": 10075,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 69.2,
+     "medianTradingDays": 0.178
+    },
+    "target": {
+     "probabilityPct": 77.5,
+     "medianTradingDays": 2.032
+    },
+    "sigmaPct": 32.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.4,
+     "stopFirstPct": 62.6,
+     "neitherPct": 0,
+     "breakEvenPct": 37.4
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 10446,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 10477,
+    "low": 10270,
+    "last": 10446
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|SBIN26OCTFUT",
+   "kind": "FUT",
+   "symbol": "SBIN",
+   "contract": "SBIN26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 750,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 949.4,
+   "target": 973.15,
+   "target2": 996.85,
+   "stop": 935.15,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 49,
+     "medianTradingDays": 0.35
+    },
+    "target": {
+     "probabilityPct": 62.9,
+     "medianTradingDays": 4.471
+    },
+    "sigmaPct": 18.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 962,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 968,
+    "low": 954.4,
+    "last": 962
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|HINDALCO26OCTFUT",
+   "kind": "FUT",
+   "symbol": "HINDALCO",
+   "contract": "HINDALCO26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 700,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 893.1,
+   "target": 915.45,
+   "target2": 937.75,
+   "stop": 879.7,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 63.7,
+     "medianTradingDays": 0.224
+    },
+    "target": {
+     "probabilityPct": 73.7,
+     "medianTradingDays": 2.642
+    },
+    "sigmaPct": 27.1,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 907.2,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 912.45,
+    "low": 894.2,
+    "last": 907.2
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|FORCEMOT26OCTFUT",
+   "kind": "FUT",
+   "symbol": "FORCEMOT",
+   "contract": "FORCEMOT26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 25,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 17424,
+   "target": 17860,
+   "target2": 18295,
+   "stop": 17163,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 67.8,
+     "medianTradingDays": 0.189
+    },
+    "target": {
+     "probabilityPct": 76.5,
+     "medianTradingDays": 2.187
+    },
+    "sigmaPct": 30.7,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.4,
+     "stopFirstPct": 62.6,
+     "neitherPct": 0,
+     "breakEvenPct": 37.4
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 17769,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 17900,
+    "low": 17509,
+    "last": 17769
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|COROMANDEL (share)",
+   "kind": "FUT",
+   "symbol": "COROMANDEL",
+   "contract": "COROMANDEL (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 250,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1735.6,
+   "target": 1779,
+   "target2": 1822.4,
+   "stop": 1709.6,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 1758.6,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 1773.5,
+    "low": 1729.5,
+    "last": 1758.6
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|KOTAKBANK26OCTFUT",
+   "kind": "FUT",
+   "symbol": "KOTAKBANK",
+   "contract": "KOTAKBANK26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 2000,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 440.3,
+   "target": 451.3,
+   "target2": 462.3,
+   "stop": 433.7,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 64,
+     "medianTradingDays": 0.221
+    },
+    "target": {
+     "probabilityPct": 74.2,
+     "medianTradingDays": 2.564
+    },
+    "sigmaPct": 27.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 446.5,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 452.7,
+    "low": 443.15,
+    "last": 446.5
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|FUT|BERGEPAINT (share)",
+   "kind": "FUT",
+   "symbol": "BERGEPAINT",
+   "contract": "BERGEPAINT (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 464.65,
+   "target": 476.25,
+   "target2": 487.9,
+   "stop": 457.7,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 473.95,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 476,
+    "low": 466.35,
+    "last": 473.95
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|HAVELLS26OCT1160CE",
+   "kind": "CE",
+   "symbol": "HAVELLS",
+   "contract": "HAVELLS26OCT1160CE",
+   "expiry": "2026-10-27",
+   "strike": 1160,
+   "optionType": "CE",
+   "lotSize": 500,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 9.4,
+   "target": 14.1,
+   "target2": null,
+   "stop": 4.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 33,
+     "medianDays": 5.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 10,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 16.6,
+    "low": 9.35,
+    "last": 10
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|HAVELLS26OCT1150CE",
+   "kind": "CE",
+   "symbol": "HAVELLS",
+   "contract": "HAVELLS26OCT1150CE",
+   "expiry": "2026-10-27",
+   "strike": 1150,
+   "optionType": "CE",
+   "lotSize": 500,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 12.15,
+   "target": 18.2,
+   "target2": null,
+   "stop": 6.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38.9,
+     "medianDays": 4.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 13.35,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 20.7,
+    "low": 11.7,
+    "last": 13.35
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|HAVELLS26OCT1130CE",
+   "kind": "CE",
+   "symbol": "HAVELLS",
+   "contract": "HAVELLS26OCT1130CE",
+   "expiry": "2026-10-27",
+   "strike": 1130,
+   "optionType": "CE",
+   "lotSize": 500,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 19.4,
+   "target": 29.1,
+   "target2": null,
+   "stop": 9.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.1,
+     "medianDays": 3.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 20.55,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 30.95,
+    "low": 18.5,
+    "last": 20.55
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|HAVELLS26OCT1120CE",
+   "kind": "CE",
+   "symbol": "HAVELLS",
+   "contract": "HAVELLS26OCT1120CE",
+   "expiry": "2026-10-27",
+   "strike": 1120,
+   "optionType": "CE",
+   "lotSize": 500,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 23.8,
+   "target": 35.7,
+   "target2": null,
+   "stop": 11.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.3,
+     "medianDays": 3.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 25.3,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 36.45,
+    "low": 22.75,
+    "last": 25.3
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|HAVELLS26OCT1110CE",
+   "kind": "CE",
+   "symbol": "HAVELLS",
+   "contract": "HAVELLS26OCT1110CE",
+   "expiry": "2026-10-27",
+   "strike": 1110,
+   "optionType": "CE",
+   "lotSize": 500,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 29.35,
+   "target": 44,
+   "target2": null,
+   "stop": 14.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.5,
+     "medianDays": 3.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 31.25,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 42.95,
+    "low": 27.75,
+    "last": 31.25
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|JIOFIN26OCT222.5CE",
+   "kind": "CE",
+   "symbol": "JIOFIN",
+   "contract": "JIOFIN26OCT222.5CE",
+   "expiry": "2026-10-27",
+   "strike": 222.5,
+   "optionType": "CE",
+   "lotSize": 2350,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 1.87,
+   "target": 2.8,
+   "target2": null,
+   "stop": 0.94,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 25.9,
+     "medianDays": 6.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 2.08,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 4.21,
+    "low": 1.66,
+    "last": 2.08
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|JIOFIN26OCT217.5CE",
+   "kind": "CE",
+   "symbol": "JIOFIN",
+   "contract": "JIOFIN26OCT217.5CE",
+   "expiry": "2026-10-27",
+   "strike": 217.5,
+   "optionType": "CE",
+   "lotSize": 2350,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 3.24,
+   "target": 4.86,
+   "target2": null,
+   "stop": 1.62,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 40.7,
+     "medianDays": 4.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 3.73,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 6,
+    "low": 2.51,
+    "last": 3.73
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|JIOFIN26OCT212.5CE",
+   "kind": "CE",
+   "symbol": "JIOFIN",
+   "contract": "JIOFIN26OCT212.5CE",
+   "expiry": "2026-10-27",
+   "strike": 212.5,
+   "optionType": "CE",
+   "lotSize": 2350,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 5.5,
+   "target": 8.24,
+   "target2": null,
+   "stop": 2.75,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.8,
+     "medianDays": 3.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 6.58,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 8.5,
+    "low": 5.34,
+    "last": 6.58
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|JIOFIN26OCT215CE",
+   "kind": "CE",
+   "symbol": "JIOFIN",
+   "contract": "JIOFIN26OCT215CE",
+   "expiry": "2026-10-27",
+   "strike": 215,
+   "optionType": "CE",
+   "lotSize": 2350,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 4.25,
+   "target": 6.38,
+   "target2": null,
+   "stop": 2.13,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 46.7,
+     "medianDays": 4.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 5.03,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 6.75,
+    "low": 4.13,
+    "last": 5.03
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|JIOFIN26OCT210CE",
+   "kind": "CE",
+   "symbol": "JIOFIN",
+   "contract": "JIOFIN26OCT210CE",
+   "expiry": "2026-10-27",
+   "strike": 210,
+   "optionType": "CE",
+   "lotSize": 2350,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 6.92,
+   "target": 10.38,
+   "target2": null,
+   "stop": 3.46,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.3,
+     "medianDays": 3.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 8.4,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 11,
+    "low": 6.82,
+    "last": 8.4
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|INFY26OCT1160CE",
+   "kind": "CE",
+   "symbol": "INFY",
+   "contract": "INFY26OCT1160CE",
+   "expiry": "2026-10-27",
+   "strike": 1160,
+   "optionType": "CE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 17.85,
+   "target": 26.75,
+   "target2": null,
+   "stop": 8.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 39.9,
+     "medianDays": 4.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 29.7,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 31.65,
+    "low": 14.05,
+    "last": 29.7
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|INFY26OCT1100CE",
+   "kind": "CE",
+   "symbol": "INFY",
+   "contract": "INFY26OCT1100CE",
+   "expiry": "2026-10-27",
+   "strike": 1100,
+   "optionType": "CE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 48.7,
+   "target": 73.05,
+   "target2": null,
+   "stop": 24.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.2,
+     "medianDays": 3.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 70.8,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 73.1,
+    "low": 40.1,
+    "last": 70.8
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|INFY26OCT1140CE",
+   "kind": "CE",
+   "symbol": "INFY",
+   "contract": "INFY26OCT1140CE",
+   "expiry": "2026-10-27",
+   "strike": 1140,
+   "optionType": "CE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 25.75,
+   "target": 38.65,
+   "target2": null,
+   "stop": 12.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.5,
+     "medianDays": 4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 41.3,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 43.4,
+    "low": 20.2,
+    "last": 41.3
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|INFY26OCT1120CE",
+   "kind": "CE",
+   "symbol": "INFY",
+   "contract": "INFY26OCT1120CE",
+   "expiry": "2026-10-27",
+   "strike": 1120,
+   "optionType": "CE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 35.85,
+   "target": 53.75,
+   "target2": null,
+   "stop": 17.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 52.5,
+     "medianDays": 3.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 55.3,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 57.45,
+    "low": 29.95,
+    "last": 55.3
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|MPHASIS26OCT2550CE",
+   "kind": "CE",
+   "symbol": "MPHASIS",
+   "contract": "MPHASIS26OCT2550CE",
+   "expiry": "2026-10-27",
+   "strike": 2550,
+   "optionType": "CE",
+   "lotSize": 275,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 22.15,
+   "target": 33.25,
+   "target2": null,
+   "stop": 11.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.2,
+     "medianDays": 3.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 32.75,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 42,
+    "low": 18.5,
+    "last": 32.75
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|MPHASIS26OCT2500CE",
+   "kind": "CE",
+   "symbol": "MPHASIS",
+   "contract": "MPHASIS26OCT2500CE",
+   "expiry": "2026-10-27",
+   "strike": 2500,
+   "optionType": "CE",
+   "lotSize": 275,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 39.3,
+   "target": 58.95,
+   "target2": null,
+   "stop": 19.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 57.9,
+     "medianDays": 3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 54,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 67.3,
+    "low": 33.35,
+    "last": 54
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-16|CE|MPHASIS26OCT2450CE",
+   "kind": "CE",
+   "symbol": "MPHASIS",
+   "contract": "MPHASIS26OCT2450CE",
+   "expiry": "2026-10-27",
+   "strike": 2450,
+   "optionType": "CE",
+   "lotSize": 275,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 64.15,
+   "target": 96.25,
+   "target2": null,
+   "stop": 32.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 63.4,
+     "medianDays": 2.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "UNFILLED",
+   "filledAt": null,
+   "hoursToFill": null,
+   "closedAt": "2026-10-16T10:00:00.000Z",
+   "exitPrice": null,
+   "exitReason": "UNFILLED",
+   "hoursFillToExit": null,
+   "sessionsHeld": 0,
+   "best": null,
+   "worst": null,
+   "last": 83.6,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 100,
+    "low": 55.3,
+    "last": 83.6
+   },
+   "pnl": null
+  },
+  {
+   "id": "2026-10-14|PE|FINNIFTY26OCT25050PE",
+   "kind": "PE",
+   "symbol": "FINNIFTY",
+   "contract": "FINNIFTY26OCT25050PE",
+   "expiry": "2026-10-27",
+   "strike": 25050,
+   "optionType": "PE",
+   "lotSize": 60,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T04:07:00.985Z",
+   "buy": 248.35,
+   "target": 372.5,
+   "target2": null,
+   "stop": 124.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.6,
+     "medianDays": 4.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-14T04:26:29.815Z",
+   "hoursToFill": 0.32,
+   "closedAt": "2026-10-16T10:05:22.077Z",
+   "exitPrice": 124.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 53.65,
+   "sessionsHeld": 2,
+   "best": 351.15,
+   "worst": 123.5,
+   "last": 127,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 72,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 211.3,
+    "low": 123.5,
+    "last": 127
+   },
+   "pnl": {
+    "perUnit": -124.15,
+    "pct": -49.99,
+    "basis": "NET",
+    "perLot": -7449,
+    "netPerLot": -7517.22
+   }
+  },
+  {
+   "id": "2026-10-14|CE|AUROPHARMA26OCT1700CE",
+   "kind": "CE",
+   "symbol": "AUROPHARMA",
+   "contract": "AUROPHARMA26OCT1700CE",
+   "expiry": "2026-10-27",
+   "strike": 1700,
+   "optionType": "CE",
+   "lotSize": 550,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T03:51:32.467Z",
+   "buy": 25.1,
+   "target": 37.65,
+   "target2": null,
+   "stop": 12.55,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.1,
+     "medianDays": 5.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-14T03:51:32.916Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-16T10:05:22.077Z",
+   "exitPrice": 12.55,
+   "exitReason": "STOP",
+   "hoursFillToExit": 54.23,
+   "sessionsHeld": 2,
+   "best": 28.75,
+   "worst": 12.5,
+   "last": 13.3,
+   "lastAt": "2026-10-16T10:05:22.077Z",
+   "marks": 73,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 19.65,
+    "low": 12.5,
+    "last": 13.3
+   },
+   "pnl": {
+    "perUnit": -12.55,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -6902.5,
+    "netPerLot": -6969.17
+   }
   }
  ]
 }
