@@ -2,14 +2,134 @@
  "preregistration": "studies/forward-v3-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
  "start": "2026-10-05",
- "dataThrough": "2026-10-15",
- "builtAt": "2026-10-16T10:04:14.199Z",
+ "dataThrough": "2026-10-16",
+ "builtAt": "2026-10-16T16:08:18.055Z",
  "industries": 2584,
  "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
  "CHEAPVOL": {
   "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
   "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months — just short of the bar",
   "trades": [
+   {
+    "symbol": "RADICO",
+    "entryDate": "2026-10-16",
+    "expiry": "2026-10-27",
+    "strike": 4450,
+    "entry": 162.8,
+    "ivPct": 26.2,
+    "rvPct": 33.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "LTF",
+    "entryDate": "2026-10-16",
+    "expiry": "2026-10-27",
+    "strike": 255,
+    "entry": 11.4,
+    "ivPct": 32.3,
+    "rvPct": 42.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "YESBANK",
+    "entryDate": "2026-10-16",
+    "expiry": "2026-10-27",
+    "strike": 18,
+    "entry": 1.08,
+    "ivPct": 44.4,
+    "rvPct": 61,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "AMBER",
+    "entryDate": "2026-10-16",
+    "expiry": "2026-10-27",
+    "strike": 6700,
+    "entry": 269.95,
+    "ivPct": 29.2,
+    "rvPct": 36.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "INDUSTOWER",
+    "entryDate": "2026-10-16",
+    "expiry": "2026-10-27",
+    "strike": 385,
+    "entry": 11.45,
+    "ivPct": 21.5,
+    "rvPct": 26.9,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "CANBK",
+    "entryDate": "2026-10-16",
+    "expiry": "2026-10-27",
+    "strike": 118,
+    "entry": 4.3,
+    "ivPct": 26.2,
+    "rvPct": 32.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "WIPRO",
+    "entryDate": "2026-10-16",
+    "expiry": "2026-10-27",
+    "strike": 185,
+    "entry": 6.31,
+    "ivPct": 24.6,
+    "rvPct": 31.9,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "POWERGRID",
+    "entryDate": "2026-10-16",
+    "expiry": "2026-10-27",
+    "strike": 250,
+    "entry": 6.5,
+    "ivPct": 18.7,
+    "rvPct": 24.1,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "COALINDIA",
+    "entryDate": "2026-10-16",
+    "expiry": "2026-10-27",
+    "strike": 415,
+    "entry": 10.45,
+    "ivPct": 18,
+    "rvPct": 22.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "APOLLOHOSP",
+    "entryDate": "2026-10-16",
+    "expiry": "2026-10-27",
+    "strike": 7900,
+    "entry": 252.75,
+    "ivPct": 23.1,
+    "rvPct": 35.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "TITAN",
+    "entryDate": "2026-10-16",
+    "expiry": "2026-10-27",
+    "strike": 4450,
+    "entry": 111,
+    "ivPct": 18,
+    "rvPct": 23.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "TECHM",
+    "entryDate": "2026-10-16",
+    "expiry": "2026-10-27",
+    "strike": 1780,
+    "entry": 68.3,
+    "ivPct": 27.5,
+    "rvPct": 40.8,
+    "status": "OPEN"
+   },
    {
     "symbol": "ICICIGI",
     "entryDate": "2026-10-15",
@@ -328,7 +448,10 @@
     "entry": 111.3,
     "ivPct": 29.6,
     "rvPct": 37.5,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 95.3,
+    "netPct": -14.632,
+    "status": "DONE"
    },
    {
     "symbol": "RADICO",
@@ -338,7 +461,10 @@
     "entry": 225.55,
     "ivPct": 27.9,
     "rvPct": 35.2,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 191.3,
+    "netPct": -15.44,
+    "status": "DONE"
    },
    {
     "symbol": "GMRAIRPORT",
@@ -348,7 +474,10 @@
     "entry": 4.66,
     "ivPct": 28.4,
     "rvPct": 39.2,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 3.91,
+    "netPct": -16.348,
+    "status": "DONE"
    },
    {
     "symbol": "GLENMARK",
@@ -358,7 +487,10 @@
     "entry": 108.2,
     "ivPct": 26.6,
     "rvPct": 36.4,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 98.75,
+    "netPct": -9.001,
+    "status": "DONE"
    },
    {
     "symbol": "INDUSTOWER",
@@ -368,7 +500,10 @@
     "entry": 16.4,
     "ivPct": 24.2,
     "rvPct": 31.6,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 11.65,
+    "netPct": -29.192,
+    "status": "DONE"
    },
    {
     "symbol": "POWERGRID",
@@ -378,7 +513,10 @@
     "entry": 9.2,
     "ivPct": 20.8,
     "rvPct": 26.5,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 6.5,
+    "netPct": -29.576,
+    "status": "DONE"
    },
    {
     "symbol": "APOLLOHOSP",
@@ -388,7 +526,10 @@
     "entry": 350.45,
     "ivPct": 24.6,
     "rvPct": 33.5,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 284.95,
+    "netPct": -18.939,
+    "status": "DONE"
    },
    {
     "symbol": "TITAN",
@@ -398,7 +539,10 @@
     "entry": 152.85,
     "ivPct": 19.5,
     "rvPct": 24.7,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 121.9,
+    "netPct": -20.494,
+    "status": "DONE"
    },
    {
     "symbol": "LICHSGFIN",
@@ -610,10 +754,10 @@
    }
   ],
   "summary": {
-   "finished": 16,
-   "meanPct": -3.077,
-   "winPct": 25,
-   "worstPct": -24.088,
+   "finished": 24,
+   "meanPct": -8.452,
+   "winPct": 16.7,
+   "worstPct": -29.576,
    "t": null,
    "verdict": "COLLECTING"
   }
@@ -657,7 +801,10 @@
      "ICICIGI",
      "CHENNPETRO"
     ],
-    "status": "OPEN"
+    "longPct": 2.465,
+    "shortPct": 0.885,
+    "netPct": 1.675,
+    "status": "DONE"
    },
    {
     "date": "2026-10-05",
@@ -699,15 +846,61 @@
     "status": "DONE"
    }
   ],
-  "pending": null,
-  "pendingNoIndustry": [],
-  "sessionsToNext": 1,
+  "pending": {
+   "long": [
+    "YESBANK",
+    "RBLBANK",
+    "OFSS",
+    "PERSISTENT",
+    "ANANTRAJ",
+    "ENRIN",
+    "SYRMA",
+    "CHENNPETRO",
+    "AZAD",
+    "GVT&D",
+    "POWERINDIA",
+    "DMART",
+    "NAUKRI"
+   ],
+   "short": [
+    "INFY",
+    "HINDPETRO",
+    "POLICYBZR",
+    "DLF",
+    "TCS",
+    "BANDHANBNK",
+    "HAL",
+    "ADANIENSOL",
+    "SUZLON",
+    "UPL",
+    "TECHM",
+    "WAAREEENER",
+    "APOLLO"
+   ]
+  },
+  "pendingNoIndustry": [
+   "RBLBANK",
+   "ENRIN",
+   "SYRMA",
+   "AZAD",
+   "GVT&D",
+   "POWERINDIA",
+   "DMART",
+   "POLICYBZR",
+   "BANDHANBNK",
+   "HAL",
+   "ADANIENSOL",
+   "UPL",
+   "WAAREEENER",
+   "APOLLO"
+  ],
+  "sessionsToNext": 0,
   "summary": {
-   "finished": 1,
-   "meanPct": 0.145,
+   "finished": 2,
+   "meanPct": 0.91,
    "winPct": 100,
    "worstPct": 0.145,
-   "t": null,
+   "t": 1.19,
    "verdict": "COLLECTING"
   }
  }

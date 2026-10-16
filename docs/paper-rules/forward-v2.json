@@ -2,8 +2,8 @@
  "preregistration": "studies/forward-v2-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "8be35cabe66e0d75b3974ad1651427770149888ff660ba9fcf8be0ee215aaea5",
  "start": "2026-10-05",
- "dataThrough": "2026-10-15",
- "builtAt": "2026-10-16T10:04:08.957Z",
+ "dataThrough": "2026-10-16",
+ "builtAt": "2026-10-16T16:08:12.673Z",
  "STRANGLE": {
   "rule": "Sell the NIFTY call about 2% above and the put about 2% below, at the close of the first session with 4-10 days to the weekly expiry; hold to expiry",
   "backtest": "PASS under protocol v2: +0.101% of NIFTY a week, t 4.66, 61 months (not significant after the 73-trial Deflated Sharpe check)",
@@ -45,27 +45,45 @@
   "backtest": "PROMISING: +0.338% a trade above the market, t 2.26",
   "pending": [
    {
-    "symbol": "ANANTRAJ",
-    "signalDate": "2026-10-15",
+    "symbol": "DIXON",
+    "signalDate": "2026-10-16",
     "status": "SIGNAL"
    },
    {
-    "symbol": "CGPOWER",
-    "signalDate": "2026-10-15",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "ICICIGI",
-    "signalDate": "2026-10-15",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "SIEMENS",
-    "signalDate": "2026-10-15",
+    "symbol": "NAM-INDIA",
+    "signalDate": "2026-10-16",
     "status": "SIGNAL"
    }
   ],
   "trades": [
+   {
+    "symbol": "SIEMENS",
+    "signalDate": "2026-10-15",
+    "entryDate": "2026-10-16",
+    "entry": 3670,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ICICIGI",
+    "signalDate": "2026-10-15",
+    "entryDate": "2026-10-16",
+    "entry": 1685.1,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "CGPOWER",
+    "signalDate": "2026-10-15",
+    "entryDate": "2026-10-16",
+    "entry": 818,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ANANTRAJ",
+    "signalDate": "2026-10-15",
+    "entryDate": "2026-10-16",
+    "entry": 524,
+    "status": "OPEN"
+   },
    {
     "symbol": "TORNTPHARM",
     "signalDate": "2026-10-14",
@@ -267,67 +285,107 @@
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 174.21,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 170.95,
+    "netPct": 1.805,
+    "excessPct": 2.204,
+    "status": "DONE"
    },
    {
     "symbol": "PNB",
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 110.65,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 116.3,
+    "netPct": -5.173,
+    "excessPct": -4.774,
+    "status": "DONE"
    },
    {
     "symbol": "MANAPPURAM",
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 311,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 323.95,
+    "netPct": -4.23,
+    "excessPct": -3.832,
+    "status": "DONE"
    },
    {
     "symbol": "LIQUIDBEES",
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 1000,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 1000,
+    "netPct": -0.066,
+    "excessPct": 0.333,
+    "status": "DONE"
    },
    {
     "symbol": "HEROMOTOCO",
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 5199,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 5225,
+    "netPct": -0.566,
+    "excessPct": -0.167,
+    "status": "DONE"
    },
    {
     "symbol": "GRASIM",
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 2968,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 2920,
+    "netPct": 1.551,
+    "excessPct": 1.95,
+    "status": "DONE"
    },
    {
     "symbol": "BAJAJ-AUTO",
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 10036,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 10405,
+    "netPct": -3.743,
+    "excessPct": -3.344,
+    "status": "DONE"
    },
    {
     "symbol": "AUBANK",
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 1000,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 989.4,
+    "netPct": 0.994,
+    "excessPct": 1.393,
+    "status": "DONE"
    },
    {
     "symbol": "ADANIPOWER",
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 197.17,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 195.85,
+    "netPct": 0.603,
+    "excessPct": 1.002,
+    "status": "DONE"
    }
   ],
   "summary": {
-   "finished": 0,
+   "finished": 9,
+   "meanPct": -0.582,
+   "winPct": 55.6,
+   "worstPct": -4.774,
+   "t": null,
    "verdict": "COLLECTING"
   }
  },
@@ -336,17 +394,36 @@
   "backtest": "PROMISING: +0.307% a trade above the market, t 2.58",
   "pending": [
    {
-    "symbol": "CGPOWER",
-    "signalDate": "2026-10-15",
+    "symbol": "ANANTRAJ",
+    "signalDate": "2026-10-16",
     "status": "SIGNAL"
    },
    {
-    "symbol": "EXIDEIND",
-    "signalDate": "2026-10-15",
+    "symbol": "IDEA",
+    "signalDate": "2026-10-16",
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "TORNTPHARM",
+    "signalDate": "2026-10-16",
     "status": "SIGNAL"
    }
   ],
   "trades": [
+   {
+    "symbol": "EXIDEIND",
+    "signalDate": "2026-10-15",
+    "entryDate": "2026-10-16",
+    "entry": 374.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "CGPOWER",
+    "signalDate": "2026-10-15",
+    "entryDate": "2026-10-16",
+    "entry": 818,
+    "status": "OPEN"
+   },
    {
     "symbol": "INDIGO",
     "signalDate": "2026-10-14",
@@ -485,46 +562,74 @@
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 1785,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 1758.8,
+    "netPct": 1.401,
+    "excessPct": 1.8,
+    "status": "DONE"
    },
    {
     "symbol": "OIL",
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 444,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 445,
+    "netPct": -0.292,
+    "excessPct": 0.107,
+    "status": "DONE"
    },
    {
     "symbol": "IFCI",
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 65.5,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 66.99,
+    "netPct": -2.341,
+    "excessPct": -1.942,
+    "status": "DONE"
    },
    {
     "symbol": "HINDZINC",
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 562,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 540,
+    "netPct": 3.848,
+    "excessPct": 4.247,
+    "status": "DONE"
    },
    {
     "symbol": "BHARATFORG",
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 1868,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 1835,
+    "netPct": 1.7,
+    "excessPct": 2.099,
+    "status": "DONE"
    },
    {
     "symbol": "BAJFINANCE",
     "signalDate": "2026-10-01",
     "entryDate": "2026-10-05",
     "entry": 962.55,
-    "status": "OPEN"
+    "exitDate": "2026-10-16",
+    "exit": 982.1,
+    "netPct": -2.097,
+    "excessPct": -1.699,
+    "status": "DONE"
    }
   ],
   "summary": {
-   "finished": 0,
+   "finished": 6,
+   "meanPct": 0.769,
+   "winPct": 66.7,
+   "worstPct": -1.942,
+   "t": null,
    "verdict": "COLLECTING"
   }
  }
