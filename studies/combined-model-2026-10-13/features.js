@@ -18,6 +18,19 @@ const RESET = 0.18;                       // as api/_lib/forward-v3.js
 const STOCK_F = ["P1", "P2", "P3", "P4", "P5", "P6", "P7", "P8", "P9", "P10", "P11", "P12", "P13", "P14", "P15", "P16", "P17", "P18", "P19", "P20", "P21", "P22", "P23",
   "D1", "D2", "F1", "F2", "F3", "F4", "O1", "O2", "X1", "L1", "L2", "L3", "W1", "W2", "M1", "M2", "I1", "I2", "I3"];
 const MARKET_F = ["K1", "K2", "K3", "K4", "K5", "K6", "K7", "K8", "K9", "K10", "K11", "K12", "K13", "K14"];
+// Amendment A2, universe fix 1: forward-v3's context() with a LIVE-ONLY universe. A stock is ranked for month m only if it
+// has a bar on the session before m's first session; the top 200 are taken from those, by the same rule as forward-v3.
+function liveContext({ sessions, stocks }) {
+  const ctx = context({ sessions, stocks }); const firstOf = new Map(); sessions.forEach((d, i) => { if (!firstOf.has(d.slice(0, 7))) firstOf.set(d.slice(0, 7), i); });
+  const cache = new Map();
+  ctx.uni = (m) => { if (cache.has(m)) return cache.get(m); const fi = firstOf.get(m); if (!fi) { cache.set(m, new Set()); return cache.get(m); }
+    const first = sessions[fi], prev = sessions[fi - 1]; const ranked = [];
+    for (const st of stocks) { let k = 0; while (k < st.bars.length && st.bars[k].d < first) k += 1; if (!k || st.bars[k - 1].d !== prev) continue;
+      let lc = 0; for (let q = 1; q < k; q += 1) if (Math.abs(st.bars[q].o / st.bars[q - 1].c - 1) >= RESET) lc = q; if (k - lc < 250) continue;
+      const v = st.bars.slice(Math.max(lc, k - 60), k).map((b) => b.val).filter(Number.isFinite).sort((a, b) => a - b); if (v.length) ranked.push([st.sym, v[Math.floor(v.length / 2)]]); }
+    ranked.sort((a, b) => b[1] - a[1]); const set = new Set(ranked.slice(0, 200).map((x) => x[0])); cache.set(m, set); return set; };
+  return ctx;
+}
 const days = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5);
 const mean = (a) => a.reduce((x, y) => x + y, 0) / a.length;
 const sdv = (a) => { const m = mean(a); return Math.sqrt(a.reduce((x, y) => x + (y - m) ** 2, 0) / (a.length - 1)); };
@@ -38,7 +51,7 @@ function hurst(r) { const xs = [], ys = [];
 //   nifty: Map(d->{o,c,pe}), vix: Map(d->c), part: Map(d->{FII,PRO,CLIENT,DII: {fil,fis,cl,cs,pl,ps}}), cat: Map(d->{FPI,MF,RETAIL: {buy,sell}}) }
 function build(data, { keepRaw = false } = {}) {
   const S = data.sessions, sIdx = new Map(S.map((d, i) => [d, i]));
-  const ctx = context({ sessions: S, stocks: data.stocks });
+  const ctx = liveContext({ sessions: S, stocks: data.stocks });
   // ---- market features, one value per session
   const zOf = (vals) => { const out = new Map(); const hist = []; for (const [d, v] of vals) { if (!fin(v)) { out.set(d, NaN); continue; }
       const past = hist.slice(-250); out.set(d, past.length >= 120 ? (v - mean(past)) / (sdv(past) || NaN) : NaN); hist.push(v); } return out; };
@@ -87,7 +100,7 @@ function build(data, { keepRaw = false } = {}) {
         if (cnt <= 14) { ag += g / 14; al += l / 14; } else { ag = (ag * 13 + g) / 14; al = (al * 13 + l) / 14; } if (cnt >= 14) rsi[k] = al === 0 ? 100 : 100 - 100 / (1 + ag / al); } }
     for (let k = 0; k < n; k += 1) {
       const d = b[k].d, i = sIdx.get(d); if (i === undefined || i + 2 >= S.length) continue; const e = S[i + 2];
-      if (!ctx.uni(e.slice(0, 7)).has(st.sym)) continue; const fr = data.fut.get(d)?.get(st.sym); if (!fr) continue;
+      if (!ctx.uni(d.slice(0, 7)).has(st.sym)) continue; const fr = data.fut.get(d)?.get(st.sym); if (!fr) continue;   // A2 fix 2: universe of d's month, never e's
       const have = (m) => k - cut[k] >= m;                      // m bars back available inside the segment
       const c = b[k].c; const R = (m) => (have(m) ? c / b[k - m].c - 1 : NaN);
       const win = (m, f) => { if (!have(m - 1)) return NaN; const a = []; for (let j = k - m + 1; j <= k; j += 1) a.push(f(b[j], j)); return a; };
@@ -179,12 +192,13 @@ function loadReal() {
   const CM = path.resolve(process.env.K2_CM_DIR || path.join(ROOT, "nse-data", "cm"));
   const RS = path.resolve(process.env.K2_RESEARCH_DIR || path.join(ROOT, "research"));
   const AT = path.join(RS, "nse-atlas");
-  const files = fs.readdirSync(CM).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f)).sort(); const sessions = files.map((f) => f.slice(0, 10)); const bySym = new Map();
+  const END = process.env.K2_CM_END || "2026-10-09";   // amendment A2: data end
+  const files = fs.readdirSync(CM).filter((f) => /^\d{4}-\d{2}-\d{2}\.json$/.test(f) && f.slice(0, 10) <= END).sort(); const sessions = files.map((f) => f.slice(0, 10)); const bySym = new Map();
   for (const f of files) { const d = f.slice(0, 10); for (const r of JSON.parse(fs.readFileSync(path.join(CM, f), "utf8"))) { const [, sym, series, o, h, l, c, , qty, val] = r;
       if (series !== "EQ" || !sym || ![o, h, l, c].every((x) => x > 0)) continue; if (!bySym.has(sym)) bySym.set(sym, { sym, bars: [] }); bySym.get(sym).bars.push({ d, o, h, l, c, val, qty }); } }
   const stocks = [...bySym.values()];
   // only the symbols that are ever in the universe are kept from the other files (memory)
-  const ctx = context({ sessions, stocks }); const keep = new Set(); for (const d of sessions) for (const s of ctx.uni(d.slice(0, 7))) keep.add(s);
+  const ctx = liveContext({ sessions, stocks }); const keep = new Set(); for (const d of sessions) for (const s of ctx.uni(d.slice(0, 7))) keep.add(s);
   const closeOn = new Map(stocks.filter((s) => keep.has(s.sym)).map((st) => [st.sym, new Map(st.bars.map((b) => [b.d, b.c]))]));
   const each = (dir, ext, fn) => { if (!fs.existsSync(dir)) return 0; let n = 0;
     for (const f of fs.readdirSync(dir).filter((x) => x.endsWith(`.${ext}`) && /^\d{4}-\d{2}-\d{2}/.test(x)).sort()) { try { fn(f.slice(0, 10), fs.readFileSync(path.join(dir, f))); n += 1; } catch { /* unreadable: missing */ } } return n; };
@@ -257,7 +271,7 @@ function synth(seed, plant) {
   return { sessions, stocks, fut, deliv, opt, short, slb, fee, mwpl, mtf, pit: [], pitMonths: new Set(), nifty, vix, part, cat, surgeSet };
 }
 
-module.exports = { build, loadReal, synth, writePanel, STOCK_F, MARKET_F, COLS };
+module.exports = { build, loadReal, synth, writePanel, liveContext, STOCK_F, MARKET_F, COLS };
 
 if (require.main === module) {
   const a = process.argv.slice(2);
