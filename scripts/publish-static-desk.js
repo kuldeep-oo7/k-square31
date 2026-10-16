@@ -1062,7 +1062,8 @@ function kronosBox(d) {
   const target = d.sessionOver || d.tradingDay === false ? d.nextSession : d.sessionDate;
   const dayText = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
   const mon = (iso) => (iso ? new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }) + " fut" : "no futures");
-  const days = Object.values(k.days); const today = days.find((x) => x.entry === target && x.enough);
+  const days = Object.values(k.days); const onTime = (x) => Date.parse(x.madeAt) < Date.parse(`${x.entry}T09:15:00+05:30`);
+  const today = days.find((x) => x.entry === target && x.enough && onTime(x));   // a list made after 09:15 on its day is never shown
   const held = days.filter((x) => x.enough && x.entry < target && x.exit >= target).sort((a, b) => (a.entry < b.entry ? -1 : 1));
   const names = (list) => list.map((p) => `<div><b>${esc(p.symbol)}</b> <span class="sub">${esc(mon(p.expiry))}</span></div>`).join("");
   const s = k.summary || {}; const mn = (v) => String(v).replace(/^-/, "&minus;");

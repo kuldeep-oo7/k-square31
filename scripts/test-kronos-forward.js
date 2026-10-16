@@ -57,6 +57,8 @@ check("it says FAILED and paper only, never a % forecast", h.includes("FAILED it
 check("the contract month is shown", h.includes("Oct fut"));
 h = kronosBox({ kronos: store, sessionOver: false, sessionDate: "2026-10-20", nextSession: "2026-10-20", tradingDay: true });
 check("a list for another session is never shown as today's; the held list is", !h.includes("S29</b>") && h.includes("No Kronos list") && h.includes("Still held") && h.includes("Mon 26 Oct"));
+h = kronosBox({ kronos: { ...store, days: { x: { ...day, madeAt: "2026-10-19T04:30:00Z" } } }, sessionOver: false, sessionDate: "2026-10-19", nextSession: "2026-10-19", tradingDay: true });
+check("a list made after 09:15 on its day is never shown as a trade", !h.includes("S29</b>") && h.includes("No Kronos list"));
 check("no store: nothing", kronosBox({}) === "" && kronosTrackBox(null) === "");
 check("TRACK box shows the verdict state", kronosTrackBox(store).includes("COLLECTING"));
 console.log(failed ? `${failed} failed` : "kronos forward tests passed"); process.exit(failed ? 1 : 0);
