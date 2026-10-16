@@ -469,7 +469,8 @@
   "OPTION|CHOLAFIN|CHOLAFIN26OCT1640CE",
   "OPTION|OIL|OIL26OCT460CE",
   "OPTION|PIIND|PIIND26OCT2150PE",
-  "OPTION|HAVELLS|HAVELLS26OCT1180CE"
+  "OPTION|HAVELLS|HAVELLS26OCT1180CE",
+  "OPTION|MARUTI|MARUTI26OCT11800CE"
  ],
  "options": {
   "MAXHEALTH26OCT860CE": {
@@ -6080,6 +6081,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-16T06:24:53.670Z",
    "frozenAtIst": "2026-10-16 11:54 IST",
+   "frozenAtSpot": null
+  },
+  "MARUTI26OCT11800CE": {
+   "buy": 64.55,
+   "sell": 96.8,
+   "stop": 32.25,
+   "tick": 0.05,
+   "lotSize": 50,
+   "expiry": "2026-10-27",
+   "strike": 11800,
+   "right": "CE",
+   "symbol": "MARUTI",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-16T06:45:12.306Z",
+   "frozenAtIst": "2026-10-16 12:15 IST",
    "frozenAtSpot": null
   }
  },
