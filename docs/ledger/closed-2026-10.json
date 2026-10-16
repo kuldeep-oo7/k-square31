@@ -154961,6 +154961,60 @@
     "perLot": -4164,
     "netPerLot": -4222.95
    }
+  },
+  {
+   "id": "2026-10-08|FUT|KOTAKBANK26OCTFUT",
+   "kind": "FUT",
+   "symbol": "KOTAKBANK",
+   "contract": "KOTAKBANK26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 2000,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T03:51:39.170Z",
+   "buy": 436.6,
+   "target": 447.5,
+   "target2": 458.45,
+   "stop": 430.05,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 63,
+     "medianTradingDays": 0.228
+    },
+    "target": {
+     "probabilityPct": 73.4,
+     "medianTradingDays": 2.691
+    },
+    "sigmaPct": 26.7,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions"
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-08T06:06:39.012Z",
+   "hoursToFill": 2.25,
+   "closedAt": "2026-10-16T03:44:13.603Z",
+   "exitPrice": 447.5,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 189.63,
+   "sessionsHeld": 6,
+   "best": 448.5,
+   "worst": 435,
+   "last": 448.5,
+   "lastAt": "2026-10-16T03:44:13.603Z",
+   "marks": 169,
+   "obs": {
+    "date": "2026-10-16",
+    "high": 448.5,
+    "low": 448.5,
+    "last": 448.5
+   },
+   "pnl": {
+    "perUnit": 10.9,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
