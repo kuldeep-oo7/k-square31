@@ -154,7 +154,14 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: "24"
-          cache: npm
+
+      # THE INSTALLED PACKAGES THEMSELVES, keyed on the lockfile (16 Oct 2026). setup-node's npm cache restored
+      # ~215 MB of tarballs (~10 s) and npm install then took ~11 s on every build; a hit here skips both.
+      - id: node-modules
+        uses: actions/cache@v4
+        with:
+          path: node_modules
+          key: desk-node-modules-${{ runner.os }}-node24-${{ hashFiles('package-lock.json', 'package.json') }}
 
       - name: Today's date in India
         # Every cache key and every session boundary in this desk is an IST
@@ -208,6 +215,7 @@ jobs:
             k2-desk-cache-
 
       - name: Install
+        if: steps.node-modules.outputs.cache-hit != 'true'
         run: npm install --omit=dev --no-audit --no-fund
 
       - name: Broker credentials

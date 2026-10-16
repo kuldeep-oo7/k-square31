@@ -124,6 +124,13 @@ async function step(label, fn) {
 
   await step("broker instrument master", async () => {
     const brokers = require("../api/_lib/broker-feed");
+    // REUSED WITHIN 3 HOURS ON THE SAME IST DAY (16 Oct 2026). It was fetched on EVERY build (5-46 s each), although
+    // the master changes once a day; that alone kept builds over a billed minute. Never reused from an earlier day.
+    const have = brokers.loadInstruments("angelone"), istDay = (t) => new Date(t).toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    const age = have?.fetchedAt ? Date.now() - Date.parse(have.fetchedAt) : Infinity;
+    if (have && !have.schemaStale && have.optionCount > 0 && age < 3 * 3_600_000 && istDay(have.fetchedAt) === istDay(Date.now())) {
+      return `reused (fetched ${Math.round(age / 60_000)} min ago, ${have.optionCount} option contracts)`;
+    }
     const result = await brokers.refreshInstruments("angelone");
     return result?.optionCount ? `${result.optionCount} option contracts` : "cached";
   });
