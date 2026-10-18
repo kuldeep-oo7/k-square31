@@ -1,0 +1,52 @@
+name: nse-financials
+# The value pod's data: NSE's own quarterly results (XBRL facts + publication time) for every stock that had NSE stock
+# futures since Sep 2020 (scripts/nse-financials-download.js). 8 shards in parallel; each re-run resumes from the private
+# release, so a shard that hit the time limit continues. Output: private release kuldeep-oo7/k2-data data-nse-financials.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  symbols:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+      GH_REPO: kuldeep-oo7/k2-data
+    steps:
+      - name: Every STK futures symbol since Sep 2020 (NSE F&O files)
+        run: |
+          gh release download data-research -p research-nse-fo.tar.gz && tar -xzf research-nse-fo.tar.gz
+          gh release download data-paper-inputs -p paper-inputs.tar.gz && tar -xzf paper-inputs.tar.gz
+          node -e 'const fs=require("fs"),s=new Set();for(const d of ["research/orderflow-2026-10-03/nse-fo/fut","nse-fo/fut"])for(const f of fs.existsSync(d)?fs.readdirSync(d):[])if(f.endsWith(".json"))for(const r of JSON.parse(fs.readFileSync(d+"/"+f,"utf8")))if(r[1]==="STK")s.add(r[0]);fs.writeFileSync("symbols.txt",[...s].sort().join("\n")+"\n");console.log(s.size+" symbols")'
+      - uses: actions/upload-artifact@v4
+        with: { name: symbols, path: symbols.txt }
+  download:
+    needs: symbols
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix:
+        shard: [1, 2, 3, 4, 5, 6, 7, 8]
+    env:
+      GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+      GH_REPO: kuldeep-oo7/k2-data
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - uses: actions/download-artifact@v4
+        with: { name: symbols }
+      - name: Resume from the private release
+        run: |
+          gh release view data-nse-financials >/dev/null 2>&1 || gh release create data-nse-financials --title "NSE quarterly financial results (XBRL facts)" --notes "Per-symbol JSON of NSE's quarterly results (both feeds), parsed XBRL facts and publication times. scripts/nse-financials-download.js. Private data." --latest=false || true
+          mkdir -p fin && (gh release download data-nse-financials -p "fin-${{ matrix.shard }}.tar.gz" && tar -xzf "fin-${{ matrix.shard }}.tar.gz") || echo "no earlier shard file"
+      - name: Download shard ${{ matrix.shard }} of 8
+        run: node scripts/nse-financials-download.js symbols.txt fin ${{ matrix.shard }}/8
+      - name: Save shard
+        if: always()
+        run: |
+          shopt -s nullglob; files=(fin/*.json); [ ${#files[@]} -gt 0 ] || exit 0
+          tar -czf "fin-${{ matrix.shard }}.tar.gz" fin && for i in 1 2 3; do gh release upload data-nse-financials "fin-${{ matrix.shard }}.tar.gz" --clobber && break; sleep 15; done
+          echo "saved ${#files[@]} symbols, $(du -h fin-${{ matrix.shard }}.tar.gz | cut -f1)"
