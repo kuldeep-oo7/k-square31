@@ -40,8 +40,8 @@ and no `research/`. This file carries what it needs. Nothing secret belongs here
    levels freeze. Prefer a branch plus a pull request that the owner merges.
 7. **Never ask for, print or commit secrets.** They live in GitHub Actions secrets and in
    Cloudflare. The owner sets them; you don't.
-8. Don't commit downloaded market data. It lives on releases of the PRIVATE repo `kuldeep-oo7/k2-data` (from 16 Oct 2026,
-   so this repo can be public). Workflows use it when repo variable `K2_DATA_REPO` is set, with secret `K2_DATA_TOKEN` (test: data-token-check.yml); `page-check` stays here.
+8. Don't commit downloaded market data. It lives on releases of the PRIVATE repo `kuldeep-oo7/k2-data` (from 16 Oct 2026;
+   **k-square31 is PUBLIC since 18 Oct 2026**: never put data, predictions or secrets in commits, logs or artifacts). Workflows use it when repo variable `K2_DATA_REPO` is set, with secret `K2_DATA_TOKEN` (test: data-token-check.yml); `page-check` stays here.
 9. **Audit like a sceptic, and follow every change through the web (owner, 12 Oct 2026).**
    - Question every figure and feature from several angles: what is it, why is it there, where does
      the number come from, when was it true, who uses it, is it right, what would prove it wrong.
