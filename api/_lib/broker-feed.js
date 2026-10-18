@@ -621,6 +621,9 @@ async function futuresQuotes(requests, { timeoutMs = 20_000, batchSize = 50 } = 
           symbol: contract.symbol, expiry: contract.expiry,
           tradingSymbol: contract.tradingSymbol,
           price: last,
+          // The session's open/high/low and the PREVIOUS session's close, as the option path reads them (FULL mode).
+          // Checked against NSE's F&O file before use (paper-live.js); missing stays null, never 0.
+          open: num(row.open), high: num(row.high), low: num(row.low), previousClose: num(row.close),
           bid: num(row.depth?.buy?.[0]?.price),
           ask: num(row.depth?.sell?.[0]?.price),
           openInterest: num(row.opnInterest),

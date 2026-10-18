@@ -234,6 +234,23 @@ async function step(label, fn) {
       + (leg ? " (" + leg.strike + leg.optionType + " last " + leg.lastPrice + ")" : "");
   });
 
+  // LIVE PRICES FOR TODAY'S PAPER LISTS (owner, 18 Oct 2026): the short build-up and Kronos stocks' futures, so the
+  // page can show the open, the gap and the running paper P&L (api/_lib/paper-live.js). Information only; never fatal.
+  await step("live prices for today's paper lists", async () => {
+    const { paperRequests } = require("../api/_lib/paper-live");
+    const { nextTradingDate, isTradingDate } = require("./paper-ledger");
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    if (!isTradingDate(today)) return "not a trading day";
+    const read = (f) => { try { return JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "docs", "paper-rules", f), "utf8")); } catch { return null; } };
+    const keys = Object.keys(require("../api/_lib/broker-feed").loadInstruments("angelone")?.futures || {});
+    const sbExpiry = (sym) => keys.filter((k) => k.startsWith(`${sym}|`)).map((k) => k.split("|")[1]).filter((e) => e >= today).sort()[0] || null;
+    const requests = paperRequests({ oiFlow: read("oi-flow.json"), kronos: read("kronos.json"), target: today, nextTradingDate, sbExpiry });
+    if (!requests.length) return "no paper list for today";
+    const r = await require("../api/_lib/live-quotes").refreshFutures(requests.map(({ symbol, expiry }) => ({ symbol, expiry })));
+    if (!r.ok) throw new Error(`not priced: ${r.reason}`);
+    return `${r.count} of ${requests.length} futures priced`;
+  });
+
   // THE MARKET'S DIRECTION, AND THE NAMES WHOSE BOOKS THE PAGE WILL NEED. The
   // same function the page uses (market-direction.js optionsView), on the same
   // inputs: in a downtrend the page shows puts on the indices and the falling

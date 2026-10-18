@@ -51,4 +51,30 @@ check("a null open is missing, not 0", got.rows[1].symbol === "BBB" && got.rows[
 check("only that day's trades; a void trade is counted, not priced", got.rows.length === 2 && got.void === 1);
 check("no file for the day: every row is missing, nothing crashes", futuresLast([{ symbol: "AAA", entryDate: "2026-10-28", status: "DONE" }], "2026-10-28", dir).rows[0]?.missing === true);
 fsx.rmSync(dir, { recursive: true, force: true });
+
+// LIVE NOW (api/_lib/paper-live.js): information only, on the list's own session, with that session's quotes only.
+{
+  const { paperRequests, paperLive } = require("../api/_lib/paper-live");
+  const { nextTradingDate, feedDate } = require("./paper-ledger");
+  const ofl = of("2026-10-16", [sig("DIXON", "2026-10-16"), sig("OLD", "2026-10-15")]);
+  const kr = { days: { "2026-10-16": { entry: "2026-10-19", exit: "2026-10-26", enough: true, madeAt: "2026-10-16T15:17:34Z", long: [{ symbol: "IDEA", expiry: "2026-10-27" }], short: [{ symbol: "TCS", expiry: "2026-10-27" }] } } };
+  const req = paperRequests({ oiFlow: ofl, kronos: kr, target: "2026-10-19", nextTradingDate, sbExpiry: () => "2026-10-27" });
+  check("requests: today's short build-up and Kronos names only", req.map((r) => `${r.book}:${r.symbol}:${r.side}`).join() === "SB:DIXON:-1,KRONOS:IDEA:1,KRONOS:TCS:-1");
+  const q = { DIXON: { price: 12700, open: 12827, previousClose: 12755, exchangeFeedTime: "19-Oct-2026 10:05:01" },
+    IDEA: { price: 9.5, open: 9.2, previousClose: 9.1, exchangeFeedTime: "19-Oct-2026 10:05:02" }, TCS: { price: 3000, open: 3000, previousClose: 3010, exchangeFeedTime: "16-Oct-2026 15:29:59" } };
+  const live = paperLive({ requests: req, sessionDate: "2026-10-19", inSession: true, getQuote: (s) => q[s], feedDate, units: 20 });
+  const dx = live.rows.find((r) => r.symbol === "DIXON");
+  check("gap is open over the PREVIOUS close", Math.abs(dx.gapPct - (12827 / 12755 - 1) * 100) < 1e-9);
+  check("a short's paper P&L: (open - last) x 20", Math.round(dx.pnl) === 2540);
+  check("a quote from another session is left out", !live.rows.some((r) => r.symbol === "TCS") && live.rows.length === 2);
+  check("outside the session: nothing", paperLive({ requests: req, sessionDate: "2026-10-19", inSession: false, getQuote: (s) => q[s], feedDate }) === null);
+  check("no open yet (before 09:15): nothing", paperLive({ requests: req.slice(0, 1), sessionDate: "2026-10-19", inSession: true, getQuote: () => ({ ...q.DIXON, open: 0 }), feedDate }) === null);
+  const inS = { oiFlow: ofl, sessionOver: false, sessionDate: "2026-10-19", nextSession: "2026-10-19", tradingDay: true, gmMinUnits: 20, paperLive: live };
+  h = sbFocusBox(inS);
+  check("the box shows the live line in session", h.includes("Live now, 10:05 IST") && h.includes("+₹2,540") && h.includes("not part of the tested rule"));
+  h = sbFocusBox({ ...inS, sessionOver: true, nextSession: "2026-10-21" });
+  check("after the close the live line is gone (the next list is for another day)", !h.includes("Live now"));
+  h = sbFocusBox({ ...inS, paperLive: null });
+  check("no quotes: no live line, the list is still shown", !h.includes("Live now") && h.includes("DIXON"));
+}
 console.log(failed ? `${failed} failed` : "sb focus box tests passed"); process.exit(failed ? 1 : 0);

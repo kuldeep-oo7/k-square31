@@ -944,6 +944,18 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     springyDip: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "springy-dip.json"), "utf8")); } catch { return null; } })(),
     kronos: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "kronos.json"), "utf8")); } catch { return null; } })(),
     oiFlow: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "oi-flow.json"), "utf8")); } catch { return null; } })(),
+    // Live open / gap / last / paper P&L for today's short build-up and Kronos lists (api/_lib/paper-live.js),
+    // information only, in session only; null whenever anything is missing, so it can never break the build.
+    paperLive: (() => { try {
+      const { paperRequests, paperLive } = require("../api/_lib/paper-live");
+      const read = (f) => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", f), "utf8")); } catch { return null; } };
+      const today = session.sessionDate; const live = require("../api/_lib/live-quotes");
+      const keys = Object.keys(require("../api/_lib/broker-feed").loadInstruments("angelone")?.futures || {});
+      const sbExpiry = (sym) => keys.filter((k) => k.startsWith(`${sym}|`)).map((k) => k.split("|")[1]).filter((e) => e >= today).sort()[0] || null;
+      const requests = paperRequests({ oiFlow: read("oi-flow.json"), kronos: read("kronos.json"), target: today, nextTradingDate: ledgerLib.nextTradingDate, sbExpiry });
+      const inSession = !sessionOver && ledgerLib.isTradingDate(today) && Date.now() >= Date.parse(`${today}T09:15:00+05:30`);
+      return paperLive({ requests, sessionDate: today, inSession, getQuote: (s, e) => live.liveFuture(s, e, { maxAgeMs: 45 * 60_000 }), feedDate: ledgerLib.feedDate, units: GM_MIN_UNITS });
+    } catch { return null; } })(),
     forwardV2: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v2.json"), "utf8")); } catch { return null; } })(),
     forwardV3: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v3.json"), "utf8")); } catch { return null; } })(),
     forwardV4: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v4.json"), "utf8")); } catch { return null; } })(),
@@ -1001,6 +1013,24 @@ function springyBox(sd) {
 // period but shrinking. Its full Deflated Sharpe was never computed, and its forward test (from 5 Oct) is far from a
 // verdict, so it is shown for GM Global (paper money) only, at the top of FUTURES, until that verdict (~Jan 2027).
 // The signals come from docs/paper-rules/oi-flow.json; a list for another session is never shown as today's.
+// LIVE NOW (api/_lib/paper-live.js): today's open, gap, last price and paper P&L for one paper list, in session only.
+// Information beside the tested rule, never a change to it: the rule trades at the open whatever the gap.
+function paperLiveBlock(d, book) {
+  const pl = d.paperLive; if (!pl || !Array.isArray(pl.rows)) return "";
+  const rows = pl.rows.filter((r) => r.book === book); if (!rows.length) return "";
+  const tone = (v) => (v > 0 ? "up" : v < 0 ? "down" : "");
+  const price = (v) => esc(Number(v).toLocaleString("en-IN"));
+  const plus = (v) => `${v > 0 ? "+" : ""}${money(Math.round(v))}`;
+  const time = (String(pl.at || "").match(/\d{2}:\d{2}/) || ["?"])[0];
+  const cells = rows.map((r) => `<div><b class="${r.side > 0 ? "up" : "down"}">${esc(r.symbol)}</b><div class="sub">${r.side > 0 ? "bought" : "sold"} at ${price(r.open)}</div></div>
+    <div class="num ${tone(r.gapPct)}">${r.gapPct === null ? "&mdash;" : signedPct(round(r.gapPct))}</div><div class="num">${price(r.last)}</div><div class="num ${tone(r.pnl)}">${plus(r.pnl)}</div>`).join("");
+  const total = rows.reduce((a, r) => a + r.pnl, 0);
+  return `<div class="sbres"><b>Live now, ${esc(time)} IST</b> &middot; <b>information only, not part of the tested rule</b>: each futures open, its gap from the previous close, the last price, and the paper result on ${esc(pl.units)} units if traded at the open.
+    <div class="sbgrid" style="grid-template-columns:1fr auto auto auto"><div class="h">STOCK</div><div class="h num">GAP</div><div class="h num">NOW</div><div class="h num">${esc(pl.units)} UNITS</div>${cells}</div>
+    <div>${rows.length} priced &middot; <b class="${tone(total)}">${plus(total)}</b> so far, before GM&rsquo;s charges.</div>
+    <div class="sub">Angel One futures prices, refreshed with each build (about every 20 minutes). Your GM fills will differ.</div></div>`;
+}
+
 function sbFocusBox(d) {
   const of = d.oiFlow; if (!of || !of.SB) return "";
   const mn = (v) => String(v).replace(/^-/, "&minus;");
@@ -1042,6 +1072,7 @@ function sbFocusBox(d) {
       : rows ? `<b>${day}:</b> these stocks fell at least 1.56% in the last session while their futures open interest rose at least 3.04% (new shorts piling in).
         <div class="wrap"><table><thead><tr><th>STOCK</th><th class="num">PRICE</th><th class="num">OPEN INT.</th><th>TRADE (same day)</th></tr></thead><tbody>${rows}</tbody></table></div>`
       : `<b>No short build-up signal for ${day}.</b> No trade from this rule today.`}</div>
+    ${target === d.sessionDate ? paperLiveBlock(d, "SB") : ""}
     ${lastFut}
     <details class="fold sub"><summary>The evidence, and why it is paper only<span class="more"></span></summary><div>
       Tested on NSE 2005&ndash;2020, data it had never seen, with its rules fixed first: 33,979 trades, <b>+0.21% a trade after futures charges, t 4.66</b>,
@@ -1074,6 +1105,7 @@ function kronosBox(d) {
         <div class="sbgrid" style="grid-template-columns:auto auto;gap:4px 28px"><div class="h">BUY (${esc(d.gmMinUnits || 20)} units)</div><div class="h">SELL (${esc(d.gmMinUnits || 20)} units)</div>
           <div class="up">${names(today.long)}</div><div class="down">${names(today.short)}</div></div>`
       : `<b class="warn">No Kronos list for ${esc(dayText(target))}.</b> It is made from NSE&rsquo;s evening files (about 20:15 IST); counting starts with Mon 19 Oct.`}</div>
+    ${today && target === d.sessionDate ? paperLiveBlock(d, "KRONOS") : ""}
     ${held.length ? `<div class="sub" style="margin-top:6px">Still held from earlier lists: ${held.map((x) => `${esc(dayText(x.entry))} list &rarr; close at the close on ${esc(dayText(x.exit))}`).join("; ")}.</div>` : ""}
     <div class="sub" style="margin-top:6px">Kronos reads only each stock&rsquo;s last 512 daily bars (one random draw, as tested); its own % forecasts are too noisy to show.
       In its test (Jul 2024&ndash;Oct 2026) this book made +0.135% a round, t 1.35: not proven. On paper since ${esc(k.start)}: ${esc(s.finished ?? 0)} lists finished${s.finished
