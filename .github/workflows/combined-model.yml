@@ -1,0 +1,71 @@
+name: combined-model
+# The combined ("cocktail") model's ONE real run: studies/combined-model-2026-10-13 on branch claude/combined-model-2026-10-13
+# (pre-registration + amendments A1, A2; checks 7.2 and 7.3 PASSED on the laptop before this). Dispatch only.
+# Runs here because the public-repo runner has 4 CPUs and 16 GB (the laptop has 8 GB). The data come from the private
+# repo; the panel never leaves the runner. RESULT.txt and result.json are an artifact (public repo: results only);
+# predictions and importance go to the private release combined-model-run.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/combined-model-2026-10-13
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "24"
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Machine
+        run: echo "CPUs $(nproc), RAM $(free -g | awk '/Mem/ {print $2}') GB"
+      - name: Libraries, as registered (amendment A2)
+        run: |
+          pip install scikit-learn==1.9.1 numpy==2.5.4 pandas==3.0.6
+          mkdir -p "$RUNNER_TEMP/x" && cd "$RUNNER_TEMP/x" && npm init -y >/dev/null && npm i --no-audit --no-fund xlsx@0.18.5
+      - name: NSE data from the private repo
+        env:
+          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+          GH_REPO: kuldeep-oo7/k2-data
+        run: |
+          gh release download data-nse-cm -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz && rm nse-cm.tar.gz
+          for a in research-nse-fo.tar.gz research-nse-extra.tar.gz; do gh release download data-research -p "$a" && tar -xzf "$a" && rm "$a"; done
+          mkdir -p research && cd research
+          for a in $(gh release view data-nse-atlas --json assets --jq '.assets[].name' | grep '^atlas-'); do gh release download data-nse-atlas -p "$a" && tar -xzf "$a" && rm "$a"; done
+          # amendment A2 data end: atlas files to 2026-10-09
+          find nse-atlas -type f -name '2026-10-1[0-9]*' -delete; find nse-atlas -type f -name '2026-10-[23]*' -delete
+          for d in shortselling slb_openpos slbm_bc combineoi mrg_trading ind_close_all part_vol cm_cat_turnover pit; do echo "$d: $(ls nse-atlas/$d | wc -l) files, $(ls nse-atlas/$d | head -1) .. $(ls nse-atlas/$d | tail -1)"; done
+          echo "fut: $(ls orderflow-2026-10-03/nse-fo/fut | wc -l), deliv: $(ls families-2026-10-04/nse-extra/deliv | wc -l), cm: $(ls ../nse-data/cm | wc -l)"
+      - name: Check 7.4 coverage (counts only)
+        env: { K2_CM_DIR: nse-data/cm, K2_RESEARCH_DIR: research, K2_CM_END: "2026-10-09" }
+        run: K2_XLSX="$RUNNER_TEMP/x/node_modules/xlsx" node --max-old-space-size=12000 studies/combined-model-2026-10-13/features.js --coverage | tee coverage.txt
+      - name: Feature panel (real data)
+        env: { K2_CM_DIR: nse-data/cm, K2_RESEARCH_DIR: research, K2_CM_END: "2026-10-09" }
+        run: K2_XLSX="$RUNNER_TEMP/x/node_modules/xlsx" node --max-old-space-size=12000 studies/combined-model-2026-10-13/features.js panel.csv
+      - name: Walk-forward trees and ridge
+        run: python studies/combined-model-2026-10-13/model.py panel.csv preds.csv --importance
+      - name: Score -- THE ONE REAL RUN
+        run: node studies/combined-model-2026-10-13/score.js panel.csv preds.csv "REAL RUN (GitHub Actions run ${{ github.run_id }})" --write | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: combined-model-result
+          path: |
+            studies/combined-model-2026-10-13/RESULT.txt
+            studies/combined-model-2026-10-13/result.json
+            coverage.txt
+            preds-importance.txt
+      - name: Predictions to the private repo
+        if: always()
+        env:
+          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+          GH_REPO: kuldeep-oo7/k2-data
+        run: |
+          gh release view combined-model-run >/dev/null 2>&1 || gh release create combined-model-run --title "Combined model real run (outputs)" --notes "Predictions of studies/combined-model-2026-10-13, run ${{ github.run_id }}." --latest=false
+          for f in preds.csv preds-importance.txt coverage.txt; do [ -f "$f" ] && gzip -kf "$f" && gh release upload combined-model-run "$f.gz" --clobber; done
