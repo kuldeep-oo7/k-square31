@@ -32,3 +32,21 @@ CHECK 7.2 (no-edge synthetic markets, A1 rule; at most 1 PASS among the 9 member
  seed 3: C1 -0.025% t -0.72 DSR 0.15 FAIL | C2 -0.036% t -1.23 DSR 0.05 FAIL | C3 -0.086% t -2.22 DSR 0.01 FAIL
  PASS results: 0 of 9. CHECK 7.2: PASSED
  (The negative means on no-edge markets are the futures charges: about -0.05% to -0.09% a rebalance.)
+COMBINED MODEL -- REAL RUN (GitHub Actions run 39143272481) -- 2026-10-18T16:10:02.766Z, prereg sha256 504b9be5a50ad95f09091c944f111e43228b60990475869473df2f1a70e54513 (verified); protocol v2
+Rebalances with predictions: 199 (2022-10-03 .. 2026-10-01). DSR benchmark (monthly Sharpe): 0.149
+member | months | rebalances | mean/rebalance | winners | months up | t (NW) | annual Sharpe | Holm | DSR | VERDICT
+C1 trees long-short (deciles) | 48 | 198 | +0.117% | 54.0% | 27 | 2.78 | 0.93 | yes | 0.79 | PROMISING
+C2 ridge long-short (deciles) | 48 | 198 | -0.005% | 52.0% | 30 | -0.03 | -0.01 | no | 0.15 | FAIL
+C3 trees long-only top decile (excess) | 48 | 198 | +0.161% | 55.6% | 32 | 3.39 | 1.11 | yes | 0.87 | PROMISING
+mean rank IC: trees 0.0333 (115/198 positive), ridge 0.0212; long-book turnover 73% a rebalance
+PASS (t >= 3): none. PROMISING: C1, C3.
+
+NOTES ON THE REAL RUN (written after reading it; they do not change the verdict):
+- Verdict by A1/A2: NO PASS. C3 trees long-only excess t 3.39 and Holm yes, but full DSR 0.87 < 0.95 -> PROMISING.
+  C1 trees long-short t 2.78, DSR 0.79 -> PROMISING. C2 ridge FAIL. Low power was stated before the run (A2).
+- C3 is measured as EXCESS over the universe's equal-weight return; a real long-futures book also carries the market.
+- Coverage (real-coverage.txt): MWPL W1/W2 are missing before 2025 (0% non-missing 2021-2024: combineoi files not
+  parsed for those years), FPI/MF/retail cash K11-K13 missing 2021-22, lending fee L3 ~25%. Missing is NaN, as registered.
+  W1 is the 5th most important feature while it exists only from 2025, so the trees may use "W1 missing" as a date marker.
+- The same 2020-26 sample was already used for each family alone; this is weaker evidence than fresh data.
+- Predictions: private release kuldeep-oo7/k2-data combined-model-run (preds.csv.gz). Run: GitHub Actions 39143272481.
