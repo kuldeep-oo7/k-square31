@@ -365,7 +365,8 @@
   "OPTION|BANDHANBNK|BANDHANBNK26OCT160PE",
   "OPTION|FEDERALBNK|FEDERALBNK26OCT350CE",
   "OPTION|FEDERALBNK|FEDERALBNK26OCT355CE",
-  "OPTION|AUBANK|AUBANK26OCT950PE"
+  "OPTION|AUBANK|AUBANK26OCT950PE",
+  "OPTION|FEDERALBNK|FEDERALBNK26OCT360CE"
  ],
  "options": {
   "HCLTECH26OCT1360CE": {
@@ -4581,6 +4582,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-19T05:24:31.591Z",
    "frozenAtIst": "2026-10-19 10:54 IST",
+   "frozenAtSpot": null
+  },
+  "FEDERALBNK26OCT360CE": {
+   "buy": 2.3,
+   "sell": 3.45,
+   "stop": 1.15,
+   "tick": 0.05,
+   "lotSize": 2500,
+   "expiry": "2026-10-27",
+   "strike": 360,
+   "right": "CE",
+   "symbol": "FEDERALBNK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T05:44:52.683Z",
+   "frozenAtIst": "2026-10-19 11:14 IST",
    "frozenAtSpot": null
   }
  },

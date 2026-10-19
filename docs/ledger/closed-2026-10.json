@@ -180072,6 +180072,228 @@
     "pct": -1.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-10-19|FUT|FORCEMOT26OCTFUT",
+   "kind": "FUT",
+   "symbol": "FORCEMOT",
+   "contract": "FORCEMOT26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 25,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 17707,
+   "target": 18150,
+   "target2": 18592,
+   "stop": 17441,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 62.8,
+     "medianTradingDays": 0.231
+    },
+    "target": {
+     "probabilityPct": 73,
+     "medianTradingDays": 2.76
+    },
+    "sigmaPct": 26.3,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T05:44:53.340Z",
+   "hoursToFill": 1.95,
+   "closedAt": "2026-10-19T05:44:53.340Z",
+   "exitPrice": 17441,
+   "exitReason": "STOP",
+   "hoursFillToExit": 0,
+   "sessionsHeld": 0,
+   "best": 17707,
+   "worst": 17432,
+   "last": 17441,
+   "lastAt": "2026-10-19T05:44:53.340Z",
+   "marks": 7,
+   "obs": {
+    "date": "2026-10-19",
+    "high": 17984,
+    "low": 17432,
+    "last": 17441
+   },
+   "pnl": {
+    "perUnit": -266,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-16|CE|FORCEMOT26OCT18500CE",
+   "kind": "CE",
+   "symbol": "FORCEMOT",
+   "contract": "FORCEMOT26OCT18500CE",
+   "expiry": "2026-10-27",
+   "strike": 18500,
+   "optionType": "CE",
+   "lotSize": 25,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T04:46:18.485Z",
+   "buy": 148.4,
+   "target": 222.6,
+   "target2": null,
+   "stop": 74.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 35.9,
+     "medianDays": 5.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-16T04:46:19.338Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-19T05:44:53.340Z",
+   "exitPrice": 74.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 72.98,
+   "sessionsHeld": 1,
+   "best": 165,
+   "worst": 70,
+   "last": 70.65,
+   "lastAt": "2026-10-19T05:44:53.340Z",
+   "marks": 32,
+   "obs": {
+    "date": "2026-10-19",
+    "high": 162.35,
+    "low": 70,
+    "last": 70.65
+   },
+   "pnl": {
+    "perUnit": -74.2,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -1855,
+    "netPerLot": -1907.43
+   }
+  },
+  {
+   "id": "2026-10-15|PE|PRESTIGE26OCT1460PE",
+   "kind": "PE",
+   "symbol": "PRESTIGE",
+   "contract": "PRESTIGE26OCT1460PE",
+   "expiry": "2026-10-27",
+   "strike": 1460,
+   "optionType": "PE",
+   "lotSize": 450,
+   "sessionDate": "2026-10-15",
+   "shownAt": "2026-10-15T04:05:44.488Z",
+   "buy": 26.75,
+   "target": 40.15,
+   "target2": null,
+   "stop": 13.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.5,
+     "medianDays": 3.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-15T04:45:33.729Z",
+   "hoursToFill": 0.66,
+   "closedAt": "2026-10-19T05:44:53.340Z",
+   "exitPrice": 13.4,
+   "exitReason": "STOP",
+   "hoursFillToExit": 96.99,
+   "sessionsHeld": 2,
+   "best": 27.35,
+   "worst": 13,
+   "last": 14.85,
+   "lastAt": "2026-10-19T05:44:53.340Z",
+   "marks": 60,
+   "obs": {
+    "date": "2026-10-19",
+    "high": 20,
+    "low": 13,
+    "last": 14.85
+   },
+   "pnl": {
+    "perUnit": -13.35,
+    "pct": -49.91,
+    "basis": "NET",
+    "perLot": -6007.5,
+    "netPerLot": -6071.7
+   }
+  },
+  {
+   "id": "2026-10-12|CE|AUROPHARMA26OCT1640CE",
+   "kind": "CE",
+   "symbol": "AUROPHARMA",
+   "contract": "AUROPHARMA26OCT1640CE",
+   "expiry": "2026-10-27",
+   "strike": 1640,
+   "optionType": "CE",
+   "lotSize": 550,
+   "sessionDate": "2026-10-12",
+   "shownAt": "2026-10-12T05:05:44.144Z",
+   "buy": 72.45,
+   "target": 108.7,
+   "target2": null,
+   "stop": 36.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 52.1,
+     "medianDays": 4.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-12T05:05:44.159Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-19T05:44:53.340Z",
+   "exitPrice": 36.25,
+   "exitReason": "STOP",
+   "hoursFillToExit": 168.65,
+   "sessionsHeld": 5,
+   "best": 82,
+   "worst": 36.25,
+   "last": 36.25,
+   "lastAt": "2026-10-19T05:44:53.340Z",
+   "marks": 138,
+   "obs": {
+    "date": "2026-10-19",
+    "high": 53.1,
+    "low": 36.25,
+    "last": 36.25
+   },
+   "pnl": {
+    "perUnit": -36.2,
+    "pct": -49.97,
+    "basis": "NET",
+    "perLot": -19910,
+    "netPerLot": -20013.44
+   }
   }
  ]
 }
