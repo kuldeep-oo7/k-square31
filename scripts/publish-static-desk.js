@@ -944,6 +944,15 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     springyDip: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "springy-dip.json"), "utf8")); } catch { return null; } })(),
     kronos: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "kronos.json"), "utf8")); } catch { return null; } })(),
     oiFlow: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "oi-flow.json"), "utf8")); } catch { return null; } })(),
+    // The last ~25 share closes for each stock on the focus and Kronos lists (the build's bar cache), for the slip charts.
+    sparks: (() => { try {
+      const bc = require("../api/_lib/bar-cache"); const read = (f) => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", f), "utf8")); } catch { return null; } };
+      const syms = new Set((read("oi-flow.json")?.SB?.pending || []).map((p) => p.symbol));
+      const kd = Object.values(read("kronos.json")?.days || {}).sort((x, y) => (x.entry < y.entry ? -1 : 1)).slice(-2);
+      for (const day of kd) for (const p of [...(day.long || []), ...(day.short || [])]) syms.add(p.symbol);
+      const out = {}; for (const s of syms) { const c = (bc.getCachedBars(s, Infinity)?.bars || []).slice(-25).map((x) => [x.timestamp, Number(x.close)]).filter(([, v]) => v > 0); if (c.length >= 5) out[s] = c; }
+      return out;
+    } catch { return {}; } })(),
     // Live open / gap / last / paper P&L for today's short build-up and Kronos lists (api/_lib/paper-live.js),
     // information only, in session only; null whenever anything is missing, so it can never break the build.
     paperLive: (() => { try {
@@ -1031,6 +1040,50 @@ function paperLiveBlock(d, book) {
     <div class="sub">Angel One futures prices, refreshed with each build (about every 20 minutes). Your GM fills will differ.</div></div>`;
 }
 
+// A SMALL PRICE CHART for a slip: the last ~25 share closes (the build's own bar cache, Yahoo adjusted), the last
+// close marked, high and low printed. Server-drawn SVG, no script; nothing when fewer than 5 closes are on hand.
+function sparkSvg(series, label) {
+  const c = (series || []).map((x) => Number(x[1])).filter((v) => v > 0); if (c.length < 5) return "";
+  const W = 300, H = 70, lo = Math.min(...c), hi = Math.max(...c), n = c.length;
+  const x = (i) => 2 + i * (W - 60) / (n - 1), y = (v) => 6 + (hi - v) / (hi - lo || 1) * (H - 12);
+  const pts = c.map((v, i) => `${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(" ");
+  const fmt = (v) => Number(v).toLocaleString("en-IN", { maximumFractionDigits: v < 100 ? 2 : 0 });
+  return `<svg class="spark" viewBox="0 0 ${W} ${H}" role="img" aria-label="${esc(label)}: last ${n} share closes, from ${esc(fmt(c[0]))} to ${esc(fmt(c[n - 1]))}">
+    <polyline points="${pts}" fill="none" stroke="currentColor" stroke-width="1.6" stroke-linejoin="round" stroke-linecap="round"/>
+    <circle cx="${x(n - 1).toFixed(1)}" cy="${y(c[n - 1]).toFixed(1)}" r="3.5" class="spark-dot"/>
+    <text x="${W}" y="12" text-anchor="end">${esc(fmt(hi))}</text><text x="${W}" y="${H - 2}" text-anchor="end">${esc(fmt(lo))}</text></svg>`;
+}
+
+// ONE SLIP PER STOCK on the focus list (owner, 19 Oct 2026: tappable, with a chart). The summary line carries everything
+// needed to act (stock, the move that triggered it, the trade, and in session the paper result now); one tap opens the
+// chart and the plan in rupees. <details>: works with scripts off. Information and the tested rule are kept apart.
+function sbSlip(d, p) {
+  const mn = (v) => String(v).replace(/^-/, "&minus;");
+  const units = d.gmMinUnits || 20;
+  const live = (d.paperLive?.rows || []).find((r) => r.book === "SB" && r.symbol === p.symbol) || null;
+  const tone = (v) => (v > 0 ? "up" : v < 0 ? "down" : "");
+  const plus = (v) => `${v > 0 ? "+" : ""}${money(Math.round(v))}`;
+  const price = (v) => esc(Number(v).toLocaleString("en-IN"));
+  const series = d.sparks?.[p.symbol] || [];
+  const lastShare = series.length ? Number(series[series.length - 1][1]) : null;
+  const ref = live ? live.open : lastShare;
+  return `<details class="slip"><summary>
+      <span class="s-sym">${esc(p.symbol)}</span><span class="s-pill">Sell at open</span>
+      <span class="s-why">Price <b class="down">&#9660; ${mn(esc(p.pricePct))}%</b> &middot; OI <b class="up">&#9650; +${esc(p.oiPct)}%</b></span>
+      ${live ? `<span class="s-live ${tone(live.pnl)}">${plus(live.pnl)} now</span>` : `<span class="s-more"></span>`}
+    </summary><div class="s-body">
+      ${sparkSvg(series, p.symbol)}
+      <dl class="s-plan">
+        <dt>Contract</dt><dd class="t">Zerodha/GM: ${esc(p.symbol)} futures, nearest month</dd>
+        ${live ? `<dt>Sold at the open</dt><dd>${price(live.open)}${live.gapPct === null ? "" : ` (gap ${signedPct(round(live.gapPct))})`}</dd>
+        <dt>Now</dt><dd>${price(live.last)}</dd><dt>${esc(units)} units, now</dt><dd class="${tone(live.pnl)}">${plus(live.pnl)}</dd>` : ""}
+        ${ref ? `<dt>${esc(units)} units is about</dt><dd>${money(Math.round(ref * units))}</dd><dt>Each 1% move</dt><dd>${money(Math.round(ref * units / 100))}</dd>` : ""}
+        <dt>Trade (same day)</dt><dd class="t">SELL at the open, BUY BACK before the close</dd>
+      </dl>
+      <div class="sub">${live ? "Live prices: Angel One futures, refreshed each build; information only." : `Chart: the share price, last ${esc(series.length)} sessions${ref ? "; rupees from the last share close" : ""}.`} Your GM fills will differ.</div>
+    </div></details>`;
+}
+
 function sbFocusBox(d) {
   const of = d.oiFlow; if (!of || !of.SB) return "";
   const mn = (v) => String(v).replace(/^-/, "&minus;");
@@ -1070,7 +1123,7 @@ function sbFocusBox(d) {
     <div style="margin-top:6px">${!ready
       ? `<b class="warn">The list for ${day} is not ready yet</b> &mdash; it is made from NSE&rsquo;s evening files (data so far through ${esc(of.dataThrough || "?")}). Check again after 09:30.`
       : rows ? `<b>${day}:</b> these stocks fell at least 1.56% in the last session while their futures open interest rose at least 3.04% (new shorts piling in).
-        <div class="wrap"><table class="sbt"><thead><tr><th>STOCK</th><th class="num">PRICE</th><th class="num">OPEN INT.</th><th>TRADE (same day)</th></tr></thead><tbody>${rows}</tbody></table></div>`
+        <div class="slips">${pend.map((p) => sbSlip(d, p)).join("")}</div>`
       : `<b>No short build-up signal for ${day}.</b> No trade from this rule today.`}</div>
     ${target === d.sessionDate ? paperLiveBlock(d, "SB") : ""}
     ${lastFut}
@@ -1752,7 +1805,7 @@ function page(d) {
   const html = `<!doctype html>
 <html lang="en"><head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <title>K&sup2; Desk</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%230b0d12%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-size=%2716%27 text-anchor=%27middle%27 fill=%27%23f5b400%27 font-family=%27monospace%27%3EK%C2%B2%3C/text%3E%3C/svg%3E">
 <meta name="color-scheme" content="dark"><meta name="theme-color" content="#12161c">
 <link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -1867,6 +1920,32 @@ function page(d) {
     .wrap table.sbt tbody td:nth-child(2), .wrap table.sbt tbody td:nth-child(3) { text-align:right }
     .wrap table.sbt tbody td:nth-child(4) { grid-column:1 / -1; font-size:12px; color:var(--muted) }
     .wrap table.sbt tbody td:nth-child(4)::before { display:none }
+  }
+  /* SLIPS (19 Oct 2026): one per stock on the focus list; tap for the chart and the plan in rupees. */
+  .slips { display:grid; gap:8px; margin:10px 0 4px }
+  @media (min-width: 900px) { .slips { grid-template-columns:repeat(3, minmax(0, 1fr)); align-items:start } }
+  details.slip { background:var(--raised); border:1px solid var(--line); border-left:3px solid var(--red); border-radius:12px; color:var(--text) }
+  details.slip > summary { list-style:none; cursor:pointer; padding:12px 14px; display:grid; grid-template-columns:1fr auto; gap:6px 10px; align-items:center; min-height:56px }
+  details.slip > summary::-webkit-details-marker { display:none }
+  .s-sym { font:600 18px/1.1 "IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif; letter-spacing:.02em }
+  .s-pill { justify-self:end; font-size:12px; font-weight:600; padding:5px 11px; border-radius:99px; color:var(--red); background:rgba(246,70,93,.13); white-space:nowrap }
+  .s-why { font-size:12px; color:var(--muted) } .s-why b { font-family:"IBM Plex Mono",ui-monospace,monospace; font-weight:500 }
+  .s-live, .s-more { justify-self:end; font:500 13px "IBM Plex Mono",ui-monospace,monospace; white-space:nowrap }
+  .s-more::after { content:"Chart ▸"; color:var(--blue); font-family:"IBM Plex Sans",system-ui,sans-serif; font-weight:600 }
+  details.slip[open] .s-more::after { content:"Close ▾" }
+  .s-body { padding:0 14px 14px }
+  svg.spark { display:block; width:100%; height:auto; color:var(--text); margin:2px 0 8px }
+  svg.spark text { fill:var(--muted); font:10px "IBM Plex Mono",ui-monospace,monospace }
+  svg.spark .spark-dot { fill:var(--red) }
+  dl.s-plan { display:grid; grid-template-columns:auto 1fr; gap:5px 12px; margin:0 0 8px; font-size:12.5px; border-top:1px solid var(--line); padding-top:8px }
+  dl.s-plan dt { color:var(--muted) } dl.s-plan dd { margin:0; text-align:right; font-family:"IBM Plex Mono",ui-monospace,monospace }
+  dl.s-plan dd.t { font-family:"IBM Plex Sans",system-ui,sans-serif }
+  /* THE TABS AT THE BOTTOM ON THE PHONE (19 Oct 2026: thumb reach on the S25; Samsung Internet keeps its own bar below). */
+  @media (max-width: 720px) {
+    body { padding-bottom:calc(86px + env(safe-area-inset-bottom)) }
+    .tabs { position:fixed; top:auto; bottom:0; left:0; right:0; margin:0; padding:8px 8px calc(8px + env(safe-area-inset-bottom));
+            background:rgba(18,22,28,.96); -webkit-backdrop-filter:blur(10px); backdrop-filter:blur(10px); border-top:1px solid var(--line); z-index:30 }
+    .tabs label { padding:12px 2px; border-radius:12px }
   }
   #v-fut:checked ~ .tabs .t-fut { color:var(--bg); background:var(--amber); border-color:var(--amber) }
   #v-ce:checked ~ .tabs .t-ce { color:var(--bg); background:var(--green); border-color:var(--green) }
