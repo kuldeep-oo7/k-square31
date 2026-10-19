@@ -385,7 +385,8 @@
   "OPTION|POWERGRID|POWERGRID26OCT245CE",
   "OPTION|HEROMOTOCO|HEROMOTOCO26OCT5100CE",
   "OPTION|POLICYBZR|POLICYBZR26OCT1000PE",
-  "OPTION|GVT&D|GVT&D26OCT3800PE"
+  "OPTION|GVT&D|GVT&D26OCT3800PE",
+  "OPTION|TIINDIA|TIINDIA26OCT2100PE"
  ],
  "options": {
   "HCLTECH26OCT1360CE": {
@@ -4901,6 +4902,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-19T09:04:55.870Z",
    "frozenAtIst": "2026-10-19 14:34 IST",
+   "frozenAtSpot": null
+  },
+  "TIINDIA26OCT2100PE": {
+   "buy": 17.1,
+   "sell": 25.65,
+   "stop": 8.55,
+   "tick": 0.05,
+   "lotSize": 200,
+   "expiry": "2026-10-27",
+   "strike": 2100,
+   "right": "PE",
+   "symbol": "TIINDIA",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T09:19:46.205Z",
+   "frozenAtIst": "2026-10-19 14:49 IST",
    "frozenAtSpot": null
   }
  },
