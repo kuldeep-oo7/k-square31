@@ -357,7 +357,10 @@
   "OPTION|HDFCBANK|HDFCBANK26OCT700CE",
   "OPTION|BANDHANBNK|BANDHANBNK26OCT162.5PE",
   "OPTION|MARUTI|MARUTI26OCT11900CE",
-  "OPTION|MFSL|MFSL26OCT1240PE"
+  "OPTION|MFSL|MFSL26OCT1240PE",
+  "OPTION|FEDERALBNK|FEDERALBNK26OCT340CE",
+  "OPTION|FEDERALBNK|FEDERALBNK26OCT345CE",
+  "OPTION|FORCEMOT|FORCEMOT26OCT17750CE"
  ],
  "options": {
   "HCLTECH26OCT1360CE": {
@@ -4453,6 +4456,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-19T04:44:48.116Z",
    "frozenAtIst": "2026-10-19 10:14 IST",
+   "frozenAtSpot": null
+  },
+  "FEDERALBNK26OCT340CE": {
+   "buy": 4.3,
+   "sell": 6.45,
+   "stop": 2.15,
+   "tick": 0.05,
+   "lotSize": 2500,
+   "expiry": "2026-10-27",
+   "strike": 340,
+   "right": "CE",
+   "symbol": "FEDERALBNK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T05:04:41.742Z",
+   "frozenAtIst": "2026-10-19 10:34 IST",
+   "frozenAtSpot": null
+  },
+  "FEDERALBNK26OCT345CE": {
+   "buy": 2.65,
+   "sell": 4,
+   "stop": 1.3,
+   "tick": 0.05,
+   "lotSize": 2500,
+   "expiry": "2026-10-27",
+   "strike": 345,
+   "right": "CE",
+   "symbol": "FEDERALBNK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T05:04:41.742Z",
+   "frozenAtIst": "2026-10-19 10:34 IST",
+   "frozenAtSpot": null
+  },
+  "FORCEMOT26OCT17750CE": {
+   "buy": 409.95,
+   "sell": 614.9,
+   "stop": 205,
+   "tick": 0.05,
+   "lotSize": 25,
+   "expiry": "2026-10-27",
+   "strike": 17750,
+   "right": "CE",
+   "symbol": "FORCEMOT",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T05:04:41.742Z",
+   "frozenAtIst": "2026-10-19 10:34 IST",
    "frozenAtSpot": null
   }
  },
