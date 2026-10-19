@@ -1,0 +1,15 @@
+name: macro-inventory
+# Macro pod, step 0 (scripts/macro-data-inventory.js): how far back each official source goes, counts only.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  inventory:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - run: node scripts/macro-data-inventory.js | tee inventory.txt | tee -a "$GITHUB_STEP_SUMMARY"
