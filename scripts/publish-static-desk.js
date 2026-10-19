@@ -965,6 +965,8 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       const inSession = !sessionOver && ledgerLib.isTradingDate(today) && Date.now() >= Date.parse(`${today}T09:15:00+05:30`);
       return paperLive({ requests, sessionDate: today, inSession, getQuote: (s, e) => live.liveFuture(s, e, { maxAgeMs: 45 * 60_000 }), feedDate: ledgerLib.feedDate, units: GM_MIN_UNITS });
     } catch { return null; } })(),
+    // FII / DII cash flows (scripts/flows-summary.js, NSE provisional, saved daily by the paper job). Information only.
+    flows: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "flows.json"), "utf8")); } catch { return null; } })(),
     forwardV2: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v2.json"), "utf8")); } catch { return null; } })(),
     forwardV3: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v3.json"), "utf8")); } catch { return null; } })(),
     forwardV4: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v4.json"), "utf8")); } catch { return null; } })(),
@@ -1038,6 +1040,17 @@ function paperLiveBlock(d, book) {
     <div class="sbgrid" style="grid-template-columns:1fr auto auto auto"><div class="h">STOCK</div><div class="h num">GAP</div><div class="h num">NOW</div><div class="h num">${esc(pl.units)} UNITS</div>${cells}</div>
     <div>${rows.length} priced &middot; <b class="${tone(total)}">${plus(total)}</b> so far, before GM&rsquo;s charges.</div>
     <div class="sub">Angel One futures prices, refreshed with each build (about every 20 minutes). Your GM fills will differ.</div></div>`;
+}
+
+// FII / DII LINE under the header (owner, 19 Oct 2026: FII selling dragged the index). NSE's own provisional cash-market
+// figures for the latest session we saved, and the total since the first saved day. Information, not a signal.
+function flowsLine(d) {
+  const f = d.flows; const last = f?.days?.[f.days.length - 1]; if (!last) return "";
+  const cr = (v) => `<b class="${v > 0 ? "up" : v < 0 ? "down" : ""}">${v > 0 ? "+" : v < 0 ? "&minus;" : ""}&#8377;${esc(Math.abs(Math.round(v)).toLocaleString("en-IN"))} cr</b>`;
+  const day = new Date(`${last.date}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  const since = f.since ? new Date(`${f.since}T00:00:00Z`).toLocaleDateString("en-GB", { day: "numeric", month: "short", timeZone: "UTC" }) : "?";
+  return `<div class="stamp flows">Money flow, ${esc(day)} (NSE, provisional): foreign investors (FII) ${cr(last.fii)} &middot; domestic institutions (DII) ${cr(last.dii)}
+    &middot; since ${esc(since)} (${esc(f.sessions)} sessions): FII ${cr(f.fiiTotal)}, DII ${cr(f.diiTotal)} &middot; information, not a signal</div>`;
 }
 
 // A SMALL PRICE CHART for a slip: the last ~25 share closes (the build's own bar cache, Yahoo adjusted), the last
@@ -1957,6 +1970,7 @@ function page(d) {
   ${esc(Number(d.examined).toLocaleString("en-IN"))} contracts examined, ${esc(Number(d.survived).toLocaleString("en-IN"))} cleared every gate${d.marketContext?.ok
     ? ` &middot; India VIX <b>${esc(d.marketContext.indiaVix)}</b> (${signedPct(d.marketContext.indiaVixChangePct)}) &middot; Nifty ${esc(Number(d.marketContext.nifty).toLocaleString("en-IN"))} (${signedPct(d.marketContext.niftyChangePct)}), ${ctxWhen}`
     : " &middot; India VIX not read this build"}</div>
+${flowsLine(d)}
 
 <div class="note ${d.levelsFrozen ? "frozen" : ""}"><details class="fold"><summary>${freezeHead}<span class="more"></span></summary><div>${freezeRest}</div></details></div>
 <div class="note direction" style="border-left-color:var(--${dirTone})"><details class="fold"><summary>${dirHead}<span class="more"></span></summary><div>${dirRest}</div></details></div>
@@ -2255,7 +2269,7 @@ async function main() {
   return data;
 }
 
-module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox };
+module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine };
 
 // Exported above so a test can drive build() twice and prove the levels did not
 // move. Run directly, it is still just a build.

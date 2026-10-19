@@ -107,11 +107,12 @@ jobs:
           K2_CM_DIR=nse-data/cm K2_IDX_DIR=nse-idx K2_OPT_DIR=nse-extra/opt node scripts/forward-v2.js | tee -a "$GITHUB_STEP_SUMMARY"
           K2_CM_DIR=nse-data/cm K2_SOPT_DIR=nse-sopt K2_INDUSTRY=industries.json node scripts/forward-v3.js | tee -a "$GITHUB_STEP_SUMMARY"
           K2_CM_DIR=nse-data/cm K2_SLB_DIR=nse-slb/slb_openpos K2_FUT_DIR=nse-fo/fut node scripts/forward-v4.js | tee -a "$GITHUB_STEP_SUMMARY"
+          node scripts/flows-summary.js nse-flows docs/paper-rules/flows.json | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Commit the list
         run: |
           git config user.name "k2-desk-bot"
           git config user.email "k2-desk-bot@users.noreply.github.com"
-          git add docs/paper-rules/springy-dip.json docs/paper-rules/oi-flow.json docs/paper-rules/forward-v2.json docs/paper-rules/forward-v3.json docs/paper-rules/forward-v4.json
+          git add docs/paper-rules/springy-dip.json docs/paper-rules/oi-flow.json docs/paper-rules/forward-v2.json docs/paper-rules/forward-v3.json docs/paper-rules/forward-v4.json docs/paper-rules/flows.json
           git diff --cached --quiet && { echo "no change"; exit 0; }
           git commit -m "paper rules: forward tests updated"
           for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin HEAD:main && exit 0; sleep 10; done

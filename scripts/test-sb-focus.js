@@ -77,4 +77,13 @@ fsx.rmSync(dir, { recursive: true, force: true });
   h = sbFocusBox({ ...inS, paperLive: null });
   check("no quotes: no live line, the list is still shown", !h.includes("Live now") && h.includes("DIXON"));
 }
+// FII / DII line (information only): latest saved day and the total since the first; nothing when there is no file.
+{
+  const { flowsLine } = require("./publish-static-desk");
+  const f = { since: "2026-10-09", sessions: 2, fiiTotal: -2000.5, diiTotal: 3000, days: [{ date: "2026-10-16", fii: -851.86, dii: -201 }, { date: "2026-10-19", fii: -1148.64, dii: 3201.19 }] };
+  const line = flowsLine({ flows: f });
+  check("flows line: the latest day, signed, in crore", line.includes("Mon 19 Oct") && line.includes("&minus;&#8377;1,149 cr") && line.includes("+&#8377;3,201 cr"));
+  check("flows line: the total since the first saved day, marked as not a signal", line.includes("since 9 Oct (2 sessions)") && line.includes("information, not a signal"));
+  check("flows line: nothing without a file", flowsLine({}) === "" && flowsLine({ flows: { days: [] } }) === "");
+}
 console.log(failed ? `${failed} failed` : "sb focus box tests passed"); process.exit(failed ? 1 : 0);
