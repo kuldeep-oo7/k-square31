@@ -71,6 +71,10 @@ and no `research/`. This file carries what it needs. Nothing secret belongs here
   of FUTURES (sbFocusBox, never folded on the phone), for GM Global (paper) only, until its forward verdict (100 trades +
   3 months from 5 Oct, ~Jan 2027). Signals from docs/paper-rules/oi-flow.json; a list made for another session is never
   shown. The NSE downloaders fetch today's file from 19:00 IST so the evening job makes the next day's list.
+- **Live now (18 Oct 2026):** in session, the focus box and Kronos box show each listed future's open, gap from the PREVIOUS close, last
+  price and paper P&L (api/_lib/paper-live.js; Angel `close` = previous close, checked vs NSE). Information only; rules unchanged.
+- **Look (19 Oct 2026):** graphite tokens + IBM Plex Sans/Mono/Condensed (publish-static-desk.js :root). Owner reads in Samsung Internet on the S25;
+  wants a researched trading-app look with charts and interaction, not a template. Keep token names; never remove features.
 - Futures geometry (`api/_lib/session-levels.js`):
   - buy = open × 0.992, rounded down to 0.05;
   - target +2.5%, stop −1.5%;
