@@ -374,13 +374,17 @@ async function refreshQuotes(requests, { provider = null, concurrency = 1 } = {}
     }
   }
 
+  // KEEP THE FUTURES (19 Oct 2026). This save replaced the whole cache, so every futures price stored before it was lost;
+  // the engine re-added only its own universe, and a paper-list future outside it (ATHERENERG, all day) vanished.
+  const before = load() || {};
   save({
     provider: active,
     fetchedAt,
     symbolCount: symbolsDone,
     quoteCount: Object.keys(quotes).length,
     failures: failures.slice(0, 20),
-    quotes
+    quotes,
+    ...(before.futures ? { futures: before.futures, futuresCount: Object.keys(before.futures).length } : {})
   });
   return { ok: symbolsDone > 0, provider: active, refreshed: symbolsDone, requested: list.length, failures };
 }
