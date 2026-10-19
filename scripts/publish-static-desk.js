@@ -1070,7 +1070,7 @@ function sbFocusBox(d) {
     <div style="margin-top:6px">${!ready
       ? `<b class="warn">The list for ${day} is not ready yet</b> &mdash; it is made from NSE&rsquo;s evening files (data so far through ${esc(of.dataThrough || "?")}). Check again after 09:30.`
       : rows ? `<b>${day}:</b> these stocks fell at least 1.56% in the last session while their futures open interest rose at least 3.04% (new shorts piling in).
-        <div class="wrap"><table><thead><tr><th>STOCK</th><th class="num">PRICE</th><th class="num">OPEN INT.</th><th>TRADE (same day)</th></tr></thead><tbody>${rows}</tbody></table></div>`
+        <div class="wrap"><table class="sbt"><thead><tr><th>STOCK</th><th class="num">PRICE</th><th class="num">OPEN INT.</th><th>TRADE (same day)</th></tr></thead><tbody>${rows}</tbody></table></div>`
       : `<b>No short build-up signal for ${day}.</b> No trade from this rule today.`}</div>
     ${target === d.sessionDate ? paperLiveBlock(d, "SB") : ""}
     ${lastFut}
@@ -1754,16 +1754,27 @@ function page(d) {
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>K&sup2; Desk</title><link rel="icon" href="data:image/svg+xml,%3Csvg xmlns=%27http://www.w3.org/2000/svg%27 viewBox=%270 0 32 32%27%3E%3Crect width=%2732%27 height=%2732%27 rx=%276%27 fill=%27%230b0d12%27/%3E%3Ctext x=%2716%27 y=%2722%27 font-size=%2716%27 text-anchor=%27middle%27 fill=%27%23f5b400%27 font-family=%27monospace%27%3EK%C2%B2%3C/text%3E%3C/svg%3E">
+<meta name="color-scheme" content="dark"><meta name="theme-color" content="#12161c">
+<link rel="preconnect" href="https://fonts.googleapis.com"><link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans+Condensed:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
 <style>
-  :root { color-scheme: dark; --bg:#0c0d14; --panel:#14161f; --line:#262a40; --muted:#8e93a6;
-          --text:#e6e8f0; --green:#00e676; --red:#ff5252; --amber:#ffb300; }
+  /* LOOK (19 Oct 2026, owner: "improve the color combination and the scheme and the fonts"), from how trading apps are
+     built: calm graphite instead of near-black, standard but not neon green/red for change only, marigold for paper
+     tests and warnings, blue for what you can tap; IBM Plex Sans for words, Plex Mono (tabular) for every number,
+     Plex Sans Condensed for headings and tabs. The tokens keep their old names, so every tab follows. */
+  :root { color-scheme: dark; --bg:#12161c; --panel:#1a1f27; --raised:#222833; --line:#2c3340; --muted:#8c95a3;
+          --text:#e8ebef; --green:#2ebd85; --red:#f6465d; --amber:#f2b33d; --blue:#5b9dff; }
   * { box-sizing:border-box }
   body { margin:0; background:var(--bg); color:var(--text);
-         font:14px/1.5 ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; padding:14px }
-  h1 { font-size:18px; margin:0 0 4px } h2 { font-size:15px; margin:26px 0 8px }
+         font:14px/1.55 "IBM Plex Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif; font-variant-numeric:tabular-nums; padding:14px; -webkit-text-size-adjust:100% }
+  h1, h2, .tabs label { font-family:"IBM Plex Sans Condensed","IBM Plex Sans",system-ui,sans-serif; letter-spacing:.01em }
+  .num, code, .amt, td.num, .sbgrid .num { font-family:"IBM Plex Mono",ui-monospace,SFMono-Regular,Menlo,Consolas,monospace; font-variant-numeric:tabular-nums }
+  a { color:var(--blue) }
+  h1 { font-size:22px; font-weight:700; margin:0 0 4px } h2 { font-size:17px; font-weight:600; margin:26px 0 8px }
   .stamp { color:var(--muted); font-size:12px; margin-bottom:14px }
-  .note { border:1px solid var(--line); border-left:3px solid var(--amber); border-radius:8px;
-          padding:10px 12px; margin-bottom:16px; font-size:12px; line-height:1.6; color:var(--muted) }
+  .note { border:1px solid var(--line); border-left:3px solid var(--amber); border-radius:12px; background:var(--panel);
+          padding:12px 14px; margin-bottom:16px; font-size:13px; line-height:1.6; color:var(--muted) }
+  .note b { color:var(--text) } .note b.warn { color:var(--amber) } .note b.up { color:var(--green) } .note b.down { color:var(--red) }
   .note.frozen { border-left-color:var(--green) }
   /* PHONE: explanations show their first lines; one tap opens them (owner, 11 Oct 2026: "only useful
      information, not the lectures"; Galaxy S25, a 360 px page). Nothing is removed. */
@@ -1823,7 +1834,7 @@ function page(d) {
   .pane h2 { margin-top:8px }
   #v-fut:checked ~ .pane-fut, #v-ce:checked ~ .pane-ce, #v-pe:checked ~ .pane-pe,
   #v-trk:checked ~ .pane-trk { display:block }
-  #v-trk:checked ~ .tabs .t-trk { color:var(--bg); background:#40c4ff; border-color:#40c4ff }
+  #v-trk:checked ~ .tabs .t-trk { color:var(--bg); background:var(--blue); border-color:var(--blue) }
   /* Four tabs on a 360px phone: tighter, never wrapping into two rows. */
   @media (max-width: 480px) {
     .tabs { gap:4px }
@@ -1848,6 +1859,14 @@ function page(d) {
       letter-spacing:.06em; color:var(--muted); margin-bottom:2px }
     .wrap tbody td[data-label]:first-child::before { display:none } /* outranks the label rule above */
     table.summary .sub { max-width:none; margin-left:0 }
+  }
+  /* The focus list on the phone: one compact card per stock (symbol, price, open interest on one line; the trade under it). */
+  @media (max-width: 720px) {
+    .wrap table.sbt tbody tr { grid-template-columns:1fr auto auto; gap:2px 14px; padding:10px 12px; margin-bottom:8px; align-items:end }
+    .wrap table.sbt tbody td:first-child { grid-column:1 }
+    .wrap table.sbt tbody td:nth-child(2), .wrap table.sbt tbody td:nth-child(3) { text-align:right }
+    .wrap table.sbt tbody td:nth-child(4) { grid-column:1 / -1; font-size:12px; color:var(--muted) }
+    .wrap table.sbt tbody td:nth-child(4)::before { display:none }
   }
   #v-fut:checked ~ .tabs .t-fut { color:var(--bg); background:var(--amber); border-color:var(--amber) }
   #v-ce:checked ~ .tabs .t-ce { color:var(--bg); background:var(--green); border-color:var(--green) }
