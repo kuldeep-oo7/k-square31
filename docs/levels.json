@@ -381,7 +381,8 @@
   "OPTION|HCLTECH|HCLTECH26OCT1330CE",
   "OPTION|HINDALCO|HINDALCO26OCT880CE",
   "OPTION|HAL|HAL26OCT4850CE",
-  "OPTION|AUBANK|AUBANK26OCT940PE"
+  "OPTION|AUBANK|AUBANK26OCT940PE",
+  "OPTION|POWERGRID|POWERGRID26OCT245CE"
  ],
  "options": {
   "HCLTECH26OCT1360CE": {
@@ -4837,6 +4838,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-19T08:24:52.551Z",
    "frozenAtIst": "2026-10-19 13:54 IST",
+   "frozenAtSpot": null
+  },
+  "POWERGRID26OCT245CE": {
+   "buy": 6,
+   "sell": 9,
+   "stop": 3,
+   "tick": 0.05,
+   "lotSize": 1900,
+   "expiry": "2026-10-27",
+   "strike": 245,
+   "right": "CE",
+   "symbol": "POWERGRID",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T08:44:32.217Z",
+   "frozenAtIst": "2026-10-19 14:14 IST",
    "frozenAtSpot": null
   }
  },
