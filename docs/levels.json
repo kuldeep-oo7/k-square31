@@ -375,7 +375,9 @@
   "OPTION|ONGC|ONGC26OCT220CE",
   "OPTION|SBIN|SBIN26OCT950CE",
   "OPTION|KOTAKBANK|KOTAKBANK26OCT430CE",
-  "OPTION|TMPV|TMPV26OCT275CE"
+  "OPTION|TMPV|TMPV26OCT275CE",
+  "OPTION|TATAPOWER|TATAPOWER26OCT345CE",
+  "OPTION|PFC|PFC26OCT325CE"
  ],
  "options": {
   "HCLTECH26OCT1360CE": {
@@ -4741,6 +4743,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-19T06:44:53.068Z",
    "frozenAtIst": "2026-10-19 12:14 IST",
+   "frozenAtSpot": null
+  },
+  "TATAPOWER26OCT345CE": {
+   "buy": 8.05,
+   "sell": 12.1,
+   "stop": 4.05,
+   "tick": 0.05,
+   "lotSize": 1450,
+   "expiry": "2026-10-27",
+   "strike": 345,
+   "right": "CE",
+   "symbol": "TATAPOWER",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T07:24:38.493Z",
+   "frozenAtIst": "2026-10-19 12:54 IST",
+   "frozenAtSpot": null
+  },
+  "PFC26OCT325CE": {
+   "buy": 10.5,
+   "sell": 15.75,
+   "stop": 5.25,
+   "tick": 0.05,
+   "lotSize": 1300,
+   "expiry": "2026-10-27",
+   "strike": 325,
+   "right": "CE",
+   "symbol": "PFC",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T07:24:38.493Z",
+   "frozenAtIst": "2026-10-19 12:54 IST",
    "frozenAtSpot": null
   }
  },
