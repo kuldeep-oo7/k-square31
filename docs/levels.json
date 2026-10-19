@@ -371,7 +371,11 @@
   "OPTION|TIINDIA|TIINDIA26OCT2250PE",
   "OPTION|CUMMINSIND|CUMMINSIND26OCT4500PE",
   "OPTION|CUMMINSIND|CUMMINSIND26OCT4550PE",
-  "OPTION|PATANJALI|PATANJALI26OCT350CE"
+  "OPTION|PATANJALI|PATANJALI26OCT350CE",
+  "OPTION|ONGC|ONGC26OCT220CE",
+  "OPTION|SBIN|SBIN26OCT950CE",
+  "OPTION|KOTAKBANK|KOTAKBANK26OCT430CE",
+  "OPTION|TMPV|TMPV26OCT275CE"
  ],
  "options": {
   "HCLTECH26OCT1360CE": {
@@ -4677,6 +4681,66 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-19T06:04:35.154Z",
    "frozenAtIst": "2026-10-19 11:34 IST",
+   "frozenAtSpot": null
+  },
+  "ONGC26OCT220CE": {
+   "buy": 4.74,
+   "sell": 7.12,
+   "stop": 2.37,
+   "tick": 0.01,
+   "lotSize": 2250,
+   "expiry": "2026-10-27",
+   "strike": 220,
+   "right": "CE",
+   "symbol": "ONGC",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T06:44:53.068Z",
+   "frozenAtIst": "2026-10-19 12:14 IST",
+   "frozenAtSpot": null
+  },
+  "SBIN26OCT950CE": {
+   "buy": 25,
+   "sell": 37.5,
+   "stop": 12.5,
+   "tick": 0.05,
+   "lotSize": 750,
+   "expiry": "2026-10-27",
+   "strike": 950,
+   "right": "CE",
+   "symbol": "SBIN",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T06:44:53.068Z",
+   "frozenAtIst": "2026-10-19 12:14 IST",
+   "frozenAtSpot": null
+  },
+  "KOTAKBANK26OCT430CE": {
+   "buy": 14.35,
+   "sell": 21.5,
+   "stop": 7.2,
+   "tick": 0.05,
+   "lotSize": 2000,
+   "expiry": "2026-10-27",
+   "strike": 430,
+   "right": "CE",
+   "symbol": "KOTAKBANK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T06:44:53.068Z",
+   "frozenAtIst": "2026-10-19 12:14 IST",
+   "frozenAtSpot": null
+  },
+  "TMPV26OCT275CE": {
+   "buy": 9,
+   "sell": 13.5,
+   "stop": 4.5,
+   "tick": 0.05,
+   "lotSize": 1600,
+   "expiry": "2026-10-27",
+   "strike": 275,
+   "right": "CE",
+   "symbol": "TMPV",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T06:44:53.068Z",
+   "frozenAtIst": "2026-10-19 12:14 IST",
    "frozenAtSpot": null
   }
  },
