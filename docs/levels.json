@@ -377,7 +377,11 @@
   "OPTION|KOTAKBANK|KOTAKBANK26OCT430CE",
   "OPTION|TMPV|TMPV26OCT275CE",
   "OPTION|TATAPOWER|TATAPOWER26OCT345CE",
-  "OPTION|PFC|PFC26OCT325CE"
+  "OPTION|PFC|PFC26OCT325CE",
+  "OPTION|HCLTECH|HCLTECH26OCT1330CE",
+  "OPTION|HINDALCO|HINDALCO26OCT880CE",
+  "OPTION|HAL|HAL26OCT4850CE",
+  "OPTION|AUBANK|AUBANK26OCT940PE"
  ],
  "options": {
   "HCLTECH26OCT1360CE": {
@@ -4773,6 +4777,66 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-19T07:24:38.493Z",
    "frozenAtIst": "2026-10-19 12:54 IST",
+   "frozenAtSpot": null
+  },
+  "HCLTECH26OCT1330CE": {
+   "buy": 44.2,
+   "sell": 66.3,
+   "stop": 22.1,
+   "tick": 0.05,
+   "lotSize": 400,
+   "expiry": "2026-10-27",
+   "strike": 1330,
+   "right": "CE",
+   "symbol": "HCLTECH",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T08:24:52.551Z",
+   "frozenAtIst": "2026-10-19 13:54 IST",
+   "frozenAtSpot": null
+  },
+  "HINDALCO26OCT880CE": {
+   "buy": 29.8,
+   "sell": 44.7,
+   "stop": 14.9,
+   "tick": 0.05,
+   "lotSize": 700,
+   "expiry": "2026-10-27",
+   "strike": 880,
+   "right": "CE",
+   "symbol": "HINDALCO",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T08:24:52.551Z",
+   "frozenAtIst": "2026-10-19 13:54 IST",
+   "frozenAtSpot": null
+  },
+  "HAL26OCT4850CE": {
+   "buy": 135.75,
+   "sell": 203.65,
+   "stop": 67.9,
+   "tick": 0.05,
+   "lotSize": 150,
+   "expiry": "2026-10-27",
+   "strike": 4850,
+   "right": "CE",
+   "symbol": "HAL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T08:24:52.551Z",
+   "frozenAtIst": "2026-10-19 13:54 IST",
+   "frozenAtSpot": null
+  },
+  "AUBANK26OCT940PE": {
+   "buy": 8.8,
+   "sell": 13.2,
+   "stop": 4.4,
+   "tick": 0.05,
+   "lotSize": 1000,
+   "expiry": "2026-10-27",
+   "strike": 940,
+   "right": "PE",
+   "symbol": "AUBANK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T08:24:52.551Z",
+   "frozenAtIst": "2026-10-19 13:54 IST",
    "frozenAtSpot": null
   }
  },
