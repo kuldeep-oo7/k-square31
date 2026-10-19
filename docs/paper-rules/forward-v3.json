@@ -2,14 +2,154 @@
  "preregistration": "studies/forward-v3-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
  "start": "2026-10-05",
- "dataThrough": "2026-10-16",
- "builtAt": "2026-10-19T11:05:55.511Z",
+ "dataThrough": "2026-10-19",
+ "builtAt": "2026-10-19T16:29:51.034Z",
  "industries": 2584,
  "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
  "CHEAPVOL": {
   "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
   "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months — just short of the bar",
   "trades": [
+   {
+    "symbol": "GLENMARK",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 2220,
+    "entry": 70.55,
+    "ivPct": 27,
+    "rvPct": 34.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BOSCHLTD",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 45000,
+    "entry": 1150.3,
+    "ivPct": 21.5,
+    "rvPct": 27.7,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "DMART",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 3300,
+    "entry": 89.45,
+    "ivPct": 22.9,
+    "rvPct": 31.9,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "HDFCLIFE",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 545,
+    "entry": 13.6,
+    "ivPct": 21.1,
+    "rvPct": 30.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "POLICYBZR",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 1040,
+    "entry": 46.85,
+    "ivPct": 38.2,
+    "rvPct": 162.4,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "DLF",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 670,
+    "entry": 17.55,
+    "ivPct": 22,
+    "rvPct": 28.4,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BAJAJ-AUTO",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 10300,
+    "entry": 252.4,
+    "ivPct": 20.7,
+    "rvPct": 35.4,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ADANIPORTS",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 1760,
+    "entry": 43.4,
+    "ivPct": 20.7,
+    "rvPct": 29.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ADANIENT",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 2650,
+    "entry": 92.4,
+    "ivPct": 29.4,
+    "rvPct": 37.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ITC",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 260,
+    "entry": 5.15,
+    "ivPct": 16.7,
+    "rvPct": 33.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "AXISBANK",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 1240,
+    "entry": 26.85,
+    "ivPct": 18.3,
+    "rvPct": 28.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BHARTIARTL",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 1880,
+    "entry": 34.35,
+    "ivPct": 15.5,
+    "rvPct": 26.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ICICIBANK",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 1380,
+    "entry": 26.9,
+    "ivPct": 16.4,
+    "rvPct": 21.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "HDFCBANK",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 710,
+    "entry": 15.3,
+    "ivPct": 18.1,
+    "rvPct": 23.2,
+    "status": "OPEN"
+   },
    {
     "symbol": "RADICO",
     "entryDate": "2026-10-16",
@@ -318,7 +458,10 @@
     "entry": 20.5,
     "ivPct": 35,
     "rvPct": 50,
-    "status": "OPEN"
+    "exitDate": "2026-10-19",
+    "exit": 14.6,
+    "netPct": -29.01,
+    "status": "DONE"
    },
    {
     "symbol": "SIEMENS",
@@ -328,7 +471,10 @@
     "entry": 169.95,
     "ivPct": 28.7,
     "rvPct": 35.9,
-    "status": "OPEN"
+    "exitDate": "2026-10-19",
+    "exit": 145.55,
+    "netPct": -14.614,
+    "status": "DONE"
    },
    {
     "symbol": "COCHINSHIP",
@@ -338,7 +484,10 @@
     "entry": 62.2,
     "ivPct": 31.1,
     "rvPct": 47.4,
-    "status": "OPEN"
+    "exitDate": "2026-10-19",
+    "exit": 43.95,
+    "netPct": -29.569,
+    "status": "DONE"
    },
    {
     "symbol": "BOSCHLTD",
@@ -348,7 +497,10 @@
     "entry": 1620.4,
     "ivPct": 22.4,
     "rvPct": 29.1,
-    "status": "OPEN"
+    "exitDate": "2026-10-19",
+    "exit": 1297.5,
+    "netPct": -20.173,
+    "status": "DONE"
    },
    {
     "symbol": "DMART",
@@ -358,7 +510,10 @@
     "entry": 128.85,
     "ivPct": 23.6,
     "rvPct": 32.2,
-    "status": "OPEN"
+    "exitDate": "2026-10-19",
+    "exit": 96.8,
+    "netPct": -25.11,
+    "status": "DONE"
    },
    {
     "symbol": "HDFCLIFE",
@@ -368,7 +523,10 @@
     "entry": 25.95,
     "ivPct": 28.6,
     "rvPct": 35.9,
-    "status": "OPEN"
+    "exitDate": "2026-10-19",
+    "exit": 19,
+    "netPct": -27.015,
+    "status": "DONE"
    },
    {
     "symbol": "POLICYBZR",
@@ -378,7 +536,10 @@
     "entry": 72.3,
     "ivPct": 42.6,
     "rvPct": 163.3,
-    "status": "OPEN"
+    "exitDate": "2026-10-19",
+    "exit": 46.85,
+    "netPct": -35.417,
+    "status": "DONE"
    },
    {
     "symbol": "SOLARINDS",
@@ -388,7 +549,10 @@
     "entry": 1080,
     "ivPct": 32.8,
     "rvPct": 62,
-    "status": "OPEN"
+    "exitDate": "2026-10-19",
+    "exit": 846.95,
+    "netPct": -21.821,
+    "status": "DONE"
    },
    {
     "symbol": "BAJAJ-AUTO",
@@ -398,7 +562,10 @@
     "entry": 365.55,
     "ivPct": 22.5,
     "rvPct": 33.6,
-    "status": "OPEN"
+    "exitDate": "2026-10-19",
+    "exit": 389.15,
+    "netPct": 6.159,
+    "status": "DONE"
    },
    {
     "symbol": "ADANIPORTS",
@@ -408,7 +575,10 @@
     "entry": 69.35,
     "ivPct": 24.4,
     "rvPct": 35.8,
-    "status": "OPEN"
+    "exitDate": "2026-10-19",
+    "exit": 43.4,
+    "netPct": -37.631,
+    "status": "DONE"
    },
    {
     "symbol": "ADANIENT",
@@ -418,7 +588,10 @@
     "entry": 137.2,
     "ivPct": 32.2,
     "rvPct": 40.3,
-    "status": "OPEN"
+    "exitDate": "2026-10-19",
+    "exit": 92.4,
+    "netPct": -32.875,
+    "status": "DONE"
    },
    {
     "symbol": "ITC",
@@ -428,7 +601,10 @@
     "entry": 8.55,
     "ivPct": 20.4,
     "rvPct": 34.6,
-    "status": "OPEN"
+    "exitDate": "2026-10-19",
+    "exit": 6.15,
+    "netPct": -28.301,
+    "status": "DONE"
    },
    {
     "symbol": "BHARTIARTL",
@@ -438,7 +614,10 @@
     "entry": 44.45,
     "ivPct": 15.4,
     "rvPct": 23.2,
-    "status": "OPEN"
+    "exitDate": "2026-10-19",
+    "exit": 92.05,
+    "netPct": 106.597,
+    "status": "DONE"
    },
    {
     "symbol": "APLAPOLLO",
@@ -754,11 +933,11 @@
    }
   ],
   "summary": {
-   "finished": 24,
-   "meanPct": -8.452,
-   "winPct": 16.7,
-   "worstPct": -29.576,
-   "t": null,
+   "finished": 37,
+   "meanPct": -10.585,
+   "winPct": 16.2,
+   "worstPct": -37.631,
+   "t": -3.83,
    "verdict": "COLLECTING"
   }
  },
@@ -767,6 +946,40 @@
   "backtest": "+0.15% a rebalance, t 1.98, 248 rebalances over 60 months — just short of the bar",
   "status": "RUN",
   "rebalances": [
+   {
+    "date": "2026-10-19",
+    "long": [
+     "YESBANK",
+     "RBLBANK",
+     "OFSS",
+     "PERSISTENT",
+     "ANANTRAJ",
+     "ENRIN",
+     "SYRMA",
+     "CHENNPETRO",
+     "AZAD",
+     "GVT&D",
+     "POWERINDIA",
+     "DMART",
+     "NAUKRI"
+    ],
+    "short": [
+     "INFY",
+     "HINDPETRO",
+     "POLICYBZR",
+     "DLF",
+     "TCS",
+     "BANDHANBNK",
+     "HAL",
+     "ADANIENSOL",
+     "SUZLON",
+     "UPL",
+     "TECHM",
+     "WAAREEENER",
+     "APOLLO"
+    ],
+    "status": "OPEN"
+   },
    {
     "date": "2026-10-12",
     "long": [
@@ -846,55 +1059,9 @@
     "status": "DONE"
    }
   ],
-  "pending": {
-   "long": [
-    "YESBANK",
-    "RBLBANK",
-    "OFSS",
-    "PERSISTENT",
-    "ANANTRAJ",
-    "ENRIN",
-    "SYRMA",
-    "CHENNPETRO",
-    "AZAD",
-    "GVT&D",
-    "POWERINDIA",
-    "DMART",
-    "NAUKRI"
-   ],
-   "short": [
-    "INFY",
-    "HINDPETRO",
-    "POLICYBZR",
-    "DLF",
-    "TCS",
-    "BANDHANBNK",
-    "HAL",
-    "ADANIENSOL",
-    "SUZLON",
-    "UPL",
-    "TECHM",
-    "WAAREEENER",
-    "APOLLO"
-   ]
-  },
-  "pendingNoIndustry": [
-   "RBLBANK",
-   "ENRIN",
-   "SYRMA",
-   "AZAD",
-   "GVT&D",
-   "POWERINDIA",
-   "DMART",
-   "POLICYBZR",
-   "BANDHANBNK",
-   "HAL",
-   "ADANIENSOL",
-   "UPL",
-   "WAAREEENER",
-   "APOLLO"
-  ],
-  "sessionsToNext": 0,
+  "pending": null,
+  "pendingNoIndustry": [],
+  "sessionsToNext": 4,
   "summary": {
    "finished": 2,
    "meanPct": 0.91,

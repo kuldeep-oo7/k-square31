@@ -2,14 +2,54 @@
  "preregistration": "studies/forward-v4-2026-10-12/PREREGISTRATION.txt",
  "preregSha256": "a166456d30ddcfdd8cef3dbc16e02060273dc0f1931420fe3953973920f9f68d",
  "start": "2026-10-13",
- "dataThrough": "2026-10-16",
+ "dataThrough": "2026-10-19",
  "slbThrough": "2026-10-16",
  "slbFiles": 53,
- "builtAt": "2026-10-19T11:05:58.764Z",
+ "builtAt": "2026-10-19T16:29:55.946Z",
  "S2": {
   "rule": "When the shares out on loan in NSE's lending market (SLB) jump to at least 2x their 20-day average, and at least 1 lakh shares: short the stock at the open of the 2nd session after that day's file, cover at the close 5 sessions later",
   "backtest": "+0.26% a trade over the market, 55% winners, t 2.23, 2,085 trades over 61 months (NSE data atlas study, 12 Oct 2026) — promising, not proven",
   "trades": [
+   {
+    "symbol": "HDFCBANK",
+    "signalDate": "2026-10-15",
+    "entryDate": "2026-10-19",
+    "entry": 733.4,
+    "ratio": 2.08,
+    "outstanding": 1577941,
+    "hasFutures": true,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ICICIBANK",
+    "signalDate": "2026-10-15",
+    "entryDate": "2026-10-19",
+    "entry": 1405,
+    "ratio": 2.12,
+    "outstanding": 470469,
+    "hasFutures": true,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "PERSISTENT",
+    "signalDate": "2026-10-15",
+    "entryDate": "2026-10-19",
+    "entry": 5742,
+    "ratio": 2.99,
+    "outstanding": 614670,
+    "hasFutures": true,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "SONACOMS",
+    "signalDate": "2026-10-15",
+    "entryDate": "2026-10-19",
+    "entry": 796.3,
+    "ratio": 5.36,
+    "outstanding": 816370,
+    "hasFutures": true,
+    "status": "OPEN"
+   },
    {
     "symbol": "BEL",
     "signalDate": "2026-10-14",
@@ -94,22 +134,19 @@
     "symbol": "COCHINSHIP",
     "signalDate": "2026-10-09",
     "entryDate": "2026-10-13",
+    "exitDate": "2026-10-19",
     "entry": 1233,
+    "exit": 1226.5,
     "ratio": 2.27,
     "outstanding": 873301,
     "hasFutures": true,
-    "status": "OPEN"
+    "rawPct": 0.461,
+    "marketPct": -0.11,
+    "netPct": 0.35,
+    "status": "DONE"
    }
   ],
   "pending": [
-   {
-    "symbol": "PERSISTENT",
-    "signalDate": "2026-10-15",
-    "ratio": 2.99,
-    "outstanding": 614670,
-    "entry": "the open of the 2nd NSE session after 2026-10-15",
-    "hasFutures": true
-   },
    {
     "symbol": "SUZLON",
     "signalDate": "2026-10-16",
@@ -120,7 +157,11 @@
    }
   ],
   "summary": {
-   "finished": 0,
+   "finished": 1,
+   "meanPct": 0.35,
+   "winPct": 100,
+   "worstPct": 0.35,
+   "t": null,
    "verdict": "COLLECTING"
   }
  }

@@ -2,8 +2,8 @@
  "preregistration": "studies/oi-flow-forward-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
  "start": "2026-10-05",
- "dataThrough": "2026-10-16",
- "builtAt": "2026-10-19T11:05:49.605Z",
+ "dataThrough": "2026-10-19",
+ "builtAt": "2026-10-19T16:29:41.709Z",
  "LU": {
   "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
   "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
@@ -75,49 +75,121 @@
   "backtest": "FAILED (+0.296% / +0.020% / +0.131% a trade; final t 1.86, not enough after 12 tests)",
   "pending": [
    {
-    "symbol": "DIXON",
-    "signalDate": "2026-10-16",
-    "pricePct": -2.57,
-    "oiPct": 5.8,
+    "symbol": "AUROPHARMA",
+    "signalDate": "2026-10-19",
+    "pricePct": -2.73,
+    "oiPct": 3.9,
     "status": "SIGNAL"
    },
    {
-    "symbol": "MCX",
-    "signalDate": "2026-10-16",
-    "pricePct": -1.69,
-    "oiPct": 5.75,
+    "symbol": "BDL",
+    "signalDate": "2026-10-19",
+    "pricePct": -2.4,
+    "oiPct": 3.78,
     "status": "SIGNAL"
    },
    {
-    "symbol": "PERSISTENT",
-    "signalDate": "2026-10-16",
-    "pricePct": -1.7,
-    "oiPct": 11.19,
+    "symbol": "ULTRACEMCO",
+    "signalDate": "2026-10-19",
+    "pricePct": -2.36,
+    "oiPct": 6.58,
     "status": "SIGNAL"
    },
    {
-    "symbol": "PFC",
-    "signalDate": "2026-10-16",
-    "pricePct": -2.64,
-    "oiPct": 3.35,
+    "symbol": "YESBANK",
+    "signalDate": "2026-10-19",
+    "pricePct": -3.54,
+    "oiPct": 3.34,
     "status": "SIGNAL"
+   },
+   {
+    "symbol": "HYUNDAI",
+    "signalDate": "2026-10-19",
+    "pricePct": -1.61,
+    "oiPct": 6.38,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "WAAREEENER",
+    "signalDate": "2026-10-19",
+    "pricePct": -1.96,
+    "oiPct": 12.31,
+    "status": "SIGNAL"
+   }
+  ],
+  "trades": [
+   {
+    "symbol": "LTF",
+    "signalDate": "2026-10-16",
+    "pricePct": -3.11,
+    "oiPct": 15.9,
+    "entryDate": "2026-10-19",
+    "entry": 254,
+    "exitDate": "2026-10-19",
+    "exit": 253,
+    "netPct": 0.327,
+    "status": "DONE"
    },
    {
     "symbol": "ANGELONE",
     "signalDate": "2026-10-16",
     "pricePct": -4.15,
     "oiPct": 12.37,
-    "status": "SIGNAL"
+    "entryDate": "2026-10-19",
+    "entry": 301,
+    "exitDate": "2026-10-19",
+    "exit": 302.9,
+    "netPct": -0.698,
+    "status": "DONE"
    },
    {
-    "symbol": "LTF",
+    "symbol": "PFC",
     "signalDate": "2026-10-16",
-    "pricePct": -3.11,
-    "oiPct": 15.9,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "pricePct": -2.64,
+    "oiPct": 3.35,
+    "entryDate": "2026-10-19",
+    "entry": 334.2,
+    "exitDate": "2026-10-19",
+    "exit": 332.4,
+    "netPct": 0.472,
+    "status": "DONE"
+   },
+   {
+    "symbol": "PERSISTENT",
+    "signalDate": "2026-10-16",
+    "pricePct": -1.7,
+    "oiPct": 11.19,
+    "entryDate": "2026-10-19",
+    "entry": 5742,
+    "exitDate": "2026-10-19",
+    "exit": 5690,
+    "netPct": 0.839,
+    "status": "DONE"
+   },
+   {
+    "symbol": "MCX",
+    "signalDate": "2026-10-16",
+    "pricePct": -1.69,
+    "oiPct": 5.75,
+    "entryDate": "2026-10-19",
+    "entry": 3160,
+    "exitDate": "2026-10-19",
+    "exit": 3184.5,
+    "netPct": -0.842,
+    "status": "DONE"
+   },
+   {
+    "symbol": "DIXON",
+    "signalDate": "2026-10-16",
+    "pricePct": -2.57,
+    "oiPct": 5.8,
+    "entryDate": "2026-10-19",
+    "entry": 12400,
+    "exitDate": "2026-10-19",
+    "exit": 12100,
+    "netPct": 2.353,
+    "status": "DONE"
+   },
    {
     "symbol": "GVT&D",
     "signalDate": "2026-10-15",
@@ -660,69 +732,51 @@
    }
   ],
   "summary": {
-   "finished": 45,
-   "meanNetPct": -0.073,
-   "winPct": 42.2,
-   "weeks": 2,
-   "t": -0.3,
+   "finished": 51,
+   "meanNetPct": -0.016,
+   "winPct": 45.1,
+   "weeks": 3,
+   "t": -0.08,
    "verdict": "COLLECTING"
   },
   "futuresLast": {
-   "date": "2026-10-16",
+   "date": "2026-10-19",
    "rows": [
     {
-     "symbol": "ABB",
+     "symbol": "ANGELONE",
      "expiry": "2026-10-27",
-     "open": 6821.5,
-     "close": 6839
+     "open": 301.4,
+     "close": 302.55
     },
     {
-     "symbol": "BHEL",
+     "symbol": "DIXON",
      "expiry": "2026-10-27",
-     "open": 435.05,
-     "close": 434.85
+     "open": 12366,
+     "close": 12149
     },
     {
-     "symbol": "CGPOWER",
+     "symbol": "LTF",
      "expiry": "2026-10-27",
-     "open": 822,
-     "close": 847.6
+     "open": 254.2,
+     "close": 251.85
     },
     {
-     "symbol": "GVT&D",
+     "symbol": "MCX",
      "expiry": "2026-10-27",
-     "open": 3968.4,
-     "close": 3957.1
+     "open": 3162.5,
+     "close": 3184.4
     },
     {
-     "symbol": "HINDZINC",
+     "symbol": "PERSISTENT",
      "expiry": "2026-10-27",
-     "open": 538.5,
-     "close": 541.65
+     "open": 5690,
+     "close": 5691
     },
     {
-     "symbol": "KEI",
+     "symbol": "PFC",
      "expiry": "2026-10-27",
-     "open": 4648,
-     "close": 4490.2
-    },
-    {
-     "symbol": "NESTLEIND",
-     "expiry": "2026-10-27",
-     "open": 1285,
-     "close": 1262.6
-    },
-    {
-     "symbol": "POWERINDIA",
-     "expiry": "2026-10-27",
-     "open": 29080,
-     "close": 29050
-    },
-    {
-     "symbol": "VEDL",
-     "expiry": "2026-10-27",
-     "open": 247.95,
-     "close": 247.25
+     "open": 335,
+     "close": 333.9
     }
    ],
    "void": 0
