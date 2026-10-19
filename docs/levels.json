@@ -386,7 +386,9 @@
   "OPTION|HEROMOTOCO|HEROMOTOCO26OCT5100CE",
   "OPTION|POLICYBZR|POLICYBZR26OCT1000PE",
   "OPTION|GVT&D|GVT&D26OCT3800PE",
-  "OPTION|TIINDIA|TIINDIA26OCT2100PE"
+  "OPTION|TIINDIA|TIINDIA26OCT2100PE",
+  "OPTION|LODHA|LODHA26OCT1000PE",
+  "OPTION|VEDL|VEDL26OCT235PE"
  ],
  "options": {
   "HCLTECH26OCT1360CE": {
@@ -4917,6 +4919,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-19T09:19:46.205Z",
    "frozenAtIst": "2026-10-19 14:49 IST",
+   "frozenAtSpot": null
+  },
+  "LODHA26OCT1000PE": {
+   "buy": 8.15,
+   "sell": 12.25,
+   "stop": 4.1,
+   "tick": 0.05,
+   "lotSize": 625,
+   "expiry": "2026-10-27",
+   "strike": 1000,
+   "right": "PE",
+   "symbol": "LODHA",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T09:44:44.348Z",
+   "frozenAtIst": "2026-10-19 15:14 IST",
+   "frozenAtSpot": null
+  },
+  "VEDL26OCT235PE": {
+   "buy": 1.9,
+   "sell": 2.85,
+   "stop": 0.95,
+   "tick": 0.05,
+   "lotSize": 1150,
+   "expiry": "2026-10-27",
+   "strike": 235,
+   "right": "PE",
+   "symbol": "VEDL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-19T09:44:44.348Z",
+   "frozenAtIst": "2026-10-19 15:14 IST",
    "frozenAtSpot": null
   }
  },
