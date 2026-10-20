@@ -1,0 +1,57 @@
+PRE-REGISTRATION -- THE GM GLOBAL TOURNAMENT: EVERY STRATEGY THE DESK HAS CODED, SCORED UNDER GM GLOBAL'S RULES
+Written 2026-10-21 ~00:30 IST (Wed), BEFORE any GM-scored result was computed. Branch claude/gm-tournament-2026-10-21.
+Selection on 2020-2026 (the in-sample years every member was built on), then ONE confirmation of the leaders on NSE
+2005-2020 where their inputs exist. Judged by protocol v2 with amendment A1 of the combined model.
+
+1. WHY
+The owner (20-21 Oct 2026): "run all of the strategies we do have ... on the gm global ... audit and deploy". GM Global
+is the owner's paper futures competition. Its rules, in the owner's words (20 Oct): each Monday the buy price resets to
+Monday's open and the previous week's P&L is booked; positions are sold by hand or auto-sold at month end; the score is
+the running rupee total; 20 units is the minimum size. Nothing is fetched from GM.
+This is NOT a new search for an edge: every member below was already tested on 2020-2026 and FAILED or was PROMISING.
+It asks which of them would have scored best under GM's rules, and whether any of that survives on unseen years.
+No member's rules are changed here. Fixing code so it runs is allowed; changing a rule to improve a score is not.
+
+2. MEMBERS, PHASE 1 (their own code, their own entries, exits and sides; stock futures proxied by NSE share prices)
+ T*  ta-atlas-2026-10-03: the 36 chart, indicator and candlestick rules, LONG and SHORT as defined there (hold 10).
+ RS  rising-stocks-2026-10-02: the desk's rising-stocks rule.
+ SB, LU  oi-flow-forward (api/_lib/oi-flow-forward.js): short build-up and long unwinding, from 2020-10.
+ SD  springy dip (api/_lib/springy-dip.js forward code), from its first possible date.
+ S2  SLB borrowing surge (studies/forward-v4-2026-10-12 code), from 2021 (its inputs start then).
+ IR  industry reversal (studies/forward-v3-2026-10-04), stock legs only.
+ KR  Kronos top/bottom tenth (forecast-models study predictions, real dates, Jul 2024 on).
+ CM1, CM3  combined ("cocktail") model, trees long-short and long-only (its walk-forward predictions, Oct 2022 on).
+ PHASE 2 (added by a dated amendment BEFORE their scores are computed, if their code can report symbols): dip-ml,
+ families, orderflow, results, momentum, published strategies, rating replay, and the macro pod once it has run.
+ Members that trade options (straddles, strangles, condors, cheap-vol) are out: GM Global is futures.
+
+3. GM SCORING (fixed now)
+ - Entry: each member's own entry (the open of the session after its signal). Exit: its own exit, but never later than
+   the close of the stock's monthly futures expiry session (read from NSE's F&O files): GM lists only the expiring
+   month and auto-sells. CALENDAR month-end instead of expiry is reported as a sensitivity, not judged.
+ - Weekend gap: (G1) real P&L; (G0) P&L with every Friday-close-to-Monday-open move inside a holding removed (GM
+   re-bases at Monday's open). G1 is judged; G0 is reported and labelled "an effect of GM's bookkeeping, not the market".
+ - Size: (U20) 20 units, in rupees = GM's own score; (EQ) Rs 5 lakh a position, in rupees; (PCT) % a trade.
+   The SIGNIFICANCE test uses EQ (so expensive stocks do not decide it); U20 is reported as GM's leaderboard.
+ - Costs: NSE futures charges (api/_lib/shadow-broker.js, by date) on both sides as a stand-in for GM's charges, which
+   are not known; a roll is not charged because the expiry cut ends every position.
+ - Concurrency: every signal is taken (no cap); rupees per month and rupees per trade are both reported.
+
+4. VERDICT
+ Per member: monthly sums of EQ rupees / Rs 5 lakh (so a monthly % of one position's capital). Newey-West t (lag 3).
+ Holm across all members. Deflated Sharpe with N = number of members + 100 (the trials already run on this desk).
+ PASS = mean > 0, t >= 3, Holm, DSR >= 0.95. PROMISING = mean > 0 and t >= 2, not PASS. FAIL otherwise.
+ CONFIRMATION: the 5 members with the highest EQ t on 2020-2026 (whatever their verdict) are re-scored once on NSE
+ 2005-2020 (data-oos) where their inputs exist; members whose inputs do not reach back are labelled NOT CONFIRMABLE.
+ A member reaches TRACK as a GM paper candidate only if it PASSES here AND its 2005-2020 confirmation has mean > 0 and
+ t >= 2. Nothing goes to FUTURES as a pick without that. The leaderboard itself goes to TRACK as information.
+
+5. CHECKS BEFORE THE REAL RUN
+ 5.1 The GM scorer on a hand-built trade set: a long bought Mon open, held over a weekend to an expiry, gives the
+     right U20, EQ and PCT numbers, the right G0/G1 difference, and is cut at the expiry close.
+ 5.2 Null: every member's trades re-dated to random sessions (same counts, sides, holds): at most 5% of members PASS.
+
+6. POWER AND MULTIPLE TESTING, stated now
+ With ~90 members and N = ~190 in the deflation, a PASS needs a very strong series; most members have already failed
+ on these years. The likely outcome is a leaderboard with no PASS, which says which rules suit GM's scoring best, not
+ that any of them earns money.
