@@ -26,3 +26,49 @@ CHECKS (synthetic, section 7):
      null PASS results: 1 of 12 (at most 1 allowed)
  7.2 rows of other expiries change nothing: true
  CHECKS: PASSED
+EXPIRY-DAY OPTION SELLING, registration sha256 c60204567bd965f0ea983feaa8ab45f675cf662fcfdb66ec957ecd9434029c92 (verified), run 2026-10-20T18:28:08.799Z
+CHECKS (synthetic, section 7):
+ 7.1 planted (priced 20% over fair, with costs): X1 PROMISING t 4.08 DSR 0.29, X2 FAIL t 0.02 DSR 0.00, X3 FAIL t 0.50 DSR 0.00, X4 FAIL t -4.33 DSR 0.00
+     null seed 1 (fair, no costs): X1 FAIL t 0.48, X2 FAIL t 0.51, X3 FAIL t 0.15, X4 FAIL t 0.74
+     null seed 2 (fair, no costs): X1 FAIL t -0.15, X2 FAIL t 0.95, X3 FAIL t -0.19, X4 FAIL t 0.72
+     null seed 3 (fair, no costs): X1 FAIL t 1.22, X2 PROMISING t 2.19, X3 FAIL t 0.36, X4 PASS t 4.57
+     null PASS results: 1 of 12 (at most 1 allowed)
+ 7.2 rows of other expiries change nothing: true
+ CHECKS: PASSED
+
+REAL DATA: 402 expiry sessions (2019-02-14 .. 2026-10-19); skipped 51 member-expiries (missing leg, open or settlement). Return = % of NIFTY's open, after charges + 1 point a leg.
+X1 ATM straddle, held: 351 expiries, +0.083% of NIFTY an expiry (+15.3 points), won 65%, worst expiry -3.08%, worst month -2.20%, t 4.00, Holm yes, DSR 0.99 -> PASS
+X2 ATM straddle, 2x stop per leg: 351 expiries, +0.093% of NIFTY an expiry (+17.6 points), won 64%, worst expiry -3.19%, worst month -2.67%, t 4.43, Holm yes, DSR 1.00 -> PASS
+X3 1% strangle, held: 351 expiries, +0.054% of NIFTY an expiry (+9.3 points), won 87%, worst expiry -3.27%, worst month -1.33%, t 4.23, Holm yes, DSR 1.00 -> PASS
+X4 1% strangle, 2x stop per leg: 351 expiries, +0.040% of NIFTY an expiry (+6.2 points), won 63%, worst expiry -0.69%, worst month -0.85%, t 3.42, Holm yes, DSR 1.00 -> PASS
+PASS: X1, X2, X3, X4. PROMISING: none.
+
+SUB-PERIODS (reported, not judged):
+ to 19 Nov 2024 (before SEBI's measures): X1 250 exp +0.082% won 65% | X2 250 exp +0.095% won 65% | X3 250 exp +0.059% won 87% | X4 250 exp +0.048% won 65%
+ 20 Nov 2024 - 1 Sep 2025 (SEBI measures, Thursday expiry): X1 41 exp +0.061% won 61% | X2 41 exp +0.020% won 51% | X3 41 exp +0.030% won 88% | X4 41 exp +0.008% won 54%
+ from 2 Sep 2025 (Tuesday expiry): X1 60 exp +0.104% won 67% | X2 60 exp +0.135% won 72% | X3 60 exp +0.047% won 88% | X4 60 exp +0.032% won 63%
+
+BY YEAR (X2, the common retail version):
+  2020: 48 expiries, mean 0.171%, sum 961 points (x75 = Rs 72068 a lot)
+  2021: 52 expiries, mean 0.064%, sum 544 points (x75 = Rs 40825 a lot)
+  2022: 52 expiries, mean 0.064%, sum 629 points (x75 = Rs 47158 a lot)
+  2023: 52 expiries, mean 0.058%, sum 549 points (x75 = Rs 41148 a lot)
+  2024: 52 expiries, mean 0.094%, sum 1130 points (x75 = Rs 84728 a lot)
+  2025: 53 expiries, mean 0.050%, sum 635 points (x75 = Rs 47639 a lot)
+  2026: 42 expiries, mean 0.176%, sum 1727 points (x75 = Rs 129517 a lot)
+
+FOR A Rs 6 LAKH ACCOUNT (information only; one lot of 75, margin not modelled): average rupees a month per member = X1 Rs 4976, X2 Rs 5717, X3 Rs 3015, X4 Rs 2025
+
+POST-HOC AUDIT (21 Oct 2026, after the real run; cannot change a verdict; audit-open-prints.js):
+ A. Put-call parity at the ATM strike at the expiry-day open, 402 expiries: residual (C-P)-(S-K) median -5.5 points,
+    mean -5.1, 10th..90th percentile -40.4 .. +30.9: the open prints are noisy (not synchronous to the index open) but
+    not one-sided. The ATM straddle at the open was a median 0.612% of NIFTY, a normal expiry-day premium.
+ B. The same ATM straddle sold at the expiry-EVE close (strike nearest NIFTY's close that evening), held to settlement,
+    same costs: 350 expiries, mean +7.9 points, median +25.8, won 61%, worst -692 (2020-03-12), then -641 (2022-02-24),
+    -443 (2026-02-03); monthly mean +0.144%, simple t 1.16. A first version of B chose the strike by the smallest C-P
+    gap among stale closes and gave a false -2,883-point loss; that was a bug in the audit, fixed before reading B.
+    Reading: the registered result does not come from stray open prints; most of the edge is in selling AFTER the
+    open (the overnight gap risk is avoided), which is also what the method says.
+ C. 2019 is not in the sample: NSE's 2019 files carry SETTLE_PR = 0 for expiring options, so the 46 expiries of 2019
+    were skipped as missing (section 2). The verdict sample is 2020-01 .. 2026-10 (351 expiries a member).
+ D. Lot sizes changed over the years (75/50/25/75); the rupee figures above use 75 for every year, for scale only.
