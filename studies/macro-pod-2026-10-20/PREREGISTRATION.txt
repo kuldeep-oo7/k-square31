@@ -1,0 +1,74 @@
+PRE-REGISTRATION -- THE MACRO POD: LIQUIDITY AND FOREIGN MONEY, ONE NIFTY POSITION, ALL IN OR FLAT ("DUQUESNE-STYLE")
+Written 2026-10-20 (Tue, NSE holiday), BEFORE any return of this test was computed. Branch claude/macro-pod-2026-10-20.
+Only counts were looked at before this (scripts/macro-data-inventory.js, 19 Oct: which years each source covers).
+Run ONCE on real data after the checks in section 7 pass. Judged by protocol v2 with amendment A1 of the combined model
+(PASS needs mean > 0, Newey-West t >= 3, Holm, and the full Deflated Sharpe >= 0.95).
+
+1. WHY, AND WHAT THIS SAMPLE HAS ALREADY SHOWN
+The owner asked for a fund run "like Duquesne Capital Management" (Stanley Druckenmiller, 1981-2010): top-down macro,
+liquidity first (central banks, money flows), concentrated bets when the evidence lines up, losses cut fast. A formula
+cannot copy his judgment; this tests the one part that can be written down: does foreign money and global dollar
+liquidity, read the evening before, tell the next days' NIFTY direction?
+ALREADY TESTED ON NIFTY TIMING, ALL FAILED (counted in the deflation, section 6): the desk's NIFTY trend reader, the
+market-direction rule (close < EMA20 < SMA50), the US-overnight cue, the crude cue, NIFTY candlesticks, NIFTY gamma
+exposure (2 conventions). The combined model (18 Oct) used FII/PRO/CLIENT/DII index-futures positions and FPI/MF/retail
+cash flows as market features among ~56 others; that run was cross-sectional (which stocks), not index timing, and is
+not reused here, but it means these families have been looked at on 2020-2026.
+POWER, stated before the result: one position on NIFTY reaches t >= 3 over N years only with an annual Sharpe of about
+3 / sqrt(N): 0.78 over 2012-2026 (14.8 years). Index-timing rules rarely reach that. A FAIL here means "no edge shown",
+not "no edge exists".
+
+2. DATA (official sources only; private release data-macro on kuldeep-oo7/k2-data; none committed)
+- NSE F&O participant-wise open interest, fao_participant_oi_DDMMYYYY.csv, from 2012 (Client, DII, FII, Pro rows;
+  columns Future Index Long, Future Index Short, ...). Posted by NSE the same evening as session d.
+- NSE cash-market turnover by category, cat_turnover_DDMMYY.xls, from 2008 (FPI, mutual fund, retail ... buy and sell).
+  NSE posts it days late (16 and 19 Oct 2026 were not yet posted on 20 Oct), so it is used with a 5-session lag.
+- US Fed FRED: DTWEXBGS (broad US dollar index, daily, from 2006). A value dated d (US) is used from India session
+  d + 2 calendar days onward, the next session on or after that.
+- NIFTY 50 open and close: NSE ind_close_all files (2014 on) and NSE's historical index API (2008-2013). If NSE's API
+  does not give 2012-2013, the official niftyindices.com history is used; if neither does, the verdict sample starts
+  2014-01-01 and RESULT.txt says so. The NIFTY near-month future is proxied by the index (open-to-open), as every
+  index study here, with futures charges.
+- A missing file or value is MISSING, never 0; a member holds its last position only for 3 sessions without data,
+  then goes flat.
+
+3. TIMING
+- Decision at the close of session d, using only data available by then (lags above). Position taken at the open of
+  session d+1 and held to the open of the next session where the decision differs. Daily return of the book on session
+  pair (d+1 -> d+2) = position x (NIFTY open(d+2) / open(d+1) - 1), minus futures charges on every change of position
+  (api/_lib/shadow-broker.js, by date, notional Rs 10 lakh) and one roll a month while holding.
+
+4. MEMBERS (fixed now; each long +1, flat 0, or short -1 in NIFTY)
+ M1 FII FUTURES POSITION. r_d = FII Future Index Long / (Long + Short) from fao_participant_oi on d. Long when
+    r_d - r_{d-5} > +0.02 (FIIs added longs over the week), short when < -0.02, else flat.
+ M2 FOREIGN CASH FLOW. F_d = sum of FPI (buy - sell) in cat_turnover over the 20 sessions ending at d - 5 (the lag).
+    Long when F_d > 0, short when F_d < 0 (no flat band; missing -> flat).
+ M3 DOLLAR LIQUIDITY. D_d = DTWEXBGS 20-business-day change, latest value usable at d. Long when D_d < 0 (dollar
+    weakening), short when D_d > 0.
+ M4 ALL LINE UP (the Duquesne rule): long when M1, M2 and M3 are all long; short when all three are short; else flat.
+    A STOP: if M4's open position loses 3% from its entry open (measured at a session open), it goes flat and stays flat
+    until the members disagree and then agree again.
+
+5. SAMPLE
+- 2012-04-02 to the last session with data (M1 needs participant files from 2012 plus warm-up). M2 and M3 are also
+  reported from 2008 / 2006 for information, but the verdict sample is the common one from 2012-04-02.
+- No parameter in section 4 is tuned; the thresholds are round numbers set here.
+
+6. SCORE AND VERDICT
+- Per member: monthly sums of daily book returns (after charges). Newey-West t, lag 3. Mean > 0 and t >= 3 needed.
+- Holm across M1-M4 (alpha 0.05). Deflated Sharpe (Bailey & Lopez de Prado 2014, with skew and kurtosis) on the monthly
+  series with N = 4 + 6 = 10 trials (the four members plus the six earlier NIFTY-timing tests listed in section 1).
+- PASS = mean > 0, t >= 3, Holm, DSR >= 0.95. PROMISING = mean > 0 and t >= 2, not PASS. FAIL otherwise.
+- Reported, not judged: buy-and-hold NIFTY over the same sample; each member's excess over buy-and-hold; months up;
+  worst month; maximum drawdown; time in market; trades a year.
+- A PASS goes to TRACK as a forward paper test, information only, before anything else.
+
+7. CHECKS BEFORE THE REAL RUN (results written to RESULT.txt first)
+ 7.1 No look-ahead: change every input dated after a cutoff session; every position decided at or before the cutoff
+     must be identical, and the control (positions after the cutoff) must change.
+ 7.2 Null: replace NIFTY with 3 seeded random walks of the same daily volatility; at most 1 PASS among the 12 results.
+ 7.3 Coverage, counts only: per member and year, the share of sessions with a usable signal.
+ If 7.1 or 7.2 fails, the real run is not made and the failure is reported.
+
+8. FILES
+ build.js (signals and books), checks.js (7.1-7.3), score.js (section 6). Data stays in the private release.
