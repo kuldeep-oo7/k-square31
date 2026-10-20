@@ -1,0 +1,35 @@
+name: macro-data
+# Macro pod data (scripts/macro-download.js): official NSE files and US Fed FRED series, one source per job, side by
+# side. Resumable from the private release data-macro (kuldeep-oo7/k2-data); a re-run only fetches what is missing.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 340
+    strategy:
+      fail-fast: false
+      matrix:
+        source: [cat_turnover, part_oi, part_vol, fii_stats, ind_close_all, fred, nifty_hist]
+    env:
+      GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+      GH_REPO: kuldeep-oo7/k2-data
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: Resume from the private release
+        run: |
+          gh release view data-macro >/dev/null 2>&1 || gh release create data-macro --title "Macro pod data (NSE + FRED)" --notes "Official NSE daily files and US Fed FRED series for the macro pod. scripts/macro-download.js. Private data." --latest=false || true
+          mkdir -p macro && (gh release download data-macro -p "macro-${{ matrix.source }}.tar.gz" && tar -xzf "macro-${{ matrix.source }}.tar.gz") || echo "nothing saved yet"
+      - name: Download ${{ matrix.source }}
+        run: node scripts/macro-download.js ${{ matrix.source }} macro | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Save
+        if: always()
+        run: |
+          [ -d "macro/${{ matrix.source }}" ] || exit 0
+          tar -czf "macro-${{ matrix.source }}.tar.gz" "macro/${{ matrix.source }}"
+          for i in 1 2 3; do gh release upload data-macro "macro-${{ matrix.source }}.tar.gz" --clobber && break; sleep 15; done
+          echo "saved $(ls macro/${{ matrix.source }} | wc -l) files, $(du -h macro-${{ matrix.source }}.tar.gz | cut -f1)" | tee -a "$GITHUB_STEP_SUMMARY"
