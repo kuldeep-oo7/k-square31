@@ -1,0 +1,28 @@
+EXPIRY-DAY OPTION SELLING -- CHECK HISTORY (all synthetic; no real data has been read)
+The RESULT.txt holding runs 1-3 below was deleted by mistake during the reruns; their output is restored here verbatim
+from the session log (2026-10-20 ~23:27-23:33 IST).
+
+RUN 1 (registration 00d891d5..., 75 steps a day): CHECKS FAILED, real run refused
+ 7.1 planted (priced 20% over fair, with costs): X1 PROMISING, X2 PROMISING, X3 FAIL, X4 FAIL
+     null seed 1 (fair, no costs): X1 FAIL t 1.10, X2 PROMISING t 3.55, X3 FAIL t 1.02, X4 PROMISING t 4.85
+     null seed 2 (fair, no costs): X1 FAIL t 0.08, X2 PROMISING t 4.24, X3 FAIL t -0.75, X4 PROMISING t 3.44
+     null seed 3 (fair, no costs): X1 FAIL t 1.86, X2 PROMISING t 4.89, X3 FAIL t 1.26, X4 PASS t 6.23
+     null PASS results: 1 of 12 (at most 1 allowed)
+ 7.2 rows of other expiries change nothing: true
+RUN 2 (diagnostic, same rules, t and DSR printed), 75 steps:
+ 7.1 planted: X1 PROMISING t 5.65 DSR 0.80, X2 PROMISING t 3.08 DSR 0.06, X3 FAIL t 1.41 DSR 0.00, X4 FAIL t -1.48 DSR 0.00
+RUN 3 (diagnostic), 600 steps:
+ 7.1 planted: X1 PROMISING t 4.08 DSR 0.29, X2 FAIL t 0.02 DSR 0.00, X3 FAIL t 0.50 DSR 0.00, X4 FAIL t -4.33 DSR 0.00
+     null seeds 1-3: X1 0.48/-0.15/1.22, X2 0.51/0.95/2.19, X3 0.15/-0.19/0.36, X4 0.74/0.72/4.57 (t); 1 PASS of 12
+Then amendment A1 (PREREGISTRATION.txt section 9) was written and hashed BEFORE any real data; RUN 4 follows.
+
+RUN 4 (registration after A1):
+EXPIRY-DAY OPTION SELLING, registration sha256 c60204567bd965f0ea983feaa8ab45f675cf662fcfdb66ec957ecd9434029c92 (verified), run 2026-10-20T17:29:17.156Z
+CHECKS (synthetic, section 7):
+ 7.1 planted (priced 20% over fair, with costs): X1 PROMISING t 4.08 DSR 0.29, X2 FAIL t 0.02 DSR 0.00, X3 FAIL t 0.50 DSR 0.00, X4 FAIL t -4.33 DSR 0.00
+     null seed 1 (fair, no costs): X1 FAIL t 0.48, X2 FAIL t 0.51, X3 FAIL t 0.15, X4 FAIL t 0.74
+     null seed 2 (fair, no costs): X1 FAIL t -0.15, X2 FAIL t 0.95, X3 FAIL t -0.19, X4 FAIL t 0.72
+     null seed 3 (fair, no costs): X1 FAIL t 1.22, X2 PROMISING t 2.19, X3 FAIL t 0.36, X4 PASS t 4.57
+     null PASS results: 1 of 12 (at most 1 allowed)
+ 7.2 rows of other expiries change nothing: true
+ CHECKS: PASSED

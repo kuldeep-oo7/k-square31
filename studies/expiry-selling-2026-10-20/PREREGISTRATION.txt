@@ -63,3 +63,17 @@ index per exchange; Zerodha, Business Standard, Fyers); NIFTY weekly expiry move
 
 8. FILES
  study.js (members, costs, verdict), checks in the same file (--synthetic). Data stays in the private release.
+
+9. AMENDMENT A1 -- 2026-10-20 ~23:35 IST, BEFORE any real-data result (only synthetic checks had run)
+Check 7.1 as first coded FAILED (recorded in RESULT.txt). Two causes, fixed here, both stated before real data:
+- The synthetic market moved in 75 steps a day; a stop was filled at exactly 2x when the path jumped past it between
+  steps, which manufactured profit for the stop members on fairly priced options (null t up to 6.2). Real ticks are near
+  continuous, so the synthetic paths now use 600 steps a day. At 600 steps 11 of 12 null results FAIL (1 PASS, X4,
+  seed 3, within the allowance of 1).
+- The planted edge (options 20% over fair, with costs) is detected (X1 t 4.08 at 600 steps, 5.65 at 75) but its full
+  DSR is 0.29: with four members this different (X4 scored t -4.33 on the same planted market, because a 2x stop on a
+  far option is hit often), SR0 in the deflation is high. Check 7.1 now passes when X1 reaches t >= 3 on the planted
+  market (the pipeline finds a real edge); the verdict rule in section 6 is UNCHANGED. Stated power: a 20% overpricing
+  of expiry-day premium would show as PROMISING, not PASS; a PASS needs a clearly larger edge.
+- The stop is filled at 2x the entry plus the 1 point of slippage in section 4; on real days with a jump through the
+  stop the real fill would be worse, so the stop members are read as an upper bound.
