@@ -1,0 +1,38 @@
+name: gm-tournament
+# The GM Global tournament (studies/gm-tournament-2026-10-21 on branch claude/gm-tournament-2026-10-21): every coded
+# strategy scored under GM's rules. Runs on Linux so the studies' own registration hashes match (LF files). Data from the
+# private repo; RESULT.txt and leaderboard.json (summary numbers only) come back as an artifact.
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: "run.js arguments (empty = the real run; --check = checks only)"
+        required: false
+        default: ""
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/gm-tournament-2026-10-21
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: Research data from the private repo
+        env:
+          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+          GH_REPO: kuldeep-oo7/k2-data
+        run: bash scripts/restore-research-data.sh --no-sopt
+      - name: Tournament
+        run: cd studies/gm-tournament-2026-10-21 && node --max-old-space-size=12000 run.js ${{ inputs.args }} | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gm-tournament-result
+          path: |
+            studies/gm-tournament-2026-10-21/RESULT.txt
+            studies/gm-tournament-2026-10-21/leaderboard.json
