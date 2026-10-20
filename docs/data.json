@@ -1,6 +1,6 @@
 {
- "builtAt": "2026-10-20T06:44:17.666Z",
- "builtAtIst": "2026-10-20 12:14 IST",
+ "builtAt": "2026-10-20T07:04:36.878Z",
+ "builtAtIst": "2026-10-20 12:34 IST",
  "sessionDate": "2026-10-20",
  "levelsFrozen": false,
  "sessionOver": false,
@@ -24,7 +24,7 @@
  "examined": 3564,
  "survived": 0,
  "brokerCheck": {
-  "checkedAt": "2026-10-20T06:43:27.163Z",
+  "checkedAt": "2026-10-20T07:03:45.257Z",
   "ok": true,
   "stage": "QUOTE",
   "expiry": "2026-10-27",
@@ -48,66 +48,68 @@
   "checked": true,
   "reason": null,
   "sampled": 4,
-  "sameContract": 4,
-  "identityCompared": 4,
+  "sameContract": 3,
+  "identityCompared": 3,
   "wrongContract": [],
   "priceOff": [],
   "pricesMostlyOff": false,
-  "worstGapPct": 0.25,
+  "worstGapPct": 0.16,
   "byKind": {
    "FUT": {
-    "compared": 4,
-    "medianGapPct": 0.12,
-    "worstGapPct": 0.25
+    "compared": 3,
+    "medianGapPct": 0.13,
+    "worstGapPct": 0.16
    }
   },
-  "notComparable": {},
-  "angelAt": "2026-10-20T06:44:13.003Z",
-  "nseAt": "2026-10-20T06:44:17.665Z",
+  "notComparable": {
+   "NO_PREVIOUS_CLOSE": 1
+  },
+  "angelAt": "2026-10-20T07:04:32.865Z",
+  "nseAt": "2026-10-20T07:04:36.877Z",
   "nseErrors": [],
   "rows": [
    {
-    "contract": "DRREDDY 2026-10-27 FUT",
+    "contract": "GVT&D 2026-10-27 FUT",
     "kind": "FUT",
-    "ours": 1244.2,
-    "nse": 1245,
-    "oursPrevClose": 1233.7,
-    "nsePrevClose": 1233.7,
+    "ours": 3913.4,
+    "nse": 3907.2,
+    "oursPrevClose": 3957.1,
+    "nsePrevClose": 3957.1,
     "identity": "SAME",
-    "gapPct": 0.06,
+    "gapPct": 0.16,
     "priceOff": false
    },
    {
-    "contract": "GAIL 2026-10-27 FUT",
+    "contract": "HDFCLIFE 2026-10-27 FUT",
     "kind": "FUT",
-    "ours": 167.14,
-    "nse": 167.06,
-    "oursPrevClose": 168.51,
-    "nsePrevClose": 168.51,
+    "ours": 545.3,
+    "nse": 544.6,
+    "oursPrevClose": 553.5,
+    "nsePrevClose": 553.5,
     "identity": "SAME",
-    "gapPct": 0.05,
+    "gapPct": 0.13,
     "priceOff": false
    },
    {
-    "contract": "GMRAIRPORT 2026-10-27 FUT",
-    "kind": "FUT",
-    "ours": 89.93,
-    "nse": 89.82,
-    "oursPrevClose": 89.46,
-    "nsePrevClose": 89.46,
-    "identity": "SAME",
-    "gapPct": 0.12,
+    "contract": "HFCL share",
+    "kind": "EQ",
+    "ours": 268.81,
+    "nse": null,
+    "oursPrevClose": 256.01,
+    "nsePrevClose": null,
+    "identity": "NO_PREVIOUS_CLOSE",
+    "gapPct": null,
     "priceOff": false
    },
    {
-    "contract": "GODFRYPHLP 2026-10-27 FUT",
+    "contract": "HINDUNILVR 2026-10-27 FUT",
     "kind": "FUT",
-    "ours": 1803.4,
-    "nse": 1808,
-    "oursPrevClose": 1849.7,
-    "nsePrevClose": 1849.7,
+    "ours": 1861.4,
+    "nse": 1863,
+    "oursPrevClose": 1888.5,
+    "nsePrevClose": 1888.5,
     "identity": "SAME",
-    "gapPct": 0.25,
+    "gapPct": 0.09,
     "priceOff": false
    }
   ]
@@ -203,12 +205,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 65.5,
-     "medianTradingDays": 0.108
+     "probabilityPct": 63.7,
+     "medianTradingDays": 0.104
     },
     "target": {
      "probabilityPct": 83,
@@ -267,12 +269,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 65.4,
-     "medianTradingDays": 0.108
+     "probabilityPct": 63.6,
+     "medianTradingDays": 0.104
     },
     "target": {
      "probabilityPct": 83,
@@ -331,12 +333,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 53,
-     "medianTradingDays": 0.165
+     "probabilityPct": 50.8,
+     "medianTradingDays": 0.157
     },
     "target": {
      "probabilityPct": 75.8,
@@ -395,12 +397,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 79.3,
-     "medianTradingDays": 0.049
+     "probabilityPct": 78.2,
+     "medianTradingDays": 0.048
     },
     "target": {
      "probabilityPct": 91.1,
@@ -459,12 +461,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 61.9,
-     "medianTradingDays": 0.124
+     "probabilityPct": 60,
+     "medianTradingDays": 0.119
     },
     "target": {
      "probabilityPct": 81.1,
@@ -523,12 +525,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 45,
-     "medianTradingDays": 0.202
+     "probabilityPct": 42.5,
+     "medianTradingDays": 0.191
     },
     "target": {
      "probabilityPct": 71,
@@ -587,12 +589,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 59.5,
-     "medianTradingDays": 0.135
+     "probabilityPct": 57.4,
+     "medianTradingDays": 0.129
     },
     "target": {
      "probabilityPct": 79.7,
@@ -651,12 +653,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 59.5,
-     "medianTradingDays": 0.135
+     "probabilityPct": 57.5,
+     "medianTradingDays": 0.129
     },
     "target": {
      "probabilityPct": 79.8,
@@ -715,12 +717,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 52.2,
-     "medianTradingDays": 0.169
+     "probabilityPct": 49.9,
+     "medianTradingDays": 0.161
     },
     "target": {
      "probabilityPct": 75.4,
@@ -779,12 +781,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 57,
-     "medianTradingDays": 0.146
+     "probabilityPct": 54.8,
+     "medianTradingDays": 0.14
     },
     "target": {
      "probabilityPct": 78.6,
@@ -843,12 +845,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 68.5,
-     "medianTradingDays": 0.094
+     "probabilityPct": 66.9,
+     "medianTradingDays": 0.091
     },
     "target": {
      "probabilityPct": 84.8,
@@ -907,12 +909,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 44.4,
-     "medianTradingDays": 0.204
+     "probabilityPct": 41.9,
+     "medianTradingDays": 0.193
     },
     "target": {
      "probabilityPct": 70.5,
@@ -971,12 +973,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 57.1,
-     "medianTradingDays": 0.146
+     "probabilityPct": 54.9,
+     "medianTradingDays": 0.14
     },
     "target": {
      "probabilityPct": 78.5,
@@ -1035,12 +1037,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 59,
-     "medianTradingDays": 0.137
+     "probabilityPct": 57,
+     "medianTradingDays": 0.131
     },
     "target": {
      "probabilityPct": 79.8,
@@ -1099,12 +1101,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 68.3,
-     "medianTradingDays": 0.095
+     "probabilityPct": 66.6,
+     "medianTradingDays": 0.092
     },
     "target": {
      "probabilityPct": 84.6,
@@ -1163,12 +1165,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 63.6,
-     "medianTradingDays": 0.116
+     "probabilityPct": 61.7,
+     "medianTradingDays": 0.112
     },
     "target": {
      "probabilityPct": 82.1,
@@ -1227,12 +1229,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 47.4,
-     "medianTradingDays": 0.19
+     "probabilityPct": 45,
+     "medianTradingDays": 0.181
     },
     "target": {
      "probabilityPct": 72.3,
@@ -1291,12 +1293,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 47.6,
-     "medianTradingDays": 0.19
+     "probabilityPct": 45.2,
+     "medianTradingDays": 0.18
     },
     "target": {
      "probabilityPct": 72.5,
@@ -1355,12 +1357,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 41.1,
-     "medianTradingDays": 0.22
+     "probabilityPct": 38.5,
+     "medianTradingDays": 0.207
     },
     "target": {
      "probabilityPct": 68.3,
@@ -1419,12 +1421,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 42.4,
-     "medianTradingDays": 0.213
+     "probabilityPct": 39.9,
+     "medianTradingDays": 0.202
     },
     "target": {
      "probabilityPct": 69.2,
@@ -1483,12 +1485,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 58.7,
-     "medianTradingDays": 0.139
+     "probabilityPct": 56.6,
+     "medianTradingDays": 0.133
     },
     "target": {
      "probabilityPct": 79.2,
@@ -1547,12 +1549,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": -0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 50.2,
-     "medianTradingDays": 0.178
+     "probabilityPct": 47.8,
+     "medianTradingDays": 0.169
     },
     "target": {
      "probabilityPct": 74.2,
@@ -1603,7 +1605,7 @@
    },
    "liveBooks": 48,
    "liveFailure": null,
-   "liveFetchedAt": "2026-10-20T06:43:27.836Z"
+   "liveFetchedAt": "2026-10-20T07:03:46.143Z"
   },
   "BANKNIFTY": {
    "examined": 306,
@@ -1616,7 +1618,7 @@
    },
    "liveBooks": 48,
    "liveFailure": null,
-   "liveFetchedAt": "2026-10-20T06:43:27.836Z"
+   "liveFetchedAt": "2026-10-20T07:03:46.143Z"
   },
   "FINNIFTY": {
    "examined": 194,
@@ -1629,7 +1631,7 @@
    },
    "liveBooks": 48,
    "liveFailure": null,
-   "liveFetchedAt": "2026-10-20T06:43:27.836Z"
+   "liveFetchedAt": "2026-10-20T07:03:46.143Z"
   },
   "MIDCPNIFTY": {
    "examined": 314,
@@ -1643,7 +1645,7 @@
    },
    "liveBooks": 48,
    "liveFailure": null,
-   "liveFetchedAt": "2026-10-20T06:43:27.836Z"
+   "liveFetchedAt": "2026-10-20T07:03:46.143Z"
   },
   "NIFTYNXT50": {
    "examined": 413,
@@ -1655,7 +1657,7 @@
    },
    "liveBooks": 48,
    "liveFailure": null,
-   "liveFetchedAt": "2026-10-20T06:43:27.836Z"
+   "liveFetchedAt": "2026-10-20T07:03:46.143Z"
   }
  },
  "optionsDirection": {
@@ -8783,7 +8785,7 @@
  },
  "resultsCalendar": {
   "ok": true,
-  "fetchedAt": "2026-10-20T06:43:22.404Z",
+  "fetchedAt": "2026-10-20T07:03:22.757Z",
   "days": 60,
   "meetings": 471,
   "refusedOptionContracts": 1034
@@ -49234,12 +49236,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 45.2,
-     "medianTradingDays": 0.202
+     "probabilityPct": 42.7,
+     "medianTradingDays": 0.192
     },
     "target": {
      "probabilityPct": 69.9,
@@ -49298,12 +49300,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 65.3,
-     "medianTradingDays": 0.111
+     "probabilityPct": 63.5,
+     "medianTradingDays": 0.107
     },
     "target": {
      "probabilityPct": 81.2,
@@ -49362,12 +49364,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 42.6,
-     "medianTradingDays": 0.214
+     "probabilityPct": 40.1,
+     "medianTradingDays": 0.202
     },
     "target": {
      "probabilityPct": 68.4,
@@ -49426,12 +49428,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 62.9,
-     "medianTradingDays": 0.121
+     "probabilityPct": 61,
+     "medianTradingDays": 0.117
     },
     "target": {
      "probabilityPct": 80,
@@ -49490,12 +49492,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 48.6,
-     "medianTradingDays": 0.187
+     "probabilityPct": 46.1,
+     "medianTradingDays": 0.178
     },
     "target": {
      "probabilityPct": 72,
@@ -49554,12 +49556,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 57.4,
-     "medianTradingDays": 0.147
+     "probabilityPct": 55.2,
+     "medianTradingDays": 0.14
     },
     "target": {
      "probabilityPct": 76.9,
@@ -49618,12 +49620,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 46.2,
-     "medianTradingDays": 0.198
+     "probabilityPct": 43.7,
+     "medianTradingDays": 0.188
     },
     "target": {
      "probabilityPct": 70.5,
@@ -49682,12 +49684,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 64.4,
-     "medianTradingDays": 0.115
+     "probabilityPct": 62.5,
+     "medianTradingDays": 0.111
     },
     "target": {
      "probabilityPct": 80.8,
@@ -49746,8 +49748,8 @@
    "anchorSource": "SHARE_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": null,
    "perUnitCapital": 1163,
    "minUnits": 20,
@@ -49793,12 +49795,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 66.9,
-     "medianTradingDays": 0.104
+     "probabilityPct": 65.1,
+     "medianTradingDays": 0.1
     },
     "target": {
      "probabilityPct": 82.2,
@@ -49857,12 +49859,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 54.3,
-     "medianTradingDays": 0.161
+     "probabilityPct": 52,
+     "medianTradingDays": 0.153
     },
     "target": {
      "probabilityPct": 75.2,
@@ -49921,12 +49923,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 71.8,
-     "medianTradingDays": 0.082
+     "probabilityPct": 70.3,
+     "medianTradingDays": 0.079
     },
     "target": {
      "probabilityPct": 84.6,
@@ -49985,12 +49987,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 51.9,
-     "medianTradingDays": 0.172
+     "probabilityPct": 49.5,
+     "medianTradingDays": 0.164
     },
     "target": {
      "probabilityPct": 74,
@@ -50049,12 +50051,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 39.5,
-     "medianTradingDays": 0.228
+     "probabilityPct": 36.8,
+     "medianTradingDays": 0.215
     },
     "target": {
      "probabilityPct": 66.9,
@@ -50113,12 +50115,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 55.4,
-     "medianTradingDays": 0.156
+     "probabilityPct": 53.2,
+     "medianTradingDays": 0.149
     },
     "target": {
      "probabilityPct": 76,
@@ -50177,12 +50179,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 50.8,
-     "medianTradingDays": 0.177
+     "probabilityPct": 48.4,
+     "medianTradingDays": 0.168
     },
     "target": {
      "probabilityPct": 73.6,
@@ -50241,8 +50243,8 @@
    "anchorSource": "SHARE_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": null,
    "perUnitCapital": 266.65,
    "minUnits": 20,
@@ -50288,12 +50290,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 56.5,
-     "medianTradingDays": 0.151
+     "probabilityPct": 54.3,
+     "medianTradingDays": 0.144
     },
     "target": {
      "probabilityPct": 76.4,
@@ -50352,12 +50354,12 @@
    "anchorSource": "FUTURES_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": {
     "fill": {
-     "probabilityPct": 52.6,
-     "medianTradingDays": 0.168
+     "probabilityPct": 50.3,
+     "medianTradingDays": 0.16
     },
     "target": {
      "probabilityPct": 74.3,
@@ -50416,8 +50418,8 @@
    "anchorSource": "SHARE_LAST_TRADED",
    "drift": 0.8,
    "frozen": false,
-   "frozenAtIst": "2026-10-20 12:14 IST",
-   "frozenAt": "2026-10-20T06:44:11.994Z",
+   "frozenAtIst": "2026-10-20 12:34 IST",
+   "frozenAt": "2026-10-20T07:04:31.818Z",
    "expected": null,
    "perUnitCapital": 1390.8,
    "minUnits": 20,
