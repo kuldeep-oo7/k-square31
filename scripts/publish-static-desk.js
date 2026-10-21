@@ -995,6 +995,8 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
 }
 
 // THE OWN "SPRINGY DIP" RULE, ON PAPER, AGAINST THE FUTURE (studies/springy-dip-forward-2026-10-04).
+// ESSENTIALS ONLY (21 Oct 2026): a paper test's lists wait behind a tap on the phone; its verdict line stays on top.
+const listFold = (label, inner) => `<details class="fold"><summary class="sub">${label}<span class="more"></span></summary><div>${inner}</div></details>`;
 function springyBox(sd) {
   if (!sd) return "";
   const s = sd.summary || {};
@@ -1005,16 +1007,16 @@ function springyBox(sd) {
     <td class="num">${t.entry ? esc(t.entry) : "&mdash;"}${t.exit ? ` &rarr; ${esc(t.exit)}` : ""}</td>
     <td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${esc(t.netPct).replace(/^-/, "&minus;")}%`}</td></tr>`).join("");
   return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
-    <b>OWN RULE, FORWARD PAPER TEST: &ldquo;SPRINGY DIP&rdquo;</b> &mdash; a stock that tends to snap back (its daily moves reverse:
+    <b>OWN RULE, FORWARD PAPER TEST: &ldquo;SPRINGY DIP&rdquo;</b><span class="lec"> &mdash; a stock that tends to snap back (its daily moves reverse:
     lag-1 autocorrelation under &minus;0.05 over 120 sessions) closing 2 standard deviations under its 20-day average; buy at the next open,
     sell at the close 5 sessions later, after futures charges. <b>Backtest: FAILED</b> (too weak to rule out luck) &mdash; but the only one
     of 10 dip rules positive in all three periods: ${esc(bt.developmentPct)}%, ${esc(bt.validationPct)}%, ${esc(bt.finalPct)}% a trade
     (final year ${esc(bt.finalTrades)} trades, t ${esc(bt.finalT)}). So it is tested here on prices nobody has seen yet, from
-    ${esc(sd.start)}, on NSE's official open and close only; rules fixed in ${esc(sd.preregistration)}.
-    <b class="${verdictTone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanNetPct > 0 ? "+" : ""}${String(esc(s.meanNetPct)).replace(/^-/, "&minus;")}% a trade, ${esc(s.winPct)}% winners, t ${String(esc(s.t ?? "&mdash;")).replace(/^-/, "&minus;")}` : ""}
-    (a verdict needs 100 trades and 3 months). Data through ${esc(sd.dataThrough)}. <b>Not a recommendation until it passes.</b>
-    ${pend ? `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th><th class="num">Z</th><th class="num">AC</th></tr></thead><tbody>${pend}</tbody></table></div>` : `<div class="sub">No signal for the next session.</div>`}
-    ${rows ? `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">OPEN &rarr; CLOSE</th><th class="num">NET</th></tr></thead><tbody>${rows}</tbody></table></div>` : ""}
+    ${esc(sd.start)}, on NSE's official open and close only; rules fixed in ${esc(sd.preregistration)}.</span>
+    <b class="${verdictTone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanNetPct > 0 ? "+" : ""}${String(esc(s.meanNetPct)).replace(/^-/, "&minus;")}% a trade, ${esc(s.winPct)}% winners, t ${String(((s.t ?? null) === null ? "&mdash;" : esc(s.t))).replace(/^-/, "&minus;")}` : ""}
+<span class="lec">(a verdict needs 100 trades and 3 months). Data through ${esc(sd.dataThrough)}. <b>Not a recommendation until it passes.</b></span>
+    ${pend ? listFold(`Next session: ${esc((sd.pending || []).length)} to buy`, `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th><th class="num">Z</th><th class="num">AC</th></tr></thead><tbody>${pend}</tbody></table></div>`) : `<div class="sub">No signal for the next session.</div>`}
+    ${rows ? listFold("Latest trades", `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">OPEN &rarr; CLOSE</th><th class="num">NET</th></tr></thead><tbody>${rows}</tbody></table></div>`) : ""}
   </div>`;
 }
 
@@ -1036,10 +1038,10 @@ function paperLiveBlock(d, book) {
   const cells = rows.map((r) => `<div><b class="${r.side > 0 ? "up" : "down"}">${esc(r.symbol)}</b><div class="sub">${r.side > 0 ? "bought" : "sold"} at ${price(r.open)}</div></div>
     <div class="num ${tone(r.gapPct)}">${r.gapPct === null ? "&mdash;" : signedPct(round(r.gapPct))}</div><div class="num">${price(r.last)}</div><div class="num ${tone(r.pnl)}">${plus(r.pnl)}</div>`).join("");
   const total = rows.reduce((a, r) => a + r.pnl, 0);
-  return `<div class="sbres"><b>Live now, ${esc(time)} IST</b> &middot; <b>information only, not part of the tested rule</b>: each futures open, its gap from the previous close, the last price, and the paper result on ${esc(pl.units)} units if traded at the open.
+  return `<div class="sbres"><b>Live now, ${esc(time)} IST</b><span class="lec"> &middot; <b>information only, not part of the tested rule</b>: each futures open, its gap from the previous close, the last price, and the paper result on ${esc(pl.units)} units if traded at the open.</span>
     <div class="sbgrid" style="grid-template-columns:1fr auto auto auto"><div class="h">STOCK</div><div class="h num">GAP</div><div class="h num">NOW</div><div class="h num">${esc(pl.units)} UNITS</div>${cells}</div>
     <div>${rows.length} priced &middot; <b class="${tone(total)}">${plus(total)}</b> so far, before GM&rsquo;s charges.</div>
-    <div class="sub">Angel One futures prices, refreshed with each build (about every 20 minutes). Your GM fills will differ.</div></div>`;
+    <div class="sub lec">Angel One futures prices, refreshed with each build (about every 20 minutes). Your GM fills will differ.</div></div>`;
 }
 
 // FII / DII LINE under the header (owner, 19 Oct 2026: FII selling dragged the index). NSE's own provisional cash-market
@@ -1093,7 +1095,7 @@ function sbSlip(d, p) {
         ${ref ? `<dt>${esc(units)} units is about</dt><dd>${money(Math.round(ref * units))}</dd><dt>Each 1% move</dt><dd>${money(Math.round(ref * units / 100))}</dd>` : ""}
         <dt>Trade (same day)</dt><dd class="t">SELL at the open, BUY BACK before the close</dd>
       </dl>
-      <div class="sub">${live ? "Live prices: Angel One futures, refreshed each build; information only." : `Chart: the share price, last ${esc(series.length)} sessions${ref ? "; rupees from the last share close" : ""}.`} Your GM fills will differ.</div>
+      <div class="sub lec">${live ? "Live prices: Angel One futures, refreshed each build; information only." : `Chart: the share price, last ${esc(series.length)} sessions${ref ? "; rupees from the last share close" : ""}.`} Your GM fills will differ.</div>
     </div></details>`;
 }
 
@@ -1125,22 +1127,25 @@ function sbFocusBox(d) {
     const cells = fl.rows.map((r) => (r.missing ? `<div><b>${esc(r.symbol)}</b></div><div class="sub" style="grid-column:2 / -1">no futures price in NSE&rsquo;s file</div>`
       : `<div><b>${esc(r.symbol)}</b><div class="sub">${price(r.open)} &rarr; ${price(r.close)}</div></div><div class="num ${tone(pct(r))}">${signedPct(round(pct(r)))}</div><div class="num ${tone(rs(r))}">${plus(rs(r))}</div>`)).join("");
     const won = priced.filter((r) => pct(r) > 0).length; const total = priced.reduce((a, r) => a + rs(r), 0);
-    return `<div class="sbres">${head} on ${contract} &middot; <b>information only</b>: sold at NSE&rsquo;s official futures open, bought back at its official close.
+    return `<div class="sbres">${head}<span class="lec"> on ${contract} &middot; <b>information only</b>: sold at NSE&rsquo;s official futures open, bought back at its official close.</span>
       <div class="sbgrid"><div class="h">STOCK</div><div class="h num">RESULT</div><div class="h num">${esc(units)} UNITS</div>${cells}</div>
       ${priced.length ? `<div>${won} of ${priced.length} won &middot; average ${signedPct(round(priced.reduce((a, r) => a + pct(r), 0) / priced.length))} &middot; <b class="${tone(total)}">${plus(total)}</b> on ${esc(units)} units each, before GM&rsquo;s charges.</div>` : ""}
       ${fl.void ? `<div class="sub">${esc(fl.void)} trade(s) void that day (corporate action).</div>` : ""}
-      <div class="sub">Your GM fills will differ. The test itself is scored on share prices (TRACK).</div></div>`;
+      <div class="sub lec">Your GM fills will differ. The test itself is scored on share prices (TRACK).</div></div>`;
   })();
+  const units = d.gmMinUnits || 20;
   return `<div class="note focus" style="border-left-color:var(--amber);margin:0 0 14px">
     <b class="warn">FOCUS RULE &mdash; SHORT BUILD-UP</b> &middot; <b>paper test: for GM Global only, not real money</b>
     <div style="margin-top:6px">${!ready
-      ? `<b class="warn">The list for ${day} is not ready yet</b> &mdash; it is made from NSE&rsquo;s evening files (data so far through ${esc(of.dataThrough || "?")}). Check again after 09:30.`
-      : rows ? `<b>${day}:</b> these stocks fell at least 1.56% in the last session while their futures open interest rose at least 3.04% (new shorts piling in).
+      ? `<b class="warn">The list for ${day} is not ready yet.</b><span class="lec"> It is made from NSE&rsquo;s evening files (data so far through ${esc(of.dataThrough || "?")}). Check again after 09:30.</span>`
+      : rows ? `<b>${day}:</b> sell ${esc(units)} units of each at the open, buy back before the close.<span class="lec"> These stocks fell at least 1.56% in the last session while their futures open interest rose at least 3.04% (new shorts piling in).</span>
         <div class="slips">${pend.map((p) => sbSlip(d, p)).join("")}</div>`
       : `<b>No short build-up signal for ${day}.</b> No trade from this rule today.`}</div>
     ${target === d.sessionDate ? paperLiveBlock(d, "SB") : ""}
     ${lastFut}
-    <details class="fold sub"><summary>The evidence, and why it is paper only<span class="more"></span></summary><div>
+    <div class="sub" style="margin-top:8px">Paper record since ${esc(of.start)}: ${esc(s.finished ?? 0)} trades${s.finished
+      ? `, ${s.meanNetPct > 0 ? "+" : ""}${mn(esc(s.meanNetPct))}% a trade, ${esc(s.winPct)}% won` : ""}. Verdict after 100 trades and 3 months.</div>
+    <details class="fold sub lec"><summary>The evidence, and why it is paper only<span class="more"></span></summary><div>
       Tested on NSE 2005&ndash;2020, data it had never seen, with its rules fixed first: 33,979 trades, <b>+0.21% a trade after futures charges, t 4.66</b>,
       positive in every 5-year period but shrinking (+0.40%, +0.31%, +0.14%); it lost &minus;0.48% a trade in the 2020 COVID crash. Found on 2020&ndash;2026
       (+0.30% then +0.13% a trade). Not yet checked with the full deflated Sharpe. <b>On paper since ${esc(of.start)}:</b> ${esc(s.finished ?? 0)} trades${s.finished
@@ -1167,13 +1172,13 @@ function kronosBox(d) {
   return `<div class="note focus" style="border-left-color:var(--muted);margin:0 0 14px">
     <b>KRONOS WATCH &mdash; AI forecast</b> &middot; <b class="down">FAILED its test (t 1.35, needs 3)</b> &middot; <b>paper only, for GM Global</b>
     <div style="margin-top:6px">${today
-      ? `<b>${esc(dayText(today.entry))}:</b> Kronos&rsquo;s top and bottom tenth of ${esc(today.names)} futures stocks. Enter at the open; close at the close on <b>${esc(dayText(today.exit))}</b> (5 sessions).
+      ? `<b>${esc(dayText(today.entry))}:</b> enter at the open; close at the close on <b>${esc(dayText(today.exit))}</b> (5 sessions).<span class="lec"> Kronos&rsquo;s top and bottom tenth of ${esc(today.names)} futures stocks.</span>
         <div class="sbgrid" style="grid-template-columns:auto auto;gap:4px 28px"><div class="h">BUY (${esc(d.gmMinUnits || 20)} units)</div><div class="h">SELL (${esc(d.gmMinUnits || 20)} units)</div>
           <div class="up">${names(today.long)}</div><div class="down">${names(today.short)}</div></div>`
-      : `<b class="warn">No Kronos list for ${esc(dayText(target))}.</b> It is made from NSE&rsquo;s evening files (about 20:15 IST); counting starts with Mon 19 Oct.`}</div>
+      : `<b class="warn">No Kronos list for ${esc(dayText(target))} yet.</b><span class="lec"> It is made from NSE&rsquo;s evening files (about 20:15 IST); counting starts with Mon 19 Oct.</span>`}</div>
     ${today && target === d.sessionDate ? paperLiveBlock(d, "KRONOS") : ""}
     ${held.length ? `<div class="sub" style="margin-top:6px">Still held from earlier lists: ${held.map((x) => `${esc(dayText(x.entry))} list &rarr; close at the close on ${esc(dayText(x.exit))}`).join("; ")}.</div>` : ""}
-    <div class="sub" style="margin-top:6px">Kronos reads only each stock&rsquo;s last 512 daily bars (one random draw, as tested); its own % forecasts are too noisy to show.
+    <div class="sub lec" style="margin-top:6px">Kronos reads only each stock&rsquo;s last 512 daily bars (one random draw, as tested); its own % forecasts are too noisy to show.
       In its test (Jul 2024&ndash;Oct 2026) this book made +0.135% a round, t 1.35: not proven. On paper since ${esc(k.start)}: ${esc(s.finished ?? 0)} lists finished${s.finished
         ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a list, ${esc(s.winPct)}% up` : ""}; a verdict needs 52 weeks (about Oct 2027). Not for real money.</div>
   </div>`;
@@ -1183,10 +1188,10 @@ function kronosTrackBox(k) {
   const s = k.summary; const mn = (v) => String(v).replace(/^-/, "&minus;");
   const rows = (k.books || []).slice(-15).reverse().map((b) => `<tr><td><b>${esc(b.entry)}</b></td><td>${esc(b.status)}</td><td class="num ${b.valuePct > 0 ? "up" : b.valuePct < 0 ? "down" : ""}">${b.valuePct === undefined ? "&mdash;" : `${b.valuePct > 0 ? "+" : ""}${mn(esc(b.valuePct))}%`}</td></tr>`).join("");
   return `<div class="note" style="margin-top:16px;border-left-color:var(--muted)">
-    <b>FORWARD PAPER WATCH: KRONOS (AI forecast)</b> &mdash; ${esc(k.rule)}. Backtest: ${esc(k.backtest)}. Rules fixed in ${esc(k.preregistration)} before any forecast.
-    <b class="warn">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} lists finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a list (half longs, half shorts, after futures charges), ${esc(s.winPct)}% up, ${esc(s.weeks)} weeks, t ${mn(esc(s.t ?? "&mdash;"))}` : ""}.
-    A verdict needs 52 weeks and t &ge; 3. Data through ${esc(k.dataThrough)}.
-    ${rows ? `<div class="wrap"><table><thead><tr><th>ENTRY</th><th>STATUS</th><th class="num">LIST NET</th></tr></thead><tbody>${rows}</tbody></table></div>` : ""}
+    <b>FORWARD PAPER WATCH: KRONOS (AI forecast)</b><span class="lec"> &mdash; ${esc(k.rule)}. Backtest: ${esc(k.backtest)}. Rules fixed in ${esc(k.preregistration)} before any forecast.</span>
+    <b class="warn">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} lists finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a list (half longs, half shorts, after futures charges), ${esc(s.winPct)}% up, ${esc(s.weeks)} weeks, t ${mn(((s.t ?? null) === null ? "&mdash;" : esc(s.t)))}` : ""}.
+    <span class="lec">A verdict needs 52 weeks and t &ge; 3. Data through ${esc(k.dataThrough)}.</span>
+    ${rows ? listFold("Lists", `<div class="wrap"><table><thead><tr><th>ENTRY</th><th>STATUS</th><th class="num">LIST NET</th></tr></thead><tbody>${rows}</tbody></table></div>`) : ""}
   </div>`;
 }
 
@@ -1197,14 +1202,14 @@ function oiFlowBox(of) {
   const part = (k, title, act) => { const r = of[k] || {}; const s = r.summary || {}; const tone = s.verdict === "PASS" ? "up" : s.verdict === "FAIL" ? "down" : "warn";
     const pend = (r.pending || []).map((p) => `<tr><td><b>${esc(p.symbol)}</b></td><td>${act}</td><td class="num">${mn(esc(p.pricePct))}%</td><td class="num">${mn(esc(p.oiPct))}%</td></tr>`).join("");
     const done = (r.trades || []).slice(0, 15).map((t) => `<tr><td><b>${esc(t.symbol)}</b></td><td>${esc(t.entryDate)}${t.exitDate ? ` &rarr; ${esc(t.exitDate)}` : ""}</td><td class="num">${t.entry ? esc(t.entry) : "&mdash;"}${t.exit ? ` &rarr; ${esc(t.exit)}` : ""}</td><td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${mn(esc(t.netPct))}%`}</td></tr>`).join("");
-    return `<div style="margin-top:10px"><b>${title}</b> &mdash; ${esc(r.rule || "")}. Backtest: ${esc(r.backtest || "")}.
-      <b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanNetPct > 0 ? "+" : ""}${mn(esc(s.meanNetPct))}% a trade, ${esc(s.winPct)}% winners, t ${mn(esc(s.t ?? "&mdash;"))}` : ""}.
-      ${pend ? `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th><th class="num">PRICE</th><th class="num">OPEN INT.</th></tr></thead><tbody>${pend}</tbody></table></div>` : `<div class="sub">No signal for the next session.</div>`}
-      ${done ? `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">OPEN &rarr; CLOSE</th><th class="num">NET</th></tr></thead><tbody>${done}</tbody></table></div>` : ""}</div>`; };
+    return `<div style="margin-top:10px"><b>${title}</b><span class="lec"> &mdash; ${esc(r.rule || "")}. Backtest: ${esc(r.backtest || "")}.</span>
+      <b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanNetPct > 0 ? "+" : ""}${mn(esc(s.meanNetPct))}% a trade, ${esc(s.winPct)}% winners, t ${mn(((s.t ?? null) === null ? "&mdash;" : esc(s.t)))}` : ""}.
+      ${pend ? listFold(`Next session: ${esc((r.pending || []).length)} signal${(r.pending || []).length === 1 ? "" : "s"}`, `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th><th class="num">PRICE</th><th class="num">OPEN INT.</th></tr></thead><tbody>${pend}</tbody></table></div>`) : `<div class="sub">No signal for the next session.</div>`}
+      ${done ? listFold("Latest trades", `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">OPEN &rarr; CLOSE</th><th class="num">NET</th></tr></thead><tbody>${done}</tbody></table></div>`) : ""}</div>`; };
   return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
-    <b>FORWARD PAPER TESTS: WHAT THE BIG POSITIONS DO (futures open interest)</b> &mdash; two patterns that FAILED their backtest but held one sign in every period,
+    <b>FORWARD PAPER TESTS: WHAT THE BIG POSITIONS DO (futures open interest)</b><span class="lec"> &mdash; two patterns that FAILED their backtest but held one sign in every period,
     now judged only on prices from ${esc(of.start)} (NSE&rsquo;s official open and close, after futures charges); rules fixed in ${esc(of.preregistration)}.
-    A verdict needs 100 trades and 3 months each. Data through ${esc(of.dataThrough)}. <b>Not recommendations until they pass.</b>
+    A verdict needs 100 trades and 3 months each. Data through ${esc(of.dataThrough)}. <b>Not recommendations until they pass.</b></span>
     ${part("LU", "LONG-UNWINDING BOUNCE", "buy at the next open, sell 10 sessions later")}
     ${part("SB", "SHORT BUILD-UP", "short at the next open, cover at the close")}
   </div>`;
@@ -1215,22 +1220,22 @@ function forwardV2Box(fv) {
   if (!fv) return "";
   const mn = (v) => String(v).replace(/^-/, "&minus;");
   const verdict = (s) => { s = s || {}; const tone = s.verdict === "PASS" ? "up" : s.verdict === "FAIL" ? "down" : "warn";
-    return `<b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a trade, ${esc(s.winPct)}% winners, worst ${mn(esc(s.worstPct))}%, t ${mn(esc(s.t ?? "&mdash;"))}` : ""}`; };
+    return `<b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a trade, ${esc(s.winPct)}% winners, worst ${mn(esc(s.worstPct))}%, t ${mn(((s.t ?? null) === null ? "&mdash;" : esc(s.t)))}` : ""}`; };
   const shorts = (k, title) => { const r = fv[k] || {};
     const pend = (r.pending || []).map((p) => `<tr><td><b>${esc(p.symbol)}</b></td><td>short at the next open, cover 10 sessions later</td></tr>`).join("");
     const done = (r.trades || []).filter((t) => t.status === "DONE").slice(0, 15).map((t) => `<tr><td><b>${esc(t.symbol)}</b></td><td>${esc(t.entryDate)} &rarr; ${esc(t.exitDate)}</td><td class="num ${t.excessPct > 0 ? "up" : "down"}">${t.excessPct > 0 ? "+" : ""}${mn(esc(t.excessPct))}%</td></tr>`).join("");
-    return `<div style="margin-top:10px"><b>${title}</b> &mdash; ${esc(r.rule || "")}. Backtest: ${esc(r.backtest || "")}. ${verdict(r.summary)}.
-      ${pend ? `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th></tr></thead><tbody>${pend}</tbody></table></div>` : `<div class="sub">No signal for the next session.</div>`}
-      ${done ? `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">VS MARKET</th></tr></thead><tbody>${done}</tbody></table></div>` : ""}</div>`; };
+    return `<div style="margin-top:10px"><b>${title}</b><span class="lec"> &mdash; ${esc(r.rule || "")}. Backtest: ${esc(r.backtest || "")}.</span> ${verdict(r.summary)}.
+      ${pend ? listFold(`Next session: ${esc((r.pending || []).length)} to short`, `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th>TRADE</th></tr></thead><tbody>${pend}</tbody></table></div>`) : `<div class="sub">No signal for the next session.</div>`}
+      ${done ? listFold("Latest trades", `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAYS</th><th class="num">VS MARKET</th></tr></thead><tbody>${done}</tbody></table></div>`) : ""}</div>`; };
   const st = fv.STRANGLE || {};
   const strRows = (st.trades || []).slice(0, 15).map((t) => `<tr><td>${esc(t.entryDate)} &rarr; ${esc(t.expiry)}</td><td class="num">${esc(t.putStrike)} PE / ${esc(t.callStrike)} CE</td><td class="num">${esc(t.premium)}</td>
     <td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${mn(esc(t.netPct))}%`}</td></tr>`).join("");
   return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
-    <b>FORWARD PAPER TESTS: WHAT SURVIVED THE PROPER RE-TEST</b> (six years, against the market, t &ge; 3 &mdash; Harvey, Liu &amp; Zhu 2016) &mdash; judged only on
-    prices from ${esc(fv.start)}, NSE&rsquo;s official files; rules fixed in ${esc(fv.preregistration)}. Data through ${esc(fv.dataThrough)}. <b>Not recommendations until they pass.</b>
-    <div style="margin-top:10px"><b>NIFTY 2% STRANGLE (option SELLING)</b> &mdash; ${esc(st.rule || "")}. Backtest: ${esc(st.backtest || "")}. ${verdict(st.summary)} (a verdict needs 26 trades).
-      Selling needs margin and a crash can cost many weeks of premium &mdash; <b>information, not a row to buy on Zerodha</b>.
-      ${strRows ? `<div class="wrap"><table><thead><tr><th>WEEK</th><th class="num">STRIKES</th><th class="num">PREMIUM</th><th class="num">NET</th></tr></thead><tbody>${strRows}</tbody></table></div>` : `<div class="sub">First trade at the next weekly cycle.</div>`}</div>
+    <b>FORWARD PAPER TESTS: WHAT SURVIVED THE PROPER RE-TEST</b><span class="lec"> (six years, against the market, t &ge; 3 &mdash; Harvey, Liu &amp; Zhu 2016) &mdash; judged only on
+    prices from ${esc(fv.start)}, NSE&rsquo;s official files; rules fixed in ${esc(fv.preregistration)}. Data through ${esc(fv.dataThrough)}. <b>Not recommendations until they pass.</b></span>
+    <div style="margin-top:10px"><b>NIFTY 2% STRANGLE (option SELLING)</b><span class="lec"> &mdash; ${esc(st.rule || "")}. Backtest: ${esc(st.backtest || "")}.</span> ${verdict(st.summary)}<span class="lec"> (a verdict needs 26 trades).
+      Selling needs margin and a crash can cost many weeks of premium &mdash; <b>information, not a row to buy on Zerodha</b>.</span>
+      ${strRows ? listFold("Weeks", `<div class="wrap"><table><thead><tr><th>WEEK</th><th class="num">STRIKES</th><th class="num">PREMIUM</th><th class="num">NET</th></tr></thead><tbody>${strRows}</tbody></table></div>`) : `<div class="sub">First trade at the next weekly cycle.</div>`}</div>
     ${shorts("MA150A", "SHORT: CLOSE CROSSES BELOW ITS 150-DAY AVERAGE")}
     ${shorts("MA150B", "SHORT: 5-DAY AVERAGE CROSSES BELOW THE 150-DAY")}
   </div>`;
@@ -1260,7 +1265,7 @@ function forwardV3Box(fv) {
   if (!fv) return "";
   const mn = (v) => String(v).replace(/^-/, "&minus;");
   const verdict = (s) => { s = s || {}; const tone = s.verdict === "PASS" ? "up" : s.verdict === "FAIL" ? "down" : "warn";
-    return `<b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a trade, ${esc(s.winPct)}% winners, worst ${mn(esc(s.worstPct))}%, t ${mn(esc(s.t ?? "&mdash;"))}` : ""}`; };
+    return `<b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a trade, ${esc(s.winPct)}% winners, worst ${mn(esc(s.worstPct))}%, t ${mn(((s.t ?? null) === null ? "&mdash;" : esc(s.t)))}` : ""}`; };
   const cv = fv.CHEAPVOL || {}, ir = fv.INDREV || {};
   const cvRows = (cv.trades || []).slice(0, 15).map((t) => `<tr><td><b>${esc(t.symbol)}</b> ${esc(t.strike)} straddle</td><td>${esc(t.entryDate)}${t.exitDate ? ` &rarr; ${esc(t.exitDate)}` : ""}</td>
     <td class="num">IV ${esc(t.ivPct)}% / RV ${esc(t.rvPct)}%</td><td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${mn(esc(t.netPct))}%`}</td></tr>`).join("");
@@ -1274,14 +1279,14 @@ function forwardV3Box(fv) {
     : ir.pending ? `<div class="sub"><b>Next session is a rebalance.</b> Long (lagged their group): ${names(ir.pending.long)}. Short (led it): ${names(ir.pending.short)}.${noInd.size ? ` * = NSE gives no industry (${esc(noInd.size)} of ${esc(ir.pending.long.length + ir.pending.short.length)} names): compared with all such stocks together, as in the backtest.` : ""}</div>`
     : `<div class="sub">Next rebalance in ${esc(ir.sessionsToNext)} session${ir.sessionsToNext === 1 ? "" : "s"}.</div>`;
   return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
-    <b>FORWARD PAPER TESTS: THE TWO NEAR MISSES</b> &mdash; each just missed the bar on six years of NSE data, so now judged only on prices from ${esc(fv.start)};
-    rules fixed in ${esc(fv.preregistration)}. Data through ${esc(fv.dataThrough)}. <b>Not recommendations until they pass.</b>
-    <div style="margin-top:10px"><b>CHEAP-VOLATILITY STRADDLE (option BUYING)</b> &mdash; ${esc(cv.rule || "")}. Backtest: ${esc(cv.backtest || "")}. ${verdict(cv.summary)} (a verdict needs 100 trades and 3 months).
-      Entry is the official close of the signal day &mdash; in practice near 15:25.
-      ${cvRows ? `<div class="wrap"><table><thead><tr><th>STRADDLE</th><th>DAYS</th><th class="num">IV / REALISED</th><th class="num">NET</th></tr></thead><tbody>${cvRows}</tbody></table></div>` : `<div class="sub">No signal yet.</div>`}</div>
-    <div style="margin-top:10px"><b>INDUSTRY-ADJUSTED REVERSAL (long-short futures)</b> &mdash; ${esc(ir.rule || "")}. Backtest: ${esc(ir.backtest || "")}. ${verdict(ir.summary)} (a verdict needs 26 rebalances).
+    <b>FORWARD PAPER TESTS: THE TWO NEAR MISSES</b><span class="lec"> &mdash; each just missed the bar on six years of NSE data, so now judged only on prices from ${esc(fv.start)};
+    rules fixed in ${esc(fv.preregistration)}. Data through ${esc(fv.dataThrough)}. <b>Not recommendations until they pass.</b></span>
+    <div style="margin-top:10px"><b>CHEAP-VOLATILITY STRADDLE (option BUYING)</b><span class="lec"> &mdash; ${esc(cv.rule || "")}. Backtest: ${esc(cv.backtest || "")}.</span> ${verdict(cv.summary)}<span class="lec"> (a verdict needs 100 trades and 3 months).
+      Entry is the official close of the signal day &mdash; in practice near 15:25.</span>
+      ${cvRows ? listFold("Latest trades", `<div class="wrap"><table><thead><tr><th>STRADDLE</th><th>DAYS</th><th class="num">IV / REALISED</th><th class="num">NET</th></tr></thead><tbody>${cvRows}</tbody></table></div>`) : `<div class="sub">No signal yet.</div>`}</div>
+    <div style="margin-top:10px"><b>INDUSTRY-ADJUSTED REVERSAL (long-short futures)</b><span class="lec"> &mdash; ${esc(ir.rule || "")}. Backtest: ${esc(ir.backtest || "")}.</span> ${verdict(ir.summary)}<span class="lec"> (a verdict needs 26 rebalances).</span>
       ${next}
-      ${irRows ? `<div class="wrap"><table><thead><tr><th>REBALANCE</th><th>LEGS</th><th class="num">NET</th></tr></thead><tbody>${irRows}</tbody></table></div>` : ""}</div>
+      ${irRows ? listFold("Rebalances", `<div class="wrap"><table><thead><tr><th>REBALANCE</th><th>LEGS</th><th class="num">NET</th></tr></thead><tbody>${irRows}</tbody></table></div>`) : ""}</div>
   </div>`;
 }
 
@@ -1295,11 +1300,11 @@ function forwardV4Box(fv) {
     <td class="num">${esc(t.ratio)}x</td><td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${t.netPct === undefined ? esc(t.status) : `${t.netPct > 0 ? "+" : ""}${mn(esc(t.netPct))}%`}</td></tr>`).join("");
   const wait = (s2.pending || []).map((p) => `<b>${esc(p.symbol)}</b>${fut(p.hasFutures)} (${esc(p.ratio)}x; short at ${esc(p.entry)})`).join(", ");
   return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
-    <b>FORWARD PAPER TEST: BORROWING SURGE (short futures)</b> &mdash; ${esc(s2.rule)}. Backtest: ${esc(s2.backtest)}.
-    Judged only on prices from ${esc(fv.start)}; rules fixed in ${esc(fv.preregistration)}. Data through ${esc(fv.dataThrough)}. <b>Not a recommendation until it passes.</b>
-    <div style="margin-top:6px"><b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a trade over the market, ${esc(s.winPct)}% winners, worst ${mn(esc(s.worstPct))}%, t ${mn(esc(s.t ?? "&mdash;"))}` : ""} (a verdict needs 100 trades and 3 months).</div>
-    ${wait ? `<div class="sub">Waiting for entry: ${wait}. Counted only if that session is on or after ${esc(fv.start)}.</div>` : ""}
-    ${rows ? `<div class="wrap"><table><thead><tr><th>STOCK</th><th>DAYS</th><th class="num">SURGE</th><th class="num">NET</th></tr></thead><tbody>${rows}</tbody></table></div>` : `<div class="sub">No trade yet.</div>`}
+    <b>FORWARD PAPER TEST: BORROWING SURGE (short futures)</b><span class="lec"> &mdash; ${esc(s2.rule)}. Backtest: ${esc(s2.backtest)}.
+    Judged only on prices from ${esc(fv.start)}; rules fixed in ${esc(fv.preregistration)}. Data through ${esc(fv.dataThrough)}. <b>Not a recommendation until it passes.</b></span>
+    <div style="margin-top:6px"><b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a trade over the market, ${esc(s.winPct)}% winners, worst ${mn(esc(s.worstPct))}%, t ${mn(((s.t ?? null) === null ? "&mdash;" : esc(s.t)))}` : ""}<span class="lec"> (a verdict needs 100 trades and 3 months).</span></div>
+    ${wait ? `<div class="sub">Waiting for entry: ${wait}.<span class="lec"> Counted only if that session is on or after ${esc(fv.start)}.</span></div>` : ""}
+    ${rows ? listFold("Latest trades", `<div class="wrap"><table><thead><tr><th>STOCK</th><th>DAYS</th><th class="num">SURGE</th><th class="num">NET</th></tr></thead><tbody>${rows}</tbody></table></div>`) : `<div class="sub">No trade yet.</div>`}
   </div>`;
 }
 
@@ -1319,7 +1324,7 @@ function page(d) {
     for (const r of rows) sectors[r.sector || "Unknown"] = (sectors[r.sector || "Unknown"] || 0) + 1;
     const top = Object.entries(sectors).sort((a, b) => b[1] - a[1]).slice(0, 3).map(([k, v]) => `${esc(k)} ${esc(v)}`).join(", ");
     const stocks = new Set(rows.map((r) => r.symbol)).size;
-    return `<details class="fold sub lead"><summary>If you take every row here (${esc(unit)}): <b class="amt">${money(round(capital, 0))}</b> in total;
+    return `<details class="fold sub lead lec"><summary>If you take every row here (${esc(unit)}): <b class="amt">${money(round(capital, 0))}</b> in total;
       if every stop is hit, <b class="down amt">&minus;${money(round(loss, 0))}</b> &mdash; more if prices gap through the stops.<span class="more"></span></summary>
       <div>${stocks < rows.length ? `These ${esc(rows.length)} rows are on <b>${esc(stocks)} ${rows.some((r) => r.isIndex) ? "names" : "stocks"}</b>: several strikes of one ${rows.some((r) => r.isIndex) ? "name" : "stock"} are one bet, not several. ` : ""}Most rows are in: ${top}. Rows in one sector tend to fall together.${extra ? ` ${extra}` : ""}</div></details>`;
   };
@@ -1330,7 +1335,7 @@ function page(d) {
   const riskBox = (side, kind) => {
     const r = d.risk;
     if (!r) return "";
-    const off = (why) => `<div class="sub lead"><b>BAD-DAY RISK:</b> not available on this build &mdash; ${esc(why)}.</div>`;
+    const off = (why) => `<div class="sub lead lec"><b>BAD-DAY RISK:</b> not available on this build &mdash; ${esc(why)}.</div>`;
     if (!r.available) return off(r.reason || "reason unknown");
     if (!side) return "";
     if (!side.available) return off(side.reason || "reason unknown");
@@ -1346,7 +1351,7 @@ function page(d) {
       : `${esc(w.stopsHit)} stop${w.stopsHit === 1 ? " was" : "s were"} hit${w.throughGap ? `, ${esc(w.throughGap)} of them by a gap at the open` : ""}`;
     const left = [...(side.excluded || []).map((x) => `${esc(x.symbol)} (${esc(x.sessions)} sessions of history)`),
       ...(side.unpriced || []).map((s) => `${esc(s)} (could not be priced)`)];
-    return `<details class="fold risk"><summary><b>BAD-DAY RISK</b>, every row together &mdash; 1 day in 20: <b class="down amt">${money(-side.var)}</b> or worse
+    return `<details class="fold risk lec"><summary><b>BAD-DAY RISK</b>, every row together &mdash; 1 day in 20: <b class="down amt">${money(-side.var)}</b> or worse
       &middot; worst day: <b class="down amt">${money(w.rupees)}</b>${side.gap ? ` &middot; market opens 5% ${gapWord}: <b class="down amt">${money(side.gap.rupees)}</b>` : ""}<span class="more"></span></summary>
       <div>Today&rsquo;s ${esc(side.rowsIncluded)} rows (${what}) replayed through each of the last ${esc(side.days)} trading days,
         ${esc(dayText(side.from))} to ${esc(dayText(side.to))}, on real prices, with every stop and target in the market.
@@ -1416,7 +1421,7 @@ function page(d) {
         <td class="num down">${px(c.stop)}${c.netLossAtStop !== null && c.netLossAtStop !== undefined ? `<div class="sub down">net &minus;${money(Math.abs(c.netLossAtStop))} a lot</div>` : ""}</td>
         <td class="num"${liveAttrs(c.liveToken, c.buy, c.frozen)}><span class="nowv">${px(c.now)}</span><div class="sub nows ${state.tone}">${esc(state.word)}</div></td>
         <td class="num">${pctOrDash(c.iv)} / ${pctOrDash(c.rv)}<div class="sub">VRP ${numeric(c.vrp) === null ? "&mdash;" : esc(c.vrp)}</div></td>
-        <td class="num">${pctOrDash(c.touchPct)}${numeric(c.touchPct) === null ? `<div class="sub">touch odds need the price history</div>` : `<div class="sub">touch, ~${esc(c.daysToTarget)}d &mdash; ignores the stop</div>${trackLine(c.right)}`}${c.breakEvenPct !== null && c.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(c.breakEvenPct)}% wins to break even</div>` : ""}${c.noTrendNet !== null && c.noTrendNet !== undefined ? `<div class="sub down">no trend: about &minus;${money(Math.abs(c.noTrendNet))} a lot${c.spreadKnown === false ? ", plus the spread" : ""}</div>` : ""}</td>
+        <td class="num">${pctOrDash(c.touchPct)}<div class="lec">${numeric(c.touchPct) === null ? `<div class="sub">touch odds need the price history</div>` : `<div class="sub">touch, ~${esc(c.daysToTarget)}d &mdash; ignores the stop</div>${trackLine(c.right)}`}${c.breakEvenPct !== null && c.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(c.breakEvenPct)}% wins to break even</div>` : ""}${c.noTrendNet !== null && c.noTrendNet !== undefined ? `<div class="sub down">no trend: about &minus;${money(Math.abs(c.noTrendNet))} a lot${c.spreadKnown === false ? ", plus the spread" : ""}</div>` : ""}</div></td>
         <td class="num ${Number(c.thetaBurnPct) > 12 ? "down" : ""}">${pctOrDash(c.thetaBurnPct)}</td>
         <td class="num">${esc(c.score)}</td>
       </tr>`;
@@ -1454,7 +1459,7 @@ function page(d) {
       exp?.twoBarrier ? `<b>target before stop: ${esc(exp.twoBarrier.targetFirstPct)}%</b> if prices move at random (stop first ${esc(exp.twoBarrier.stopFirstPct)}%${exp.twoBarrier.neitherPct >= 1 ? `, neither in 20 sessions ${esc(exp.twoBarrier.neitherPct)}%` : ""}); break-even ${esc(exp.twoBarrier.breakEvenPct)}% before charges` : null,
       exp?.target ? `touch odds ${esc(exp.target.probabilityPct)}% (~${esc(round(exp.target.medianTradingDays, 1))} sessions) &mdash; ignores the stop` : null,
       exp?.target ? trackLine(r.side < 0 ? "FUTS" : "FUT").replace(/^<div class="sub[^"]*">|<\/div>$/g, "") || null : null
-    ].filter(Boolean).map((line) => `<div class="sub">${line}</div>`).join("");
+    ].filter(Boolean).map((line) => `<div class="sub lec">${line}</div>`).join("");
     return `
       <tr>
         <td>${r.priceBasis === "CONTRACT"
@@ -1469,11 +1474,11 @@ function page(d) {
         <td class="num"><b>${px(r.buy)}</b>${expLine}</td>
         <td class="num up">${px(r.target1)}<div class="sub">${px(r.target2)}</div></td>
         <td class="num down">${px(r.stop)}</td>
-        <td class="num"${liveAttrs(r.liveToken, r.buy, r.frozen, r.side)}><span class="nowv">${px(r.spot)}</span><div class="sub nows ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.vwap ? `<div class="sub">day&rsquo;s VWAP ${px(r.vwap)} &middot; NOW is ${r.spot >= r.vwap ? "above" : "below"} it</div>` : ""}${r.referencePrice
+        <td class="num"${liveAttrs(r.liveToken, r.buy, r.frozen, r.side)}><span class="nowv">${px(r.spot)}</span><div class="sub nows ${state.tone}">${esc(state.word)}</div><div class="sub ${/_LIVE$/.test(r.nowSource) ? "" : "down"}">${SOURCE_LABEL[r.nowSource] || ""}${r.nowAtText ? ` at ${esc(r.nowAtText)}` : ""}</div>${r.vwap ? `<div class="sub lec">day&rsquo;s VWAP ${px(r.vwap)} &middot; NOW is ${r.spot >= r.vwap ? "above" : "below"} it</div>` : ""}${r.referencePrice
           ? `<div class="sub">${r.referenceKind === "future" ? "NSE future" : "share"} ${px(r.referencePrice)}</div>`
           : (r.fnoListed === false ? `<div class="sub">no NSE futures contract</div>` : "")}</td>
         <td class="num">${money(r.minCapital)}<div class="sub">${esc(r.minUnits)} units</div><div class="sub down">stop &minus;${money(r.minLossAtStop)}</div><div class="sub up">target +${money(r.minGainAtTarget)}</div></td>
-        <td class="num">${esc(r.rewardToRisk)}<div class="sub">+${money(r.rewardPerUnit)} / &minus;${money(r.riskPerUnit)}</div>${r.breakEvenPct !== null && r.breakEvenPct !== undefined ? `<div class="sub">needs ${esc(r.breakEvenPct)}% wins to break even</div>` : ""}</td>
+        <td class="num">${esc(r.rewardToRisk)}<div class="sub">+${money(r.rewardPerUnit)} / &minus;${money(r.riskPerUnit)}</div>${r.breakEvenPct !== null && r.breakEvenPct !== undefined ? `<div class="sub lec">needs ${esc(r.breakEvenPct)}% wins to break even</div>` : ""}</td>
       </tr>`;
   };
   const futRows = d.futures.map(futRowHtml).join("");
@@ -1563,7 +1568,7 @@ function page(d) {
         ${summaryRow("FUTURES", t.summary.FUT)}${t.summary.FUTS?.shown ? summaryRow("SHORT FUTURES", t.summary.FUTS) : ""}${summaryRow("CALLS", t.summary.CE)}${summaryRow("PUTS", t.summary.PE)}${summaryRow("ALL", t.summary.ALL)}
       </tbody>
     </table></div>
-    <div class="sub" style="margin:6px 0 18px">Hit rate counts only trades that filled and then finished. IF RANDOM is how often
+    <div class="sub lec" style="margin:6px 0 18px">Hit rate counts only trades that filled and then finished. IF RANDOM is how often
       the target would come before the stop if prices moved at random &mdash; each trade's break-even, before charges. Only a hit rate
       above it, over enough separate bets, is evidence of an edge. The touch odds the desk showed ignore the stop, so they always run higher.
       Futures returns are GROSS per unit; options are NET of every charge per lot. ALL has no average return
@@ -1575,20 +1580,20 @@ function page(d) {
       and they are shown on a fallback price. Each is added the first time its contract is priced live.</div>` : ""}
 
     <h2>Running now (${esc(t.open.length)})</h2>
-    <div class="wrap"><table>
+    ${listFold("Show them", `<div class="wrap"><table>
       <thead><tr><th>CONTRACT</th><th class="num">SHOWN</th><th class="num">BUY</th><th class="num">TARGET</th><th class="num">STOP</th>
         <th class="num">STATUS</th><th class="num">LAST</th><th class="num">TOUCH ODDS (IGNORE STOP)</th></tr></thead>
       <tbody>${openRows || '<tr><td colspan="8">Nothing running. The first trades are recorded when the day&rsquo;s levels freeze, on the first build that sees a live exchange book.</td></tr>'}</tbody>
-    </table></div>
+    </table></div>`)}
 
     <h2>Finished (latest ${esc(t.recentClosed.length)} of ${esc(t.totalClosed)})</h2>
-    <div class="wrap"><table>
+    ${listFold("Show them", `<div class="wrap"><table>
       <thead><tr><th>CONTRACT</th><th class="num">OUTCOME</th><th class="num">TIME TO FILL</th><th class="num">FILL &rarr; EXIT</th>
         <th class="num">TOUCH ODDS</th><th class="num">RESULT</th></tr></thead>
       <tbody>${closedRows || '<tr><td colspan="6">Nothing has finished yet.</td></tr>'}</tbody>
-    </table></div>
+    </table></div>`)}
 
-    <div class="note" style="margin-top:14px">
+    <div class="note lec" style="margin-top:14px">
       <b>HOW THIS IS SCORED.</b> Every price this page freezes is bought on paper at the moment it is shown. Each build then
       checks the market, using the day&rsquo;s high and low so a move between two builds is not missed. Every ambiguity counts
       <i>against</i> the record: a target and a stop in the same window is a stop; a target in the same window as the fill is not
@@ -1667,13 +1672,15 @@ function page(d) {
         : t.liveBooks === 0 && (t.refused?.staleDuringSession || 0) > 0 ? "; the in-session fetch brought no live prices for it" : "";
       return `<b>${esc(sym)}</b>: 0 of ${esc(t.examined)} puts checked cleared${why ? ` &mdash; ${why}` : ""}${skipped ? ` (not checked: ${skipped})` : ""}${feed}`;
     });
-    return lines.length ? `<div class="sub" style="margin:-4px 0 10px">Indices with no put on this build: ${lines.join("; ")}.</div>` : "";
+    return lines.length ? `<div class="sub lec" style="margin:-4px 0 10px">Indices with no put on this build: ${lines.join("; ")}.</div>` : "";
   };
   const feedAlarm = fc?.checked && fc.wrongContract?.length
     ? `<div class="note" style="border-left-color:var(--red)"><b class="down">DO NOT TRADE THESE ROWS.</b>
         Angel One and NSE disagree on which contract they are: ${esc(fc.wrongContract.join("; "))}.
         A different previous close means a different contract, so the prices shown for them are not this contract's prices.</div>`
     : "";
+  // The footer's notes are hidden (ESSENTIALS ONLY); its two alarms are not.
+  const footAlarm = (bc && !bc.ok) || banStale ? `<div class="note" style="border-left-color:var(--red)">${bc && !bc.ok ? brokerNote : ""}${banStale ? banNote : ""}</div>` : "";
 
   const liveNote = d.pricedLive > 0
     ? `<b class="up">${d.pricedLive}</b> priced from a live broker book, <b>${d.pricedFromSettlement}</b> from the ${esc(d.settlementFile)} settlement file.`
@@ -1746,7 +1753,7 @@ function page(d) {
   // FUTURES ARE SHOWN, WITH THE RECORD ON TOP (owner, 12 Oct 2026: "even market is falling there are some stock
   // will rise ... give me that in the futures section"). His call; the page states what the rule did.
   const futuresWarned = (inner) => !downtrendPage || !d.futures.length ? inner
-    : `<div class="sub" style="margin:0 0 10px"><b class="down">Rising-stock buys while NIFTY falls:</b> this rule lost on its test (&minus;0.44% a trade, 27% winners where 37.5% are needed) and on TRACK so far (futures ${esc(ts.FUT?.hitRatePct ?? "?")}% hit). Your call &mdash; size small.</div>${inner}`;
+    : `<div class="sub lec" style="margin:0 0 10px"><b class="down">Rising-stock buys while NIFTY falls:</b> this rule lost on its test (&minus;0.44% a trade, 27% winners where 37.5% are needed) and on TRACK so far (futures ${esc(ts.FUT?.hitRatePct ?? "?")}% hit). Your call &mdash; size small.</div>${inner}`;
   // PROVEN ONLY (owner, 13 Oct 2026, after a NIFTY put lost on a +1.6% day: "suggest me only that you are sure else
   // you are just filling the track"). A row is a suggestion only if the rule that made it passed a pre-registered test
   // (CLAUDE.md rule 4). None has, so every tab opens on NO TRADE and its rows fold shut as UNTESTED -- still listed,
@@ -1754,10 +1761,10 @@ function page(d) {
   // When a rule passes, its rows go in PROVEN_KINDS and come out of the fold.
   const PROVEN_KINDS = new Set();
   const provenCount = (kind, n) => (PROVEN_KINDS.has(kind) ? n : 0);
-  const noTrade = (what) => `<div class="note" style="border-left-color:var(--red);margin:0 0 12px"><b class="down">NO TRADE</b> &mdash; nothing on this tab has passed a test, so there is
+  const noTrade = (what) => `<div class="note" style="border-left-color:var(--red);margin:0 0 12px"><b class="down">NO TRADE</b> &mdash; nothing on this tab has passed a test.<span class="lec"> So there is
     nothing here the desk can call a suggestion. Every rule tried on six years of NSE data failed (TRACK and the notes below have the numbers).
     The ${esc(what)} under the fold are untested ideas, scored on paper on TRACK. Watching them costs nothing; trading them is a guess.${what === "futures rows"
-      ? " The FOCUS RULE above is the one exception under watch: it held on unseen data, and is on paper for GM only until its forward verdict." : ""}</div>`;
+      ? " The FOCUS RULE above is the one exception under watch: it held on unseen data, and is on paper for GM only until its forward verdict." : ""}</span></div>`;
   const untested = (kind, label, n, inner) => PROVEN_KINDS.has(kind) ? inner
     : `${noTrade(label)}${n ? `<details class="fold nr"><summary><b class="warn">UNTESTED &mdash; WATCH ONLY</b> &mdash; ${esc(n)} ${esc(label)}. Not a suggestion. Tap to see them.<span class="more"></span></summary><div>${inner}</div></details>` : inner}`;
   const notRecommended = (label, n, inner) => !downtrendPage || !n || !PROVEN_KINDS.has("CE") ? inner
@@ -1804,6 +1811,10 @@ function page(d) {
         50-day, a downtrend; then this page shows puts, and buys only on the stocks rising on their own.${dirStale} Tested on five years of NSE&rsquo;s own NIFTY data:
         buying NIFTY outside those downtrends made ${signedPct(round(dtest.longsOutsideFinalPct, 2))} a trade in the final year &mdash; the test FAILED.`,
        dir.regime === "BULL_TRENDING" ? "green" : "amber"];
+  // ESSENTIALS ONLY (21 Oct 2026): the page shows one line; the reasoning above is in the notes.
+  const dirShort = !dir?.available ? `<b class="warn">MARKET DIRECTION: not read on this build</b>`
+    : `<b class="${downtrendPage ? "down" : dir.regime === "BULL_TRENDING" ? "up" : "warn"}">MARKET: ${downtrendPage ? "DOWN" : dir.regime === "BULL_TRENDING" ? "UP" : "MIXED"}</b>${downtrendPage
+      ? ` since ${dirDay(dir.since)}` : ""}${dir.stale ? ` <b class="warn">(close of ${dirDay(dir.asOf)})</b>` : ""}`;
   // WHEN THE NIFTY AND VIX FIGURES ARE FROM. Before the open they are the last
   // session's close, and "Nifty 23,140.5 (+0.34%), NSE 15:30" read on Monday
   // at 09:10 as this morning's -- beside a GIFT Nifty at -0.38% (the user,
@@ -1842,6 +1853,11 @@ function page(d) {
           padding:12px 14px; margin-bottom:16px; font-size:13px; line-height:1.6; color:var(--muted) }
   .note b { color:var(--text) } .note b.warn { color:var(--amber) } .note b.up { color:var(--green) } .note b.down { color:var(--red) }
   .note.frozen { border-left-color:var(--green) }
+  /* ESSENTIALS ONLY (owner, 21 Oct 2026: "remove all of the lectures from the page, there should be only important
+     things"). Every explanation carries class "lec" and is hidden; "Show the notes" at the foot brings them back. */
+  body:not(.notes) .lec { display:none !important }
+  .notes-switch { display:block; margin:22px auto 8px; padding:10px 16px; border:1px solid var(--line); border-radius:10px;
+                  background:var(--panel); color:var(--muted); font:500 13px "IBM Plex Sans",system-ui,sans-serif; cursor:pointer }
   /* PHONE: explanations show their first lines; one tap opens them (owner, 11 Oct 2026: "only useful
      information, not the lectures"; Galaxy S25, a 360 px page). Nothing is removed. */
   @media (max-width: 480px) {
@@ -1966,16 +1982,17 @@ function page(d) {
 </style></head><body>
 
 <h1>K&sup2; Desk</h1>
-<div class="stamp">Built ${esc(d.builtAtIst)}<span id="age"></span> &middot; ${noSessionToday ? `no session today (last: ${esc(lastSessionText)})` : `session ${esc(d.sessionDate)}`} &middot; market ${esc(d.marketPhase)} &middot;
-  ${esc(Number(d.examined).toLocaleString("en-IN"))} contracts examined, ${esc(Number(d.survived).toLocaleString("en-IN"))} cleared every gate${d.marketContext?.ok
+<div class="stamp">Built ${esc(d.builtAtIst)}<span id="age"></span> &middot; ${noSessionToday ? `no session today (last: ${esc(lastSessionText)})` : `session ${esc(d.sessionDate)}`} &middot; market ${esc(d.marketPhase)}<span class="lec"> &middot;
+  ${esc(Number(d.examined).toLocaleString("en-IN"))} contracts examined, ${esc(Number(d.survived).toLocaleString("en-IN"))} cleared every gate</span>${d.marketContext?.ok
     ? ` &middot; India VIX <b>${esc(d.marketContext.indiaVix)}</b> (${signedPct(d.marketContext.indiaVixChangePct)}) &middot; Nifty ${esc(Number(d.marketContext.nifty).toLocaleString("en-IN"))} (${signedPct(d.marketContext.niftyChangePct)}), ${ctxWhen}`
     : " &middot; India VIX not read this build"}</div>
 ${flowsLine(d)}
 
-<div class="note ${d.levelsFrozen ? "frozen" : ""}"><details class="fold"><summary>${freezeHead}<span class="more"></span></summary><div>${freezeRest}</div></details></div>
-<div class="note direction" style="border-left-color:var(--${dirTone})"><details class="fold"><summary>${dirHead}<span class="more"></span></summary><div>${dirRest}</div></details></div>
+<div class="note lec ${d.levelsFrozen ? "frozen" : ""}"><details class="fold"><summary>${freezeHead}<span class="more"></span></summary><div>${freezeRest}</div></details></div>
+<div class="note direction" style="border-left-color:var(--${dirTone})">${dirShort}<details class="fold lec"><summary>${dirHead}<span class="more"></span></summary><div>${dirRest}</div></details></div>
 ${feedAlarm}
 ${staleAlarm}
+${footAlarm}
 
 <main class="desk">
   <input type="radio" name="view" id="v-fut" checked>
@@ -2001,7 +2018,7 @@ ${staleAlarm}
        made &minus;${Math.abs(RATING_TEST.buyNetPct)}% a trade after charges, ${RATING_TEST.buyWinPct}% winners where 37.5% are needed
        (${RATING_TEST.buyTrades.toLocaleString("en-IN")} trades, t = &minus;${Math.abs(RATING_TEST.buyT)}).`)}
     ${riskBox(d.risk?.futures, "futures")}
-    ${d.watchStatus ? `<details class="fold sub lead"><summary>Watching your ${esc(d.watchStatus.stocks)} stocks &mdash; which are priced how<span class="more"></span></summary><div>Watching your ${esc(d.watchStatus.stocks)} stocks
+    ${d.watchStatus ? `<details class="fold sub lead lec"><summary>Watching your ${esc(d.watchStatus.stocks)} stocks &mdash; which are priced how<span class="more"></span></summary><div>Watching your ${esc(d.watchStatus.stocks)} stocks
       (${esc(d.watchStatus.source)}): ${esc(d.watchStatus.withFutures)} have an NSE futures contract,
       ${esc(d.watchStatus.shareOnly)} are share-only (removed from F&amp;O)${d.watchStatus.notListed.length
         ? `, and ${esc(d.watchStatus.notListed.length)} ${d.watchStatus.notListed.length === 1 ? "has" : "have"} no price${d.watchStatus.unlistedOnNse
@@ -2028,7 +2045,7 @@ ${staleAlarm}
         : "No futures cleared the hurdle on this build."}</td></tr>`}</tbody>
     </table></div>`)}
     ${(d.futuresShort || []).length ? `<h2 style="margin-top:22px">Shorts &mdash; falling stocks: SELL first, buy back lower</h2>
-    <div class="sub" style="margin:0 0 10px"><b class="down">Tested:</b> shorting the desk&rsquo;s SELL/REDUCE stocks on this geometry LOST on six years of NSE data
+    <div class="sub lec" style="margin:0 0 10px"><b class="down">Tested:</b> shorting the desk&rsquo;s SELL/REDUCE stocks on this geometry LOST on six years of NSE data
       (&minus;${Math.abs(RATING_TEST.sellNetPct)}% a trade, ${RATING_TEST.sellTrades.toLocaleString("en-IN")} trades, t = &minus;${Math.abs(RATING_TEST.sellT)}). New on TRACK from 12 Oct. Your call &mdash; size small.</div>
     ${allRowsBox(d.futuresShort, sumOf(d.futuresShort, (r) => r.minCapital), sumOf(d.futuresShort, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, sold short, before GM's charges`, "")}
     ${riskBox(d.risk?.futuresShort, "short futures")}
@@ -2038,7 +2055,7 @@ ${staleAlarm}
         <th class="num">STOP</th><th class="num">NOW</th><th class="num">GM MIN (20 UNITS)</th><th class="num">R : R</th>
       </tr></thead><tbody>${futShortRows}</tbody>
     </table></div>` : ""}`)}
-    <div class="sub" style="margin-top:8px">${d.resultsCalendar?.ok
+    <div class="sub${d.resultsCalendar?.ok ? " lec" : ""}" style="margin-top:8px">${d.resultsCalendar?.ok
       ? `Results dates are NSE's own board-meeting filings, read ${esc(String(d.resultsCalendar.fetchedAt).slice(0, 10))}:
          ${esc(d.resultsCalendar.meetings)} results meetings filed for the next ${esc(d.resultsCalendar.days)} days. Companies must file at least
          two working days before the meeting (SEBI LODR Regulation 29), so &ldquo;not announced&rdquo; does not mean &ldquo;no results&rdquo;.
@@ -2056,8 +2073,8 @@ ${staleAlarm}
        They make money only if the BUY signal works, and <b>it failed</b>: the desk&rsquo;s own rating, replayed on six years of NSE&rsquo;s prices, made
        &minus;${Math.abs(RATING_TEST.buyNetPct)}% a trade on its BUY and ACCUMULATE rows (${RATING_TEST.buyTrades.toLocaleString("en-IN")} trades, ${RATING_TEST.buyWinPct}% winners).` : "")}
     ${riskBox(d.risk?.calls, "calls")}
-    ${d.optionsDirection && !downtrendPage ? `<div class="sub" style="margin:-4px 0 10px">Only on the stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
-    ${downtrendPage ? `<div class="sub" style="margin:-4px 0 10px"><b>NIFTY is falling, so only stocks rising on their own</b> (over their own 20-day and 50-day averages): ${esc(rising.length)} found on this build. <b class="down">Tested: FAILED</b> &mdash; ${signedPct(dtest.rising?.finalPct ?? -0.444)} a trade in the final year (MARKET DIRECTION, above). Tracked on TRACK.</div>` : ""}
+    ${d.optionsDirection && !downtrendPage ? `<div class="sub lec" style="margin:-4px 0 10px">Only on the stocks the desk rates BUY or ACCUMULATE &mdash; one side per stock, the side its analysis points to.</div>` : ""}
+    ${downtrendPage ? `<div class="sub lec" style="margin:-4px 0 10px"><b>NIFTY is falling, so only stocks rising on their own</b> (over their own 20-day and 50-day averages): ${esc(rising.length)} found on this build. <b class="down">Tested: FAILED</b> &mdash; ${signedPct(dtest.rising?.finalPct ?? -0.444)} a trade in the final year (MARKET DIRECTION, above). Tracked on TRACK.</div>` : ""}
     ${calls.length ? oldFileNote : ""}
     ${optionTable(calls, downtrendPage
       ? "No call cleared every gate on the stocks rising on their own (NIFTY is in a downtrend, MARKET DIRECTION above). Puts are on the PUTS tab."
@@ -2073,11 +2090,11 @@ ${staleAlarm}
        ${esc(puts.filter((c) => Number(c.vrp) > 1).length)} of ${esc(puts.length)} are priced above their own recent movement (implied above realised), which makes it worse.
        They make money only if the fall continues, and selling NIFTY in these downtrends failed its pre-registered test (final year t = ${esc(dtest.shortsFinalT)}).` : "")}
     ${riskBox(d.risk?.puts, "puts")}
-    ${puts.some((c) => !c.isIndex) ? `<div class="sub warn" style="margin:-4px 0 10px"><b>The stock puts lean on the desk&rsquo;s SELL and REDUCE ratings, and those were tested: shorting them LOST.</b>
+    ${puts.some((c) => !c.isIndex) ? `<div class="sub warn lec" style="margin:-4px 0 10px"><b>The stock puts lean on the desk&rsquo;s SELL and REDUCE ratings, and those were tested: shorting them LOST.</b>
       Replayed on six years of NSE&rsquo;s prices, shorting every SELL/REDUCE row on this desk&rsquo;s limit, target and stop made &minus;${Math.abs(RATING_TEST.sellNetPct)}% a trade
       (${RATING_TEST.sellTrades.toLocaleString("en-IN")} trades, t = &minus;${Math.abs(RATING_TEST.sellT)} &mdash; reliably negative), and over 20 sessions those stocks did slightly
       BETTER than the market. They are shown because you asked for the falling names, not because the rating picks fallers.</div>` : ""}
-    ${downtrendPage && puts.length ? `<div class="sub" style="margin:-4px 0 10px">Looked for on ${esc((od.indices || []).join(", "))} and on the ${esc(od.stocks ?? 0)} stocks rated SELL or REDUCE that are falling themselves;
+    ${downtrendPage && puts.length ? `<div class="sub lec" style="margin:-4px 0 10px">Looked for on ${esc((od.indices || []).join(", "))} and on the ${esc(od.stocks ?? 0)} stocks rated SELL or REDUCE that are falling themselves;
       ${esc(putNames.length)} had contracts that cleared every gate, the indices first. One side per name, the side the market&rsquo;s direction points to.</div>` : ""}
     ${downtrendPage ? indexWhy(d.indexScreen, puts) : ""}
     ${puts.length ? oldFileNote : ""}
@@ -2088,7 +2105,7 @@ ${staleAlarm}
 
   <section class="pane pane-trk">
     <h2>Track record &mdash; every price shown, bought on paper the moment it appeared</h2>
-    <div class="sub" style="margin:-4px 0 10px">Checked every 20 minutes in market hours, against each build&rsquo;s quotes and the day&rsquo;s high and low.
+    <div class="sub lec" style="margin:-4px 0 10px">Checked every 20 minutes in market hours, against each build&rsquo;s quotes and the day&rsquo;s high and low.
       A dip between two checks that is not a new day low (or high) is not seen &mdash; for fills and stops alike (audit 12 Oct 2026).</div>
     ${springyBox(d.springyDip)}
     ${oiFlowBox(d.oiFlow)}
@@ -2100,7 +2117,7 @@ ${staleAlarm}
   </section>
 </main>
 
-<div class="note" style="margin-top:20px">
+<div class="note lec" style="margin-top:20px">
   <b>WHERE THESE PRICES COME FROM.</b> ${liveNote}${forwardNote}${feedNote}${brokerNote}${banNote}
   This page is a <b>snapshot</b>, rebuilt on a schedule &mdash; it is not a live feed.
   <b>Check the price on your broker before placing anything.</b>
@@ -2108,11 +2125,11 @@ ${staleAlarm}
   spread is extra and is only known where a live book was seen.
 </div>
 
-<div class="note" style="margin-top:20px;border-left-color:var(--red)">
+<div class="note lec" style="margin-top:20px;border-left-color:var(--red)">
   <b>NO SHOCK SHIELD.</b> Nothing on this page stops buys on a bad global morning &mdash; not a GIFT Nifty gap, a crude or S&amp;P move, or an India VIX spike.
   Those signals were tested on NSE&rsquo;s own data and failed (or had too few events to test), so they do not gate anything. Check the market yourself before acting on a shock day.
 </div>
-<div class="note" style="margin-top:20px;border-left-color:var(--red)">
+<div class="note lec" style="margin-top:20px;border-left-color:var(--red)">
   <b>WHAT THIS DOES NOT ESTABLISH.</b> That any of it makes money. ${trackSoFar(d.track?.summary)}
   And every test fixed in advance so far, on data never used to build the rule, found no edge:
   the desk's own rating (replayed on six years of NSE data: &minus;0.03% a trade on its buys, and its SELL/REDUCE shorts LOST &minus;0.14% a trade, t = &minus;3.3), 12-1 momentum, time-series momentum, low volatility, a
@@ -2121,10 +2138,23 @@ ${staleAlarm}
   things that were measured, which is not the same as an edge that was proven. Size accordingly.
 </div>
 
+<button type="button" class="notes-switch" id="notes-switch">Show the notes</button>
 <script>
-/* Phone: fold every explanation box to its first lines; a tap opens it for good. */
+/* ESSENTIALS ONLY: the notes stay hidden unless this viewer asked for them (remembered on this device only). */
+(function () {
+  var b = document.getElementById("notes-switch"); if (!b) return;
+  function set(on) { document.body.classList.toggle("notes", on); b.textContent = on ? "Hide the notes" : "Show the notes";
+    try { localStorage.setItem("k2-notes", on ? "1" : "0"); } catch (e) {} }
+  var on = false; try { on = localStorage.getItem("k2-notes") === "1"; } catch (e) {}
+  set(on);
+  b.addEventListener("click", function () { set(!document.body.classList.contains("notes")); });
+})();
+</script>
+<script>
+/* Phone: fold every explanation box to its first lines; a tap opens it for good. Only when the notes are shown. */
 (function () {
   if (!window.matchMedia || !window.matchMedia("(max-width: 480px)").matches) return;
+  if (!document.body.classList.contains("notes")) return;
   document.querySelectorAll(".note").forEach(function (n) {
     if ((n.textContent || "").length < 260) return;   // short notes stay whole (hidden tabs have no height yet)
     if (n.classList.contains("focus")) return;          // the focus rule's list is the point of the tab: never folded
