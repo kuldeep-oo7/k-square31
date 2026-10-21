@@ -52,7 +52,12 @@ jobs:
           K2_SLB_DIR: ${{ runner.temp }}/atlas/nse-atlas/slb_openpos
           K2_KR_FORECASTS: ${{ runner.temp }}/pred/forecasts-kronos-dated.csv
           K2_CM_PREDS: ${{ runner.temp }}/pred/preds.csv
-        run: cd studies/gm-tournament-2026-10-21 && node --max-old-space-size=12000 run.js ${{ inputs.args }} | tee -a "$GITHUB_STEP_SUMMARY"
+        run: |
+          set -o pipefail
+          # rising-stocks' registration v2 was hashed with Windows line ends on 2 Oct (its sha256 2c64fd54... is of the CRLF
+          # bytes; git stores LF). Restore those bytes; the study's own check then verifies them exactly.
+          sed -i 's/$/\r/' studies/rising-stocks-2026-10-02/PREREGISTRATION-v2.txt
+          cd studies/gm-tournament-2026-10-21 && node --max-old-space-size=12000 run.js ${{ inputs.args }} | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Keep the result
         if: always()
         uses: actions/upload-artifact@v4
