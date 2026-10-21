@@ -232958,6 +232958,168 @@
     "perLot": 26040,
     "netPerLot": 25819.68
    }
+  },
+  {
+   "id": "2026-10-19|CE|CIPLA26OCT1310CE",
+   "kind": "CE",
+   "symbol": "CIPLA",
+   "contract": "CIPLA26OCT1310CE",
+   "expiry": "2026-10-27",
+   "strike": 1310,
+   "optionType": "CE",
+   "lotSize": 425,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T04:05:02.682Z",
+   "buy": 33.2,
+   "target": 49.8,
+   "target2": null,
+   "stop": 16.6,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.9,
+     "medianDays": 2.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T04:05:03.318Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T09:04:02.606Z",
+   "exitPrice": 16.6,
+   "exitReason": "STOP",
+   "hoursFillToExit": 52.98,
+   "sessionsHeld": 1,
+   "best": 33.2,
+   "worst": 16.5,
+   "last": 17.15,
+   "lastAt": "2026-10-21T09:04:02.606Z",
+   "marks": 40,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 23,
+    "low": 16.5,
+    "last": 17.15
+   },
+   "pnl": {
+    "perUnit": -16.6,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -7055,
+    "netPerLot": -7122.1
+   }
+  },
+  {
+   "id": "2026-10-14|PE|BANKNIFTY26OCT56600PE",
+   "kind": "PE",
+   "symbol": "BANKNIFTY",
+   "contract": "BANKNIFTY26OCT56600PE",
+   "expiry": "2026-10-27",
+   "strike": 56600,
+   "optionType": "PE",
+   "lotSize": 30,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T04:07:00.985Z",
+   "buy": 1182.35,
+   "target": 1773.5,
+   "target2": null,
+   "stop": 591.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.7,
+     "medianDays": 3.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-14T04:07:01.470Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T09:04:02.606Z",
+   "exitPrice": 1773.5,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 172.95,
+   "sessionsHeld": 4,
+   "best": 1785,
+   "worst": 814.9,
+   "last": 1689.8,
+   "lastAt": "2026-10-21T09:04:02.606Z",
+   "marks": 124,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 1785,
+    "low": 829.5,
+    "last": 1689.8
+   },
+   "pnl": {
+    "perUnit": 591.15,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 17734.5,
+    "netPerLot": 17569.15
+   }
+  },
+  {
+   "id": "2026-10-08|PE|AUBANK26OCT1030PE",
+   "kind": "PE",
+   "symbol": "AUBANK",
+   "contract": "AUBANK26OCT1030PE",
+   "expiry": "2026-10-27",
+   "strike": 1030,
+   "optionType": "PE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T05:05:52.196Z",
+   "buy": 50.35,
+   "target": 75.5,
+   "target2": null,
+   "stop": 25.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51.1,
+     "medianDays": 6.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-08T05:45:42.501Z",
+   "hoursToFill": 0.66,
+   "closedAt": "2026-10-21T09:04:02.606Z",
+   "exitPrice": 75.5,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 315.31,
+   "sessionsHeld": 7,
+   "best": 83,
+   "worst": 31.4,
+   "last": 82.15,
+   "lastAt": "2026-10-21T09:04:02.606Z",
+   "marks": 143,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 83,
+    "low": 82.15,
+    "last": 82.15
+   },
+   "pnl": {
+    "perUnit": 25.15,
+    "pct": 49.95,
+    "basis": "NET",
+    "perLot": 25150,
+    "netPerLot": 24935.13
+   }
   }
  ]
 }
