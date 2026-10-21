@@ -231937,6 +231937,373 @@
     "perLot": 21250,
     "netPerLot": 21061.23
    }
+  },
+  {
+   "id": "2026-10-19|CE|ASIANPAINT26OCT2360CE",
+   "kind": "CE",
+   "symbol": "ASIANPAINT",
+   "contract": "ASIANPAINT26OCT2360CE",
+   "expiry": "2026-10-27",
+   "strike": 2360,
+   "optionType": "CE",
+   "lotSize": 250,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T04:05:02.682Z",
+   "buy": 17.9,
+   "target": 26.85,
+   "target2": null,
+   "stop": 8.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 52.6,
+     "medianDays": 2.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T04:44:48.741Z",
+   "hoursToFill": 0.66,
+   "closedAt": "2026-10-21T08:03:58.161Z",
+   "exitPrice": 8.95,
+   "exitReason": "STOP",
+   "hoursFillToExit": 51.32,
+   "sessionsHeld": 1,
+   "best": 21.5,
+   "worst": 8.35,
+   "last": 8.5,
+   "lastAt": "2026-10-21T08:03:58.161Z",
+   "marks": 40,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 21.5,
+    "low": 8.35,
+    "last": 8.5
+   },
+   "pnl": {
+    "perUnit": -8.95,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -2237.5,
+    "netPerLot": -2291.01
+   }
+  },
+  {
+   "id": "2026-10-19|FUT|GUJENERGY (share)",
+   "kind": "FUT",
+   "symbol": "GUJENERGY",
+   "contract": "GUJENERGY (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 2500,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 219.73,
+   "target": 225.22,
+   "target2": 230.72,
+   "stop": 216.43,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "TARGET",
+   "filledAt": "2026-10-19T04:24:54.183Z",
+   "hoursToFill": 0.61,
+   "closedAt": "2026-10-21T08:03:58.161Z",
+   "exitPrice": 225.22,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 51.65,
+   "sessionsHeld": 1,
+   "best": 225.39,
+   "worst": 218.4,
+   "last": 224.32,
+   "lastAt": "2026-10-21T08:03:58.161Z",
+   "marks": 41,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 225.39,
+    "low": 218.4,
+    "last": 224.32
+   },
+   "pnl": {
+    "perUnit": 5.49,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-19|CE|ASIANPAINT26OCT2320CE",
+   "kind": "CE",
+   "symbol": "ASIANPAINT",
+   "contract": "ASIANPAINT26OCT2320CE",
+   "expiry": "2026-10-27",
+   "strike": 2320,
+   "optionType": "CE",
+   "lotSize": 250,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 40.55,
+   "target": 60.85,
+   "target2": null,
+   "stop": 20.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 61.1,
+     "medianDays": 2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T03:48:11.477Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T08:03:58.161Z",
+   "exitPrice": 20.25,
+   "exitReason": "STOP",
+   "hoursFillToExit": 52.26,
+   "sessionsHeld": 1,
+   "best": 43,
+   "worst": 19.75,
+   "last": 20.2,
+   "lastAt": "2026-10-21T08:03:58.161Z",
+   "marks": 41,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 43,
+    "low": 19.75,
+    "last": 20.2
+   },
+   "pnl": {
+    "perUnit": -20.3,
+    "pct": -50.06,
+    "basis": "NET",
+    "perLot": -5075,
+    "netPerLot": -5136.49
+   }
+  },
+  {
+   "id": "2026-10-15|PE|LODHA26OCT1100PE",
+   "kind": "PE",
+   "symbol": "LODHA",
+   "contract": "LODHA26OCT1100PE",
+   "expiry": "2026-10-27",
+   "strike": 1100,
+   "optionType": "PE",
+   "lotSize": 625,
+   "sessionDate": "2026-10-15",
+   "shownAt": "2026-10-15T04:25:31.832Z",
+   "buy": 59.05,
+   "target": 88.55,
+   "target2": null,
+   "stop": 29.5,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.3,
+     "medianDays": 4.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-15T04:25:32.274Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T08:03:58.161Z",
+   "exitPrice": 88.55,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 147.64,
+   "sessionsHeld": 3,
+   "best": 89.5,
+   "worst": 42.25,
+   "last": 88.05,
+   "lastAt": "2026-10-21T08:03:58.161Z",
+   "marks": 92,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 89.5,
+    "low": 55.05,
+    "last": 88.05
+   },
+   "pnl": {
+    "perUnit": 29.5,
+    "pct": 49.96,
+    "basis": "NET",
+    "perLot": 18437.5,
+    "netPerLot": 18267.39
+   }
+  },
+  {
+   "id": "2026-10-15|PE|BANKNIFTY26OCT56300PE",
+   "kind": "PE",
+   "symbol": "BANKNIFTY",
+   "contract": "BANKNIFTY26OCT56300PE",
+   "expiry": "2026-10-27",
+   "strike": 56300,
+   "optionType": "PE",
+   "lotSize": 30,
+   "sessionDate": "2026-10-15",
+   "shownAt": "2026-10-15T03:48:56.440Z",
+   "buy": 1014.4,
+   "target": 1521.6,
+   "target2": null,
+   "stop": 507.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 54.4,
+     "medianDays": 3.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-15T03:48:56.856Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T08:03:58.161Z",
+   "exitPrice": 1521.6,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 148.25,
+   "sessionsHeld": 3,
+   "best": 1535.8,
+   "worst": 620.15,
+   "last": 1500.6,
+   "lastAt": "2026-10-21T08:03:58.161Z",
+   "marks": 97,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 1535.8,
+    "low": 620.15,
+    "last": 1500.6
+   },
+   "pnl": {
+    "perUnit": 507.2,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 15216,
+    "netPerLot": 15067.43
+   }
+  },
+  {
+   "id": "2026-10-14|PE|BANKNIFTY26OCT56300PE",
+   "kind": "PE",
+   "symbol": "BANKNIFTY",
+   "contract": "BANKNIFTY26OCT56300PE",
+   "expiry": "2026-10-27",
+   "strike": 56300,
+   "optionType": "PE",
+   "lotSize": 30,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T03:51:32.467Z",
+   "buy": 999.3,
+   "target": 1498.95,
+   "target2": null,
+   "stop": 499.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 65.8,
+     "medianDays": 2.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-14T04:07:01.470Z",
+   "hoursToFill": 0.26,
+   "closedAt": "2026-10-21T08:03:58.161Z",
+   "exitPrice": 1498.95,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 171.95,
+   "sessionsHeld": 4,
+   "best": 1535.8,
+   "worst": 620.15,
+   "last": 1500.6,
+   "lastAt": "2026-10-21T08:03:58.161Z",
+   "marks": 123,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 1535.8,
+    "low": 620.15,
+    "last": 1500.6
+   },
+   "pnl": {
+    "perUnit": 499.65,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 14989.5,
+    "netPerLot": 14842.44
+   }
+  },
+  {
+   "id": "2026-10-08|PE|AUBANK26OCT1040PE",
+   "kind": "PE",
+   "symbol": "AUBANK",
+   "contract": "AUBANK26OCT1040PE",
+   "expiry": "2026-10-27",
+   "strike": 1040,
+   "optionType": "PE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T07:06:59.222Z",
+   "buy": 60.55,
+   "target": 90.8,
+   "target2": null,
+   "stop": 30.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 45.9,
+     "medianDays": 7.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-08T07:06:59.232Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T08:03:58.161Z",
+   "exitPrice": 90.8,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 312.95,
+   "sessionsHeld": 7,
+   "best": 90.9,
+   "worst": 38,
+   "last": 89.85,
+   "lastAt": "2026-10-21T08:03:58.161Z",
+   "marks": 167,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 90.9,
+    "low": 81,
+    "last": 89.85
+   },
+   "pnl": {
+    "perUnit": 30.25,
+    "pct": 49.96,
+    "basis": "NET",
+    "perLot": 30250,
+    "netPerLot": 30001.15
+   }
   }
  ]
 }
