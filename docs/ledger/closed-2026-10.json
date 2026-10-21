@@ -196845,21 +196845,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T10:04:52.557Z",
    "hoursToFill": 0.34,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 0.95,
    "exitReason": "STOP",
-   "hoursFillToExit": 41.69,
+   "hoursFillToExit": 41.75,
    "sessionsHeld": 1,
    "best": 1.9,
    "worst": 0.95,
-   "last": 0.95,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 1,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 9,
    "obs": {
     "date": "2026-10-21",
     "high": 1.6,
     "low": 0.95,
-    "last": 0.95
+    "last": 1
    },
    "pnl": {
     "perUnit": -0.95,
@@ -196899,21 +196899,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-19T08:24:53.180Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 66.3,
    "exitReason": "TARGET",
-   "hoursFillToExit": 43.36,
+   "hoursFillToExit": 43.42,
    "sessionsHeld": 1,
-   "best": 68,
+   "best": 80,
    "worst": 43.25,
-   "last": 68,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 80,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 14,
    "obs": {
     "date": "2026-10-21",
-    "high": 68,
+    "high": 80,
     "low": 68,
-    "last": 68
+    "last": 80
    },
    "pnl": {
     "perUnit": 22.1,
@@ -196953,21 +196953,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-19T07:04:35.732Z",
    "hoursToFill": 0.33,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 7.12,
    "exitReason": "TARGET",
-   "hoursFillToExit": 44.7,
+   "hoursFillToExit": 44.76,
    "sessionsHeld": 1,
    "best": 7.3,
    "worst": 4.45,
-   "last": 6.99,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 6.56,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 19,
    "obs": {
     "date": "2026-10-21",
     "high": 7.3,
-    "low": 6.78,
-    "last": 6.99
+    "low": 6.12,
+    "last": 6.56
    },
    "pnl": {
     "perUnit": 2.38,
@@ -197007,21 +197007,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-19T07:04:35.732Z",
    "hoursToFill": 1,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 40.1,
    "exitReason": "TARGET",
-   "hoursFillToExit": 44.7,
+   "hoursFillToExit": 44.76,
    "sessionsHeld": 1,
-   "best": 41,
+   "best": 42,
    "worst": 25,
-   "last": 38.2,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 40.25,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 21,
    "obs": {
     "date": "2026-10-21",
-    "high": 41,
-    "low": 36.75,
-    "last": 38.2
+    "high": 42,
+    "low": 35.65,
+    "last": 40.25
    },
    "pnl": {
     "perUnit": 13.35,
@@ -197029,6 +197029,114 @@
     "basis": "NET",
     "perLot": 9345,
     "netPerLot": 9235.46
+   }
+  },
+  {
+   "id": "2026-10-19|CE|PAGEIND26OCT37000CE",
+   "kind": "CE",
+   "symbol": "PAGEIND",
+   "contract": "PAGEIND26OCT37000CE",
+   "expiry": "2026-10-27",
+   "strike": 37000,
+   "optionType": "CE",
+   "lotSize": 20,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T04:24:53.599Z",
+   "buy": 242.5,
+   "target": 363.75,
+   "target2": null,
+   "stop": 121.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 33.2,
+     "medianDays": 4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T04:44:48.741Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 108,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.09,
+   "sessionsHeld": 1,
+   "best": 242.5,
+   "worst": 90.85,
+   "last": 90.85,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 26,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 108,
+    "low": 90.85,
+    "last": 90.85
+   },
+   "pnl": {
+    "perUnit": -134.5,
+    "pct": -55.46,
+    "basis": "NET",
+    "perLot": -2690,
+    "netPerLot": -2743.53
+   }
+  },
+  {
+   "id": "2026-10-19|PE|ABB26OCT6900PE",
+   "kind": "PE",
+   "symbol": "ABB",
+   "contract": "ABB26OCT6900PE",
+   "expiry": "2026-10-27",
+   "strike": 6900,
+   "optionType": "PE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T04:05:02.682Z",
+   "buy": 172.75,
+   "target": 259.1,
+   "target2": null,
+   "stop": 86.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 42.6,
+     "medianDays": 3.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-19T04:05:03.318Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 259.1,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 47.75,
+   "sessionsHeld": 1,
+   "best": 279.9,
+   "worst": 91.8,
+   "last": 265,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 27,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 279.9,
+    "low": 91.8,
+    "last": 265
+   },
+   "pnl": {
+    "perUnit": 86.35,
+    "pct": 49.99,
+    "basis": "NET",
+    "perLot": 10793.75,
+    "netPerLot": 10674.63
    }
   },
   {
@@ -197061,21 +197169,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T04:05:03.318Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 7.4,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.69,
+   "hoursFillToExit": 47.75,
    "sessionsHeld": 1,
    "best": 18.85,
-   "worst": 7.4,
-   "last": 7.4,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "worst": 7.2,
+   "last": 7.2,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 27,
    "obs": {
     "date": "2026-10-21",
-    "high": 7.4,
+    "high": 8.5,
     "low": 7.4,
-    "last": 7.4
+    "last": 7.2
    },
    "pnl": {
     "perUnit": -10.25,
@@ -197083,6 +197191,168 @@
     "basis": "NET",
     "perLot": -2306.25,
     "netPerLot": -2358.44
+   }
+  },
+  {
+   "id": "2026-10-19|CE|MAZDOCK26OCT2140CE",
+   "kind": "CE",
+   "symbol": "MAZDOCK",
+   "contract": "MAZDOCK26OCT2140CE",
+   "expiry": "2026-10-27",
+   "strike": 2140,
+   "optionType": "CE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T04:05:02.682Z",
+   "buy": 19.95,
+   "target": 29.9,
+   "target2": null,
+   "stop": 9.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 29.3,
+     "medianDays": 4.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T04:05:03.318Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 9.95,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.75,
+   "sessionsHeld": 1,
+   "best": 22.2,
+   "worst": 8.8,
+   "last": 8.95,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 27,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 11.75,
+    "low": 8.8,
+    "last": 8.95
+   },
+   "pnl": {
+    "perUnit": -10,
+    "pct": -50.13,
+    "basis": "NET",
+    "perLot": -2250,
+    "netPerLot": -2303.52
+   }
+  },
+  {
+   "id": "2026-10-19|CE|MAZDOCK26OCT2120CE",
+   "kind": "CE",
+   "symbol": "MAZDOCK",
+   "contract": "MAZDOCK26OCT2120CE",
+   "expiry": "2026-10-27",
+   "strike": 2120,
+   "optionType": "CE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T04:05:02.682Z",
+   "buy": 26.35,
+   "target": 39.5,
+   "target2": null,
+   "stop": 13.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 35.1,
+     "medianDays": 3.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T04:05:03.318Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 13.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.75,
+   "sessionsHeld": 1,
+   "best": 29.65,
+   "worst": 12.5,
+   "last": 12.5,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 27,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 15.95,
+    "low": 12.5,
+    "last": 12.5
+   },
+   "pnl": {
+    "perUnit": -13.15,
+    "pct": -49.91,
+    "basis": "NET",
+    "perLot": -2958.75,
+    "netPerLot": -3014.32
+   }
+  },
+  {
+   "id": "2026-10-19|CE|CHOLAFIN26OCT1560CE",
+   "kind": "CE",
+   "symbol": "CHOLAFIN",
+   "contract": "CHOLAFIN26OCT1560CE",
+   "expiry": "2026-10-27",
+   "strike": 1560,
+   "optionType": "CE",
+   "lotSize": 625,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T04:05:02.682Z",
+   "buy": 39.6,
+   "target": 59.4,
+   "target2": null,
+   "stop": 19.8,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.9,
+     "medianDays": 2.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T04:05:03.318Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 19.8,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.75,
+   "sessionsHeld": 1,
+   "best": 44,
+   "worst": 15.3,
+   "last": 15.3,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 27,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 22.4,
+    "low": 15.3,
+    "last": 15.3
+   },
+   "pnl": {
+    "perUnit": -19.8,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -12375,
+    "netPerLot": -12457.11
    }
   },
   {
@@ -197115,21 +197385,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T04:05:03.318Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 27.45,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.69,
+   "hoursFillToExit": 47.75,
    "sessionsHeld": 1,
    "best": 78,
    "worst": 26.25,
-   "last": 28.95,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 28.55,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 27,
    "obs": {
     "date": "2026-10-21",
     "high": 37.05,
     "low": 26.25,
-    "last": 28.95
+    "last": 28.55
    },
    "pnl": {
     "perUnit": -27.45,
@@ -197137,6 +197407,60 @@
     "basis": "NET",
     "perLot": -4117.5,
     "netPerLot": -4176.32
+   }
+  },
+  {
+   "id": "2026-10-19|CE|HAL26OCT5050CE",
+   "kind": "CE",
+   "symbol": "HAL",
+   "contract": "HAL26OCT5050CE",
+   "expiry": "2026-10-27",
+   "strike": 5050,
+   "optionType": "CE",
+   "lotSize": 150,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T04:05:02.682Z",
+   "buy": 47.95,
+   "target": 71.9,
+   "target2": null,
+   "stop": 24,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 40.9,
+     "medianDays": 3.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T04:05:03.318Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 24,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.75,
+   "sessionsHeld": 1,
+   "best": 48.35,
+   "worst": 19.95,
+   "last": 19.95,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 27,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 30.4,
+    "low": 19.95,
+    "last": 19.95
+   },
+   "pnl": {
+    "perUnit": -23.95,
+    "pct": -49.95,
+    "basis": "NET",
+    "perLot": -3592.5,
+    "netPerLot": -3649.85
    }
   },
   {
@@ -197169,21 +197493,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T04:44:48.741Z",
    "hoursToFill": 0.66,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 3.25,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.03,
+   "hoursFillToExit": 47.09,
    "sessionsHeld": 1,
    "best": 6.5,
-   "worst": 3,
-   "last": 3.8,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "worst": 2.9,
+   "last": 3.1,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 27,
    "obs": {
     "date": "2026-10-21",
-    "high": 3.8,
-    "low": 3,
-    "last": 3.8
+    "high": 4,
+    "low": 2.9,
+    "last": 3.1
    },
    "pnl": {
     "perUnit": -3.2,
@@ -197191,6 +197515,103 @@
     "basis": "NET",
     "perLot": -4800,
     "netPerLot": -4860.92
+   }
+  },
+  {
+   "id": "2026-10-19|PE|KALYANKJIL26OCT540PE",
+   "kind": "PE",
+   "symbol": "KALYANKJIL",
+   "contract": "KALYANKJIL26OCT540PE",
+   "expiry": "2026-10-27",
+   "strike": 540,
+   "optionType": "PE",
+   "lotSize": 1350,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T04:05:02.682Z",
+   "buy": 5.15,
+   "target": 7.75,
+   "target2": null,
+   "stop": 2.6,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 45.4,
+     "medianDays": 3.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T04:24:54.183Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 2.6,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.42,
+   "sessionsHeld": 1,
+   "best": 5.5,
+   "worst": 2.15,
+   "last": 2.3,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 27,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 4.95,
+    "low": 2.15,
+    "last": 2.3
+   },
+   "pnl": {
+    "perUnit": -2.55,
+    "pct": -49.51,
+    "basis": "NET",
+    "perLot": -3442.5,
+    "netPerLot": -3499.57
+   }
+  },
+  {
+   "id": "2026-10-19|FUT|TITAGARH (share)",
+   "kind": "FUT",
+   "symbol": "TITAGARH",
+   "contract": "TITAGARH (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 744.95,
+   "target": 763.55,
+   "target2": 782.2,
+   "stop": 733.8,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "STOP",
+   "filledAt": "2026-10-19T06:04:35.603Z",
+   "hoursToFill": 2.27,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 733.8,
+   "exitReason": "STOP",
+   "hoursFillToExit": 45.76,
+   "sessionsHeld": 1,
+   "best": 745.1,
+   "worst": 730.8,
+   "last": 731.25,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 28,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 745.1,
+    "low": 730.8,
+    "last": 731.25
+   },
+   "pnl": {
+    "perUnit": -11.15,
+    "pct": -1.5,
+    "basis": "GROSS"
    }
   },
   {
@@ -197223,21 +197644,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T03:48:11.477Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 45.25,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.97,
+   "hoursFillToExit": 48.03,
    "sessionsHeld": 1,
-   "best": 108,
+   "best": 158,
    "worst": 36,
-   "last": 108,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 142.15,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 102.85,
+    "high": 158,
     "low": 36,
-    "last": 108
+    "last": 142.15
    },
    "pnl": {
     "perUnit": -62.6,
@@ -197277,21 +197698,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T03:48:11.477Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 72,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.97,
+   "hoursFillToExit": 48.03,
    "sessionsHeld": 1,
-   "best": 168.25,
+   "best": 215,
    "worst": 62.05,
-   "last": 164.95,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 200.55,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 168.25,
+    "high": 215,
     "low": 62.05,
-    "last": 164.95
+    "last": 200.55
    },
    "pnl": {
     "perUnit": -77.7,
@@ -197299,6 +197720,114 @@
     "basis": "NET",
     "perLot": -9712.5,
     "netPerLot": -9785.41
+   }
+  },
+  {
+   "id": "2026-10-19|PE|CANBK26OCT119PE",
+   "kind": "PE",
+   "symbol": "CANBK",
+   "contract": "CANBK26OCT119PE",
+   "expiry": "2026-10-27",
+   "strike": 119,
+   "optionType": "PE",
+   "lotSize": 6750,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 1.09,
+   "target": 1.63,
+   "target2": null,
+   "stop": 0.55,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 30.5,
+     "medianDays": 4.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T03:48:11.477Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 0.51,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.03,
+   "sessionsHeld": 1,
+   "best": 1.09,
+   "worst": 0.51,
+   "last": 0.64,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 28,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 0.7,
+    "low": 0.51,
+    "last": 0.64
+   },
+   "pnl": {
+    "perUnit": -0.58,
+    "pct": -53.21,
+    "basis": "NET",
+    "perLot": -3915,
+    "netPerLot": -3972.13
+   }
+  },
+  {
+   "id": "2026-10-19|PE|CANBK26OCT121PE",
+   "kind": "PE",
+   "symbol": "CANBK",
+   "contract": "CANBK26OCT121PE",
+   "expiry": "2026-10-27",
+   "strike": 121,
+   "optionType": "PE",
+   "lotSize": 6750,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 1.89,
+   "target": 2.84,
+   "target2": null,
+   "stop": 0.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38.1,
+     "medianDays": 3.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T03:48:11.477Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 0.95,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.03,
+   "sessionsHeld": 1,
+   "best": 1.89,
+   "worst": 0.94,
+   "last": 1.2,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 28,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 1.09,
+    "low": 0.94,
+    "last": 1.2
+   },
+   "pnl": {
+    "perUnit": -0.94,
+    "pct": -49.74,
+    "basis": "NET",
+    "perLot": -6345,
+    "netPerLot": -6410.26
    }
   },
   {
@@ -197331,21 +197860,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-19T04:05:03.318Z",
    "hoursToFill": 0.28,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 31.8,
    "exitReason": "TARGET",
-   "hoursFillToExit": 47.69,
+   "hoursFillToExit": 47.75,
    "sessionsHeld": 1,
-   "best": 41.95,
+   "best": 42.75,
    "worst": 16.8,
-   "last": 41.95,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 35.1,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 30,
+    "high": 42.75,
     "low": 24,
-    "last": 41.95
+    "last": 35.1
    },
    "pnl": {
     "perUnit": 10.6,
@@ -197385,21 +197914,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-19T04:05:03.318Z",
    "hoursToFill": 0.28,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 56.4,
    "exitReason": "TARGET",
-   "hoursFillToExit": 47.69,
+   "hoursFillToExit": 47.75,
    "sessionsHeld": 1,
-   "best": 70.35,
+   "best": 71.75,
    "worst": 30.35,
-   "last": 70.35,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 62.5,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 65,
+    "high": 71.75,
     "low": 47.55,
-    "last": 70.35
+    "last": 62.5
    },
    "pnl": {
     "perUnit": 18.8,
@@ -197439,21 +197968,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-19T04:05:03.318Z",
    "hoursToFill": 0.28,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 92.9,
    "exitReason": "TARGET",
-   "hoursFillToExit": 47.69,
+   "hoursFillToExit": 47.75,
    "sessionsHeld": 1,
-   "best": 95.15,
+   "best": 105.2,
    "worst": 53.95,
-   "last": 94.95,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 96,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 95.15,
+    "high": 105.2,
     "low": 86.85,
-    "last": 94.95
+    "last": 96
    },
    "pnl": {
     "perUnit": 30.95,
@@ -197493,21 +198022,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T03:48:11.477Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 3.6,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.97,
+   "hoursFillToExit": 48.03,
    "sessionsHeld": 1,
    "best": 7.5,
    "worst": 3.6,
-   "last": 6,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 5.4,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 6,
+    "high": 6.1,
     "low": 3.6,
-    "last": 6
+    "last": 5.4
    },
    "pnl": {
     "perUnit": -3.9,
@@ -197547,21 +198076,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T03:48:11.477Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 6.35,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.97,
+   "hoursFillToExit": 48.03,
    "sessionsHeld": 1,
    "best": 12.7,
    "worst": 6.2,
-   "last": 7.25,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 6.95,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 7,
+    "high": 7.35,
     "low": 6.2,
-    "last": 7.25
+    "last": 6.95
    },
    "pnl": {
     "perUnit": -6.35,
@@ -197601,21 +198130,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T03:48:11.477Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 17.1,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.97,
+   "hoursFillToExit": 48.03,
    "sessionsHeld": 1,
    "best": 40.3,
    "worst": 13.05,
-   "last": 28.85,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 26.5,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
     "high": 31.1,
     "low": 13.05,
-    "last": 28.85
+    "last": 26.5
    },
    "pnl": {
     "perUnit": -23.2,
@@ -197623,6 +198152,114 @@
     "basis": "NET",
     "perLot": -8700,
     "netPerLot": -8766.32
+   }
+  },
+  {
+   "id": "2026-10-19|CE|HAL26OCT5100CE",
+   "kind": "CE",
+   "symbol": "HAL",
+   "contract": "HAL26OCT5100CE",
+   "expiry": "2026-10-27",
+   "strike": 5100,
+   "optionType": "CE",
+   "lotSize": 150,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 30.4,
+   "target": 45.6,
+   "target2": null,
+   "stop": 15.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 30,
+     "medianDays": 4.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T03:48:11.477Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 15.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.03,
+   "sessionsHeld": 1,
+   "best": 36.7,
+   "worst": 11.6,
+   "last": 11.6,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 28,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 18.1,
+    "low": 11.6,
+    "last": 11.6
+   },
+   "pnl": {
+    "perUnit": -15.2,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -2280,
+    "netPerLot": -2333.63
+   }
+  },
+  {
+   "id": "2026-10-19|CE|HAL26OCT5000CE",
+   "kind": "CE",
+   "symbol": "HAL",
+   "contract": "HAL26OCT5000CE",
+   "expiry": "2026-10-27",
+   "strike": 5000,
+   "optionType": "CE",
+   "lotSize": 150,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 66.1,
+   "target": 99.15,
+   "target2": null,
+   "stop": 33.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 46.2,
+     "medianDays": 3.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T03:48:11.477Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 33.05,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.03,
+   "sessionsHeld": 1,
+   "best": 78.7,
+   "worst": 32.7,
+   "last": 33.5,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 28,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 47.25,
+    "low": 32.7,
+    "last": 33.5
+   },
+   "pnl": {
+    "perUnit": -33.05,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -4957.5,
+    "netPerLot": -5018.69
    }
   },
   {
@@ -197655,21 +198292,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T04:05:03.318Z",
    "hoursToFill": 0.28,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 3,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.69,
+   "hoursFillToExit": 47.75,
    "sessionsHeld": 1,
    "best": 6.3,
    "worst": 2.95,
-   "last": 4.8,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 3.9,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
     "high": 5,
     "low": 2.95,
-    "last": 4.8
+    "last": 3.9
    },
    "pnl": {
     "perUnit": -2.95,
@@ -197709,21 +198346,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T03:48:11.477Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 0.7,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.97,
+   "hoursFillToExit": 48.03,
    "sessionsHeld": 1,
    "best": 1.57,
    "worst": 0.68,
-   "last": 0.87,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 0.77,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 0.89,
+    "high": 1.03,
     "low": 0.68,
-    "last": 0.87
+    "last": 0.77
    },
    "pnl": {
     "perUnit": -0.7,
@@ -197731,6 +198368,114 @@
     "basis": "NET",
     "perLot": -1925,
     "netPerLot": -1977.63
+   }
+  },
+  {
+   "id": "2026-10-19|CE|TITAN26OCT4550CE",
+   "kind": "CE",
+   "symbol": "TITAN",
+   "contract": "TITAN26OCT4550CE",
+   "expiry": "2026-10-27",
+   "strike": 4550,
+   "optionType": "CE",
+   "lotSize": 175,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 27.15,
+   "target": 40.7,
+   "target2": null,
+   "stop": 13.55,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.7,
+     "medianDays": 2.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T03:48:11.477Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 13.55,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.03,
+   "sessionsHeld": 1,
+   "best": 32.35,
+   "worst": 11.5,
+   "last": 11.5,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 28,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 15.75,
+    "low": 11.7,
+    "last": 11.5
+   },
+   "pnl": {
+    "perUnit": -13.6,
+    "pct": -50.09,
+    "basis": "NET",
+    "perLot": -2380,
+    "netPerLot": -2433.89
+   }
+  },
+  {
+   "id": "2026-10-19|CE|TITAN26OCT4500CE",
+   "kind": "CE",
+   "symbol": "TITAN",
+   "contract": "TITAN26OCT4500CE",
+   "expiry": "2026-10-27",
+   "strike": 4500,
+   "optionType": "CE",
+   "lotSize": 175,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 43.9,
+   "target": 65.85,
+   "target2": null,
+   "stop": 21.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 58.9,
+     "medianDays": 2.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T03:48:11.477Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 21.95,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.03,
+   "sessionsHeld": 1,
+   "best": 52.35,
+   "worst": 20.05,
+   "last": 20.35,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 28,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 28.95,
+    "low": 20.05,
+    "last": 20.35
+   },
+   "pnl": {
+    "perUnit": -21.95,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3841.25,
+    "netPerLot": -3899.29
    }
   },
   {
@@ -197763,21 +198508,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T03:48:11.477Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 2.4,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.97,
+   "hoursFillToExit": 48.03,
    "sessionsHeld": 1,
    "best": 4.8,
-   "worst": 2.35,
-   "last": 2.55,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "worst": 2.25,
+   "last": 2.35,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
     "high": 3,
-    "low": 2.35,
-    "last": 2.55
+    "low": 2.25,
+    "last": 2.35
    },
    "pnl": {
     "perUnit": -2.4,
@@ -197817,21 +198562,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T03:48:11.477Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 16.3,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.97,
+   "hoursFillToExit": 48.03,
    "sessionsHeld": 1,
    "best": 32.65,
    "worst": 15.8,
-   "last": 21.4,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 18.95,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
     "high": 24.55,
     "low": 15.8,
-    "last": 21.4
+    "last": 18.95
    },
    "pnl": {
     "perUnit": -16.35,
@@ -197871,21 +198616,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T03:48:11.477Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 28.7,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.97,
+   "hoursFillToExit": 48.03,
    "sessionsHeld": 1,
    "best": 57.4,
    "worst": 27.45,
-   "last": 44.05,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 40,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
     "high": 45,
     "low": 27.45,
-    "last": 44.05
+    "last": 40
    },
    "pnl": {
     "perUnit": -28.7,
@@ -197925,21 +198670,21 @@
    "status": "STOP",
    "filledAt": "2026-10-19T04:05:03.318Z",
    "hoursToFill": 0.28,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 5.95,
    "exitReason": "STOP",
-   "hoursFillToExit": 47.69,
+   "hoursFillToExit": 47.75,
    "sessionsHeld": 1,
    "best": 11.9,
    "worst": 5.15,
-   "last": 8.35,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 8.1,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
     "high": 9.15,
     "low": 5.15,
-    "last": 8.35
+    "last": 8.1
    },
    "pnl": {
     "perUnit": -5.95,
@@ -197979,21 +198724,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-19T08:24:53.180Z",
    "hoursToFill": 4.61,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 14.25,
    "exitReason": "TARGET",
-   "hoursFillToExit": 43.36,
+   "hoursFillToExit": 43.42,
    "sessionsHeld": 1,
-   "best": 21.4,
+   "best": 26,
    "worst": 8.25,
-   "last": 21.2,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 23.3,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 21.4,
+    "high": 26,
     "low": 15,
-    "last": 21.2
+    "last": 23.3
    },
    "pnl": {
     "perUnit": 4.75,
@@ -198033,21 +198778,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-19T08:24:53.180Z",
    "hoursToFill": 4.61,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 18.6,
    "exitReason": "TARGET",
-   "hoursFillToExit": 43.36,
+   "hoursFillToExit": 43.42,
    "sessionsHeld": 1,
-   "best": 26.55,
+   "best": 31,
    "worst": 10.85,
-   "last": 26.4,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 28.7,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 26.55,
+    "high": 31,
     "low": 21.55,
-    "last": 26.4
+    "last": 28.7
    },
    "pnl": {
     "perUnit": 6.2,
@@ -198087,21 +198832,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-19T08:24:53.180Z",
    "hoursToFill": 4.61,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 23.9,
    "exitReason": "TARGET",
-   "hoursFillToExit": 43.36,
+   "hoursFillToExit": 43.42,
    "sessionsHeld": 1,
-   "best": 32.55,
+   "best": 38.05,
    "worst": 14.25,
-   "last": 31.6,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 35.35,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 32.55,
+    "high": 38.05,
     "low": 23.6,
-    "last": 31.6
+    "last": 35.35
    },
    "pnl": {
     "perUnit": 7.95,
@@ -198141,21 +198886,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-19T08:24:53.180Z",
    "hoursToFill": 4.61,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 30.9,
    "exitReason": "TARGET",
-   "hoursFillToExit": 43.36,
+   "hoursFillToExit": 43.42,
    "sessionsHeld": 1,
-   "best": 38.85,
+   "best": 45,
    "worst": 18.25,
-   "last": 38.85,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 41.15,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 38.85,
+    "high": 45,
     "low": 32.3,
-    "last": 38.85
+    "last": 41.15
    },
    "pnl": {
     "perUnit": 10.3,
@@ -198195,21 +198940,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-19T08:24:53.180Z",
    "hoursToFill": 4.61,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 56.75,
    "exitReason": "TARGET",
-   "hoursFillToExit": 43.36,
+   "hoursFillToExit": 43.42,
    "sessionsHeld": 1,
-   "best": 60,
+   "best": 71.8,
    "worst": 35.35,
-   "last": 59.75,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 67.6,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 60,
+    "high": 71.8,
     "low": 56.65,
-    "last": 59.75
+    "last": 67.6
    },
    "pnl": {
     "perUnit": 18.9,
@@ -198249,21 +198994,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-19T08:24:53.180Z",
    "hoursToFill": 4.61,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 46.55,
    "exitReason": "TARGET",
-   "hoursFillToExit": 43.36,
+   "hoursFillToExit": 43.42,
    "sessionsHeld": 1,
-   "best": 55.4,
+   "best": 60,
    "worst": 29,
-   "last": 55,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 57.8,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 55.4,
+    "high": 60,
     "low": 48.75,
-    "last": 55
+    "last": 57.8
    },
    "pnl": {
     "perUnit": 15.5,
@@ -198303,21 +199048,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-19T08:24:53.180Z",
    "hoursToFill": 4.61,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 37.95,
    "exitReason": "TARGET",
-   "hoursFillToExit": 43.36,
+   "hoursFillToExit": 43.42,
    "sessionsHeld": 1,
-   "best": 47,
+   "best": 53.65,
    "worst": 23,
-   "last": 46.5,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 49.5,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 28,
    "obs": {
     "date": "2026-10-21",
-    "high": 47,
+    "high": 53.65,
     "low": 40.15,
-    "last": 46.5
+    "last": 49.5
    },
    "pnl": {
     "perUnit": 12.65,
@@ -198325,6 +199070,114 @@
     "basis": "NET",
     "perLot": 5060,
     "netPerLot": 4979.09
+   }
+  },
+  {
+   "id": "2026-10-16|CE|CHOLAFIN26OCT1540CE",
+   "kind": "CE",
+   "symbol": "CHOLAFIN",
+   "contract": "CHOLAFIN26OCT1540CE",
+   "expiry": "2026-10-27",
+   "strike": 1540,
+   "optionType": "CE",
+   "lotSize": 625,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T06:24:53.670Z",
+   "buy": 60.7,
+   "target": 91.05,
+   "target2": null,
+   "stop": 30.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.7,
+     "medianDays": 3.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-16T09:05:20.350Z",
+   "hoursToFill": 2.67,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 30.35,
+   "exitReason": "STOP",
+   "hoursFillToExit": 114.75,
+   "sessionsHeld": 2,
+   "best": 60.7,
+   "worst": 23,
+   "last": 23,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 39,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 36,
+    "low": 23,
+    "last": 23
+   },
+   "pnl": {
+    "perUnit": -30.35,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -18968.75,
+    "netPerLot": -19069.47
+   }
+  },
+  {
+   "id": "2026-10-16|CE|HAL26OCT5100CE",
+   "kind": "CE",
+   "symbol": "HAL",
+   "contract": "HAL26OCT5100CE",
+   "expiry": "2026-10-27",
+   "strike": 5100,
+   "optionType": "CE",
+   "lotSize": 150,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T04:46:18.485Z",
+   "buy": 28.65,
+   "target": 42.95,
+   "target2": null,
+   "stop": 14.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 39.5,
+     "medianDays": 4.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-16T04:46:19.338Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 14.3,
+   "exitReason": "STOP",
+   "hoursFillToExit": 119.06,
+   "sessionsHeld": 2,
+   "best": 36.7,
+   "worst": 11.6,
+   "last": 11.6,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 18.1,
+    "low": 11.6,
+    "last": 11.6
+   },
+   "pnl": {
+    "perUnit": -14.35,
+    "pct": -50.09,
+    "basis": "NET",
+    "perLot": -2152.5,
+    "netPerLot": -2205.76
    }
   },
   {
@@ -198357,21 +199210,21 @@
    "status": "STOP",
    "filledAt": "2026-10-16T04:25:36.897Z",
    "hoursToFill": 0.33,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 17.1,
    "exitReason": "STOP",
-   "hoursFillToExit": 119.35,
+   "hoursFillToExit": 119.41,
    "sessionsHeld": 2,
    "best": 55.65,
    "worst": 13.05,
-   "last": 28.85,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 26.5,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 56,
    "obs": {
     "date": "2026-10-21",
     "high": 31.1,
     "low": 13.05,
-    "last": 28.85
+    "last": 26.5
    },
    "pnl": {
     "perUnit": -23.05,
@@ -198411,21 +199264,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-16T04:05:45.260Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 74.1,
    "exitReason": "TARGET",
-   "hoursFillToExit": 119.68,
+   "hoursFillToExit": 119.74,
    "sessionsHeld": 2,
-   "best": 91.75,
+   "best": 115.7,
    "worst": 26,
-   "last": 90.9,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 115.7,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 56,
    "obs": {
     "date": "2026-10-21",
-    "high": 91.75,
-    "low": 91.7,
-    "last": 90.9
+    "high": 99.95,
+    "low": 86.75,
+    "last": 115.7
    },
    "pnl": {
     "perUnit": 24.7,
@@ -198465,21 +199318,21 @@
    "status": "STOP",
    "filledAt": "2026-10-16T04:25:36.897Z",
    "hoursToFill": 0.33,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 14.4,
    "exitReason": "STOP",
-   "hoursFillToExit": 119.35,
+   "hoursFillToExit": 119.41,
    "sessionsHeld": 2,
    "best": 37.5,
-   "worst": 14.1,
-   "last": 14.1,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "worst": 9.9,
+   "last": 9.9,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 56,
    "obs": {
     "date": "2026-10-21",
     "high": 17.5,
-    "low": 16.7,
-    "last": 14.1
+    "low": 9.9,
+    "last": 9.9
    },
    "pnl": {
     "perUnit": -14.4,
@@ -198487,6 +199340,60 @@
     "basis": "NET",
     "perLot": -9000,
     "netPerLot": -9072.59
+   }
+  },
+  {
+   "id": "2026-10-16|CE|CHOLAFIN26OCT1560CE",
+   "kind": "CE",
+   "symbol": "CHOLAFIN",
+   "contract": "CHOLAFIN26OCT1560CE",
+   "expiry": "2026-10-27",
+   "strike": 1560,
+   "optionType": "CE",
+   "lotSize": 625,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T04:05:44.357Z",
+   "buy": 39.1,
+   "target": 58.65,
+   "target2": null,
+   "stop": 19.55,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 54.5,
+     "medianDays": 3.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-16T04:25:36.897Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 19.55,
+   "exitReason": "STOP",
+   "hoursFillToExit": 119.41,
+   "sessionsHeld": 2,
+   "best": 49,
+   "worst": 15.3,
+   "last": 15.3,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 56,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 22.4,
+    "low": 15.3,
+    "last": 15.3
+   },
+   "pnl": {
+    "perUnit": -19.55,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -12218.75,
+    "netPerLot": -12300.42
    }
   },
   {
@@ -198519,21 +199426,21 @@
    "status": "STOP",
    "filledAt": "2026-10-16T04:25:36.897Z",
    "hoursToFill": 0.33,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 15.95,
    "exitReason": "STOP",
-   "hoursFillToExit": 119.35,
+   "hoursFillToExit": 119.41,
    "sessionsHeld": 2,
    "best": 40.35,
    "worst": 11.6,
-   "last": 20.6,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 22.55,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 55,
    "obs": {
     "date": "2026-10-21",
-    "high": 19.2,
+    "high": 22.35,
     "low": 11.6,
-    "last": 20.6
+    "last": 22.55
    },
    "pnl": {
     "perUnit": -15.95,
@@ -198573,21 +199480,21 @@
    "status": "STOP",
    "filledAt": "2026-10-16T04:25:36.897Z",
    "hoursToFill": 0.33,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 20.7,
    "exitReason": "STOP",
-   "hoursFillToExit": 119.35,
+   "hoursFillToExit": 119.41,
    "sessionsHeld": 2,
    "best": 51.25,
    "worst": 18.15,
-   "last": 18.15,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 31.05,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 54,
    "obs": {
     "date": "2026-10-21",
-    "high": 28.6,
+    "high": 31.15,
     "low": 18.15,
-    "last": 18.15
+    "last": 31.05
    },
    "pnl": {
     "perUnit": -20.65,
@@ -198635,24 +199542,144 @@
    "status": "TARGET",
    "filledAt": "2026-10-16T08:25:18.797Z",
    "hoursToFill": 4.61,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 28640,
    "exitReason": "TARGET",
-   "hoursFillToExit": 115.35,
+   "hoursFillToExit": 115.41,
    "sessionsHeld": 2,
-   "best": 28570,
+   "best": 28335,
    "worst": 29450,
-   "last": 28630,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 28335,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 58,
    "obs": {
     "date": "2026-10-21",
     "high": 28900,
-    "low": 28570,
-    "last": 28630
+    "low": 28335,
+    "last": 28335
    },
    "pnl": {
     "perUnit": 735,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-16|FUTS|SOLARINDS26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "SOLARINDS",
+   "contract": "SOLARINDS26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 50,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 20203,
+   "target": 19698,
+   "target2": 19193,
+   "stop": 20506,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 67.3,
+     "medianTradingDays": 0.189
+    },
+    "target": {
+     "probabilityPct": 77.8,
+     "medianTradingDays": 2.291
+    },
+    "sigmaPct": 30.5,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-16T04:05:45.260Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 19698,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 119.74,
+   "sessionsHeld": 2,
+   "best": 19641,
+   "worst": 20269,
+   "last": 19641,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 57,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 19776,
+    "low": 19671,
+    "last": 19641
+   },
+   "pnl": {
+    "perUnit": 505,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-16|FUTS|ADANIPOWER26OCTFUT",
+   "kind": "FUTS",
+   "symbol": "ADANIPOWER",
+   "contract": "ADANIPOWER26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 3550,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 197.85,
+   "target": 192.9,
+   "target2": 187.96,
+   "stop": 200.82,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 72.9,
+     "medianTradingDays": 0.142
+    },
+    "target": {
+     "probabilityPct": 82,
+     "medianTradingDays": 1.667
+    },
+    "sigmaPct": 37.4,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-16T05:05:06.551Z",
+   "hoursToFill": 1.27,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 192.9,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 118.75,
+   "sessionsHeld": 2,
+   "best": 192.5,
+   "worst": 198.66,
+   "last": 192.66,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 57,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 194.4,
+    "low": 192.5,
+    "last": 192.66
+   },
+   "pnl": {
+    "perUnit": 4.95,
     "pct": 2.5,
     "basis": "GROSS"
    }
@@ -198695,26 +199722,188 @@
    "status": "STOP",
    "filledAt": "2026-10-16T04:05:45.260Z",
    "hoursToFill": 0.28,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 1881,
    "exitReason": "STOP",
-   "hoursFillToExit": 119.68,
+   "hoursFillToExit": 119.74,
    "sessionsHeld": 2,
    "best": 1930.6,
    "worst": 1852.8,
-   "last": 1901.2,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 1907.5,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 57,
    "obs": {
     "date": "2026-10-21",
-    "high": 1907,
+    "high": 1907.5,
     "low": 1852.8,
-    "last": 1901.2
+    "last": 1907.5
    },
    "pnl": {
     "perUnit": -34.7,
     "pct": -1.81,
     "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-16|PE|JSWENERGY26OCT470PE",
+   "kind": "PE",
+   "symbol": "JSWENERGY",
+   "contract": "JSWENERGY26OCT470PE",
+   "expiry": "2026-10-27",
+   "strike": 470,
+   "optionType": "PE",
+   "lotSize": 1075,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 7.35,
+   "target": 11,
+   "target2": null,
+   "stop": 3.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 39.4,
+     "medianDays": 4.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-16T03:48:41.684Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 3.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 120.02,
+   "sessionsHeld": 2,
+   "best": 8.15,
+   "worst": 3.55,
+   "last": 3.9,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 56,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 4.05,
+    "low": 3.55,
+    "last": 3.9
+   },
+   "pnl": {
+    "perUnit": -3.7,
+    "pct": -50.34,
+    "basis": "NET",
+    "perLot": -3977.5,
+    "netPerLot": -4035.79
+   }
+  },
+  {
+   "id": "2026-10-16|CE|HAVELLS26OCT1140CE",
+   "kind": "CE",
+   "symbol": "HAVELLS",
+   "contract": "HAVELLS26OCT1140CE",
+   "expiry": "2026-10-27",
+   "strike": 1140,
+   "optionType": "CE",
+   "lotSize": 500,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 17.15,
+   "target": 25.75,
+   "target2": null,
+   "stop": 8.55,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 41.5,
+     "medianDays": 4.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-16T04:25:36.897Z",
+   "hoursToFill": 0.62,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 8.35,
+   "exitReason": "STOP",
+   "hoursFillToExit": 119.41,
+   "sessionsHeld": 2,
+   "best": 25.55,
+   "worst": 7.85,
+   "last": 7.85,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 57,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 8.35,
+    "low": 7.85,
+    "last": 7.85
+   },
+   "pnl": {
+    "perUnit": -8.8,
+    "pct": -51.31,
+    "basis": "NET",
+    "perLot": -4400,
+    "netPerLot": -4459.08
+   }
+  },
+  {
+   "id": "2026-10-16|CE|DRREDDY26OCT1240CE",
+   "kind": "CE",
+   "symbol": "DRREDDY",
+   "contract": "DRREDDY26OCT1240CE",
+   "expiry": "2026-10-27",
+   "strike": 1240,
+   "optionType": "CE",
+   "lotSize": 625,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 18.9,
+   "target": 28.35,
+   "target2": null,
+   "stop": 9.45,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 42.9,
+     "medianDays": 4.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-16T03:48:41.684Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 28.35,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 120.02,
+   "sessionsHeld": 2,
+   "best": 28.45,
+   "worst": 15.5,
+   "last": 26.2,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 57,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 28.45,
+    "low": 25.55,
+    "last": 26.2
+   },
+   "pnl": {
+    "perUnit": 9.45,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 5906.25,
+    "netPerLot": 5819.7
    }
   },
   {
@@ -198747,21 +199936,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-16T03:48:41.684Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 40.9,
    "exitReason": "TARGET",
-   "hoursFillToExit": 119.96,
+   "hoursFillToExit": 120.02,
    "sessionsHeld": 2,
    "best": 41.55,
    "worst": 23.55,
-   "last": 41.05,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 38.95,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 57,
    "obs": {
     "date": "2026-10-21",
     "high": 41.55,
     "low": 38.8,
-    "last": 41.05
+    "last": 38.95
    },
    "pnl": {
     "perUnit": 13.65,
@@ -198769,6 +199958,60 @@
     "basis": "NET",
     "perLot": 8531.25,
     "netPerLot": 8427.29
+   }
+  },
+  {
+   "id": "2026-10-16|CE|MCX26OCT3300CE",
+   "kind": "CE",
+   "symbol": "MCX",
+   "contract": "MCX26OCT3300CE",
+   "expiry": "2026-10-27",
+   "strike": 3300,
+   "optionType": "CE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 47.3,
+   "target": 70.95,
+   "target2": null,
+   "stop": 23.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38.2,
+     "medianDays": 5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-16T04:05:45.260Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 23.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 119.74,
+   "sessionsHeld": 2,
+   "best": 47.4,
+   "worst": 22.45,
+   "last": 22.45,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 57,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 31.95,
+    "low": 22.8,
+    "last": 22.45
+   },
+   "pnl": {
+    "perUnit": -23.65,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -5321.25,
+    "netPerLot": -5383.46
    }
   },
   {
@@ -198801,21 +200044,21 @@
    "status": "STOP",
    "filledAt": "2026-10-16T03:48:41.684Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 3.3,
    "exitReason": "STOP",
-   "hoursFillToExit": 119.96,
+   "hoursFillToExit": 120.02,
    "sessionsHeld": 2,
    "best": 6.95,
-   "worst": 2.7,
-   "last": 3.05,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "worst": 2.15,
+   "last": 2.3,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 57,
    "obs": {
     "date": "2026-10-21",
     "high": 4.95,
-    "low": 2.7,
-    "last": 3.05
+    "low": 2.15,
+    "last": 2.3
    },
    "pnl": {
     "perUnit": -3.3,
@@ -198823,6 +200066,114 @@
     "basis": "NET",
     "perLot": -4455,
     "netPerLot": -4514.77
+   }
+  },
+  {
+   "id": "2026-10-16|PE|KALYANKJIL26OCT550PE",
+   "kind": "PE",
+   "symbol": "KALYANKJIL",
+   "contract": "KALYANKJIL26OCT550PE",
+   "expiry": "2026-10-27",
+   "strike": 550,
+   "optionType": "PE",
+   "lotSize": 1350,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 9.8,
+   "target": 14.7,
+   "target2": null,
+   "stop": 4.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 54.4,
+     "medianDays": 3.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-16T03:48:41.684Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 4.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 120.02,
+   "sessionsHeld": 2,
+   "best": 10.3,
+   "worst": 3.95,
+   "last": 4.45,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 57,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 10.3,
+    "low": 3.95,
+    "last": 4.45
+   },
+   "pnl": {
+    "perUnit": -4.9,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -6615,
+    "netPerLot": -6680.86
+   }
+  },
+  {
+   "id": "2026-10-16|PE|KALYANKJIL26OCT560PE",
+   "kind": "PE",
+   "symbol": "KALYANKJIL",
+   "contract": "KALYANKJIL26OCT560PE",
+   "expiry": "2026-10-27",
+   "strike": 560,
+   "optionType": "PE",
+   "lotSize": 1350,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 14.35,
+   "target": 21.5,
+   "target2": null,
+   "stop": 7.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 59.8,
+     "medianDays": 2.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-16T03:48:41.684Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 7.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 120.02,
+   "sessionsHeld": 2,
+   "best": 15.9,
+   "worst": 7.15,
+   "last": 8,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 57,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 14.7,
+    "low": 7.15,
+    "last": 8
+   },
+   "pnl": {
+    "perUnit": -7.15,
+    "pct": -49.83,
+    "basis": "NET",
+    "perLot": -9652.5,
+    "netPerLot": -9727.09
    }
   },
   {
@@ -198855,20 +200206,20 @@
    "status": "TARGET",
    "filledAt": "2026-10-15T04:25:32.274Z",
    "hoursToFill": 0.33,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 259.65,
    "exitReason": "TARGET",
-   "hoursFillToExit": 143.35,
+   "hoursFillToExit": 143.41,
    "sessionsHeld": 3,
    "best": 263.05,
    "worst": 109.9,
    "last": 190.45,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 83,
    "obs": {
     "date": "2026-10-21",
     "high": 263.05,
-    "low": 263.05,
+    "low": 190.45,
     "last": 190.45
    },
    "pnl": {
@@ -198909,21 +200260,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-15T03:48:56.856Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 41,
    "exitReason": "TARGET",
-   "hoursFillToExit": 143.96,
+   "hoursFillToExit": 144.02,
    "sessionsHeld": 3,
    "best": 41.55,
    "worst": 23.55,
-   "last": 41.05,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 38.95,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 84,
    "obs": {
     "date": "2026-10-21",
     "high": 41.55,
     "low": 38.8,
-    "last": 41.05
+    "last": 38.95
    },
    "pnl": {
     "perUnit": 13.65,
@@ -198963,21 +200314,21 @@
    "status": "STOP",
    "filledAt": "2026-10-15T03:48:56.856Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 3.6,
    "exitReason": "STOP",
-   "hoursFillToExit": 143.96,
+   "hoursFillToExit": 144.02,
    "sessionsHeld": 3,
    "best": 8.3,
-   "worst": 2.7,
-   "last": 3.05,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "worst": 2.15,
+   "last": 2.3,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 84,
    "obs": {
     "date": "2026-10-21",
     "high": 4.95,
-    "low": 2.7,
-    "last": 3.05
+    "low": 2.15,
+    "last": 2.3
    },
    "pnl": {
     "perUnit": -3.6,
@@ -199017,21 +200368,21 @@
    "status": "STOP",
    "filledAt": "2026-10-15T03:48:56.856Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 5.3,
    "exitReason": "STOP",
-   "hoursFillToExit": 143.96,
+   "hoursFillToExit": 144.02,
    "sessionsHeld": 3,
    "best": 12.05,
-   "worst": 5.05,
-   "last": 5.7,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "worst": 3.95,
+   "last": 4.45,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 84,
    "obs": {
     "date": "2026-10-21",
     "high": 10.3,
-    "low": 5.05,
-    "last": 5.7
+    "low": 3.95,
+    "last": 4.45
    },
    "pnl": {
     "perUnit": -5.25,
@@ -199071,21 +200422,21 @@
    "status": "STOP",
    "filledAt": "2026-10-15T03:48:56.856Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 246.95,
    "exitReason": "STOP",
-   "hoursFillToExit": 143.96,
+   "hoursFillToExit": 144.02,
    "sessionsHeld": 3,
    "best": 572.95,
    "worst": 244.95,
-   "last": 256.3,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 279.1,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 84,
    "obs": {
     "date": "2026-10-21",
     "high": 339.9,
     "low": 244.95,
-    "last": 256.3
+    "last": 279.1
    },
    "pnl": {
     "perUnit": -246.95,
@@ -199133,21 +200484,21 @@
    "status": "TARGET",
    "filledAt": "2026-10-14T04:46:21.340Z",
    "hoursToFill": 0.91,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 1250.6,
    "exitReason": "TARGET",
-   "hoursFillToExit": 167,
+   "hoursFillToExit": 167.06,
    "sessionsHeld": 4,
    "best": 1251.9,
    "worst": 1210.9,
-   "last": 1249.5,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 1248.5,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 110,
    "obs": {
     "date": "2026-10-21",
     "high": 1251.9,
     "low": 1245.1,
-    "last": 1249.5
+    "last": 1248.5
    },
    "pnl": {
     "perUnit": 30.5,
@@ -199185,21 +200536,21 @@
    "status": "STOP",
    "filledAt": "2026-10-14T04:07:01.470Z",
    "hoursToFill": 0.26,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 246.9,
    "exitReason": "STOP",
-   "hoursFillToExit": 167.66,
+   "hoursFillToExit": 167.72,
    "sessionsHeld": 4,
    "best": 617,
    "worst": 244.95,
-   "last": 256.3,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "last": 279.1,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 110,
    "obs": {
     "date": "2026-10-21",
     "high": 339.9,
     "low": 244.95,
-    "last": 256.3
+    "last": 279.1
    },
    "pnl": {
     "perUnit": -246.85,
@@ -199239,21 +200590,21 @@
    "status": "STOP",
    "filledAt": "2026-10-13T04:11:54.119Z",
    "hoursToFill": 0.34,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 3.3,
    "exitReason": "STOP",
-   "hoursFillToExit": 191.58,
+   "hoursFillToExit": 191.64,
    "sessionsHeld": 5,
    "best": 8.3,
-   "worst": 2.7,
-   "last": 3.05,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "worst": 2.15,
+   "last": 2.3,
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 137,
    "obs": {
     "date": "2026-10-21",
     "high": 4.95,
-    "low": 2.7,
-    "last": 3.05
+    "low": 2.15,
+    "last": 2.3
    },
    "pnl": {
     "perUnit": -3.25,
@@ -199261,6 +200612,60 @@
     "basis": "NET",
     "perLot": -4387.5,
     "netPerLot": -4447.24
+   }
+  },
+  {
+   "id": "2026-10-13|PE|KALYANKJIL26OCT550PE",
+   "kind": "PE",
+   "symbol": "KALYANKJIL",
+   "contract": "KALYANKJIL26OCT550PE",
+   "expiry": "2026-10-27",
+   "strike": 550,
+   "optionType": "PE",
+   "lotSize": 1350,
+   "sessionDate": "2026-10-13",
+   "shownAt": "2026-10-13T03:51:21.959Z",
+   "buy": 9.45,
+   "target": 14.2,
+   "target2": null,
+   "stop": 4.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50,
+     "medianDays": 4.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-13T04:11:54.119Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 4.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 191.64,
+   "sessionsHeld": 5,
+   "best": 12.05,
+   "worst": 3.95,
+   "last": 4.45,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 137,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 10.3,
+    "low": 3.95,
+    "last": 4.45
+   },
+   "pnl": {
+    "perUnit": -4.75,
+    "pct": -50.26,
+    "basis": "NET",
+    "perLot": -6412.5,
+    "netPerLot": -6477.63
    }
   },
   {
@@ -199293,19 +200698,19 @@
    "status": "TARGET",
    "filledAt": "2026-10-09T03:49:28.793Z",
    "hoursToFill": 0,
-   "closedAt": "2026-10-21T03:46:33.774Z",
+   "closedAt": "2026-10-21T03:50:08.035Z",
    "exitPrice": 4.55,
    "exitReason": "TARGET",
-   "hoursFillToExit": 287.95,
+   "hoursFillToExit": 288.01,
    "sessionsHeld": 7,
-   "best": 4.76,
+   "best": 4.86,
    "worst": 2.4,
    "last": 4.76,
-   "lastAt": "2026-10-21T03:46:33.774Z",
+   "lastAt": "2026-10-21T03:50:08.035Z",
    "marks": 154,
    "obs": {
     "date": "2026-10-21",
-    "high": 4.47,
+    "high": 4.86,
     "low": 4.44,
     "last": 4.76
    },
@@ -199315,6 +200720,60 @@
     "basis": "NET",
     "perLot": 7323.5,
     "netPerLot": 7227.28
+   }
+  },
+  {
+   "id": "2026-10-08|CE|SONACOMS26OCT800CE",
+   "kind": "CE",
+   "symbol": "SONACOMS",
+   "contract": "SONACOMS26OCT800CE",
+   "expiry": "2026-10-27",
+   "strike": 800,
+   "optionType": "CE",
+   "lotSize": 1225,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T03:51:39.170Z",
+   "buy": 30.6,
+   "target": 45.9,
+   "target2": null,
+   "stop": 15.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51.4,
+     "medianDays": 6.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-08T04:06:50.260Z",
+   "hoursToFill": 0.25,
+   "closedAt": "2026-10-21T03:50:08.035Z",
+   "exitPrice": 15.3,
+   "exitReason": "STOP",
+   "hoursFillToExit": 311.72,
+   "sessionsHeld": 8,
+   "best": 33.5,
+   "worst": 14,
+   "last": 14,
+   "lastAt": "2026-10-21T03:50:08.035Z",
+   "marks": 221,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 17.75,
+    "low": 14,
+    "last": 14
+   },
+   "pnl": {
+    "perUnit": -15.3,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -18742.5,
+    "netPerLot": -18842.58
    }
   }
  ]
