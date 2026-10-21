@@ -25,7 +25,7 @@ const days = (a, b) => Math.round((Date.parse(b) - Date.parse(a)) / 864e5);
 
 function parse(text, iso) {
   const lines = text.split(/\r?\n/).filter(Boolean); const head = lines[0].split(",").map((h) => h.trim()); const c = (n) => head.indexOf(n);
-  const rows = []; let underlying = null;
+  const rows = []; let underlying = null, lot = null;   // lot: NSE's own lot size (new format only)
   if (c("INSTRUMENT") >= 0) {
     for (const l of lines.slice(1)) { const f = l.split(","); if (f[c("INSTRUMENT")] !== "OPTIDX" || f[c("SYMBOL")] !== "NIFTY") continue;
       const exp = isoOld(f[c("EXPIRY_DT")]); if (days(iso, exp) < 0 || days(iso, exp) > 8) continue;
@@ -34,9 +34,10 @@ function parse(text, iso) {
     for (const l of lines.slice(1)) { const f = l.split(","); if (f[c("FinInstrmTp")] !== "IDO" || f[c("TckrSymb")] !== "NIFTY") continue;
       const exp = f[c("XpryDt")]; if (days(iso, exp) < 0 || days(iso, exp) > 8) continue;
       if (underlying === null && +f[c("UndrlygPric")] > 0) underlying = +f[c("UndrlygPric")];
+      if (lot === null && c("NewBrdLotQty") >= 0 && +f[c("NewBrdLotQty")] > 0) lot = +f[c("NewBrdLotQty")];
       rows.push([exp, +f[c("StrkPric")], f[c("OptnTp")], +f[c("OpnPric")], +f[c("HghPric")], +f[c("LwPric")], +f[c("ClsPric")], +f[c("SttlmPric")], +f[c("OpnIntrst")], +f[c("TtlTradgVol")]]); }
   }
-  return { date: iso, underlying, rows };
+  return { date: iso, underlying, lot, rows };
 }
 
 async function main(out, from, to) {

@@ -970,6 +970,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     forwardV2: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v2.json"), "utf8")); } catch { return null; } })(),
     forwardV3: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v3.json"), "utf8")); } catch { return null; } })(),
     forwardV4: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v4.json"), "utf8")); } catch { return null; } })(),
+    expirySelling: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "expiry-selling.json"), "utf8")); } catch { return null; } })(),
     gmMinUnits: GM_MIN_UNITS,
     marketContext: marketContext
       ? { ok: true, indiaVix: marketContext.indiaVix, indiaVixChangePct: marketContext.indiaVixChangePct,
@@ -1287,6 +1288,33 @@ function forwardV3Box(fv) {
     <div style="margin-top:10px"><b>INDUSTRY-ADJUSTED REVERSAL (long-short futures)</b><span class="lec"> &mdash; ${esc(ir.rule || "")}. Backtest: ${esc(ir.backtest || "")}.</span> ${verdict(ir.summary)}<span class="lec"> (a verdict needs 26 rebalances).</span>
       ${next}
       ${irRows ? listFold("Rebalances", `<div class="wrap"><table><thead><tr><th>REBALANCE</th><th>LEGS</th><th class="num">NET</th></tr></thead><tbody>${irRows}</tbody></table></div>`) : ""}</div>
+  </div>`;
+}
+
+// EXPIRY-DAY OPTION SELLING, ON PAPER, AGAINST THE FUTURE (studies/expiry-selling-forward-2026-10-21). The study's four
+// members PASSED on 351 expiries (2020-2026); a PASS goes to TRACK as a paper test first (CLAUDE.md rule 4). Information
+// only, never a suggestion: selling options needs margin and can lose far more than the premium.
+function expirySellingBox(es) {
+  if (!es || !es.members || !es.members[es.primary]) return "";
+  const mn = (v) => String(v).replace(/^-/, "&minus;");
+  const p = es.members[es.primary], s = p.summary || {}, lot = es.lot;
+  const tone = s.verdict === "CONFIRMED" ? "up" : s.verdict === "NOT CONFIRMED" ? "down" : "warn";
+  const day = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  const rs = (pts) => (lot > 0 ? ` (${pts >= 0 ? "+" : "&minus;"}${money(Math.abs(Math.round(pts * lot)))} a lot)` : "");
+  const pts = (v) => `${v > 0 ? "+" : ""}${mn(esc(v))}`;
+  const rows = (p.expiries || []).map((t) => `<tr><td><b>${esc(day(t.date))}</b></td><td class="num">${esc(t.call)} CE / ${esc(t.put)} PE</td><td class="num">${esc(t.credit)}</td>
+    <td class="num ${t.points > 0 ? "up" : t.points < 0 ? "down" : ""}">${pts(t.points)}${rs(t.points)}${t.stops ? `<div class="sub">${esc(t.stops)} leg${t.stops === 1 ? "" : "s"} stopped at 2x</div>` : ""}</td></tr>`).join("");
+  const others = ["X1", "X3", "X4"].filter((k) => es.members[k]).map((k) => { const x = es.members[k].summary || {};
+    return `<div class="sub">${esc(k)} ${esc(es.members[k].name)}: ${x.expiries ? `${esc(x.expiries)} expiries, ${pts(x.meanPoints)} points an expiry, ${esc(x.won)}% won` : "no expiry yet"}</div>`; }).join("");
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
+    <b>FORWARD PAPER TEST: SELLING NIFTY OPTIONS ON EXPIRY DAY</b> &middot; <b class="up">PASSED its test (351 expiries)</b> &middot; <b>paper only</b>
+    <div style="margin-top:6px"><b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(es.primary)}, sell the ATM call and put at the open, buy a leg back at 2x:
+      ${s.expiries ? `${esc(s.expiries)} expiries, ${pts(s.meanPoints)} points an expiry${rs(s.meanPoints)}, ${esc(s.won)}% won, worst ${mn(esc(s.worstPoints))} points${s.t === null || s.t === undefined ? "" : `, t ${mn(esc(s.t))}`}`
+        : `first expiry ${esc(day(es.nextExpiry || es.start))}`}.</div>
+    <div class="sub lec">The study (2020&ndash;2026, NSE&rsquo;s own files, after charges): +17.6 points an expiry for ${esc(es.primary)}, t 4.43, positive in every period; its worst expiry lost 3.19% of NIFTY.
+      Counted from ${esc(es.start)}; a verdict after ${esc(es.need)} expiries (CONFIRMED needs mean above 0 and t &ge; 1.68). Rules fixed in ${esc(es.preregistration)}. Data through ${esc(es.dataThrough || "&mdash;")}.
+      Selling options needs margin and can lose far more than the premium; this is information, never a row to trade.</div>
+    ${rows || others ? listFold("Expiries and the other three versions", `${others}${rows ? `<div class="wrap"><table><thead><tr><th>EXPIRY</th><th class="num">STRIKES</th><th class="num">CREDIT</th><th class="num">RESULT, POINTS</th></tr></thead><tbody>${rows}</tbody></table></div>` : ""}`) : ""}
   </div>`;
 }
 
@@ -2113,6 +2141,7 @@ ${footAlarm}
     ${forwardV2Box(d.forwardV2)}
     ${forwardV3Box(d.forwardV3)}
     ${forwardV4Box(d.forwardV4)}
+    ${expirySellingBox(d.expirySelling)}
     ${trackPane}
   </section>
 </main>
@@ -2299,7 +2328,7 @@ async function main() {
   return data;
 }
 
-module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine };
+module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox };
 
 // Exported above so a test can drive build() twice and prove the levels did not
 // move. Run directly, it is still just a build.

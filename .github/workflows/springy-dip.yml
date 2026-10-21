@@ -51,6 +51,10 @@ jobs:
         run: |
           K2_CM_DIR=nse-data/cm K2_IDX_DIR=nse-idx K2_FROM=$(date -u -d '-40 days' +%F) node scripts/nse-index-close-history.js
           K2_CM_DIR=nse-data/cm K2_OUT_DIR=nse-extra K2_FROM=$(date -u -d '-40 days' +%F) node scripts/nse-options-delivery-history.js
+      - name: NIFTY options on expiry days, for the expiry-selling forward test (studies/expiry-selling-forward-2026-10-21)
+        # Every session from 22 Oct 2026 (files already kept are not fetched again); the test counts expiries from 27 Oct.
+        continue-on-error: true
+        run: node scripts/nse-nifty-option-days.js nse-nod 2026-10-22 $(TZ=Asia/Kolkata date +%F)
       - name: Keep NSE's index history archive current (release data-nse-idx)
         continue-on-error: true
         run: |
@@ -97,7 +101,7 @@ jobs:
           for f in nse-idx/*.json; do d=$(basename "$f" .json); [ -f "nse-data/cm/$d.json" ] || { echo "::error::NSE held a session on $d but nse-data/cm has no file for it"; exit 1; }; done
           gh release view data-paper-inputs >/dev/null 2>&1 || gh release create data-paper-inputs --title "Paper-test inputs (NSE daily files)" --notes "NSE's own F&O, index and option files from late Aug 2026 on, read by the forward paper tests (docs/paper-rules). Built by springy-dip.yml." --latest=false
           # .none (NSE answered 404) is not kept: a day missing today is fetched again tomorrow, within 40 days
-          mkdir -p nse-flows && tar --exclude='*.none' -czf paper-inputs.tar.gz nse-fo nse-idx nse-extra nse-sopt nse-flows nse-slb
+          mkdir -p nse-flows nse-nod && tar --exclude='*.none' -czf paper-inputs.tar.gz nse-fo nse-idx nse-extra nse-sopt nse-flows nse-slb nse-nod
           gh release upload data-paper-inputs paper-inputs.tar.gz --clobber
       - name: Signals and the running score
         run: |
@@ -108,11 +112,12 @@ jobs:
           K2_CM_DIR=nse-data/cm K2_SOPT_DIR=nse-sopt K2_INDUSTRY=industries.json node scripts/forward-v3.js | tee -a "$GITHUB_STEP_SUMMARY"
           K2_CM_DIR=nse-data/cm K2_SLB_DIR=nse-slb/slb_openpos K2_FUT_DIR=nse-fo/fut node scripts/forward-v4.js | tee -a "$GITHUB_STEP_SUMMARY"
           node scripts/flows-summary.js nse-flows docs/paper-rules/flows.json | tee -a "$GITHUB_STEP_SUMMARY"
+          K2_NOD_DIR=nse-nod K2_IDX_DIR=nse-idx node scripts/expiry-forward.js | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Commit the list
         run: |
           git config user.name "k2-desk-bot"
           git config user.email "k2-desk-bot@users.noreply.github.com"
-          git add docs/paper-rules/springy-dip.json docs/paper-rules/oi-flow.json docs/paper-rules/forward-v2.json docs/paper-rules/forward-v3.json docs/paper-rules/forward-v4.json docs/paper-rules/flows.json
+          git add docs/paper-rules/springy-dip.json docs/paper-rules/oi-flow.json docs/paper-rules/forward-v2.json docs/paper-rules/forward-v3.json docs/paper-rules/forward-v4.json docs/paper-rules/flows.json docs/paper-rules/expiry-selling.json
           git diff --cached --quiet && { echo "no change"; exit 0; }
           git commit -m "paper rules: forward tests updated"
           for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin HEAD:main && exit 0; sleep 10; done
