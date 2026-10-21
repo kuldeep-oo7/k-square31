@@ -186,16 +186,19 @@ if (require.main === module) {
   if (process.argv.includes("--replay-only")) { console.log("replay checks only"); process.exit(0); }
   const dup = phase1 ? new Map() : duplicates(trades, log);
   if (!nullCheck(trades, data, log)) refuse("CHECK 5.2 FAILED");
-  if (process.argv.includes("--check")) { console.log("checks only"); process.exit(0); }
   const scored = trades.map((t) => gm(t, data)); const dropped = new Map();
-  scored.forEach((r, k) => { if (!r || r.void) { const m = trades[k].member; dropped.set(m, (dropped.get(m) || 0) + 1); } });
-  const lb = board(scored); const { FITTED } = require("./members2");
-  // DIAGNOSTIC (not judged): each trade's GM % beside the member's own net for the same trade, where the member reports one
-  // and GM did not cut it. A wrong side or exit shows as a large gap or a low sign agreement.
+  // OWN-RESULT CHECK (in --check, BEFORE any board): each trade's GM % beside the member's own net for the same trade, where the
+  // member reports one and GM did not cut it. A wrong side shows as sign agreement near 0-10%, a wrong exit near 50-60%;
+  // members under 90% are flagged. Families F5/F6 priced on futures in their study (shares here) differ by the basis.
   { const by = new Map(); scored.forEach((r, k) => { const own = trades[k].own; if (!r || r.void || r.cutByExpiry || own === undefined) return; if (!by.has(r.member)) by.set(r.member, []); by.get(r.member).push([r.pct, own * 100]); });
     const med = (a) => { const s = a.slice().sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
-    log("\nOWN-RESULT CHECK (diagnostic, uncut trades; member: n, median |GM % - own %|, same sign): " + [...by].filter(([, v]) => v.length >= 30)
-      .map(([m, v]) => `${m}: ${v.length}, ${med(v.map(([a, b]) => Math.abs(a - b))).toFixed(3)}pp, ${Math.round((100 * v.filter(([a, b]) => Math.sign(a) === Math.sign(b)).length) / v.length)}%`).join("; ")); }
+    const rows = [...by].filter(([, v]) => v.length >= 30).map(([m, v]) => ({ m, n: v.length, gap: med(v.map(([a, b]) => Math.abs(a - b))), same: (100 * v.filter(([a, b]) => Math.sign(a) === Math.sign(b)).length) / v.length }));
+    log(`\nOWN-RESULT CHECK (uncut trades; member: n, median |GM % - own %|, same sign): ${rows.map((x) => `${x.m}: ${x.n}, ${x.gap.toFixed(3)}pp, ${x.same.toFixed(0)}%`).join("; ")}`);
+    log(` flagged under 90% same sign: ${rows.filter((x) => x.same < 90).map((x) => x.m).join(", ") || "none"}`); }
+  if (process.argv.includes("--check")) { console.log("checks only"); process.exit(0); }
+  scored.forEach((r, k) => { if (!r || r.void) { const m = trades[k].member; dropped.set(m, (dropped.get(m) || 0) + 1); } });
+  const lb = board(scored); const { FITTED } = require("./members2");
+  if (!phase1) log(" (A1 5.5 as written: a member whose trades lie inside an earlier member's, such as a long-only book inside its long-short book, counts as a duplicate.)");
   log(`\nLEADERBOARD (2020-10 .. ${data.sessions.at(-1)}; each member to the end of its own data), ranked by t of the equal-rupee monthly series. GM 20u = GM's own score in rupees, before GM's charges but after NSE futures charges:`);
   for (const r of lb) log(`${fmt(r)}${FITTED(r.member) ? " [FITTED]" : ""}${dup.has(r.member) ? ` [DUPLICATE of ${dup.get(r.member).of}]` : ""}${dropped.get(r.member) ? ` [${dropped.get(r.member)} dropped: no bars, reset or unscorable]` : ""}`);
   log(`\nPASS: ${lb.filter((r) => r.verdict === "PASS").map((r) => r.member).join(", ") || "none"}. PROMISING: ${lb.filter((r) => r.verdict === "PROMISING").map((r) => r.member).join(", ") || "none"}.`);
