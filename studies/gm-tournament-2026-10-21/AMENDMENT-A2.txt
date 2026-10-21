@@ -1,0 +1,23 @@
+AMENDMENT A2 TO THE GM GLOBAL TOURNAMENT (after A1, sha256 0d79afcf...)
+Written Wed 21 Oct 2026 ~22:00 IST, BEFORE any GM score of the members below was computed. The commit time is the proof.
+
+1. KR IS SCORABLE
+ A1 listed KR (Kronos top and bottom tenth, real dates) as NOT SCORABLE because its forecasts were not in a private
+ release. They were found on the laptop: research/fm-data-dated/forecasts-kronos.csv, 5,481 forecasts (as its
+ RESULT-KRONOS-REAL-DATES.txt says), sha256 690c8b9a897f8dc27a75f362d1e2c64016463a4c0cf65de1aa14fa4c6aed2b52, written
+ 15 Oct 2026. Uploaded unchanged (gzip) to the private release forecast-models-dated of kuldeep-oo7/k2-data.
+ KR joins as the registration's section 2 says: the forecast-models study's OWN code (common.js plan(), score.js run(),
+ branch claude/forecast-models-2026-10-13) with its M3 forecasts; a load-time patch records each M3 leg (symbol, side,
+ entry session = the rebalance's e, exit session = its 5th session). Each leg is one GM trade (A1 3d).
+ Replay check (A1 5.4) for KR: M3 must give the published 57 rebalances, 50.9% winners and t 1.35. If not, KR is
+ NOT SCORABLE. KR is FITTED = no (its forecasts are a model's, not fitted on these years' returns); it is labelled
+ "AI forecast".
+
+2. HOW THE TWO PREDICTION MEMBERS FIND THEIR TRADES (code reading, fixed now)
+ CM1/CM3: each prediction row (i, d, sym) enters at the open of the SECOND session after d (features.js: e = S[i + 2])
+ and exits at the close of the 5th session from e (forward-v3 context().window, as features.js). The replay check (A1
+ 5.4) runs the combined model's OWN books() (score.js, branch claude/combined-model-2026-10-13) on these rows and must
+ reproduce its RESULT.txt for C1 and C3 (198 rebalances each; C1 +0.117% a rebalance, 54.0% winners, t 2.78; C3
+ +0.161%, 55.6%, t 3.39), or CM is NOT SCORABLE.
+
+3. NOTHING ELSE CHANGES. The confirmation set is still chosen once, from the full board.
