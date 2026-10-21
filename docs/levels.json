@@ -116,7 +116,11 @@
   "OPTION|BANKNIFTY|BANKNIFTY26NOV54400PE",
   "OPTION|NIFTY|NIFTY26N0322500PE",
   "OPTION|NIFTY|NIFTY26N0322450PE",
-  "OPTION|BANKNIFTY|BANKNIFTY26NOV54000PE"
+  "OPTION|BANKNIFTY|BANKNIFTY26NOV54000PE",
+  "OPTION|NIFTY|NIFTY26N0322400PE",
+  "OPTION|NIFTY|NIFTY26N0322350PE",
+  "OPTION|BANKNIFTY|BANKNIFTY26NOV53800PE",
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26NOV13000PE"
  ],
  "options": {
   "NIFTY26N0323100PE": {
@@ -1197,6 +1201,66 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-21T06:24:21.166Z",
    "frozenAtIst": "2026-10-21 11:54 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26N0322400PE": {
+   "buy": 113,
+   "sell": 169.5,
+   "stop": 56.5,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-11-03",
+   "strike": 22400,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-21T06:44:30.272Z",
+   "frozenAtIst": "2026-10-21 12:14 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26N0322350PE": {
+   "buy": 101.45,
+   "sell": 152.15,
+   "stop": 50.75,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-11-03",
+   "strike": 22350,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-21T06:44:30.272Z",
+   "frozenAtIst": "2026-10-21 12:14 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26NOV53800PE": {
+   "buy": 444.55,
+   "sell": 666.85,
+   "stop": 222.3,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-11-23",
+   "strike": 53800,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-21T06:44:30.272Z",
+   "frozenAtIst": "2026-10-21 12:14 IST",
+   "frozenAtSpot": null
+  },
+  "MIDCPNIFTY26NOV13000PE": {
+   "buy": 201.25,
+   "sell": 301.85,
+   "stop": 100.65,
+   "tick": 0.05,
+   "lotSize": 120,
+   "expiry": "2026-11-23",
+   "strike": 13000,
+   "right": "PE",
+   "symbol": "MIDCPNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-21T06:44:30.272Z",
+   "frozenAtIst": "2026-10-21 12:14 IST",
    "frozenAtSpot": null
   }
  },
