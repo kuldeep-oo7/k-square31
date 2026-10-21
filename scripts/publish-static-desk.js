@@ -1311,7 +1311,7 @@ function expirySellingBox(es) {
     <div style="margin-top:6px"><b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(es.primary)}, sell the ATM call and put at the open, buy a leg back at 2x:
       ${s.expiries ? `${esc(s.expiries)} expiries, ${pts(s.meanPoints)} points an expiry${rs(s.meanPoints)}, ${esc(s.won)}% won, worst ${mn(esc(s.worstPoints))} points${s.t === null || s.t === undefined ? "" : `, t ${mn(esc(s.t))}`}`
         : `first expiry ${esc(day(es.nextExpiry || es.start))}`}.</div>
-    <div class="sub warn">Worst expiry in the test: &minus;3.19% of NIFTY &mdash; about &minus;728 points, &minus;&#8377;47,000 a lot of 65 at NIFTY 22,800. Selling needs margin.</div>
+    <div class="sub warn">Worst expiry in the test: <span class="amt">&minus;3.19%</span> of NIFTY &mdash; about <span class="amt">&minus;728 points</span>, <span class="amt">&minus;&#8377;47,000</span> a lot of 65 at NIFTY 22,800. Selling needs margin.</div>
     <div class="sub lec">The study (2020&ndash;2026, NSE&rsquo;s own files, after charges): +17.6 points an expiry for ${esc(es.primary)}, t 4.43, positive in every period; its worst expiry lost 3.19% of NIFTY.
       Counted from ${esc(es.start)}; a verdict after ${esc(es.need)} expiries (CONFIRMED needs mean above 0 and t &ge; 1.68). Rules fixed in ${esc(es.preregistration)}. Data through ${esc(es.dataThrough || "&mdash;")}.
       Selling options needs margin and can lose far more than the premium; this is information, never a row to trade.</div>
