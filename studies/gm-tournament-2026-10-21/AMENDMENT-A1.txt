@@ -1,0 +1,73 @@
+AMENDMENT A1 TO THE GM GLOBAL TOURNAMENT (PREREGISTRATION.txt, sha256 be66ba9a...)
+Written Wed 21 Oct 2026 ~08:30 IST, BEFORE any member added here was scored under GM's rules. The commit time is the proof.
+Nothing in the registration's rules changes. This fixes, in advance, how the rest of phase 1 and phase 2 are scored.
+
+0. CORRECTION
+ The registration's header says "Written 2026-10-21 ~00:30 IST (Wed)". It was committed Tue 20 Oct 2026 23:22:02 IST
+ (commit e38edd4); the commit time and the sha256 file are the authority.
+
+1. THE 20 OCT RUN WAS INTERIM
+ It scored phase 1 in part (36 TA rules x 2 sides, SB, LU, SD). Final verdicts come only from the FULL board below.
+ Holm and the Deflated Sharpe (N = members scored + 100) are recomputed across every member on it.
+
+2. ONE TREATMENT FOR EVERY MEMBER
+ Sample: 2020-10-01 to the end of each member's own data (as the registration fixed for SB and LU, "from 2020-10").
+ FITTED members (thresholds or weights chosen on part of these years: SB, LU, orderflow B* and C*, families F3/F4,
+ results R1/R2, dip-ml E3/E4, CM1/CM3) are labelled FITTED. As a sensitivity, reported and not judged, their t on
+ 2024-09-19 onward (the studies' validation + final windows) is printed too.
+
+3. THE SCORER (code, not rules)
+ a. A member that enters or exits at a price other than the open or the close (a limit, a target, a stop) is scored at
+    its own price. When GM's expiry cut comes first, the exit is the close of the cut session. Check 5.3 below.
+ b. NIFTY members are scored on NSE's NIFTY 50 index (its official open and close), as a proxy for NIFTY futures, cut at
+    NIFTY's monthly futures expiry from NSE's own expiry list. U20 = 20 units of the index. Labelled "GM's NIFTY
+    listing not known".
+ c. Trades come from each member's OWN code. Where that code does not output the symbol, the entry and exit sessions or
+    the prices, the loader adds those fields to its trade record at load time. The text patch must match exactly once;
+    the committed study.js files are not edited.
+ d. Each stock of a multi-stock book (CM deciles, F7 pairs legs) is a separate GM trade at the same sizes as every
+    member (U20 and EQ Rs 5 lakh).
+ e. Dropped trades (no bars, crossing an 18% reset, unscorable) are counted and printed per member.
+
+4. MEMBERS ADDED
+ Phase 1, the rest:
+  RS H1, H2, H3   rising-stocks-2026-10-02 run(): its own limit entry and target / stop / time exit.
+  S2              api/_lib/forward-v4.js borrowingSurge() over NSE's SLB open-position files (data-nse-atlas), from its
+                  first possible date.
+  IR              api/_lib/forward-v3.js industry reversal, stock legs only (industry file pinned by sha256 as on TRACK).
+  KR              NOT SCORABLE: Kronos's real-date forecasts are not kept in any private release (checked 21 Oct 2026:
+                  the k2-data release list and data-research's research-misc archive).
+  CM1, CM3        the combined model's walk-forward predictions (k2-data release combined-model-run, preds.csv.gz) on
+                  its own panel (features.js, branch claude/combined-model-2026-10-13): CM1 long top decile + short
+                  bottom decile, CM3 long top decile, each from the panel's entry open to its exit close.
+ Phase 2:
+  dip-ml          D1-D6, E1-E4 (D6 is intraday: open to close of its own session).
+  orderflow       B1-B8 (stocks), C1-C4 (NIFTY).
+  families        F1, F2, F5, F6 (stocks); F3, F4, F8, F9, F10 (NIFTY); F7 pairs (both legs).
+                  F11, F12 OUT (options).
+  results         R1, R2. V1-V3 OUT (options).
+  rating replay   G1-G5 (G1, G3 with the desk's own limit entry and target / stop exit).
+  momentum (2026-09-25), published strategies (2026-09-27): NOT SCORABLE. Their code has no run() that returns trades;
+                  rewriting them would be a new translation, not their code.
+  macro pod       scored later under its own registration (macro-pod prereg 3661fa5); not on this board and not in
+                  the confirmation set.
+
+5. CHECKS BEFORE THE FULL RUN (all must pass, or the member named is NOT SCORABLE; a failed 5.1/5.3 refuses the run)
+ 5.1 as registered.
+ 5.3 a hand-built limit-entry, target-exit trade, and one cut by an expiry before its target, give the right U20.
+ 5.4 REPLAY: with its load-time patch, each patched study's trade count and mean net equal its own published
+     RESULT (the patch changed nothing in the rule). CM1/CM3: the rebalance count and mean equal its RESULT.txt.
+ 5.5 DUPLICATES: a member whose trades are at least 95% the same (symbol, side, entry session, exit session) as an
+     earlier member's is marked DUPLICATE. It is scored and counted in N, but cannot take a confirmation slot.
+     (Expected before any score: orderflow B3 = SB, dip-ml E1 = SD.) Mirror rules (opposite side) are not duplicates.
+ 5.2 the re-dated null, on the full member set.
+
+6. CONFIRMATION (registration section 4, unchanged in substance)
+ Run ONCE, after the full board: the 5 non-duplicate members with the highest EQ t, re-scored on NSE 2005-2020
+ (release data-oos) where their inputs reach back; the rest NOT CONFIRMABLE. SB, LU and SD were already run on those
+ years on 5 Oct 2026 (oos-replication-2026-10-05): for them this is a GM re-score of examined data, not unseen data,
+ and the result says so.
+
+7. PUBLIC REPO
+ k-square31 is public. Step summaries, logs and artifacts carry summary rows only: no trade lists, and nothing from the
+ private predictions (CM) beyond member totals.
