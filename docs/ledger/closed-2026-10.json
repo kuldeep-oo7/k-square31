@@ -233618,6 +233618,211 @@
     "pct": -1.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-10-19|CE|PATANJALI26OCT350CE",
+   "kind": "CE",
+   "symbol": "PATANJALI",
+   "contract": "PATANJALI26OCT350CE",
+   "expiry": "2026-10-27",
+   "strike": 350,
+   "optionType": "CE",
+   "lotSize": 1075,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T06:04:35.154Z",
+   "buy": 13.8,
+   "target": 20.7,
+   "target2": null,
+   "stop": 6.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47.1,
+     "medianDays": 3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T06:24:32.199Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-21T09:44:08.296Z",
+   "exitPrice": 6.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 51.33,
+   "sessionsHeld": 1,
+   "best": 18.2,
+   "worst": 6.65,
+   "last": 7,
+   "lastAt": "2026-10-21T09:44:08.296Z",
+   "marks": 40,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 15.5,
+    "low": 6.65,
+    "last": 7
+   },
+   "pnl": {
+    "perUnit": -6.9,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -7417.5,
+    "netPerLot": -7485.63
+   }
+  },
+  {
+   "id": "2026-10-19|FUT|COROMANDEL (share)",
+   "kind": "FUT",
+   "symbol": "COROMANDEL",
+   "contract": "COROMANDEL (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 250,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 1744.1,
+   "target": 1787.7,
+   "target2": 1831.3,
+   "stop": 1717.9,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "TARGET",
+   "filledAt": "2026-10-19T04:05:03.318Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-21T09:44:08.296Z",
+   "exitPrice": 1787.7,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 53.65,
+   "sessionsHeld": 1,
+   "best": 1794.5,
+   "worst": 1740.9,
+   "last": 1791.4,
+   "lastAt": "2026-10-21T09:44:08.296Z",
+   "marks": 47,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 1794.5,
+    "low": 1746,
+    "last": 1791.4
+   },
+   "pnl": {
+    "perUnit": 43.6,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-19|CE|ONGC26OCT227.5CE",
+   "kind": "CE",
+   "symbol": "ONGC",
+   "contract": "ONGC26OCT227.5CE",
+   "expiry": "2026-10-27",
+   "strike": 227.5,
+   "optionType": "CE",
+   "lotSize": 2250,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 1.74,
+   "target": 2.61,
+   "target2": null,
+   "stop": 0.87,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 57.6,
+     "medianDays": 2.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T04:05:03.318Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-21T09:44:08.296Z",
+   "exitPrice": 0.87,
+   "exitReason": "STOP",
+   "hoursFillToExit": 53.65,
+   "sessionsHeld": 1,
+   "best": 1.91,
+   "worst": 0.82,
+   "last": 1,
+   "lastAt": "2026-10-21T09:44:08.296Z",
+   "marks": 47,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 1.91,
+    "low": 0.82,
+    "last": 1
+   },
+   "pnl": {
+    "perUnit": -0.87,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -1957.5,
+    "netPerLot": -2010.22
+   }
+  },
+  {
+   "id": "2026-10-08|PE|LODHA26OCT1160PE",
+   "kind": "PE",
+   "symbol": "LODHA",
+   "contract": "LODHA26OCT1160PE",
+   "expiry": "2026-10-27",
+   "strike": 1160,
+   "optionType": "PE",
+   "lotSize": 625,
+   "sessionDate": "2026-10-08",
+   "shownAt": "2026-10-08T04:26:38.438Z",
+   "buy": 79,
+   "target": 118.5,
+   "target2": null,
+   "stop": 39.5,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51.2,
+     "medianDays": 6.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-08T04:26:38.454Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T09:44:08.296Z",
+   "exitPrice": 118.5,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 317.29,
+   "sessionsHeld": 5,
+   "best": 148.9,
+   "worst": 71.6,
+   "last": 148.9,
+   "lastAt": "2026-10-21T09:44:08.296Z",
+   "marks": 121,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 148.9,
+    "low": 148.9,
+    "last": 148.9
+   },
+   "pnl": {
+    "perUnit": 39.5,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 24687.5,
+    "netPerLot": 24475.83
+   }
   }
  ]
 }
