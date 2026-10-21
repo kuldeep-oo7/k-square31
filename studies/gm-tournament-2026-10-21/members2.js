@@ -60,7 +60,7 @@ function toGm(prefix, t, sideOf) {
   const member = prefix ? `${prefix} ${t.member}` : t.member;
   if (t.legs) return t.legs.map((g) => ({ member, sym: g.sym, side: g.side, entryDay: t.day, exitDay: g.exitDay, entryPx: g.entryPx, exitPx: g.exitPx }));
   if (!t.sym || !t.exitDay) return [];
-  return [{ member, sym: t.sym, side: t.side ?? sideOf(t.member), entryDay: t.day, exitDay: t.exitDay, entryPx: t.entryPx, exitPx: t.exitPx }];
+  return [{ member, sym: t.sym, side: t.side ?? sideOf(t.member), entryDay: t.day, exitDay: t.exitDay, entryPx: t.entryPx, exitPx: t.exitPx, own: Number.isFinite(t.net) ? t.net : undefined }];
 }
 const SIDE = { D1: 1, D2: -1, D3: 1, D4: 1, D5: 1, D6: 1, E1: 1, E2: -1, E3: 1, E4: -1 };
 

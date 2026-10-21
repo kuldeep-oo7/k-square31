@@ -142,17 +142,17 @@ function members(data, log) {   // phase 1, exactly as registered and run on 20 
   // T*: the 36 TA-atlas rules, hold 10, side from the member name
   { const s = loadStudy("ta-atlas-2026-10-03"); const res = s.run({ sessions: data.sessions, stocks: data.stocks });
     for (const t of res.trades) { const i = data.idx.get(t.sym)?.get(t.day); if (i === undefined) continue; const b = data.bySym.get(t.sym).bars; if (i + 9 >= b.length) continue;
-      T.push({ member: `T ${t.member}`, sym: t.sym, side: /SHORT/.test(t.member) ? -1 : 1, entryDay: t.day, exitDay: b[i + 9].d }); }
+      T.push({ member: `T ${t.member}`, sym: t.sym, side: /SHORT/.test(t.member) ? -1 : 1, entryDay: t.day, exitDay: b[i + 9].d, own: Number.isFinite(t.net) ? t.net : undefined }); }
     log(` ta-atlas: ${res.trades.length} trades`); }
   // SB, LU: their own forward code, from 2020-10-01
   { const ofw = require(path.join(ROOT, "api/_lib/oi-flow-forward")); const res = ofw.forward({ sessions: data.sessions, stocks: data.stocks, oi: data.oi, rule: { ...ofw.RULE, start: "2020-10-01" } });
     for (const k of ["SB", "LU"]) { const side = ofw.RULE.rules[k].side; const done = res[k].trades.filter((t) => t.status === "DONE");
-      for (const t of done) T.push({ member: k === "SB" ? "SB short build-up" : "LU long-unwinding bounce", sym: t.symbol, side, entryDay: t.entryDate, exitDay: t.exitDate });
+      for (const t of done) T.push({ member: k === "SB" ? "SB short build-up" : "LU long-unwinding bounce", sym: t.symbol, side, entryDay: t.entryDate, exitDay: t.exitDate, own: Number.isFinite(t.netPct) ? t.netPct / 100 : undefined });
       log(` ${k}: ${done.length} trades`); } }
   // SD: springy dip, its own forward code from its first possible date
   { const sdm = require(path.join(ROOT, "api/_lib/springy-dip")); const res = sdm.forward({ sessions: data.sessions, stocks: data.stocks, rule: { ...sdm.RULE, start: "2020-10-01" } });
     const trades = (res.trades || res.springy?.trades || []).filter((t) => t.status === "DONE");
-    for (const t of trades) T.push({ member: "SD springy dip", sym: t.symbol, side: 1, entryDay: t.entryDate, exitDay: t.exitDate });
+    for (const t of trades) T.push({ member: "SD springy dip", sym: t.symbol, side: 1, entryDay: t.entryDate, exitDay: t.exitDate, own: Number.isFinite(t.netPct) ? t.netPct / 100 : undefined });
     log(` springy dip: ${trades.length} trades`); }
   return T.filter((t) => after(t.entryDay));
 }
@@ -190,6 +190,12 @@ if (require.main === module) {
   const scored = trades.map((t) => gm(t, data)); const dropped = new Map();
   scored.forEach((r, k) => { if (!r || r.void) { const m = trades[k].member; dropped.set(m, (dropped.get(m) || 0) + 1); } });
   const lb = board(scored); const { FITTED } = require("./members2");
+  // DIAGNOSTIC (not judged): each trade's GM % beside the member's own net for the same trade, where the member reports one
+  // and GM did not cut it. A wrong side or exit shows as a large gap or a low sign agreement.
+  { const by = new Map(); scored.forEach((r, k) => { const own = trades[k].own; if (!r || r.void || r.cutByExpiry || own === undefined) return; if (!by.has(r.member)) by.set(r.member, []); by.get(r.member).push([r.pct, own * 100]); });
+    const med = (a) => { const s = a.slice().sort((x, y) => x - y); return s[Math.floor(s.length / 2)]; };
+    log("\nOWN-RESULT CHECK (diagnostic, uncut trades; member: n, median |GM % - own %|, same sign): " + [...by].filter(([, v]) => v.length >= 30)
+      .map(([m, v]) => `${m}: ${v.length}, ${med(v.map(([a, b]) => Math.abs(a - b))).toFixed(3)}pp, ${Math.round((100 * v.filter(([a, b]) => Math.sign(a) === Math.sign(b)).length) / v.length)}%`).join("; ")); }
   log(`\nLEADERBOARD (2020-10 .. ${data.sessions.at(-1)}; each member to the end of its own data), ranked by t of the equal-rupee monthly series. GM 20u = GM's own score in rupees, before GM's charges but after NSE futures charges:`);
   for (const r of lb) log(`${fmt(r)}${FITTED(r.member) ? " [FITTED]" : ""}${dup.has(r.member) ? ` [DUPLICATE of ${dup.get(r.member).of}]` : ""}${dropped.get(r.member) ? ` [${dropped.get(r.member)} dropped: no bars, reset or unscorable]` : ""}`);
   log(`\nPASS: ${lb.filter((r) => r.verdict === "PASS").map((r) => r.member).join(", ") || "none"}. PROMISING: ${lb.filter((r) => r.verdict === "PROMISING").map((r) => r.member).join(", ") || "none"}.`);
