@@ -135,6 +135,14 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     Jul 2024 because Kronos trained on NSE to Jun 2024): 0 PASS, best t 0.62 (reversal); Kronos and the blend VOID
     (fake dates, review 14 Oct); re-run with real dates 15 Oct: Kronos t 1.35, blend t 0.28, both FAIL. Combined model (branch claude/combined-model-2026-10-13; amendment A2: live-only universe, look-ahead fix; checks 7.2/7.3 PASSED):
     REAL RUN 18 Oct (Actions 39143272481): 0 PASS; trees long-only excess t 3.39, Holm yes, DSR 0.87 PROMISING; trees long-short t 2.78 PROMISING; ridge FAIL. Audit file for the owner: studies/ALL-TESTS-2026-10-13.txt. Research list: studies/research-open-source-2026-10-12/REPORT.md.
+  - PASS (the desk's first): expiry-day NIFTY option selling, the owner's friend's method (branch claude/expiry-selling-2026-10-20,
+    prereg 02af144 + A1): all four members PASS on 351 expiries 2020-2026 (X2 ATM straddle with 2x stop +17.6 points, t 4.43,
+    DSR 1.00), positive in every sub-period; worst expiry -3.19% of NIFTY; the edge needs selling AFTER the open (post-hoc
+    audit). On TRACK as a forward paper test from 27 Oct 2026 (studies/expiry-selling-forward-2026-10-21; verdict X2 after 52
+    expiries). NIFTY lot is 65 (NSE FO bhavcopy NewBrdLotQty, 21 Oct 2026).
+  - GM tournament (branch claude/gm-tournament-2026-10-21, prereg e38edd4 + A1 51321cc + A2 dd86733): every coded member
+    under GM's rules; the 20 Oct phase-1 board was interim (SB t 3.94, DSR 0.91); the full board (86+ members) and the one
+    2005-2020 confirmation of the top 5 decide.
   - Don't re-run these as "new".
 
 ## Open work (as of 2 Oct 2026). Pick up from here
@@ -178,7 +186,11 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     group, as in the backtest; the industry file is pinned by sha256).
   - S2 borrowing surge (from 13 Oct 2026; studies/forward-v4-2026-10-12, the NSE atlas study's only PROMISING
     member, t 2.23; its forward code replays the study exactly). Reads NSE slb_openpos (nse-slb/, fetched from 1 Aug).
-  - Nine rules in all. Their daily NSE files live in release `data-paper-inputs`.
+  - Expiry-day NIFTY option selling X1-X4 (from 27 Oct 2026; studies/expiry-selling-forward-2026-10-21; api/_lib/expiry-forward.js
+    is the study's code, scripts/expiry-forward-replay.js reproduces its 351 expiries exactly). Reads nse-nod/ (NSE F&O bhavcopy
+    NIFTY rows, from 22 Oct) and nse-idx/ (NIFTY's open). Information only, never a row on CALLS/PUTS.
+  - Ten rules in all. Their daily NSE files live in release `data-paper-inputs`. GitHub runs the paper job and kronos.yml hours
+    late at night: the owner was asked (21 Oct) to add cron-job.org triggers at 19:30 (springy-dip.yml) and 20:30 (kronos.yml).
 - `npm run check` had outgrown Windows' command line: add new tests to `scripts/check-forward.js`,
   not to the package.json chain.
 - **Testing standard:** protocol v2 (research/audit-2026-10-04/PROTOCOL.txt): the whole sample,
