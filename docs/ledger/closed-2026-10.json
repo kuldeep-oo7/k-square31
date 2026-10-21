@@ -233120,6 +233120,444 @@
     "perLot": 25150,
     "netPerLot": 24935.13
    }
+  },
+  {
+   "id": "2026-10-21|FUT|ADANIPORTS26NOVFUT",
+   "kind": "FUT",
+   "symbol": "ADANIPORTS",
+   "contract": "ADANIPORTS26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 475,
+   "sessionDate": "2026-10-21",
+   "shownAt": "2026-10-21T03:50:07.665Z",
+   "buy": 1760.9,
+   "target": 1804.9,
+   "target2": 1848.9,
+   "stop": 1734.5,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 64,
+     "medianTradingDays": 0.221
+    },
+    "target": {
+     "probabilityPct": 74,
+     "medianTradingDays": 2.593
+    },
+    "sigmaPct": 27.4,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-21T06:04:23.268Z",
+   "hoursToFill": 2.24,
+   "closedAt": "2026-10-21T09:21:26.658Z",
+   "exitPrice": 1734.5,
+   "exitReason": "STOP",
+   "hoursFillToExit": 3.28,
+   "sessionsHeld": 0,
+   "best": 1760.9,
+   "worst": 1733.9,
+   "last": 1736,
+   "lastAt": "2026-10-21T09:21:26.658Z",
+   "marks": 18,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 1791.6,
+    "low": 1733.9,
+    "last": 1736
+   },
+   "pnl": {
+    "perUnit": -26.4,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-19|CE|HINDALCO26OCT880CE",
+   "kind": "CE",
+   "symbol": "HINDALCO",
+   "contract": "HINDALCO26OCT880CE",
+   "expiry": "2026-10-27",
+   "strike": 880,
+   "optionType": "CE",
+   "lotSize": 700,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T08:24:52.551Z",
+   "buy": 29.8,
+   "target": 44.7,
+   "target2": null,
+   "stop": 14.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 57.1,
+     "medianDays": 2.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T08:24:53.180Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T09:21:26.658Z",
+   "exitPrice": 14.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.94,
+   "sessionsHeld": 1,
+   "best": 36.45,
+   "worst": 14.85,
+   "last": 15.5,
+   "lastAt": "2026-10-21T09:21:26.658Z",
+   "marks": 31,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 36.45,
+    "low": 14.85,
+    "last": 15.5
+   },
+   "pnl": {
+    "perUnit": -14.9,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -10430,
+    "netPerLot": -10506.63
+   }
+  },
+  {
+   "id": "2026-10-19|CE|ASIANPAINT26OCT2300CE",
+   "kind": "CE",
+   "symbol": "ASIANPAINT",
+   "contract": "ASIANPAINT26OCT2300CE",
+   "expiry": "2026-10-27",
+   "strike": 2300,
+   "optionType": "CE",
+   "lotSize": 250,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 52.25,
+   "target": 78.4,
+   "target2": null,
+   "stop": 26.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 63,
+     "medianDays": 1.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T04:05:03.318Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-21T09:21:26.658Z",
+   "exitPrice": 26.15,
+   "exitReason": "STOP",
+   "hoursFillToExit": 53.27,
+   "sessionsHeld": 1,
+   "best": 58.3,
+   "worst": 25,
+   "last": 25.5,
+   "lastAt": "2026-10-21T09:21:26.658Z",
+   "marks": 45,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 58.3,
+    "low": 25,
+    "last": 25.5
+   },
+   "pnl": {
+    "perUnit": -26.1,
+    "pct": -49.95,
+    "basis": "NET",
+    "perLot": -6525,
+    "netPerLot": -6590.64
+   }
+  },
+  {
+   "id": "2026-10-16|CE|BAJAJHLDNG26OCT11000CE",
+   "kind": "CE",
+   "symbol": "BAJAJHLDNG",
+   "contract": "BAJAJHLDNG26OCT11000CE",
+   "expiry": "2026-10-27",
+   "strike": 11000,
+   "optionType": "CE",
+   "lotSize": 75,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T04:05:44.357Z",
+   "buy": 271.75,
+   "target": 407.65,
+   "target2": null,
+   "stop": 135.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 59.8,
+     "medianDays": 2.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-16T04:05:45.260Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T09:21:26.658Z",
+   "exitPrice": 135.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 125.26,
+   "sessionsHeld": 2,
+   "best": 399,
+   "worst": 128.6,
+   "last": 128.6,
+   "lastAt": "2026-10-21T09:21:26.658Z",
+   "marks": 70,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 287.35,
+    "low": 128.6,
+    "last": 128.6
+   },
+   "pnl": {
+    "perUnit": -135.85,
+    "pct": -49.99,
+    "basis": "NET",
+    "perLot": -10188.75,
+    "netPerLot": -10264.7
+   }
+  },
+  {
+   "id": "2026-10-16|CE|MARUTI26OCT11000CE",
+   "kind": "CE",
+   "symbol": "MARUTI",
+   "contract": "MARUTI26OCT11000CE",
+   "expiry": "2026-10-27",
+   "strike": 11000,
+   "optionType": "CE",
+   "lotSize": 50,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 480.5,
+   "target": 720.75,
+   "target2": null,
+   "stop": 240.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 46.1,
+     "medianDays": 4.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-16T03:48:41.684Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T09:21:26.658Z",
+   "exitPrice": 240.25,
+   "exitReason": "STOP",
+   "hoursFillToExit": 125.55,
+   "sessionsHeld": 2,
+   "best": 712.9,
+   "worst": 237.1,
+   "last": 240,
+   "lastAt": "2026-10-21T09:21:26.658Z",
+   "marks": 74,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 569,
+    "low": 237.1,
+    "last": 240
+   },
+   "pnl": {
+    "perUnit": -240.25,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -12012.5,
+    "netPerLot": -12093.59
+   }
+  },
+  {
+   "id": "2026-10-16|CE|ADANIPORTS26OCT1720CE",
+   "kind": "CE",
+   "symbol": "ADANIPORTS",
+   "contract": "ADANIPORTS26OCT1720CE",
+   "expiry": "2026-10-27",
+   "strike": 1720,
+   "optionType": "CE",
+   "lotSize": 475,
+   "sessionDate": "2026-10-16",
+   "shownAt": "2026-10-16T03:48:40.819Z",
+   "buy": 52.6,
+   "target": 78.9,
+   "target2": null,
+   "stop": 26.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 66.6,
+     "medianDays": 2.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-16T03:48:41.684Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T09:21:26.658Z",
+   "exitPrice": 26.3,
+   "exitReason": "STOP",
+   "hoursFillToExit": 125.55,
+   "sessionsHeld": 2,
+   "best": 69.5,
+   "worst": 24.7,
+   "last": 25.6,
+   "lastAt": "2026-10-21T09:21:26.658Z",
+   "marks": 74,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 62.65,
+    "low": 24.7,
+    "last": 25.6
+   },
+   "pnl": {
+    "perUnit": -26.3,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -12492.5,
+    "netPerLot": -12574.95
+   }
+  },
+  {
+   "id": "2026-10-14|CE|ADANIPORTS26OCT1720CE",
+   "kind": "CE",
+   "symbol": "ADANIPORTS",
+   "contract": "ADANIPORTS26OCT1720CE",
+   "expiry": "2026-10-27",
+   "strike": 1720,
+   "optionType": "CE",
+   "lotSize": 475,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T03:51:32.467Z",
+   "buy": 50.8,
+   "target": 76.2,
+   "target2": null,
+   "stop": 25.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 62.3,
+     "medianDays": 3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-14T03:51:32.916Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T09:21:26.658Z",
+   "exitPrice": 25.4,
+   "exitReason": "STOP",
+   "hoursFillToExit": 173.5,
+   "sessionsHeld": 4,
+   "best": 69.5,
+   "worst": 24.7,
+   "last": 25.6,
+   "lastAt": "2026-10-21T09:21:26.658Z",
+   "marks": 127,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 62.65,
+    "low": 24.7,
+    "last": 25.6
+   },
+   "pnl": {
+    "perUnit": -25.4,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -12065,
+    "netPerLot": -12146.24
+   }
+  },
+  {
+   "id": "2026-10-09|CE|LAURUSLABS26OCT1980CE",
+   "kind": "CE",
+   "symbol": "LAURUSLABS",
+   "contract": "LAURUSLABS26OCT1980CE",
+   "expiry": "2026-10-27",
+   "strike": 1980,
+   "optionType": "CE",
+   "lotSize": 850,
+   "sessionDate": "2026-10-09",
+   "shownAt": "2026-10-09T03:49:28.778Z",
+   "buy": 79.75,
+   "target": 119.65,
+   "target2": null,
+   "stop": 39.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 45.3,
+     "medianDays": 6.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-09T03:49:28.793Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-21T09:21:26.658Z",
+   "exitPrice": 39.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 293.53,
+   "sessionsHeld": 7,
+   "best": 108.7,
+   "worst": 38.6,
+   "last": 39.3,
+   "lastAt": "2026-10-21T09:21:26.658Z",
+   "marks": 199,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 66.05,
+    "low": 38.6,
+    "last": 39.3
+   },
+   "pnl": {
+    "perUnit": -39.85,
+    "pct": -49.97,
+    "basis": "NET",
+    "perLot": -33872.5,
+    "netPerLot": -34015.37
+   }
   }
  ]
 }

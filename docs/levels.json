@@ -122,7 +122,8 @@
   "OPTION|BANKNIFTY|BANKNIFTY26NOV53800PE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26NOV13000PE",
   "OPTION|NIFTY|NIFTY26N0322300PE",
-  "OPTION|PERSISTENT|PERSISTENT26NOV6200CE"
+  "OPTION|PERSISTENT|PERSISTENT26NOV6200CE",
+  "OPTION|NIFTY|NIFTY26N0322250PE"
  ],
  "options": {
   "NIFTY26N0323100PE": {
@@ -1293,6 +1294,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-21T07:44:00.588Z",
    "frozenAtIst": "2026-10-21 13:14 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26N0322250PE": {
+   "buy": 100.95,
+   "sell": 151.45,
+   "stop": 50.5,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-11-03",
+   "strike": 22250,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-21T09:21:26.377Z",
+   "frozenAtIst": "2026-10-21 14:51 IST",
    "frozenAtSpot": null
   }
  },
