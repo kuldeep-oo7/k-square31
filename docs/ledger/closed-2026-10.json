@@ -233558,6 +233558,66 @@
     "perLot": -33872.5,
     "netPerLot": -34015.37
    }
+  },
+  {
+   "id": "2026-10-19|FUT|ALKEM26OCTFUT",
+   "kind": "FUT",
+   "symbol": "ALKEM",
+   "contract": "ALKEM26OCTFUT",
+   "expiry": "2026-10-27",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 125,
+   "sessionDate": "2026-10-19",
+   "shownAt": "2026-10-19T03:48:10.828Z",
+   "buy": 5023.5,
+   "target": 5149,
+   "target2": 5274.5,
+   "stop": 4948,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 54.7,
+     "medianTradingDays": 0.302
+    },
+    "target": {
+     "probabilityPct": 67.4,
+     "medianTradingDays": 3.697
+    },
+    "sigmaPct": 21.4,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.6,
+     "stopFirstPct": 62.4,
+     "neitherPct": 0,
+     "breakEvenPct": 37.6
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-19T09:04:56.523Z",
+   "hoursToFill": 5.28,
+   "closedAt": "2026-10-21T09:24:11.018Z",
+   "exitPrice": 4948,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.32,
+   "sessionsHeld": 1,
+   "best": 5058,
+   "worst": 4910,
+   "last": 4948.5,
+   "lastAt": "2026-10-21T09:24:11.018Z",
+   "marks": 46,
+   "obs": {
+    "date": "2026-10-21",
+    "high": 5058,
+    "low": 4910,
+    "last": 4948.5
+   },
+   "pnl": {
+    "perUnit": -75.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
