@@ -1,0 +1,63 @@
+name: gm-tournament
+# The GM Global tournament (studies/gm-tournament-2026-10-21 on branch claude/gm-tournament-2026-10-21): every coded
+# strategy scored under GM's rules. Runs on Linux so the studies' own registration hashes match (LF files). Data from the
+# private repo; RESULT.txt and the leaderboards (summary numbers only) come back as an artifact.
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: "run.js arguments (empty = the full run; --check = checks only; --replay-only = check 5.4 only; --phase1 = the interim run)"
+        required: false
+        default: ""
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/gm-tournament-2026-10-21
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: Code of the prediction members from their own branches (amendment A2), not committed here
+        run: |
+          git fetch --depth=1 origin claude/combined-model-2026-10-13:refs/remotes/origin/cm claude/forecast-models-2026-10-13:refs/remotes/origin/fm
+          git checkout origin/cm -- studies/combined-model-2026-10-13
+          git checkout origin/fm -- studies/forecast-models-2026-10-13
+      - name: Research data from the private repo
+        env:
+          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+          GH_REPO: kuldeep-oo7/k2-data
+        run: bash scripts/restore-research-data.sh --no-sopt
+      - name: SLB open positions, Kronos forecasts and combined-model predictions (private)
+        env:
+          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+          GH_REPO: kuldeep-oo7/k2-data
+        run: |
+          mkdir -p "$RUNNER_TEMP/atlas" "$RUNNER_TEMP/pred" && cd "$RUNNER_TEMP/atlas"
+          for a in $(gh release view data-nse-atlas --json assets -q '.assets[].name' | grep '^atlas-.*\.tar\.gz$'); do
+            gh release download data-nse-atlas -p "$a" --clobber
+            tar -xzf "$a" --wildcards 'nse-atlas/slb_openpos/*' 2>/dev/null || echo "no SLB files in $a"
+            rm -f "$a"
+          done
+          echo "SLB files: $(ls nse-atlas/slb_openpos | wc -l)"
+          cd "$RUNNER_TEMP/pred"
+          gh release download forecast-models-dated -p forecasts-kronos-dated.csv.gz --clobber && gunzip -f forecasts-kronos-dated.csv.gz
+          gh release download combined-model-run -p preds.csv.gz --clobber && gunzip -f preds.csv.gz
+          echo "Kronos forecasts sha256: $(sha256sum forecasts-kronos-dated.csv | cut -c1-16)...; CM prediction rows: $(($(wc -l < preds.csv) - 1))"
+      - name: Tournament
+        env:
+          K2_SLB_DIR: ${{ runner.temp }}/atlas/nse-atlas/slb_openpos
+          K2_KR_FORECASTS: ${{ runner.temp }}/pred/forecasts-kronos-dated.csv
+          K2_CM_PREDS: ${{ runner.temp }}/pred/preds.csv
+        run: cd studies/gm-tournament-2026-10-21 && node --max-old-space-size=12000 run.js ${{ inputs.args }} | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: gm-tournament-result
+          path: |
+            studies/gm-tournament-2026-10-21/RESULT.txt
+            studies/gm-tournament-2026-10-21/leaderboard*.json
