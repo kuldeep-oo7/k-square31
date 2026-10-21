@@ -129,9 +129,11 @@ function more(data, ext, log) {
       ["const L = s.slice(0, k).map((x) => net(x, 1)).filter((v) => v !== null), Sh = s.slice(-k).map((x) => net(x, -1)).filter((v) => v !== null);",
         "const L = s.slice(0, k).map((x) => net(x, 1)).filter((v) => v !== null), Sh = s.slice(-k).map((x) => net(x, -1)).filter((v) => v !== null); if (legsOut && key === \"C1\" && L.length && Sh.length) { for (const x of s.slice(0, k)) if (net(x, 1) !== null) legsOut.push({ member: \"CM1 trees long-short\", sym: x.p.sym, side: 1, day: x.row.e, exitDay: x.row.x }); for (const x of s.slice(-k)) if (net(x, -1) !== null) legsOut.push({ member: \"CM1 trees long-short\", sym: x.p.sym, side: -1, day: x.row.e, exitDay: x.row.x }); }"],
       ["if (L3.length) out.C3.push({ day: e, net: mean(L3) - B }); }", "if (L3.length) { out.C3.push({ day: e, net: mean(L3) - B }); if (legsOut) for (const x of s.slice(0, k)) if (net(x, 1) !== null) legsOut.push({ member: \"CM3 trees long-only\", sym: x.p.sym, side: 1, day: x.row.e, exitDay: x.row.x }); } }"]] });
-    const preds = cms.readCsv(ext.cmPreds); const { context } = require(path.join(ROOT, "api/_lib/forward-v3")); const ctx = context({ sessions: data.sessions, stocks: data.stocks });
-    const si = new Map(data.sessions.map((d, i) => [d, i])); const panel = [];
-    for (const r of preds) { const k = si.get(r.d); const e = k === undefined ? null : data.sessions[k + 2]; let x = "", oe = NaN, cx = NaN, ret = NaN;
+    // its own data (A1 2): the combined model's registration ends the CM bhavcopy at 2026-10-09 (its amendment A2, K2_CM_END)
+    const CM_END = "2026-10-09"; const cd = { sessions: data.sessions.filter((d) => d <= CM_END), stocks: data.stocks.map((s) => ({ ...s, bars: s.bars.filter((b) => b.d <= CM_END) })).filter((s) => s.bars.length) };
+    const preds = cms.readCsv(ext.cmPreds); const { context } = require(path.join(ROOT, "api/_lib/forward-v3")); const ctx = context(cd);
+    const si = new Map(cd.sessions.map((d, i) => [d, i])); const panel = [];
+    for (const r of preds) { const k = si.get(r.d); const e = k === undefined ? null : cd.sessions[k + 2] || null; let x = "", oe = NaN, cx = NaN, ret = NaN;
       if (e) { const w = ctx.window(r.sym, e, 5); if (w && w.complete) { const bb = w.st.bars; oe = bb[w.i].o; cx = bb[w.i + 4].c; x = bb[w.i + 4].d; ret = cx / oe - 1; } }
       panel.push({ i: r.i, d: r.d, e: e || "", x, sym: r.sym, oe, cx, ret }); }
     const legs = []; const { out } = cms.books(panel, preds, legs); const rows = cms.score(out); const c1 = rows.find((x) => x.key === "C1"), c3 = rows.find((x) => x.key === "C3");
