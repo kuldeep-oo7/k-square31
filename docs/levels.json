@@ -108,7 +108,8 @@
   "OPTION|TECHM|TECHM26NOV1920CE",
   "OPTION|YESBANK|YESBANK26NOV18PE",
   "OPTION|POWERINDIA|POWERINDIA26NOV29000PE",
-  "OPTION|SUZLON|SUZLON26NOV38PE"
+  "OPTION|SUZLON|SUZLON26NOV38PE",
+  "OPTION|VEDL|VEDL26NOV230PE"
  ],
  "options": {
   "NIFTY26N0323100PE": {
@@ -1069,6 +1070,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-21T04:06:15.946Z",
    "frozenAtIst": "2026-10-21 09:36 IST",
+   "frozenAtSpot": null
+  },
+  "VEDL26NOV230PE": {
+   "buy": 4.1,
+   "sell": 6.15,
+   "stop": 2.05,
+   "tick": 0.05,
+   "lotSize": 1150,
+   "expiry": "2026-11-23",
+   "strike": 230,
+   "right": "PE",
+   "symbol": "VEDL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-21T04:25:39.031Z",
+   "frozenAtIst": "2026-10-21 09:55 IST",
    "frozenAtSpot": null
   }
  },
