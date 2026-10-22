@@ -53,3 +53,136 @@ PASS: none. PROMISING: SB short build-up, LU long-unwinding bounce.
 
 SENSITIVITY (calendar month-end instead of expiry), top 10 by t: SB short build-up t 3.94; LU long-unwinding bounce t 3.39; SD springy dip t 2.43; T M14 TV Bollinger 20/2 LONG t 1.51; T M15 Connors RSI2 LONG t 0.72; T M3 MA 5-150 SHORT t 0.36; T M6 TRB 50 LONG t 0.32; T M8 TRB 200 LONG t 0.28; T M2 MA 1-150 SHORT t 0.19; T M7 TRB 150 LONG t 0.18
 
+GM GLOBAL TOURNAMENT, FULL BOARD (amendments A1, A2), registration sha256 be66ba9a7fcd23e746fa566369dbf1ad434d2626db4f854496bb07ba6b327767, A1 0d79afcfd6cdc89d4df5ddb362c19676343f8626eb42bf0d0f7c01e5faf27724, A2 f90970574a22205ae06263ce0a228474af7e7517f092b7918ad3a0a8f6f80735 (verified), run 2026-10-21T17:34:42.931Z
+CHECKS:
+ 5.1 hand-built long Fri open 100 -> cut at Tue expiry close 106, weekend gap 101->103: U20 118.44 (expected 118.44), gap removed 40.00 (expected 40), cut true: PASSED
+ 5.3 limit 99.2 -> target 101.7: U20 48.47 (expected 48.47); cut by a Wed expiry before its target: exit at that close 103, U20 74.46 (expected 74.46): PASSED
+DATA: 1522 sessions 2020-09-01 .. 2026-10-21, 3397 stocks, futures OI for 302, NIFTY 1258 sessions
+ ta-atlas: 292795 trades
+ SB: 8599 trades
+ LU: 4478 trades
+ springy dip: 3449 trades
+ 5.4 RS rising stocks: patch adds fields only yes; published trade counts equal -> SCORABLE
+   RS: 74388 GM trades
+ S2: 1513 SLB files 2020-09-01 .. 2026-10-19
+   S2: 2105 GM trades
+   IR: 7002 GM trades
+ 5.4 KR Kronos (A2): 57 rebalances, 50.9% winners, t 1.35 vs published 57, 50.9%, 1.35 -> SCORABLE
+   KR: 1026 GM trades
+ 5.4 CM combined model (A2): C1 198 rebalances, +0.117%, 54.0% winners, t 2.78; C3 198 rebalances, +0.161%, 55.6% winners, t 3.39 vs published C1 198, +0.117%, 54.0%, 2.78 / C3 198, +0.161%, 55.6%, 3.39 -> SCORABLE
+   : 8791 GM trades
+ 5.4 dip-ml: patch adds fields only yes; published trade counts equal -> SCORABLE
+   dip-ml: 135527 GM trades
+ 5.4 orderflow: patch adds fields only yes; published trade counts equal -> SCORABLE
+   orderflow: 58601 GM trades
+ 5.4 families: patch adds fields only yes; published trade counts equal -> SCORABLE
+   families: 58455 GM trades (474 records without a futures symbol: options, out)
+ 5.4 results: patch adds fields only yes; published trade counts equal -> SCORABLE
+   results: 1444 GM trades (564 records without a futures symbol: options, out)
+ 5.4 rating replay: patch adds fields only yes; published trade counts equal -> SCORABLE
+   rating: 201827 GM trades
+ momentum (2026-09-25), published strategies (2026-09-27): NOT SCORABLE (no run() returning trades; A1 4). Macro pod: later, own registration.
+ 5.5 duplicates (>= 95% the same trades as an earlier member): T M8 TRB 200 SHORT = T M7 TRB 150 SHORT (95.1%); T M7 TRB 150 LONG = T M6 TRB 50 LONG (95.2%); T M8 TRB 200 LONG = T M7 TRB 150 LONG (98.9%); CM3 trees long-only = CM1 trees long-short (100.0%); dip-ml E1 OWN OU dip z<=-2 -> long = SD springy dip (99.8%); orderflow B3 short build-up -> short 1d = SB short build-up (100.0%); rating G5 BUY only, fixed 20-session long = rating G2 BUY/ACCUMULATE, fixed 20-session long (100.0%)
+ 5.2 re-dated null: 0 PASS of 86 members (at most 4 allowed): PASSED
+
+OWN-RESULT CHECK (uncut trades; member: n, median |GM % - own %|, same sign): T M17 desk candles LONG: 24704, 0.000pp, 100%; T M6 TRB 50 SHORT: 4347, 0.001pp, 100%; T M7 TRB 150 SHORT: 1746, 0.001pp, 100%; T M8 TRB 200 SHORT: 1237, 0.001pp, 100%; T M15 Connors RSI2 SHORT: 2711, 0.001pp, 100%; T M1 MA 1-50 LONG: 5619, 0.000pp, 100%; T M9 Turtle 20 LONG: 6652, 0.000pp, 100%; T M14 TV Bollinger 20/2 SHORT: 5254, 0.001pp, 100%; T M1 MA 1-50 SHORT: 5580, 0.001pp, 100%; T M18 desk chart patterns LONG: 2762, 0.000pp, 100%; T M16 NR7 SHORT: 13158, 0.001pp, 100%; T M17 desk candles SHORT: 30790, 0.001pp, 100%; T M16 NR7 LONG: 10438, 0.000pp, 100%; T M6 TRB 50 LONG: 6943, 0.000pp, 100%; T M2 MA 1-150 LONG: 3003, 0.000pp, 100%; T M12 TV MACD hist LONG: 6688, 0.000pp, 100%; T M3 MA 5-150 LONG: 1422, 0.000pp, 100%; T M10 Turtle 55 LONG: 4295, 0.000pp, 100%; T M4 MA 1-200 LONG: 2519, 0.000pp, 100%; T M5 MA 2-200 LONG: 1834, 0.000pp, 100%; T M3 MA 5-150 SHORT: 1462, 0.001pp, 100%; T M11 TV RSI 14 30/70 LONG: 1692, 0.000pp, 100%; T M9 Turtle 20 SHORT: 5097, 0.001pp, 100%; T M10 Turtle 55 SHORT: 2525, 0.001pp, 100%; T M14 TV Bollinger 20/2 LONG: 4076, 0.000pp, 100%; T M18 desk chart patterns SHORT: 2158, 0.001pp, 100%; T M13 TV Supertrend 10/3 LONG: 2125, 0.000pp, 100%; T M2 MA 1-150 SHORT: 3045, 0.001pp, 100%; T M11 TV RSI 14 30/70 SHORT: 2930, 0.001pp, 100%; T M13 TV Supertrend 10/3 SHORT: 2046, 0.001pp, 100%; T M12 TV MACD hist SHORT: 5900, 0.001pp, 100%; T M7 TRB 150 LONG: 4810, 0.000pp, 100%; T M8 TRB 200 LONG: 4483, 0.000pp, 100%; T M15 Connors RSI2 LONG: 5282, 0.000pp, 100%; T M4 MA 1-200 SHORT: 2536, 0.001pp, 100%; T M5 MA 2-200 SHORT: 1822, 0.001pp, 100%; SB short build-up: 8599, 0.000pp, 100%; LU long-unwinding bounce: 2444, 0.000pp, 100%; SD springy dip: 2819, 0.000pp, 100%; RS H2: 17870, 0.000pp, 100%; RS H3: 46672, 0.000pp, 100%; RS H1: 6065, 0.000pp, 100%; dip-ml D1 5-day losers -> long: 19947, 0.000pp, 100%; dip-ml D2 5-day winners -> short: 19853, 0.001pp, 100%; dip-ml D6 gap-down 2% fade (intraday): 4578, 0.000pp, 100%; dip-ml D4 IBS<=0.2 over SMA200 -> long: 27446, 0.000pp, 100%; dip-ml E1 OWN OU dip z<=-2 -> long: 2674, 0.000pp, 100%; dip-ml D3 3 lower closes over SMA200 -> long: 6901, 0.000pp, 100%; dip-ml D5 RSI14<35 with SMA50>SMA200 -> long: 2776, 0.000pp, 100%; dip-ml E2 OWN OU spike z>=+2 -> short: 3872, 0.000pp, 100%; dip-ml E3 OWN ridge ML top 10% -> long: 14511, 0.000pp, 100%; dip-ml E4 OWN ridge ML bottom 10% -> short: 15086, 0.001pp, 100%; orderflow B1 long build-up -> long 1d: 7733, 0.000pp, 100%; orderflow B2 long build-up -> long 10d: 4509, 0.000pp, 100%; orderflow B3 short build-up -> short 1d: 8505, 0.000pp, 100%; orderflow B4 short build-up -> short 10d: 4695, 0.001pp, 100%; orderflow B5 short covering -> long 1d: 7837, 0.000pp, 100%; orderflow B6 short covering -> long 10d: 5043, 0.000pp, 100%; orderflow B7 long unwinding -> short 1d: 4448, 0.000pp, 100%; orderflow B8 long unwinding -> short 10d: 2411, 0.001pp, 100%; orderflow C3 FII cutting -> short NIFTY 1d: 441, 0.000pp, 100%; orderflow C4 FII cutting -> short NIFTY 5d: 357, 0.000pp, 100%; orderflow C1 FII adding -> long NIFTY 1d: 380, 0.000pp, 100%; orderflow C2 FII adding -> long NIFTY 5d: 316, 0.000pp, 100%; families F1 delivery accumulation -> long 5d: 9532, 0.000pp, 100%; families F2 delivery distribution -> short 5d: 13437, 0.000pp, 100%; families F3 NIFTY PCR high -> long 10d: 188, 0.000pp, 100%; families F4 NIFTY PCR low -> short 10d: 277, 0.000pp, 100%; families F5 futures carry top 10% -> long 5d: 12717, 0.500pp, 93%; families F6 futures carry bottom 10% -> short 5d: 12718, 0.309pp, 96%; families F10 Monday NIFTY short: 250, 0.000pp, 100%; families F8 turn of month NIFTY long: 48, 0.029pp, 98%; families F9 monthly expiry week NIFTY long: 60, 0.000pp, 100%; results R1 results reaction top 20% -> long 10d: 542, 0.000pp, 100%; results R2 results reaction bottom 20% -> short 10d: 471, 0.001pp, 100%
+ flagged under 90% same sign: none
+ (A1 5.5 as written: a member whose trades lie inside an earlier member's, such as a long-only book inside its long-short book, counts as a duplicate.)
+
+LEADERBOARD (2020-10 .. 2026-10-21; each member to the end of its own data), ranked by t of the equal-rupee monthly series. GM 20u = GM's own score in rupees, before GM's charges but after NSE futures charges:
+SB short build-up                    8599 tr | GM 20u  +Rs 15,13,937 (no-weekend-gap +Rs 15,13,937) | EQ Rs5L    +Rs 94,19,926 | +0.218%/tr | won 54% | cut 0% | t 3.94, Holm y, DSR 0.57 -> PROMISING [FITTED]
+orderflow B3 short build-up -> short 1d   8505 tr | GM 20u  +Rs 14,94,711 (no-weekend-gap +Rs 14,94,711) | EQ Rs5L    +Rs 93,31,425 | +0.218%/tr | won 54% | cut 0% | t 3.91, Holm y, DSR 0.57 -> PROMISING [FITTED] [DUPLICATE of SB short build-up]
+CM1 trees long-short                 5862 tr | GM 20u   +Rs 3,17,442 (no-weekend-gap +Rs 3,49,447) | EQ Rs5L    +Rs 44,26,281 | +0.151%/tr | won 52% | cut 18% | t 3.48, Holm y, DSR 0.11 -> PROMISING [FITTED]
+LU long-unwinding bounce             4478 tr | GM 20u   +Rs 8,70,152 (no-weekend-gap +Rs 7,26,756) | EQ Rs5L  +Rs 1,72,67,629 | +0.771%/tr | won 54% | cut 45% | t 2.68, Holm n, DSR 0.02 -> PROMISING [FITTED]
+S2 borrowing surge                   2105 tr | GM 20u   +Rs 1,69,464 (no-weekend-gap +Rs 1,47,804) | EQ Rs5L    +Rs 34,52,795 | +0.327%/tr | won 54% | cut 15% | t 1.81, Holm n, DSR 0.02 -> FAIL
+SD springy dip                       3449 tr | GM 20u   -Rs 3,54,269 (no-weekend-gap -Rs 5,00,975) | EQ Rs5L    +Rs 52,91,325 | +0.307%/tr | won 51% | cut 18% | t 1.67, Holm n, DSR 0.01 -> FAIL
+dip-ml D5 RSI14<35 with SMA50>SMA200 -> long   3361 tr | GM 20u     -Rs 99,213 (no-weekend-gap -Rs 2,00,351) | EQ Rs5L    +Rs 42,63,887 | +0.254%/tr | won 50% | cut 17% | t 1.61, Holm n, DSR 0.00 -> FAIL
+IR industry reversal                 7002 tr | GM 20u     +Rs 80,644 (no-weekend-gap +Rs 1,46,886) | EQ Rs5L    +Rs 40,68,428 | +0.116%/tr | won 50% | cut 14% | t 1.50, Holm n, DSR 0.01 -> FAIL
+dip-ml E1 OWN OU dip z<=-2 -> long   3286 tr | GM 20u   -Rs 3,83,012 (no-weekend-gap -Rs 5,22,607) | EQ Rs5L    +Rs 47,24,527 | +0.288%/tr | won 51% | cut 19% | t 1.48, Holm n, DSR 0.00 -> FAIL [DUPLICATE of SD springy dip]
+dip-ml D6 gap-down 2% fade (intraday)   4578 tr | GM 20u   +Rs 7,03,752 (no-weekend-gap +Rs 7,03,752) | EQ Rs5L    +Rs 80,11,183 | +0.349%/tr | won 54% | cut 0% | t 1.20, Holm n, DSR 0.00 -> FAIL
+T M14 TV Bollinger 20/2 LONG         6367 tr | GM 20u   -Rs 6,18,379 (no-weekend-gap -Rs 7,76,404) | EQ Rs5L  +Rs 1,21,70,771 | +0.383%/tr | won 49% | cut 36% | t 1.11, Holm n, DSR 0.00 -> FAIL
+T M3 MA 5-150 SHORT                  2321 tr | GM 20u   +Rs 5,39,554 (no-weekend-gap +Rs 5,56,161) | EQ Rs5L    +Rs 32,47,374 | +0.279%/tr | won 50% | cut 37% | t 1.10, Holm n, DSR 0.00 -> FAIL
+KR Kronos top/bottom tenth           1026 tr | GM 20u   +Rs 1,14,787 (no-weekend-gap +Rs 1,06,682) | EQ Rs5L     +Rs 4,97,262 | +0.097%/tr | won 49% | cut 22% | t 0.98, Holm n, DSR 0.02 -> FAIL
+orderflow B4 short build-up -> short 10d   8490 tr | GM 20u  +Rs 22,21,883 (no-weekend-gap +Rs 24,97,661) | EQ Rs5L  +Rs 1,33,40,886 | +0.313%/tr | won 54% | cut 45% | t 0.93, Holm n, DSR 0.00 -> FAIL [FITTED]
+CM3 trees long-only                  2929 tr | GM 20u   -Rs 1,34,318 (no-weekend-gap -Rs 2,09,046) | EQ Rs5L    +Rs 20,44,936 | +0.140%/tr | won 49% | cut 18% | t 0.76, Holm n, DSR 0.00 -> FAIL [FITTED] [DUPLICATE of CM1 trees long-short]
+results R1 results reaction top 20% -> long 10d    744 tr | GM 20u     +Rs 79,032 (no-weekend-gap +Rs 55,816) | EQ Rs5L    +Rs 16,55,472 | +0.444%/tr | won 51% | cut 27% | t 0.71, Holm n, DSR 0.00 -> FAIL [FITTED]
+orderflow B6 short covering -> long 10d   7806 tr | GM 20u   -Rs 6,03,229 (no-weekend-gap -Rs 5,39,606) | EQ Rs5L    +Rs 74,07,408 | +0.190%/tr | won 48% | cut 35% | t 0.70, Holm n, DSR 0.00 -> FAIL [FITTED]
+orderflow C4 FII cutting -> short NIFTY 5d    441 tr | GM 20u   +Rs 1,29,047 (no-weekend-gap +Rs 93,642) | EQ Rs5L     +Rs 1,66,160 | +0.074%/tr | won 51% | cut 19% | t 0.61, Holm n, DSR 0.00 -> FAIL [FITTED]
+orderflow C3 FII cutting -> short NIFTY 1d    441 tr | GM 20u     +Rs 23,808 (no-weekend-gap +Rs 23,808) | EQ Rs5L       +Rs 48,232 | +0.022%/tr | won 51% | cut 0% | t 0.60, Holm n, DSR 0.00 -> FAIL [FITTED]
+T M15 Connors RSI2 LONG              8266 tr | GM 20u   -Rs 7,00,776 (no-weekend-gap -Rs 12,54,587) | EQ Rs5L    +Rs 77,37,208 | +0.187%/tr | won 48% | cut 36% | t 0.57, Holm n, DSR 0.00 -> FAIL
+results R2 results reaction bottom 20% -> short 10d    700 tr | GM 20u     +Rs 12,307 (no-weekend-gap +Rs 88,807) | EQ Rs5L    +Rs 12,34,749 | +0.353%/tr | won 53% | cut 33% | t 0.56, Holm n, DSR 0.00 -> FAIL [FITTED]
+T M2 MA 1-150 SHORT                  4675 tr | GM 20u   +Rs 9,80,439 (no-weekend-gap +Rs 8,56,678) | EQ Rs5L    +Rs 37,23,752 | +0.158%/tr | won 51% | cut 35% | t 0.55, Holm n, DSR 0.00 -> FAIL
+families F7 pairs (GGR) spread reversion   3196 tr | GM 20u   -Rs 3,41,564 (no-weekend-gap -Rs 4,05,210) | EQ Rs5L    +Rs 12,65,183 | +0.079%/tr | won 49% | cut 79% | t 0.53, Holm n, DSR 0.00 -> FAIL
+dip-ml D2 5-day winners -> short    22825 tr | GM 20u  +Rs 16,96,823 (no-weekend-gap +Rs 25,23,730) | EQ Rs5L  +Rs 1,03,67,654 | +0.091%/tr | won 52% | cut 13% | t 0.45, Holm n, DSR 0.00 -> FAIL
+T M4 MA 1-200 SHORT                  3945 tr | GM 20u   +Rs 1,33,334 (no-weekend-gap +Rs 97,411) | EQ Rs5L    +Rs 22,83,552 | +0.116%/tr | won 50% | cut 36% | t 0.43, Holm n, DSR 0.00 -> FAIL
+families F2 delivery distribution -> short 5d  15736 tr | GM 20u   +Rs 7,35,451 (no-weekend-gap +Rs 11,25,035) | EQ Rs5L    +Rs 51,99,125 | +0.066%/tr | won 51% | cut 15% | t 0.43, Holm n, DSR 0.00 -> FAIL
+T M5 MA 2-200 SHORT                  2866 tr | GM 20u   +Rs 4,03,519 (no-weekend-gap +Rs 3,63,872) | EQ Rs5L    +Rs 16,31,364 | +0.113%/tr | won 50% | cut 36% | t 0.42, Holm n, DSR 0.00 -> FAIL
+T M16 NR7 SHORT                     19784 tr | GM 20u  +Rs 18,64,573 (no-weekend-gap +Rs 30,15,797) | EQ Rs5L  +Rs 1,07,61,607 | +0.108%/tr | won 53% | cut 33% | t 0.35, Holm n, DSR 0.00 -> FAIL
+families F1 delivery accumulation -> long 5d  11142 tr | GM 20u  -Rs 18,70,409 (no-weekend-gap -Rs 22,16,397) | EQ Rs5L    +Rs 25,11,564 | +0.046%/tr | won 48% | cut 14% | t 0.31, Holm n, DSR 0.00 -> FAIL
+T M15 Connors RSI2 SHORT             4193 tr | GM 20u      +Rs 5,250 (no-weekend-gap -Rs 1,66,636) | EQ Rs5L    +Rs 21,62,800 | +0.103%/tr | won 51% | cut 35% | t 0.27, Holm n, DSR 0.00 -> FAIL
+T M7 TRB 150 SHORT                   2865 tr | GM 20u   +Rs 7,53,317 (no-weekend-gap +Rs 7,02,285) | EQ Rs5L    +Rs 12,32,330 | +0.084%/tr | won 52% | cut 39% | t 0.20, Holm n, DSR 0.00 -> FAIL
+families F8 turn of month NIFTY long     60 tr | GM 20u      -Rs 7,562 (no-weekend-gap -Rs 20,316) | EQ Rs5L       +Rs 11,296 | +0.043%/tr | won 52% | cut 20% | t 0.17, Holm n, DSR 0.00 -> FAIL
+T M17 desk candles SHORT            46397 tr | GM 20u  +Rs 45,95,626 (no-weekend-gap +Rs 78,10,309) | EQ Rs5L  +Rs 1,02,00,505 | +0.043%/tr | won 52% | cut 34% | t 0.15, Holm n, DSR 0.00 -> FAIL
+T M6 TRB 50 LONG                    10194 tr | GM 20u  -Rs 12,55,043 (no-weekend-gap -Rs 21,78,141) | EQ Rs5L    +Rs 18,55,333 | +0.037%/tr | won 48% | cut 32% | t 0.11, Holm n, DSR 0.00 -> FAIL
+T M8 TRB 200 LONG                    6502 tr | GM 20u  -Rs 15,58,352 (no-weekend-gap -Rs 23,44,059) | EQ Rs5L     +Rs 7,01,339 | +0.023%/tr | won 47% | cut 31% | t 0.06, Holm n, DSR 0.00 -> FAIL [DUPLICATE of T M7 TRB 150 LONG]
+dip-ml E3 OWN ridge ML top 10% -> long  16916 tr | GM 20u   -Rs 5,57,995 (no-weekend-gap -Rs 12,75,477) | EQ Rs5L     +Rs 2,76,738 | +0.004%/tr | won 48% | cut 14% | t 0.02, Holm n, DSR 0.00 -> FAIL [FITTED]
+T M18 desk chart patterns SHORT      3490 tr | GM 20u   +Rs 1,96,619 (no-weekend-gap +Rs 3,18,508) | EQ Rs5L       +Rs 17,725 | +0.001%/tr | won 52% | cut 38% | t 0.00, Holm n, DSR 0.00 -> FAIL
+T M14 TV Bollinger 20/2 SHORT        7501 tr | GM 20u   -Rs 2,83,284 (no-weekend-gap +Rs 4,25,539) | EQ Rs5L     -Rs 4,34,254 | -0.011%/tr | won 52% | cut 30% | t -0.03, Holm n, DSR 0.00 -> FAIL
+T M7 TRB 150 LONG                    6975 tr | GM 20u  -Rs 16,07,400 (no-weekend-gap -Rs 24,35,115) | EQ Rs5L     -Rs 6,00,720 | -0.016%/tr | won 47% | cut 31% | t -0.05, Holm n, DSR 0.00 -> FAIL [DUPLICATE of T M6 TRB 50 LONG]
+T M10 Turtle 55 LONG                 6293 tr | GM 20u  -Rs 17,60,350 (no-weekend-gap -Rs 24,17,486) | EQ Rs5L     -Rs 6,76,659 | -0.020%/tr | won 48% | cut 32% | t -0.07, Holm n, DSR 0.00 -> FAIL
+T M9 Turtle 20 LONG                  9886 tr | GM 20u  -Rs 11,38,400 (no-weekend-gap -Rs 19,35,193) | EQ Rs5L    -Rs 16,74,887 | -0.033%/tr | won 48% | cut 33% | t -0.11, Holm n, DSR 0.00 -> FAIL
+families F4 NIFTY PCR low -> short 10d    485 tr | GM 20u     +Rs 19,406 (no-weekend-gap +Rs 1,44,769) | EQ Rs5L       -Rs 72,601 | -0.029%/tr | won 52% | cut 43% | t -0.13, Holm n, DSR 0.00 -> FAIL [FITTED]
+T M1 MA 1-50 SHORT                   8434 tr | GM 20u   -Rs 3,12,604 (no-weekend-gap +Rs 95,561) | EQ Rs5L    -Rs 42,58,828 | -0.101%/tr | won 50% | cut 34% | t -0.26, Holm n, DSR 0.00 -> FAIL
+T M8 TRB 200 SHORT                   2055 tr | GM 20u   +Rs 4,27,715 (no-weekend-gap +Rs 3,69,053) | EQ Rs5L    -Rs 14,25,340 | -0.140%/tr | won 52% | cut 40% | t -0.29, Holm n, DSR 0.00 -> FAIL [DUPLICATE of T M7 TRB 150 SHORT]
+T M1 MA 1-50 LONG                    8162 tr | GM 20u   +Rs 3,78,735 (no-weekend-gap +Rs 1,08,916) | EQ Rs5L    -Rs 36,58,042 | -0.090%/tr | won 46% | cut 31% | t -0.30, Holm n, DSR 0.00 -> FAIL
+dip-ml E2 OWN OU spike z>=+2 -> short   4380 tr | GM 20u   -Rs 2,09,403 (no-weekend-gap -Rs 95,087) | EQ Rs5L    -Rs 18,79,137 | -0.086%/tr | won 51% | cut 12% | t -0.30, Holm n, DSR 0.00 -> FAIL
+dip-ml D1 5-day losers -> long      22825 tr | GM 20u  -Rs 28,23,429 (no-weekend-gap -Rs 32,44,589) | EQ Rs5L    -Rs 74,01,065 | -0.064%/tr | won 47% | cut 13% | t -0.38, Holm n, DSR 0.00 -> FAIL
+T M12 TV MACD hist LONG              9432 tr | GM 20u  -Rs 18,16,866 (no-weekend-gap -Rs 23,75,466) | EQ Rs5L    -Rs 61,75,334 | -0.130%/tr | won 45% | cut 29% | t -0.43, Holm n, DSR 0.00 -> FAIL
+dip-ml D3 3 lower closes over SMA200 -> long   8299 tr | GM 20u   -Rs 1,24,309 (no-weekend-gap -Rs 3,13,783) | EQ Rs5L    -Rs 34,98,775 | -0.084%/tr | won 47% | cut 17% | t -0.47, Holm n, DSR 0.00 -> FAIL
+T M17 desk candles LONG             37334 tr | GM 20u  -Rs 53,00,117 (no-weekend-gap -Rs 78,16,558) | EQ Rs5L  -Rs 2,58,16,376 | -0.138%/tr | won 46% | cut 34% | t -0.50, Holm n, DSR 0.00 -> FAIL
+T M6 TRB 50 SHORT                    6908 tr | GM 20u  +Rs 11,07,180 (no-weekend-gap +Rs 13,56,927) | EQ Rs5L    -Rs 48,32,328 | -0.141%/tr | won 50% | cut 37% | t -0.52, Holm n, DSR 0.00 -> FAIL
+T M16 NR7 LONG                      16088 tr | GM 20u  -Rs 28,90,573 (no-weekend-gap -Rs 38,54,191) | EQ Rs5L  -Rs 1,20,82,453 | -0.149%/tr | won 46% | cut 35% | t -0.54, Holm n, DSR 0.00 -> FAIL
+families F6 futures carry bottom 10% -> short 5d  13598 tr | GM 20u  -Rs 14,43,687 (no-weekend-gap -Rs 8,88,700) | EQ Rs5L    -Rs 62,90,558 | -0.092%/tr | won 50% | cut 6% | t -0.59, Holm n, DSR 0.00 -> FAIL
+T M11 TV RSI 14 30/70 LONG           2667 tr | GM 20u  -Rs 10,95,790 (no-weekend-gap -Rs 11,33,021) | EQ Rs5L    -Rs 30,86,451 | -0.229%/tr | won 45% | cut 37% | t -0.60, Holm n, DSR 0.00 -> FAIL
+T M5 MA 2-200 LONG                   2662 tr | GM 20u     -Rs 98,025 (no-weekend-gap -Rs 66,640) | EQ Rs5L    -Rs 25,68,464 | -0.193%/tr | won 44% | cut 31% | t -0.66, Holm n, DSR 0.00 -> FAIL
+rating G4 SELL/REDUCE, fixed 20-session short  55514 tr | GM 20u  +Rs 62,79,545 (no-weekend-gap +Rs 1,52,93,633) | EQ Rs5L -Rs 12,55,56,258 | -0.453%/tr | won 52% | cut 49% | t -0.67, Holm n, DSR 0.00 -> FAIL
+dip-ml E4 OWN ridge ML bottom 10% -> short  16916 tr | GM 20u   -Rs 9,45,110 (no-weekend-gap -Rs 1,10,471) | EQ Rs5L  -Rs 1,40,75,500 | -0.166%/tr | won 52% | cut 11% | t -0.68, Holm n, DSR 0.00 -> FAIL [FITTED]
+T M2 MA 1-150 LONG                   4438 tr | GM 20u   -Rs 4,70,292 (no-weekend-gap -Rs 3,15,524) | EQ Rs5L    -Rs 45,32,005 | -0.203%/tr | won 43% | cut 32% | t -0.69, Holm n, DSR 0.00 -> FAIL
+families F3 NIFTY PCR high -> long 10d    333 tr | GM 20u   -Rs 1,93,351 (no-weekend-gap -Rs 1,77,546) | EQ Rs5L     -Rs 2,36,873 | -0.136%/tr | won 53% | cut 44% | t -0.70, Holm n, DSR 0.00 -> FAIL [FITTED]
+orderflow C2 FII adding -> long NIFTY 5d    380 tr | GM 20u   -Rs 1,64,522 (no-weekend-gap -Rs 1,78,462) | EQ Rs5L     -Rs 1,58,813 | -0.079%/tr | won 50% | cut 17% | t -0.72, Holm n, DSR 0.00 -> FAIL [FITTED]
+rating G2 BUY/ACCUMULATE, fixed 20-session long  55311 tr | GM 20u  -Rs 88,56,120 (no-weekend-gap -Rs 1,21,13,654) | EQ Rs5L  -Rs 7,58,19,421 | -0.273%/tr | won 46% | cut 85% | t -0.76, Holm n, DSR 0.00 -> FAIL
+dip-ml D4 IBS<=0.2 over SMA200 -> long  32141 tr | GM 20u  -Rs 48,72,372 (no-weekend-gap -Rs 63,93,726) | EQ Rs5L  -Rs 2,05,50,443 | -0.127%/tr | won 47% | cut 15% | t -0.77, Holm n, DSR 0.00 -> FAIL
+orderflow B5 short covering -> long 1d   7837 tr | GM 20u   -Rs 5,21,002 (no-weekend-gap -Rs 5,21,002) | EQ Rs5L    -Rs 20,27,098 | -0.052%/tr | won 45% | cut 0% | t -0.82, Holm n, DSR 0.00 -> FAIL [FITTED]
+T M3 MA 5-150 LONG                   2085 tr | GM 20u   -Rs 3,22,264 (no-weekend-gap -Rs 2,84,943) | EQ Rs5L    -Rs 29,26,701 | -0.280%/tr | won 43% | cut 32% | t -0.82, Holm n, DSR 0.00 -> FAIL
+T M18 desk chart patterns LONG       4112 tr | GM 20u   -Rs 6,69,093 (no-weekend-gap -Rs 9,12,180) | EQ Rs5L    -Rs 48,69,434 | -0.237%/tr | won 46% | cut 33% | t -0.84, Holm n, DSR 0.00 -> FAIL
+rating G5 BUY only, fixed 20-session long  23041 tr | GM 20u  -Rs 47,16,521 (no-weekend-gap -Rs 57,50,391) | EQ Rs5L  -Rs 3,90,56,875 | -0.338%/tr | won 46% | cut 86% | t -0.94, Holm n, DSR 0.00 -> FAIL [DUPLICATE of rating G2 BUY/ACCUMULATE, fixed 20-session long]
+T M12 TV MACD hist SHORT             9421 tr | GM 20u   +Rs 4,33,374 (no-weekend-gap +Rs 11,37,008) | EQ Rs5L  -Rs 1,75,88,049 | -0.374%/tr | won 49% | cut 37% | t -0.94, Holm n, DSR 0.00 -> FAIL
+T M4 MA 1-200 LONG                   3746 tr | GM 20u   -Rs 2,06,211 (no-weekend-gap -Rs 1,92,694) | EQ Rs5L    -Rs 44,90,569 | -0.240%/tr | won 43% | cut 33% | t -0.95, Holm n, DSR 0.00 -> FAIL
+orderflow B2 long build-up -> long 10d   7714 tr | GM 20u  -Rs 13,08,812 (no-weekend-gap -Rs 20,07,749) | EQ Rs5L  -Rs 1,01,71,660 | -0.263%/tr | won 46% | cut 42% | t -0.96, Holm n, DSR 0.00 -> FAIL [FITTED]
+T M13 TV Supertrend 10/3 LONG        3039 tr | GM 20u   -Rs 6,15,769 (no-weekend-gap -Rs 7,82,316) | EQ Rs5L    -Rs 51,01,937 | -0.335%/tr | won 45% | cut 30% | t -0.97, Holm n, DSR 0.00 -> FAIL
+T M9 Turtle 20 SHORT                 8006 tr | GM 20u   +Rs 8,55,036 (no-weekend-gap +Rs 12,61,472) | EQ Rs5L  -Rs 1,17,38,414 | -0.294%/tr | won 50% | cut 36% | t -0.99, Holm n, DSR 0.00 -> FAIL
+families F9 monthly expiry week NIFTY long     61 tr | GM 20u     -Rs 70,452 (no-weekend-gap -Rs 95,507) | EQ Rs5L       -Rs 92,196 | -0.301%/tr | won 44% | cut 2% | t -1.11, Holm n, DSR 0.00 -> FAIL
+T M13 TV Supertrend 10/3 SHORT       3247 tr | GM 20u   +Rs 3,12,351 (no-weekend-gap +Rs 4,77,775) | EQ Rs5L  -Rs 1,09,01,611 | -0.672%/tr | won 47% | cut 37% | t -1.26, Holm n, DSR 0.00 -> FAIL
+families F10 Monday NIFTY short       250 tr | GM 20u     -Rs 69,451 (no-weekend-gap -Rs 69,451) | EQ Rs5L       -Rs 78,307 | -0.061%/tr | won 44% | cut 0% | t -1.28, Holm n, DSR 0.00 -> FAIL
+T M11 TV RSI 14 30/70 SHORT          4381 tr | GM 20u   -Rs 2,54,321 (no-weekend-gap +Rs 1,42,761) | EQ Rs5L  -Rs 1,52,84,574 | -0.697%/tr | won 47% | cut 33% | t -1.31, Holm n, DSR 0.00 -> FAIL
+RS H3                               49298 tr | GM 20u  -Rs 16,39,157 (no-weekend-gap -Rs 24,67,019) | EQ Rs5L  -Rs 1,35,35,042 | -0.055%/tr | won 35% | cut 5% | t -1.37, Holm n, DSR 0.00 -> FAIL
+T M10 Turtle 55 SHORT                4058 tr | GM 20u   +Rs 4,68,401 (no-weekend-gap +Rs 6,74,684) | EQ Rs5L    -Rs 76,98,068 | -0.380%/tr | won 49% | cut 38% | t -1.38, Holm n, DSR 0.00 -> FAIL
+rating G1 BUY/ACCUMULATE, desk geometry long (THE LIVE RULE)  32725 tr | GM 20u  -Rs 16,41,283 (no-weekend-gap -Rs 18,44,896) | EQ Rs5L  -Rs 1,08,47,006 | -0.066%/tr | won 37% | cut 8% | t -1.38, Holm n, DSR 0.00 -> FAIL
+RS H1                                6349 tr | GM 20u   -Rs 3,32,605 (no-weekend-gap -Rs 3,53,416) | EQ Rs5L    -Rs 55,83,354 | -0.176%/tr | won 32% | cut 4% | t -1.73, Holm n, DSR 0.00 -> FAIL
+orderflow C1 FII adding -> long NIFTY 1d    380 tr | GM 20u   -Rs 1,54,117 (no-weekend-gap -Rs 1,54,117) | EQ Rs5L     -Rs 1,69,070 | -0.087%/tr | won 47% | cut 0% | t -2.18, Holm n, DSR 0.00 -> FAIL [FITTED]
+RS H2                               18741 tr | GM 20u  -Rs 12,38,274 (no-weekend-gap -Rs 13,03,418) | EQ Rs5L  -Rs 1,03,61,978 | -0.110%/tr | won 33% | cut 5% | t -2.49, Holm n, DSR 0.00 -> FAIL
+rating G3 SELL/REDUCE, desk geometry short  35236 tr | GM 20u   -Rs 3,99,465 (no-weekend-gap +Rs 42,745) | EQ Rs5L  -Rs 1,67,59,344 | -0.095%/tr | won 33% | cut 3% | t -2.51, Holm n, DSR 0.00 -> FAIL
+orderflow B8 long unwinding -> short 10d   4426 tr | GM 20u  -Rs 11,49,170 (no-weekend-gap -Rs 10,04,556) | EQ Rs5L  -Rs 1,87,84,227 | -0.848%/tr | won 45% | cut 46% | t -2.93, Holm n, DSR 0.00 -> FAIL [FITTED]
+orderflow B7 long unwinding -> short 1d   4448 tr | GM 20u   -Rs 2,97,903 (no-weekend-gap -Rs 2,97,903) | EQ Rs5L    -Rs 54,13,827 | -0.243%/tr | won 45% | cut 0% | t -3.21, Holm n, DSR 0.00 -> FAIL [FITTED]
+families F5 futures carry top 10% -> long 5d  13594 tr | GM 20u  -Rs 41,29,210 (no-weekend-gap -Rs 41,02,860) | EQ Rs5L  -Rs 3,13,85,373 | -0.460%/tr | won 43% | cut 6% | t -3.26, Holm n, DSR 0.00 -> FAIL
+orderflow B1 long build-up -> long 1d   7733 tr | GM 20u   -Rs 7,98,874 (no-weekend-gap -Rs 7,98,874) | EQ Rs5L  -Rs 1,15,56,912 | -0.298%/tr | won 41% | cut 0% | t -5.52, Holm n, DSR 0.00 -> FAIL [FITTED]
+
+PASS: none. PROMISING: SB short build-up, orderflow B3 short build-up -> short 1d, CM1 trees long-short, LU long-unwinding bounce.
+
+SENSITIVITY, fitted members on 2024-09-19 onward (not judged): SB short build-up 3023 tr, t 0.91; LU long-unwinding bounce 1253 tr, t 1.14; CM1 trees long-short 3158 tr, t 1.34; CM3 trees long-only 1578 tr, t -0.09; dip-ml E3 OWN ridge ML top 10% -> long 8911 tr, t -0.65; dip-ml E4 OWN ridge ML bottom 10% -> short 8911 tr, t 0.15; orderflow B3 short build-up -> short 1d 2929 tr, t 0.84; orderflow B4 short build-up -> short 10d 2922 tr, t 0.35; orderflow B5 short covering -> long 1d 2263 tr, t -1.79; orderflow B6 short covering -> long 10d 2254 tr, t -0.10; orderflow B1 long build-up -> long 1d 2048 tr, t -3.50; orderflow B2 long build-up -> long 10d 2043 tr, t -0.55; orderflow B7 long unwinding -> short 1d 1212 tr, t -1.70; orderflow B8 long unwinding -> short 10d 1201 tr, t -1.31; orderflow C1 FII adding -> long NIFTY 1d 113 tr, t -1.33; orderflow C2 FII adding -> long NIFTY 5d 113 tr, t -0.72; orderflow C3 FII cutting -> short NIFTY 1d 176 tr, t -0.31; orderflow C4 FII cutting -> short NIFTY 5d 176 tr, t 0.81; families F3 NIFTY PCR high -> long 10d 81 tr, t -1.05; families F4 NIFTY PCR low -> short 10d 232 tr, t 0.70; results R1 results reaction top 20% -> long 10d 303 tr, t 0.08; results R2 results reaction bottom 20% -> short 10d 259 tr, t 0.45
+
+CONFIRMATION SET (A1 6, the 5 non-duplicate members with the highest EQ t): SB short build-up; CM1 trees long-short; LU long-unwinding bounce; S2 borrowing surge; SD springy dip
+NOT SCORABLE: none; also momentum, published strategies (no run()); macro pod later.
+
+SENSITIVITY (calendar month-end instead of expiry), top 10 by t: SB short build-up t 3.94; orderflow B3 short build-up -> short 1d t 3.91; CM1 trees long-short t 3.52; LU long-unwinding bounce t 3.39; SD springy dip t 2.43; dip-ml E1 OWN OU dip z<=-2 -> long t 2.21; IR industry reversal t 1.91; families F7 pairs (GGR) spread reversion t 1.82; S2 borrowing surge t 1.73; dip-ml D5 RSI14<35 with SMA50>SMA200 -> long t 1.64
+
