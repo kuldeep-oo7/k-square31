@@ -60,6 +60,8 @@ and no `research/`. This file carries what it needs. Nothing secret belongs here
   scheduler is only a backstop, because it dropped whole mornings.
 - A `desk: rebuilt` commit from k2-desk-bot appears every ~20 min. Pull before pushing.
 - To rebuild now: `gh workflow run desk.yml`.
+- The morning check: desk.yml starts page-check.yml (cloud photos + NSE audit, release page-check) on the first build
+  between 09:30 and 10:00 IST, because the laptop goes into Modern Standby (a wake lock does not stop it).
 - The page is mirrored to the public repo `kuldeep-oo7/k2-desk` (GitHub Pages).
 - Market direction (`api/_lib/market-direction.js`): when NIFTY's close < EMA20 < SMA50, the
   page shows puts only (index puts, plus SELL/REDUCE stocks in their own downtrend). It has
@@ -195,7 +197,9 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
   - Expiry-day NIFTY option selling X1-X4 (from 27 Oct 2026; studies/expiry-selling-forward-2026-10-21; api/_lib/expiry-forward.js
     is the study's code, scripts/expiry-forward-replay.js reproduces its 351 expiries exactly). Reads nse-nod/ (NSE F&O bhavcopy
     NIFTY rows, from 22 Oct) and nse-idx/ (NIFTY's open). Information only, never a row on CALLS/PUTS.
-  - Ten rules in all. Their daily NSE files live in release `data-paper-inputs`. GitHub runs the paper job and kronos.yml hours
+  - Trees watch (from 28 Oct 2026; studies/trees-forward-2026-10-22): the combined model C1 trees run live by trees.yml after the paper
+    job (code 04a0b39, libs pinned; replay MATCH 22 Oct: 30,333 predictions identical); symbols only in docs/paper-rules/trees.json.
+  - Eleven rules in all. Their daily NSE files live in release `data-paper-inputs`. GitHub runs the paper job and kronos.yml hours
     late at night (21 Oct: 23:47 and 00:25 IST): the owner was asked on the morning of 22 Oct to add cron-job.org triggers at 19:30 (springy-dip.yml) and 20:30 (kronos.yml).
 - `npm run check` had outgrown Windows' command line: add new tests to `scripts/check-forward.js`,
   not to the package.json chain.
