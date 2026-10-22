@@ -145,6 +145,10 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     Sep 2024 only t 0.91), CM1 trees long-short (t 3.48), LU (t 2.68); Kronos t 0.98 FAIL. The one 2005-2020 re-check
     (Actions 39710811828): SB CONFIRMED (34,332 trades, +0.28%/trade, t 4.83; examined data), LU and SD NOT CONFIRMED,
     CM1 and S2 NOT CONFIRMABLE. On TRACK as information (docs/paper-rules/gm-tournament.json). Done; don't re-run.
+  - FAIL: macro pod (branch claude/macro-pod-2026-10-20, prereg 3661fa5 + A1 69683fe + A2 4265622; Actions 39712865277):
+    FII futures position, NSDL FPI cash flow, dollar index, all three with a 3% stop, 2012-04..2026-10: 0 PASS, best t 0.67;
+    all below buy-and-hold. Learned: NSE cat_turnover has no FPI rows; FRED DTWEXBGS is weekly (H.10, Mondays 4:15 p.m.
+    ET); NSE's index file named NIFTY "S&P CNX Nifty"/"CNX Nifty" until Nov 2015; the NSE index API returns block pages.
   - Don't re-run these as "new".
 
 ## Open work (as of 2 Oct 2026). Pick up from here

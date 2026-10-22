@@ -200,6 +200,26 @@ Notation: mean = average net % per trade; t = t-statistic (> 3 needed under v2, 
  - Known problems list: studies/audit-2026-10-12/PROBLEMS.md.
 
 ================================================================================================================
+7. ADDED 18-22 OCT 2026 (by hand; each study's own RESULT.txt on its branch is the record)
+================================================================================================================
+ The repository has been PUBLIC since 18 Oct 2026; all market data and predictions are in the private repo k2-data.
+ combined model (branch claude/combined-model-2026-10-13) | trees / ridge on ~56 features, walk-forward |
+   REAL RUN 18 Oct: 0 PASS; C3 trees long-only t 3.39 (Holm yes, DSR 0.87) and C1 long-short t 2.78 PROMISING; ridge FAIL.
+ expiry-day option selling, the owner's friend's method (branch claude/expiry-selling-2026-10-20) | NIFTY options sold
+   at the expiry-day open, NSE F&O bhavcopy, 351 expiries 2020-2026 | ALL FOUR PASS (the desk's first PASS):
+   X2 ATM straddle with a 2x stop +17.6 points an expiry, t 4.43, full DSR 1.00; positive in every sub-period;
+   worst expiry -3.19% of NIFTY. Post-hoc audit: selling at the previous close instead is weak (t 1.16).
+   -> forward paper test on TRACK from 27 Oct 2026 (studies/expiry-selling-forward-2026-10-21).
+ GM tournament (branch claude/gm-tournament-2026-10-21) | every coded strategy scored under GM Global's rules
+   (expiry cut, 20 units), 86 members, 2020-2026 | 0 PASS; PROMISING: short build-up t 3.94 (Holm yes, DSR 0.57),
+   trees long-short t 3.48, long-unwinding t 2.68. One re-check on NSE 2005-2020: short build-up CONFIRMED (t 4.83,
+   +0.28% a trade; data seen before on 5 Oct), long-unwinding and springy dip NOT CONFIRMED.
+ macro pod, "Duquesne-style" (branch claude/macro-pod-2026-10-20) | FII index-futures position, FPI cash flow (NSDL),
+   the US dollar index, and all three together with a 3% stop, one NIFTY position, 2012-2026 | 0 PASS, 0 PROMISING
+   (t 0.06, 0.58, 0.27, 0.67); every member far below buy-and-hold NIFTY. Two amendments before the run: NSE's category
+   file had no FPI rows (NSDL used); the Fed publishes the dollar index weekly, so the registered timing was a look-ahead.
+
+================================================================================================================
 PART B: EVERY STUDY'S LOCKED RULES AND FULL RESULT, COPIED FROM GIT BY SCRIPT (unedited)
 ================================================================================================================
 
