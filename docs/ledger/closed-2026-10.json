@@ -242992,6 +242992,126 @@
     "pct": -1.49,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-10-22|FUT|INDUSTOWER26NOVFUT",
+   "kind": "FUT",
+   "symbol": "INDUSTOWER",
+   "contract": "INDUSTOWER26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1700,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 375.75,
+   "target": 385.15,
+   "target2": 394.55,
+   "stop": 370.1,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 63.7,
+     "medianTradingDays": 0.224
+    },
+    "target": {
+     "probabilityPct": 73.7,
+     "medianTradingDays": 2.64
+    },
+    "sigmaPct": 27.1,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-22T04:04:38.913Z",
+   "hoursToFill": 0.29,
+   "closedAt": "2026-10-22T06:04:14.488Z",
+   "exitPrice": 385.15,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 1.99,
+   "sessionsHeld": 0,
+   "best": 385.95,
+   "worst": 375.45,
+   "last": 385,
+   "lastAt": "2026-10-22T06:04:14.488Z",
+   "marks": 8,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 385.95,
+    "low": 375.45,
+    "last": 385
+   },
+   "pnl": {
+    "perUnit": 9.4,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-22|FUT|DRREDDY26NOVFUT",
+   "kind": "FUT",
+   "symbol": "DRREDDY",
+   "contract": "DRREDDY26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 625,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 1222.1,
+   "target": 1252.7,
+   "target2": 1283.2,
+   "stop": 1203.8,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 56.5,
+     "medianTradingDays": 0.287
+    },
+    "target": {
+     "probabilityPct": 68.4,
+     "medianTradingDays": 3.525
+    },
+    "sigmaPct": 22.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.4,
+     "stopFirstPct": 62.6,
+     "neitherPct": 0,
+     "breakEvenPct": 37.4
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-22T04:04:38.913Z",
+   "hoursToFill": 0.29,
+   "closedAt": "2026-10-22T06:04:14.488Z",
+   "exitPrice": 1252.7,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 1.99,
+   "sessionsHeld": 0,
+   "best": 1253.5,
+   "worst": 1215.3,
+   "last": 1249.5,
+   "lastAt": "2026-10-22T06:04:14.488Z",
+   "marks": 8,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 1253.5,
+    "low": 1215.3,
+    "last": 1249.5
+   },
+   "pnl": {
+    "perUnit": 30.6,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
