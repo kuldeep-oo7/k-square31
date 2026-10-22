@@ -1,0 +1,18 @@
+POST-HOC LOOK AFTER THE RESULT (23 Oct 2026, ~00:40 IST). DESCRIPTIVE, NOT A TEST. Scripts: gap-futures.js, basis-all.js
+(local research data, NSE 2020-12 .. 2026-10-01).
+
+1. The 09:15 lab priced every trade on the SHARE (NSE's official open -> close), as every desk test so far. The owner trades
+   the near-month FUTURE on GM Global. Re-priced on futures (NSE's official futures open -> close, same trades):
+   - all short build-up trades: +0.092% a trade (t 3.81, 8,591 trades) on futures vs +0.218% (t 9.06) on shares.
+     By year, futures: 2021 +0.251%, 2022 +0.189%, 2023 -0.052%, 2024 +0.096%, 2025 -0.031%, 2026 +0.006%.
+   - F2 (the share does not gap down): on futures no gap down +0.085% (t 3.11) vs gap down +0.106% (t 2.22): the share-
+     priced advantage of F2 does NOT carry over to futures.
+   - split by the FUTURE's own gap: no gap down +0.151% (t 4.98), gap down +0.015% (t 0.38) -- but that split uses the
+     entry print itself, so bid-ask bounce at the open can produce it mechanically; not usable as it stands.
+2. Across all 276,440 stock-days with a near-month future, the future gained 0.085% on the share from open to close
+   (0.136% when the share opened at or above its previous close; -0.027% when it opened below). NSE's futures close
+   equals the settlement price in every file checked, so the gap arises at the open. NSE started a pre-open auction
+   for current-month futures only on 8 Dec 2025 (NSE circular of 3 Nov 2025); the gap persisted in 2026.
+3. Consequence: share-priced tests flatter SHORT trades and penalise LONG trades by roughly 0.1% a trade relative to
+   what a futures trader at the open gets. The M1-M3 learning machines lean on GAP, so their futures-priced value is
+   unknown until re-tested on futures.

@@ -1,0 +1,37 @@
+09:15 LAB features: registration sha256 d9aba683832795e7... (verified); 2026-10-22T18:36:58.035Z
+ 6.1 timing: 5 synthetic trades on 2013-04-10; every feature unchanged after d's high, low, close and all later data changed: PASSED
+DISCOVERY DATA: 3909 sessions 2005-01-03 .. 2020-10-30, 2792 stocks; 33285 SB trades with features
+CONFIRMATION DATA: 5376 sessions 2005-01-03 .. 2026-10-01, 4437 stocks; 8550 SB trades with features
+ missing features (discovery / confirmation): R 0/0, OI 0/0, GAP 0/0, NGAP 15/0, NRET 0/0, VOLR 0/0, TREND 0/0, VOL20 0/0, BASIS 0/0, NSIG 0/0, DOW 0/0, TOEXP 0/0, LOGP 0/0, LOGV 0/0, OIREL 255/119, PREV 0/0, R2 0/0
+CHECKS 6.2-6.3:
+ 6.2 planted: F2 finds the gap edge (t 46.37), M1 finds the NIFTY-gap x volume edge (t 3.58): PASSED
+ 6.3 null (features shuffled within each month): 0 PASS of 10 (at most 1): PASSED
+
+DISCOVERY 2005-01-01 .. 2020-10-31 (M1-M3 from 2008): monthly SPREAD = take's mean excess - skip's, %; Holm across 10; DSR with N = 344:
+ F1 NIFTY gaps down          take  13534 / skip  19736 | 177 months | spread -0.026% | worst -1.46% | t -0.60 | Holm n | DSR 0.00 -> FAIL | take's own excess -0.016% (t -0.41)
+ F2 stock does not gap down  take  21383 / skip  11902 | 177 months | spread +0.544% | worst -0.78% | t 9.42 | Holm y | DSR 0.00 -> PROMISING | take's own excess +0.188% (t 6.02)
+ F3 heavy volume             take   5241 / skip  28044 | 177 months | spread +0.079% | worst -2.52% | t 1.38 | Holm n | DSR 0.00 -> FAIL | take's own excess +0.075% (t 1.34)
+ F4 future at a discount     take   7540 / skip  25745 | 177 months | spread -0.056% | worst -2.29% | t -1.57 | Holm n | DSR 0.00 -> FAIL | take's own excess -0.033% (t -0.94)
+ F5 downtrend                take  25476 / skip   7809 | 177 months | spread +0.079% | worst -2.10% | t 1.34 | Holm n | DSR 0.00 -> FAIL | take's own excess +0.023% (t 0.88)
+ F6 first signal             take  14713 / skip  18572 | 177 months | spread +0.011% | worst -1.34% | t 0.37 | Holm n | DSR 0.00 -> FAIL | take's own excess +0.014% (t 0.54)
+ F7 not expiry week          take  25342 / skip   7943 | 177 months | spread -0.002% | worst -1.17% | t -0.04 | Holm n | DSR 0.00 -> FAIL | take's own excess +0.009% (t 0.39)
+ M1 trees                    take  12475 / skip  16787 | 154 months | spread +0.625% | worst -0.72% | t 9.41 | Holm y | DSR 0.00 -> PROMISING | take's own excess +0.363% (t 6.79)
+ M2 logistic                 take  11910 / skip  17352 | 154 months | spread +0.647% | worst -0.64% | t 8.61 | Holm y | DSR 0.00 -> PROMISING | take's own excess +0.386% (t 6.12)
+ M3 neural network           take  12397 / skip  16865 | 154 months | spread +0.616% | worst -0.41% | t 8.93 | Holm y | DSR 0.00 -> PROMISING | take's own excess +0.360% (t 6.47)
+DISCOVERY PASS: none. PROMISING: F2 stock does not gap down, M1 trees, M2 logistic, M3 neural network.
+
+CONFIRMATION 2020-10-01 .. 2026-10-01 (every member reported; a discovery PASS is CONFIRMED with spread > 0 and t >= 2):
+ F1 NIFTY gaps down          take   3315 / skip   5235 |  72 months | spread +0.001% | worst -1.05% | t 0.01 | take's own excess +0.045% (t 0.61)
+ F2 stock does not gap down  take   5809 / skip   2741 |  72 months | spread +0.123% | worst -1.13% | t 2.24 | take's own excess +0.131% (t 5.17)
+ F3 heavy volume             take   2153 / skip   6397 |  72 months | spread +0.120% | worst -0.86% | t 2.26 | take's own excess +0.146% (t 1.81)
+ F4 future at a discount     take   2113 / skip   6437 |  72 months | spread +0.148% | worst -1.27% | t 3.03 | take's own excess +0.159% (t 2.18)
+ F5 downtrend                take   6744 / skip   1806 |  72 months | spread +0.045% | worst -1.28% | t 0.62 | take's own excess +0.062% (t 1.02)
+ F6 first signal             take   4872 / skip   3678 |  72 months | spread +0.067% | worst -0.95% | t 1.68 | take's own excess +0.083% (t 1.38)
+ F7 not expiry week          take   6465 / skip   2085 |  72 months | spread +0.037% | worst -1.11% | t 0.53 | take's own excess +0.050% (t 0.83)
+ M1 trees                    take   4839 / skip   3711 |  72 months | spread +0.257% | worst -0.87% | t 5.03 | take's own excess +0.206% (t 7.14)
+ M2 logistic                 take   4901 / skip   3649 |  72 months | spread +0.267% | worst -0.96% | t 5.04 | take's own excess +0.207% (t 7.34)
+ M3 neural network           take   4818 / skip   3732 |  72 months | spread +0.287% | worst -1.03% | t 5.14 | take's own excess +0.171% (t 2.81)
+ GM rupees at 20 units, gross, 2020-2026 (reported, not judged): all SB Rs 17,42,069; take only: F1 Rs 6,18,967, F2 Rs 12,30,814, F3 Rs 6,26,910, F4 Rs 6,81,782, F5 Rs 15,05,463, F6 Rs 11,53,445, F7 Rs 13,38,818, M1 Rs 13,56,797, M2 Rs 11,31,144, M3 Rs 15,86,874
+
+CANDIDATES (discovery PASS and confirmed): none. A candidate goes to TRACK as a forward paper test first, never straight to FUTURES.
+
