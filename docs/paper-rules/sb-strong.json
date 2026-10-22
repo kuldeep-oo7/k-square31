@@ -1,0 +1,22 @@
+{
+ "preregistration": "studies/sb-strong-forward-2026-10-23/PREREGISTRATION.txt",
+ "preregSha256": "71f1efb555ae3a964ec578f7e107c0d692f6f814d4b2261c577a7c2a7b9ef0c7",
+ "start": "2026-10-23",
+ "dataThrough": "2026-10-22",
+ "builtAt": "2026-10-22T18:25:33.594Z",
+ "rule": "Short build-up, strong signals only: the share fell at least 3% and its futures open interest rose at least 6% -> short at the next open, cover at that day's close",
+ "backtest": "PROMISING, not a pass (night lab 22 Oct 2026): 2005-2020 +0.118% a trade beyond the market, t 2.99; 2020-2026 +0.223%, t 2.73",
+ "pending": [
+  {
+   "symbol": "SWIGGY",
+   "signalDate": "2026-10-22",
+   "pricePct": -5.48,
+   "oiPct": 12.66
+  }
+ ],
+ "trades": [],
+ "summary": {
+  "finished": 0,
+  "verdict": "COLLECTING"
+ }
+}
