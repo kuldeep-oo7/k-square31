@@ -971,6 +971,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     forwardV3: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v3.json"), "utf8")); } catch { return null; } })(),
     forwardV4: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v4.json"), "utf8")); } catch { return null; } })(),
     expirySelling: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "expiry-selling.json"), "utf8")); } catch { return null; } })(),
+    gmTournament: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "gm-tournament.json"), "utf8")); } catch { return null; } })(),
     gmMinUnits: GM_MIN_UNITS,
     marketContext: marketContext
       ? { ok: true, indiaVix: marketContext.indiaVix, indiaVixChangePct: marketContext.indiaVixChangePct,
@@ -1288,6 +1289,28 @@ function forwardV3Box(fv) {
     <div style="margin-top:10px"><b>INDUSTRY-ADJUSTED REVERSAL (long-short futures)</b><span class="lec"> &mdash; ${esc(ir.rule || "")}. Backtest: ${esc(ir.backtest || "")}.</span> ${verdict(ir.summary)}<span class="lec"> (a verdict needs 26 rebalances).</span>
       ${next}
       ${irRows ? listFold("Rebalances", `<div class="wrap"><table><thead><tr><th>REBALANCE</th><th>LEGS</th><th class="num">NET</th></tr></thead><tbody>${irRows}</tbody></table></div>`) : ""}</div>
+  </div>`;
+}
+
+// THE GM TOURNAMENT (studies/gm-tournament-2026-10-21, branch claude/gm-tournament-2026-10-21): every coded strategy scored
+// under GM Global's rules on 2020-2026, then the top 5 re-checked once on 2005-2020. The registration puts the leaderboard
+// on TRACK as information; a member reaches FUTURES only by passing, and none did. docs/paper-rules/gm-tournament.json.
+function gmTournamentBox(g) {
+  if (!g || !Array.isArray(g.top) || !g.top.length) return "";
+  const best = g.top[0]; const mn = (v) => String(v).replace(/^-/, "&minus;");
+  const lakh = (v) => `${v < 0 ? "&minus;" : "+"}&#8377;${(Math.abs(v) / 1e5).toFixed(1)} lakh`;
+  const tone = (v) => (v === "PASS" || v === "CONFIRMED" ? "up" : v === "PROMISING" ? "warn" : v === "FAIL" || v === "NOT CONFIRMED" ? "down" : "");
+  const conf = (g.confirmation || []).map((c) => `${esc(c.label || c.member)} <b class="${tone(c.verdict)}">${esc(c.verdict)}</b>${c.t === undefined || c.t === null ? "" : ` (t ${mn(esc(c.t))})`}`).join(" &middot; ");
+  const rows = g.top.map((r) => `<tr><td><b>${esc(r.label || r.member)}</b>${r.duplicateOf ? `<div class="sub">same trades as ${esc(r.duplicateOf)}</div>` : ""}</td><td class="num">${esc(Number(r.trades).toLocaleString("en-IN"))}</td>
+    <td class="num ${r.u20 > 0 ? "up" : r.u20 < 0 ? "down" : ""}">${lakh(r.u20)}</td><td class="num">${mn(esc(r.t))}</td><td class="num"><b class="${tone(r.verdict)}">${esc(r.verdict)}</b></td></tr>`).join("");
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--muted)">
+    <b>GM TOURNAMENT &mdash; every coded strategy under GM&rsquo;s rules, 2020&ndash;2026</b> &middot; <b>information only</b>
+    <div style="margin-top:6px"><b class="${g.pass ? "up" : "down"}">${esc(g.pass)} PASS of ${esc(g.members)}.</b> Best: <b>${esc(best.label || best.member)}</b>, t ${mn(esc(best.t))} (<b class="${tone(best.verdict)}">${esc(best.verdict)}</b>),
+      <span class="amt">${lakh(best.u20)}</span> on 20 units over ${esc(Number(best.trades).toLocaleString("en-IN"))} trades.</div>
+    ${conf ? `<div class="sub" style="margin-top:4px">2005&ndash;2020 re-check: ${conf}</div>` : `<div class="sub" style="margin-top:4px">2005&ndash;2020 re-check: running.</div>`}
+    <div class="sub lec">Each member&rsquo;s own trades, cut at its monthly futures expiry as GM auto-sells, after NSE futures charges; 20 units is GM&rsquo;s score, &#8377;5 lakh a position decides t.
+      PASS needs t &ge; 3, Holm across all members and the full deflated Sharpe &ge; 0.95 (${esc(g.members)} members + 100 earlier trials). Rules fixed first: ${esc(g.study)}.</div>
+    ${listFold(`Top ${esc(g.top.length)}`, `<div class="wrap"><table><thead><tr><th>STRATEGY</th><th class="num">TRADES</th><th class="num">20 UNITS</th><th class="num">t</th><th class="num">VERDICT</th></tr></thead><tbody>${rows}</tbody></table></div>`)}
   </div>`;
 }
 
@@ -2143,6 +2166,7 @@ ${footAlarm}
     ${forwardV3Box(d.forwardV3)}
     ${forwardV4Box(d.forwardV4)}
     ${expirySellingBox(d.expirySelling)}
+    ${gmTournamentBox(d.gmTournament)}
     ${trackPane}
   </section>
 </main>
@@ -2329,7 +2353,7 @@ async function main() {
   return data;
 }
 
-module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox };
+module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox, gmTournamentBox };
 
 // Exported above so a test can drive build() twice and prove the levels did not
 // move. Run directly, it is still just a build.
