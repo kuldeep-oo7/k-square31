@@ -1,0 +1,38 @@
+PRE-REGISTRATION -- FORWARD PAPER TEST: SHORT BUILD-UP, STRONG SIGNALS ONLY (night lab member S7)
+Written Friday 23 Oct 2026, about 00:35 IST, BEFORE the first session it covers (Friday 23 Oct 2026, open 09:15 IST).
+The commit time is the proof. Owner, 23 Oct 2026: "yes put strong signals on track".
+
+WHERE IT COMES FROM
+studies/night-lab-2026-10-23 (branch claude/night-lab-2026-10-23; registration a67caf2 + amendment A1 ccb7787; one run,
+GitHub Actions 39828578979), member S7. PROMISING, NOT a pass:
+  discovery NSE 2005-2020:    9,185 trades, +0.118% a trade beyond the market (monthly mean), t 2.99, Holm yes, DSR 0.00;
+  confirmation NSE 2020-2026: 2,020 trades, +0.223%, t 2.73.
+Both periods have been seen. Only future prices can test it.
+
+RULE (identical to the night lab's S7)
+- A short build-up signal exactly as api/_lib/oi-flow-forward.js RULE SB (its universe, resets, sessions d-1 and d-2):
+  R = close(d-1) / close(d-2) - 1 <= -1.5581% and OI = total futures OI(d-1) / total futures OI(d-2) - 1 >= +3.0380%;
+- AND strong: R <= -3% AND OI >= +6%, on the raw values (not the rounded ones shown on the page).
+- SELL SHORT at NSE's official open of d, BUY back at NSE's official close of d.
+- NET = -(close / open - 1) - calculateNseFuturesCharges on both legs (api/_lib/shadow-broker.js, dated; quantity
+  ceil(500000 / open)) as a share of the position.
+- EXCESS = NET + the equal-weighted open-to-close return on d of the universe: the top 200 EQ stocks by the median traded
+  value of their last 60 bars before the month's first session, with >= 250 bars after their last reset (an open >= 18%
+  from the previous close). At least 30 universe names must have a bar on d, or the trade is not counted.
+
+WHAT IS COUNTED
+Every signal with entry on or after 2026-10-23, from NSE's official CM and F&O bhavcopies only (the files the desk's paper
+job already downloads).
+
+VERDICT (one rule, one test)
+COLLECTING until at least 100 finished trades AND 3 calendar months since 2026-10-23.
+Then PASS if the mean EXCESS > 0 AND its one-sided t (standard error clustered by ISO week of entry, as the short build-up
+forward test) is at or above the one-sided 5% critical value of Student's t with (weeks - 1) degrees of freedom (the
+table's next LOWER listed degrees of freedom when the exact one is not listed); otherwise FAIL.
+A PASS makes it a candidate for FUTURES, never automatic: the owner decides.
+Reported, not judged: mean NET a trade, win rate, worst trade, and GM rupees at 20 units (gross, before any charges).
+
+FILES
+api/_lib/sb-strong-forward.js, scripts/sb-strong-forward.js -> docs/paper-rules/sb-strong.json (symbols, dates, NSE
+prices and results only), run by .github/workflows/springy-dip.yml after the short build-up test. Shown on TRACK only,
+as information, never as a FUTURES row.
