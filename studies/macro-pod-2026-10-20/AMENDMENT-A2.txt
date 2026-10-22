@@ -1,0 +1,13 @@
+AMENDMENT A2 TO THE MACRO POD (after A1, sha256 76fd6042...)
+Written Thu 22 Oct 2026 ~08:30 IST, BEFORE any return of this test was computed. The commit time is the proof.
+
+M3'S TIMING WAS A LOOK-AHEAD; FIXED
+Section 2 used a DTWEXBGS value dated v from India session v + 2 calendar days. The series is not published daily. Its
+owner, the Federal Reserve Board (H.10 release page, read 22 Oct 2026): "On Mondays at 4:15 p.m. the Federal Reserve
+Board releases daily bilateral exchange rates and U.S. dollar indexes for the previous business week. If Monday falls on
+a Federal Holiday, the data will be released on the following business day." Checked against the data itself: the copy
+fetched Tue 20 Oct 2026 22:38 IST ends at Fri 16 Oct (FRED's own page was down for maintenance on 22 Oct).
+So a value dated v is usable from the India session on or after the WEDNESDAY after the Monday that follows v's week
+(release Monday 4:15 p.m. ET is about 01:45 IST Tuesday; Wednesday also covers a Monday holiday). D_d is then the latest
+usable value minus the value 20 observations earlier; long when D_d < 0, short when > 0, as registered.
+Nothing else changes.
