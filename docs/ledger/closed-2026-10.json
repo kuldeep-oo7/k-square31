@@ -243503,6 +243503,66 @@
     "perLot": -6325,
     "netPerLot": -6389.91
    }
+  },
+  {
+   "id": "2026-10-22|FUT|PERSISTENT26NOVFUT",
+   "kind": "FUT",
+   "symbol": "PERSISTENT",
+   "contract": "PERSISTENT26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 125,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 5837.5,
+   "target": 5983.5,
+   "target2": 6129.5,
+   "stop": 5750,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 75.8,
+     "medianTradingDays": 0.124
+    },
+    "target": {
+     "probabilityPct": 82.2,
+     "medianTradingDays": 1.356
+    },
+    "sigmaPct": 41.4,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-22T04:04:38.913Z",
+   "hoursToFill": 0.29,
+   "closedAt": "2026-10-22T09:04:15.110Z",
+   "exitPrice": 5750,
+   "exitReason": "STOP",
+   "hoursFillToExit": 4.99,
+   "sessionsHeld": 0,
+   "best": 5859,
+   "worst": 5745,
+   "last": 5753,
+   "lastAt": "2026-10-22T09:04:15.110Z",
+   "marks": 17,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 5898.5,
+    "low": 5745,
+    "last": 5753
+   },
+   "pnl": {
+    "perUnit": -87.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
