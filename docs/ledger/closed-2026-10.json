@@ -243329,6 +243329,180 @@
     "perLot": 22525,
     "netPerLot": 22327.73
    }
+  },
+  {
+   "id": "2026-10-22|FUT|TECHM26NOVFUT",
+   "kind": "FUT",
+   "symbol": "TECHM",
+   "contract": "TECHM26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 600,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 1814.2,
+   "target": 1859.6,
+   "target2": 1904.9,
+   "stop": 1787,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 73.2,
+     "medianTradingDays": 0.145
+    },
+    "target": {
+     "probabilityPct": 80.3,
+     "medianTradingDays": 1.623
+    },
+    "sigmaPct": 37.1,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-22T04:44:43.093Z",
+   "hoursToFill": 0.95,
+   "closedAt": "2026-10-22T06:44:12.532Z",
+   "exitPrice": 1787,
+   "exitReason": "STOP",
+   "hoursFillToExit": 1.99,
+   "sessionsHeld": 0,
+   "best": 1816.1,
+   "worst": 1782.8,
+   "last": 1788.2,
+   "lastAt": "2026-10-22T06:44:12.532Z",
+   "marks": 10,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 1832.8,
+    "low": 1782.8,
+    "last": 1788.2
+   },
+   "pnl": {
+    "perUnit": -27.2,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-22|FUT|MPHASIS26NOVFUT",
+   "kind": "FUT",
+   "symbol": "MPHASIS",
+   "contract": "MPHASIS26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 275,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 2567.4,
+   "target": 2631.6,
+   "target2": 2695.8,
+   "stop": 2528.9,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 67.8,
+     "medianTradingDays": 0.189
+    },
+    "target": {
+     "probabilityPct": 76.6,
+     "medianTradingDays": 2.185
+    },
+    "sigmaPct": 30.7,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-22T04:04:38.913Z",
+   "hoursToFill": 0.29,
+   "closedAt": "2026-10-22T06:44:12.532Z",
+   "exitPrice": 2528.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 2.66,
+   "sessionsHeld": 0,
+   "best": 2587.1,
+   "worst": 2525,
+   "last": 2525.1,
+   "lastAt": "2026-10-22T06:44:12.532Z",
+   "marks": 10,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 2608,
+    "low": 2525,
+    "last": 2525.1
+   },
+   "pnl": {
+    "perUnit": -38.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-21|CE|HDFCLIFE26NOV560CE",
+   "kind": "CE",
+   "symbol": "HDFCLIFE",
+   "contract": "HDFCLIFE26NOV560CE",
+   "expiry": "2026-11-23",
+   "strike": 560,
+   "optionType": "CE",
+   "lotSize": 1100,
+   "sessionDate": "2026-10-21",
+   "shownAt": "2026-10-21T03:50:07.665Z",
+   "buy": 11.45,
+   "target": 17.15,
+   "target2": null,
+   "stop": 5.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 58.9,
+     "medianDays": 8.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-21T04:06:16.337Z",
+   "hoursToFill": 0.27,
+   "closedAt": "2026-10-22T06:44:12.532Z",
+   "exitPrice": 5.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 26.63,
+   "sessionsHeld": 1,
+   "best": 11.5,
+   "worst": 5.3,
+   "last": 5.3,
+   "lastAt": "2026-10-22T06:44:12.532Z",
+   "marks": 40,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 7.2,
+    "low": 5.3,
+    "last": 5.3
+   },
+   "pnl": {
+    "perUnit": -5.75,
+    "pct": -50.22,
+    "basis": "NET",
+    "perLot": -6325,
+    "netPerLot": -6389.91
+   }
   }
  ]
 }
