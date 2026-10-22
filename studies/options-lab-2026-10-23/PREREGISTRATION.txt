@@ -1,0 +1,87 @@
+PRE-REGISTRATION -- THE OPTIONS LAB: WHAT STOCK-OPTION PRICES SAY ABOUT THE STOCK'S NEXT WEEK OR MONTH. ONE BATCH, ONE RUN.
+Written Friday 23 Oct 2026, about 00:15 IST, BEFORE any member below was computed on real data. The commit time is the
+proof. Branch claude/options-lab-2026-10-23.
+Owner, 22 Oct 2026: "creating strategies in the loop ... use the internet also for all of the strategies of all types of
+trades, fund managers and everything".
+
+1. WHAT IS KNOWN (disclosed)
+- Earlier tests on this desk that used stock options: buying straddles across results LOSES (-5.6% a trade, t -6.7); the
+  cheap-vol straddle was a near miss (t 1.94); put-call ratios FAILED (families study). None of them used implied
+  volatilities to predict the STOCK's return. Nothing in this file has been computed on real data.
+- Published evidence (each direction read in the paper's own abstract tonight):
+  Xing, Zhang and Zhao 2010 (JFQA 45): stocks with the steepest smirk (OTM put IV - ATM call IV) underperform the flattest
+    by 10.9% a year.
+  Cremers and Weinbaum 2010 (JFQA 45): stocks with relatively expensive calls (call IV - put IV, same strike and expiry)
+    outperform those with expensive puts by about 50 bp a week; the effect shrank over their sample.
+  An, Ang, Bali and Cakici 2014 (JF 69): large increases in call IV over the past month -> high future returns; large
+    increases in put IV -> low future returns.
+  Bali and Hovakimian 2009 (Management Science 55): realized minus implied volatility is NEGATIVELY related to future
+    returns; the call-put IV spread positively.
+  Johnson and So 2012 (JFE 106): the lowest option-to-stock volume decile outperforms the highest by 0.34% a week.
+- NSE stock options were American-style for contracts expiring before 27 Jan 2011 and European-style from then (SEBI
+  circular CIR/DNPD/6/2010 of 27 Oct 2010; NSE's circular). Implied volatilities below use Black-76 for all years; before
+  2011 that ignores the early-exercise value (disclosed, not corrected).
+
+2. DATA AND PERIODS (as the night lab, studies/night-lab-2026-10-23, PREREGISTRATION + AMENDMENT-A1)
+- Discovery NSE 2005-01 .. 2020-10 (release data-oos: CM, F&O futures, stock options); confirmation 2020-10 .. 2026-10-01
+  (the research snapshot: CM, futures, stock options from 2020-09; data-oos before 2020-09-01 as look-back only). They share
+  October 2020.
+- Stock-option rows: NSE's F&O bhavcopy, the two nearest expiries, strikes within 12% of the CM close: [symbol, expiry,
+  strike, CE/PE, close, settle, open interest, contracts]. Only TRADED options are used (contracts > 0, close > 0).
+
+3. IMPLIED VOLATILITY (on each formation day, per stock)
+- Expiry: the nearest one at least 7 calendar days after the formation day. F = that expiry's futures close for the stock
+  (NSE's F&O file of the same day); none -> no signal. T = calendar days to expiry / 365; r = 6.5%.
+- Black-76; the volatility solved by bisection in [0.01, 5]; no value when the price is below the discounted intrinsic value
+  or the solution sits on a bound.
+- SMIRK = IV of the traded put with K/F in [0.80, 0.95] closest to 0.95, minus IV of the traded call with K/F in [0.95,
+  1.05] closest to 1.00 (XZZ, with the future for the share).
+- CPS (call-put spread) = average over strikes with both a traded call and a traded put of (call IV - put IV), weighted by
+  the pair's mean open interest (CW).
+- IVATM = mean of the call and put IV at the strike closest to F with both traded.
+- DIV = (call IV at K/F closest to 1, traded) change minus (put IV at K/F closest to 1, traded) change, from the last session
+  of the previous month to the formation day (AABC).
+- RVIV = standard deviation of the last 21 daily close-to-close log returns x sqrt(252), minus IVATM (B&H).
+- OF = the formation week's stock-option contracts in the file / the week's futures contracts, all expiries (adaptation of
+  Johnson and So: NSE's futures stand in for the share volume, since both count contracts of the same lot).
+
+4. MEMBERS (8). Deciles among the stocks with the signal that are in the night lab's universe (the top 200 by traded
+   value, >= 250 bars after the last reset) for the holding period's first session; at least 50 stocks, else no book.
+ WEEKLY (formed at the last session of each ISO week; held from the open of the next week's first session to the close of
+ its last session):
+  O1 SMIRK, LONG-SHORT: long the flattest tenth (lowest SMIRK), short the steepest. Raw.
+  O2 SMIRK, SHORT ONLY: short the steepest tenth. Excess.
+  O3 CALL-PUT SPREAD, LONG-SHORT: long the highest CPS tenth, short the lowest. Raw.
+  O4 CALL-PUT SPREAD, LONG ONLY: long the highest CPS tenth. Excess.
+  O6 OPTION/FUTURES VOLUME, LONG-SHORT: long the lowest OF tenth, short the highest. Raw.
+  O8 COMBINED: the mean of the z-scores (across that day's stocks) of -SMIRK and CPS (stocks with both); long the top
+     tenth, short the bottom. Raw.
+ MONTHLY (formed at the last session of each month; held from the open of the next month's first session to the close of
+ its last):
+  O5 IV CHANGES, LONG-SHORT: long the highest DIV tenth, short the lowest. Raw.
+  O7 REALIZED MINUS IMPLIED, LONG-SHORT: long the LOWEST RVIV tenth, short the highest. Raw.
+ Books, costs and excess exactly as the night lab: each leg net of calculateNseFuturesCharges (dated; quantity ceil(Rs 5
+ lakh / entry)) plus a roll round trip per month end crossed; a long-short book = (mean long leg + mean short leg) / 2; a
+ leg that crosses a reset or misses a session is dropped; excess = the book minus the same-side equal-weighted universe
+ return over the same window.
+
+5. SCORE AND VERDICT
+- Each member: its books' net returns -> the monthly mean (%), Newey-West t (lag 3). Holm across the 8 at 5%. Full
+  Deflated Sharpe with N = 352 trials (344 before, these 8), as the night lab computes it.
+- DISCOVERY PASS = mean > 0, t >= 3, Holm, DSR >= 0.95 on 2005-2020. CONFIRMED = then on 2020-2026 mean > 0 and t >= 2.
+  A confirmed pass goes to TRACK as a forward paper test first, never straight to FUTURES. PROMISING = discovery mean > 0
+  and t >= 2. FAIL otherwise. NOT TESTABLE: under 24 months with a book.
+- Reported, not judged: every member on 2020-2026; books, stocks a side, win rate, worst month.
+- Expectation, stated now: Indian stock options were thinly traded in the early years, so several members may be thin or
+  NOT TESTABLE in discovery; the most likely outcome is that nothing passes both periods.
+
+6. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 6.1 Implied volatility: Black-76 prices made with known volatilities (0.15 to 0.80; K/F 0.80 to 1.20; 7 to 60 days; calls
+     and puts) are solved back to within 0.0001.
+ 6.2 Planted: a synthetic market with option chains priced by Black-76 from a stock-level smirk, where the steepest tenth
+     loses 1% more the following week: O1 reaches t >= 3.
+ 6.3 Null: every member's books moved to random discovery sessions (same counts, sides, holds): at most 1 PASS of 8.
+
+7. FILES AND PRIVACY
+ run.js, workflow .github/workflows/options-lab.yml on main. The repository is public: logs, summaries and artifacts carry
+ summary rows only. Data stays in the private repo k2-data.
