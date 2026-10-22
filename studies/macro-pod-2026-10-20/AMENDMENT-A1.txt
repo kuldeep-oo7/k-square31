@@ -1,0 +1,28 @@
+AMENDMENT A1 TO THE MACRO POD (PREREGISTRATION.txt, sha256 in PREREGISTRATION.sha256)
+Written Thu 22 Oct 2026 ~08:20 IST, BEFORE any return of this test was computed. Only counts and file formats were
+looked at (listed below). The commit time is the proof. Members, thresholds, timing and the verdict rule are unchanged.
+
+1. M2 SOURCE: NSDL, NOT NSE'S CATEGORY TURNOVER
+ Found 20 Oct 2026 (counts only): NSE's cm_cat_turnover files carry no FPI rows in the years checked (2009, 2015, 2021,
+ 2022 list BNK, DFI, PRO-TRADES, OTHERS only), so section 2's M2 source cannot be computed.
+ M2 now reads NSDL's "Daily Trends in FPI Investments" (www.fpi.nsdl.co.in, the depository's official report; release
+ data-macro, macro-nsdl_fpi: 3,791 reporting dates 2011-01 .. 2026-09, none missing the field below), via
+ scripts/nsdl-fpi-download.js. The figure is the EQUITY STOCK EXCHANGE net (Rs crore): FPIs' secondary-market buying
+ minus selling, the same flow the category file would have given. NSDL's note: a reporting date covers trades "on and
+ up to the previous trading day(s)"; a row dated R is used from the decision at the close of the first session AFTER R.
+ F_d = the sum of the last 20 such rows usable at d. Long when F_d > 0, short when F_d < 0, missing -> flat (unchanged).
+ The 5-session lag of section 2 was for the category file's late posting and does not apply to NSDL.
+
+2. NIFTY 2012-2013
+ The NSE historical-index API returned HTML block pages, not data (release data-macro, macro-nifty_hist: every file is
+ an "NSE India" HTML page). NSE's own ind_close_all files, the section 2 source from 2014, exist from 2012 too: they
+ are in release data-oos (nse-old/idx, fetched 5 Oct 2026 for studies/oos-replication-2026-10-05; 212 sessions in
+ 2009-2012, 12 sessions missing in 2013-2016). NIFTY's open is taken from ind_close_all for every year; a session with
+ no file is not in the schedule (the return spans to the next session with an open). niftyindices.com is not needed.
+
+3. SAMPLE END
+ The verdict sample ends at the last session on or before the last NSDL reporting date + 1 session, and on or before
+ the last participant-OI file (M2 cannot be read after that); RESULT.txt states the dates.
+
+4. FILES
+ build.js (inputs, members, books), checks.js (7.1-7.3), score.js (section 6 and the real run). Data stays private.
