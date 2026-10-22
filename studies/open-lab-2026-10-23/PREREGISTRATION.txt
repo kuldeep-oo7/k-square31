@@ -1,0 +1,79 @@
+PRE-REGISTRATION -- THE 09:15 LAB: WHAT IS KNOWN AT THE OPEN, AND THREE LEARNING MACHINES, TO PICK THE BETTER SHORT
+BUILD-UP TRADES. ONE BATCH, ONE RUN.
+Written Friday 23 Oct 2026, just after midnight IST, BEFORE any member below was computed on real data. The commit time is
+the proof. Branch claude/open-lab-2026-10-23.
+Owner, 23 Oct 2026: "creating strategies in the loop ... quant knowledge ... data science, machine learning, deep learning".
+
+1. WHAT IS KNOWN, AND WHAT I HAVE SEEN (disclosed)
+- Short build-up (SB; api/_lib/oi-flow-forward.js): NSE 2005-2020 +0.28% a trade, t 4.83 (GM confirmation); 2020-2026 the
+  GM board's t 3.94. Night lab (22 Oct 2026, both periods): SB strong signal (fall >= 3%, OI >= 6%) PROMISING (t 2.99 /
+  2.73); NIFTY's PREVIOUS-day fall as a filter did not help (t -0.78 / 0.20); holding two sessions did not help; every stop
+  lost.
+- A descriptive look on 2020-2026 (22 Oct, before this file): SB won on days NIFTY fell from open to close and lost on days
+  it rose. F1 below (NIFTY's GAP at 09:15, known before the trade) is partly inspired by that look.
+- Nothing else in this file has been computed on real data.
+
+2. DESIGN (as the night lab, studies/night-lab-2026-10-23, PREREGISTRATION + AMENDMENT-A1)
+- Discovery NSE 2005-01 .. 2020-10 (release data-oos); confirmation 2020-10 .. 2026-10-01 (the research snapshot, with
+  data-oos before 2020-09-01 as look-back only). They share October 2020, as the night lab.
+- Every SB trade: short at NSE's official open of d, cover at the close of d. EXCESS = net after calculateNseFuturesCharges
+  + the equal-weighted open-to-close return on d of the night lab's universe (>= 30 names), as night lab S5-S7.
+- A trade's features use only what is known at 09:15 on d: bars up to d-1, NSE's F&O file of d-1, and the official OPEN of
+  d (the stock's and NIFTY's). NIFTY: NSE's index file (open and close); before it, the near-month NIFTY future, its open
+  and close against the SAME contract's previous close.
+
+3. FEATURES (17, at 09:15 on d)
+ R     close(d-1) / close(d-2) - 1                      OI    total futures OI(d-1) / OI(d-2) - 1
+ GAP   open(d) / close(d-1) - 1                          NGAP  NIFTY open(d) / NIFTY close(d-1) - 1
+ NRET  NIFTY close(d-1) / close(d-2) - 1                 VOLR  volume(d-1) / mean volume(d-21 .. d-2)
+ TREND close(d-1) / mean close(d-20 .. d-1) - 1          VOL20 st. dev. of daily close-to-close returns, d-20 .. d-1
+ BASIS near-month future close(d-1) / close(d-1) - 1     NSIG  number of SB signals entering on d
+ DOW   weekday of d                                       TOEXP calendar days from d to the nearest stock-futures expiry
+                                                                on or after d (NSE's F&O file of d-1)
+ LOGP  ln close(d-1)                                      LOGV  ln median traded value of the 60 bars before d
+ OIREL OI(d-1) / mean OI(d-20 .. d-1)                     PREV  SB signals of this stock entering in the 10 sessions
+ R2    close(d-2) / close(d-3) - 1                              before d
+ A feature whose inputs are missing is left missing.
+
+4. MEMBERS (10). Each splits the SB trades into TAKE and SKIP.
+ F1 NIFTY GAPS DOWN:            take if NGAP < 0.
+ F2 THE STOCK DOES NOT GAP DOWN: take if GAP >= 0.
+ F3 HEAVY VOLUME:               take if VOLR >= 2.
+ F4 FUTURE AT A DISCOUNT:       take if BASIS < 0.
+ F5 DOWNTREND:                  take if TREND < 0.
+ F6 FIRST SIGNAL:               take if PREV = 0.
+ F7 NOT EXPIRY WEEK:            take if TOEXP >= 7.
+ M1 TREES: scikit-learn HistGradientBoostingClassifier(max_iter=200, learning_rate=0.05, max_leaf_nodes=15,
+    min_samples_leaf=200, l2_regularization=1.0, early_stopping=False, random_state=0) on all 17 features (missing kept).
+ M2 LOGISTIC: LogisticRegression(C=1.0, max_iter=2000) on standardized features (missing -> the training median).
+ M3 NEURAL NETWORK: MLPClassifier(hidden_layer_sizes=(32, 16), alpha=1e-3, learning_rate_init=1e-3, max_iter=200,
+    early_stopping=True, validation_fraction=0.1, random_state=0) on standardized features (missing -> training median).
+ M1-M3: label = EXCESS > 0. Walk-forward: for each calendar year Y from 2008 to 2026, fit on every SB trade entering before
+ 1 Jan Y (from the discovery data before 2020-10-01, the confirmation data from 2020-10-01, so no trade twice), predict the
+ trades of year Y; TAKE if the predicted probability is above the median predicted probability on that year's training
+ trades. Python 3.12, scikit-learn 1.9.1, numpy 2.5.4, pinned.
+
+5. SCORE AND VERDICT
+- Each month: SPREAD = mean EXCESS of the TAKE trades - mean EXCESS of the SKIP trades (months with both). The monthly
+  series -> mean (%), Newey-West t (lag 3).
+- Holm across the 10 at 5%. Full Deflated Sharpe (Bailey and Lopez de Prado 2014, skew and kurtosis) on the monthly series
+  with N = 344 trials (317 before the night lab, its 17, these 10), as the night lab computes it.
+- DISCOVERY PASS = mean > 0, t >= 3, Holm, DSR >= 0.95 on 2005-2020 (M1-M3 from 2008, their first predicted year).
+  CONFIRMED = then on 2020-2026 mean > 0 and t >= 2. A confirmed pass goes to TRACK as a forward paper test first, never
+  straight to FUTURES. PROMISING = discovery mean > 0 and t >= 2, not a pass. FAIL otherwise.
+- Reported, not judged: TAKE's own EXCESS (monthly mean, t), the share of trades taken, and for 2020-2026 GM rupees at 20
+  units (gross) of TAKE and of all SB.
+- Expectation, stated now: the most likely outcome is that nothing passes both periods.
+
+6. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 6.1 Timing: on synthetic data, changing every price after d's open (d's high, low and close, and every later bar) leaves
+     every feature of d unchanged.
+ 6.2 Planted: synthetic trades whose EXCESS is +0.5% when GAP >= 0 and -0.5% otherwise (noise 2%): F2 reaches t >= 3; and
+     trades whose EXCESS is +0.6% only when NGAP < 0 AND VOLR >= 2 (-0.2% otherwise; noise 2%): M1 reaches t >= 3.
+ 6.3 Null: on the discovery data, the 17 features shuffled among the trades of each month (labels fixed): at most 1 PASS
+     of the 10.
+
+7. FILES AND PRIVACY
+ run.js (data, features, filters, scoring), ml.py (the three models), workflow .github/workflows/open-lab.yml on main.
+ Feature tables and predictions stay on the runner. The repository is public: logs, summaries and artifacts carry summary
+ rows only.
