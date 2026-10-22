@@ -1,0 +1,58 @@
+PRE-REGISTRATION -- THE FUTURES LAB: THE DESK'S SHORT-TERM RULES AND ITS LEARNING MACHINES, PRICED ON THE FUTURE THE OWNER
+TRADES. ONE BATCH, ONE RUN.
+Written Friday 23 Oct 2026, about 00:25 IST, BEFORE any member below was computed on real data for 2005-2020. The commit
+time is the proof. Branch claude/futures-lab-2026-10-23.
+
+1. WHY, AND WHAT I HAVE SEEN (disclosed)
+- Every desk test so far priced trades on the SHARE (NSE's official open and close). The owner trades the near-month
+  FUTURE on GM Global. A descriptive look tonight (studies/open-lab-2026-10-23/POST-HOC.txt; NSE 2020-12 .. 2026-10-01):
+  short build-up (SB) earned +0.092% a trade on futures (t 3.81) vs +0.218% on shares; the share-gap filter (09:15 lab F2)
+  gave no advantage on futures; across all stock-days the future gained 0.085% on the share from open to close.
+- So U1 and U4 below HAVE been seen on 2020-2026 (their confirmation is not independent; reported, and said so). Nothing
+  below has been computed on futures for 2005-2020. U2, U3 and U5-U7 have not been computed on futures in any period.
+
+2. DESIGN
+- Discovery NSE 2005-01 .. 2020-10 (release data-oos); confirmation 2020-10 .. 2026-10-01 (the research snapshot, with
+  data-oos before 2020-09-01 as look-back only); as the night lab and the 09:15 lab, sharing October 2020.
+- FUTURES PRICE: for a stock on day d, the near-month contract = the earliest expiry on or after d in NSE's F&O file of d
+  with an open and a close above zero; entry at its official open, exit at its official close (NSE's settlement price).
+  A multi-day hold keeps that contract and, on its expiry day, rolls at that day's close into the next contract (the
+  return chains the two contracts' own closes; one roll round trip in charges per expiry crossed).
+- Charges: calculateNseFuturesCharges (dated) on both legs, quantity ceil(Rs 5 lakh / entry price).
+- FUTURES EXCESS for a one-session trade = net + the equal-weighted open-to-close return on d of the night lab's universe
+  (top 200 by traded value, >= 250 bars after the last reset), each on its own near-month future (at least 30 names).
+- Signals exactly as api/_lib/oi-flow-forward.js (SB and LU), on the share's closes and the total futures OI, as before.
+
+3. MEMBERS (7)
+ U1 SB ON FUTURES: every SB trade; short the future at the open of d, cover at the close of d. Judged on NET.
+ U2 STRONG SB ON FUTURES (night lab S7: fall >= 3%, OI >= 6%): as U1, judged on FUTURES EXCESS.
+ U3 LONG-UNWINDING BOUNCE ON FUTURES (oi-flow-forward LU): buy the future at the open of d, sell at the close of d+9
+    (10 sessions), rolling at an expiry as above. Judged on NET.
+ U4 THE SHARE DOES NOT GAP DOWN, ON FUTURES (09:15 lab F2): SB trades split by the share's gap at the open (take if >= 0);
+    SPREAD of FUTURES EXCESS, take minus skip, each month.
+ U5 TREES, U6 LOGISTIC, U7 NEURAL NETWORK: the 09:15 lab's M1-M3 exactly (its 17 features, models, settings, pinned
+    libraries, walk-forward by calendar year from 2008, take above the training median), except the label is FUTURES
+    EXCESS > 0; SPREAD of FUTURES EXCESS, take minus skip, each month.
+ A trade without a futures price is not counted.
+
+4. SCORE AND VERDICT
+- Each member: the monthly mean (%) of its trades' values (U1, U3 net; U2 excess; U4-U7 the monthly spread); Newey-West t
+  (lag 3). Holm across the 7 at 5%. Full Deflated Sharpe with N = 359 trials (352 before, these 7), as the night lab.
+- DISCOVERY PASS = mean > 0, t >= 3, Holm, DSR >= 0.95 on 2005-2020 (U5-U7 from 2008). CONFIRMED = then on 2020-2026
+  mean > 0 and t >= 2. A confirmed pass goes to TRACK as a forward paper test first. PROMISING = discovery mean > 0 and
+  t >= 2. FAIL otherwise.
+- Reported, not judged: every member on 2020-2026; trades, win rate, worst month; for U1-U3 the same trades priced on the
+  share, side by side; for 2020-2026 GM rupees at 20 units (gross) on futures.
+- Expectation, stated now: SB on futures is likely positive but weaker than on shares in 2005-2020 as well; the learning
+  machines' share-priced advantage leaned on the share's gap, so on futures it may shrink or vanish.
+
+5. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 5.1 Futures pricing by hand: a one-session short's net from a contract's open and close; a 10-session long that crosses
+     an expiry chains the two contracts and pays one roll round trip.
+ 5.2 Planted: the 09:15 lab's synthetic table (EXCESS +0.6% only when NGAP < 0 AND VOLR >= 2): U5 reaches t >= 3.
+ 5.3 Null: U1-U3 trades moved to random discovery sessions (same counts and holds) and U4-U7 features shuffled within each
+     month (labels fixed): at most 1 PASS of 7.
+
+6. FILES AND PRIVACY
+ run.js and ml.py (the 09:15 lab's, with futures labels), workflow .github/workflows/futures-lab.yml on main. Feature
+ tables and predictions stay on the runner; logs and artifacts carry summary rows only (the repository is public).
