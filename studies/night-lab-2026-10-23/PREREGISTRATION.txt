@@ -1,0 +1,93 @@
+PRE-REGISTRATION -- THE NIGHT LAB: SHORT BUILD-UP TWEAKS (STOP-LOSS FIRST) AND NEW PUBLISHED IDEAS, ONE BATCH, ONE RUN
+Written Thursday 22 Oct 2026, about 23:30 IST, BEFORE any member below was computed on real data. The commit time is the
+proof. Branch claude/night-lab-2026-10-23.
+Owner, 22 Oct 2026: "yes [test the stop] and find more and more ... be creative ... use the internet also for all of the
+strategies of all types of trades, fund managers and everything".
+
+1. WHAT IS KNOWN, AND WHAT I HAVE ALREADY SEEN (disclosed)
+- Short build-up (SB; api/_lib/oi-flow-forward.js: share fell >= 1.5581% and futures OI rose >= 3.0380% on d-1 -> short at
+  the open of d, cover at the close of d; top-200 universe) is the desk's best coded rule: GM board 2020-2026 t 3.94
+  (PROMISING), and confirmed on NSE 2005-2020 (t 4.83). Both periods have been looked at for the BASE rule.
+- Two descriptive looks at SB 2020-2026 were made tonight BEFORE this registration, both on 2020-2026 only:
+  (a) SB split by NIFTY's SAME-day open-to-close move: NIFTY-down days +0.89% a trade (69% won), NIFTY-up days -0.53%
+      (39% won); beyond shorting NIFTY +0.17% a trade. Member S5 (a filter on the PREVIOUS day's NIFTY) is partly inspired
+      by this look.
+  (b) SB with a profit-taking buy-back limit 0.5/1/1.5/2/3% under the open: none beat buying back at the close. Profit
+      limits are therefore NOT members.
+- Nothing else in this file has been computed on real data.
+
+2. DESIGN (fixed now)
+- DISCOVERY on NSE 2005-01 .. 2020-10 (private release data-oos: CM bhavcopy, F&O futures with OI, index closes).
+  CONFIRMATION, once, on NSE 2020-10 .. 2026-10-01 (private release data-research snapshot + data-macro index closes).
+  Every member's inputs exist in BOTH periods (CM OHLCV, futures OI, NIFTY), so none is "not confirmable" by design.
+- NIFTY open/close: NSE's ind_close_all ("Nifty 50", "CNX Nifty" or "S&P CNX Nifty"); before the first index file in
+  data-oos (about 2012), the near-month NIFTY futures open/close from NSE's F&O file (as studies/oos-replication).
+- Universe each month: EQ stocks ranked by the median traded value of their last 60 bars before the month's first session,
+  with >= 250 bars after their last reset (an open >= 18% from the previous close); the top 200. (SB members keep SB's own
+  universe rule from oi-flow-forward.js.)
+- A trade or book that crosses a reset is dropped. A stock must trade on every session of its window.
+- Costs: calculateNseFuturesCharges (api/_lib/shadow-broker.js, dated) on both legs, quantity ceil(Rs 5 lakh / entry), plus a
+  roll round trip per month end crossed. Stops fill at the stop price plus 0.1% slippage (worse for the trade).
+- Holidays: a weekday that is not an NSE session in the CM files.
+
+3. MEMBERS (17; "excess" = the trade's net minus the same-side equal-weighted universe return over the same window)
+ GROUP S, SHORT BUILD-UP TWEAKS (SB signals exactly as oi-flow-forward.js):
+  S1-S4 STOP-LOSS: short at the open; if the day's HIGH reaches open x (1 + y), buy back at that price + 0.1%; otherwise
+        at the close. y = 1.0% (S1), 1.5% (S2), 2.0% (S3), 3.0% (S4). Judged on the PAIRED difference against base SB on
+        the same trades (section 4).
+  S5 MARKET FILTER: SB only when NIFTY's close on d-1 was below its close on d-2. Excess.
+  S6 TWO SESSIONS: cover at the close of d+1 instead of d. Excess.
+  S7 STRONG SIGNAL: SB only when the share fell >= 3% and futures OI rose >= 6% on d-1. Excess.
+ GROUP C, CREATIVE:
+  C1 SQUEEZE LONG: a stock shorted by SB on session d that closed ABOVE its open on d (the short lost): BUY at the open of
+     d+1, sell at the close of d+1. Excess.
+ GROUP P, PUBLISHED IDEAS NEW TO THIS DESK (definitions from the papers' own text where read tonight; daily-data
+  adaptations labelled):
+  P1 MAX, LONG-SHORT (Bali, Cakici and Whitelaw 2011, JFE 99: the maximum daily return over the past month predicts LOWER
+     returns; note: a study of Indian stocks, Studies in Economics and Finance 2018, found no such effect). Each month:
+     MAX = the highest close-to-close return over the previous month's sessions; LONG the lowest-MAX tenth, SHORT the
+     highest-MAX tenth, open of the month's first session to the close of its last. Raw (market-neutral).
+  P2 MAX, LONG ONLY: the lowest-MAX tenth, as P1. Excess. (A buy candidate.)
+  P3 HIGH-VOLUME PREMIUM, LONG-SHORT (Gervais, Kaniel and Mingelgrin 2001, JF 56: 50-day intervals, a 1-day formation
+     period compared with the 49-day reference period; "among the top (bottom) 10% daily volumes over the whole trading
+     interval" = high (low) volume; portfolios formed at the end of the formation day, held 20 trading days).
+     Non-overlapping 50-session intervals; LONG high-volume, SHORT low-volume, from the next open for 20 sessions. Raw.
+  P4 HIGH-VOLUME, LONG ONLY: as P3, the high-volume stocks. Excess. (A buy candidate.)
+  P5 SAME-MONTH SEASONALITY (Heston and Sadka 2008, JFE 87: same-calendar-month returns repeat at annual lags; adaptation:
+     annual lags 1-5). Each month: the average of the stock's returns in the same calendar month over the previous 5
+     years (all 5 needed); LONG the top tenth, SHORT the bottom tenth for the month. Raw.
+  P6 TUG OF WAR, INTRADAY (Lou, Polk and Skouras 2019, JFE 134: "stocks with relatively high overnight returns over the
+     last month have, on average, relatively high overnight returns as well as relatively low intraday returns in the
+     subsequent month"). Each month: rank by the sum of last month's overnight log returns (open / previous close); every
+     session of the month: SHORT the top tenth open-to-close, LONG the bottom tenth open-to-close. Raw.
+  P7 TUG OF WAR, OVERNIGHT (same paper, the overnight persistence): the same ranking; every night of the month: LONG the
+     top tenth close-to-next-open, SHORT the bottom tenth. Raw.
+  P8 PRE-HOLIDAY (idea: Ariel 1990, JF; not re-read tonight): buy NIFTY at the close of the session before a pre-holiday
+     session, sell at the pre-holiday session's close. Raw.
+  P9 LEAD-LAG (idea: Lo and MacKinlay 1990, RFS; Hou 2007, RFS; not re-read tonight): after a session where NIFTY closed
+     >= 1% above (below) its previous close, LONG (SHORT) the smallest third of the universe by traded value at the next
+     open, out at that session's close (an equal-weighted basket). Raw.
+
+4. SCORE AND VERDICT
+- Each member's trades -> monthly mean of net returns (%), Newey-West t (lag 3). S1-S4: the monthly mean of the PAIRED
+  difference (stop member's net minus base SB's net, trade by trade).
+- Holm across all 17 at 5%. Full Deflated Sharpe (Bailey and Lopez de Prado 2014, skew and kurtosis) on the monthly series
+  with N = 17 + 300 = 317 trials (the 300 counts every earlier test on this desk: the GM board's 186, the macro pod, the
+  expiry study, the combined and forecast models and the rest, rounded up).
+- DISCOVERY PASS = mean > 0, t >= 3, Holm, DSR >= 0.95 on 2005-2020. CONFIRMED = then, on 2020-2026, mean > 0 and t >= 2.
+  A member that is a DISCOVERY PASS and CONFIRMED is a candidate; it goes to TRACK as a forward paper test first, never
+  straight to FUTURES. PROMISING = discovery mean > 0 and t >= 2, not a pass. FAIL otherwise.
+- POWER AND EXPECTATIONS, stated now: with 317 trials, a lucky t near 3 is expected somewhere; only the confirmation
+  separates a real effect from luck. The most likely outcome is that nothing passes both periods.
+- Reported, not judged: every member on 2020-2026 regardless of discovery; trades, win rate, worst month; for SB
+  members, GM rupees at 20 units.
+
+5. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 5.1 Hand-built stop: a short at open 100 whose high touches 101.5 buys back at 101.5 x 1.001 for S2; one that never
+     reaches the stop covers at the close.
+ 5.2 Planted edge: a synthetic market where the highest-MAX tenth loses 2% a month more than the rest: P1 reaches t >= 3.
+ 5.3 Null: every member's trades re-dated to random sessions (same counts, sides, holds): at most 1 discovery PASS of 17.
+
+6. FILES AND PRIVACY
+ run.js (members, checks, scoring), workflow .github/workflows/night-lab.yml on main. The repository is public: logs,
+ summaries and artifacts carry summary rows only, no trade lists. Data stays in the private repo k2-data.
