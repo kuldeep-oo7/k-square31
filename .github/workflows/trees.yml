@@ -1,0 +1,104 @@
+name: trees
+# The trees forward paper watch (studies/trees-forward-2026-10-22/PREREGISTRATION.txt): the combined model's C1 trees,
+# run live as tested (features.js + model.py at commit 04a0b39). After the paper job refreshes NSE's files, on the evening
+# after each rebalance date: build the panel, run the walk-forward trees, store the next list ONCE (symbols only) in
+# docs/paper-rules/trees.json. Every other run only scores. Predictions stay in the private release trees-forward; logs
+# carry counts only. mode=replay runs the registration's replay instead (nothing stored).
+on:
+  workflow_run:
+    workflows: [springy-dip]
+    types: [completed]
+  schedule:
+    - cron: "50 15 * * 1-5"     # 21:20 IST backstop
+    - cron: "50 1 * * 2-6"      # 07:20 IST backstop (a list must be committed before 09:15 IST to count)
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "empty = the normal run; replay = the registration's replay (stores nothing)"
+        required: false
+        default: ""
+permissions:
+  contents: write
+concurrency:
+  group: trees
+  cancel-in-progress: false
+jobs:
+  watch:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    env:
+      GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+      GH_REPO: kuldeep-oo7/k2-data
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: NSE's bhavcopy archive and the paper job's F&O, delivery and option files
+        run: |
+          gh release download data-nse-cm -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz && rm nse-cm.tar.gz
+          gh release download data-paper-inputs -p paper-inputs.tar.gz && tar -xzf paper-inputs.tar.gz && rm paper-inputs.tar.gz
+          echo "cm $(ls nse-data/cm | grep -c '\.json$') files to $(ls nse-data/cm | grep '\.json$' | tail -1); fut $(ls nse-fo/fut | wc -l) files to $(ls nse-fo/fut | tail -1)"
+      - name: Is a list due tonight?
+        id: due
+        run: |
+          set +e
+          K2_CM_DIR=nse-data/cm K2_FUT_DIR=nse-fo/fut node scripts/trees-forward.js due
+          rc=$?
+          if [ "${{ inputs.mode }}" = "replay" ] || [ $rc -eq 0 ]; then echo "run=yes" >> "$GITHUB_OUTPUT"; elif [ $rc -eq 3 ] || [ $rc -eq 4 ]; then echo "run=no" >> "$GITHUB_OUTPUT"; else exit $rc; fi
+      - uses: actions/setup-python@v5
+        if: steps.due.outputs.run == 'yes'
+        with: { python-version: "3.12" }
+      - name: The model's code (commit 04a0b39) and libraries, as registered
+        if: steps.due.outputs.run == 'yes'
+        run: |
+          git fetch -q origin claude/combined-model-2026-10-13
+          git checkout 04a0b39 -- studies/combined-model-2026-10-13
+          pip install -q scikit-learn==1.9.1 numpy==2.5.4 pandas==3.0.6
+          mkdir -p "$RUNNER_TEMP/x" && cd "$RUNNER_TEMP/x" && npm init -y >/dev/null && npm i --no-audit --no-fund xlsx@0.18.5 >/dev/null
+      - name: The study's inputs (4 Oct snapshot) plus the paper job's newer files, and the atlas
+        if: steps.due.outputs.run == 'yes'
+        run: |
+          for a in research-nse-fo.tar.gz research-nse-extra.tar.gz; do gh release download data-research -p "$a" && tar -xzf "$a" && rm "$a"; done
+          mkdir -p research && cd research
+          for a in $(gh release view data-nse-atlas --json assets --jq '.assets[].name' | grep '^atlas-'); do gh release download data-nse-atlas -p "$a" && tar -xzf "$a" && rm "$a"; done
+          cd ..
+          # the snapshot's files are kept as they are; only the dates it lacks are added
+          cp -n nse-fo/fut/*.json research/orderflow-2026-10-03/nse-fo/fut/
+          for s in deliv opt; do cp -n nse-extra/$s/*.json research/families-2026-10-04/nse-extra/$s/; done
+          echo "fut $(ls research/orderflow-2026-10-03/nse-fo/fut | wc -l), deliv $(ls research/families-2026-10-04/nse-extra/deliv | wc -l), opt $(ls research/families-2026-10-04/nse-extra/opt | wc -l) files"
+      - name: Feature panel (NSE files through the last session; no data end)
+        if: steps.due.outputs.run == 'yes'
+        env: { K2_CM_DIR: nse-data/cm, K2_RESEARCH_DIR: research, K2_CM_END: "2099-12-31" }
+        run: K2_XLSX="$RUNNER_TEMP/x/node_modules/xlsx" node --max-old-space-size=12000 studies/combined-model-2026-10-13/features.js panel.csv | tail -3
+      - name: Walk-forward trees (model.py as registered)
+        if: steps.due.outputs.run == 'yes'
+        run: python studies/combined-model-2026-10-13/model.py panel.csv preds.csv | tail -3
+      - name: Replay (the registration's precondition)
+        if: inputs.mode == 'replay'
+        run: |
+          gh release download combined-model-run -p preds.csv.gz -O study-preds.csv.gz && gunzip -f study-preds.csv.gz
+          set -o pipefail
+          K2_CM_DIR=nse-data/cm node scripts/trees-forward.js replay study-preds.csv preds.csv | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Store the list
+        if: steps.due.outputs.run == 'yes' && inputs.mode != 'replay'
+        run: K2_CM_DIR=nse-data/cm K2_FUT_DIR=nse-fo/fut node scripts/trees-forward.js store preds.csv panel.csv | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Predictions to the private repo
+        if: steps.due.outputs.run == 'yes' && inputs.mode != 'replay'
+        run: |
+          gh release view trees-forward >/dev/null 2>&1 || gh release create trees-forward --title "Trees forward watch (predictions)" --notes "Walk-forward predictions of studies/combined-model-2026-10-13 run live by .github/workflows/trees.yml (studies/trees-forward-2026-10-22)." --latest=false
+          f="preds-$(TZ=Asia/Kolkata date +%F).csv.gz"; gzip -c preds.csv > "$f" && gh release upload trees-forward "$f" --clobber
+      - name: Score the stored lists
+        if: steps.due.outputs.run != 'yes'
+        run: K2_CM_DIR=nse-data/cm node scripts/trees-forward.js score | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Commit
+        if: inputs.mode != 'replay'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "k2-desk-bot"
+          git config user.email "k2-desk-bot@users.noreply.github.com"
+          git add docs/paper-rules/trees.json
+          if git diff --cached --quiet; then echo "no change"; exit 0; fi
+          git commit -q -m "trees watch: updated"
+          for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin HEAD:main && exit 0; sleep 10; done
+          exit 1
