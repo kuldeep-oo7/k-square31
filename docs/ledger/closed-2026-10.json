@@ -242450,6 +242450,368 @@
     "perLot": 7781.25,
     "netPerLot": 7682.2
    }
+  },
+  {
+   "id": "2026-10-22|FUT|HFCL (share)",
+   "kind": "FUT",
+   "symbol": "HFCL",
+   "contract": "HFCL (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 2500,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 259.9,
+   "target": 266.4,
+   "target2": 272.89,
+   "stop": 256,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "STOP",
+   "filledAt": "2026-10-22T04:04:38.913Z",
+   "hoursToFill": 0.29,
+   "closedAt": "2026-10-22T04:04:38.913Z",
+   "exitPrice": 256,
+   "exitReason": "STOP",
+   "hoursFillToExit": 0,
+   "sessionsHeld": 0,
+   "best": 259.9,
+   "worst": 255.37,
+   "last": 257.2,
+   "lastAt": "2026-10-22T04:04:38.913Z",
+   "marks": 2,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 262.13,
+    "low": 255.37,
+    "last": 257.2
+   },
+   "pnl": {
+    "perUnit": -3.9,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-21|PE|POWERINDIA26NOV29000PE",
+   "kind": "PE",
+   "symbol": "POWERINDIA",
+   "contract": "POWERINDIA26NOV29000PE",
+   "expiry": "2026-11-23",
+   "strike": 29000,
+   "optionType": "PE",
+   "lotSize": 25,
+   "sessionDate": "2026-10-21",
+   "shownAt": "2026-10-21T04:06:15.946Z",
+   "buy": 1416.75,
+   "target": 2125.15,
+   "target2": null,
+   "stop": 708.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.6,
+     "medianDays": 12.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-21T04:06:16.337Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-22T04:04:38.913Z",
+   "exitPrice": 2125.15,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 23.97,
+   "sessionsHeld": 1,
+   "best": 2433.75,
+   "worst": 1416.05,
+   "last": 2397.7,
+   "lastAt": "2026-10-22T04:04:38.913Z",
+   "marks": 30,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 2433.75,
+    "low": 2250,
+    "last": 2397.7
+   },
+   "pnl": {
+    "perUnit": 708.4,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 17710,
+    "netPerLot": 17544.82
+   }
+  },
+  {
+   "id": "2026-10-21|FUT|CYIENT (share)",
+   "kind": "FUT",
+   "symbol": "CYIENT",
+   "contract": "CYIENT (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 500,
+   "sessionDate": "2026-10-21",
+   "shownAt": "2026-10-21T03:50:07.665Z",
+   "buy": 1175.4,
+   "target": 1204.8,
+   "target2": 1234.2,
+   "stop": 1157.8,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "STOP",
+   "filledAt": "2026-10-21T04:25:39.285Z",
+   "hoursToFill": 0.59,
+   "closedAt": "2026-10-22T04:04:38.913Z",
+   "exitPrice": 1157.8,
+   "exitReason": "STOP",
+   "hoursFillToExit": 23.65,
+   "sessionsHeld": 1,
+   "best": 1183.2,
+   "worst": 1153.3,
+   "last": 1153.3,
+   "lastAt": "2026-10-22T04:04:38.913Z",
+   "marks": 33,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 1183.2,
+    "low": 1153.3,
+    "last": 1153.3
+   },
+   "pnl": {
+    "perUnit": -17.6,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-21|FUT|DRREDDY26NOVFUT",
+   "kind": "FUT",
+   "symbol": "DRREDDY",
+   "contract": "DRREDDY26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 625,
+   "sessionDate": "2026-10-21",
+   "shownAt": "2026-10-21T03:50:07.665Z",
+   "buy": 1238.6,
+   "target": 1269.6,
+   "target2": 1300.5,
+   "stop": 1220,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 56.5,
+     "medianTradingDays": 0.285
+    },
+    "target": {
+     "probabilityPct": 68.4,
+     "medianTradingDays": 3.523
+    },
+    "sigmaPct": 22.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-21T07:04:33.279Z",
+   "hoursToFill": 3.24,
+   "closedAt": "2026-10-22T04:04:38.913Z",
+   "exitPrice": 1220,
+   "exitReason": "STOP",
+   "hoursFillToExit": 21,
+   "sessionsHeld": 1,
+   "best": 1244.5,
+   "worst": 1218,
+   "last": 1219.3,
+   "lastAt": "2026-10-22T04:04:38.913Z",
+   "marks": 32,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 1235.3,
+    "low": 1218,
+    "last": 1219.3
+   },
+   "pnl": {
+    "perUnit": -18.6,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-21|PE|POWERINDIA26NOV27000PE",
+   "kind": "PE",
+   "symbol": "POWERINDIA",
+   "contract": "POWERINDIA26NOV27000PE",
+   "expiry": "2026-11-23",
+   "strike": 27000,
+   "optionType": "PE",
+   "lotSize": 25,
+   "sessionDate": "2026-10-21",
+   "shownAt": "2026-10-21T03:50:07.665Z",
+   "buy": 668.65,
+   "target": 1002.95,
+   "target2": null,
+   "stop": 334.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 30.9,
+     "medianDays": 16.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-21T03:50:08.035Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-22T04:04:38.913Z",
+   "exitPrice": 1002.95,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 24.24,
+   "sessionsHeld": 1,
+   "best": 1230,
+   "worst": 587,
+   "last": 1230,
+   "lastAt": "2026-10-22T04:04:38.913Z",
+   "marks": 31,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 1218.85,
+    "low": 1100,
+    "last": 1230
+   },
+   "pnl": {
+    "perUnit": 334.3,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 8357.5,
+    "netPerLot": 8254.62
+   }
+  },
+  {
+   "id": "2026-10-21|PE|NESTLEIND26NOV1300PE",
+   "kind": "PE",
+   "symbol": "NESTLEIND",
+   "contract": "NESTLEIND26NOV1300PE",
+   "expiry": "2026-11-23",
+   "strike": 1300,
+   "optionType": "PE",
+   "lotSize": 500,
+   "sessionDate": "2026-10-21",
+   "shownAt": "2026-10-21T03:50:07.665Z",
+   "buy": 62.8,
+   "target": 94.2,
+   "target2": null,
+   "stop": 31.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 61,
+     "medianDays": 7.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-21T04:06:16.337Z",
+   "hoursToFill": 0.27,
+   "closedAt": "2026-10-22T04:04:38.913Z",
+   "exitPrice": 94.2,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 23.97,
+   "sessionsHeld": 1,
+   "best": 110,
+   "worst": 61,
+   "last": 105.5,
+   "lastAt": "2026-10-22T04:04:38.913Z",
+   "marks": 30,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 110,
+    "low": 106,
+    "last": 105.5
+   },
+   "pnl": {
+    "perUnit": 31.4,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 15700,
+    "netPerLot": 15548.2
+   }
+  },
+  {
+   "id": "2026-10-15|PE|BANKNIFTY26OCT56600PE",
+   "kind": "PE",
+   "symbol": "BANKNIFTY",
+   "contract": "BANKNIFTY26OCT56600PE",
+   "expiry": "2026-10-27",
+   "strike": 56600,
+   "optionType": "PE",
+   "lotSize": 30,
+   "sessionDate": "2026-10-15",
+   "shownAt": "2026-10-15T03:48:56.440Z",
+   "buy": 1223.75,
+   "target": 1835.65,
+   "target2": null,
+   "stop": 611.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.7,
+     "medianDays": 3.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-15T04:05:44.914Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-22T04:04:38.913Z",
+   "exitPrice": 1835.65,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 167.98,
+   "sessionsHeld": 4,
+   "best": 1885.45,
+   "worst": 814.9,
+   "last": 1885.45,
+   "lastAt": "2026-10-22T04:04:38.913Z",
+   "marks": 113,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 1885.45,
+    "low": 1775,
+    "last": 1885.45
+   },
+   "pnl": {
+    "perUnit": 611.9,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 18357,
+    "netPerLot": 18187.51
+   }
   }
  ]
 }
