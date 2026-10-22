@@ -386,6 +386,23 @@ jobs:
             git push || { git fetch --quiet origin "${GITHUB_REF_NAME}"; git reset --mixed --quiet "origin/${GITHUB_REF_NAME}"; git checkout "origin/${GITHUB_REF_NAME}" -- docs/paper-rules 2>/dev/null || true; git add docs/; git commit -m "desk: rebuilt $(TZ=Asia/Kolkata date '+%Y-%m-%d %H:%M IST')"; git push; }
           fi
 
+      - name: Photograph the first in-session page (page-check), once a morning
+        # The laptop's Modern Standby missed the 09:20 check on 21 and 22 Oct 2026. This build is started on time by
+        # cron-job.org: between 09:30 and 10:00 IST on a weekday, if no page-check has started since 09:00, start one for
+        # this build's stamp (it waits until that build is served). Photos and the NSE audit land on the release
+        # page-check, readable later. Never fatal.
+        continue-on-error: true
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          now=$(TZ=Asia/Kolkata date +%H%M)
+          [ "$(TZ=Asia/Kolkata date +%u)" -le 5 ] && [ "$now" -ge 0930 ] && [ "$now" -lt 1000 ] || { echo "not the morning check window ($now IST)"; exit 0; }
+          since=$(date -u -d "$(TZ=Asia/Kolkata date +%F) 09:00 +0530" +%FT%TZ)
+          n=$(gh run list -R "${{ github.repository }}" -w page-check.yml -L 20 --json createdAt -q "[.[] | select(.createdAt >= \"$since\")] | length")
+          [ "$n" = "0" ] || { echo "page-check already started this morning ($n run(s))"; exit 0; }
+          stamp=$(node -e 'console.log(String(require("./docs/version.json").builtAtIst || "").replace(" IST", ""))')
+          gh workflow run page-check.yml -R "${{ github.repository }}" --ref main -f expect="$stamp" -f label=morning-auto && echo "started page-check for $stamp"
+
       - name: Keep this build's exchange data and price histories for the next build
         # Every run saves under its own key (see the restore step), so what this build
         # fetched is never thrown away. Before the gate, so a red run still keeps it;

@@ -1030,9 +1030,11 @@ function springyBox(sd) {
 // The signals come from docs/paper-rules/oi-flow.json; a list for another session is never shown as today's.
 // LIVE NOW (api/_lib/paper-live.js): today's open, gap, last price and paper P&L for one paper list, in session only.
 // Information beside the tested rule, never a change to it: the rule trades at the open whatever the gap.
-function paperLiveBlock(d, book) {
+function paperLiveBlock(d, book, expected = []) {
   const pl = d.paperLive; if (!pl || !Array.isArray(pl.rows)) return "";
   const rows = pl.rows.filter((r) => r.book === book); if (!rows.length) return "";
+  // a listed name with no futures trade yet is NAMED, not silently left out (audit 22 Oct 2026: "15 priced" of 16 at 09:17)
+  const notYet = [...new Set(expected)].filter((s) => !rows.some((r) => r.symbol === s));
   const tone = (v) => (v > 0 ? "up" : v < 0 ? "down" : "");
   const price = (v) => esc(Number(v).toLocaleString("en-IN"));
   const plus = (v) => `${v > 0 ? "+" : ""}${money(Math.round(v))}`;
@@ -1043,6 +1045,7 @@ function paperLiveBlock(d, book) {
   return `<div class="sbres"><b>Live now, ${esc(time)} IST</b><span class="lec"> &middot; <b>information only, not part of the tested rule</b>: each futures open, its gap from the previous close, the last price, and the paper result on ${esc(pl.units)} units if traded at the open.</span>
     <div class="sbgrid" style="grid-template-columns:1fr auto auto auto"><div class="h">STOCK</div><div class="h num">GAP</div><div class="h num">NOW</div><div class="h num">${esc(pl.units)} UNITS</div>${cells}</div>
     <div>${rows.length} priced &middot; <b class="${tone(total)}">${plus(total)}</b> so far, before GM&rsquo;s charges.</div>
+    ${notYet.length ? `<div class="sub warn">No futures trade yet: ${esc(notYet.join(", "))}.</div>` : ""}
     <div class="sub lec">Angel One futures prices, refreshed with each build (about every 20 minutes). Your GM fills will differ.</div></div>`;
 }
 
@@ -1143,7 +1146,7 @@ function sbFocusBox(d) {
       : rows ? `<b>${day}:</b> sell ${esc(units)} units of each at the open, buy back before the close.<span class="lec"> These stocks fell at least 1.56% in the last session while their futures open interest rose at least 3.04% (new shorts piling in).</span>
         <div class="slips">${pend.map((p) => sbSlip(d, p)).join("")}</div>`
       : `<b>No short build-up signal for ${day}.</b> No trade from this rule today.`}</div>
-    ${target === d.sessionDate ? paperLiveBlock(d, "SB") : ""}
+    ${target === d.sessionDate ? paperLiveBlock(d, "SB", pend.map((p) => p.symbol)) : ""}
     ${lastFut}
     <div class="sub" style="margin-top:8px">Paper record since ${esc(of.start)}: ${esc(s.finished ?? 0)} trades${s.finished
       ? `, ${s.meanNetPct > 0 ? "+" : ""}${mn(esc(s.meanNetPct))}% a trade, ${esc(s.winPct)}% won` : ""}. Verdict after 100 trades and 3 months.</div>
@@ -1178,7 +1181,7 @@ function kronosBox(d) {
         <div class="sbgrid" style="grid-template-columns:auto auto;gap:4px 28px"><div class="h">BUY (${esc(d.gmMinUnits || 20)} units)</div><div class="h">SELL (${esc(d.gmMinUnits || 20)} units)</div>
           <div class="up">${names(today.long)}</div><div class="down">${names(today.short)}</div></div>`
       : `<b class="warn">No Kronos list for ${esc(dayText(target))} yet.</b><span class="lec"> It is made from NSE&rsquo;s evening files (about 20:15 IST); counting starts with Mon 19 Oct.</span>`}</div>
-    ${today && target === d.sessionDate ? paperLiveBlock(d, "KRONOS") : ""}
+    ${today && target === d.sessionDate ? paperLiveBlock(d, "KRONOS", [...today.long, ...today.short].map((p) => p.symbol)) : ""}
     ${held.length ? `<div class="sub" style="margin-top:6px">Still held from earlier lists: ${held.map((x) => `${esc(dayText(x.entry))} list &rarr; close at the close on ${esc(dayText(x.exit))}`).join("; ")}.</div>` : ""}
     <div class="sub lec" style="margin-top:6px">Kronos reads only each stock&rsquo;s last 512 daily bars (one random draw, as tested); its own % forecasts are too noisy to show.
       In its test (Jul 2024&ndash;Oct 2026) this book made +0.135% a round, t 1.35: not proven. On paper since ${esc(k.start)}: ${esc(s.finished ?? 0)} lists finished${s.finished
