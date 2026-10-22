@@ -1,0 +1,33 @@
+OPTIONS LAB: registration sha256 de1d3792edd397cc... (verified); run 2026-10-22T18:52:51.940Z
+CHECKS:
+ 6.1 implied volatility: 188 Black-76 prices with at least one tick (0.05) of time value solved back, worst error 3.7e-14: PASSED
+ 6.2 planted smirk edge (steepest tenth -1% the next week): O1 t 7.29, +0.348% a month: PASSED
+DISCOVERY DATA: 3909 sessions 2005-01-03 .. 2020-10-30, 2792 stocks; implied volatilities on 931 formation days
+ books: O1 486, O2 486, O3 496, O4 496, O5 117, O6 769, O7 118, O8 476
+ 6.3 re-dated null on the discovery data: 0 PASS of 8 (at most 1 allowed): PASSED
+CONFIRMATION DATA: 5376 sessions 2005-01-03 .. 2026-10-01, 4437 stocks; implied volatilities on 359 formation days
+ books: O1 313, O2 313, O3 313, O4 313, O5 72, O6 313, O7 73, O8 313
+
+DISCOVERY 2005-01-01 .. 2020-10-31 (monthly mean %, net of charges; O2, O4 = excess over the universe; Holm across 8; DSR with N = 352):
+ O1 smirk long-short               486 books | 10.2 a side | 118 months | -0.105% a month | won 45% | worst month -1.99% | t -2.28 | Holm n | DSR 0.00 -> FAIL
+ O2 smirk short only               486 books | 10.2 a side | 118 months | -0.170% a month | won 48% | worst month -3.42% | t -2.35 | Holm n | DSR 0.00 -> FAIL
+ O3 call-put spread long-short     496 books | 11.1 a side | 118 months | -0.075% a month | won 48% | worst month -1.70% | t -1.51 | Holm n | DSR 0.00 -> FAIL
+ O4 call-put spread long only      496 books | 11.1 a side | 118 months | -0.078% a month | won 47% | worst month -2.26% | t -1.09 | Holm n | DSR 0.00 -> FAIL
+ O5 IV changes long-short          117 books | 11.8 a side | 117 months | -0.017% a month | won 50% | worst month -6.69% | t -0.08 | Holm n | DSR 0.00 -> FAIL
+ O6 option/futures volume L-S      769 books | 13.3 a side | 177 months | +0.055% a month | won 53% | worst month -2.54% | t 1.32 | Holm n | DSR 0.00 -> FAIL
+ O7 realized minus implied L-S     118 books | 11.6 a side | 118 months | -0.091% a month | won 49% | worst month -10.03% | t -0.33 | Holm n | DSR 0.00 -> FAIL
+ O8 combined long-short            476 books |   10 a side | 118 months | -0.153% a month | won 49% | worst month -1.98% | t -2.56 | Holm n | DSR 0.00 -> FAIL
+DISCOVERY PASS: none. PROMISING: none.
+
+CONFIRMATION 2020-10-01 .. 2026-10-01 (every member reported; a discovery PASS is CONFIRMED with mean > 0 and t >= 2):
+ O1 smirk long-short               313 books | 13.5 a side |  72 months | -0.135% a month | won 42% | worst month -1.32% | t -2.84
+ O2 smirk short only               313 books | 13.5 a side |  72 months | -0.160% a month | won 46% | worst month -1.71% | t -2.32
+ O3 call-put spread long-short     313 books | 13.7 a side |  72 months | -0.028% a month | won 48% | worst month -0.95% | t -0.60
+ O4 call-put spread long only      313 books | 13.7 a side |  72 months | +0.018% a month | won 49% | worst month -1.24% | t 0.29
+ O5 IV changes long-short           72 books | 13.8 a side |  72 months | +0.002% a month | won 51% | worst month -5.61% | t 0.01
+ O6 option/futures volume L-S      313 books | 13.9 a side |  72 months | -0.009% a month | won 50% | worst month -1.23% | t -0.21
+ O7 realized minus implied L-S      73 books | 13.8 a side |  73 months | -0.145% a month | won 49% | worst month -6.69% | t -0.61
+ O8 combined long-short            313 books | 13.4 a side |  72 months | -0.104% a month | won 42% | worst month -1.17% | t -2.11
+
+CANDIDATES (discovery PASS and confirmed): none. A candidate goes to TRACK as a forward paper test first, never straight to FUTURES.
+
