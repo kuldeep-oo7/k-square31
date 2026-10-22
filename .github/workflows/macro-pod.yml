@@ -1,0 +1,47 @@
+name: macro-pod
+# The macro pod's ONE real run (studies/macro-pod-2026-10-20 on branch claude/macro-pod-2026-10-20; registration with
+# amendments A1, A2). Runs on Linux so the registration hashes match (LF files). Data from the private repo; RESULT.txt and
+# result.json (summary numbers only) come back as an artifact.
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: "score.js arguments (empty = the real run, checks first; --checks = checks only)"
+        required: false
+        default: ""
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/macro-pod-2026-10-20
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: Macro data and NSE index closes 2012-2020 from the private repo
+        env:
+          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+          GH_REPO: kuldeep-oo7/k2-data
+        run: |
+          mkdir -p "$RUNNER_TEMP/m" && cd "$RUNNER_TEMP/m"
+          for a in ind_close_all part_oi nsdl_fpi fred; do gh release download data-macro -p "macro-$a.tar.gz" --clobber && tar -xzf "macro-$a.tar.gz" && rm "macro-$a.tar.gz"; done
+          for p in 2009-01-01 2013-01-01 2017-01-01; do gh release download data-oos -p "nse-old-$p.tar.gz" --clobber && tar -xzf "nse-old-$p.tar.gz" --wildcards 'nse-old/idx/*' && rm "nse-old-$p.tar.gz"; done
+          echo "ind_close_all $(ls macro/ind_close_all | wc -l), part_oi $(ls macro/part_oi | wc -l), nsdl $(ls macro/nsdl_fpi | wc -l) months, old idx $(ls nse-old/idx | grep -c json)"
+      - name: The macro pod
+        env:
+          K2_MACRO_DIR: ${{ runner.temp }}/m/macro
+          K2_OOS_IDX: ${{ runner.temp }}/m/nse-old/idx
+        run: |
+          set -o pipefail
+          cd studies/macro-pod-2026-10-20 && node score.js ${{ inputs.args }} | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: macro-pod-result
+          path: |
+            studies/macro-pod-2026-10-20/RESULT.txt
+            studies/macro-pod-2026-10-20/result.json
