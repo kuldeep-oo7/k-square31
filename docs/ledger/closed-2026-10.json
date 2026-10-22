@@ -242812,6 +242812,186 @@
     "perLot": 18357,
     "netPerLot": 18187.51
    }
+  },
+  {
+   "id": "2026-10-22|FUTS|COCHINSHIP26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "COCHINSHIP",
+   "contract": "COCHINSHIP26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 400,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 1165.3,
+   "target": 1136.2,
+   "target2": 1107,
+   "stop": 1182.8,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 69,
+     "medianTradingDays": 0.175
+    },
+    "target": {
+     "probabilityPct": 79.1,
+     "medianTradingDays": 2.095
+    },
+    "sigmaPct": 32.3,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.6,
+     "stopFirstPct": 62.4,
+     "neitherPct": 0,
+     "breakEvenPct": 37.6
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-22T04:24:42.777Z",
+   "hoursToFill": 0.62,
+   "closedAt": "2026-10-22T05:04:40.658Z",
+   "exitPrice": 1182.8,
+   "exitReason": "STOP",
+   "hoursFillToExit": 0.67,
+   "sessionsHeld": 0,
+   "best": 1158.5,
+   "worst": 1184.1,
+   "last": 1183,
+   "lastAt": "2026-10-22T05:04:40.658Z",
+   "marks": 5,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 1184.1,
+    "low": 1145.3,
+    "last": 1183
+   },
+   "pnl": {
+    "perUnit": -17.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-22|FUTS|POLICYBZR26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "POLICYBZR",
+   "contract": "POLICYBZR26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 350,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 1018.2,
+   "target": 992.7,
+   "target2": 967.3,
+   "stop": 1033.5,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 72.2,
+     "medianTradingDays": 0.149
+    },
+    "target": {
+     "probabilityPct": 81.3,
+     "medianTradingDays": 1.767
+    },
+    "sigmaPct": 36.1,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-22T04:44:43.093Z",
+   "hoursToFill": 0.95,
+   "closedAt": "2026-10-22T05:04:40.658Z",
+   "exitPrice": 1033.5,
+   "exitReason": "STOP",
+   "hoursFillToExit": 0.33,
+   "sessionsHeld": 0,
+   "best": 1018.2,
+   "worst": 1055.3,
+   "last": 1039.8,
+   "lastAt": "2026-10-22T05:04:40.658Z",
+   "marks": 5,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 1055.3,
+    "low": 1000.4,
+    "last": 1039.8
+   },
+   "pnl": {
+    "perUnit": -15.3,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-22|FUTS|MANAPPURAM26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "MANAPPURAM",
+   "contract": "MANAPPURAM26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 3000,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 301.55,
+   "target": 294,
+   "target2": 286.45,
+   "stop": 306.05,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 67.9,
+     "medianTradingDays": 0.184
+    },
+    "target": {
+     "probabilityPct": 78.1,
+     "medianTradingDays": 2.241
+    },
+    "sigmaPct": 31,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.3,
+     "stopFirstPct": 62.7,
+     "neitherPct": 0,
+     "breakEvenPct": 37.3
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-22T05:04:40.658Z",
+   "hoursToFill": 1.29,
+   "closedAt": "2026-10-22T05:04:40.658Z",
+   "exitPrice": 306.05,
+   "exitReason": "STOP",
+   "hoursFillToExit": 0,
+   "sessionsHeld": 0,
+   "best": 301.55,
+   "worst": 306.6,
+   "last": 305.95,
+   "lastAt": "2026-10-22T05:04:40.658Z",
+   "marks": 5,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 306.6,
+    "low": 297.4,
+    "last": 305.95
+   },
+   "pnl": {
+    "perUnit": -4.5,
+    "pct": -1.49,
+    "basis": "GROSS"
+   }
   }
  ]
 }
