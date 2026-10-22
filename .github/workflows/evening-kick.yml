@@ -1,0 +1,35 @@
+name: evening-kick
+# GitHub's own schedule started the evening paper job and the Kronos job 3-5 hours late on 21 and 22 Oct 2026, so the
+# next day's lists were missing until the evening was over. The desk build at about 15:53 IST is started on time by
+# cron-job.org; it starts this job, which waits on GitHub and starts springy-dip.yml at 19:30 IST and kronos.yml at
+# 20:30 IST (NSE posts the day's files by then). Their own schedules stay as backstops: a list is stored once, so a
+# second run changes nothing. Public repository: the waiting runner costs nothing.
+on:
+  workflow_dispatch:
+    inputs:
+      paper_at:
+        description: "IST time (HHMM) to start springy-dip.yml"
+        default: "1930"
+      kronos_at:
+        description: "IST time (HHMM) to start kronos.yml"
+        default: "2030"
+permissions:
+  actions: write
+concurrency:
+  group: evening-kick
+  cancel-in-progress: false
+jobs:
+  kick:
+    runs-on: ubuntu-latest
+    timeout-minutes: 330
+    env:
+      GH_TOKEN: ${{ github.token }}
+    steps:
+      - name: Start the paper job at the set time
+        run: |
+          until [ "$(TZ=Asia/Kolkata date +%H%M)" -ge "${{ inputs.paper_at }}" ]; do sleep 60; done
+          gh workflow run springy-dip.yml -R "${{ github.repository }}" --ref main && echo "started springy-dip at $(TZ=Asia/Kolkata date +%H:%M) IST"
+      - name: Start the Kronos job at the set time
+        run: |
+          until [ "$(TZ=Asia/Kolkata date +%H%M)" -ge "${{ inputs.kronos_at }}" ]; do sleep 60; done
+          gh workflow run kronos.yml -R "${{ github.repository }}" --ref main && echo "started kronos at $(TZ=Asia/Kolkata date +%H:%M) IST"
