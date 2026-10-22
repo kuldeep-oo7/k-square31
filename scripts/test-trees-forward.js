@@ -35,6 +35,18 @@ check("a book whose 5 sessions are not over is OPEN", open.status === "OPEN");
 const gone = { sym: "GONE", bars: ss.slice(0, 14).map((d, i) => ({ d, o: 100, c: 100, val: 1e9 })) };
 const v2 = tf.bookValue(require("../api/_lib/forward-v3").context({ sessions: ss, stocks: [...stocks, gone] }), { ...list, long: [{ symbol: "UP" }, { symbol: "GONE" }] });
 check("a leg whose stock stopped trading inside its window is dropped, not held open", v2.status === "DONE" && v2.nLong === 1, JSON.stringify(v2));
+// the page boxes and the live-price requests
+const { treesBox, treesTrackBox } = require("./publish-static-desk"); const { paperRequests } = require("../api/_lib/paper-live");
+const store = { rule: "r", backtest: "b", preregistration: "p", dataThrough: "2026-10-22", next: { signalDate: "2026-10-26", madeOn: "2026-10-27", entry: "2026-10-28" }, lists: {}, books: [], summary: { finished: 0, verdict: "COLLECTING" } };
+const none = treesBox({ trees: store, sessionOver: true, nextSession: "2026-10-23", sessionDate: "2026-10-22" });
+check("before the first list: the box says when it is made and for which day", /Next list: made on the evening of Tue 27 Oct, for Wed 28 Oct/.test(none) && /PROMISING in its test \(t 2.78\), not proven/.test(none), none.replace(/\s+/g, " ").slice(0, 300));
+const withList = { ...store, lists: { "2026-10-26": { signalDate: "2026-10-26", entry: "2026-10-28", exit: "2026-11-03", madeAt: "2026-10-27T15:00:00Z", names: 180, enough: true,
+  long: [{ symbol: "AAA", futures: true, expiry: "2026-11-23" }, { symbol: "BBB", futures: false, expiry: null }], short: [{ symbol: "CCC", futures: true, expiry: "2026-11-23" }] } } };
+const today = treesBox({ trees: withList, sessionOver: false, sessionDate: "2026-10-28", nextSession: "2026-10-29" });
+check("on its entry day: the buy and sell lists, the exit day, and names without NSE futures marked", /Wed 28 Oct:<\/b> enter at the open; close at the close on <b>Tue 3 Nov/.test(today) && /BBB<\/b> <span class="sub down">no NSE futures/.test(today) && /AAA<\/b> <span class="sub">Nov fut/.test(today));
+const reqs = paperRequests({ oiFlow: null, kronos: null, trees: withList, target: "2026-10-28", nextTradingDate: (x) => x, sbExpiry: () => null });
+check("live prices are requested for the list's futures names only", reqs.length === 2 && reqs.every((r) => r.book === "TREES") && !reqs.some((r) => r.symbol === "BBB"));
+check("the TRACK box shows the verdict state", /COLLECTING/.test(treesTrackBox(store)) && treesTrackBox(null) === "");
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed) process.exit(1);
 console.log("trees forward tests passed");

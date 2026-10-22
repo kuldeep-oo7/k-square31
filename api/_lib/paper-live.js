@@ -8,7 +8,7 @@
 // 15 Oct close).
 
 // Today's lists: what to ask Angel One for. sbExpiry(symbol) -> the nearest futures expiry on or after the session.
-function paperRequests({ oiFlow, kronos, target, nextTradingDate, sbExpiry }) {
+function paperRequests({ oiFlow, kronos, trees = null, target, nextTradingDate, sbExpiry }) {
   const out = []; const seen = new Set();
   const add = (symbol, expiry, book, side) => { if (!symbol || !expiry) return; const key = `${book}|${symbol}`; if (seen.has(key)) return; seen.add(key); out.push({ symbol, expiry, book, side }); };
   for (const p of oiFlow?.SB?.pending || []) if (p.signalDate && nextTradingDate(p.signalDate) === target) add(p.symbol, sbExpiry(p.symbol), "SB", -1);
@@ -17,6 +17,12 @@ function paperRequests({ oiFlow, kronos, target, nextTradingDate, sbExpiry }) {
     if (day.entry !== target || !day.enough || !onTime(day)) continue;
     for (const p of day.long || []) add(p.symbol, p.expiry, "KRONOS", 1);
     for (const p of day.short || []) add(p.symbol, p.expiry, "KRONOS", -1);
+  }
+  // the trees watch (studies/trees-forward-2026-10-22): the list entered today; names without NSE futures have no expiry
+  for (const list of Object.values(trees?.lists || {})) {
+    if (list.entry !== target || !list.enough || !onTime(list)) continue;
+    for (const p of list.long || []) add(p.symbol, p.expiry, "TREES", 1);
+    for (const p of list.short || []) add(p.symbol, p.expiry, "TREES", -1);
   }
   return out;
 }

@@ -943,6 +943,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     // .github/workflows/springy-dip.yml from NSE's own files (null if not yet written).
     springyDip: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "springy-dip.json"), "utf8")); } catch { return null; } })(),
     kronos: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "kronos.json"), "utf8")); } catch { return null; } })(),
+    trees: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "trees.json"), "utf8")); } catch { return null; } })(),
     oiFlow: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "oi-flow.json"), "utf8")); } catch { return null; } })(),
     // The last ~25 share closes for each stock on the focus and Kronos lists (the build's bar cache), for the slip charts.
     sparks: (() => { try {
@@ -961,7 +962,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
       const today = session.sessionDate; const live = require("../api/_lib/live-quotes");
       const keys = Object.keys(require("../api/_lib/broker-feed").loadInstruments("angelone")?.futures || {});
       const sbExpiry = (sym) => keys.filter((k) => k.startsWith(`${sym}|`)).map((k) => k.split("|")[1]).filter((e) => e >= today).sort()[0] || null;
-      const requests = paperRequests({ oiFlow: read("oi-flow.json"), kronos: read("kronos.json"), target: today, nextTradingDate: ledgerLib.nextTradingDate, sbExpiry });
+      const requests = paperRequests({ oiFlow: read("oi-flow.json"), kronos: read("kronos.json"), trees: read("trees.json"), target: today, nextTradingDate: ledgerLib.nextTradingDate, sbExpiry });
       const inSession = !sessionOver && ledgerLib.isTradingDate(today) && Date.now() >= Date.parse(`${today}T09:15:00+05:30`);
       return paperLive({ requests, sessionDate: today, inSession, getQuote: (s, e) => live.liveFuture(s, e, { maxAgeMs: 45 * 60_000 }), feedDate: ledgerLib.feedDate, units: GM_MIN_UNITS });
     } catch { return null; } })(),
@@ -1188,6 +1189,45 @@ function kronosBox(d) {
         ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a list, ${esc(s.winPct)}% up` : ""}; a verdict needs 52 weeks (about Oct 2027). Not for real money.</div>
   </div>`;
 }
+// TREES WATCH (owner, 22 Oct 2026: "yes add the trees model box"). The combined model's C1 trees were PROMISING in their
+// test (t 2.78), not proven; this is a labelled paper watch for GM Global, never a suggestion (FUTURES count stays 0).
+// Lists from docs/paper-rules/trees.json (.github/workflows/trees.yml), rules in studies/trees-forward-2026-10-22; the
+// live pipeline reproduced the study exactly before this was shown (replay, 22 Oct 2026). A list made late is never shown.
+function treesBox(d) {
+  const tr = d.trees; if (!tr || !tr.next) return "";
+  const target = d.sessionOver || d.tradingDay === false ? d.nextSession : d.sessionDate;
+  const dayText = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  const mon = (p) => (!p.futures ? `<span class="sub down">no NSE futures</span>` : p.expiry ? `<span class="sub">${esc(new Date(`${p.expiry}T00:00:00Z`).toLocaleDateString("en-GB", { month: "short", timeZone: "UTC" }))} fut</span>` : "");
+  const lists = Object.values(tr.lists || {}); const onTime = (x) => Date.parse(x.madeAt) < Date.parse(`${x.entry}T09:15:00+05:30`);
+  const today = lists.find((x) => x.entry === target && x.enough && onTime(x));
+  const held = lists.filter((x) => x.enough && onTime(x) && x.entry < target && x.exit >= target).sort((a, b) => (a.entry < b.entry ? -1 : 1));
+  const names = (list) => list.map((p) => `<div><b>${esc(p.symbol)}</b> ${mon(p)}</div>`).join("");
+  return `<div class="note focus" style="border-left-color:var(--muted);margin:0 0 14px">
+    <b>TREES WATCH &mdash; AI model</b> &middot; <b class="warn">PROMISING in its test (t 2.78), not proven</b> &middot; <b>paper only, for GM Global</b>
+    <div style="margin-top:6px">${today
+      ? `<b>${esc(dayText(today.entry))}:</b> enter at the open; close at the close on <b>${esc(dayText(today.exit))}</b> (5 sessions).
+        <div class="sbgrid" style="grid-template-columns:auto auto;gap:4px 28px"><div class="h">BUY (${esc(d.gmMinUnits || 20)} units)</div><div class="h">SELL (${esc(d.gmMinUnits || 20)} units)</div>
+          <div class="up">${names(today.long)}</div><div class="down">${names(today.short)}</div></div>`
+      : `<b class="warn">Next list: made on the evening of ${esc(dayText(tr.next.madeOn || prevTradingText(tr.next)))}, for ${esc(dayText(tr.next.entry))}.</b><span class="lec"> The trees trade every 5th session; a list made after its entry day's open is never shown.</span>`}</div>
+    ${today && target === d.sessionDate ? paperLiveBlock(d, "TREES", [...today.long, ...today.short].filter((p) => p.futures).map((p) => p.symbol)) : ""}
+    ${held.length ? `<div class="sub" style="margin-top:6px">Still held from earlier lists: ${held.map((x) => `${esc(dayText(x.entry))} list &rarr; close at the close on ${esc(dayText(x.exit))}`).join("; ")}.</div>` : ""}
+    <div class="sub lec" style="margin-top:6px">${esc(tr.rule || "")}. Backtest: ${esc(tr.backtest || "")}. Live from ${esc(dayText(tr.next.entry))}; a verdict needs 52 lists (about a year) and t &ge; 3. Not for real money.</div>
+  </div>`;
+}
+// the evening a list is made: the session after its feature date (one session before its entry)
+function prevTradingText(next) { const S = [next.signalDate, next.entry]; const t = new Date(`${S[1]}T00:00:00Z`); do { t.setUTCDate(t.getUTCDate() - 1); } while (t.getUTCDay() % 6 === 0); return t.toISOString().slice(0, 10); }
+function treesTrackBox(tr) {
+  if (!tr || !tr.summary) return "";
+  const s = tr.summary; const mn = (v) => String(v).replace(/^-/, "&minus;");
+  const rows = (tr.books || []).slice(-15).reverse().map((b) => `<tr><td><b>${esc(b.entry)}</b></td><td>${esc(b.status)}</td><td class="num ${b.valuePct > 0 ? "up" : b.valuePct < 0 ? "down" : ""}">${b.valuePct === undefined ? "&mdash;" : `${b.valuePct > 0 ? "+" : ""}${mn(esc(b.valuePct))}%`}</td></tr>`).join("");
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--muted)">
+    <b>FORWARD PAPER WATCH: TREES (AI model)</b><span class="lec"> &mdash; ${esc(tr.rule)}. Backtest: ${esc(tr.backtest)}. Rules fixed in ${esc(tr.preregistration)} before any live list.</span>
+    <b class="warn">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} lists finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a list (half longs, half shorts, after futures charges), ${esc(s.winPct)}% up, t ${s.t === null || s.t === undefined ? "&mdash;" : mn(esc(s.t))}` : ""}.
+    <span class="lec">A verdict needs 52 lists and t &ge; 3. Data through ${esc(tr.dataThrough)}.</span>
+    ${rows ? listFold("Lists", `<div class="wrap"><table><thead><tr><th>ENTRY</th><th>STATUS</th><th class="num">LIST NET</th></tr></thead><tbody>${rows}</tbody></table></div>`) : ""}
+  </div>`;
+}
+
 function kronosTrackBox(k) {
   if (!k || !k.summary) return "";
   const s = k.summary; const mn = (v) => String(v).replace(/^-/, "&minus;");
@@ -2066,6 +2106,7 @@ ${footAlarm}
     <h2>Futures &mdash; ${esc(d.gmMinUnits || 20)} units each (GM Global's minimum)</h2>
     ${sbFocusBox(d)}
     ${kronosBox(d)}
+    ${treesBox(d)}
     ${untested("FUT", "futures rows", d.futures.length + (d.futuresShort || []).length, `${futuresWarned(`    ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`,
       `<b>With no trend, a row's target comes before its stop at most as often as its break-even (about 37.5%)</b> &mdash; a price with no trend is a fair game &mdash;
        so before GM's charges these rows make money only if the BUY signal works. <b>It was tested and FAILED</b>: the desk&rsquo;s own rating,
@@ -2165,6 +2206,7 @@ ${footAlarm}
     ${springyBox(d.springyDip)}
     ${oiFlowBox(d.oiFlow)}
     ${kronosTrackBox(d.kronos)}
+    ${treesTrackBox(d.trees)}
     ${forwardV2Box(d.forwardV2)}
     ${forwardV3Box(d.forwardV3)}
     ${forwardV4Box(d.forwardV4)}
@@ -2356,7 +2398,7 @@ async function main() {
   return data;
 }
 
-module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox, gmTournamentBox };
+module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox, gmTournamentBox, treesBox, treesTrackBox };
 
 // Exported above so a test can drive build() twice and prove the levels did not
 // move. Run directly, it is still just a build.

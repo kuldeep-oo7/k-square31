@@ -244,7 +244,7 @@ async function step(label, fn) {
     const read = (f) => { try { return JSON.parse(fs.readFileSync(path.resolve(__dirname, "..", "docs", "paper-rules", f), "utf8")); } catch { return null; } };
     const keys = Object.keys(require("../api/_lib/broker-feed").loadInstruments("angelone")?.futures || {});
     const sbExpiry = (sym) => keys.filter((k) => k.startsWith(`${sym}|`)).map((k) => k.split("|")[1]).filter((e) => e >= today).sort()[0] || null;
-    const requests = paperRequests({ oiFlow: read("oi-flow.json"), kronos: read("kronos.json"), target: today, nextTradingDate, sbExpiry });
+    const requests = paperRequests({ oiFlow: read("oi-flow.json"), kronos: read("kronos.json"), trees: read("trees.json"), target: today, nextTradingDate, sbExpiry });
     if (!requests.length) return "no paper list for today";
     const r = await require("../api/_lib/live-quotes").refreshFutures(requests.map(({ symbol, expiry }) => ({ symbol, expiry })));
     if (!r.ok) throw new Error(`not priced: ${r.reason}`);

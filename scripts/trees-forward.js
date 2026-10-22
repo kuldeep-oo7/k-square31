@@ -32,7 +32,7 @@ function due(data, store) {   // the list for the rebalance at the previous sess
 }
 function nextList(data) {   // the next rebalance feature date and its entry, for the page
   const S = data.sessions, L = S.length - 1; const sch = tf.schedule(S); let i = L; while (!sch.isRebalance(i)) i += 1;
-  const signal = i <= L ? S[i] : after(S[L], i - L); return { signalDate: signal, entry: after(signal, tf.RULE.lag) };
+  const signal = i <= L ? S[i] : after(S[L], i - L); return { signalDate: signal, madeOn: after(signal, 1), entry: after(signal, tf.RULE.lag) };
 }
 function write(store, data, ctx) {
   const { books, summary } = tf.score(store.lists, data, ctx);
