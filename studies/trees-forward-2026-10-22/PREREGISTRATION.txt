@@ -1,0 +1,65 @@
+PRE-REGISTRATION -- FORWARD PAPER WATCH of the combined model's TREES on NSE stocks ("TF")
+Written Thursday 22 Oct 2026, about 08:40 IST, BEFORE any live list is made for it. The commit time is the proof.
+Owner, 22 Oct 2026, asked whether to show the trees model's picks next to Kronos: "yes add the trees model box".
+
+WHAT IS KNOWN ALREADY (so this is a SECOND look at the trees, not a fresh idea)
+studies/combined-model-2026-10-13 (branch claude/combined-model-2026-10-13; prereg + A1 + A2), ONE real run 18 Oct 2026
+(Actions 39143272481, code commit 04a0b39): C1 trees long-short, top tenth long and bottom tenth short of the live top-200
+universe, 198 rebalances Oct 2022 .. Oct 2026: +0.117% a rebalance, 54.0% winners, Newey-West t 2.78, Holm yes, full DSR
+0.79 -> PROMISING, not a PASS. C3 (its long side alone, against the universe) t 3.39, DSR 0.87 -> PROMISING. Under GM's rules
+(studies/gm-tournament-2026-10-21) C1 scored t 3.48 but DSR 0.11; it cannot be checked on 2005-2020 (its inputs start 2020).
+It goes on the page as a WATCH, labelled PROMISING, NOT PROVEN, for GM Global paper only. Never a suggestion for real money
+unless this forward test passes.
+
+THE MODEL (identical to the tested run)
+- Code: studies/combined-model-2026-10-13/features.js and model.py at commit 04a0b39 (unchanged since; b851cd1 only added
+  results). Python 3.12 with scikit-learn 1.9.1, numpy 2.5.4, pandas 3.0.6; node 24 with xlsx 0.18.5 (category file).
+- Inputs: NSE's own files, as the study read them (CM bhavcopy, F&O futures, delivery, option OI, short selling, SLB open
+  positions and fees, MWPL, margin trading, insider filings, participant volumes, category turnover, index closes), every
+  file dated on or before the feature date d. The study's data end (K2_CM_END 2026-10-09, amendment A2) does not apply.
+- Rebalance feature dates: every 5th NSE session (CM session index) counted from the first session on or after 2022-10-03,
+  as model.py; the next ones are about 26 Oct and 2 Nov 2026 (read from NSE's sessions, never assumed).
+- Training as model.py: one HistGradientBoostingRegressor (its registered settings, random_state 0), retrained every 4th
+  rebalance on every row with a finite label whose feature index is at most the block's first rebalance minus 5.
+- DIFFERENCE (live only, stated now): a file NSE has not yet posted when the list is made (the category-turnover file is
+  posted days late) leaves its features missing for that date; the trees accept missing values. In the study those files
+  were present. Nothing is filled in by hand.
+
+REPLAY BEFORE ANYTHING IS SHOWN (a precondition)
+- The live pipeline, run as it will run every week (the research snapshot of 4 Oct 2026 plus the paper job's current NSE
+  files for futures, delivery and option OI, the current atlas, no data end), must reproduce the study's predictions
+  (private release combined-model-run, preds.csv) row for row for every rebalance through 2026-10-01, with the session
+  index 519 = 2022-10-03 and 1509 = 2026-10-01. And the forward scoring code, fed the study's own predictions, must give
+  C1's 198 rebalances, +0.117% a rebalance, 54.0% winners, t 2.78. If either fails, the watch is not shown until the
+  cause is found and stated.
+
+COMPLETENESS AND PRIVACY
+- A list is made only when NSE's CM bhavcopy and F&O bhavcopy for d and for the session after d are on hand. Each stored
+  list records how many of its names had each feature family present at d (counts only).
+- The public store (docs/paper-rules/trees.json) holds only the long and short symbols of each list and the scores;
+  the predictions and the feature panel stay in the private repo k2-data. Logs carry counts only.
+
+THE TRADE (C1, as the study)
+- At each rebalance feature date d with at least 50 names predicted: rank by the trees' prediction T. LONG the top
+  floor(n/10), SHORT the bottom floor(n/10).
+- Entry: the official open of the SECOND NSE session after d (features.js: e = S[i+2]; one session of lag for every file).
+  Exit: the official close of the 5th session counted from the entry (the entry is the first). Books do not overlap.
+- The list is made on the evening of the session after d (after NSE posts d's files) and counts only if it is committed
+  to the repository before 09:15 IST on the entry day. A list made later is shown as LATE and not counted. A stored list
+  is never recomputed or overwritten.
+- Scored on the stocks' shares (NSE CM official open and close), as the study. A trade whose window crosses a reset (an
+  open >= 18% from the previous close) is VOID. Charges: stock futures, calculateNseFuturesCharges (dated, quantity
+  ceil(500000 / entry), both sides) plus one round trip per month end crossed, as the study.
+- Value of a book V = (mean net of its longs + mean net of its shorts) / 2.
+- The page shows, for information: which names have NSE stock futures (NSE's F&O file of d), the contract month, and
+  GM's 20 units. Nothing from GM Global is read.
+
+SCORING AND VERDICT
+- Counted: every on-time book whose list was made after this registration's commit.
+- Series: one value per book (books are weekly). t = Newey-West, 4 lags.
+- VERDICT only at >= 52 books (about a year): PASS if mean > 0 AND t >= 3; otherwise FAIL. Before that, COLLECTING, with
+  the running mean, winners and t. Power stated now: the study's per-book Sharpe was about 0.20, so 52 books give an
+  expected t near 1.4; a PASS is unlikely unless the trees do better live than in their test.
+
+WHAT WOULD MAKE THIS VOID
+Changing any rule above after the first list; recomputing a stored list; using any price after d to make d's list.
