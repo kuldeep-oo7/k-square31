@@ -140,9 +140,11 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     DSR 1.00), positive in every sub-period; worst expiry -3.19% of NIFTY; the edge needs selling AFTER the open (post-hoc
     audit). On TRACK as a forward paper test from 27 Oct 2026 (studies/expiry-selling-forward-2026-10-21; verdict X2 after 52
     expiries). NIFTY lot is 65 (NSE FO bhavcopy NewBrdLotQty, 21 Oct 2026).
-  - GM tournament (branch claude/gm-tournament-2026-10-21, prereg e38edd4 + A1 51321cc + A2 dd86733): every coded member
-    under GM's rules; the 20 Oct phase-1 board was interim (SB t 3.94, DSR 0.91); the full board (86+ members) and the one
-    2005-2020 confirmation of the top 5 decide.
+  - GM tournament (branch claude/gm-tournament-2026-10-21, prereg e38edd4 + A1 51321cc + A2 dd86733): FULL BOARD 21 Oct
+    (Actions 39644817254): 86 members under GM's rules, 0 PASS; PROMISING SB short build-up (t 3.94, Holm, DSR 0.57; since
+    Sep 2024 only t 0.91), CM1 trees long-short (t 3.48), LU (t 2.68); Kronos t 0.98 FAIL. The one 2005-2020 re-check
+    (Actions 39710811828): SB CONFIRMED (34,332 trades, +0.28%/trade, t 4.83; examined data), LU and SD NOT CONFIRMED,
+    CM1 and S2 NOT CONFIRMABLE. On TRACK as information (docs/paper-rules/gm-tournament.json). Done; don't re-run.
   - Don't re-run these as "new".
 
 ## Open work (as of 2 Oct 2026). Pick up from here
