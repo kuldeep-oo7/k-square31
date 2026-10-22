@@ -196,7 +196,7 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     is the study's code, scripts/expiry-forward-replay.js reproduces its 351 expiries exactly). Reads nse-nod/ (NSE F&O bhavcopy
     NIFTY rows, from 22 Oct) and nse-idx/ (NIFTY's open). Information only, never a row on CALLS/PUTS.
   - Ten rules in all. Their daily NSE files live in release `data-paper-inputs`. GitHub runs the paper job and kronos.yml hours
-    late at night: the owner was asked (21 Oct) to add cron-job.org triggers at 19:30 (springy-dip.yml) and 20:30 (kronos.yml).
+    late at night (21 Oct: 23:47 and 00:25 IST): the owner was asked on the morning of 22 Oct to add cron-job.org triggers at 19:30 (springy-dip.yml) and 20:30 (kronos.yml).
 - `npm run check` had outgrown Windows' command line: add new tests to `scripts/check-forward.js`,
   not to the package.json chain.
 - **Testing standard:** protocol v2 (research/audit-2026-10-04/PROTOCOL.txt): the whole sample,
