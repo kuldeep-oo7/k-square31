@@ -2,10 +2,10 @@
  "preregistration": "studies/forward-v4-2026-10-12/PREREGISTRATION.txt",
  "preregSha256": "a166456d30ddcfdd8cef3dbc16e02060273dc0f1931420fe3953973920f9f68d",
  "start": "2026-10-13",
- "dataThrough": "2026-10-21",
+ "dataThrough": "2026-10-22",
  "slbThrough": "2026-10-21",
  "slbFiles": 55,
- "builtAt": "2026-10-22T10:29:11.167Z",
+ "builtAt": "2026-10-22T16:43:44.169Z",
  "S2": {
   "rule": "When the shares out on loan in NSE's lending market (SLB) jump to at least 2x their 20-day average, and at least 1 lakh shares: short the stock at the open of the 2nd session after that day's file, cover at the close 5 sessions later",
   "backtest": "+0.26% a trade over the market, 55% winners, t 2.23, 2,085 trades over 61 months (NSE data atlas study, 12 Oct 2026) — promising, not proven",
@@ -74,21 +74,31 @@
     "symbol": "ATHERENERG",
     "signalDate": "2026-10-13",
     "entryDate": "2026-10-15",
+    "exitDate": "2026-10-22",
     "entry": 1470.7,
+    "exit": 1425.3,
     "ratio": 3.1,
     "outstanding": 853060,
     "hasFutures": true,
-    "status": "OPEN"
+    "rawPct": 3.021,
+    "marketPct": -3.431,
+    "netPct": -0.41,
+    "status": "DONE"
    },
    {
     "symbol": "RBLBANK",
     "signalDate": "2026-10-13",
     "entryDate": "2026-10-15",
+    "exitDate": "2026-10-22",
     "entry": 387.2,
+    "exit": 361,
     "ratio": 6.14,
     "outstanding": 1004450,
     "hasFutures": true,
-    "status": "OPEN"
+    "rawPct": 6.701,
+    "marketPct": -3.431,
+    "netPct": 3.269,
+    "status": "DONE"
    },
    {
     "symbol": "KALYANKJIL",
@@ -183,9 +193,9 @@
   ],
   "pending": [],
   "summary": {
-   "finished": 6,
-   "meanPct": 0.407,
-   "winPct": 66.7,
+   "finished": 8,
+   "meanPct": 0.662,
+   "winPct": 62.5,
    "worstPct": -0.462,
    "t": null,
    "verdict": "COLLECTING"

@@ -2,14 +2,34 @@
  "preregistration": "studies/forward-v3-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
  "start": "2026-10-05",
- "dataThrough": "2026-10-21",
- "builtAt": "2026-10-22T10:29:08.041Z",
+ "dataThrough": "2026-10-22",
+ "builtAt": "2026-10-22T16:43:39.127Z",
  "industries": 2584,
  "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
  "CHEAPVOL": {
   "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
   "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months — just short of the bar",
   "trades": [
+   {
+    "symbol": "KEI",
+    "entryDate": "2026-10-22",
+    "expiry": "2026-11-23",
+    "strike": 3900,
+    "entry": 302,
+    "ivPct": 32.9,
+    "rvPct": 43.4,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ADANIGREEN",
+    "entryDate": "2026-10-22",
+    "expiry": "2026-11-23",
+    "strike": 1240,
+    "entry": 94.5,
+    "ivPct": 31.9,
+    "rvPct": 40.8,
+    "status": "OPEN"
+   },
    {
     "symbol": "RBLBANK",
     "entryDate": "2026-10-21",
@@ -368,7 +388,10 @@
     "entry": 10.55,
     "ivPct": 41.5,
     "rvPct": 53.3,
-    "status": "OPEN"
+    "exitDate": "2026-10-22",
+    "exit": 8.28,
+    "netPct": -21.76,
+    "status": "DONE"
    },
    {
     "symbol": "UPL",
@@ -1022,11 +1045,11 @@
    }
   ],
   "summary": {
-   "finished": 50,
-   "meanPct": -5.098,
-   "winPct": 20,
+   "finished": 51,
+   "meanPct": -5.425,
+   "winPct": 19.6,
    "worstPct": -61.031,
-   "t": -1.58,
+   "t": -1.9,
    "verdict": "COLLECTING"
   }
  },
@@ -1150,7 +1173,7 @@
   ],
   "pending": null,
   "pendingNoIndustry": [],
-  "sessionsToNext": 3,
+  "sessionsToNext": 2,
   "summary": {
    "finished": 2,
    "meanPct": 0.91,
