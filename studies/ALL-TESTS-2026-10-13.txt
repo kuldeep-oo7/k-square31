@@ -218,6 +218,12 @@ Notation: mean = average net % per trade; t = t-statistic (> 3 needed under v2, 
    the US dollar index, and all three together with a 3% stop, one NIFTY position, 2012-2026 | 0 PASS, 0 PROMISING
    (t 0.06, 0.58, 0.27, 0.67); every member far below buy-and-hold NIFTY. Two amendments before the run: NSE's category
    file had no FPI rows (NSDL used); the Fed publishes the dollar index weekly, so the registered timing was a look-ahead.
+ night lab (branch claude/night-lab-2026-10-23, prereg a67caf2 + A1 ccb7787; Actions 39828578979) | 17 members: stop-
+   losses on short build-up (1/1.5/2/3%), SB filters, a squeeze long, and published ideas (MAX, high-volume premium,
+   same-month seasonality, tug of war intraday/overnight, pre-holiday, lead-lag); discovery NSE 2005-2020, confirmation
+   2020-2026, N = 317 trials | 0 PASS, no candidate. Every SB stop LOSES against holding to the close, in both periods
+   (1% stop: t -5.83 and -1.27). PROMISING: SB strong signal (fall >= 3%, OI >= 6%) t 2.99 then 2.73; tug of war intraday
+   t 6.71 then 4.14 and overnight t 6.16 then 4.62 (DSR 0.00: about +0.05% a day after 2020, spreads not counted).
 
 ================================================================================================================
 PART B: EVERY STUDY'S LOCKED RULES AND FULL RESULT, COPIED FROM GIT BY SCRIPT (unedited)

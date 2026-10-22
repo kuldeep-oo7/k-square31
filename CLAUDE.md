@@ -151,6 +151,11 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     FII futures position, NSDL FPI cash flow, dollar index, all three with a 3% stop, 2012-04..2026-10: 0 PASS, best t 0.67;
     all below buy-and-hold. Learned: NSE cat_turnover has no FPI rows; FRED DTWEXBGS is weekly (H.10, Mondays 4:15 p.m.
     ET); NSE's index file named NIFTY "S&P CNX Nifty"/"CNX Nifty" until Nov 2015; the NSE index API returns block pages.
+  - FAIL: night lab (branch claude/night-lab-2026-10-23, prereg a67caf2 + A1 ccb7787; Actions 39828578979): 17 members,
+    discovery 2005-2020, confirmation 2020-2026: 0 PASS. SB stop-losses at 1/1.5/2/3% all LOSE vs holding to the close
+    (both periods). PROMISING: SB strong signal (fall >= 3%, OI >= 6%) t 2.99/2.73; tug of war intraday/overnight
+    (Lou-Polk-Skouras) t 6.71/6.16 then 4.14/4.62, DSR 0.00, ~+0.05%/day after 2020 before spreads. MAX, high-volume,
+    seasonality, pre-holiday, lead-lag, squeeze long FAIL.
   - Don't re-run these as "new".
 
 ## Open work (as of 2 Oct 2026). Pick up from here

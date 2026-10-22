@@ -41,3 +41,4 @@
 - [Audit 11 Oct](k2-audit-2026-10-11.md) — after the trip: desk builds reverted paper files, ledger missed a stop, FINNIFTY history frozen, paper job 6 h late, night builds a day behind: all fixed; PR #2 merged; FII/DII recorded daily; index-put drop cause still to read Monday
 - [Audit rule: spider web](audit-rule-spider-web.md) — USER RULE 12 Oct: question everything (every wh-question, several angles), verify live, trace every fix through all dependents, audit the whole day after each close
 - [Audit 12 Oct](k2-audit-2026-10-12.md) — first live day with shorts audited vs NSE: 9 fixes (early options vanish, shorts everywhere, official close after hours, false OUT OF DATE); PROBLEMS.md list; every-NSE-file collector; open-source research report (TimesFM/Chronos/Qlib/arch/PBO/HAR/conformal)
+- [Night lab 23 Oct](k2-night-lab-2026-10-23.md) — 17 pre-registered ideas, 0 PASS; SB stop-losses LOSE at every level (both periods); strong-SB and tug of war only PROMISING
