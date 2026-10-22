@@ -1,8 +1,9 @@
 "use strict";
 // The forward paper test of STRONG short build-up signals (studies/sb-strong-forward-2026-10-23/PREREGISTRATION.txt):
 // the night lab's member S7. A short build-up signal exactly as oi-flow-forward.js, and on the raw values the share fell
-// at least 3% and its futures OI rose at least 6% -> short at NSE's open of d, cover at the close of d. Judged on EXCESS =
-// net + the universe's equal-weighted open-to-close return on d (the night lab's universe and benchmark).
+// at least 3% and its futures OI rose at least 6% -> short at the open of d, cover at the close of d. Amendment A1 (before
+// any trade): priced on the stock's near-month FUTURE (NSE's official open and close), judged on EXCESS = net + the
+// universe's equal-weighted near-month futures open-to-close return on d; the share-priced net is reported alongside.
 const { calculateNseFuturesCharges } = require("./shadow-broker");
 const { isoWeek } = require("./springy-dip");
 const ofw = require("./oi-flow-forward");
@@ -24,22 +25,25 @@ function universeFor(sessions, stocks, rule) {
     ranked.sort((a, c) => c[1] - a[1]); const out = ranked.slice(0, rule.universe).map((x) => x[0]); cache.set(month, out); return out; };
 }
 
-function forward({ sessions, stocks, oi, rule = RULE }) {
+// futPx: Map(day -> Map(symbol -> { o, c })), the earliest expiry on or after that day in NSE's F&O file (A1)
+function forward({ sessions, stocks, oi, futPx = new Map(), rule = RULE }) {
   const sb = ofw.forward({ sessions, stocks, oi, rule: { ...ofw.RULE, start: rule.start } });
   const sIdx = new Map(sessions.map((d, i) => [d, i])); const bars = new Map(stocks.map((st) => [st.sym, new Map(st.bars.map((b) => [b.d, b]))]));
   const uni = universeFor(sessions, stocks, rule);
   const strength = (sym, d1) => { const d2 = sessions[sIdx.get(d1) - 1]; const m = bars.get(sym), o = oi.get(sym); const p1 = m && m.get(d1), p2 = m && m.get(d2);
     const R = p1 && p2 ? p1.c / p2.c - 1 : null; const OI = o && o.get(d1) > 0 && o.get(d2) > 0 ? o.get(d1) / o.get(d2) - 1 : null;
     return { R, OI, strong: R !== null && OI !== null && R <= rule.rMax && OI >= rule.oiMin }; };
-  const bench = (d) => { const xs = []; for (const sym of uni(d.slice(0, 7))) { const b = bars.get(sym).get(d); if (b) xs.push(b.c / b.o - 1); } return xs.length >= rule.minNames ? xs.reduce((a, x) => a + x, 0) / xs.length : null; };
+  const bench = (d) => { const xs = [], fp = futPx.get(d); if (fp) for (const sym of uni(d.slice(0, 7))) { const f = fp.get(sym); if (f) xs.push(f.c / f.o - 1); } return xs.length >= rule.minNames ? xs.reduce((a, x) => a + x, 0) / xs.length : null; };
   const pct = (x, k = 2) => +(x * 100).toFixed(k);
+  const shortNet = (o, c, d) => { const qty = Math.ceil(rule.notional / o); return -(c / o - 1) - (charge("SELL", o, qty, d) + charge("BUY", c, qty, d)) / (o * qty); };
   const pending = sb.SB.pending.map((p) => ({ ...p, ...strength(p.symbol, p.signalDate) })).filter((p) => p.strong).map(({ symbol, signalDate, R, OI }) => ({ symbol, signalDate, pricePct: pct(R), oiPct: pct(OI) }));
   const trades = sb.SB.trades.filter((t) => t.entryDate >= rule.start).map((t) => ({ t, s: strength(t.symbol, t.signalDate) })).filter((x) => x.s.strong).map(({ t, s }) => {
     const base = { symbol: t.symbol, signalDate: t.signalDate, entryDate: t.entryDate, pricePct: pct(s.R), oiPct: pct(s.OI) };
     if (t.status !== "DONE") return { ...base, status: t.status };
-    const qty = Math.ceil(rule.notional / t.entry); const net = -(t.exit / t.entry - 1) - (charge("SELL", t.entry, qty, t.entryDate) + charge("BUY", t.exit, qty, t.exitDate)) / (t.entry * qty);
-    const B = bench(t.entryDate); if (B === null) return { ...base, entry: t.entry, exit: t.exit, status: "NOT COUNTED (universe under 30 names)" };
-    return { ...base, entry: t.entry, exit: t.exit, netPct: pct(net, 3), excessPct: pct(net + B, 3), rupees: Math.round(-rule.units * (t.exit - t.entry)), status: "DONE" }; });
+    const f = futPx.get(t.entryDate) && futPx.get(t.entryDate).get(t.symbol); if (!f) return { ...base, status: "NO FUTURES PRICE" };
+    const net = shortNet(f.o, f.c, t.entryDate), shareNetPct = pct(shortNet(t.entry, t.exit, t.entryDate), 3);
+    const B = bench(t.entryDate); if (B === null) return { ...base, entry: f.o, exit: f.c, shareNetPct, status: "NOT COUNTED (universe under 30 names)" };
+    return { ...base, entry: f.o, exit: f.c, netPct: pct(net, 3), excessPct: pct(net + B, 3), shareNetPct, rupees: Math.round(-rule.units * (f.c - f.o)), status: "DONE" }; });
   return { lastSession: sb.lastSession, pending, trades, summary: summarise(trades.filter((t) => t.status === "DONE"), rule) };
 }
 
@@ -54,7 +58,7 @@ function summarise(done, rule) {
   const months = (Date.parse(done.map((x) => x.entryDate).sort().pop()) - Date.parse(rule.start)) / (30.44 * 864e5); const crit = tCrit05(G - 1);
   const verdict = !(n >= rule.minTrades && months >= rule.minMonths) ? "COLLECTING" : mean > 0 && t !== null && crit !== null && t >= crit ? "PASS" : "FAIL";
   const r3 = (x) => +x.toFixed(3);
-  return { finished: n, meanExcessPct: r3(mean), meanNetPct: r3(done.reduce((a, x) => a + x.netPct, 0) / n), winPct: +((100 * done.filter((x) => x.netPct > 0).length) / n).toFixed(1),
+  return { finished: n, meanExcessPct: r3(mean), meanNetPct: r3(done.reduce((a, x) => a + x.netPct, 0) / n), meanShareNetPct: r3(done.reduce((a, x) => a + (x.shareNetPct ?? 0), 0) / n), winPct: +((100 * done.filter((x) => x.netPct > 0).length) / n).toFixed(1),
     worstNetPct: Math.min(...done.map((x) => x.netPct)), rupees: done.reduce((a, x) => a + x.rupees, 0), weeks: G, t: t === null ? null : +t.toFixed(2), verdict };
 }
 module.exports = { RULE, forward, summarise, tCrit05 };

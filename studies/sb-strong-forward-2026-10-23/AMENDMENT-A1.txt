@@ -1,0 +1,23 @@
+AMENDMENT A1 TO THE STRONG SHORT BUILD-UP FORWARD TEST -- written Friday 23 Oct 2026, about 00:45 IST, BEFORE the first
+session it covers (09:15 IST today) and before any of its trades exists.
+
+WHY
+A descriptive look tonight, after the 09:15 lab (studies/open-lab-2026-10-23) and so post-hoc, on NSE 2021 .. 2026-10-01:
+- short build-up trades priced on the stock's near-month FUTURE (NSE's official futures open -> close; the instrument the
+  owner trades on GM Global) earned +0.092% a trade (t 3.81, 8,591 trades), against +0.218% (t 9.06) for the same trades
+  priced on the SHARE's official open -> close, as every desk test so far has priced them;
+- across all 276,440 stock-days, the future gained 0.085% on the share from open to close (0.136% on days the share opened
+  at or above its previous close). The futures' closing price equals NSE's settlement price in every file checked, so the
+  difference arises at the open.
+The test should judge what the owner can trade.
+
+CHANGE
+- NET and EXCESS are computed on FUTURES: the contract is the earliest expiry on or after d listed for the stock in NSE's
+  F&O file of d (as scripts/oi-flow-forward.js futuresLast); entry = its official open, exit = its official close. Charges
+  as before, quantity ceil(500000 / futures open).
+- EXCESS = NET + the equal-weighted open-to-close return on d of the same universe's near-month futures (names with a
+  futures price that day; at least 30, else the trade is not counted).
+- A signal with no futures price on d is not counted (status NO FUTURES PRICE).
+- The share-priced net, as first registered, is reported alongside, not judged.
+Everything else is unchanged: the signal, the strong cut-offs, the start (2026-10-23), the 100 trades and 3 months, the
+one-sided 5% t clustered by ISO week.

@@ -1252,7 +1252,7 @@ function sbStrongBox(s) {
   return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
     <b>SHORT BUILD-UP, STRONG SIGNALS ONLY</b> <b class="${tone}">${esc(m.verdict || "COLLECTING")}</b> &mdash; ${esc(m.finished ?? 0)} finished${m.finished ? `, ${sg(m.meanNetPct)} a trade, ${sg(m.meanExcessPct)} vs the market, ${esc(m.winPct)}% winners, t ${(m.t ?? null) === null ? "&mdash;" : mn(esc(m.t))}` : ""}.
     <span class="lec"> &mdash; ${esc(s.rule)}. Backtest: ${esc(s.backtest)}. Counted from ${esc(s.start)}; rules fixed in ${esc(s.preregistration)}.
-      A verdict needs 100 trades and 3 months. Data through ${esc(s.dataThrough)}. <b>Not a recommendation until it passes.</b></span>
+      Priced on the near-month future, the contract you trade (amendment A1); the share-priced result is kept alongside. A verdict needs 100 trades and 3 months. Data through ${esc(s.dataThrough)}. <b>Not a recommendation until it passes.</b></span>
     ${pend ? listFold(`Next session: ${esc(np)} strong signal${np === 1 ? "" : "s"}`, `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th class="num">PRICE</th><th class="num">OPEN INT.</th></tr></thead><tbody>${pend}</tbody></table></div>`) : `<div class="sub">No strong signal for the next session.</div>`}
     ${done ? listFold("Latest trades", `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAY</th><th class="num">NET</th><th class="num">VS MARKET</th></tr></thead><tbody>${done}</tbody></table></div>`) : ""}
   </div>`;

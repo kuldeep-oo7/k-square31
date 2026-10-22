@@ -4,11 +4,16 @@ const assert = require("node:assert");
 const fs = require("node:fs");
 const path = require("node:path");
 const { RULE, forward, summarise, tCrit05 } = require("../api/_lib/sb-strong-forward");
-const { preregSha } = require("./sb-strong-forward");
+const { shaOf, loadFutPx } = require("./sb-strong-forward");
 const { calculateNseFuturesCharges } = require("../api/_lib/shadow-broker");
 
-// 1. the registration is the committed one
-assert.strictEqual(preregSha(), fs.readFileSync(path.join(__dirname, "..", "studies", "sb-strong-forward-2026-10-23", "PREREGISTRATION.sha256"), "utf8").split(/\s+/)[0]);
+// 1. the registration and its amendment are the committed ones
+for (const f of ["PREREGISTRATION", "AMENDMENT-A1"]) assert.strictEqual(shaOf(f), fs.readFileSync(path.join(__dirname, "..", "studies", "sb-strong-forward-2026-10-23", `${f}.sha256`), "utf8").split(/\s+/)[0]);
+
+// 1b. futures prices from an F&O file: the earliest expiry on or after the day; a zero price is never a price
+const tmp = fs.mkdtempSync(path.join(require("node:os").tmpdir(), "sbs-"));
+fs.writeFileSync(path.join(tmp, "2026-10-23.json"), JSON.stringify([["X", "STK", "2026-11-24", 101, 0, 0, 102, 102, 1, 0, 1], ["X", "STK", "2026-10-27", 100, 0, 0, 99, 99, 1, 0, 1], ["Y", "STK", "2026-10-27", 0, 0, 0, 50, 50, 1, 0, 1], ["N", "IDX", "2026-10-27", 1, 0, 0, 1, 1, 1, 0, 1]]));
+const fpx = loadFutPx(tmp).get("2026-10-23"); assert.deepStrictEqual([...fpx.keys()], ["X"]); assert.deepStrictEqual(fpx.get("X"), { o: 100, c: 99 });
 
 // 2. one-sided 5% critical values: the next LOWER listed degrees of freedom
 assert.strictEqual(tCrit05(13), 1.782); assert.strictEqual(tCrit05(12), 1.782); assert.strictEqual(tCrit05(200), 1.658); assert.strictEqual(tCrit05(0), null);
@@ -21,17 +26,23 @@ const stocks = Array.from({ length: 40 }, (_, k) => ({ sym: k === 0 ? "X" : k ==
   let o = c; if (i === entry) { o = c; c = k === 0 ? o * 0.98 : k === 1 ? o * 0.99 : o * 1.001; }
   return { d, o, h: Math.max(o, c), l: Math.min(o, c), c, val: 1e9 - k }; }) }));
 const oi = new Map([["X", new Map(sessions.map((d, i) => [d, i >= sig ? 1.1e6 : 1e6]))], ["Y", new Map(sessions.map((d, i) => [d, i >= sig ? 1.04e6 : 1e6]))]]);
-const res = forward({ sessions, stocks, oi, rule: { ...RULE, start: sessions[entry] } });
+// futures (amendment A1): each stock's near-month future opens 0.2% under the share and closes 0.1% above it
+const futPx = new Map([[sessions[entry], new Map(stocks.map((s) => [s.sym, { o: s.bars[entry].o * 0.998, c: s.bars[entry].c * 1.001 }]))]]);
+const res = forward({ sessions, stocks, oi, futPx, rule: { ...RULE, start: sessions[entry] } });
 const done = res.trades.filter((t) => t.status === "DONE");
 assert.deepStrictEqual(done.map((t) => t.symbol), ["X"], "only the strong signal is a trade");
-const x = done[0], bx = stocks[0].bars[entry], q = Math.ceil(500000 / bx.o);
-const net = -(bx.c / bx.o - 1) - (calculateNseFuturesCharges({ side: "SELL", price: bx.o, quantity: q, asOfDate: `${bx.d}T12:00:00Z` }).totalCharges + calculateNseFuturesCharges({ side: "BUY", price: bx.c, quantity: q, asOfDate: `${bx.d}T12:00:00Z` }).totalCharges) / (bx.o * q);
-const B = stocks.reduce((a, s) => a + (s.bars[entry].c / s.bars[entry].o - 1), 0) / 40;
-assert.ok(Math.abs(x.netPct - +(net * 100).toFixed(3)) < 1e-9, "net after charges");
-assert.ok(Math.abs(x.excessPct - +((net + B) * 100).toFixed(3)) < 1e-9, "excess = net + the universe's open-to-close");
-assert.strictEqual(x.rupees, Math.round(-20 * (bx.c - bx.o)));
+const ch = (side, p, q, d) => calculateNseFuturesCharges({ side, price: p, quantity: q, asOfDate: `${d}T12:00:00Z` }).totalCharges;
+const shortNet = (o, c, d) => { const q = Math.ceil(500000 / o); return -(c / o - 1) - (ch("SELL", o, q, d) + ch("BUY", c, q, d)) / (o * q); };
+const x = done[0], bx = stocks[0].bars[entry], fx = futPx.get(sessions[entry]).get("X");
+const net = shortNet(fx.o, fx.c, bx.d), B = stocks.reduce((a, s) => { const f = futPx.get(sessions[entry]).get(s.sym); return a + (f.c / f.o - 1); }, 0) / 40;
+assert.ok(Math.abs(x.netPct - +(net * 100).toFixed(3)) < 1e-9, "net on the future, after charges");
+assert.ok(Math.abs(x.excessPct - +((net + B) * 100).toFixed(3)) < 1e-9, "excess = net + the universe's futures open-to-close");
+assert.ok(Math.abs(x.shareNetPct - +(shortNet(bx.o, bx.c, bx.d) * 100).toFixed(3)) < 1e-9, "the share-priced net is reported");
+assert.strictEqual(x.entry, fx.o); assert.strictEqual(x.exit, fx.c); assert.strictEqual(x.rupees, Math.round(-20 * (fx.c - fx.o)));
 assert.strictEqual(x.pricePct, -5); assert.strictEqual(x.oiPct, 10);
 assert.strictEqual(res.pending.length, 0);
+const noFut = forward({ sessions, stocks, oi, futPx: new Map(), rule: { ...RULE, start: sessions[entry] } });
+assert.deepStrictEqual(noFut.trades.map((t) => t.status), ["NO FUTURES PRICE"], "no futures price: not counted");
 
 // 4. the next-session list: move the signal to the last session
 const res2 = forward({ sessions: sessions.slice(0, entry), stocks: stocks.map((s) => ({ ...s, bars: s.bars.slice(0, entry) })), oi, rule: { ...RULE, start: sessions[entry - 1] } });
