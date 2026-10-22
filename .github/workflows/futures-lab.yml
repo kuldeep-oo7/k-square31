@@ -1,0 +1,73 @@
+name: futures-lab
+# The futures lab (studies/futures-lab-2026-10-23 on branch claude/futures-lab-2026-10-23): the desk's short-term rules and
+# learning machines priced on the near-month future the owner trades, registered before any real-data run. mode=synthetic is
+# a dry run of check 5.2 (no market data is read); mode=real is the one real run. Summary rows only: this
+# repository is public, and the feature tables and predictions stay on the runner.
+on:
+  workflow_dispatch:
+    inputs:
+      mode:
+        description: "synthetic (dry run of check 5.2, no market data) or real (the one run)"
+        required: true
+        default: "synthetic"
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/futures-lab-2026-10-23
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Pinned learning libraries
+        run: pip install -q scikit-learn==1.9.1 numpy==2.5.4
+      - name: Synthetic dry run of check 5.2 (no market data)
+        if: inputs.mode == 'synthetic'
+        run: |
+          set -o pipefail
+          cd studies/futures-lab-2026-10-23
+          node run.js --synthetic "$RUNNER_TEMP/w"
+          python ml.py "$RUNNER_TEMP/w" planted
+          echo "planted predictions written"
+      - name: NSE data from the private repo
+        if: inputs.mode == 'real'
+        env:
+          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+          GH_REPO: kuldeep-oo7/k2-data
+        run: |
+          mkdir -p "$RUNNER_TEMP/d" && cd "$RUNNER_TEMP/d"
+          for p in 2005-01-01 2009-01-01 2013-01-01 2017-01-01; do
+            gh release download data-oos -p "nse-old-$p.tar.gz" --clobber
+            tar -xzf "nse-old-$p.tar.gz" --exclude='nse-old/opt' --exclude='nse-old/sopt' && rm "nse-old-$p.tar.gz"
+          done
+          gh release download data-nse-cm -p nse-cm.tar.gz --clobber && tar -xzf nse-cm.tar.gz && rm nse-cm.tar.gz
+          mkdir -p research/rising-stocks-2026-10-02 && mv nse-data research/rising-stocks-2026-10-02/nse-data
+          gh release download data-research -p research-nse-fo.tar.gz --clobber && tar -xzf research-nse-fo.tar.gz && rm research-nse-fo.tar.gz
+          gh release download data-macro -p macro-ind_close_all.tar.gz --clobber && tar -xzf macro-ind_close_all.tar.gz && rm macro-ind_close_all.tar.gz
+          echo "2005-2020: cm $(ls nse-old/cm | grep -c json), fut $(ls nse-old/fut | grep -c json), idx $(ls nse-old/idx | grep -c json); 2020-2026: cm $(ls research/rising-stocks-2026-10-02/nse-data/cm | grep -c json), fut $(ls research/orderflow-2026-10-03/nse-fo/fut | grep -c json); index closes $(ls macro/ind_close_all | wc -l)"
+      - name: The futures lab
+        if: inputs.mode == 'real'
+        env:
+          K2_OOS_NSE: ${{ runner.temp }}/d/nse-old
+          K2_RESEARCH_DIR: ${{ runner.temp }}/d/research
+          K2_MACRO_IC: ${{ runner.temp }}/d/macro/ind_close_all
+        run: |
+          set -o pipefail
+          cd studies/futures-lab-2026-10-23
+          node --max-old-space-size=12000 run.js --features "$RUNNER_TEMP/w" | tee -a "$GITHUB_STEP_SUMMARY"
+          python ml.py "$RUNNER_TEMP/w"
+          node --max-old-space-size=12000 run.js --score "$RUNNER_TEMP/w" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the result
+        if: always() && inputs.mode == 'real'
+        uses: actions/upload-artifact@v4
+        with:
+          name: futures-lab-result
+          if-no-files-found: ignore
+          path: |
+            studies/futures-lab-2026-10-23/RESULT.txt
+            studies/futures-lab-2026-10-23/result.json
