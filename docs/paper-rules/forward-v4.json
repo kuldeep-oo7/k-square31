@@ -2,14 +2,24 @@
  "preregistration": "studies/forward-v4-2026-10-12/PREREGISTRATION.txt",
  "preregSha256": "a166456d30ddcfdd8cef3dbc16e02060273dc0f1931420fe3953973920f9f68d",
  "start": "2026-10-13",
- "dataThrough": "2026-10-19",
- "slbThrough": "2026-10-19",
- "slbFiles": 54,
- "builtAt": "2026-10-20T10:19:28.723Z",
+ "dataThrough": "2026-10-21",
+ "slbThrough": "2026-10-21",
+ "slbFiles": 55,
+ "builtAt": "2026-10-22T02:31:26.225Z",
  "S2": {
   "rule": "When the shares out on loan in NSE's lending market (SLB) jump to at least 2x their 20-day average, and at least 1 lakh shares: short the stock at the open of the 2nd session after that day's file, cover at the close 5 sessions later",
   "backtest": "+0.26% a trade over the market, 55% winners, t 2.23, 2,085 trades over 61 months (NSE data atlas study, 12 Oct 2026) — promising, not proven",
   "trades": [
+   {
+    "symbol": "SUZLON",
+    "signalDate": "2026-10-16",
+    "entryDate": "2026-10-21",
+    "entry": 40.23,
+    "ratio": 21.88,
+    "outstanding": 5070917,
+    "hasFutures": true,
+    "status": "OPEN"
+   },
    {
     "symbol": "HDFCBANK",
     "signalDate": "2026-10-15",
@@ -84,51 +94,76 @@
     "symbol": "KALYANKJIL",
     "signalDate": "2026-10-12",
     "entryDate": "2026-10-14",
+    "exitDate": "2026-10-21",
     "entry": 570,
+    "exit": 557,
     "ratio": 33.35,
     "outstanding": 346402,
     "hasFutures": true,
-    "status": "OPEN"
+    "rawPct": 2.214,
+    "marketPct": -2.676,
+    "netPct": -0.462,
+    "status": "DONE"
    },
    {
     "symbol": "NTPC",
     "signalDate": "2026-10-12",
     "entryDate": "2026-10-14",
+    "exitDate": "2026-10-21",
     "entry": 311,
+    "exit": 303,
     "ratio": 2.17,
     "outstanding": 117569,
     "hasFutures": true,
-    "status": "OPEN"
+    "rawPct": 2.506,
+    "marketPct": -2.676,
+    "netPct": -0.17,
+    "status": "DONE"
    },
    {
     "symbol": "PAYTM",
     "signalDate": "2026-10-12",
     "entryDate": "2026-10-14",
+    "exitDate": "2026-10-21",
     "entry": 1718.5,
+    "exit": 1670,
     "ratio": 2.74,
     "outstanding": 128078,
     "hasFutures": true,
-    "status": "OPEN"
+    "rawPct": 2.756,
+    "marketPct": -2.676,
+    "netPct": 0.08,
+    "status": "DONE"
    },
    {
     "symbol": "PFC",
     "signalDate": "2026-10-12",
     "entryDate": "2026-10-14",
+    "exitDate": "2026-10-21",
     "entry": 342.05,
+    "exit": 328.4,
     "ratio": 13.31,
     "outstanding": 410764,
     "hasFutures": true,
-    "status": "OPEN"
+    "rawPct": 3.924,
+    "marketPct": -2.676,
+    "netPct": 1.248,
+    "status": "DONE"
    },
    {
     "symbol": "PREMIERENE",
     "signalDate": "2026-10-12",
     "entryDate": "2026-10-14",
+    "exitDate": "2026-10-21",
     "entry": 919,
+    "exit": 881,
     "ratio": 2.5,
     "outstanding": 157872,
     "hasFutures": true,
-    "status": "OPEN"
+    "rawPct": 4.069,
+    "marketPct": -2.676,
+    "netPct": 1.393,
+    "status": "DONE"
    },
    {
     "symbol": "COCHINSHIP",
@@ -146,21 +181,12 @@
     "status": "DONE"
    }
   ],
-  "pending": [
-   {
-    "symbol": "SUZLON",
-    "signalDate": "2026-10-16",
-    "ratio": 21.88,
-    "outstanding": 5070917,
-    "entry": "the open of the 2nd NSE session after 2026-10-16",
-    "hasFutures": true
-   }
-  ],
+  "pending": [],
   "summary": {
-   "finished": 1,
-   "meanPct": 0.35,
-   "winPct": 100,
-   "worstPct": 0.35,
+   "finished": 6,
+   "meanPct": 0.407,
+   "winPct": 66.7,
+   "worstPct": -0.462,
    "t": null,
    "verdict": "COLLECTING"
   }

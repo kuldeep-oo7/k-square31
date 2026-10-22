@@ -2,8 +2,8 @@
  "preregistration": "studies/oi-flow-forward-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
  "start": "2026-10-05",
- "dataThrough": "2026-10-19",
- "builtAt": "2026-10-20T10:19:14.394Z",
+ "dataThrough": "2026-10-21",
+ "builtAt": "2026-10-22T02:31:11.661Z",
  "LU": {
   "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
   "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
@@ -34,7 +34,10 @@
     "oiPct": -3.6,
     "entryDate": "2026-10-07",
     "entry": 547.4,
-    "status": "OPEN"
+    "exitDate": "2026-10-21",
+    "exit": 557,
+    "netPct": 1.686,
+    "status": "DONE"
    },
    {
     "symbol": "M&M",
@@ -62,8 +65,8 @@
    }
   ],
   "summary": {
-   "finished": 2,
-   "meanNetPct": 2.88,
+   "finished": 3,
+   "meanNetPct": 2.482,
    "winPct": 100,
    "weeks": 1,
    "t": null,
@@ -75,49 +78,212 @@
   "backtest": "FAILED (+0.296% / +0.020% / +0.131% a trade; final t 1.86, not enough after 12 tests)",
   "pending": [
    {
+    "symbol": "ABB",
+    "signalDate": "2026-10-21",
+    "pricePct": -5.94,
+    "oiPct": 12.25,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "AMBER",
+    "signalDate": "2026-10-21",
+    "pricePct": -2.9,
+    "oiPct": 4.29,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "AUBANK",
+    "signalDate": "2026-10-21",
+    "pricePct": -1.82,
+    "oiPct": 4.36,
+    "status": "SIGNAL"
+   },
+   {
     "symbol": "AUROPHARMA",
-    "signalDate": "2026-10-19",
-    "pricePct": -2.73,
-    "oiPct": 3.9,
+    "signalDate": "2026-10-21",
+    "pricePct": -2.63,
+    "oiPct": 3.3,
     "status": "SIGNAL"
    },
    {
-    "symbol": "BDL",
-    "signalDate": "2026-10-19",
-    "pricePct": -2.4,
-    "oiPct": 3.78,
+    "symbol": "CGPOWER",
+    "signalDate": "2026-10-21",
+    "pricePct": -3.98,
+    "oiPct": 5.53,
     "status": "SIGNAL"
    },
    {
-    "symbol": "ULTRACEMCO",
-    "signalDate": "2026-10-19",
-    "pricePct": -2.36,
-    "oiPct": 6.58,
+    "symbol": "COCHINSHIP",
+    "signalDate": "2026-10-21",
+    "pricePct": -4.84,
+    "oiPct": 6.04,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "DIXON",
+    "signalDate": "2026-10-21",
+    "pricePct": -3.4,
+    "oiPct": 3.71,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "FORCEMOT",
+    "signalDate": "2026-10-21",
+    "pricePct": -3.86,
+    "oiPct": 4.25,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "KEI",
+    "signalDate": "2026-10-21",
+    "pricePct": -4.76,
+    "oiPct": 5.25,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "MANAPPURAM",
+    "signalDate": "2026-10-21",
+    "pricePct": -5.62,
+    "oiPct": 3.16,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "MUTHOOTFIN",
+    "signalDate": "2026-10-21",
+    "pricePct": -2.97,
+    "oiPct": 6.34,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "NATIONALUM",
+    "signalDate": "2026-10-21",
+    "pricePct": -1.82,
+    "oiPct": 4.09,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "RBLBANK",
+    "signalDate": "2026-10-21",
+    "pricePct": -4.51,
+    "oiPct": 3.37,
     "status": "SIGNAL"
    },
    {
     "symbol": "YESBANK",
-    "signalDate": "2026-10-19",
-    "pricePct": -3.54,
-    "oiPct": 3.34,
+    "signalDate": "2026-10-21",
+    "pricePct": -2.78,
+    "oiPct": 3.79,
     "status": "SIGNAL"
+   },
+   {
+    "symbol": "MAZDOCK",
+    "signalDate": "2026-10-21",
+    "pricePct": -2.66,
+    "oiPct": 4.8,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "SONACOMS",
+    "signalDate": "2026-10-21",
+    "pricePct": -3.54,
+    "oiPct": 17.54,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "LTF",
+    "signalDate": "2026-10-21",
+    "pricePct": -2.92,
+    "oiPct": 3.88,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "WAAREEENER",
+    "signalDate": "2026-10-21",
+    "pricePct": -2.39,
+    "oiPct": 4.74,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "ETERNAL",
+    "signalDate": "2026-10-21",
+    "pricePct": -2.45,
+    "oiPct": 4.63,
+    "status": "SIGNAL"
+   }
+  ],
+  "trades": [
+   {
+    "symbol": "WAAREEENER",
+    "signalDate": "2026-10-19",
+    "pricePct": -1.96,
+    "oiPct": 12.31,
+    "entryDate": "2026-10-21",
+    "entry": 2498,
+    "exitDate": "2026-10-21",
+    "exit": 2455,
+    "netPct": 1.655,
+    "status": "DONE"
    },
    {
     "symbol": "HYUNDAI",
     "signalDate": "2026-10-19",
     "pricePct": -1.61,
     "oiPct": 6.38,
-    "status": "SIGNAL"
+    "entryDate": "2026-10-21",
+    "entry": 1955,
+    "exitDate": "2026-10-21",
+    "exit": 1943.9,
+    "netPct": 0.501,
+    "status": "DONE"
    },
    {
-    "symbol": "WAAREEENER",
+    "symbol": "YESBANK",
     "signalDate": "2026-10-19",
-    "pricePct": -1.96,
-    "oiPct": 12.31,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "pricePct": -3.54,
+    "oiPct": 3.34,
+    "entryDate": "2026-10-21",
+    "entry": 16.95,
+    "exitDate": "2026-10-21",
+    "exit": 16.41,
+    "netPct": 3.12,
+    "status": "DONE"
+   },
+   {
+    "symbol": "ULTRACEMCO",
+    "signalDate": "2026-10-19",
+    "pricePct": -2.36,
+    "oiPct": 6.58,
+    "entryDate": "2026-10-21",
+    "entry": 10822,
+    "exitDate": "2026-10-21",
+    "exit": 10849,
+    "netPct": -0.316,
+    "status": "DONE"
+   },
+   {
+    "symbol": "BDL",
+    "signalDate": "2026-10-19",
+    "pricePct": -2.4,
+    "oiPct": 3.78,
+    "entryDate": "2026-10-21",
+    "entry": 1082,
+    "exitDate": "2026-10-21",
+    "exit": 1070,
+    "netPct": 1.043,
+    "status": "DONE"
+   },
+   {
+    "symbol": "AUROPHARMA",
+    "signalDate": "2026-10-19",
+    "pricePct": -2.73,
+    "oiPct": 3.9,
+    "entryDate": "2026-10-21",
+    "entry": 1621.4,
+    "exitDate": "2026-10-21",
+    "exit": 1578.8,
+    "netPct": 2.561,
+    "status": "DONE"
+   },
    {
     "symbol": "LTF",
     "signalDate": "2026-10-16",
@@ -732,51 +898,51 @@
    }
   ],
   "summary": {
-   "finished": 51,
-   "meanNetPct": -0.016,
-   "winPct": 45.1,
+   "finished": 57,
+   "meanNetPct": 0.136,
+   "winPct": 49.1,
    "weeks": 3,
-   "t": -0.08,
+   "t": 0.47,
    "verdict": "COLLECTING"
   },
   "futuresLast": {
-   "date": "2026-10-19",
+   "date": "2026-10-21",
    "rows": [
     {
-     "symbol": "ANGELONE",
+     "symbol": "AUROPHARMA",
      "expiry": "2026-10-27",
-     "open": 301.4,
-     "close": 302.55
+     "open": 1625.2,
+     "close": 1577.6
     },
     {
-     "symbol": "DIXON",
+     "symbol": "BDL",
      "expiry": "2026-10-27",
-     "open": 12366,
-     "close": 12149
+     "open": 1085.9,
+     "close": 1069.1
     },
     {
-     "symbol": "LTF",
+     "symbol": "HYUNDAI",
      "expiry": "2026-10-27",
-     "open": 254.2,
-     "close": 251.85
+     "open": 1941.6,
+     "close": 1937.9
     },
     {
-     "symbol": "MCX",
+     "symbol": "ULTRACEMCO",
      "expiry": "2026-10-27",
-     "open": 3162.5,
-     "close": 3184.4
+     "open": 10850,
+     "close": 10831
     },
     {
-     "symbol": "PERSISTENT",
+     "symbol": "WAAREEENER",
      "expiry": "2026-10-27",
-     "open": 5690,
-     "close": 5691
+     "open": 2476,
+     "close": 2429.4
     },
     {
-     "symbol": "PFC",
+     "symbol": "YESBANK",
      "expiry": "2026-10-27",
-     "open": 335,
-     "close": 333.9
+     "open": 16.9,
+     "close": 16.35
     }
    ],
    "void": 0

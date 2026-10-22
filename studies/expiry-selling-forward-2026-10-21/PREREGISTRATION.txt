@@ -1,0 +1,35 @@
+PRE-REGISTRATION -- FORWARD PAPER TEST: SELLING NIFTY OPTIONS ON EXPIRY DAY
+Written Wed 21 Oct 2026 ~22:30 IST, BEFORE the first expiry it counts (Tue 27 Oct 2026). The commit time is the proof.
+
+WHERE IT COMES FROM
+studies/expiry-selling-2026-10-20 (branch claude/expiry-selling-2026-10-20; registration sha256 02af144... with amendment A1
+c6020456...; one real run 21 Oct 2026 on NSE's own F&O bhavcopy): all four members PASSED on 351 expiries, 2020-2026
+(X2 +17.6 points an expiry after costs, t 4.43, full DSR 1.00), positive in every sub-period. Post-hoc audit
+(audit-open-prints.js): open prints are noisy but not one-sided; the edge needs selling AFTER the open. CLAUDE.md rule 4:
+a PASS goes to TRACK as a paper test first. The owner asked for it on 21 Oct ("build everything").
+
+RULES (identical to the study; api/_lib/expiry-forward.js, proven identical by scripts/expiry-forward-replay.js, which
+reproduces the study's 351 expiries and mean returns of every member exactly)
+- An expiry session is a session whose NSE F&O bhavcopy has NIFTY options expiring that day (read, never computed).
+- Each leg is SOLD at its official OPEN that session; strikes are the listed ones nearest NIFTY's official open (NSE
+  ind_close_all): X1 and X2 the ATM call and put, X3 and X4 the call nearest open x 1.01 and the put nearest open x 0.99.
+- X1, X3 are held to the final settlement (intrinsic value against the median settle price of that day's expiring rows).
+  X2, X4 buy a leg back at 2x its entry if the day's HIGH reached 2x (the cautious reading of a daily file).
+- Costs: api/_lib/trade-costs.js roundTripCost for 75 units (as registered) plus 1 point a leg.
+
+WHAT IS COUNTED
+Every NIFTY expiry session from 2026-10-27 on, from NSE's official files only (scripts/nse-nifty-option-days.js,
+scripts/nse-index-close-history.js), scored after the close by the paper job (.github/workflows/springy-dip.yml).
+
+VERDICT (X2 is the primary member; X1, X3, X4 are reported with the same figures, not judged)
+COLLECTING until 52 expiries (about a year of weekly expiries). Then CONFIRMED if X2's mean net return per expiry (% of
+NIFTY's open) is above 0 and its t (mean / (sd / sqrt n)) is at least 1.68 (one-sided 5%); otherwise NOT CONFIRMED.
+POWER, stated now: the study's per-expiry Sharpe was about 0.24, so 52 expiries give an expected t near 1.7: about an
+even chance to confirm even if the edge is real. NOT CONFIRMED will not mean the edge is gone; CONFIRMED will not mean
+it is safe (X2's worst expiry in the study lost 3.19% of NIFTY's open: about 727 points, Rs 47,000 a lot at 65 units with
+NIFTY near 22,800).
+
+DISPLAY
+TRACK, information only: the verdict line and, behind a tap, each expiry's strikes, credit and result in points and in
+rupees a lot at the lot size in NSE's own file. Not on CALLS or PUTS, and never a suggestion: selling options needs
+margin (SEBI's measures add 2% extreme-loss margin on short options on expiry day) and can lose far more than the premium.

@@ -1,0 +1,37 @@
+name: nifty-options
+# NIFTY options near each expiry, every session from Feb 2019 (scripts/nse-nifty-option-days.js), for the expiry-day
+# option-selling test. One job per year; resumable from the private release data-nifty-options.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  download:
+    runs-on: ubuntu-latest
+    timeout-minutes: 300
+    strategy:
+      fail-fast: false
+      matrix:
+        year: [2019, 2020, 2021, 2022, 2023, 2024, 2025, 2026]
+    env:
+      GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+      GH_REPO: kuldeep-oo7/k2-data
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: Resume
+        run: |
+          gh release view data-nifty-options >/dev/null 2>&1 || gh release create data-nifty-options --title "NIFTY options near expiry (NSE F&O bhavcopy)" --notes "NIFTY index options within 8 days of expiry, every session from Feb 2019, from NSE's own F&O bhavcopy. scripts/nse-nifty-option-days.js. Private data." --latest=false || true
+          mkdir -p nod && (gh release download data-nifty-options -p "nod-${{ matrix.year }}.tar.gz" && tar -xzf "nod-${{ matrix.year }}.tar.gz") || echo "nothing saved yet"
+      - name: Download ${{ matrix.year }}
+        run: |
+          from=${{ matrix.year }}-01-01; [ ${{ matrix.year }} = 2019 ] && from=2019-02-01
+          node scripts/nse-nifty-option-days.js nod/${{ matrix.year }} $from ${{ matrix.year }}-12-31 | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Save
+        if: always()
+        run: |
+          [ -d nod/${{ matrix.year }} ] || exit 0
+          tar -czf nod-${{ matrix.year }}.tar.gz nod/${{ matrix.year }}
+          for i in 1 2 3; do gh release upload data-nifty-options nod-${{ matrix.year }}.tar.gz --clobber && break; sleep 15; done
+          echo "saved $(ls nod/${{ matrix.year }} | wc -l) days" | tee -a "$GITHUB_STEP_SUMMARY"
