@@ -1,12 +1,12 @@
 name: gm-tournament
 # The GM Global tournament (studies/gm-tournament-2026-10-21 on branch claude/gm-tournament-2026-10-21): every coded
 # strategy scored under GM's rules. Runs on Linux so the studies' own registration hashes match (LF files). Data from the
-# private repo; RESULT.txt and the leaderboards (summary numbers only) come back as an artifact.
+# private repo; RESULT.txt, the leaderboards and CONFIRMATION.txt (summary numbers only) come back as an artifact.
 on:
   workflow_dispatch:
     inputs:
       args:
-        description: "run.js arguments (empty = the full run; --check = checks only; --replay-only = check 5.4 only; --phase1 = the interim run)"
+        description: "run.js arguments (empty = the full run; --check = checks only; --replay-only = check 5.4 only; --phase1 = the interim run); --confirm = the one 2005-2020 confirmation (confirm.js)"
         required: false
         default: ""
 permissions:
@@ -22,16 +22,19 @@ jobs:
       - uses: actions/setup-node@v4
         with: { node-version: "24" }
       - name: Code of the prediction members from their own branches (amendment A2), not committed here
+        if: inputs.args != '--confirm'
         run: |
           git fetch --depth=1 origin claude/combined-model-2026-10-13:refs/remotes/origin/cm claude/forecast-models-2026-10-13:refs/remotes/origin/fm
           git checkout origin/cm -- studies/combined-model-2026-10-13
           git checkout origin/fm -- studies/forecast-models-2026-10-13
       - name: Research data from the private repo
+        if: inputs.args != '--confirm'
         env:
           GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
           GH_REPO: kuldeep-oo7/k2-data
         run: bash scripts/restore-research-data.sh --no-sopt
       - name: SLB open positions, Kronos forecasts and combined-model predictions (private)
+        if: inputs.args != '--confirm'
         env:
           GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
           GH_REPO: kuldeep-oo7/k2-data
@@ -48,6 +51,7 @@ jobs:
           gh release download combined-model-run -p preds.csv.gz --clobber && gunzip -f preds.csv.gz
           echo "Kronos forecasts sha256: $(sha256sum forecasts-kronos-dated.csv | cut -c1-16)...; CM prediction rows: $(($(wc -l < preds.csv) - 1))"
       - name: Tournament
+        if: inputs.args != '--confirm'
         env:
           K2_SLB_DIR: ${{ runner.temp }}/atlas/nse-atlas/slb_openpos
           K2_KR_FORECASTS: ${{ runner.temp }}/pred/forecasts-kronos-dated.csv
@@ -58,6 +62,22 @@ jobs:
           # bytes; git stores LF). Restore those bytes; the study's own check then verifies them exactly.
           sed -i 's/$/\r/' studies/rising-stocks-2026-10-02/PREREGISTRATION-v2.txt
           cd studies/gm-tournament-2026-10-21 && node --max-old-space-size=12000 run.js ${{ inputs.args }} | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: NSE 2005-2020 from the private repo (release data-oos)
+        if: inputs.args == '--confirm'
+        env:
+          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+          GH_REPO: kuldeep-oo7/k2-data
+        run: |
+          mkdir -p "$RUNNER_TEMP/oos" && cd "$RUNNER_TEMP/oos"
+          for p in 2005-01-01 2009-01-01 2013-01-01 2017-01-01; do gh release download data-oos -p "nse-old-$p.tar.gz" --clobber && tar -xzf "nse-old-$p.tar.gz" && rm "nse-old-$p.tar.gz"; done
+          echo "cm $(ls nse-old/cm | wc -l) files, fut $(ls nse-old/fut | wc -l) files"
+      - name: The one confirmation
+        if: inputs.args == '--confirm'
+        env:
+          K2_OOS_NSE: ${{ runner.temp }}/oos/nse-old
+        run: |
+          set -o pipefail
+          cd studies/gm-tournament-2026-10-21 && node --max-old-space-size=12000 confirm.js | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Keep the result
         if: always()
         uses: actions/upload-artifact@v4
@@ -66,3 +86,5 @@ jobs:
           path: |
             studies/gm-tournament-2026-10-21/RESULT.txt
             studies/gm-tournament-2026-10-21/leaderboard*.json
+            studies/gm-tournament-2026-10-21/CONFIRMATION.txt
+            studies/gm-tournament-2026-10-21/confirmation.json
