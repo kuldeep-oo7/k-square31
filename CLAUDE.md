@@ -199,8 +199,9 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     NIFTY rows, from 22 Oct) and nse-idx/ (NIFTY's open). Information only, never a row on CALLS/PUTS.
   - Trees watch (from 28 Oct 2026; studies/trees-forward-2026-10-22): the combined model C1 trees run live by trees.yml after the paper
     job (code 04a0b39, libs pinned; replay MATCH 22 Oct: 30,333 predictions identical); symbols only in docs/paper-rules/trees.json.
-  - Eleven rules in all. Their daily NSE files live in release `data-paper-inputs`. GitHub runs the paper job and kronos.yml hours
-    late at night (21 Oct: 23:47 and 00:25 IST): the owner was asked on the morning of 22 Oct to add cron-job.org triggers at 19:30 (springy-dip.yml) and 20:30 (kronos.yml).
+  - Eleven rules in all. Their daily NSE files live in release `data-paper-inputs`. GitHub ran the evening paper and Kronos jobs
+    3-5 hours late (21-22 Oct), so the 15:33/15:53 desk build (cron-job.org) starts evening-kick.yml, which starts springy-dip.yml
+    at 19:30 and kronos.yml at 20:30 IST (tested 22 Oct). The owner does not need to add cron-job.org jobs.
 - `npm run check` had outgrown Windows' command line: add new tests to `scripts/check-forward.js`,
   not to the package.json chain.
 - **Testing standard:** protocol v2 (research/audit-2026-10-04/PROTOCOL.txt): the whole sample,
