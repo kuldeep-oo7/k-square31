@@ -243112,6 +243112,223 @@
     "pct": 2.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-10-22|FUT|PVRINOX (share)",
+   "kind": "FUT",
+   "symbol": "PVRINOX",
+   "contract": "PVRINOX (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 500,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 1412.8,
+   "target": 1448.1,
+   "target2": 1483.4,
+   "stop": 1391.6,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "TARGET",
+   "filledAt": "2026-10-22T04:04:38.913Z",
+   "hoursToFill": 0.29,
+   "closedAt": "2026-10-22T06:24:18.809Z",
+   "exitPrice": 1448.1,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 2.33,
+   "sessionsHeld": 0,
+   "best": 1458,
+   "worst": 1409.3,
+   "last": 1453.2,
+   "lastAt": "2026-10-22T06:24:18.809Z",
+   "marks": 9,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 1458,
+    "low": 1409.3,
+    "last": 1453.2
+   },
+   "pnl": {
+    "perUnit": 35.3,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-22|FUT|COFORGE26NOVFUT",
+   "kind": "FUT",
+   "symbol": "COFORGE",
+   "contract": "COFORGE26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 475,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 1963.5,
+   "target": 2012.6,
+   "target2": 2061.7,
+   "stop": 1934,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 67.3,
+     "medianTradingDays": 0.194
+    },
+    "target": {
+     "probabilityPct": 76.2,
+     "medianTradingDays": 2.24
+    },
+    "sigmaPct": 30.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-22T04:04:38.913Z",
+   "hoursToFill": 0.29,
+   "closedAt": "2026-10-22T06:24:18.809Z",
+   "exitPrice": 1934,
+   "exitReason": "STOP",
+   "hoursFillToExit": 2.33,
+   "sessionsHeld": 0,
+   "best": 1994.1,
+   "worst": 1921.8,
+   "last": 1923.8,
+   "lastAt": "2026-10-22T06:24:18.809Z",
+   "marks": 9,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 1994.1,
+    "low": 1921.8,
+    "last": 1923.8
+   },
+   "pnl": {
+    "perUnit": -29.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-21|FUT|COFORGE26NOVFUT",
+   "kind": "FUT",
+   "symbol": "COFORGE",
+   "contract": "COFORGE26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 475,
+   "sessionDate": "2026-10-21",
+   "shownAt": "2026-10-21T03:50:07.665Z",
+   "buy": 1952.2,
+   "target": 2001,
+   "target2": 2049.8,
+   "stop": 1922.9,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 68.2,
+     "medianTradingDays": 0.185
+    },
+    "target": {
+     "probabilityPct": 76.9,
+     "medianTradingDays": 2.13
+    },
+    "sigmaPct": 31.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-21T04:25:39.285Z",
+   "hoursToFill": 0.59,
+   "closedAt": "2026-10-22T06:24:18.809Z",
+   "exitPrice": 1922.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 25.98,
+   "sessionsHeld": 1,
+   "best": 1994.1,
+   "worst": 1921.8,
+   "last": 1923.8,
+   "lastAt": "2026-10-22T06:24:18.809Z",
+   "marks": 40,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 1994.1,
+    "low": 1921.8,
+    "last": 1923.8
+   },
+   "pnl": {
+    "perUnit": -29.3,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-21|PE|POLYCAB26NOV8000PE",
+   "kind": "PE",
+   "symbol": "POLYCAB",
+   "contract": "POLYCAB26NOV8000PE",
+   "expiry": "2026-11-23",
+   "strike": 8000,
+   "optionType": "PE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-21",
+   "shownAt": "2026-10-21T03:50:07.665Z",
+   "buy": 360.4,
+   "target": 540.6,
+   "target2": null,
+   "stop": 180.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.4,
+     "medianDays": 12.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-21T03:50:08.035Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-22T06:24:18.809Z",
+   "exitPrice": 540.6,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 26.57,
+   "sessionsHeld": 1,
+   "best": 542.45,
+   "worst": 329,
+   "last": 542.45,
+   "lastAt": "2026-10-22T06:24:18.809Z",
+   "marks": 38,
+   "obs": {
+    "date": "2026-10-22",
+    "high": 542.45,
+    "low": 480.5,
+    "last": 542.45
+   },
+   "pnl": {
+    "perUnit": 180.2,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 22525,
+    "netPerLot": 22327.73
+   }
   }
  ]
 }
