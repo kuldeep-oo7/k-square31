@@ -1,0 +1,24 @@
+AMENDMENT A1 TO THE NIGHT LAB -- written Thursday 22 Oct 2026, about 23:25 IST, BEFORE any member was computed on real
+data (only the code exists; no real-data run has happened). Found while checking the data files against the code.
+
+1. CONFIRMATION LOOK-BACK. The research snapshot's CM files start on 2020-09-01. On 2020-10-01 no stock has the 250 bars
+   the universe needs, and P5 needs the same month in each of the 5 earlier years, so several members would lose most or
+   all of the confirmation. Section 2 says every member is confirmable by design. So the confirmation run reads the
+   2005-2020 files (release data-oos) for sessions BEFORE 2020-09-01, as look-back only: universe ranks, MAX, the
+   overnight ranking, the volume ranks, the seasonality averages and SB's own 66-bar universe. From 2020-09-01 on it reads
+   only the research snapshot. Trades and scores still start on 2020-10-01. Discovery is unchanged (data-oos only).
+
+2. NIFTY'S DAILY MOVE (S5's filter, P8's trade, P9's trigger). When both sessions have NSE's index close, the move is
+   close / previous close. Otherwise it uses the near-month NIFTY future's close against THE SAME contract's close on the
+   previous session, so a monthly roll is never read as a market move. A pair of sessions with neither is skipped.
+
+3. DISCLOSED, NOT CHANGED: as registered, the two periods share October 2020 ("2005-01 .. 2020-10" and "2020-10 ..
+   2026-10-01").
+
+4. GM RUPEES (reported, not judged): for SB members, the gross price move x 20 units per trade, before any charges. GM's
+   own charges are not known to this desk, and nothing is read from GM.
+
+5. SPLITS IN P5's LOOK-BACK. NSE's prices are not split-adjusted, and the universe rule only keeps the last 250 bars free
+   of resets, while P5 looks back 5 years. A same-month return that contains a reset (an open >= 18% from the previous
+   close: a split, bonus or demerger) counts as missing, so with all 5 years needed that stock sits the month out.
+   (MAX, the overnight ranking and the volume ranks look back one month or 50 sessions, inside the 250 clean bars.)
