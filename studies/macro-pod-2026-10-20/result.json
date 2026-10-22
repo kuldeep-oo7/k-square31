@@ -1,0 +1,81 @@
+{
+ "sha": {
+  "PREREGISTRATION": "12d62c86e98465c139312346128f604cdf3a58c0d905265452b4215c6c54ff94",
+  "AMENDMENT-A1": "76fd6042d56722e2e74d6799d231787a3470a6ade9700f63ad581e6d9c52f952",
+  "AMENDMENT-A2": "c75113d8ea6742324aa25e8a886f44b9fdcb2d4b01ca76280a2bf0be8e32871f"
+ },
+ "sample": [
+  "2012-04-02",
+  "2026-10-01"
+ ],
+ "verdicts": [
+  {
+   "key": "M1",
+   "name": "M1 FII futures position",
+   "months": 175,
+   "monthMean": 0.016192656495409633,
+   "t": 0.056464455956064,
+   "bhMonthMean": 0.9414887503099869,
+   "excessMonthMean": -0.925296093814578,
+   "monthsUp": 83,
+   "worstMonth": -10.543971355690083,
+   "maxDrawdownPct": -86.2909135706267,
+   "inMarketPct": 75.86980920314254,
+   "tradesPerYear": 68.81902356902357,
+   "holm": false,
+   "dsr": 0.3486924816573649,
+   "verdict": "FAIL"
+  },
+  {
+   "key": "M2",
+   "name": "M2 foreign cash flow (NSDL)",
+   "months": 175,
+   "monthMean": 0.19116062612110535,
+   "t": 0.5762315284260752,
+   "bhMonthMean": 0.9414887503099869,
+   "excessMonthMean": -0.7503281241888818,
+   "monthsUp": 92,
+   "worstMonth": -11.750190811906707,
+   "maxDrawdownPct": -40.854956141223965,
+   "inMarketPct": 100,
+   "tradesPerYear": 8.663019079685746,
+   "holm": false,
+   "dsr": 0.5275657526347008,
+   "verdict": "FAIL"
+  },
+  {
+   "key": "M3",
+   "name": "M3 dollar liquidity",
+   "months": 175,
+   "monthMean": 0.09267660044779064,
+   "t": 0.2693060828141125,
+   "bhMonthMean": 0.9414887503099869,
+   "excessMonthMean": -0.8488121498621972,
+   "monthsUp": 86,
+   "worstMonth": -11.00740389013047,
+   "maxDrawdownPct": -50.02493073238759,
+   "inMarketPct": 99.71941638608305,
+   "tradesPerYear": 12.336139169472503,
+   "holm": false,
+   "dsr": 0.4299488724666978,
+   "verdict": "FAIL"
+  },
+  {
+   "key": "M4",
+   "name": "M4 all line up, 3% stop",
+   "months": 175,
+   "monthMean": 0.10820270329269639,
+   "t": 0.6675283092230532,
+   "bhMonthMean": 0.9414887503099869,
+   "excessMonthMean": -0.8332860470172909,
+   "monthsUp": 65,
+   "worstMonth": -6.029450933232471,
+   "maxDrawdownPct": -22.97471936676687,
+   "inMarketPct": 19.219977553310887,
+   "tradesPerYear": 27.236531986531986,
+   "holm": false,
+   "dsr": 0.6067886737495654,
+   "verdict": "FAIL"
+  }
+ ]
+}

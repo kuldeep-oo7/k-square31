@@ -1,0 +1,20 @@
+MACRO POD, registration sha256 12d62c86e98465c139312346128f604cdf3a58c0d905265452b4215c6c54ff94, A1 76fd6042d56722e2e74d6799d231787a3470a6ade9700f63ad581e6d9c52f952, A2 c75113d8ea6742324aa25e8a886f44b9fdcb2d4b01ca76280a2bf0be8e32871f (verified), run 2026-10-22T02:42:54.832Z
+DATA: NIFTY opens 3603 sessions 2012-02-21 .. 2026-10-19; FII participant OI 3646 files; NSDL 3791 rows 2011-01-03 .. 2026-09-30; DTWEXBGS 5425 values 2006-01-02 .. 2026-10-16
+VERDICT SAMPLE: 2012-04-02 .. 2026-10-01 (A1 section 3)
+CHECKS (section 7):
+ 7.1 no look-ahead, cutoff 2022-06-02: decisions and positions at or before it identical yes; control after it changed yes: PASSED
+ 7.2 null (random-walk NIFTY, daily vol 1.06%): 0 PASS of 12 (at most 1): PASSED
+   seed 1: M1 t -0.45 FAIL, M2 t 0.29 FAIL, M3 t -0.98 FAIL, M4 t -0.03 FAIL
+   seed 2: M1 t 1.46 FAIL, M2 t -1.66 FAIL, M3 t -2.59 FAIL, M4 t -1.32 FAIL
+   seed 3: M1 t -1.49 FAIL, M2 t -0.51 FAIL, M3 t 2.25 PROMISING, M4 t -1.05 FAIL
+ 7.3 coverage (share of sessions with a usable signal, counts only): 2012 M1 98% M2 97% M3 100% all 95%; 2013 M1 100% M2 96% M3 100% all 96%; 2014 M1 99% M2 97% M3 100% all 96%; 2015 M1 100% M2 97% M3 100% all 97%; 2016 M1 99% M2 98% M3 100% all 97%; 2017 M1 99% M2 98% M3 100% all 97%; 2018 M1 100% M2 98% M3 100% all 98%; 2019 M1 100% M2 99% M3 100% all 99%; 2020 M1 100% M2 98% M3 100% all 98%; 2021 M1 100% M2 97% M3 100% all 97%; 2022 M1 100% M2 98% M3 100% all 98%; 2023 M1 100% M2 98% M3 100% all 98%; 2024 M1 100% M2 97% M3 100% all 97%; 2025 M1 100% M2 98% M3 100% all 98%; 2026 M1 100% M2 92% M3 100% all 92%
+
+REAL RUN (monthly sums of daily book returns after futures charges, % of the Rs 10 lakh notional):
+ M1 FII futures position | 175 months | monthly mean +0.016% (buy-and-hold +0.941%, excess -0.925%) | t +0.06 | Holm no | DSR 0.35 | up 83/175 | worst month -10.54% | max drawdown -86.3% | in market 76% | 68.8 changes a year -> FAIL
+ M2 foreign cash flow (NSDL) | 175 months | monthly mean +0.191% (buy-and-hold +0.941%, excess -0.750%) | t +0.58 | Holm no | DSR 0.53 | up 92/175 | worst month -11.75% | max drawdown -40.9% | in market 100% | 8.7 changes a year -> FAIL
+ M3 dollar liquidity | 175 months | monthly mean +0.093% (buy-and-hold +0.941%, excess -0.849%) | t +0.27 | Holm no | DSR 0.43 | up 86/175 | worst month -11.01% | max drawdown -50.0% | in market 100% | 12.3 changes a year -> FAIL
+ M4 all line up, 3% stop | 175 months | monthly mean +0.108% (buy-and-hold +0.941%, excess -0.833%) | t +0.67 | Holm no | DSR 0.61 | up 65/175 | worst month -6.03% | max drawdown -23.0% | in market 19% | 27.2 changes a year -> FAIL
+PASS: none. PROMISING: none.
+
+BY PERIOD (monthly mean %, reported, not judged): M1 2012-16 -0.121, 2017-21 -0.099, 2022-26 +0.271 | M2 2012-16 +0.063, 2017-21 +0.803, 2022-26 -0.316 | M3 2012-16 -0.269, 2017-21 +0.740, 2022-26 -0.221 | M4 2012-16 -0.078, 2017-21 +0.399, 2022-26 -0.009
+
