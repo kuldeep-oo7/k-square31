@@ -192,7 +192,8 @@
   "OPTION|BANKNIFTY|BANKNIFTY26NOV56300PE",
   "OPTION|BANKNIFTY|BANKNIFTY26NOV56200PE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26NOV13600PE",
-  "OPTION|INDHOTEL|INDHOTEL26NOV830CE"
+  "OPTION|INDHOTEL|INDHOTEL26NOV830CE",
+  "OPTION|KALYANKJIL|KALYANKJIL26NOV500PE"
  ],
  "options": {
   "NIFTY26N0322750PE": {
@@ -2398,6 +2399,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-22T05:04:40.366Z",
    "frozenAtIst": "2026-10-22 10:34 IST",
+   "frozenAtSpot": null
+  },
+  "KALYANKJIL26NOV500PE": {
+   "buy": 12.5,
+   "sell": 18.75,
+   "stop": 6.25,
+   "tick": 0.05,
+   "lotSize": 1350,
+   "expiry": "2026-11-23",
+   "strike": 500,
+   "right": "PE",
+   "symbol": "KALYANKJIL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-22T05:24:19.167Z",
+   "frozenAtIst": "2026-10-22 10:54 IST",
    "frozenAtSpot": null
   }
  },
