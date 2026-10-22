@@ -1,0 +1,45 @@
+{
+ "start": "2005-01-01",
+ "rows": [
+  {
+   "member": "SB short build-up",
+   "trades": 34332,
+   "u20": 1553154,
+   "pctMean": 0.2796,
+   "monthMean": 51.657,
+   "t": 4.83,
+   "win": 53.6,
+   "verdict": "CONFIRMED"
+  },
+  {
+   "member": "CM1 trees long-short",
+   "verdict": "NOT CONFIRMABLE",
+   "why": "its walk-forward predictions start Oct 2022 and its features (SLB, margin trading, insider filings, category turnover) do not exist in 2005-2020"
+  },
+  {
+   "member": "LU long-unwinding bounce",
+   "trades": 22795,
+   "u20": -892578,
+   "pctMean": -0.0179,
+   "monthMean": -2.2277,
+   "t": -0.03,
+   "win": 48.9,
+   "verdict": "NOT CONFIRMED"
+  },
+  {
+   "member": "S2 borrowing surge",
+   "verdict": "NOT CONFIRMABLE",
+   "why": "NSE's SLB open-position files are not in data-oos (the atlas has them from Sep 2020 only)"
+  },
+  {
+   "member": "SD springy dip",
+   "trades": 7590,
+   "u20": -67197,
+   "pctMean": -0.2357,
+   "monthMean": -10.2852,
+   "t": -1.16,
+   "win": 47.7,
+   "verdict": "NOT CONFIRMED"
+  }
+ ]
+}
