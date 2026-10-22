@@ -108,6 +108,7 @@ jobs:
           npm install --omit=dev --no-audit --no-fund
           K2_CM_DIR=nse-data/cm node scripts/springy-dip-forward.js | tee -a "$GITHUB_STEP_SUMMARY"
           K2_CM_DIR=nse-data/cm K2_FUT_DIR=nse-fo/fut node scripts/oi-flow-forward.js | tee -a "$GITHUB_STEP_SUMMARY"
+          K2_CM_DIR=nse-data/cm K2_FUT_DIR=nse-fo/fut node scripts/sb-strong-forward.js | tee -a "$GITHUB_STEP_SUMMARY"
           K2_CM_DIR=nse-data/cm K2_IDX_DIR=nse-idx K2_OPT_DIR=nse-extra/opt node scripts/forward-v2.js | tee -a "$GITHUB_STEP_SUMMARY"
           K2_CM_DIR=nse-data/cm K2_SOPT_DIR=nse-sopt K2_INDUSTRY=industries.json node scripts/forward-v3.js | tee -a "$GITHUB_STEP_SUMMARY"
           K2_CM_DIR=nse-data/cm K2_SLB_DIR=nse-slb/slb_openpos K2_FUT_DIR=nse-fo/fut node scripts/forward-v4.js | tee -a "$GITHUB_STEP_SUMMARY"
@@ -117,6 +118,7 @@ jobs:
         run: |
           git config user.name "k2-desk-bot"
           git config user.email "k2-desk-bot@users.noreply.github.com"
+          if [ -f docs/paper-rules/sb-strong.json ]; then git add docs/paper-rules/sb-strong.json; fi
           git add docs/paper-rules/springy-dip.json docs/paper-rules/oi-flow.json docs/paper-rules/forward-v2.json docs/paper-rules/forward-v3.json docs/paper-rules/forward-v4.json docs/paper-rules/flows.json docs/paper-rules/expiry-selling.json
           git diff --cached --quiet && { echo "no change"; exit 0; }
           git commit -m "paper rules: forward tests updated"

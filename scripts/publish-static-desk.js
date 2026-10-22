@@ -945,6 +945,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     kronos: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "kronos.json"), "utf8")); } catch { return null; } })(),
     trees: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "trees.json"), "utf8")); } catch { return null; } })(),
     oiFlow: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "oi-flow.json"), "utf8")); } catch { return null; } })(),
+    sbStrong: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "sb-strong.json"), "utf8")); } catch { return null; } })(),
     // The last ~25 share closes for each stock on the focus and Kronos lists (the build's bar cache), for the slip charts.
     sparks: (() => { try {
       const bc = require("../api/_lib/bar-cache"); const read = (f) => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", f), "utf8")); } catch { return null; } };
@@ -1237,6 +1238,23 @@ function kronosTrackBox(k) {
     <b class="warn">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(s.finished ?? 0)} lists finished${s.finished ? `, ${s.meanPct > 0 ? "+" : ""}${mn(esc(s.meanPct))}% a list (half longs, half shorts, after futures charges), ${esc(s.winPct)}% up, ${esc(s.weeks)} weeks, t ${mn(((s.t ?? null) === null ? "&mdash;" : esc(s.t)))}` : ""}.
     <span class="lec">A verdict needs 52 weeks and t &ge; 3. Data through ${esc(k.dataThrough)}.</span>
     ${rows ? listFold("Lists", `<div class="wrap"><table><thead><tr><th>ENTRY</th><th>STATUS</th><th class="num">LIST NET</th></tr></thead><tbody>${rows}</tbody></table></div>`) : ""}
+  </div>`;
+}
+
+// SHORT BUILD-UP, STRONG SIGNALS ONLY, ON PAPER (studies/sb-strong-forward-2026-10-23; the night lab's member S7).
+function sbStrongBox(s) {
+  if (!s || !s.summary) return "";
+  const m = s.summary, mn = (v) => String(v).replace(/^-/, "&minus;"), sg = (v) => `${v > 0 ? "+" : ""}${mn(esc(v))}%`;
+  const tone = m.verdict === "PASS" ? "up" : m.verdict === "FAIL" ? "down" : "warn"; const np = (s.pending || []).length;
+  const pend = (s.pending || []).map((p) => `<tr><td><b>${esc(p.symbol)}</b></td><td class="num">${mn(esc(p.pricePct))}%</td><td class="num">+${esc(p.oiPct)}%</td></tr>`).join("");
+  const done = (s.trades || []).filter((t) => t.status === "DONE").slice(0, 15).map((t) => `<tr><td><b>${esc(t.symbol)}</b></td><td>${esc(t.entryDate)}</td>
+    <td class="num ${t.netPct > 0 ? "up" : t.netPct < 0 ? "down" : ""}">${sg(t.netPct)}</td><td class="num ${t.excessPct > 0 ? "up" : t.excessPct < 0 ? "down" : ""}">${sg(t.excessPct)}</td></tr>`).join("");
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
+    <b>SHORT BUILD-UP, STRONG SIGNALS ONLY</b> <b class="${tone}">${esc(m.verdict || "COLLECTING")}</b> &mdash; ${esc(m.finished ?? 0)} finished${m.finished ? `, ${sg(m.meanNetPct)} a trade, ${sg(m.meanExcessPct)} vs the market, ${esc(m.winPct)}% winners, t ${(m.t ?? null) === null ? "&mdash;" : mn(esc(m.t))}` : ""}.
+    <span class="lec"> &mdash; ${esc(s.rule)}. Backtest: ${esc(s.backtest)}. Counted from ${esc(s.start)}; rules fixed in ${esc(s.preregistration)}.
+      A verdict needs 100 trades and 3 months. Data through ${esc(s.dataThrough)}. <b>Not a recommendation until it passes.</b></span>
+    ${pend ? listFold(`Next session: ${esc(np)} strong signal${np === 1 ? "" : "s"}`, `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th class="num">PRICE</th><th class="num">OPEN INT.</th></tr></thead><tbody>${pend}</tbody></table></div>`) : `<div class="sub">No strong signal for the next session.</div>`}
+    ${done ? listFold("Latest trades", `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAY</th><th class="num">NET</th><th class="num">VS MARKET</th></tr></thead><tbody>${done}</tbody></table></div>`) : ""}
   </div>`;
 }
 
@@ -2205,6 +2223,7 @@ ${footAlarm}
       A dip between two checks that is not a new day low (or high) is not seen &mdash; for fills and stops alike (audit 12 Oct 2026).</div>
     ${springyBox(d.springyDip)}
     ${oiFlowBox(d.oiFlow)}
+    ${sbStrongBox(d.sbStrong)}
     ${kronosTrackBox(d.kronos)}
     ${treesTrackBox(d.trees)}
     ${forwardV2Box(d.forwardV2)}
@@ -2398,7 +2417,7 @@ async function main() {
   return data;
 }
 
-module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox, gmTournamentBox, treesBox, treesTrackBox };
+module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox, gmTournamentBox, treesBox, treesTrackBox, sbStrongBox };
 
 // Exported above so a test can drive build() twice and prove the levels did not
 // move. Run directly, it is still just a build.
