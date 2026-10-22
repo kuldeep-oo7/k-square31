@@ -31,6 +31,10 @@ const v = tf.bookValue(require("../api/_lib/forward-v3").context({ sessions: ss,
 check("the book's value: (mean long + mean short) / 2, over 5 sessions open to close", v.status === "DONE" && v.value > 0.04 && v.value < 0.06, v.value);
 const open = tf.bookValue(require("../api/_lib/forward-v3").context({ sessions: ss, stocks }), { ...list, entry: ss[27] });
 check("a book whose 5 sessions are not over is OPEN", open.status === "OPEN");
+// a stock that stops trading inside its window: that leg is dropped (as the study), the book still finishes
+const gone = { sym: "GONE", bars: ss.slice(0, 14).map((d, i) => ({ d, o: 100, c: 100, val: 1e9 })) };
+const v2 = tf.bookValue(require("../api/_lib/forward-v3").context({ sessions: ss, stocks: [...stocks, gone] }), { ...list, long: [{ symbol: "UP" }, { symbol: "GONE" }] });
+check("a leg whose stock stopped trading inside its window is dropped, not held open", v2.status === "DONE" && v2.nLong === 1, JSON.stringify(v2));
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed) process.exit(1);
 console.log("trees forward tests passed");

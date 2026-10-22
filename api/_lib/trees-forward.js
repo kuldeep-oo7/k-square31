@@ -32,7 +32,9 @@ function futNet(side, e, x, d, xd) { const q = Math.ceil(RULE.notional / e); con
 // one leg, as features.js labels it: forward-v3 context().window over h sessions from the entry (contiguous, no reset)
 function leg(ctx, sym, entry, side) {
   const w = ctx.window(sym, entry, RULE.h); if (!w) return ctx.sIndex.has(entry) ? { status: "VOID" } : { status: "OPEN" };
-  if (!w.complete) return { status: "OPEN" };
+  // not complete: OPEN only while the market itself has not reached the 5th session; a stock that stopped trading inside
+  // its window is VOID, as the study drops it (replay 22 Oct 2026: two books were held OPEN forever by such a leg)
+  if (!w.complete) return ctx.sIndex.get(entry) + RULE.h - 1 <= ctx.S.length - 1 ? { status: "VOID" } : { status: "OPEN" };
   const b = w.st.bars; const e = b[w.i].o, x = b[w.i + RULE.h - 1].c, xd = b[w.i + RULE.h - 1].d;
   return { status: "DONE", entry: e, exit: x, exitDate: xd, net: futNet(side, e, x, entry, xd) };
 }
@@ -58,11 +60,12 @@ function score(lists, data, ctx = context(data)) {
   return { books, summary: { finished: n, meanPct: m === null ? null : +m.toFixed(3), winPct: n ? +((100 * vals.filter((v) => v > 0).length) / n).toFixed(1) : null, t: t === null ? null : +t.toFixed(2), verdict } };
 }
 
-// REPLAY (registration): the study's C1 through this module's scoring, from its predictions [{ i, d, sym, T }]
-function replayC1(preds, data) {
+// REPLAY (registration): the study's C1 through this module's scoring, from its predictions [{ i, d, sym, T }]. dataEnd: the
+// study's data end (its amendment A2, 2026-10-09): a book whose 5th session is after it could not be scored by the study.
+function replayC1(preds, data, dataEnd = "2026-10-09") {
   const ctx = context(data); const S = data.sessions; const byI = new Map(); for (const r of preds) { if (!byI.has(r.i)) byI.set(r.i, new Map()); byI.get(r.i).set(r.sym, r.T); }
   const out = [];
-  for (const i of [...byI.keys()].sort((a, b) => a - b)) { const entry = S[i + RULE.lag]; if (!entry) continue;
+  for (const i of [...byI.keys()].sort((a, b) => a - b)) { const entry = S[i + RULE.lag]; if (!entry || !S[i + RULE.lag + RULE.h - 1] || S[i + RULE.lag + RULE.h - 1] > dataEnd) continue;
     const list = makeList({ d: S[i], entry, exit: null, preds: byI.get(i), madeAt: "", futSyms: new Set(), contractFor: () => null });
     if (!list.enough) continue; const v = bookValue(ctx, list); if (v.status === "DONE") out.push({ day: entry, value: v.value }); }
   const month = new Map(); for (const o of out) month.set(o.day.slice(0, 7), (month.get(o.day.slice(0, 7)) || []).concat(o.value));
