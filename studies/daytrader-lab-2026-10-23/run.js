@@ -97,12 +97,12 @@ function table(P, C, tag) {   // every universe stock-day with a near-month futu
   const S = C.S, rows = []; let id = 0;
   for (let i = 22; i < S.length; i += 1) { const d = S[i]; if (d < P.from || d > P.to || (tag === "C" && d < CONF[0])) continue; const day = [];
     for (const [sym] of C.uni.get(d.slice(0, 7)) || []) { const f = P.fnear.get(sym) && P.fnear.get(sym).get(d); if (!f || !C.bar.get(sym).get(i)) continue;
-      day.push({ id: `${tag}${id++}`, period: tag, date: d, fo: f.o, fc: f.c, ...features(P, C, sym, i) }); }
+      const sb = C.bar.get(sym).get(i); day.push({ id: `${tag}${id++}`, period: tag, date: d, fo: f.o, fc: f.c, so: sb.o, sc: sb.c, ...features(P, C, sym, i) }); }
     if (day.length < 30) continue; const B = mean(day.map((x) => x.fc / x.fo - 1)); for (const x of day) { x.excess = x.fc / x.fo - 1 - B; rows.push(x); } }
   return rows;
 }
 const csv = (rows) => ["id,period,date," + FEATS.join(",") + ",excess", ...rows.map((r) => [r.id, r.period, r.date, ...FEATS.map((k) => (nn(r[k]) ? "" : r[k])), r.excess].join(","))].join("\n") + "\n";
-const bookCsv = (rows) => ["id,period,date,fo,fc", ...rows.map((r) => [r.id, r.period, r.date, r.fo, r.fc].join(","))].join("\n") + "\n";
+const bookCsv = (rows) => ["id,period,date,fo,fc,so,sc,gap", ...rows.map((r) => [r.id, r.period, r.date, r.fo, r.fc, r.so ?? "", r.sc ?? "", nn(r.GAP) ? "" : r.GAP].join(","))].join("\n") + "\n";
 
 // ---------- synthetic data for the checks ----------
 function rng(seed) { let s = seed >>> 0; return () => { s = (s + 0x6d2b79f5) >>> 0; let t = s; t = Math.imul(t ^ (t >>> 15), 1 | t); t ^= t + Math.imul(t ^ (t >>> 7), 61 | t); return ((t ^ (t >>> 14)) >>> 0) / 4294967296; }; }
@@ -142,7 +142,8 @@ function nullRows(rows, seed) { const r = rng(seed), byD = new Map(); for (const
     xs.forEach((x, k) => out.push({ ...x, id: `N${out.length}`, ...Object.fromEntries(FEATS.map((f, q) => [f, fv[k][q]])) })); } return out; }
 
 // ---------- books and scoring ----------
-function readBook(f) { const out = []; const L = fs.readFileSync(f, "utf8").split("\n"); for (const l of L.slice(1)) { if (!l) continue; const [id, period, date, fo, fc] = l.split(","); out.push({ id, period, date, fo: +fo, fc: +fc }); } return out; }
+function readBook(f) { const out = []; const L = fs.readFileSync(f, "utf8").split("\n"); for (const l of L.slice(1)) { if (!l) continue; const [id, period, date, fo, fc, so, sc, gap] = l.split(",");
+  out.push({ id, period, date, fo: +fo, fc: +fc, so: so ? +so : null, sc: sc ? +sc : null, gap: gap ? +gap : null }); } return out; }
 function readPred(f) { const m = new Map(); const L = fs.readFileSync(f, "utf8").split("\n"); for (const l of L.slice(1)) { if (!l) continue; const [id, p1, p2, p3] = l.split(","); m.set(id, [+p1, +p2, +p3]); } return m; }
 const legNet = (side, o, c, d) => { const q = Math.ceil(NOTIONAL / o); return side * (c / o - 1) - (charge(side > 0 ? "BUY" : "SELL", o, q, d) + charge(side > 0 ? "SELL" : "BUY", c, q, d)) / (o * q); };
 function books(rows, pred) {   // daily books for the five members; value in %
@@ -208,6 +209,28 @@ if (require.main === module) {
     fs.appendFileSync(path.join(HERE, "RESULT.txt"), lines.join("\n") + "\n\n");
     const strip = (rs) => rs.map(({ g3, g4, sr, p, ...r }) => r); fs.writeFileSync(path.join(HERE, "result.json"), JSON.stringify({ registration: SHA, discovery: strip(rd), confirmation: strip(rc), candidates: conf }, null, 1));
     process.exit(0); }
-  console.error("usage: node run.js --features DIR | --score DIR | --synthetic DIR | --planted DIR"); process.exit(1);
+  if (mode === "--posthoc") {   // DESCRIPTIVE, AFTER THE RESULT (23 Oct 2026): is the trees' edge the futures' first print? Summary rows only.
+    const all = readBook(path.join(DIR, "real-book.csv")), pr = readPred(path.join(DIR, "pred-real.csv")), ng = new Map();
+    for (const l of fs.readFileSync(path.join(DIR, "pred-nogap.csv"), "utf8").split("\n").slice(1)) { if (!l) continue; const [id, p] = l.split(","); ng.set(id, [+p, +p, +p]); }
+    const out = [], say = (x) => { out.push(x); console.log(x); };
+    const cuts = [["2008-01 .. 2012-12", "2008-01-01", "2012-12-31"], ["2013-01 .. 2016-12", "2013-01-01", "2016-12-31"], ["2017-01 .. 2020-09", "2017-01-01", "2020-09-30"],
+      ["2020-10 .. 2025-12-05 (futures open = first trade)", "2020-10-01", "2025-12-05"], ["2025-12-08 .. 2026-10-01 (futures pre-open auction)", "2025-12-08", "2026-10-01"]];
+    const pick = (rows, pred, col, price) => { const byD = new Map(); for (const x of rows) { const p = pred.get(x.id); if (!p) continue; if (!byD.has(x.date)) byD.set(x.date, []); byD.get(x.date).push({ ...x, p }); } const days = [];
+      for (const [d, xs] of [...byD].sort()) { if (xs.length < 50) continue; const k = Math.floor(xs.length / 10), s = xs.slice().sort((a, b) => a.p[col] - b.p[col] || (a.id < b.id ? -1 : 1)), L = s.slice(-k), Sh = s.slice(0, k);
+        const o = (x) => (price === "share" ? x.so : x.fo), c = (x) => (price === "share" ? x.sc : x.fc); if ([...L, ...Sh].some((x) => !(o(x) > 0 && c(x) > 0))) continue;
+        const ln = mean(L.map((x) => legNet(1, o(x), c(x), d))), sn = mean(Sh.map((x) => legNet(-1, o(x), c(x), d))), ug = mean(xs.filter((x) => x.gap !== null).map((x) => x.gap));
+        days.push({ date: d, v: ((ln + sn) / 2) * 100, gl: mean(L.filter((x) => x.gap !== null).map((x) => x.gap)) - ug, gs: mean(Sh.filter((x) => x.gap !== null).map((x) => x.gap)) - ug }); }
+      return days; };
+    const stat = (days) => { const by = new Map(); for (const x of days) { const k = x.date.slice(0, 7); if (!by.has(k)) by.set(k, []); by.get(k).push(x.v); } const s = [...by.keys()].sort().map((k) => mean(by.get(k)));
+      return s.length >= 6 ? `${days.length} days, ${sgn(mean(days.map((x) => x.v)))}% a day, monthly t ${nwT(s).toFixed(2)}` : `${days.length} days (too few months)`; };
+    say(`POST-HOC AUDIT of the AI day-trader (descriptive, after the result; ${new Date().toISOString()}). Same tables and predictions as the run.`);
+    const tf = pick(all, pr, 0, "futures"), ts = pick(all, pr, 0, "share"), nf = pick(all, ng, 0, "futures");
+    say("A1 trees long-short, by period:"); for (const [name, a, b] of cuts) { const f = (xs) => xs.filter((x) => x.date >= a && x.date <= b);
+      say(` ${name.padEnd(52)} futures ${stat(f(tf))} | the same picks on SHARES ${stat(f(ts))} | trees WITHOUT GAP and NGAP, futures ${stat(f(nf))}`); }
+    say(` picks' share gap at the open vs the day's average: longs ${sgn(100 * mean(tf.map((x) => x.gl)))}%, shorts ${sgn(100 * mean(tf.map((x) => x.gs)))}%`);
+    const small = all.filter((x) => x.gap !== null && Math.abs(x.gap) < 0.005), sf = pick(small, pr, 0, "futures");
+    say(` only stocks whose share opened within 0.5% of the previous close (re-ranked among them): 2008-2020 ${stat(sf.filter((x) => x.date < "2020-10-01"))}; 2020-2026 ${stat(sf.filter((x) => x.date >= "2020-10-01"))}`);
+    fs.writeFileSync(path.join(HERE, "POSTHOC.txt"), out.join("\n") + "\n"); process.exit(0); }
+  console.error("usage: node run.js --features DIR | --score DIR | --synthetic DIR | --planted DIR | --posthoc DIR"); process.exit(1);
 }
 module.exports = { FEATS, MEMBERS, features, table, context, synthMarket, plantedRows, nullRows, books, score, check71, csv };
