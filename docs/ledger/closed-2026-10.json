@@ -250169,6 +250169,114 @@
     "perLot": 13770,
     "netPerLot": 13631.06
    }
+  },
+  {
+   "id": "2026-10-23|PE|ADANIGREEN26NOV1260PE",
+   "kind": "PE",
+   "symbol": "ADANIGREEN",
+   "contract": "ADANIGREEN26NOV1260PE",
+   "expiry": "2026-11-23",
+   "strike": 1260,
+   "optionType": "PE",
+   "lotSize": 600,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T04:04:18.406Z",
+   "buy": 63.15,
+   "target": 94.75,
+   "target2": null,
+   "stop": 31.6,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.3,
+     "medianDays": 8.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T04:04:18.777Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-23T07:43:59.719Z",
+   "exitPrice": 94.75,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 3.66,
+   "sessionsHeld": 0,
+   "best": 95.7,
+   "worst": 63.05,
+   "last": 94.45,
+   "lastAt": "2026-10-23T07:43:59.719Z",
+   "marks": 12,
+   "obs": {
+    "date": "2026-10-23",
+    "high": 95.7,
+    "low": 55,
+    "last": 94.45
+   },
+   "pnl": {
+    "perUnit": 31.6,
+    "pct": 50.04,
+    "basis": "NET",
+    "perLot": 18960,
+    "netPerLot": 18786.56
+   }
+  },
+  {
+   "id": "2026-10-23|PE|ADANIGREEN26NOV1240PE",
+   "kind": "PE",
+   "symbol": "ADANIGREEN",
+   "contract": "ADANIGREEN26NOV1240PE",
+   "expiry": "2026-11-23",
+   "strike": 1240,
+   "optionType": "PE",
+   "lotSize": 600,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T04:04:18.406Z",
+   "buy": 50.55,
+   "target": 75.8,
+   "target2": null,
+   "stop": 25.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.6,
+     "medianDays": 8.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T04:04:18.777Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-23T07:43:59.719Z",
+   "exitPrice": 75.8,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 3.66,
+   "sessionsHeld": 0,
+   "best": 81.85,
+   "worst": 49.9,
+   "last": 81.85,
+   "lastAt": "2026-10-23T07:43:59.719Z",
+   "marks": 12,
+   "obs": {
+    "date": "2026-10-23",
+    "high": 81.85,
+    "low": 45,
+    "last": 81.85
+   },
+   "pnl": {
+    "perUnit": 25.25,
+    "pct": 49.95,
+    "basis": "NET",
+    "perLot": 15150,
+    "netPerLot": 15001.8
+   }
   }
  ]
 }
