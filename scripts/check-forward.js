@@ -6,7 +6,8 @@ const path = require("node:path");
 const steps = [
   ["--check", "api/_lib/springy-dip.js"], ["scripts/test-springy-dip.js"],
   ["--check", "api/_lib/oi-flow-forward.js"], ["scripts/test-oi-flow-forward.js"], ["scripts/test-sb-focus.js"],
-  ["--check", "api/_lib/sb-strong-forward.js"], ["scripts/test-sb-strong-forward.js"], ["--check", "api/_lib/sb-trees-forward.js"], ["scripts/test-sb-trees-forward.js"], ["--check", "api/_lib/kronos-forward.js"], ["scripts/test-kronos-forward.js"],
+  ["--check", "api/_lib/sb-strong-forward.js"], ["scripts/test-sb-strong-forward.js"], ["--check", "api/_lib/sb-trees-forward.js"], ["scripts/test-sb-trees-forward.js"],
+  ["--check", "api/_lib/daytrader-forward.js"], ["scripts/test-daytrader-forward.js"], ["--check", "api/_lib/kronos-forward.js"], ["scripts/test-kronos-forward.js"],
   ["--check", "api/_lib/forward-v2.js"], ["scripts/test-forward-v2.js"],
   ["--check", "api/_lib/forward-v3.js"], ["scripts/test-forward-v3.js"],
   ["--check", "api/_lib/forward-v4.js"], ["scripts/test-forward-v4.js"],

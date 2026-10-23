@@ -947,6 +947,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     oiFlow: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "oi-flow.json"), "utf8")); } catch { return null; } })(),
     sbStrong: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "sb-strong.json"), "utf8")); } catch { return null; } })(),
     sbTrees: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "sb-trees.json"), "utf8")); } catch { return null; } })(),
+    daytrader: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "daytrader.json"), "utf8")); } catch { return null; } })(),
     // The last ~25 share closes for each stock on the focus and Kronos lists (the build's bar cache), for the slip charts.
     sparks: (() => { try {
       const bc = require("../api/_lib/bar-cache"); const read = (f) => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", f), "utf8")); } catch { return null; } };
@@ -1264,6 +1265,21 @@ function sbStrongBox(s) {
       Priced on the near-month future, the contract you trade (amendment A1); the share-priced result is kept alongside. A verdict needs 100 trades and 3 months. Data through ${esc(s.dataThrough)}. <b>Not a recommendation until it passes.</b></span>
     ${pend ? listFold(`Next session: ${esc(np)} strong signal${np === 1 ? "" : "s"}`, `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th class="num">PRICE</th><th class="num">OPEN INT.</th></tr></thead><tbody>${pend}</tbody></table></div>`) : `<div class="sub">No strong signal for the next session.</div>`}
     ${done ? listFold("Latest trades", `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAY</th><th class="num">NET</th><th class="num">VS MARKET</th></tr></thead><tbody>${done}</tbody></table></div>`) : ""}
+  </div>`;
+}
+
+// THE AI DAY-TRADER, ON PAPER (studies/daytrader-forward-2026-10-26; the day-trader lab's A1, passed and confirmed, decayed).
+function daytraderBox(s) {
+  if (!s || !s.summary) return "";
+  const m = s.summary, mn = (v) => String(v).replace(/^-/, "&minus;"), sg = (v) => (v === null || v === undefined ? "&mdash;" : `${v > 0 ? "+" : ""}${mn(esc(v))}%`);
+  const tone = m.verdict === "PASS" ? "up" : m.verdict === "FAIL" ? "down" : "warn", cls = (v) => (v > 0 ? "up" : v < 0 ? "down" : "");
+  const rows = (s.days || []).slice(0, 15).map((x) => `<tr><td><b>${esc(x.date)}</b></td><td class="num ${cls(x.bookPct)}">${sg(x.bookPct)}</td><td class="num ${cls(x.top3Pct)}">${sg(x.top3Pct)}</td>
+    <td>${esc((x.top3Long || []).join(", "))}</td><td>${esc((x.top3Short || []).join(", "))}</td></tr>`).join("");
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--muted)">
+    <b>AI DAY-TRADER (trees, every stock future)</b> <b class="${tone}">${esc(m.verdict || "COLLECTING")}</b> &mdash; ${esc(m.sessions ?? 0)} sessions${m.sessions ? `: ${sg(m.bookPct)} a day long-short on futures, ${esc(m.wonPct)}% of days up, t ${(m.t ?? null) === null ? "&mdash;" : mn(esc(m.t))}; top 3 a side ${sg(m.top3Pct)}` : ""}.
+    <span class="lec"> &mdash; ${esc(s.rule)}. Backtest: ${esc(s.backtest)}. Counted from ${esc(s.start)}; rules fixed in ${esc(s.preregistration)}, the model in ${esc(s.fit)}.
+      Ranked after each close from what was known at 09:15. A verdict needs 60 sessions and 3 months. Data through ${esc(s.dataThrough)}. <b>Not a recommendation: its edge faded in the last ten months.</b></span>
+    ${rows ? listFold("Latest days", `<div class="wrap"><table><thead><tr><th>DAY</th><th class="num">BOOK</th><th class="num">TOP 3</th><th>TOP 3 BOUGHT</th><th>TOP 3 SOLD</th></tr></thead><tbody>${rows}</tbody></table></div>`) : `<div class="sub">First book after the close of ${esc(s.start)}.</div>`}
   </div>`;
 }
 
@@ -2249,6 +2265,7 @@ ${footAlarm}
     ${oiFlowBox(d.oiFlow)}
     ${sbStrongBox(d.sbStrong)}
     ${sbTreesBox(d.sbTrees)}
+    ${daytraderBox(d.daytrader)}
     ${kronosTrackBox(d.kronos)}
     ${treesTrackBox(d.trees)}
     ${forwardV2Box(d.forwardV2)}
@@ -2442,7 +2459,7 @@ async function main() {
   return data;
 }
 
-module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox, gmTournamentBox, treesBox, treesTrackBox, sbStrongBox, sbTreesBox };
+module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox, gmTournamentBox, treesBox, treesTrackBox, sbStrongBox, sbTreesBox, daytraderBox };
 
 // Exported above so a test can drive build() twice and prove the levels did not
 // move. Run directly, it is still just a build.

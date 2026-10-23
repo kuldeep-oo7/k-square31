@@ -1,0 +1,41 @@
+PRE-REGISTRATION -- FORWARD PAPER TEST: THE AI DAY-TRADER (TREES RANK EVERY STOCK FUTURE AT 09:15; LONG THE TOP TENTH, SHORT
+THE BOTTOM TENTH, OPEN TO CLOSE), PRICED ON FUTURES.
+Written Friday 23 Oct 2026, about 21:35 IST, BEFORE the first session it covers (Monday 26 Oct 2026). The commit time is the
+proof. The desk's rule: a confirmed pass goes to TRACK as a forward paper test first.
+
+WHERE IT COMES FROM
+studies/daytrader-lab-2026-10-23 (branch claude/daytrader-lab-2026-10-23; registration e8a6d81; one run, Actions
+39980410271), member A1: PASS on 2008-2020 (+0.251% a day, t 13.96, DSR 1.00) and CONFIRMED on 2020-2026 (+0.099% a day, t 6.09).
+DISCLOSED, the post-hoc audit (Actions 39982142707, descriptive): the edge is not a stale-print artifact, but it decayed:
++0.31% a day in 2008-2012, +0.11% in Oct 2020 - Dec 2025, and +0.01% (t 0.63) from 8 Dec 2025 to 1 Oct 2026. Bid-ask spreads
+are not modelled. Only future prices can say whether the recent flat stretch is noise or the end of the pattern.
+
+THE MODEL (fixed now; one fit, made after this file is committed)
+- Training rows: every row of the day-trader lab's tables (run.js --features of that branch): discovery rows before
+  2020-10-01 and confirmation rows from 2020-10-01 to 2026-10-01; its 18 features; label = FUTURES EXCESS > 0.
+- Python 3.12, scikit-learn 1.9.1, numpy 2.5.4: HistGradientBoostingClassifier(max_iter=200, learning_rate=0.05,
+  max_leaf_nodes=15, min_samples_leaf=500, l2_regularization=1.0, early_stopping=False, random_state=0), fitted once.
+- The fit is deterministic and uses no data after 2026-10-01. The model file stays in the private repo k2-data (release
+  daytrader-model); FIT.txt records the fit's date, rows and the file's sha256 before any session is scored.
+
+LIVE BOOKS
+- Every session d from 2026-10-26: the day's universe exactly as the lab (the night lab's top 200 by traded value with >= 250
+  bars after the last reset; stocks with a near-month future, open and close above zero, on d), its 18 features computed
+  exactly as the lab's features() from NSE's files only (CM bars to d-1 and the share's official open of d; F&O files to
+  d-1; NIFTY's open of d and closes to d-1). Only what is known at 09:15 is used; the computation runs after the close.
+- Rank by the model's probability; k = floor(n / 10), n >= 50 or no book. LONG the top k futures at their official open, SHORT
+  the bottom k, all closed at the official close. Each leg net of calculateNseFuturesCharges (dated; quantity ceil(Rs 5 lakh /
+  open)); the BOOK = (mean long leg + mean short leg) / 2, in % of the position.
+
+VERDICT (one rule, one test)
+COLLECTING until at least 60 sessions with a book AND 3 calendar months since 2026-10-26. Then PASS if the mean BOOK > 0 and
+the one-sided t of the weekly means (ISO weeks) is at or above the one-sided 5% critical value of Student's t with
+(weeks - 1) degrees of freedom (the next LOWER listed degrees of freedom when not listed); otherwise FAIL. A PASS makes it a
+candidate for a real-money discussion with the owner, never automatic.
+Reported, not judged: the long and short legs against the universe's futures, and a TOP-3 sub-book (the 3 highest and 3
+lowest) for practicality.
+
+FILES AND PRIVACY
+fit.py and FIT.txt (the fit), api/_lib/daytrader-forward.js and scripts/daytrader-forward.js (live features and books),
+scripts/daytrader-predict.py, docs/paper-rules/daytrader.json (dates, book results and the TOP-3 symbols a side -- no
+probabilities). Shown on TRACK only, as information, never as a FUTURES row.

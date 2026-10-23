@@ -1,0 +1,52 @@
+name: daytrader-forward
+# The AI day-trader paper test (studies/daytrader-forward-2026-10-26): after the evening paper job, the frozen trees model
+# ranks every universe stock future of each session from 26 Oct 2026 (from what was known at 09:15 only). Public output:
+# dates, book results and the top 3 a side; the model stays in the private repo and the features on the runner.
+on:
+  workflow_run:
+    workflows: ["springy-dip"]
+    types: [completed]
+  schedule:
+    - cron: "45 16 * * 1-5"     # 22:15 IST backstop
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: daytrader-forward
+  cancel-in-progress: false
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    env:
+      GH_TOKEN: ${{ vars.K2_DATA_REPO && secrets.K2_DATA_TOKEN || github.token }}
+      GH_REPO: ${{ vars.K2_DATA_REPO || github.repository }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Pinned learning libraries
+        run: pip install -q scikit-learn==1.9.1 numpy==2.5.4
+      - name: NSE's files and the frozen model (private repo)
+        run: |
+          gh release download data-nse-cm -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz && rm nse-cm.tar.gz
+          gh release download data-paper-inputs -p paper-inputs.tar.gz && tar -xzf paper-inputs.tar.gz && rm paper-inputs.tar.gz
+          gh release download daytrader-model -p daytrader-model.pkl -D "$RUNNER_TEMP/m"
+      - name: Rankings and books
+        run: |
+          set -o pipefail
+          npm install --omit=dev --no-audit --no-fund >/dev/null
+          K2_CM_DIR=nse-data/cm K2_FUT_DIR=nse-fo/fut K2_IDX_DIR=nse-idx node scripts/daytrader-forward.js --features "$RUNNER_TEMP/w" | tee -a "$GITHUB_STEP_SUMMARY"
+          python scripts/daytrader-predict.py "$RUNNER_TEMP/m/daytrader-model.pkl" "$RUNNER_TEMP/w" | tee -a "$GITHUB_STEP_SUMMARY"
+          node scripts/daytrader-forward.js --assemble "$RUNNER_TEMP/w" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Commit the result
+        run: |
+          git config user.name "k2-desk-bot"
+          git config user.email "k2-desk-bot@users.noreply.github.com"
+          git add docs/paper-rules/daytrader.json
+          git diff --cached --quiet && { echo "no change"; exit 0; }
+          git commit -m "AI day-trader test: updated"
+          for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin HEAD:main && exit 0; sleep 10; done
+          exit 1
