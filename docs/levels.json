@@ -192,7 +192,10 @@
   "OPTION|WIPRO|WIPRO26NOV202.5CE",
   "OPTION|POWERINDIA|POWERINDIA26NOV26500PE",
   "OPTION|AUROPHARMA|AUROPHARMA26NOV1600PE",
-  "OPTION|ICICIGI|ICICIGI26NOV1700CE"
+  "OPTION|ICICIGI|ICICIGI26NOV1700CE",
+  "OPTION|NIFTY|NIFTY26N0322250PE",
+  "OPTION|BANKNIFTY|BANKNIFTY26NOV53600PE",
+  "OPTION|VMM|VMM26NOV86PE"
  ],
  "options": {
   "NIFTY26N0322850PE": {
@@ -2398,6 +2401,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-23T04:04:18.406Z",
    "frozenAtIst": "2026-10-23 09:34 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26N0322250PE": {
+   "buy": 101.55,
+   "sell": 152.3,
+   "stop": 50.75,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-11-03",
+   "strike": 22250,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-23T04:24:50.851Z",
+   "frozenAtIst": "2026-10-23 09:54 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26NOV53600PE": {
+   "buy": 499.95,
+   "sell": 749.9,
+   "stop": 250,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-11-23",
+   "strike": 53600,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-23T04:24:50.851Z",
+   "frozenAtIst": "2026-10-23 09:54 IST",
+   "frozenAtSpot": null
+  },
+  "VMM26NOV86PE": {
+   "buy": 3.6,
+   "sell": 5.4,
+   "stop": 1.8,
+   "tick": 0.01,
+   "lotSize": 4850,
+   "expiry": "2026-11-23",
+   "strike": 86,
+   "right": "PE",
+   "symbol": "VMM",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-23T04:24:50.851Z",
+   "frozenAtIst": "2026-10-23 09:54 IST",
    "frozenAtSpot": null
   }
  },
