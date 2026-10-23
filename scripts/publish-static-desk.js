@@ -946,6 +946,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     trees: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "trees.json"), "utf8")); } catch { return null; } })(),
     oiFlow: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "oi-flow.json"), "utf8")); } catch { return null; } })(),
     sbStrong: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "sb-strong.json"), "utf8")); } catch { return null; } })(),
+    sbTrees: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "sb-trees.json"), "utf8")); } catch { return null; } })(),
     // The last ~25 share closes for each stock on the focus and Kronos lists (the build's bar cache), for the slip charts.
     sparks: (() => { try {
       const bc = require("../api/_lib/bar-cache"); const read = (f) => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", f), "utf8")); } catch { return null; } };
@@ -1255,6 +1256,21 @@ function sbStrongBox(s) {
       Priced on the near-month future, the contract you trade (amendment A1); the share-priced result is kept alongside. A verdict needs 100 trades and 3 months. Data through ${esc(s.dataThrough)}. <b>Not a recommendation until it passes.</b></span>
     ${pend ? listFold(`Next session: ${esc(np)} strong signal${np === 1 ? "" : "s"}`, `<div class="wrap"><table><thead><tr><th>SIGNAL</th><th class="num">PRICE</th><th class="num">OPEN INT.</th></tr></thead><tbody>${pend}</tbody></table></div>`) : `<div class="sub">No strong signal for the next session.</div>`}
     ${done ? listFold("Latest trades", `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAY</th><th class="num">NET</th><th class="num">VS MARKET</th></tr></thead><tbody>${done}</tbody></table></div>`) : ""}
+  </div>`;
+}
+
+// SHORT BUILD-UP, THE TREES MODEL'S PICKS, ON PAPER (studies/sb-trees-forward-2026-10-23; the futures lab's U5).
+function sbTreesBox(s) {
+  if (!s || !s.summary) return "";
+  const m = s.summary, mn = (v) => String(v).replace(/^-/, "&minus;"), sg = (v) => (v === null || v === undefined ? "&mdash;" : `${v > 0 ? "+" : ""}${mn(esc(v))}%`);
+  const tone = m.verdict === "PASS" ? "up" : m.verdict === "FAIL" ? "down" : "warn", cls = (v) => (v > 0 ? "up" : v < 0 ? "down" : "");
+  const rows = (s.trades || []).filter((t) => t.status === "DONE").slice(0, 20).map((t) => `<tr><td><b>${esc(t.symbol)}</b></td><td>${esc(t.entryDate)}</td><td>${t.decision === "TAKE" ? "<b>TAKE</b>" : "skip"}</td>
+    <td class="num ${cls(t.netPct)}">${sg(t.netPct)}</td><td class="num ${cls(t.excessPct)}">${sg(t.excessPct)}</td></tr>`).join("");
+  return `<div class="note" style="margin-top:16px;border-left-color:var(--muted)">
+    <b>SHORT BUILD-UP, THE TREES MODEL&rsquo;S PICKS</b> <b class="${tone}">${esc(m.verdict || "COLLECTING")}</b> &mdash; ${esc(m.counted ?? 0)} counted${m.counted ? `, ${esc(m.taken)} taken: ${sg(m.takeNetPct)} a trade on futures (all ${sg(m.allNetPct)}), taken minus skipped ${sg(m.spreadPct)}, t ${(m.t ?? null) === null ? "&mdash;" : mn(esc(m.t))}` : ""}.
+    <span class="lec"> &mdash; ${esc(s.rule)}. Backtest: ${esc(s.backtest)}. Counted from ${esc(s.start)}; rules fixed in ${esc(s.preregistration)}, the model in ${esc(s.fit)}.
+      Decided after each close, from what was known at 09:15. A verdict needs 100 trades, 3 months and 10 weeks with both. Data through ${esc(s.dataThrough)}. <b>Not a recommendation until it passes.</b></span>
+    ${rows ? listFold("Latest decisions", `<div class="wrap"><table><thead><tr><th>SYMBOL</th><th>DAY</th><th>MODEL</th><th class="num">NET</th><th class="num">VS MARKET</th></tr></thead><tbody>${rows}</tbody></table></div>`) : `<div class="sub">First decisions after the next close.</div>`}
   </div>`;
 }
 
@@ -2224,6 +2240,7 @@ ${footAlarm}
     ${springyBox(d.springyDip)}
     ${oiFlowBox(d.oiFlow)}
     ${sbStrongBox(d.sbStrong)}
+    ${sbTreesBox(d.sbTrees)}
     ${kronosTrackBox(d.kronos)}
     ${treesTrackBox(d.trees)}
     ${forwardV2Box(d.forwardV2)}
@@ -2417,7 +2434,7 @@ async function main() {
   return data;
 }
 
-module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox, gmTournamentBox, treesBox, treesTrackBox, sbStrongBox };
+module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox, gmTournamentBox, treesBox, treesTrackBox, sbStrongBox, sbTreesBox };
 
 // Exported above so a test can drive build() twice and prove the levels did not
 // move. Run directly, it is still just a build.
