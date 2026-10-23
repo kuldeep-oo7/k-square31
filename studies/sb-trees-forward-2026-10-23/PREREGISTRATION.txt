@@ -1,0 +1,49 @@
+PRE-REGISTRATION -- FORWARD PAPER TEST: THE TREES MODEL PICKING SHORT BUILD-UP TRADES, PRICED ON FUTURES (futures lab U5)
+Written Friday 23 Oct 2026, about 08:30 IST, BEFORE the first session it covers (Friday 23 Oct 2026, open 09:15 IST).
+The commit time is the proof. Owner, 23 Oct 2026: "yes do both and keep testing more strategies".
+
+WHERE IT COMES FROM
+studies/futures-lab-2026-10-23 (branch claude/futures-lab-2026-10-23; registration c15633f; one run, GitHub Actions
+39835994636), member U5. PROMISING, NOT a pass:
+  2008-2020: the trees' TAKE half beat the SKIP half by +0.191% a trade in futures excess (monthly spread), t 6.31, Holm
+  yes, DSR 0.94 (0.95 needed); 2020-2026: +0.111%, t 2.63.
+Both periods have been seen. Only future prices can test it.
+
+THE MODEL (fixed now; one fit, made after this file is committed)
+- Training rows: every short build-up (SB) trade in the futures lab's tables -- discovery rows (NSE 2005-01 .. 2020-09-30,
+  release data-oos) and confirmation rows (2020-10-01 .. 2026-10-01, the research snapshot with data-oos look-back) -- with
+  the 17 features of studies/open-lab-2026-10-23 (R, OI, GAP, NGAP, NRET, VOLR, TREND, VOL20, BASIS, NSIG, DOW, TOEXP, LOGP,
+  LOGV, OIREL, PREV, R2) and the label FUTURES EXCESS > 0, all exactly as the futures lab's run.js builds them.
+- Python 3.12, scikit-learn 1.9.1, numpy 2.5.4: HistGradientBoostingClassifier(max_iter=200, learning_rate=0.05,
+  max_leaf_nodes=15, min_samples_leaf=200, l2_regularization=1.0, early_stopping=False, random_state=0), fitted once on all
+  those rows. THRESHOLD = the median of its predicted probabilities on the same rows.
+- The fit uses no data after 2026-10-01 and is deterministic. The fitted model is kept in the private repo k2-data
+  (it is derived from market data); FIT.txt in this folder records the date of the fit, the number of rows, the threshold
+  and the model file's sha256, before any session is scored.
+
+LIVE DECISIONS
+- For every SB signal (api/_lib/oi-flow-forward.js, unchanged) entering on d: the 17 features computed as the 09:15 lab's
+  features() does, from NSE's files only: CM bars to d-1 and the share's official OPEN of d; F&O files to d-1; NIFTY's open
+  of d and closes to d-1 from NSE's index file. Only what is known at 09:15 on d is used; the computation itself runs after
+  the close of d.
+- TAKE if the model's probability > THRESHOLD, else SKIP.
+
+PRICING (as the futures lab and the strong-SB test's amendment A1)
+- Short the near-month future (the earliest expiry on or after d in NSE's F&O file of d) at its official open, cover at its
+  official close. NET after calculateNseFuturesCharges (dated; quantity ceil(Rs 5 lakh / open)).
+- FUTURES EXCESS = NET + the equal-weighted near-month futures open-to-close return on d of the night lab's universe (top
+  200 by traded value, >= 250 bars after the last reset; at least 30 names, else the trade is not counted).
+- Counted: every SB signal entering on or after 2026-10-23 with a futures price and the benchmark.
+
+VERDICT (one rule, one test)
+COLLECTING until at least 100 counted trades AND 3 calendar months since 2026-10-23 AND 10 ISO weeks with both TAKE and
+SKIP trades. Then PASS if the mean of the weekly SPREAD (mean TAKE excess - mean SKIP excess, weeks with both) > 0 and its
+one-sided t is at or above the one-sided 5% critical value of Student's t with (weeks - 1) degrees of freedom (the next
+LOWER listed degrees of freedom when not listed); otherwise FAIL. A PASS makes it a candidate for FUTURES, never automatic.
+Reported, not judged: TAKE's own futures net and excess a trade, win rate, and GM rupees at 20 units (gross, futures) for
+TAKE and for all SB trades.
+
+FILES AND PRIVACY
+fit.py and FIT.txt (the fit), api/_lib/sb-trees-forward.js and scripts/sb-trees-forward.js (live features, decisions,
+scoring), docs/paper-rules/sb-trees.json (symbols, dates, TAKE/SKIP, futures prices and results only -- no probabilities).
+Shown on TRACK only, as information, never as a FUTURES row.
