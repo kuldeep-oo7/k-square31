@@ -1,0 +1,23 @@
+WEEKLY OI LAB: registration sha256 970756e1fa71f58a... (verified); run 2026-10-23T16:11:49.976Z
+CHECKS:
+ 5.1 by hand: up 6% with OI up 12% is a W1 name (true); its week from the first open to the last close rolls at the 27 Jan expiry: 3.638%: PASSED
+ 5.2 planted (W1 names +1.5% the next week): W1 244 weeks, t 8.12: PASSED
+DISCOVERY DATA: 3909 sessions 2005-01-03 .. 2020-10-30, 2792 stocks; weekly books: W1 648, W2 672, W3 631, W4 381
+ 5.3 re-dated null on the discovery data: 0 PASS of 4 (at most 1 allowed): PASSED
+CONFIRMATION DATA: 5376 sessions 2005-01-03 .. 2026-10-01, 4437 stocks; weekly books: W1 242, W2 261, W3 229, W4 117
+
+DISCOVERY 2005-01-01 .. 2020-10-31 (next week on futures, excess over the universe's futures; Holm across 4; DSR with N = 389):
+ W1 weekly long build-up     645 weeks |   6.8 names | 177 months | -0.331% a week vs market | won 45% | worst month -9.18% | t -1.96 | Holm n | DSR 0.00 -> FAIL
+ W2 weekly short build-up    668 weeks |   6.5 names | 177 months | +0.003% a week vs market | won 51% | worst month -6.20% | t 0.02 | Holm n | DSR 0.00 -> FAIL
+ W3 weekly short covering    626 weeks |   6.7 names | 177 months | +0.352% a week vs market | won 53% | worst month -11.29% | t 1.67 | Holm n | DSR 0.00 -> FAIL
+ W4 weekly long unwinding    371 weeks |   9.5 names | 162 months | +0.250% a week vs market | won 51% | worst month -39.87% | t 0.79 | Holm n | DSR 0.00 -> FAIL
+DISCOVERY PASS: none. PROMISING: none.
+
+CONFIRMATION 2020-10-01 .. 2026-10-01 (every member reported; a discovery PASS is CONFIRMED with mean > 0 and t >= 2):
+ W1 weekly long build-up     241 weeks |   4.6 names |  72 months | -0.515% a week vs market | won 44% | worst month -6.25% | t -2.42
+ W2 weekly short build-up    259 weeks |   4.9 names |  72 months | -0.159% a week vs market | won 49% | worst month -3.75% | t -0.88
+ W3 weekly short covering    228 weeks |   4.5 names |  72 months | +0.031% a week vs market | won 50% | worst month -9.08% | t 0.15
+ W4 weekly long unwinding    116 weeks |   3.6 names |  64 months | -1.204% a week vs market | won 47% | worst month -28.43% | t -1.48
+
+CANDIDATES (discovery PASS and confirmed): none. A candidate goes to TRACK as a forward paper test first, never straight to FUTURES.
+
