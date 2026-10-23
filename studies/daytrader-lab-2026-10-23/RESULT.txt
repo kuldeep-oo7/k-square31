@@ -1,0 +1,26 @@
+AI DAY-TRADER LAB features: registration sha256 6ae9f93d4f39648e... (verified); 2026-10-23T15:42:17.050Z
+ 7.1 timing: 60 synthetic stock-days on 2013-04-08; every feature unchanged after d's high, low, close and all later data changed: PASSED
+DISCOVERY DATA: 3909 sessions 2005-01-03 .. 2020-10-30, 2792 stocks, futures for 433; 498384 stock-days on 3638 days
+CONFIRMATION DATA: 5376 sessions 2005-01-03 .. 2026-10-01, 4437 stocks, futures for 559; 213917 stock-days on 1487 days
+ missing features: R1 1, R5 2, R20 2, GAP 1, NGAP 288, NRET 576, OI1 1322, OI5 2239, VOLR 1, VOL20 0, BASIS 751, TREND 1, HL 1, CLV 4, DOW 0, TOEXP 432, LOGP 1, LOGV 0
+CHECKS 7.2-7.3:
+ 7.2 planted (GAP < 0 and OI1 > 0.03): A1 t 36.63, +0.295% a day: PASSED
+ 7.3 null (features shuffled within each day): 0 PASS of 5 (at most 1): PASSED
+
+DISCOVERY 2008-01-01 .. 2020-10-31 (daily books on futures, monthly mean of %; A2, A3 vs the universe's futures; Holm across 5; DSR with N = 370; spreads not modelled):
+ A1 trees long-short            3162 days | 13.6 a side | 154 months | +0.251% a day | won 67% | worst month -0.22% | t 13.96 | Holm y | DSR 1.00 -> PASS
+ A2 trees long only             3162 days | 13.6 a side | 154 months | +0.209% a day | won 62% | worst month -0.21% | t 11.38 | Holm y | DSR 1.00 -> PASS
+ A3 trees short only            3162 days | 13.6 a side | 154 months | +0.294% a day | won 68% | worst month -0.31% | t 14.81 | Holm y | DSR 1.00 -> PASS
+ A4 logistic long-short         3162 days | 13.6 a side | 154 months | +0.167% a day | won 61% | worst month -0.38% | t 9.13 | Holm y | DSR 0.81 -> PROMISING
+ A5 neural network long-short   3162 days | 13.6 a side | 154 months | +0.203% a day | won 65% | worst month -0.21% | t 14.77 | Holm y | DSR 1.00 -> PASS
+DISCOVERY PASS: A1 trees long-short, A2 trees long only, A3 trees short only, A5 neural network long-short. PROMISING: A4 logistic long-short.
+
+CONFIRMATION 2020-10-01 .. 2026-10-01 (every member reported; a discovery PASS is CONFIRMED with mean > 0 and t >= 2):
+ A1 trees long-short            1487 days | 13.9 a side |  73 months | +0.099% a day | won 58% | worst month -0.19% | t 6.09  -> CONFIRMED
+ A2 trees long only             1487 days | 13.9 a side |  73 months | +0.058% a day | won 53% | worst month -0.17% | t 4.80  -> CONFIRMED
+ A3 trees short only            1487 days | 13.9 a side |  73 months | +0.140% a day | won 60% | worst month -0.20% | t 5.81  -> CONFIRMED
+ A4 logistic long-short         1487 days | 13.9 a side |  73 months | +0.029% a day | won 52% | worst month -0.31% | t 2.48
+ A5 neural network long-short   1487 days | 13.9 a side |  73 months | +0.061% a day | won 57% | worst month -0.45% | t 3.32  -> CONFIRMED
+
+CANDIDATES (discovery PASS and confirmed): A1 trees long-short, A2 trees long only, A3 trees short only, A5 neural network long-short. A candidate goes to TRACK as a forward paper test first, never straight to FUTURES.
+

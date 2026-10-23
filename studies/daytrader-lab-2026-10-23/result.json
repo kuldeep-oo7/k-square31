@@ -1,0 +1,153 @@
+{
+ "registration": "6ae9f93d4f39648e2b6f4701e1df5abf6ed2a06c3a762012085b4d0bf37e849a",
+ "discovery": [
+  {
+   "name": "A1 trees long-short",
+   "books": 3162,
+   "perSide": 13.6,
+   "win": 67.42567994939911,
+   "perDay": 0.2511045404696871,
+   "months": 154,
+   "monthMean": 0.2502821072756772,
+   "worstMonth": -0.22393838893223297,
+   "t": 13.959799336347091,
+   "holm": true,
+   "dsr": 0.9999999905727528,
+   "verdict": "PASS"
+  },
+  {
+   "name": "A2 trees long only",
+   "books": 3162,
+   "perSide": 13.6,
+   "win": 61.511701454775455,
+   "perDay": 0.20867801371453285,
+   "months": 154,
+   "monthMean": 0.2073034694318406,
+   "worstMonth": -0.20552349079696736,
+   "t": 11.381759462612086,
+   "holm": true,
+   "dsr": 0.9998173943121494,
+   "verdict": "PASS"
+  },
+  {
+   "name": "A3 trees short only",
+   "books": 3162,
+   "perSide": 13.6,
+   "win": 67.96331435800127,
+   "perDay": 0.29353106722484135,
+   "months": 154,
+   "monthMean": 0.29326074511951356,
+   "worstMonth": -0.3091868749080501,
+   "t": 14.813873655592143,
+   "holm": true,
+   "dsr": 0.999999698200158,
+   "verdict": "PASS"
+  },
+  {
+   "name": "A4 logistic long-short",
+   "books": 3162,
+   "perSide": 13.6,
+   "win": 60.942441492726125,
+   "perDay": 0.16685061144557178,
+   "months": 154,
+   "monthMean": 0.16606126932354023,
+   "worstMonth": -0.37700603478539707,
+   "t": 9.134527488776063,
+   "holm": true,
+   "dsr": 0.8089039398578537,
+   "verdict": "PROMISING"
+  },
+  {
+   "name": "A5 neural network long-short",
+   "books": 3162,
+   "perSide": 13.6,
+   "win": 64.54775458570525,
+   "perDay": 0.2029453426712267,
+   "months": 154,
+   "monthMean": 0.2020556413141785,
+   "worstMonth": -0.20894674686511153,
+   "t": 14.76899151482881,
+   "holm": true,
+   "dsr": 0.9999999921374448,
+   "verdict": "PASS"
+  }
+ ],
+ "confirmation": [
+  {
+   "name": "A1 trees long-short",
+   "books": 1487,
+   "perSide": 13.9,
+   "win": 58.17081371889711,
+   "perDay": 0.0990753891850473,
+   "months": 73,
+   "monthMean": 0.09972700754481043,
+   "worstMonth": -0.18607074791093234,
+   "t": 6.092179269422352,
+   "holm": true,
+   "dsr": 0.6756350608927292,
+   "verdict": "PROMISING"
+  },
+  {
+   "name": "A2 trees long only",
+   "books": 1487,
+   "perSide": 13.9,
+   "win": 53.32885003362475,
+   "perDay": 0.058136912242658205,
+   "months": 73,
+   "monthMean": 0.06132210176449932,
+   "worstMonth": -0.1726985678380459,
+   "t": 4.801259738699658,
+   "holm": true,
+   "dsr": 0.009555450156429337,
+   "verdict": "PROMISING"
+  },
+  {
+   "name": "A3 trees short only",
+   "books": 1487,
+   "perSide": 13.9,
+   "win": 59.85205110961668,
+   "perDay": 0.14001386612743655,
+   "months": 73,
+   "monthMean": 0.1381319133251216,
+   "worstMonth": -0.19944292798381869,
+   "t": 5.808246979944264,
+   "holm": true,
+   "dsr": 0.6573857593469788,
+   "verdict": "PROMISING"
+  },
+  {
+   "name": "A4 logistic long-short",
+   "books": 1487,
+   "perSide": 13.9,
+   "win": 51.98386012104909,
+   "perDay": 0.028687647341326387,
+   "months": 73,
+   "monthMean": 0.032781627268033166,
+   "worstMonth": -0.3149505493994444,
+   "t": 2.4819494678482616,
+   "holm": true,
+   "dsr": 2.4423700233011997e-7,
+   "verdict": "PROMISING"
+  },
+  {
+   "name": "A5 neural network long-short",
+   "books": 1487,
+   "perSide": 13.9,
+   "win": 56.75857431069267,
+   "perDay": 0.06119833848440064,
+   "months": 73,
+   "monthMean": 0.053890164372526216,
+   "worstMonth": -0.445444016996052,
+   "t": 3.316592482809936,
+   "holm": true,
+   "dsr": 0.0008151748628889834,
+   "verdict": "PROMISING"
+  }
+ ],
+ "candidates": [
+  "A1 trees long-short",
+  "A2 trees long only",
+  "A3 trees short only",
+  "A5 neural network long-short"
+ ]
+}
