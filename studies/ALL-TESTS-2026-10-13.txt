@@ -224,6 +224,17 @@ Notation: mean = average net % per trade; t = t-statistic (> 3 needed under v2, 
    2020-2026, N = 317 trials | 0 PASS, no candidate. Every SB stop LOSES against holding to the close, in both periods
    (1% stop: t -5.83 and -1.27). PROMISING: SB strong signal (fall >= 3%, OI >= 6%) t 2.99 then 2.73; tug of war intraday
    t 6.71 then 4.14 and overnight t 6.16 then 4.62 (DSR 0.00: about +0.05% a day after 2020, spreads not counted).
+ 09:15 lab (branch claude/open-lab-2026-10-23, prereg 3e23181; Actions 39832831164) | 7 filters known at the open and
+   trees / logistic / a neural network picking short build-up trades, share-priced | 0 PASS; share-gap filter (t 9.42 then
+   2.24) and the three models (t 8.6-9.4 then 5.0-5.1) PROMISING, DSR 0.00. Post-hoc: on futures the gap filter's edge
+   vanishes.
+ options lab (branch claude/options-lab-2026-10-23, prereg dfa55b1; Actions 39835168794) | smirk, call-put spread, IV
+   changes, realized minus implied, option/futures volume, weekly and monthly long-short | 0 PASS; the US smirk effect runs
+   the other way in India (t -2.28, then -2.84).
+ futures lab (branch claude/futures-lab-2026-10-23, prereg c15633f; Actions 39835994636) | SB, strong SB, LU bounce, the
+   share-gap filter and the three models, priced on the near-month future | 0 PASS; plain SB not significant on futures
+   (t 1.92, then -0.14); PROMISING: trees (t 6.31, DSR 0.94; then 2.63), strong SB (t 3.46; then 1.87), LU (t 3.84; then
+   4.21, net of charges but not of the market).
 
 ================================================================================================================
 PART B: EVERY STUDY'S LOCKED RULES AND FULL RESULT, COPIED FROM GIT BY SCRIPT (unedited)

@@ -156,6 +156,18 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     (both periods). PROMISING: SB strong signal (fall >= 3%, OI >= 6%) t 2.99/2.73; tug of war intraday/overnight
     (Lou-Polk-Skouras) t 6.71/6.16 then 4.14/4.62, DSR 0.00, ~+0.05%/day after 2020 before spreads. MAX, high-volume,
     seasonality, pre-holiday, lead-lag, squeeze long FAIL.
+  - FAIL, 23 Oct 2026 (all pre-registered, one run each, discovery 2005-2020 + confirmation 2020-2026):
+    09:15 lab (claude/open-lab-2026-10-23; Actions 39832831164): 7 filters known at the open + trees/logistic/neural
+    network picking SB trades, share-priced: 0 PASS (share-gap filter and the 3 models PROMISING). Options lab
+    (claude/options-lab-2026-10-23; Actions 39835168794): smirk, call-put spread, IV changes, RV-IV, option/futures volume:
+    0 PASS; the US smirk effect runs the OTHER way in India (t -2.28/-2.84). Futures lab (claude/futures-lab-2026-10-23;
+    Actions 39835994636), everything priced on the near-month FUTURE: 0 PASS; plain SB NOT significant on futures
+    (2005-2020 t 1.92; 2020-2026 t -0.14); PROMISING: trees picking SB trades (t 6.31, DSR 0.94; then t 2.63), strong SB
+    (t 3.46; then 1.87), LU bounce (t 3.84; then 4.21, net, mostly market beta).
+  - KEY FACT (23 Oct): desk tests price at the SHARE's official open (NSE pre-open auction); the near-month FUTURE's
+    open->close beat the share's by +0.085% a day on average (2021-2026, 276k stock-days), so share pricing flatters shorts
+    and penalises longs by ~0.1% a trade. Price anything meant for GM on futures (open -> settlement close, roll at expiry).
+    The strong-SB TRACK test is futures-priced (studies/sb-strong-forward-2026-10-23, amendment A1).
   - Don't re-run these as "new".
 
 ## Open work (as of 2 Oct 2026). Pick up from here
