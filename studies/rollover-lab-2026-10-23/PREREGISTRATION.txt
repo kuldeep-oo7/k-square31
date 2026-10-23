@@ -1,0 +1,51 @@
+PRE-REGISTRATION -- THE ROLLOVER LAB: DOES INDIAN BROKERS' "ROLLOVER DATA" PREDICT THE NEXT FUTURES SERIES? ONE BATCH, ONE RUN.
+Written Friday 23 Oct 2026, about 21:20 IST, BEFORE any member below was computed on real data. The commit time is the
+proof. Branch claude/rollover-lab-2026-10-23.
+Owner, 23 Oct 2026: "keep testing more strategies".
+
+1. WHAT IS KNOWN (disclosed)
+- Rollover (the share of open interest carried into the next futures series at expiry) is a staple of Indian broker
+  commentary: high rollover with a rising price is read as longs rolling (bullish), with a falling price as shorts rolling
+  (bearish). Never tested on this desk (no earlier registration mentions rollover). The families study tested futures
+  carry (basis), not rollover. Nothing below has been computed on real data.
+
+2. DATA AND PERIODS
+- NSE's F&O bhavcopy (stock and NIFTY futures, open interest per expiry) and CM bhavcopy. Discovery 2005-01 .. 2020-10
+  (release data-oos); confirmation 2020-10 .. 2026-10-01 (the research snapshot, with data-oos before 2020-09-01 as
+  look-back only); they share October 2020.
+- An EXPIRY DAY X is a session on which a futures expiry date listed in NSE's file equals the session (for stocks: the
+  stock's nearest expiry). On X, from that day's F&O file: ROLLOVER = OI of the stock's contracts expiring after X / OI of all
+  its contracts. SERIES MOVE = the share's close on X / its close on the previous expiry day - 1.
+- Universe on X: the night lab's (top 200 by traded value, >= 250 bars after the last reset) for X's month, stocks with a
+  futures contract expiring after X; at least 50 stocks, else no book.
+- A trade: the contract expiring next after X (the new near month), bought or sold at its official open on the session after
+  X, closed at its official close on its own expiry day. Charges: NSE futures charges on both legs, quantity
+  ceil(Rs 5 lakh / entry). EXCESS = trade net minus (for a long) / plus (for a short) the equal-weighted return of the same
+  universe's new near-month futures over the same window (at least 30 names).
+
+3. MEMBERS (5)
+ R1 ROLLING LONGS: ROLLOVER in the universe's top fifth AND SERIES MOVE > 0 -> LONG. Excess.
+ R2 ROLLING SHORTS: ROLLOVER in the top fifth AND SERIES MOVE < 0 -> SHORT. Excess.
+ R3 BOTH: R1's longs and R2's shorts in one book, (mean long + mean short) / 2. Raw.
+ R4 UNWOUND: ROLLOVER in the universe's bottom fifth -> SHORT (positions closed rather than carried). Excess.
+ R5 NIFTY: NIFTY's ROLLOVER above the median of its previous 12 expiries AND NIFTY's near-month future rose over the series
+    -> LONG NIFTY's next contract from the open after X to its expiry; above the median and fell -> SHORT; else no trade. Raw.
+
+4. SCORE AND VERDICT
+- Each member: monthly mean (%) of its trades or books (by the month of entry); Newey-West t (lag 3). Holm across the 5 at 5%.
+  Full Deflated Sharpe with N = 381 trials (376 before, these 5), as the night lab computes it.
+- DISCOVERY PASS = mean > 0, t >= 3, Holm, DSR >= 0.95 on 2005-2020. CONFIRMED = then on 2020-2026 mean > 0 and t >= 2. A
+  confirmed pass goes to TRACK as a forward paper test first. PROMISING = discovery mean > 0 and t >= 2. FAIL otherwise.
+  NOT TESTABLE: fewer than 24 months with a trade.
+- Reported, not judged: trades, names a side, win rate, worst month, mean a trade.
+- Expectation, stated now: about 190 monthly series in discovery; the most likely outcome is that nothing passes both.
+
+5. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 5.1 Rollover by hand: a stock with OI 600 in the expiring contract and 300 + 100 in later ones has ROLLOVER 0.4; its trade
+     uses the next contract's open after X and its close on its own expiry.
+ 5.2 Planted: a synthetic market where top-fifth-rollover stocks that rose over the series gain 2% more over the next
+     series: R1 reaches t >= 3.
+ 5.3 Null: every member's trades moved to random expiry days in discovery (same counts and sides): at most 1 PASS of 5.
+
+6. FILES AND PRIVACY
+ run.js, workflow .github/workflows/rollover-lab.yml on main. Logs and artifacts carry summary rows only (public repository).
