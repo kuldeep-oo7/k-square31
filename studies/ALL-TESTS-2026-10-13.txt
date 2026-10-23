@@ -250,6 +250,10 @@ Notation: mean = average net % per trade; t = t-statistic (> 3 needed under v2, 
    from +0.31% a day (2008-12) to +0.11% (2020-25) and +0.01% (t 0.63) since 8 Dec 2025.
  VIX lab (branch claude/vix-lab-2026-10-23, prereg e23379a; Actions 39982797948) | India VIX fear spike, fear high, calm,
    variance premium -> NIFTY futures, 2014-2026 | 0 PASS; variance premium PROMISING (t 2.07, then 2.29); the others too rare.
+ weekly OI lab (branch claude/weekly-oi-lab-2026-10-23, prereg 1f688db; Actions 39984686985) | a week of price and OI,
+   the next week on futures | 0 PASS; weekly long build-up UNDERPERFORMS the next week (t -1.96, then -2.42).
+ VRP lab (branch claude/vrp-lab-2026-10-23, prereg 01633fc; Actions 39985885816) | the expiry-day X2 straddle sold on days -1..-4
+   before a weekly expiry, bought back at the close | 0 PASS; +3..+10 points a trade, best t 2.90 then 1.00.
 
 ================================================================================================================
 PART B: EVERY STUDY'S LOCKED RULES AND FULL RESULT, COPIED FROM GIT BY SCRIPT (unedited)

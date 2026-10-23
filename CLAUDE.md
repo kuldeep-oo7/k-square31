@@ -173,6 +173,10 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     (t 13.96, DSR 1.00) and CONFIRMED 2020-2026 (+0.10%/day, t 6.09). Post-hoc audit (Actions 39982142707): NOT a stale-print
     artifact (shares and a no-gap model agree; it buys weak openers, sells strong ones), but it DECAYED: +0.31%/day 2008-12,
     +0.11% 2020-25, +0.01% (t 0.63) from 8 Dec 2025. VIX lab (claude/vix-lab-2026-10-23): 0 PASS; variance premium t 2.07/2.29.
+    On TRACK from Mon 26 Oct as a forward paper test (studies/daytrader-forward-2026-10-26, model sha 03e56858..., private
+    release daytrader-model). Weekly OI lab (claude/weekly-oi-lab-2026-10-23): 0 PASS; a strong week of rising price and OI
+    UNDERPERFORMS the next week (t -1.96/-2.42). VRP lab (claude/vrp-lab-2026-10-23): 0 PASS; the expiry-day straddle sold on
+    days -1..-4 earns +3..+10 points, not reliable -- the edge is on expiry day itself.
   - KEY FACT (23 Oct): desk tests price at the SHARE's official open (NSE pre-open auction); the near-month FUTURE's
     open->close beat the share's by +0.085% a day on average (2021-2026, 276k stock-days), so share pricing flatters shorts
     and penalises longs by ~0.1% a trade. Price anything meant for GM on futures (open -> settlement close, roll at expiry).
