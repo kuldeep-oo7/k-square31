@@ -1,0 +1,53 @@
+name: vix-lab
+# The VIX lab (studies/vix-lab-2026-10-23 on branch claude/vix-lab-2026-10-23): India VIX signals timing the NIFTY future,
+# registered before any real-data run. Discovery 2014-2020, confirmation 2020-2026. Data from the private repo; the log
+# and the artifact carry summary rows only (this repository is public).
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: "run.js arguments (empty = the one real run; --checks = checks 5.1-5.3 only)"
+        required: false
+        default: ""
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/vix-lab-2026-10-23
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: NSE data from the private repo
+        env:
+          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+          GH_REPO: kuldeep-oo7/k2-data
+        run: |
+          mkdir -p "$RUNNER_TEMP/d" && cd "$RUNNER_TEMP/d"
+          for p in 2013-01-01 2017-01-01; do
+            gh release download data-oos -p "nse-old-$p.tar.gz" --clobber
+            tar -xzf "nse-old-$p.tar.gz" --wildcards 'nse-old/fut/*' && rm "nse-old-$p.tar.gz"
+          done
+          gh release download data-research -p research-nse-fo.tar.gz --clobber && tar -xzf research-nse-fo.tar.gz && rm research-nse-fo.tar.gz
+          gh release download data-macro -p macro-ind_close_all.tar.gz --clobber && tar -xzf macro-ind_close_all.tar.gz && rm macro-ind_close_all.tar.gz
+          echo "2013-2020 fut $(ls nse-old/fut | grep -c json); 2020-2026 fut $(ls research/orderflow-2026-10-03/nse-fo/fut | grep -c json); index files $(ls macro/ind_close_all | wc -l)"
+      - name: The VIX lab
+        env:
+          K2_OOS_NSE: ${{ runner.temp }}/d/nse-old
+          K2_RESEARCH_DIR: ${{ runner.temp }}/d/research
+          K2_MACRO_IC: ${{ runner.temp }}/d/macro/ind_close_all
+        run: |
+          set -o pipefail
+          cd studies/vix-lab-2026-10-23 && node --max-old-space-size=6000 run.js ${{ inputs.args }} | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vix-lab-result
+          if-no-files-found: ignore
+          path: |
+            studies/vix-lab-2026-10-23/RESULT.txt
+            studies/vix-lab-2026-10-23/result.json
