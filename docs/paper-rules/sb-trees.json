@@ -4,58 +4,122 @@
  "fit": "studies/sb-trees-forward-2026-10-23/FIT.txt",
  "start": "2026-10-23",
  "dataThrough": "2026-10-23",
- "builtAt": "2026-10-23T15:16:12.075Z",
+ "builtAt": "2026-10-23T15:21:12.950Z",
  "rule": "Short build-up, the trees model's picks: every short build-up signal gets TAKE or SKIP from a model frozen on 2006-2026 data, using only what is known at 09:15; priced on the near-month future",
  "backtest": "PROMISING, not a pass (futures lab, 23 Oct 2026): the TAKE half beat the SKIP half by +0.191% a trade in 2008-2020 (t 6.31, DSR 0.94) and +0.111% in 2020-2026 (t 2.63)",
  "trades": [
   {
    "symbol": "BHARATFORG",
    "entryDate": "2026-10-23",
-   "status": "NO FUTURES PRICE"
+   "decision": "SKIP",
+   "entry": 1766.3,
+   "exit": 1705.2,
+   "netPct": 3.393,
+   "excessPct": 1.352,
+   "rupees": 1222,
+   "status": "DONE"
   },
   {
    "symbol": "BHEL",
    "entryDate": "2026-10-23",
-   "status": "NO FUTURES PRICE"
+   "decision": "SKIP",
+   "entry": 398.1,
+   "exit": 387.2,
+   "netPct": 2.672,
+   "excessPct": 0.631,
+   "rupees": 218,
+   "status": "DONE"
   },
   {
    "symbol": "ETERNAL",
    "entryDate": "2026-10-23",
-   "status": "NO FUTURES PRICE"
+   "decision": "TAKE",
+   "entry": 305.95,
+   "exit": 316.35,
+   "netPct": -3.466,
+   "excessPct": -5.507,
+   "rupees": -208,
+   "status": "DONE"
   },
   {
    "symbol": "KALYANKJIL",
    "entryDate": "2026-10-23",
-   "status": "NO FUTURES PRICE"
+   "decision": "TAKE",
+   "entry": 530,
+   "exit": 511,
+   "netPct": 3.519,
+   "excessPct": 1.478,
+   "rupees": 380,
+   "status": "DONE"
   },
   {
    "symbol": "LUPIN",
    "entryDate": "2026-10-23",
-   "status": "NO FUTURES PRICE"
+   "decision": "SKIP",
+   "entry": 1929.7,
+   "exit": 1921.2,
+   "netPct": 0.374,
+   "excessPct": -1.667,
+   "rupees": 170,
+   "status": "DONE"
   },
   {
    "symbol": "POWERINDIA",
    "entryDate": "2026-10-23",
-   "status": "NO FUTURES PRICE"
+   "decision": "SKIP",
+   "entry": 26555,
+   "exit": 26245,
+   "netPct": 1.101,
+   "excessPct": -0.94,
+   "rupees": 6200,
+   "status": "DONE"
   },
   {
    "symbol": "SWIGGY",
    "entryDate": "2026-10-23",
-   "status": "NO FUTURES PRICE"
+   "decision": "SKIP",
+   "entry": 205,
+   "exit": 177.25,
+   "netPct": 13.471,
+   "excessPct": 11.43,
+   "rupees": 555,
+   "status": "DONE"
   },
   {
    "symbol": "TMPV",
    "entryDate": "2026-10-23",
-   "status": "NO FUTURES PRICE"
+   "decision": "TAKE",
+   "entry": 269.5,
+   "exit": 263.5,
+   "netPct": 2.16,
+   "excessPct": 0.119,
+   "rupees": 120,
+   "status": "DONE"
   },
   {
    "symbol": "YESBANK",
    "entryDate": "2026-10-23",
-   "status": "NO FUTURES PRICE"
+   "decision": "TAKE",
+   "entry": 16.12,
+   "exit": 15.73,
+   "netPct": 2.353,
+   "excessPct": 0.312,
+   "rupees": 8,
+   "status": "DONE"
   }
  ],
  "summary": {
-  "counted": 0,
+  "counted": 9,
+  "taken": 4,
+  "weeksBoth": 1,
+  "spreadPct": -3.061,
+  "t": null,
+  "takeNetPct": 1.141,
+  "takeExcessPct": -0.899,
+  "takeWinPct": 75,
+  "allNetPct": 2.842,
+  "takeRupees": 300,
+  "allRupees": 8665,
   "verdict": "COLLECTING"
  }
 }
