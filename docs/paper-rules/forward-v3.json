@@ -3,13 +3,53 @@
  "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
  "start": "2026-10-05",
  "dataThrough": "2026-10-23",
- "builtAt": "2026-10-23T14:02:55.696Z",
+ "builtAt": "2026-10-23T15:20:11.303Z",
  "industries": 2584,
  "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
  "CHEAPVOL": {
   "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
   "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months — just short of the bar",
   "trades": [
+   {
+    "symbol": "ICICIGI",
+    "entryDate": "2026-10-23",
+    "expiry": "2026-11-23",
+    "strike": 1600,
+    "entry": 93.5,
+    "ivPct": 25.2,
+    "rvPct": 35,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "MANAPPURAM",
+    "entryDate": "2026-10-23",
+    "expiry": "2026-11-23",
+    "strike": 285,
+    "entry": 20,
+    "ivPct": 30,
+    "rvPct": 41.7,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "NESTLEIND",
+    "entryDate": "2026-10-23",
+    "expiry": "2026-11-23",
+    "strike": 1170,
+    "entry": 66,
+    "ivPct": 24.1,
+    "rvPct": 37.7,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "SWIGGY",
+    "entryDate": "2026-10-23",
+    "expiry": "2026-11-23",
+    "strike": 175,
+    "entry": 19.2,
+    "ivPct": 46.8,
+    "rvPct": 68,
+    "status": "OPEN"
+   },
    {
     "symbol": "KEI",
     "entryDate": "2026-10-22",
@@ -231,26 +271,6 @@
     "status": "OPEN"
    },
    {
-    "symbol": "ICICIGI",
-    "entryDate": "2026-10-16",
-    "expiry": "2026-10-27",
-    "strike": 1680,
-    "entry": 55.6,
-    "ivPct": 23.8,
-    "rvPct": 35.9,
-    "status": "OPEN"
-   },
-   {
-    "symbol": "LICHSGFIN",
-    "entryDate": "2026-10-16",
-    "expiry": "2026-10-27",
-    "strike": 520,
-    "entry": 17.75,
-    "ivPct": 24.5,
-    "rvPct": 39.9,
-    "status": "OPEN"
-   },
-   {
     "symbol": "LTF",
     "entryDate": "2026-10-16",
     "expiry": "2026-10-27",
@@ -321,16 +341,6 @@
     "status": "OPEN"
    },
    {
-    "symbol": "NESTLEIND",
-    "entryDate": "2026-10-16",
-    "expiry": "2026-10-27",
-    "strike": 1270,
-    "entry": 40.2,
-    "ivPct": 22.9,
-    "rvPct": 37.9,
-    "status": "OPEN"
-   },
-   {
     "symbol": "COALINDIA",
     "entryDate": "2026-10-16",
     "expiry": "2026-10-27",
@@ -379,6 +389,45 @@
     "ivPct": 27.5,
     "rvPct": 40.8,
     "status": "OPEN"
+   },
+   {
+    "symbol": "ICICIGI",
+    "entryDate": "2026-10-15",
+    "expiry": "2026-10-27",
+    "strike": 1700,
+    "entry": 62.35,
+    "ivPct": 25.4,
+    "rvPct": 36.6,
+    "exitDate": "2026-10-23",
+    "exit": 107.85,
+    "netPct": 72.551,
+    "status": "DONE"
+   },
+   {
+    "symbol": "LICHSGFIN",
+    "entryDate": "2026-10-15",
+    "expiry": "2026-10-27",
+    "strike": 535,
+    "entry": 18.2,
+    "ivPct": 23.5,
+    "rvPct": 39.3,
+    "exitDate": "2026-10-23",
+    "exit": 29.8,
+    "netPct": 63.33,
+    "status": "DONE"
+   },
+   {
+    "symbol": "NESTLEIND",
+    "entryDate": "2026-10-15",
+    "expiry": "2026-10-27",
+    "strike": 1280,
+    "entry": 53.05,
+    "ivPct": 28.7,
+    "rvPct": 38,
+    "exitDate": "2026-10-23",
+    "exit": 114.45,
+    "netPct": 115.233,
+    "status": "DONE"
    },
    {
     "symbol": "BANDHANBNK",
@@ -1045,11 +1094,11 @@
    }
   ],
   "summary": {
-   "finished": 51,
-   "meanPct": -5.425,
-   "winPct": 19.6,
+   "finished": 54,
+   "meanPct": -0.473,
+   "winPct": 24.1,
    "worstPct": -61.031,
-   "t": -1.9,
+   "t": -0.07,
    "verdict": "COLLECTING"
   }
  },

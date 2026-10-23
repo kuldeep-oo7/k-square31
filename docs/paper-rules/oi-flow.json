@@ -3,11 +3,89 @@
  "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
  "start": "2026-10-05",
  "dataThrough": "2026-10-23",
- "builtAt": "2026-10-23T14:02:43.636Z",
+ "builtAt": "2026-10-23T15:19:56.626Z",
  "LU": {
   "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
   "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
-  "pending": [],
+  "pending": [
+   {
+    "symbol": "BDL",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.33,
+    "oiPct": -9.4,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "BRITANNIA",
+    "signalDate": "2026-10-23",
+    "pricePct": -1.88,
+    "oiPct": -4.58,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "LICHSGFIN",
+    "signalDate": "2026-10-23",
+    "pricePct": -2.39,
+    "oiPct": -4.81,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "OFSS",
+    "signalDate": "2026-10-23",
+    "pricePct": -1.69,
+    "oiPct": -4.48,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "RECLTD",
+    "signalDate": "2026-10-23",
+    "pricePct": -2.37,
+    "oiPct": -3.74,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "SUZLON",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.03,
+    "oiPct": -4.4,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "KAYNES",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.22,
+    "oiPct": -6.76,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "LTF",
+    "signalDate": "2026-10-23",
+    "pricePct": -2.7,
+    "oiPct": -10.14,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "SWIGGY",
+    "signalDate": "2026-10-23",
+    "pricePct": -16.75,
+    "oiPct": -7.45,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "ATHERENERG",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.18,
+    "oiPct": -5.4,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "LTM",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.28,
+    "oiPct": -5.68,
+    "status": "SIGNAL"
+   }
+  ],
   "trades": [
    {
     "symbol": "WAAREEENER",
@@ -157,7 +235,64 @@
  "SB": {
   "rule": "Short build-up: the share fell at least 1.56% and its futures open interest rose at least 3.04% -> short at the next open, cover at that day's close",
   "backtest": "FAILED (+0.296% / +0.020% / +0.131% a trade; final t 1.86, not enough after 12 tests)",
-  "pending": [],
+  "pending": [
+   {
+    "symbol": "FORCEMOT",
+    "signalDate": "2026-10-23",
+    "pricePct": -2.19,
+    "oiPct": 7.8,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "HEROMOTOCO",
+    "signalDate": "2026-10-23",
+    "pricePct": -1.58,
+    "oiPct": 3.43,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "KEI",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.82,
+    "oiPct": 4.96,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "POLYCAB",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.01,
+    "oiPct": 6.28,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "POWERINDIA",
+    "signalDate": "2026-10-23",
+    "pricePct": -2.72,
+    "oiPct": 5.33,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "SOLARINDS",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.39,
+    "oiPct": 4.78,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "SHRIRAMFIN",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.98,
+    "oiPct": 4.7,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "HYUNDAI",
+    "signalDate": "2026-10-23",
+    "pricePct": -2.4,
+    "oiPct": 3.45,
+    "status": "SIGNAL"
+   }
+  ],
   "trades": [
    {
     "symbol": "TMPV",
@@ -1193,39 +1328,57 @@
    "rows": [
     {
      "symbol": "BHARATFORG",
-     "missing": true
+     "expiry": "2026-10-27",
+     "open": 1766.3,
+     "close": 1705.2
     },
     {
      "symbol": "BHEL",
-     "missing": true
+     "expiry": "2026-10-27",
+     "open": 398.1,
+     "close": 387.2
     },
     {
      "symbol": "ETERNAL",
-     "missing": true
+     "expiry": "2026-10-27",
+     "open": 305.95,
+     "close": 316.35
     },
     {
      "symbol": "KALYANKJIL",
-     "missing": true
+     "expiry": "2026-10-27",
+     "open": 530,
+     "close": 511
     },
     {
      "symbol": "LUPIN",
-     "missing": true
+     "expiry": "2026-10-27",
+     "open": 1929.7,
+     "close": 1921.2
     },
     {
      "symbol": "POWERINDIA",
-     "missing": true
+     "expiry": "2026-10-27",
+     "open": 26555,
+     "close": 26245
     },
     {
      "symbol": "SWIGGY",
-     "missing": true
+     "expiry": "2026-10-27",
+     "open": 205,
+     "close": 177.25
     },
     {
      "symbol": "TMPV",
-     "missing": true
+     "expiry": "2026-10-27",
+     "open": 269.5,
+     "close": 263.5
     },
     {
      "symbol": "YESBANK",
-     "missing": true
+     "expiry": "2026-10-27",
+     "open": 16.12,
+     "close": 15.73
     }
    ],
    "void": 0
