@@ -246,7 +246,10 @@ Notation: mean = average net % per trade; t = t-statistic (> 3 needed under v2, 
  AI day-trader lab (branch claude/daytrader-lab-2026-10-23, prereg e8a6d81; Actions 39980410271) | trees, logistic and a
    neural network rank all stock futures at 09:15; long top tenth, short bottom tenth, open to close, on futures | PASS:
    trees long-short (t 13.96, DSR 1.00; then +0.10% a day, t 6.09), trees long-only, short-only, network; CONFIRMED.
-   Audit pending: the futures' first print before the 8 Dec 2025 F&O pre-open auction may be stale.
+   Post-hoc audit: not a stale-print artifact (share prices and a model without the gap inputs agree), but the edge decayed
+   from +0.31% a day (2008-12) to +0.11% (2020-25) and +0.01% (t 0.63) since 8 Dec 2025.
+ VIX lab (branch claude/vix-lab-2026-10-23, prereg e23379a; Actions 39982797948) | India VIX fear spike, fear high, calm,
+   variance premium -> NIFTY futures, 2014-2026 | 0 PASS; variance premium PROMISING (t 2.07, then 2.29); the others too rare.
 
 ================================================================================================================
 PART B: EVERY STUDY'S LOCKED RULES AND FULL RESULT, COPIED FROM GIT BY SCRIPT (unedited)

@@ -170,8 +170,9 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     an SB crowd LOSES both periods); rollover lab (claude/rollover-lab-2026-10-23; 0 PASS; broker rollover reading fails,
     rolling shorts reversed after 2020). AI day-trader lab (claude/daytrader-lab-2026-10-23, Actions 39980410271): trees /
     neural network ranking all stock futures at 09:15, long top tenth / short bottom tenth, open to close: PASS 2008-2020
-    (t 13.96, DSR 1.00) and CONFIRMED 2020-2026 (+0.10%/day, t 6.09) -- AUDIT PENDING (stale first futures print before
-    NSE's F&O pre-open auction of 8 Dec 2025?); not on any page until the audit and a forward paper test.
+    (t 13.96, DSR 1.00) and CONFIRMED 2020-2026 (+0.10%/day, t 6.09). Post-hoc audit (Actions 39982142707): NOT a stale-print
+    artifact (shares and a no-gap model agree; it buys weak openers, sells strong ones), but it DECAYED: +0.31%/day 2008-12,
+    +0.11% 2020-25, +0.01% (t 0.63) from 8 Dec 2025. VIX lab (claude/vix-lab-2026-10-23): 0 PASS; variance premium t 2.07/2.29.
   - KEY FACT (23 Oct): desk tests price at the SHARE's official open (NSE pre-open auction); the near-month FUTURE's
     open->close beat the share's by +0.085% a day on average (2021-2026, 276k stock-days), so share pricing flatters shorts
     and penalises longs by ~0.1% a trade. Price anything meant for GM on futures (open -> settlement close, roll at expiry).
