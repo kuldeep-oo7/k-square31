@@ -250,7 +250,8 @@
   "OPTION|VMM|VMM26NOV80PE",
   "OPTION|NIFTY|NIFTY26N0322050PE",
   "OPTION|TECHM|TECHM26NOV1700CE",
-  "OPTION|WIPRO|WIPRO26NOV180CE"
+  "OPTION|WIPRO|WIPRO26NOV180CE",
+  "OPTION|BANKNIFTY|BANKNIFTY26NOV53100PE"
  ],
  "options": {
   "NIFTY26N0322850PE": {
@@ -3326,6 +3327,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-23T07:04:13.913Z",
    "frozenAtIst": "2026-10-23 12:34 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26NOV53100PE": {
+   "buy": 507.5,
+   "sell": 761.25,
+   "stop": 253.75,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-11-23",
+   "strike": 53100,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-23T07:23:59.617Z",
+   "frozenAtIst": "2026-10-23 12:53 IST",
    "frozenAtSpot": null
   }
  },
