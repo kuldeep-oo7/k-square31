@@ -1,0 +1,27 @@
+INDEX LAB: registration sha256 b0d3f8a0a6ee60ec... (verified); run 2026-10-23T15:34:19.106Z
+CHECKS:
+ 5.1 pricing by hand: overnight -0.036%; a 5-session hold across the 27 Jan expiry chains two contracts with one roll 4.956%: PASSED
+ 5.2 planted overnight drift (+0.10% a night): N1 t 5.29, +0.059% a trade: PASSED
+DISCOVERY DATA: 3907 sessions 2005-01-03 .. 2020-10-30; trades: N1 3906, N2 3906, N3 189, N4 185, N5 1145, N6 238
+ 5.3 re-dated null on the discovery data: 0 PASS of 6 (at most 1 allowed): PASSED
+CONFIRMATION DATA: 1509 sessions 2020-09-01 .. 2026-10-01; trades: N1 1487, N2 1487, N3 71, N4 73, N5 296, N6 27
+
+DISCOVERY 2005-01-01 .. 2020-10-31 (NIFTY near-month future; monthly mean of net %; Holm across 6; DSR with N = 365):
+ N1 overnight            3906 trades | 190 months | +0.011% a trade | won 54% | worst month -1.20% | t 0.79 | Holm n | DSR 0.00 -> FAIL
+ N2 intraday             3906 trades | 190 months | -0.023% a trade | won 49% | worst month -0.98% | t -1.35 | Holm n | DSR 0.00 -> FAIL
+ N3 turn of the month     188 trades | 188 months | +0.541% a trade | won 61% | worst month -8.72% | t 2.84 | Holm y | DSR 0.00 -> PROMISING
+ N4 expiry run-up         185 trades | 185 months | +0.131% a trade | won 50% | worst month -8.39% | t 0.68 | Holm n | DSR 0.00 -> FAIL
+ N5 gap fade             1145 trades | 181 months | +0.081% a trade | won 50% | worst month -1.40% | t 1.44 | Holm n | DSR 0.00 -> FAIL
+ N6 big-drop bounce       234 trades |  92 months | +0.312% a trade | won 55% | worst month -5.54% | t 3.09 | Holm y | DSR 0.17 -> PROMISING
+DISCOVERY PASS: none. PROMISING: N3 turn of the month, N6 big-drop bounce.
+
+CONFIRMATION 2020-10-01 .. 2026-10-01 (every member reported; a discovery PASS is CONFIRMED with mean > 0 and t >= 2):
+ N1 overnight            1486 trades |  73 months | -0.006% a trade | won 52% | worst month -0.51% | t -0.62 | GM 20 units Rs 1,31,106
+ N2 intraday             1487 trades |  73 months | -0.035% a trade | won 50% | worst month -0.51% | t -2.10 | GM 20 units Rs -52,222
+ N3 turn of the month      71 trades |  71 months | +0.431% a trade | won 63% | worst month -4.48% | t 1.77 | GM 20 units Rs 88,826
+ N4 expiry run-up          72 trades |  71 months | -0.385% a trade | won 46% | worst month -5.91% | t -2.01 | GM 20 units Rs -1,01,253
+ N5 gap fade              296 trades |  64 months | -0.091% a trade | won 42% | worst month -2.20% | t -1.86 | GM 20 units Rs -68,376
+ N6 big-drop bounce     NOT TESTABLE (19 months, 27 trades)
+
+CANDIDATES (discovery PASS and confirmed): none. A candidate goes to TRACK as a forward paper test first, never straight to FUTURES.
+
