@@ -1,0 +1,51 @@
+name: index-lab
+# The index lab (studies/index-lab-2026-10-23 on branch claude/index-lab-2026-10-23): six ways to time the NIFTY future,
+# registered before any real-data run. Discovery NSE 2005-2020 (release data-oos), confirmation 2020-2026 (the research
+# snapshot). Data from the private repo; the log and the artifact carry summary rows only (this repository is public).
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: "run.js arguments (empty = the one real run; --checks = checks 5.1-5.3 only)"
+        required: false
+        default: ""
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 120
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/index-lab-2026-10-23
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: NSE F&O files from the private repo
+        env:
+          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+          GH_REPO: kuldeep-oo7/k2-data
+        run: |
+          mkdir -p "$RUNNER_TEMP/d" && cd "$RUNNER_TEMP/d"
+          for p in 2005-01-01 2009-01-01 2013-01-01 2017-01-01; do
+            gh release download data-oos -p "nse-old-$p.tar.gz" --clobber
+            tar -xzf "nse-old-$p.tar.gz" --wildcards 'nse-old/fut/*' && rm "nse-old-$p.tar.gz"
+          done
+          gh release download data-research -p research-nse-fo.tar.gz --clobber && tar -xzf research-nse-fo.tar.gz && rm research-nse-fo.tar.gz
+          echo "2005-2020 fut $(ls nse-old/fut | grep -c json); 2020-2026 fut $(ls research/orderflow-2026-10-03/nse-fo/fut | grep -c json)"
+      - name: The index lab
+        env:
+          K2_OOS_NSE: ${{ runner.temp }}/d/nse-old
+          K2_RESEARCH_DIR: ${{ runner.temp }}/d/research
+        run: |
+          set -o pipefail
+          cd studies/index-lab-2026-10-23 && node --max-old-space-size=8000 run.js ${{ inputs.args }} | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: index-lab-result
+          if-no-files-found: ignore
+          path: |
+            studies/index-lab-2026-10-23/RESULT.txt
+            studies/index-lab-2026-10-23/result.json
