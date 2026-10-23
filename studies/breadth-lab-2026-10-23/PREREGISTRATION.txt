@@ -1,0 +1,58 @@
+PRE-REGISTRATION -- THE BREADTH LAB: TIMING THE NIFTY FUTURE FROM WHAT THE WHOLE MARKET DID YESTERDAY. ONE BATCH, ONE RUN.
+Written Friday 23 Oct 2026, about 21:15 IST, BEFORE any member below was computed on real data. The commit time is the
+proof. Branch claude/breadth-lab-2026-10-23.
+Owner, 23 Oct 2026: "keep testing more strategies".
+
+1. WHAT IS KNOWN (disclosed)
+- The index lab (today, 21:01) priced NIFTY futures timing: turn of the month and the big-drop bounce PROMISING, the rest
+  FAIL. Earlier NIFTY timing tests (trend reader, candlesticks, 10-month filter, macro pod, GEX, cues) all FAILED.
+- Short build-up (SB) and long unwinding (LU) are this desk's stock-level open-interest patterns; their MARKET-WIDE counts
+  have never been tested. Breadth thrusts (Zweig) and washouts are classic market-timing ideas; not re-read tonight.
+- Nothing below has been computed on real data.
+
+2. DATA, UNIVERSE, PRICES
+- Discovery NSE 2005-01 .. 2020-10 (release data-oos); confirmation 2020-10 .. 2026-10-01 (the research snapshot, with
+  data-oos before 2020-09-01 as look-back only); they share October 2020.
+- Breadth is measured on each month's universe: the night lab's (top 200 EQ stocks by traded value, >= 250 bars after the
+  last reset). On day d-1 a stock counts if it has bars on d-1 and d-2 (and the history a measure needs).
+- NIFTY trades exactly as the index lab prices them: the near-month NIFTY future (earliest expiry on or after the entry day
+  with an official open and close), official open and close, rolled at an expiry, NSE futures charges, quantity ceil(Rs 5
+  lakh / entry).
+
+3. SIGNALS ON SESSION d-1 (the trade starts at the open of d)
+ SB count = universe stocks with close(d-1)/close(d-2)-1 <= -1.5581% and total futures OI(d-1)/OI(d-2)-1 >= +3.0380%.
+ LU count = the same price fall with OI(d-1)/OI(d-2)-1 <= -3.0380%.
+ UP share = share of the universe closing above its previous close.
+ ABOVE-50 share = share of the universe closing above its own 50-session average close.
+ LOW share = share of the universe closing at or below its lowest close of the previous 250 sessions.
+ OI change = sum of the universe's total futures OI on d-1 / the same stocks' sum on d-2, minus 1.
+ "Top 20%" = at or above the 80th percentile of the same measure over the previous 250 sessions (at least 200 of them).
+
+4. MEMBERS (6)
+ B1 SHORT BUILD-UP CROWD: SB count in its top 20% -> SHORT NIFTY at the open of d, cover at the close of d.
+ B2 LONG-UNWINDING CROWD: LU count in its top 20% -> BUY NIFTY at the open of d, sell at the close of d.
+ B3 BREADTH THRUST: UP share >= 80% -> BUY NIFTY at the open of d, sell at the close of d+4 (5 sessions).
+ B4 WASHOUT: ABOVE-50 share < 20% -> BUY NIFTY at the open of d, sell at the close of d+4.
+ B5 NEW LOWS: LOW share >= 10% -> BUY NIFTY at the open of d, sell at the close of d+4.
+ B6 OI SURGE ON A DOWN DAY: OI change in its top 20% AND NIFTY's near-month future closed below its previous close on d-1 ->
+    SHORT NIFTY at the open of d, cover at the close of d.
+ Overlapping holds are separate trades.
+
+5. SCORE AND VERDICT
+- Each member: monthly mean (%) of its trades' net returns; Newey-West t (lag 3). Holm across the 6 at 5%. Full Deflated
+  Sharpe with N = 376 trials (370 before, these 6), as the night lab computes it.
+- DISCOVERY PASS = mean > 0, t >= 3, Holm, DSR >= 0.95 on 2005-2020. CONFIRMED = then on 2020-2026 mean > 0 and t >= 2. A
+  confirmed pass goes to TRACK as a forward paper test first. PROMISING = discovery mean > 0 and t >= 2. FAIL otherwise.
+  NOT TESTABLE: fewer than 24 months with a trade.
+- Reported, not judged: trades, win rate, worst month, mean a trade, and for 2020-2026 GM rupees at 20 units (gross).
+- Expectation, stated now: the most likely outcome is that nothing passes both periods.
+
+6. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 6.1 Signals by hand: a synthetic day where 3 of 4 universe stocks fall >= 1.6% with OI up 5% gives SB count 3; UP share,
+     ABOVE-50 and LOW shares and the OI change match hand computations.
+ 6.2 Planted: a synthetic market where NIFTY rises 0.5% on the day after a breadth thrust: B3's trades reach t >= 3.
+ 6.3 Null: every member's trades moved to random discovery sessions (same counts, holds and sides): at most 1 PASS of 6.
+
+7. FILES AND PRIVACY
+ run.js (the index lab's NIFTY pricing), workflow .github/workflows/breadth-lab.yml on main. Logs and artifacts carry
+ summary rows only (public repository).
