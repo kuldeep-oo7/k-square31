@@ -2,77 +2,94 @@
  "preregistration": "studies/oi-flow-forward-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
  "start": "2026-10-05",
- "dataThrough": "2026-10-22",
- "builtAt": "2026-10-23T10:25:45.857Z",
+ "dataThrough": "2026-10-23",
+ "builtAt": "2026-10-23T14:02:43.636Z",
  "LU": {
   "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
   "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
-  "pending": [
+  "pending": [],
+  "trades": [
    {
-    "symbol": "BDL",
+    "symbol": "WAAREEENER",
     "signalDate": "2026-10-22",
-    "pricePct": -1.64,
-    "oiPct": -9.73,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "COFORGE",
-    "signalDate": "2026-10-22",
-    "pricePct": -2.16,
-    "oiPct": -4.31,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "DMART",
-    "signalDate": "2026-10-22",
-    "pricePct": -2.61,
-    "oiPct": -7.15,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "KEI",
-    "signalDate": "2026-10-22",
-    "pricePct": -8.45,
-    "oiPct": -5.96,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "PERSISTENT",
-    "signalDate": "2026-10-22",
-    "pricePct": -2.01,
-    "oiPct": -9.09,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "SUZLON",
-    "signalDate": "2026-10-22",
-    "pricePct": -2.11,
-    "oiPct": -5.34,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "MAZDOCK",
-    "signalDate": "2026-10-22",
-    "pricePct": -3.76,
-    "oiPct": -5.12,
-    "status": "SIGNAL"
+    "pricePct": -3.46,
+    "oiPct": -16.07,
+    "entryDate": "2026-10-23",
+    "entry": 2367,
+    "status": "OPEN"
    },
    {
     "symbol": "HYUNDAI",
     "signalDate": "2026-10-22",
     "pricePct": -2.49,
     "oiPct": -8.01,
-    "status": "SIGNAL"
+    "entryDate": "2026-10-23",
+    "entry": 1890.1,
+    "status": "OPEN"
    },
    {
-    "symbol": "WAAREEENER",
+    "symbol": "MAZDOCK",
     "signalDate": "2026-10-22",
-    "pricePct": -3.46,
-    "oiPct": -16.07,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "pricePct": -3.76,
+    "oiPct": -5.12,
+    "entryDate": "2026-10-23",
+    "entry": 1915,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "SUZLON",
+    "signalDate": "2026-10-22",
+    "pricePct": -2.11,
+    "oiPct": -5.34,
+    "entryDate": "2026-10-23",
+    "entry": 38.57,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "PERSISTENT",
+    "signalDate": "2026-10-22",
+    "pricePct": -2.01,
+    "oiPct": -9.09,
+    "entryDate": "2026-10-23",
+    "entry": 5810,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "KEI",
+    "signalDate": "2026-10-22",
+    "pricePct": -8.45,
+    "oiPct": -5.96,
+    "entryDate": "2026-10-23",
+    "entry": 3904.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "DMART",
+    "signalDate": "2026-10-22",
+    "pricePct": -2.61,
+    "oiPct": -7.15,
+    "entryDate": "2026-10-23",
+    "entry": 3166.2,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "COFORGE",
+    "signalDate": "2026-10-22",
+    "pricePct": -2.16,
+    "oiPct": -4.31,
+    "entryDate": "2026-10-23",
+    "entry": 1925,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BDL",
+    "signalDate": "2026-10-22",
+    "pricePct": -1.64,
+    "oiPct": -9.73,
+    "entryDate": "2026-10-23",
+    "entry": 1050,
+    "status": "OPEN"
+   },
    {
     "symbol": "HDFCLIFE",
     "signalDate": "2026-10-14",
@@ -140,72 +157,116 @@
  "SB": {
   "rule": "Short build-up: the share fell at least 1.56% and its futures open interest rose at least 3.04% -> short at the next open, cover at that day's close",
   "backtest": "FAILED (+0.296% / +0.020% / +0.131% a trade; final t 1.86, not enough after 12 tests)",
-  "pending": [
+  "pending": [],
+  "trades": [
    {
-    "symbol": "BHARATFORG",
+    "symbol": "TMPV",
     "signalDate": "2026-10-22",
-    "pricePct": -1.86,
-    "oiPct": 4.69,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "BHEL",
-    "signalDate": "2026-10-22",
-    "pricePct": -2.75,
-    "oiPct": 5.23,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "LUPIN",
-    "signalDate": "2026-10-22",
-    "pricePct": -2.14,
-    "oiPct": 3.49,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "POWERINDIA",
-    "signalDate": "2026-10-22",
-    "pricePct": -3.62,
-    "oiPct": 5.98,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "YESBANK",
-    "signalDate": "2026-10-22",
-    "pricePct": -2.19,
-    "oiPct": 3.58,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "KALYANKJIL",
-    "signalDate": "2026-10-22",
-    "pricePct": -4.78,
-    "oiPct": 3.73,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "SWIGGY",
-    "signalDate": "2026-10-22",
-    "pricePct": -5.48,
-    "oiPct": 12.66,
-    "status": "SIGNAL"
+    "pricePct": -2.07,
+    "oiPct": 3.38,
+    "entryDate": "2026-10-23",
+    "entry": 270,
+    "exitDate": "2026-10-23",
+    "exit": 264.6,
+    "netPct": 1.934,
+    "status": "DONE"
    },
    {
     "symbol": "ETERNAL",
     "signalDate": "2026-10-22",
     "pricePct": -2.53,
     "oiPct": 3.69,
-    "status": "SIGNAL"
+    "entryDate": "2026-10-23",
+    "entry": 306.1,
+    "exitDate": "2026-10-23",
+    "exit": 317.4,
+    "netPct": -3.758,
+    "status": "DONE"
    },
    {
-    "symbol": "TMPV",
+    "symbol": "SWIGGY",
     "signalDate": "2026-10-22",
-    "pricePct": -2.07,
-    "oiPct": 3.38,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "pricePct": -5.48,
+    "oiPct": 12.66,
+    "entryDate": "2026-10-23",
+    "entry": 204.95,
+    "exitDate": "2026-10-23",
+    "exit": 176,
+    "netPct": 14.06,
+    "status": "DONE"
+   },
+   {
+    "symbol": "KALYANKJIL",
+    "signalDate": "2026-10-22",
+    "pricePct": -4.78,
+    "oiPct": 3.73,
+    "entryDate": "2026-10-23",
+    "entry": 530.9,
+    "exitDate": "2026-10-23",
+    "exit": 512,
+    "netPct": 3.494,
+    "status": "DONE"
+   },
+   {
+    "symbol": "YESBANK",
+    "signalDate": "2026-10-22",
+    "pricePct": -2.19,
+    "oiPct": 3.58,
+    "entryDate": "2026-10-23",
+    "entry": 16.15,
+    "exitDate": "2026-10-23",
+    "exit": 15.8,
+    "netPct": 2.101,
+    "status": "DONE"
+   },
+   {
+    "symbol": "POWERINDIA",
+    "signalDate": "2026-10-22",
+    "pricePct": -3.62,
+    "oiPct": 5.98,
+    "entryDate": "2026-10-23",
+    "entry": 26700,
+    "exitDate": "2026-10-23",
+    "exit": 26300,
+    "netPct": 1.432,
+    "status": "DONE"
+   },
+   {
+    "symbol": "LUPIN",
+    "signalDate": "2026-10-22",
+    "pricePct": -2.14,
+    "oiPct": 3.49,
+    "entryDate": "2026-10-23",
+    "entry": 1922,
+    "exitDate": "2026-10-23",
+    "exit": 1928.9,
+    "netPct": -0.425,
+    "status": "DONE"
+   },
+   {
+    "symbol": "BHEL",
+    "signalDate": "2026-10-22",
+    "pricePct": -2.75,
+    "oiPct": 5.23,
+    "entryDate": "2026-10-23",
+    "entry": 398.7,
+    "exitDate": "2026-10-23",
+    "exit": 387.5,
+    "netPct": 2.743,
+    "status": "DONE"
+   },
+   {
+    "symbol": "BHARATFORG",
+    "signalDate": "2026-10-22",
+    "pricePct": -1.86,
+    "oiPct": 4.69,
+    "entryDate": "2026-10-23",
+    "entry": 1738,
+    "exitDate": "2026-10-23",
+    "exit": 1711.2,
+    "netPct": 1.476,
+    "status": "DONE"
+   },
    {
     "symbol": "ETERNAL",
     "signalDate": "2026-10-21",
@@ -1120,129 +1181,51 @@
    }
   ],
   "summary": {
-   "finished": 76,
-   "meanNetPct": 0.25,
-   "winPct": 52.6,
+   "finished": 85,
+   "meanNetPct": 0.495,
+   "winPct": 55.3,
    "weeks": 3,
-   "t": 0.81,
+   "t": 1.07,
    "verdict": "COLLECTING"
   },
   "futuresLast": {
-   "date": "2026-10-22",
+   "date": "2026-10-23",
    "rows": [
     {
-     "symbol": "ABB",
-     "expiry": "2026-10-27",
-     "open": 6555,
-     "close": 6478
+     "symbol": "BHARATFORG",
+     "missing": true
     },
     {
-     "symbol": "AMBER",
-     "expiry": "2026-10-27",
-     "open": 6250.5,
-     "close": 6229
-    },
-    {
-     "symbol": "AUBANK",
-     "expiry": "2026-10-27",
-     "open": 944.1,
-     "close": 950.9
-    },
-    {
-     "symbol": "AUROPHARMA",
-     "expiry": "2026-10-27",
-     "open": 1571.4,
-     "close": 1602.8
-    },
-    {
-     "symbol": "CGPOWER",
-     "expiry": "2026-10-27",
-     "open": 816,
-     "close": 816.7
-    },
-    {
-     "symbol": "COCHINSHIP",
-     "expiry": "2026-10-27",
-     "open": 1162.9,
-     "close": 1165.6
-    },
-    {
-     "symbol": "DIXON",
-     "expiry": "2026-10-27",
-     "open": 11700,
-     "close": 11651
+     "symbol": "BHEL",
+     "missing": true
     },
     {
      "symbol": "ETERNAL",
-     "expiry": "2026-10-27",
-     "open": 313,
-     "close": 304.05
+     "missing": true
     },
     {
-     "symbol": "FORCEMOT",
-     "expiry": "2026-10-27",
-     "open": 16877,
-     "close": 16748
+     "symbol": "KALYANKJIL",
+     "missing": true
     },
     {
-     "symbol": "KEI",
-     "expiry": "2026-10-27",
-     "open": 4097.5,
-     "close": 3881.7
+     "symbol": "LUPIN",
+     "missing": true
     },
     {
-     "symbol": "LTF",
-     "expiry": "2026-10-27",
-     "open": 242.8,
-     "close": 244.45
+     "symbol": "POWERINDIA",
+     "missing": true
     },
     {
-     "symbol": "MANAPPURAM",
-     "expiry": "2026-10-27",
-     "open": 298.2,
-     "close": 301.65
+     "symbol": "SWIGGY",
+     "missing": true
     },
     {
-     "symbol": "MAZDOCK",
-     "expiry": "2026-10-27",
-     "open": 1936.2,
-     "close": 1915
-    },
-    {
-     "symbol": "MUTHOOTFIN",
-     "expiry": "2026-10-27",
-     "open": 2444,
-     "close": 2424.6
-    },
-    {
-     "symbol": "NATIONALUM",
-     "expiry": "2026-10-27",
-     "open": 309.45,
-     "close": 310.1
-    },
-    {
-     "symbol": "RBLBANK",
-     "expiry": "2026-10-27",
-     "open": 359.4,
-     "close": 361.65
-    },
-    {
-     "symbol": "SONACOMS",
-     "expiry": "2026-10-27",
-     "open": 759.55,
-     "close": 767.45
-    },
-    {
-     "symbol": "WAAREEENER",
-     "expiry": "2026-10-27",
-     "open": 2402,
-     "close": 2372.7
+     "symbol": "TMPV",
+     "missing": true
     },
     {
      "symbol": "YESBANK",
-     "expiry": "2026-10-27",
-     "open": 16.21,
-     "close": 16.16
+     "missing": true
     }
    ],
    "void": 0

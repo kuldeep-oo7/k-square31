@@ -2,10 +2,10 @@
  "preregistration": "studies/forward-v4-2026-10-12/PREREGISTRATION.txt",
  "preregSha256": "a166456d30ddcfdd8cef3dbc16e02060273dc0f1931420fe3953973920f9f68d",
  "start": "2026-10-13",
- "dataThrough": "2026-10-22",
+ "dataThrough": "2026-10-23",
  "slbThrough": "2026-10-22",
  "slbFiles": 56,
- "builtAt": "2026-10-23T10:26:03.396Z",
+ "builtAt": "2026-10-23T14:02:59.692Z",
  "S2": {
   "rule": "When the shares out on loan in NSE's lending market (SLB) jump to at least 2x their 20-day average, and at least 1 lakh shares: short the stock at the open of the 2nd session after that day's file, cover at the close 5 sessions later",
   "backtest": "+0.26% a trade over the market, 55% winners, t 2.23, 2,085 trades over 61 months (NSE data atlas study, 12 Oct 2026) — promising, not proven",
@@ -64,11 +64,16 @@
     "symbol": "BEL",
     "signalDate": "2026-10-14",
     "entryDate": "2026-10-16",
+    "exitDate": "2026-10-23",
     "entry": 380.4,
+    "exit": 362,
     "ratio": 2.51,
     "outstanding": 116709,
     "hasFutures": true,
-    "status": "OPEN"
+    "rawPct": 4.771,
+    "marketPct": -5.234,
+    "netPct": -0.463,
+    "status": "DONE"
    },
    {
     "symbol": "ATHERENERG",
@@ -193,10 +198,10 @@
   ],
   "pending": [],
   "summary": {
-   "finished": 8,
-   "meanPct": 0.662,
-   "winPct": 62.5,
-   "worstPct": -0.462,
+   "finished": 9,
+   "meanPct": 0.537,
+   "winPct": 55.6,
+   "worstPct": -0.463,
    "t": null,
    "verdict": "COLLECTING"
   }
