@@ -164,6 +164,14 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     Actions 39835994636), everything priced on the near-month FUTURE: 0 PASS; plain SB NOT significant on futures
     (2005-2020 t 1.92; 2020-2026 t -0.14); PROMISING: trees picking SB trades (t 6.31, DSR 0.94; then t 2.63), strong SB
     (t 3.46; then 1.87), LU bounce (t 3.84; then 4.21, net, mostly market beta).
+  - 23 Oct 2026 evening, all pre-registered, NIFTY/stock futures prices: index lab (claude/index-lab-2026-10-23; 0 PASS;
+    turn of the month +0.54%/trade t 2.84 then +0.43% t 1.77; big-drop bounce t 3.09, too few since 2020); breadth lab
+    (claude/breadth-lab-2026-10-23; 0 PASS; washout t 2.99 and new lows t 4.52 not testable since 2020; shorting NIFTY after
+    an SB crowd LOSES both periods); rollover lab (claude/rollover-lab-2026-10-23; 0 PASS; broker rollover reading fails,
+    rolling shorts reversed after 2020). AI day-trader lab (claude/daytrader-lab-2026-10-23, Actions 39980410271): trees /
+    neural network ranking all stock futures at 09:15, long top tenth / short bottom tenth, open to close: PASS 2008-2020
+    (t 13.96, DSR 1.00) and CONFIRMED 2020-2026 (+0.10%/day, t 6.09) -- AUDIT PENDING (stale first futures print before
+    NSE's F&O pre-open auction of 8 Dec 2025?); not on any page until the audit and a forward paper test.
   - KEY FACT (23 Oct): desk tests price at the SHARE's official open (NSE pre-open auction); the near-month FUTURE's
     open->close beat the share's by +0.085% a day on average (2021-2026, 276k stock-days), so share pricing flatters shorts
     and penalises longs by ~0.1% a trade. Price anything meant for GM on futures (open -> settlement close, roll at expiry).

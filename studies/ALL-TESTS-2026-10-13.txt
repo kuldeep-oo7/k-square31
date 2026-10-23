@@ -235,6 +235,18 @@ Notation: mean = average net % per trade; t = t-statistic (> 3 needed under v2, 
    share-gap filter and the three models, priced on the near-month future | 0 PASS; plain SB not significant on futures
    (t 1.92, then -0.14); PROMISING: trees (t 6.31, DSR 0.94; then 2.63), strong SB (t 3.46; then 1.87), LU (t 3.84; then
    4.21, net of charges but not of the market).
+ index lab (branch claude/index-lab-2026-10-23, prereg 52f8a01; Actions 39979356577) | NIFTY futures: overnight, intraday,
+   turn of the month, expiry run-up, gap fade, big-drop bounce | 0 PASS; turn of the month +0.54% a trade (t 2.84) then
+   +0.43% (t 1.77); big-drop bounce t 3.09 (too few since 2020).
+ breadth lab (branch claude/breadth-lab-2026-10-23, prereg 5eaa6af; Actions 39980922073) | NIFTY futures timed by
+   market-wide SB / LU counts, breadth thrust, washout, new lows, OI surge | 0 PASS; washout t 2.99 and new lows t 4.52 (not
+   testable since 2020); shorting NIFTY after an SB crowd LOSES in both periods (t -1.96, -2.53).
+ rollover lab (branch claude/rollover-lab-2026-10-23, prereg 8cc32e4; Actions 39981448895) | brokers' rollover reading,
+   next futures series | 0 PASS; rolling shorts and NIFTY rollover reversed after 2020 (t -2.72, -2.32).
+ AI day-trader lab (branch claude/daytrader-lab-2026-10-23, prereg e8a6d81; Actions 39980410271) | trees, logistic and a
+   neural network rank all stock futures at 09:15; long top tenth, short bottom tenth, open to close, on futures | PASS:
+   trees long-short (t 13.96, DSR 1.00; then +0.10% a day, t 6.09), trees long-only, short-only, network; CONFIRMED.
+   Audit pending: the futures' first print before the 8 Dec 2025 F&O pre-open auction may be stale.
 
 ================================================================================================================
 PART B: EVERY STUDY'S LOCKED RULES AND FULL RESULT, COPIED FROM GIT BY SCRIPT (unedited)
