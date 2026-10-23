@@ -43,5 +43,5 @@
 - [Audit 12 Oct](k2-audit-2026-10-12.md) — first live day with shorts audited vs NSE: 9 fixes (early options vanish, shorts everywhere, official close after hours, false OUT OF DATE); PROBLEMS.md list; every-NSE-file collector; open-source research report (TimesFM/Chronos/Qlib/arch/PBO/HAR/conformal)
 - [Night lab 23 Oct](k2-night-lab-2026-10-23.md) — 17 pre-registered ideas, 0 PASS; SB stop-losses LOSE at every level (both periods); strong-SB and tug of war only PROMISING
 - [Futures vs share open 23 Oct](k2-futures-vs-share-open-2026-10-23.md) — KEY: desk tests price at the share open; futures open->close beats it by ~0.085%/day; SB on futures +0.09%/trade vs +0.22% on shares (2021-26)
-- [Labs 23 Oct](k2-labs-2026-10-23.md) — 09:15 lab, options lab, futures lab: 0 PASS; plain SB NOT significant on futures; trees-picked SB t 6.31 (DSR 0.94), strong SB, LU only PROMISING
+- [Labs 23 Oct](k2-labs-2026-10-23.md) — 9 batches 22-23 Oct, 0 usable PASS; AI day-trader PASSED but decayed to ~0 since Dec 2025; plain SB not significant on futures; turn-of-month, washout, variance premium only PROMISING
 - [Audit 23 Oct](k2-audit-2026-10-23.md) — SB 8/9 on futures +Rs 8,665; NSE F&O file late at 19:30 emptied Monday list (fixed: wait loop + not-ready guard); cloud checks fired; trees + strong SB on TRACK
