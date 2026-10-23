@@ -1,0 +1,25 @@
+ROLLOVER LAB: registration sha256 2e6d3ad829275ec0... (verified); run 2026-10-23T15:48:56.481Z
+CHECKS:
+ 5.1 rollover by hand: 0.4; the next contract from its open after X (101) to its close on its own expiry (104): 2.933%: PASSED
+ 5.2 planted rolling-longs edge (+2% over the next series): R1 164 series, t 17.29: PASSED
+DISCOVERY DATA: 3909 sessions 2005-01-03 .. 2020-10-30, 2792 stocks, 185 expiry days; series books: R1 171, R2 171, R3 169, R4 173, R5 85
+ 5.3 re-dated null on the discovery data: 0 PASS of 5 (at most 1 allowed): PASSED
+CONFIRMATION DATA: 5376 sessions 2005-01-03 .. 2026-10-01, 4437 stocks, 81 expiry days; series books: R1 72, R2 72, R3 72, R4 72, R5 28
+
+DISCOVERY 2005-01-01 .. 2020-10-31 (the next futures series, priced on futures; R1, R2, R4 excess; Holm across 5; DSR with N = 381):
+ R1 rolling longs        167 series |  14.7 names | 143 months | -0.024% a series | won 48% | worst -12.78% | t -0.08 | Holm n | DSR 0.07 -> FAIL
+ R2 rolling shorts       167 series |  14.1 names | 144 months | +0.151% a series | won 50% | worst -26.95% | t 0.46 | Holm n | DSR 0.16 -> FAIL
+ R3 both, long-short     165 series |  28.5 names | 142 months | +0.085% a series | won 50% | worst -14.96% | t 0.35 | Holm n | DSR 0.14 -> FAIL
+ R4 unwound, short       169 series |  27.7 names | 145 months | -0.070% a series | won 47% | worst -7.99% | t -0.32 | Holm n | DSR 0.05 -> FAIL
+ R5 NIFTY rollover        84 series |     1 names |  77 months | +0.452% a series | won 51% | worst -15.60% | t 0.75 | Holm n | DSR 0.36 -> FAIL
+DISCOVERY PASS: none. PROMISING: none.
+
+CONFIRMATION 2020-10-01 .. 2026-10-01 (every member reported; a discovery PASS is CONFIRMED with mean > 0 and t >= 2):
+ R1 rolling longs         70 series |  16.1 names |  58 months | +0.095% a series | won 53% | worst -4.88% | t 0.41
+ R2 rolling shorts        70 series |  13.8 names |  58 months | -0.862% a series | won 36% | worst -5.69% | t -2.72
+ R3 both, long-short      70 series |  29.9 names |  58 months | -0.384% a series | won 43% | worst -3.44% | t -2.23
+ R4 unwound, short        70 series |  29.2 names |  58 months | +0.425% a series | won 50% | worst -2.98% | t 1.97
+ R5 NIFTY rollover        27 series |     1 names |  27 months | -1.306% a series | won 44% | worst -8.04% | t -2.32
+
+CANDIDATES (discovery PASS and confirmed): none. A candidate goes to TRACK as a forward paper test first, never straight to FUTURES.
+

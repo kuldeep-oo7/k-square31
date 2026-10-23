@@ -1,0 +1,138 @@
+{
+ "registration": "2e6d3ad829275ec04ef30a90a33c352cf498c8c31b04e1e1defb451e0816737b",
+ "discovery": [
+  {
+   "name": "R1 rolling longs",
+   "books": 167,
+   "names": 14.7,
+   "months": 143,
+   "win": 47.90419161676647,
+   "monthMean": -0.02371216586747773,
+   "worstMonth": -12.781986970530099,
+   "t": -0.07934687854917878,
+   "holm": false,
+   "dsr": 0.07426127775354291,
+   "verdict": "FAIL"
+  },
+  {
+   "name": "R2 rolling shorts",
+   "books": 167,
+   "names": 14.1,
+   "months": 144,
+   "win": 50.29940119760479,
+   "monthMean": 0.1511562543967605,
+   "worstMonth": -26.953447196013496,
+   "t": 0.46162621883581856,
+   "holm": false,
+   "dsr": 0.1555998087423304,
+   "verdict": "FAIL"
+  },
+  {
+   "name": "R3 both, long-short",
+   "books": 165,
+   "names": 28.5,
+   "months": 142,
+   "win": 49.696969696969695,
+   "monthMean": 0.08456748651815209,
+   "worstMonth": -14.957853370408786,
+   "t": 0.35172980886151956,
+   "holm": false,
+   "dsr": 0.1410878394226395,
+   "verdict": "FAIL"
+  },
+  {
+   "name": "R4 unwound, short",
+   "books": 169,
+   "names": 27.7,
+   "months": 145,
+   "win": 46.74556213017752,
+   "monthMean": -0.06990096369272446,
+   "worstMonth": -7.988077801014909,
+   "t": -0.31979867310504384,
+   "holm": false,
+   "dsr": 0.04504728860213282,
+   "verdict": "FAIL"
+  },
+  {
+   "name": "R5 NIFTY rollover",
+   "books": 84,
+   "names": 1,
+   "months": 77,
+   "win": 51.19047619047619,
+   "monthMean": 0.45181500276047226,
+   "worstMonth": -15.597951014584655,
+   "t": 0.752644227647311,
+   "holm": false,
+   "dsr": 0.36493857051870743,
+   "verdict": "FAIL"
+  }
+ ],
+ "confirmation": [
+  {
+   "name": "R1 rolling longs",
+   "books": 70,
+   "names": 16.1,
+   "months": 58,
+   "win": 52.857142857142854,
+   "monthMean": 0.09527660470083461,
+   "worstMonth": -4.876117140744151,
+   "t": 0.406788877386564,
+   "holm": false,
+   "dsr": 1.7139512613563743e-9,
+   "verdict": "FAIL"
+  },
+  {
+   "name": "R2 rolling shorts",
+   "books": 70,
+   "names": 13.8,
+   "months": 58,
+   "win": 35.714285714285715,
+   "monthMean": -0.8622880233228899,
+   "worstMonth": -5.688144325331681,
+   "t": -2.722153940633981,
+   "holm": false,
+   "dsr": 5.345136094079086e-15,
+   "verdict": "FAIL"
+  },
+  {
+   "name": "R3 both, long-short",
+   "books": 70,
+   "names": 29.9,
+   "months": 58,
+   "win": 42.857142857142854,
+   "monthMean": -0.38350570931102745,
+   "worstMonth": -3.4409132417829715,
+   "t": -2.2253911421090873,
+   "holm": false,
+   "dsr": 9.352322106624386e-15,
+   "verdict": "FAIL"
+  },
+  {
+   "name": "R4 unwound, short",
+   "books": 70,
+   "names": 29.2,
+   "months": 58,
+   "win": 50,
+   "monthMean": 0.42537746631621026,
+   "worstMonth": -2.979655276404542,
+   "t": 1.9717527923360292,
+   "holm": false,
+   "dsr": 0.0000016855029818949607,
+   "verdict": "FAIL"
+  },
+  {
+   "name": "R5 NIFTY rollover",
+   "books": 27,
+   "names": 1,
+   "months": 27,
+   "win": 44.44444444444444,
+   "monthMean": -1.305929800710642,
+   "worstMonth": -8.037278401143338,
+   "t": -2.316708167468573,
+   "holm": false,
+   "dsr": 1.0475686677784108e-10,
+   "verdict": "FAIL"
+  }
+ ],
+ "candidates": []
+}
