@@ -1,0 +1,23 @@
+VIX LAB: registration sha256 4bd45d1cab8f8279... (verified); run 2026-10-23T15:58:31.872Z
+CHECKS:
+ 5.1 signals by hand: VIX 15, 15, 18.1 -> one fear spike, trading from the next session; realized volatility 16.29: PASSED
+ 5.2 planted (+1% over the 5 sessions after a VIX jump): V1 203 trades, t 8.51: PASSED
+DISCOVERY DATA: 1930 sessions 2013-01-01 .. 2020-10-30, VIX on 3057 days from 2014-05-14; trades: V1 11, V2 25, V3 23, V4 247
+ 5.3 re-dated null on the discovery data: 0 PASS of 1 (at most 1 allowed): PASSED
+CONFIRMATION DATA: 1816 sessions 2019-06-03 .. 2026-10-01; trades: V1 15, V2 17, V3 48, V4 210
+
+DISCOVERY 2014-05-14 .. 2020-10-31 (NIFTY near-month future; monthly mean of net %; Holm across 1; DSR with N = 385):
+ V1 fear spike         NOT TESTABLE (8 months, 11 trades, -3.617% a trade, won 27%)
+ V2 fear high          NOT TESTABLE (8 months, 25 trades, -2.520% a trade, won 28%)
+ V3 calm               NOT TESTABLE (7 months, 23 trades, -0.137% a trade, won 43%)
+ V4 variance premium    243 trades |  30 months | +0.430% a trade | won 61% | worst month -2.12% | t 2.07 | Holm y | DSR 0.98 -> PROMISING
+DISCOVERY PASS: none. PROMISING: V4 variance premium.
+
+CONFIRMATION 2020-10-01 .. 2026-10-01 (every member reported; a discovery PASS is CONFIRMED with mean > 0 and t >= 2):
+ V1 fear spike         NOT TESTABLE (12 months, 15 trades, +0.864% a trade, won 60%)
+ V2 fear high          NOT TESTABLE (6 months, 17 trades, +1.758% a trade, won 76%)
+ V3 calm               NOT TESTABLE (14 months, 47 trades, +0.248% a trade, won 53%)
+ V4 variance premium    210 trades |  41 months | +0.269% a trade | won 55% | worst month -2.84% | t 2.29 | GM 20 units Rs 1,72,483
+
+CANDIDATES (discovery PASS and confirmed): none. A candidate goes to TRACK as a forward paper test first, never straight to FUTURES.
+
