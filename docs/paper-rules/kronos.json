@@ -4,9 +4,9 @@
  "rule": "Kronos-small forecasts each futures stock's close 5 sessions ahead from its last 512 daily NSE bars -> buy the top tenth, sell the bottom tenth at the next open, close both 5 sessions later",
  "backtest": "FAILED: +0.135% a rebalance, t 1.35, Jul 2024 - Oct 2026 (needs t >= 3)",
  "start": "2026-10-19",
- "dataThrough": "2026-10-22",
- "builtAt": "2026-10-23T06:08:45.893Z",
- "latest": "2026-10-22",
+ "dataThrough": "2026-10-23",
+ "builtAt": "2026-10-23T15:02:20.786Z",
+ "latest": "2026-10-23",
  "days": {
   "2026-10-16": {
    "signalDate": "2026-10-16",
@@ -723,6 +723,185 @@
     "ATHERENERG": -0.252981,
     "COFORGE": -0.311685
    }
+  },
+  "2026-10-23": {
+   "signalDate": "2026-10-23",
+   "entry": "2026-10-26",
+   "exit": "2026-10-30",
+   "madeAt": "2026-10-23T15:02:20.776Z",
+   "names": 85,
+   "enough": true,
+   "long": [
+    {
+     "symbol": "POLICYBZR",
+     "predPct": 27.16,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "IDEA",
+     "predPct": 19.99,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "BSE",
+     "predPct": 19.52,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "POWERINDIA",
+     "predPct": 16.46,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "SHRIRAMFIN",
+     "predPct": 15.9,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "BHEL",
+     "predPct": 12.05,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "NTPC",
+     "predPct": 10.78,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "SWIGGY",
+     "predPct": 8.19,
+     "expiry": "2026-11-23"
+    }
+   ],
+   "short": [
+    {
+     "symbol": "COFORGE",
+     "predPct": -36.34,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "ATHERENERG",
+     "predPct": -14.51,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "PAYTM",
+     "predPct": -13.93,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "TECHM",
+     "predPct": -12.48,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "DIVISLAB",
+     "predPct": -12.32,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "LODHA",
+     "predPct": -12.21,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "CGPOWER",
+     "predPct": -11.31,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "KALYANKJIL",
+     "predPct": -10.59,
+     "expiry": "2026-11-23"
+    }
+   ],
+   "preds": {
+    "POLICYBZR": 0.271552,
+    "IDEA": 0.199899,
+    "BSE": 0.195244,
+    "POWERINDIA": 0.164621,
+    "SHRIRAMFIN": 0.159039,
+    "BHEL": 0.120548,
+    "NTPC": 0.107753,
+    "SWIGGY": 0.081941,
+    "PERSISTENT": 0.069279,
+    "CHOLAFIN": 0.068921,
+    "CUMMINSIND": 0.061849,
+    "UNIONBANK": 0.054559,
+    "NESTLEIND": 0.053695,
+    "HAL": 0.052244,
+    "POWERGRID": 0.046407,
+    "POLYCAB": 0.044907,
+    "TITAN": 0.040903,
+    "RELIANCE": 0.040845,
+    "SUZLON": 0.038698,
+    "PFC": 0.037691,
+    "TATASTEEL": 0.036589,
+    "MARUTI": 0.035105,
+    "ICICIBANK": 0.034589,
+    "COALINDIA": 0.031855,
+    "INDIGO": 0.029097,
+    "HINDZINC": 0.028387,
+    "EICHERMOT": 0.024878,
+    "GRASIM": 0.022376,
+    "MUTHOOTFIN": 0.016943,
+    "GVT&D": 0.01493,
+    "MAXHEALTH": 0.013811,
+    "HEROMOTOCO": 0.013039,
+    "JIOFIN": 0.012934,
+    "ADANIENSOL": 0.012081,
+    "ADANIENT": 0.011386,
+    "HINDPETRO": 0.010064,
+    "SOLARINDS": 0.009201,
+    "LT": 0.008041,
+    "ITC": 0.00658,
+    "ETERNAL": 0.006227,
+    "HCLTECH": 0.005617,
+    "ASHOKLEY": 0.005315,
+    "JSWSTEEL": 0.005108,
+    "APOLLOHOSP": 0.004862,
+    "OFSS": 0.004301,
+    "SBIN": 0.003259,
+    "DLF": 0.002945,
+    "HINDALCO": 0.002817,
+    "HINDUNILVR": -0.000877,
+    "TCS": -0.00249,
+    "DRREDDY": -0.005353,
+    "VBL": -0.00726,
+    "SUNPHARMA": -0.007349,
+    "ADANIGREEN": -0.007488,
+    "ADANIPORTS": -0.010276,
+    "HDFCBANK": -0.012142,
+    "WIPRO": -0.013099,
+    "DIXON": -0.015645,
+    "TORNTPHARM": -0.015831,
+    "ONGC": -0.01662,
+    "TVSMOTOR": -0.019233,
+    "NAUKRI": -0.020664,
+    "M&M": -0.023076,
+    "BHARTIARTL": -0.025395,
+    "BEL": -0.029328,
+    "INFY": -0.03002,
+    "AXISBANK": -0.031909,
+    "BANKBARODA": -0.034314,
+    "ULTRACEMCO": -0.034409,
+    "BAJFINANCE": -0.037162,
+    "BAJAJ-AUTO": -0.039094,
+    "LAURUSLABS": -0.058164,
+    "MOTHERSON": -0.072805,
+    "SAIL": -0.091709,
+    "NATIONALUM": -0.093856,
+    "ADANIPOWER": -0.096142,
+    "KAYNES": -0.097978,
+    "KALYANKJIL": -0.105924,
+    "CGPOWER": -0.113078,
+    "LODHA": -0.122148,
+    "DIVISLAB": -0.123249,
+    "TECHM": -0.124844,
+    "PAYTM": -0.139252,
+    "ATHERENERG": -0.145116,
+    "COFORGE": -0.363439
+   }
   }
  },
  "books": [
@@ -743,6 +922,11 @@
   },
   {
    "entry": "2026-10-23",
+   "status": "OPEN",
+   "legs": []
+  },
+  {
+   "entry": "2026-10-26",
    "status": "OPEN",
    "legs": []
   }
