@@ -250547,6 +250547,60 @@
     "perLot": 16172,
     "netPerLot": 16017.8
    }
+  },
+  {
+   "id": "2026-10-14|PE|BANKNIFTY26OCT56900PE",
+   "kind": "PE",
+   "symbol": "BANKNIFTY",
+   "contract": "BANKNIFTY26OCT56900PE",
+   "expiry": "2026-10-27",
+   "strike": 56900,
+   "optionType": "PE",
+   "lotSize": 30,
+   "sessionDate": "2026-10-14",
+   "shownAt": "2026-10-14T04:07:00.985Z",
+   "buy": 1408.4,
+   "target": 2112.6,
+   "target2": null,
+   "stop": 704.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.1,
+     "medianDays": 3.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-14T04:07:01.470Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-23T08:44:03.751Z",
+   "exitPrice": 2112.6,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 220.62,
+   "sessionsHeld": 5,
+   "best": 2490,
+   "worst": 1007.9,
+   "last": 2490,
+   "lastAt": "2026-10-23T08:44:03.751Z",
+   "marks": 151,
+   "obs": {
+    "date": "2026-10-23",
+    "high": 2490,
+    "low": 1968.3,
+    "last": 2490
+   },
+   "pnl": {
+    "perUnit": 704.2,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 21126,
+    "netPerLot": 20938.05
+   }
   }
  ]
 }
