@@ -233,4 +233,4 @@ if (require.main === module) {
     fs.writeFileSync(path.join(HERE, "POSTHOC.txt"), out.join("\n") + "\n"); process.exit(0); }
   console.error("usage: node run.js --features DIR | --score DIR | --synthetic DIR | --planted DIR | --posthoc DIR"); process.exit(1);
 }
-module.exports = { FEATS, MEMBERS, features, table, context, synthMarket, plantedRows, nullRows, books, score, check71, csv };
+module.exports = { FEATS, MEMBERS, features, table, context, synthMarket, plantedRows, nullRows, books, score, check71, csv, period };
