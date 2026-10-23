@@ -1,0 +1,49 @@
+name: vrp-lab
+# The VRP lab (studies/vrp-lab-2026-10-23 on branch claude/vrp-lab-2026-10-23): the expiry-day straddle trade on the four
+# sessions before a weekly NIFTY expiry, registered before any real-data run. Discovery 2019-2022, confirmation 2023-2026.
+# Data from the private repo; the log and the artifact carry summary rows only (this repository is public).
+on:
+  workflow_dispatch:
+    inputs:
+      args:
+        description: "run.js arguments (empty = the one real run; --checks = checks 6.1-6.3 only)"
+        required: false
+        default: ""
+permissions:
+  contents: read
+jobs:
+  run:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/vrp-lab-2026-10-23
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: NIFTY options and index files from the private repo
+        env:
+          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+          GH_REPO: kuldeep-oo7/k2-data
+        run: |
+          mkdir -p "$RUNNER_TEMP/d" && cd "$RUNNER_TEMP/d"
+          for y in 2019 2020 2021 2022 2023 2024 2025 2026; do gh release download data-nifty-options -p "nod-$y.tar.gz" --clobber && tar -xzf "nod-$y.tar.gz" && rm "nod-$y.tar.gz"; done
+          gh release download data-macro -p macro-ind_close_all.tar.gz --clobber && tar -xzf macro-ind_close_all.tar.gz && rm macro-ind_close_all.tar.gz
+          echo "option days $(find nod -name '*.json*' | wc -l); index files $(ls macro/ind_close_all | wc -l)"
+      - name: The VRP lab
+        env:
+          K2_NOD_DIR: ${{ runner.temp }}/d/nod
+          K2_MACRO_IC: ${{ runner.temp }}/d/macro/ind_close_all
+        run: |
+          set -o pipefail
+          npm install --omit=dev --no-audit --no-fund >/dev/null
+          cd studies/vrp-lab-2026-10-23 && node --max-old-space-size=6000 run.js ${{ inputs.args }} | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the result
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: vrp-lab-result
+          if-no-files-found: ignore
+          path: |
+            studies/vrp-lab-2026-10-23/RESULT.txt
+            studies/vrp-lab-2026-10-23/result.json
