@@ -1,0 +1,66 @@
+PRE-REGISTRATION -- THE AI DAY-TRADER LAB: THREE LEARNING MACHINES RANK EVERY STOCK FUTURE AT 09:15; LONG THE TOP TENTH,
+SHORT THE BOTTOM TENTH, OPEN TO CLOSE, PRICED ON FUTURES. ONE BATCH, ONE RUN.
+Written Friday 23 Oct 2026, about 21:10 IST, BEFORE any member below was computed on real data. The commit time is the
+proof. Branch claude/daytrader-lab-2026-10-23.
+Owner, 22-23 Oct 2026: "data science, machine learning, deep learning ... keep testing more strategies".
+
+1. WHAT IS KNOWN (disclosed)
+- The 09:15 lab and the futures lab used these learning machines only to pick among short build-up trades. Nothing here has
+  been computed on real data. Related results already seen: the night lab's tug of war intraday (share-priced, P6: t 6.71
+  then 4.14, about +0.05% a day after 2020); the share's opening auction is ~0.1% off the future's open (23 Oct look),
+  which is why everything below is priced on futures.
+
+2. DATA AND PERIODS (as the futures lab, studies/futures-lab-2026-10-23)
+- Discovery NSE 2005-01 .. 2020-10 (release data-oos); confirmation 2020-10 .. 2026-10-01 (the research snapshot, with
+  data-oos before 2020-09-01 as look-back only); they share October 2020.
+- Each day's universe: the night lab's (top 200 by traded value, >= 250 bars after the last reset), stocks with a
+  near-month future that day (the earliest expiry on or after d with an official open and close above zero).
+- LABEL: the stock future's open-to-close return on d minus the equal-weighted open-to-close return of that day's universe
+  futures; label = 1 if above zero.
+
+3. FEATURES (18, known at 09:15 on d)
+ R1 close(d-1)/close(d-2)-1     R5 close(d-1)/close(d-6)-1      R20 close(d-1)/close(d-21)-1
+ GAP open(d)/close(d-1)-1 (the share's official open, NSE's pre-open auction)
+ NGAP NIFTY open(d)/close(d-1)-1   NRET NIFTY close(d-1)/close(d-2)-1 (index file; near-month future as fallback, as before)
+ OI1 total futures OI(d-1)/OI(d-2)-1   OI5 OI(d-1)/OI(d-6)-1
+ VOLR volume(d-1)/mean volume(d-21..d-2)   VOL20 st. dev. of daily returns d-20..d-1
+ BASIS near-month future close(d-1)/close(d-1)-1   TREND close(d-1)/mean close(d-20..d-1)-1
+ HL (high-low)/close of d-1   CLV (close-low)/(high-low) of d-1   DOW weekday of d
+ TOEXP calendar days from d to the nearest stock-futures expiry (F&O file of d-1)   LOGP ln close(d-1)
+ LOGV ln median traded value of the 60 bars before d. A feature with missing inputs is left missing.
+
+4. MODELS (Python 3.12, scikit-learn 1.9.1, numpy 2.5.4), walk-forward by calendar year from 2008: fit on every row before
+   1 Jan Y (discovery rows before 2020-10-01, confirmation rows from 2020-10-01), predict year Y.
+ TREES HistGradientBoostingClassifier(max_iter=200, learning_rate=0.05, max_leaf_nodes=15, min_samples_leaf=500,
+       l2_regularization=1.0, early_stopping=False, random_state=0), missing kept.
+ LOGISTIC LogisticRegression(C=1.0, max_iter=2000) on standardized features (missing -> the training median).
+ NEURAL NETWORK MLPClassifier(hidden_layer_sizes=(32, 16), alpha=1e-3, learning_rate_init=1e-3, max_iter=50,
+       early_stopping=True, validation_fraction=0.1, random_state=0) on standardized features, trained on a 25% random
+       sample of the training rows (numpy default_rng(0)), for time.
+
+5. MEMBERS (5): each day, rank the day's universe by the predicted probability; k = floor(n / 10), n >= 50 or no book.
+ A1 TREES LONG-SHORT: long the top k futures at the open, short the bottom k, both closed at the close. Raw.
+ A2 TREES LONG ONLY: the top k; excess = book minus the universe futures return.
+ A3 TREES SHORT ONLY: the bottom k; excess = book plus the universe futures return.
+ A4 LOGISTIC LONG-SHORT, A5 NEURAL NETWORK LONG-SHORT: as A1.
+ Each leg net of calculateNseFuturesCharges (dated; quantity ceil(Rs 5 lakh / open)); a long-short book = (mean long leg +
+ mean short leg) / 2. Bid-ask spreads are not modelled (said in the result).
+
+6. SCORE AND VERDICT
+- Each member: monthly mean (%) of its daily books; Newey-West t (lag 3). Holm across the 5 at 5%. Full Deflated Sharpe with
+  N = 370 trials (365 before, these 5), as the night lab computes it.
+- DISCOVERY PASS = mean > 0, t >= 3, Holm, DSR >= 0.95 on 2008-2020. CONFIRMED = then on 2020-2026 mean > 0 and t >= 2. A
+  confirmed pass goes to TRACK as a forward paper test first. PROMISING = discovery mean > 0 and t >= 2. FAIL otherwise.
+- Reported, not judged: books, names a side, win rate, worst month, mean a day.
+- Expectation, stated now: costs are paid on 2k futures every day, so a real edge must beat roughly 0.04% a day.
+
+7. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 7.1 Timing: on synthetic data, changing every price after d's open (d's high, low and close, and every later bar, OI and
+     future) leaves every feature of d unchanged.
+ 7.2 Planted: a synthetic table whose label is 1 more often when GAP < 0 and OI1 > 0.03 (excess +0.6% vs -0.1%; noise 2%):
+     A1 reaches t >= 3.
+ 7.3 Null: the 18 features shuffled among each day's rows (labels fixed): at most 1 PASS of 5.
+
+8. FILES AND PRIVACY
+ run.js, ml.py, workflow .github/workflows/daytrader-lab.yml on main. Tables and predictions stay on the runner; logs and
+ artifacts carry summary rows only (public repository).
