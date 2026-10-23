@@ -249,7 +249,8 @@
   "OPTION|TCS|TCS26NOV2400CE",
   "OPTION|VMM|VMM26NOV80PE",
   "OPTION|NIFTY|NIFTY26N0322050PE",
-  "OPTION|TECHM|TECHM26NOV1700CE"
+  "OPTION|TECHM|TECHM26NOV1700CE",
+  "OPTION|WIPRO|WIPRO26NOV180CE"
  ],
  "options": {
   "NIFTY26N0322850PE": {
@@ -3310,6 +3311,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-23T06:44:12.355Z",
    "frozenAtIst": "2026-10-23 12:14 IST",
+   "frozenAtSpot": null
+  },
+  "WIPRO26NOV180CE": {
+   "buy": 13.65,
+   "sell": 20.48,
+   "stop": 6.83,
+   "tick": 0.01,
+   "lotSize": 3000,
+   "expiry": "2026-11-23",
+   "strike": 180,
+   "right": "CE",
+   "symbol": "WIPRO",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-23T07:04:13.913Z",
+   "frozenAtIst": "2026-10-23 12:34 IST",
    "frozenAtSpot": null
   }
  },

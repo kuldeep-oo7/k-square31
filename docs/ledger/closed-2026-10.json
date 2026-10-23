@@ -249833,6 +249833,60 @@
     "perLot": 14250,
     "netPerLot": 14107.79
    }
+  },
+  {
+   "id": "2026-10-22|PE|NESTLEIND26NOV1190PE",
+   "kind": "PE",
+   "symbol": "NESTLEIND",
+   "contract": "NESTLEIND26NOV1190PE",
+   "expiry": "2026-11-23",
+   "strike": 1190,
+   "optionType": "PE",
+   "lotSize": 500,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T04:04:38.537Z",
+   "buy": 28.85,
+   "target": 43.3,
+   "target2": null,
+   "stop": 14.45,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 57.3,
+     "medianDays": 8.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-22T04:04:38.913Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-23T07:04:14.321Z",
+   "exitPrice": 43.3,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 26.99,
+   "sessionsHeld": 1,
+   "best": 43.7,
+   "worst": 24.05,
+   "last": 42,
+   "lastAt": "2026-10-23T07:04:14.321Z",
+   "marks": 36,
+   "obs": {
+    "date": "2026-10-23",
+    "high": 43.7,
+    "low": 24.55,
+    "last": 42
+   },
+   "pnl": {
+    "perUnit": 14.45,
+    "pct": 50.09,
+    "basis": "NET",
+    "perLot": 7225,
+    "netPerLot": 7129.73
+   }
   }
  ]
 }
