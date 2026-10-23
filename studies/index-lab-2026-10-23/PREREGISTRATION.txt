@@ -1,0 +1,54 @@
+PRE-REGISTRATION -- THE INDEX LAB: WHEN TO HOLD THE NIFTY FUTURE (OVERNIGHT, INTRADAY, TURN OF THE MONTH, EXPIRY RUN-UP,
+GAP FADE, BIG-DROP BOUNCE). ONE BATCH, ONE RUN.
+Written Friday 23 Oct 2026, about 21:05 IST, BEFORE any member below was computed on real data. The commit time is the
+proof. Branch claude/index-lab-2026-10-23.
+Owner, 23 Oct 2026: "keep testing more strategies". One contract, easy to trade by hand on GM Global.
+
+1. WHAT IS KNOWN (disclosed)
+- Tested before on this desk and FAILED: NIFTY candlesticks, the NIFTY trend reader, the 10-month trend filter, US-overnight
+  and crude cues, NIFTY gamma exposure, the macro pod (FII/FPI/dollar), and the night lab's pre-holiday NIFTY (t 1.11,
+  0.90). Gap continuation was NOT TESTABLE (no intraday bars); member N5 is the daily open-to-close version.
+- Published ideas (not re-read tonight; adaptations labelled): overnight vs intraday returns (Cliff, Cooper and Gulen 2008
+  and later work: index returns accrue mostly overnight in several markets); turn of the month (Ariel 1987; McConnell and
+  Xu 2008: the last day and first three days of the month); short-term index reversal after large drops.
+- Nothing below has been computed on real data.
+
+2. DATA AND PRICES
+- NSE's F&O bhavcopy, NIFTY index futures rows: discovery 2005-01 .. 2020-10 (release data-oos), confirmation 2020-10 ..
+  2026-10-01 (the research snapshot). They share October 2020, as the night lab.
+- On day d the near-month contract is the earliest NIFTY futures expiry on or after d with an official open and close above
+  zero. Prices: its official open and its official close (NSE's settlement price). A hold over several sessions keeps the
+  contract and, on its expiry day, rolls at that day's close into the next contract (one roll round trip in charges).
+- Charges: calculateNseFuturesCharges (dated) on both legs, quantity ceil(Rs 5 lakh / entry). Net = signed return - charges.
+
+3. MEMBERS (6)
+ N1 OVERNIGHT: every session d: buy the near-month contract of d at its close on the previous session, sell at its open on d.
+ N2 INTRADAY: every session d: buy the near-month contract at its open, sell at its close.
+ N3 TURN OF THE MONTH: buy at the close of each month's second-to-last session, sell at the close of the next month's third
+    session.
+ N4 EXPIRY RUN-UP: for each NIFTY futures expiry E: buy that contract at the close of the 4th session before E, sell at its
+    close on E.
+ N5 GAP FADE: on a session where the near-month contract opens at least 0.5% above its previous close, short at the open and
+    cover at the close; at least 0.5% below, buy at the open and sell at the close.
+ N6 BIG-DROP BOUNCE: after a session where the near-month contract closed at least 2% below its previous close, buy at the
+    next open and sell at the close 5 sessions later.
+ (Previous close = the same contract's close on the previous session.)
+
+4. SCORE AND VERDICT
+- Each member: monthly mean (%) of its trades' net returns; Newey-West t (lag 3). Holm across the 6 at 5%. Full Deflated
+  Sharpe with N = 365 trials (359 before, these 6), as the night lab computes it.
+- DISCOVERY PASS = mean > 0, t >= 3, Holm, DSR >= 0.95 on 2005-2020. CONFIRMED = then on 2020-2026 mean > 0 and t >= 2. A
+  confirmed pass goes to TRACK as a forward paper test first. PROMISING = discovery mean > 0 and t >= 2. FAIL otherwise.
+  NOT TESTABLE: fewer than 24 months with a trade.
+- Reported, not judged: trades, win rate, worst month, mean per trade, and for 2020-2026 GM rupees at 20 units (gross).
+- N1 and N2 split each day's buy-and-hold in two; both are reported whatever their sign.
+- Expectation, stated now: the most likely outcome is that nothing passes both periods.
+
+5. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 5.1 Pricing by hand: an overnight trade from a contract's close to its next open; a 5-session hold across an expiry chains
+     two contracts with one roll.
+ 5.2 Planted: a synthetic NIFTY futures market with +0.10% planted in every overnight move: N1 reaches t >= 3.
+ 5.3 Null: every member's trades moved to random discovery sessions (same counts, holds and sides): at most 1 PASS of 6.
+
+6. FILES AND PRIVACY
+ run.js, workflow .github/workflows/index-lab.yml on main. Logs and artifacts carry summary rows only (public repository).
