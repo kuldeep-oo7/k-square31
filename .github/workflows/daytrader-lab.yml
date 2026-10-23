@@ -7,7 +7,7 @@ on:
   workflow_dispatch:
     inputs:
       mode:
-        description: "synthetic (dry run of check 7.2, no market data) or real (the one run)"
+        description: "synthetic (dry run of check 7.2, no market data), real (the one run) or posthoc (the descriptive audit after the result)"
         required: true
         default: "synthetic"
 permissions:
@@ -35,7 +35,7 @@ jobs:
           python ml.py "$RUNNER_TEMP/w" planted
           node run.js --planted "$RUNNER_TEMP/w" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: NSE data from the private repo
-        if: inputs.mode == 'real'
+        if: inputs.mode != 'synthetic'
         env:
           GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
           GH_REPO: kuldeep-oo7/k2-data
@@ -62,8 +62,21 @@ jobs:
           node --max-old-space-size=12000 run.js --features "$RUNNER_TEMP/w" | tee -a "$GITHUB_STEP_SUMMARY"
           python ml.py "$RUNNER_TEMP/w"
           node --max-old-space-size=12000 run.js --score "$RUNNER_TEMP/w" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: The post-hoc audit (descriptive, after the result)
+        if: inputs.mode == 'posthoc'
+        env:
+          K2_OOS_NSE: ${{ runner.temp }}/d/nse-old
+          K2_RESEARCH_DIR: ${{ runner.temp }}/d/research
+          K2_MACRO_IC: ${{ runner.temp }}/d/macro/ind_close_all
+        run: |
+          set -o pipefail
+          cd studies/daytrader-lab-2026-10-23
+          node --max-old-space-size=12000 run.js --features "$RUNNER_TEMP/w" | grep -E "DATA:|7.1" | sed 's/stock-days.*//'
+          python ml.py "$RUNNER_TEMP/w" real | tail -2
+          python posthoc.py "$RUNNER_TEMP/w" | tail -2
+          node --max-old-space-size=12000 run.js --posthoc "$RUNNER_TEMP/w" | tee -a "$GITHUB_STEP_SUMMARY"
       - name: Keep the result
-        if: always() && inputs.mode == 'real'
+        if: always() && inputs.mode != 'synthetic'
         uses: actions/upload-artifact@v4
         with:
           name: daytrader-lab-result
@@ -71,3 +84,4 @@ jobs:
           path: |
             studies/daytrader-lab-2026-10-23/RESULT.txt
             studies/daytrader-lab-2026-10-23/result.json
+            studies/daytrader-lab-2026-10-23/POSTHOC.txt
