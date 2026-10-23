@@ -1,0 +1,45 @@
+PRE-REGISTRATION -- THE VIX LAB: TIMING THE NIFTY FUTURE FROM INDIA VIX (FEAR SPIKES, FEAR HIGHS, CALM, VARIANCE PREMIUM).
+ONE BATCH, ONE RUN.
+Written Friday 23 Oct 2026, about 21:30 IST, BEFORE any member below was computed on real data. The commit time is the
+proof. Branch claude/vix-lab-2026-10-23.
+Owner, 23 Oct 2026: "keep testing more strategies".
+
+1. WHAT IS KNOWN (disclosed)
+- "VIX spike" was NOT TESTABLE on this desk before (no VIX history at the time). NSE's daily index file (ind_close_all,
+  release data-macro) carries "India VIX" from 14 May 2014. The shock gate's "INDIA_VIX < 22" was never tested. The index lab
+  (today) found NIFTY's big-drop bounce PROMISING (t 3.09) and the breadth lab the washout (t 2.99); both are related ideas
+  (buying fear) and their results are known. Nothing below has been computed on real data.
+
+2. DATA AND PRICES
+- India VIX and NIFTY 50 closes: NSE's ind_close_all (release data-macro), from 2014-05-14.
+- Discovery 2014-05-14 .. 2020-10-31; confirmation 2020-10-01 .. 2026-10-01 (sharing October 2020, as the other labs).
+- NIFTY trades exactly as the index lab: the near-month NIFTY future (NSE's F&O bhavcopy; release data-oos to 2020, the
+  research snapshot after), official open and close, rolled at an expiry, NSE futures charges, quantity ceil(Rs 5 lakh /
+  entry). Every trade starts at the open of the session after the signal day.
+
+3. MEMBERS (4)
+ V1 FEAR SPIKE: VIX closes at least 20% above its previous close -> BUY NIFTY, hold 5 sessions (sell at the close of the 5th).
+ V2 FEAR HIGH: VIX closes at its highest close of the previous 250 sessions -> BUY NIFTY, hold 10 sessions.
+ V3 CALM: VIX closes at its lowest close of the previous 250 sessions -> SHORT NIFTY, hold 10 sessions.
+ V4 VARIANCE PREMIUM: VIX minus NIFTY's 20-session realized volatility (st. dev. of daily log returns x sqrt(252) x 100) at
+    or above its 80th percentile of the previous 250 sessions -> BUY NIFTY, hold 5 sessions.
+ Overlapping holds are separate trades. The previous 250 sessions need at least 200 values.
+
+4. SCORE AND VERDICT
+- Each member: monthly mean (%) of its trades' net returns; Newey-West t (lag 3). Holm across the 4 at 5%. Full Deflated
+  Sharpe with N = 385 trials (381 before, these 4), as the night lab computes it.
+- DISCOVERY PASS = mean > 0, t >= 3, Holm, DSR >= 0.95 on 2014-2020. CONFIRMED = then on 2020-2026 mean > 0 and t >= 2. A
+  confirmed pass goes to TRACK as a forward paper test first. PROMISING = discovery mean > 0 and t >= 2. FAIL otherwise.
+  NOT TESTABLE: fewer than 24 months with a trade.
+- Reported, not judged: trades, win rate, worst month, mean a trade, GM rupees at 20 units for 2020-2026 (gross).
+- Expectation, stated now: discovery is short (about 6 years); fear signals are rare; the most likely outcome is that
+  nothing passes both periods.
+
+5. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 5.1 Signals by hand: a VIX path 15, 15, 18.1 gives a fear spike on the third day; a 250-day maximum and minimum are found;
+     the realized volatility of a known return series matches.
+ 5.2 Planted: a synthetic market where NIFTY rises 1% over the 5 sessions after a VIX jump of 20% or more: V1 reaches t >= 3.
+ 5.3 Null: every member's trades moved to random discovery sessions (same counts, holds and sides): at most 1 PASS of 4.
+
+6. FILES AND PRIVACY
+ run.js, workflow .github/workflows/vix-lab.yml on main. Logs and artifacts carry summary rows only (public repository).
