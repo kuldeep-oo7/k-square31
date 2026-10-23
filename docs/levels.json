@@ -244,7 +244,8 @@
   "OPTION|MPHASIS|MPHASIS26NOV2500CE",
   "OPTION|MPHASIS|MPHASIS26NOV2600CE",
   "OPTION|MPHASIS|MPHASIS26NOV2700CE",
-  "OPTION|SUZLON|SUZLON26NOV38PE"
+  "OPTION|SUZLON|SUZLON26NOV38PE",
+  "OPTION|NIFTY|NIFTY26N0322100PE"
  ],
  "options": {
   "NIFTY26N0322850PE": {
@@ -3230,6 +3231,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-23T04:44:29.622Z",
    "frozenAtIst": "2026-10-23 10:14 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26N0322100PE": {
+   "buy": 106.35,
+   "sell": 159.5,
+   "stop": 53.15,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-11-03",
+   "strike": 22100,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-23T05:04:32.334Z",
+   "frozenAtIst": "2026-10-23 10:34 IST",
    "frozenAtSpot": null
   }
  },
