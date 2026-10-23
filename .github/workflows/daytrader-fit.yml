@@ -1,0 +1,56 @@
+name: daytrader-fit
+# The one fit of the AI day-trader model for studies/daytrader-forward-2026-10-26 (branch claude/daytrader-forward-2026-10-23): the
+# day-trader lab's tables (its own branch), then fit.py. The model goes to the private repo k2-data (release daytrader-model);
+# the log carries the summary only (rows, sha256). This repository is public.
+on:
+  workflow_dispatch:
+permissions:
+  contents: read
+jobs:
+  fit:
+    runs-on: ubuntu-latest
+    timeout-minutes: 200
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: claude/daytrader-forward-2026-10-23
+      - name: The day-trader lab's table builder, from its own branch
+        run: |
+          git fetch --depth=1 origin claude/daytrader-lab-2026-10-23:refs/remotes/origin/fl
+          git checkout origin/fl -- studies/daytrader-lab-2026-10-23
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - uses: actions/setup-python@v5
+        with: { python-version: "3.12" }
+      - name: Pinned learning libraries
+        run: pip install -q scikit-learn==1.9.1 numpy==2.5.4
+      - name: NSE data from the private repo
+        env:
+          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+          GH_REPO: kuldeep-oo7/k2-data
+        run: |
+          mkdir -p "$RUNNER_TEMP/d" && cd "$RUNNER_TEMP/d"
+          for p in 2005-01-01 2009-01-01 2013-01-01 2017-01-01; do
+            gh release download data-oos -p "nse-old-$p.tar.gz" --clobber
+            tar -xzf "nse-old-$p.tar.gz" --exclude='nse-old/opt' --exclude='nse-old/sopt' && rm "nse-old-$p.tar.gz"
+          done
+          gh release download data-nse-cm -p nse-cm.tar.gz --clobber && tar -xzf nse-cm.tar.gz && rm nse-cm.tar.gz
+          mkdir -p research/rising-stocks-2026-10-02 && mv nse-data research/rising-stocks-2026-10-02/nse-data
+          gh release download data-research -p research-nse-fo.tar.gz --clobber && tar -xzf research-nse-fo.tar.gz && rm research-nse-fo.tar.gz
+          gh release download data-macro -p macro-ind_close_all.tar.gz --clobber && tar -xzf macro-ind_close_all.tar.gz && rm macro-ind_close_all.tar.gz
+      - name: Tables and the one fit
+        env:
+          K2_OOS_NSE: ${{ runner.temp }}/d/nse-old
+          K2_RESEARCH_DIR: ${{ runner.temp }}/d/research
+          K2_MACRO_IC: ${{ runner.temp }}/d/macro/ind_close_all
+        run: |
+          set -o pipefail
+          cd studies/daytrader-lab-2026-10-23 && node --max-old-space-size=12000 run.js --features "$RUNNER_TEMP/w" | grep -E "DATA:|7.1" | sed 's/stock-days.*//'
+          cd ../daytrader-forward-2026-10-26 && python fit.py "$RUNNER_TEMP/w" | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Keep the model in the private repo (release daytrader-model)
+        env:
+          GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+          GH_REPO: kuldeep-oo7/k2-data
+        run: |
+          gh release view daytrader-model >/dev/null 2>&1 || gh release create daytrader-model --title "AI day-trader model (private)" --notes "The one fit for studies/daytrader-forward-2026-10-26 (k-square31)."
+          gh release upload daytrader-model "$RUNNER_TEMP/w/daytrader-model.pkl" "$RUNNER_TEMP/w/fit.json" --clobber
