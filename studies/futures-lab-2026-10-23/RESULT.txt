@@ -1,0 +1,30 @@
+FUTURES LAB features: registration sha256 8cd70530c915ae0e... (verified); 2026-10-22T18:58:51.657Z
+ 5.1 futures pricing by hand: one-session short -1.047%; 10-session long across the 27 Jan expiry chains two contracts with one roll, 9.935%: PASSED
+DISCOVERY DATA: 3909 sessions 2005-01-03 .. 2020-10-30, 2792 stocks, futures for 433; SB rows 33268; U1 34315, U2 9183, U3 21944
+CONFIRMATION DATA: 5376 sessions 2005-01-03 .. 2026-10-01, 4437 stocks, futures for 559; SB rows 8550; U1 8550, U2 2020, U3 4387
+CHECKS 5.2-5.3:
+ 5.2 planted (NIFTY-gap x volume edge): U5 trees t 3.58: PASSED
+ 5.3 null (U1-U3 re-dated, U4-U7 features shuffled within each month): 0 PASS of 7 (at most 1): PASSED
+
+DISCOVERY 2005-01-01 .. 2020-10-31, priced on the near-month FUTURE (U1, U3 net; U2 excess; U4-U7 monthly spread take - skip; U5-U7 from 2008); Holm across 7; DSR with N = 359:
+ U1 SB on futures                34315 trades | 186 months | +0.081% a month | worst -1.31% | t 1.92 | Holm n | DSR 0.00 -> FAIL | futures +0.151% a trade (won 52%) vs shares +0.279%
+ U2 strong SB on futures          9183 trades | 177 months | +0.124% a month | worst -1.63% | t 3.46 | Holm y | DSR 0.21 -> PROMISING | futures +0.119% a trade (won 52%) vs shares +0.412%
+ U3 LU bounce on futures         21944 trades | 186 months | +1.392% a month | worst -14.61% | t 3.84 | Holm y | DSR 0.25 -> PROMISING | futures +0.807% a trade (won 53%) vs shares +0.727%
+ U4 share gap filter, futures    33268 trades (take 21374) | 177 months | +0.062% a month | worst -1.26% | t 1.67 | Holm n | DSR 0.00 -> FAIL
+ U5 trees, futures               29245 trades (take 13446) | 154 months | +0.191% a month | worst -0.90% | t 6.31 | Holm y | DSR 0.94 -> PROMISING
+ U6 logistic, futures            29245 trades (take 12589) | 154 months | +0.105% a month | worst -2.80% | t 2.38 | Holm y | DSR 0.08 -> PROMISING
+ U7 neural network, futures      29245 trades (take 13459) | 154 months | +0.077% a month | worst -1.89% | t 2.23 | Holm y | DSR 0.03 -> PROMISING
+DISCOVERY PASS: none. PROMISING: U2 strong SB on futures, U3 LU bounce on futures, U5 trees, futures, U6 logistic, futures, U7 neural network, futures.
+
+CONFIRMATION 2020-10-01 .. 2026-10-01 (U1 and U4 were seen here tonight, post-hoc; every member reported; a discovery PASS is CONFIRMED with mean > 0 and t >= 2):
+ U1 SB on futures                 8550 trades |  73 months | -0.008% a month | worst -2.70% | t -0.14 | futures +0.073% a trade (won 52%) vs shares +0.202%
+ U2 strong SB on futures          2020 trades |  73 months | +0.158% a month | worst -3.66% | t 1.87 | futures +0.152% a trade (won 55%) vs shares +0.282%
+ U3 LU bounce on futures          4387 trades |  72 months | +1.635% a month | worst -5.41% | t 4.21 | futures +1.799% a trade (won 59%) vs shares +1.833%
+ U4 share gap filter, futures     8550 trades (take 5809) |  72 months | +0.055% a month | worst -1.12% | t 1.19
+ U5 trees, futures                8550 trades (take 4946) |  72 months | +0.111% a month | worst -0.61% | t 2.63
+ U6 logistic, futures             8550 trades (take 4532) |  72 months | +0.044% a month | worst -0.97% | t 0.85
+ U7 neural network, futures       8550 trades (take 4871) |  72 months | +0.052% a month | worst -1.01% | t 1.23
+ GM rupees at 20 units on futures, gross, 2020-2026 (reported, not judged): U1 Rs 10,41,343, U2 Rs 3,25,687, U4 Rs 6,75,579, U5 Rs 7,17,207, U6 Rs 3,83,724, U7 Rs 8,23,166
+
+CANDIDATES (discovery PASS and confirmed): none. A candidate goes to TRACK as a forward paper test first, never straight to FUTURES.
+
