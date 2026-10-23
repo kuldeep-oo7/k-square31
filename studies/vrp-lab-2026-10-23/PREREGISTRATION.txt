@@ -1,0 +1,51 @@
+PRE-REGISTRATION -- THE VRP LAB: THE EXPIRY-DAY SELLER'S TRADE ON THE FOUR SESSIONS BEFORE EXPIRY. ONE BATCH, ONE RUN.
+Written Friday 23 Oct 2026, about 21:50 IST, BEFORE any member below was computed on real data. The commit time is the
+proof. Branch claude/vrp-lab-2026-10-23.
+Owner, 23 Oct 2026: "keep testing more strategies".
+
+1. WHAT IS KNOWN (disclosed)
+- The desk's only PASS: expiry-day NIFTY option selling (branch claude/expiry-selling-2026-10-20, prereg 02af144 + A1;
+  351 expiries 2020-2026): X2, an ATM straddle sold at the expiry-day open with a 2x stop per leg, +17.6 points an expiry,
+  t 4.43, full DSR 1.00; on TRACK from 27 Oct 2026. Its post-hoc audit found selling at the PREVIOUS close weak (t 1.16).
+- The families study found a short NIFTY straddle (weekly, held) positive in every window but not a pass; the 2% strangle
+  t 4.66 with DSR 0.39. Nothing below (intraday selling on the sessions BEFORE expiry) has been computed.
+
+2. DATA AND PERIODS
+- NSE's F&O bhavcopy, NIFTY index options expiring within 8 calendar days of each session, with open, high, low, close,
+  settle, open interest and contracts (release data-nifty-options, nod-2019 .. nod-2026, scripts/nse-nifty-option-days.js).
+  NIFTY's official open: NSE's ind_close_all (release data-macro).
+- Discovery: sessions from 2019-02-11 to 2022-12-31; confirmation: 2023-01-01 to 2026-10-01.
+- DAY -k: a session that is k sessions before the nearest weekly expiry after it (sessions = the days with an option file);
+  the trade uses that expiry's options.
+
+3. THE TRADE (the expiry-day X2 trade, except the exit)
+- An ATM straddle: the call and the put with the listed strike nearest NIFTY's official open (ties as the expiry study:
+  the higher call, the lower put), each SOLD at its official open (open > 0).
+- Each leg is bought back at 2x its entry if the day's high reached it (the stop), otherwise at the day's official close
+  (the settle when the close is not above zero).
+- Costs exactly as the expiry study: api/_lib/trade-costs.js roundTripCost for 75 units, plus 1 point of slippage a leg.
+- Value of a trade: the straddle's points (sold minus bought back minus costs) as a % of NIFTY's open.
+
+4. MEMBERS (4)
+ D1 the session before expiry (day -1).   D2 day -2.   D3 day -3.   D4 day -4.
+
+5. SCORE AND VERDICT
+- Each member: monthly mean (%) of its trades; Newey-West t (lag 3). Holm across the 4 at 5%. Full Deflated Sharpe with
+  N = 393 trials (389 before, these 4), as the night lab computes it.
+- DISCOVERY PASS = mean > 0, t >= 3, Holm, DSR >= 0.95 on 2019-2022. CONFIRMED = then on 2023-2026 mean > 0 and t >= 2. A
+  confirmed pass goes to TRACK as a forward paper test first (information only: selling needs margin and can lose many
+  days' premium in one move). PROMISING = discovery mean > 0 and t >= 2. FAIL otherwise.
+- Reported, not judged: trades, points a trade, win rate, worst trade (points and % of NIFTY), stops hit.
+- Expectation, stated now: discovery is short (about 4 years, ~200 trades a member); the most likely outcome is that
+  nothing passes both periods.
+
+6. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 6.1 By hand: a leg sold at 100 whose high reached 200 is bought back at 200; one whose high stayed 150 is bought back at
+     its close; the costs equal roundTripCost for 75 units plus 1 point.
+ 6.2 Planted: synthetic option chains priced with an implied volatility 30% above the realized volatility of the synthetic
+     NIFTY path: D1 reaches t >= 3.
+ 6.3 Null: every member's trades moved to random sessions of the discovery period (any day before an expiry): at most
+     1 PASS of 4.
+
+7. FILES AND PRIVACY
+ run.js, workflow .github/workflows/vrp-lab.yml on main. Logs and artifacts carry summary rows only (public repository).
