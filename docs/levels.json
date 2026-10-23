@@ -245,7 +245,8 @@
   "OPTION|MPHASIS|MPHASIS26NOV2600CE",
   "OPTION|MPHASIS|MPHASIS26NOV2700CE",
   "OPTION|SUZLON|SUZLON26NOV38PE",
-  "OPTION|NIFTY|NIFTY26N0322100PE"
+  "OPTION|NIFTY|NIFTY26N0322100PE",
+  "OPTION|TCS|TCS26NOV2400CE"
  ],
  "options": {
   "NIFTY26N0322850PE": {
@@ -3246,6 +3247,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-23T05:04:32.334Z",
    "frozenAtIst": "2026-10-23 10:34 IST",
+   "frozenAtSpot": null
+  },
+  "TCS26NOV2400CE": {
+   "buy": 190.4,
+   "sell": 285.6,
+   "stop": 95.2,
+   "tick": 0.05,
+   "lotSize": 225,
+   "expiry": "2026-11-23",
+   "strike": 2400,
+   "right": "CE",
+   "symbol": "TCS",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-23T05:24:16.635Z",
+   "frozenAtIst": "2026-10-23 10:54 IST",
    "frozenAtSpot": null
   }
  },
