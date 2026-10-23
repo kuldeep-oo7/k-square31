@@ -1,5 +1,5 @@
 {
- "updatedAt": "2026-10-22T19:30:25.939Z",
+ "updatedAt": "2026-10-23T03:43:35.891Z",
  "trades": [
   {
    "id": "2026-10-05|PE|BANKNIFTY26OCT56500PE",
@@ -458,56 +458,17 @@
    "exitPrice": null,
    "exitReason": null,
    "hoursFillToExit": null,
-   "sessionsHeld": 3,
+   "sessionsHeld": 4,
    "best": 799,
    "worst": 771,
-   "last": 781.3,
-   "lastAt": "2026-10-22T19:30:35.612Z",
-   "marks": 114,
+   "last": 775,
+   "lastAt": "2026-10-23T03:43:46.211Z",
+   "marks": 115,
    "obs": {
-    "date": "2026-10-22",
-    "high": 786.95,
-    "low": 777.15,
-    "last": 781.3
-   },
-   "pnl": null
-  },
-  {
-   "id": "2026-10-19|FUT|MGL (share)",
-   "kind": "FUT",
-   "symbol": "MGL",
-   "contract": "MGL (share)",
-   "expiry": null,
-   "strike": null,
-   "optionType": null,
-   "lotSize": 500,
-   "sessionDate": "2026-10-19",
-   "shownAt": "2026-10-19T03:48:10.828Z",
-   "buy": 1044.1,
-   "target": 1070.2,
-   "target2": 1096.3,
-   "stop": 1028.4,
-   "anchorSource": "SHARE_LIVE",
-   "priceBasis": "SHARE",
-   "expected": null,
-   "status": "OPEN",
-   "filledAt": "2026-10-19T04:05:03.318Z",
-   "hoursToFill": 0.28,
-   "closedAt": null,
-   "exitPrice": null,
-   "exitReason": null,
-   "hoursFillToExit": null,
-   "sessionsHeld": 2,
-   "best": 1057.4,
-   "worst": 1028.5,
-   "last": 1034.3,
-   "lastAt": "2026-10-22T19:30:35.612Z",
-   "marks": 84,
-   "obs": {
-    "date": "2026-10-22",
-    "high": 1046.6,
-    "low": 1028.5,
-    "last": 1034.3
+    "date": "2026-10-23",
+    "high": 775,
+    "low": 775,
+    "last": 775
    },
    "pnl": null
   },
@@ -536,17 +497,17 @@
    "exitPrice": null,
    "exitReason": null,
    "hoursFillToExit": null,
-   "sessionsHeld": 2,
+   "sessionsHeld": 3,
    "best": 1873.1,
    "worst": 1819.9,
-   "last": 1843.7,
-   "lastAt": "2026-10-22T19:30:35.612Z",
-   "marks": 84,
+   "last": 1839,
+   "lastAt": "2026-10-23T03:43:46.211Z",
+   "marks": 85,
    "obs": {
-    "date": "2026-10-22",
-    "high": 1857.6,
-    "low": 1824.1,
-    "last": 1843.7
+    "date": "2026-10-23",
+    "high": 1839,
+    "low": 1839,
+    "last": 1839
    },
    "pnl": null
   },
@@ -5679,118 +5640,6 @@
    "pnl": null
   },
   {
-   "id": "2026-10-22|FUT|TCS26NOVFUT",
-   "kind": "FUT",
-   "symbol": "TCS",
-   "contract": "TCS26NOVFUT",
-   "expiry": "2026-11-23",
-   "strike": null,
-   "optionType": null,
-   "lotSize": 225,
-   "sessionDate": "2026-10-22",
-   "shownAt": "2026-10-22T03:47:32.486Z",
-   "buy": 2494.8,
-   "target": 2557.2,
-   "target2": 2619.5,
-   "stop": 2457.4,
-   "anchorSource": "FUTURES_LIVE",
-   "priceBasis": "CONTRACT",
-   "expected": {
-    "fill": {
-     "probabilityPct": 71.4,
-     "medianTradingDays": 0.16
-    },
-    "target": {
-     "probabilityPct": 79,
-     "medianTradingDays": 1.805
-    },
-    "sigmaPct": 34.7,
-    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
-    "twoBarrier": {
-     "targetFirstPct": 37.5,
-     "stopFirstPct": 62.5,
-     "neitherPct": 0,
-     "breakEvenPct": 37.5
-    }
-   },
-   "status": "OPEN",
-   "filledAt": "2026-10-22T06:44:12.532Z",
-   "hoursToFill": 2.94,
-   "closedAt": null,
-   "exitPrice": null,
-   "exitReason": null,
-   "hoursFillToExit": null,
-   "sessionsHeld": 0,
-   "best": 2516.8,
-   "worst": 2489.1,
-   "last": 2509,
-   "lastAt": "2026-10-22T19:30:35.612Z",
-   "marks": 26,
-   "obs": {
-    "date": "2026-10-22",
-    "high": 2541.4,
-    "low": 2489.1,
-    "last": 2509
-   },
-   "pnl": null
-  },
-  {
-   "id": "2026-10-22|FUT|HCLTECH26NOVFUT",
-   "kind": "FUT",
-   "symbol": "HCLTECH",
-   "contract": "HCLTECH26NOVFUT",
-   "expiry": "2026-11-23",
-   "strike": null,
-   "optionType": null,
-   "lotSize": 400,
-   "sessionDate": "2026-10-22",
-   "shownAt": "2026-10-22T03:47:32.486Z",
-   "buy": 1411.5,
-   "target": 1446.8,
-   "target2": 1482.1,
-   "stop": 1390.3,
-   "anchorSource": "FUTURES_LIVE",
-   "priceBasis": "CONTRACT",
-   "expected": {
-    "fill": {
-     "probabilityPct": 71.2,
-     "medianTradingDays": 0.161
-    },
-    "target": {
-     "probabilityPct": 78.9,
-     "medianTradingDays": 1.829
-    },
-    "sigmaPct": 34.4,
-    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
-    "twoBarrier": {
-     "targetFirstPct": 37.5,
-     "stopFirstPct": 62.5,
-     "neitherPct": 0,
-     "breakEvenPct": 37.5
-    }
-   },
-   "status": "OPEN",
-   "filledAt": "2026-10-22T06:24:18.809Z",
-   "hoursToFill": 2.61,
-   "closedAt": null,
-   "exitPrice": null,
-   "exitReason": null,
-   "hoursFillToExit": null,
-   "sessionsHeld": 0,
-   "best": 1421.3,
-   "worst": 1399.6,
-   "last": 1419.3,
-   "lastAt": "2026-10-22T19:30:35.612Z",
-   "marks": 26,
-   "obs": {
-    "date": "2026-10-22",
-    "high": 1430.9,
-    "low": 1399.6,
-    "last": 1419.3
-   },
-   "pnl": null
-  },
-  {
    "id": "2026-10-22|FUT|SUPREMEIND26NOVFUT",
    "kind": "FUT",
    "symbol": "SUPREMEIND",
@@ -6056,73 +5905,17 @@
    "exitPrice": null,
    "exitReason": null,
    "hoursFillToExit": null,
-   "sessionsHeld": 0,
+   "sessionsHeld": 1,
    "best": 242.05,
    "worst": 245.8,
    "last": 242.1,
-   "lastAt": "2026-10-22T19:30:35.612Z",
-   "marks": 26,
+   "lastAt": "2026-10-23T03:43:46.211Z",
+   "marks": 27,
    "obs": {
-    "date": "2026-10-22",
-    "high": 245.8,
-    "low": 238.3,
+    "date": "2026-10-23",
+    "high": 242.1,
+    "low": 242.1,
     "last": 242.1
-   },
-   "pnl": null
-  },
-  {
-   "id": "2026-10-22|FUTS|GVT&D26NOVFUT",
-   "kind": "FUTS",
-   "symbol": "GVT&D",
-   "contract": "GVT&D26NOVFUT",
-   "expiry": "2026-11-23",
-   "strike": null,
-   "optionType": null,
-   "lotSize": 125,
-   "sessionDate": "2026-10-22",
-   "shownAt": "2026-10-22T03:47:32.486Z",
-   "buy": 3776.8,
-   "target": 3682.4,
-   "target2": 3588,
-   "stop": 3833.5,
-   "anchorSource": "FUTURES_LIVE",
-   "priceBasis": "CONTRACT",
-   "expected": {
-    "fill": {
-     "probabilityPct": 73,
-     "medianTradingDays": 0.142
-    },
-    "target": {
-     "probabilityPct": 81.9,
-     "medianTradingDays": 1.679
-    },
-    "sigmaPct": 37.2,
-    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
-    "twoBarrier": {
-     "targetFirstPct": 37.5,
-     "stopFirstPct": 62.5,
-     "neitherPct": 0,
-     "breakEvenPct": 37.5
-    }
-   },
-   "status": "OPEN",
-   "filledAt": "2026-10-22T05:04:40.658Z",
-   "hoursToFill": 1.29,
-   "closedAt": null,
-   "exitPrice": null,
-   "exitReason": null,
-   "hoursFillToExit": null,
-   "sessionsHeld": 0,
-   "best": 3736.9,
-   "worst": 3832.9,
-   "last": 3740.1,
-   "lastAt": "2026-10-22T19:30:35.612Z",
-   "marks": 26,
-   "obs": {
-    "date": "2026-10-22",
-    "high": 3832.9,
-    "low": 3703,
-    "last": 3740.1
    },
    "pnl": null
   },
@@ -6168,17 +5961,17 @@
    "exitPrice": null,
    "exitReason": null,
    "hoursFillToExit": null,
-   "sessionsHeld": 0,
-   "best": 233,
+   "sessionsHeld": 1,
+   "best": 232.4,
    "worst": 236.4,
-   "last": 233.65,
-   "lastAt": "2026-10-22T19:30:35.612Z",
-   "marks": 26,
+   "last": 232.4,
+   "lastAt": "2026-10-23T03:43:46.211Z",
+   "marks": 27,
    "obs": {
-    "date": "2026-10-22",
-    "high": 236.4,
-    "low": 230.35,
-    "last": 233.65
+    "date": "2026-10-23",
+    "high": 232.4,
+    "low": 232.4,
+    "last": 232.4
    },
    "pnl": null
   },
@@ -6392,17 +6185,17 @@
    "exitPrice": null,
    "exitReason": null,
    "hoursFillToExit": null,
-   "sessionsHeld": 0,
+   "sessionsHeld": 1,
    "best": 159.64,
    "worst": 162.01,
-   "last": 159.94,
-   "lastAt": "2026-10-22T19:30:35.612Z",
-   "marks": 26,
+   "last": 160.5,
+   "lastAt": "2026-10-23T03:43:46.211Z",
+   "marks": 27,
    "obs": {
-    "date": "2026-10-22",
-    "high": 162.01,
-    "low": 157.15,
-    "last": 159.94
+    "date": "2026-10-23",
+    "high": 160.5,
+    "low": 160.5,
+    "last": 160.5
    },
    "pnl": null
   },
