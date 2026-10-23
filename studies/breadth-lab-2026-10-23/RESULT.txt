@@ -1,0 +1,27 @@
+BREADTH LAB: registration sha256 7ad7bdd5aaf2ba0e... (verified); run 2026-10-23T15:45:17.999Z
+CHECKS:
+ 6.1 signals by hand: SB count 3, UP share 0.25, ABOVE-50 0.25, LOW share 0.5, OI change 4.62%: PASSED
+ 6.2 planted breadth thrust (+0.5% the next day): B3 232 trades, t 6.38: PASSED
+DISCOVERY DATA: 3909 sessions 2005-01-03 .. 2020-10-30, 2792 stocks, breadth on 3640 sessions; trades: B1 780, B2 784, B3 373, B4 550, B5 266, B6 255
+ 6.3 re-dated null on the discovery data: 0 PASS of 6 (at most 1 allowed): PASSED
+CONFIRMATION DATA: 5376 sessions 2005-01-03 .. 2026-10-01, 4437 stocks, breadth on 5107 sessions; trades: B1 323, B2 328, B3 124, B4 100, B5 23, B6 132
+
+DISCOVERY 2005-01-01 .. 2020-10-31 (NIFTY near-month future; monthly mean of net %; Holm across 6; DSR with N = 376):
+ B1 short build-up crowd       780 trades | 161 months | -0.002% a trade | won 51% | worst month -2.47% | t -1.96 | Holm n | DSR 0.00 -> FAIL
+ B2 long-unwinding crowd       784 trades | 166 months | +0.052% a trade | won 52% | worst month -2.84% | t 1.30 | Holm n | DSR 0.00 -> FAIL
+ B3 breadth thrust             370 trades | 154 months | +0.100% a trade | won 60% | worst month -10.33% | t -0.26 | Holm n | DSR 0.00 -> FAIL
+ B4 washout                    542 trades |  57 months | +0.184% a trade | won 56% | worst month -5.00% | t 2.99 | Holm y | DSR 0.01 -> PROMISING
+ B5 new lows                   262 trades |  57 months | +0.050% a trade | won 55% | worst month -4.21% | t 4.52 | Holm y | DSR 0.03 -> PROMISING
+ B6 OI surge on a down day     255 trades | 128 months | +0.064% a trade | won 56% | worst month -5.22% | t 0.43 | Holm n | DSR 0.00 -> FAIL
+DISCOVERY PASS: none. PROMISING: B4 washout, B5 new lows.
+
+CONFIRMATION 2020-10-01 .. 2026-10-01 (every member reported; a discovery PASS is CONFIRMED with mean > 0 and t >= 2):
+ B1 short build-up crowd       323 trades |  70 months | -0.034% a trade | won 46% | worst month -1.92% | t -2.53 | GM 20 units Rs -3,430
+ B2 long-unwinding crowd       328 trades |  72 months | -0.025% a trade | won 51% | worst month -0.80% | t 0.19 | GM 20 units Rs -5,704
+ B3 breadth thrust             123 trades |  57 months | +0.442% a trade | won 64% | worst month -4.13% | t 2.60 | GM 20 units Rs 2,21,921
+ B4 washout                  NOT TESTABLE (16 months, 97 trades)
+ B5 new lows                 NOT TESTABLE (11 months, 23 trades)
+ B6 OI surge on a down day     132 trades |  60 months | +0.006% a trade | won 53% | worst month -0.90% | t 0.87 | GM 20 units Rs 19,012
+
+CANDIDATES (discovery PASS and confirmed): none. A candidate goes to TRACK as a forward paper test first, never straight to FUTURES.
+
