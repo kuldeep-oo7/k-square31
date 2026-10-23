@@ -246,7 +246,8 @@
   "OPTION|MPHASIS|MPHASIS26NOV2700CE",
   "OPTION|SUZLON|SUZLON26NOV38PE",
   "OPTION|NIFTY|NIFTY26N0322100PE",
-  "OPTION|TCS|TCS26NOV2400CE"
+  "OPTION|TCS|TCS26NOV2400CE",
+  "OPTION|VMM|VMM26NOV80PE"
  ],
  "options": {
   "NIFTY26N0322850PE": {
@@ -3262,6 +3263,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-23T05:24:16.635Z",
    "frozenAtIst": "2026-10-23 10:54 IST",
+   "frozenAtSpot": null
+  },
+  "VMM26NOV80PE": {
+   "buy": 1.29,
+   "sell": 1.94,
+   "stop": 0.65,
+   "tick": 0.01,
+   "lotSize": 4850,
+   "expiry": "2026-11-23",
+   "strike": 80,
+   "right": "PE",
+   "symbol": "VMM",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-23T05:44:17.443Z",
+   "frozenAtIst": "2026-10-23 11:14 IST",
    "frozenAtSpot": null
   }
  },

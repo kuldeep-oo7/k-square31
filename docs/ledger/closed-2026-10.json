@@ -249281,6 +249281,120 @@
     "perLot": 22108.5,
     "netPerLot": 21914.01
    }
+  },
+  {
+   "id": "2026-10-23|FUT|WIPRO26NOVFUT",
+   "kind": "FUT",
+   "symbol": "WIPRO",
+   "contract": "WIPRO26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 3000,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T03:47:41.747Z",
+   "buy": 194.29,
+   "target": 199.15,
+   "target2": 204,
+   "stop": 191.38,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 70.6,
+     "medianTradingDays": 0.166
+    },
+    "target": {
+     "probabilityPct": 78.4,
+     "medianTradingDays": 1.899
+    },
+    "sigmaPct": 33.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-23T04:04:18.777Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-23T05:44:17.837Z",
+   "exitPrice": 191.38,
+   "exitReason": "STOP",
+   "hoursFillToExit": 1.67,
+   "sessionsHeld": 0,
+   "best": 194.29,
+   "worst": 191.2,
+   "last": 192.04,
+   "lastAt": "2026-10-23T05:44:17.837Z",
+   "marks": 7,
+   "obs": {
+    "date": "2026-10-23",
+    "high": 196.8,
+    "low": 191.2,
+    "last": 192.04
+   },
+   "pnl": {
+    "perUnit": -2.91,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-22|PE|VMM26NOV86PE",
+   "kind": "PE",
+   "symbol": "VMM",
+   "contract": "VMM26NOV86PE",
+   "expiry": "2026-11-23",
+   "strike": 86,
+   "optionType": "PE",
+   "lotSize": 4850,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T04:04:38.537Z",
+   "buy": 2.47,
+   "target": 3.7,
+   "target2": null,
+   "stop": 1.24,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 46,
+     "medianDays": 11.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-22T04:24:42.777Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-23T05:44:17.837Z",
+   "exitPrice": 3.7,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 25.33,
+   "sessionsHeld": 1,
+   "best": 3.75,
+   "worst": 2.43,
+   "last": 3.75,
+   "lastAt": "2026-10-23T05:44:17.837Z",
+   "marks": 30,
+   "obs": {
+    "date": "2026-10-23",
+    "high": 3.75,
+    "low": 3.12,
+    "last": 3.75
+   },
+   "pnl": {
+    "perUnit": 1.23,
+    "pct": 49.8,
+    "basis": "NET",
+    "perLot": 5965.5,
+    "netPerLot": 5878.44
+   }
   }
  ]
 }
