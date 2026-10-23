@@ -1115,7 +1115,10 @@ function sbFocusBox(d) {
   const dayText = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", year: "numeric", timeZone: "UTC" });
   const sb = of.SB; const s = sb.summary || {};
   const pend = (sb.pending || []).filter((p) => p.signalDate && nextTradingDate(p.signalDate) === target);
-  const ready = of.dataThrough && nextTradingDate(of.dataThrough) === target;
+  // the list also needs NSE's F&O file of the signal day (open interest): on 23 Oct 2026 it came after the share file, and an
+  // empty list looked like "no signals"
+  const fnoLate = !!(of.fnoThrough && of.dataThrough && of.fnoThrough < of.dataThrough);
+  const ready = of.dataThrough && nextTradingDate(of.dataThrough) === target && !fnoLate;
   const rows = pend.map((p) => `<tr><td><b>${esc(p.symbol)}</b><div class="sub">Zerodha/GM: ${esc(p.symbol)} futures, nearest month</div></td>
     <td class="num down">${mn(esc(p.pricePct))}%</td><td class="num">+${esc(p.oiPct)}%</td><td>SELL at the open, BUY BACK before the close</td></tr>`).join("");
   const day = esc(dayText(target));
@@ -1145,15 +1148,20 @@ function sbFocusBox(d) {
   return `<div class="note focus" style="border-left-color:var(--amber);margin:0 0 14px">
     <b class="warn">FOCUS RULE &mdash; SHORT BUILD-UP</b> &middot; <b>paper test: for GM Global only, not real money</b>
     <div style="margin-top:6px">${!ready
-      ? `<b class="warn">The list for ${day} is not ready yet.</b><span class="lec"> It is made from NSE&rsquo;s evening files (data so far through ${esc(of.dataThrough || "?")}). Check again after 09:30.</span>`
+      ? (fnoLate ? `<b class="warn">The list for ${day} is not ready yet: NSE&rsquo;s F&amp;O file for ${esc(of.dataThrough)} was not posted when the evening job ran.</b><span class="lec"> The open interest comes from that file; the next run fetches it.</span>`
+        : `<b class="warn">The list for ${day} is not ready yet.</b><span class="lec"> It is made from NSE&rsquo;s evening files (data so far through ${esc(of.dataThrough || "?")}). Check again after 09:30.</span>`)
       : rows ? `<b>${day}:</b> sell ${esc(units)} units of each at the open, buy back before the close.<span class="lec"> These stocks fell at least 1.56% in the last session while their futures open interest rose at least 3.04% (new shorts piling in).</span>
         <div class="slips">${pend.map((p) => sbSlip(d, p)).join("")}</div>`
       : `<b>No short build-up signal for ${day}.</b> No trade from this rule today.`}</div>
     ${target === d.sessionDate ? paperLiveBlock(d, "SB", pend.map((p) => p.symbol)) : ""}
     ${lastFut}
-    <div class="sub" style="margin-top:8px">Paper record since ${esc(of.start)}: ${esc(s.finished ?? 0)} trades${s.finished
-      ? `, ${s.meanNetPct > 0 ? "+" : ""}${mn(esc(s.meanNetPct))}% a trade, ${esc(s.winPct)}% won` : ""}. Verdict after 100 trades and 3 months.</div>
+    ${(() => { const fr = sb.futuresRecord; const shareLine = `${esc(s.finished ?? 0)} trades${s.finished ? `, ${s.meanNetPct > 0 ? "+" : ""}${mn(esc(s.meanNetPct))}% a trade, ${esc(s.winPct)}% won` : ""}`;
+      // owner, 23 Oct 2026: show what the futures did (the contract traded on GM); the registered test stays share-priced
+      return fr && fr.finished > 0 ? `<div class="sub" style="margin-top:8px">Paper record since ${esc(of.start)}, on futures: ${esc(fr.finished)} trades, ${fr.meanNetPct > 0 ? "+" : ""}${mn(esc(fr.meanNetPct))}% a trade, ${esc(fr.winPct)}% won, ${fr.rupees < 0 ? "&minus;" : "+"}&#8377;${esc(Math.abs(fr.rupees).toLocaleString("en-IN"))} at ${esc(fr.units)} units<span class="lec"> (after futures charges, before GM&rsquo;s; the registered test is scored on share prices: ${shareLine}; verdict after 100 trades and 3 months)</span>.</div>`
+        : `<div class="sub" style="margin-top:8px">Paper record since ${esc(of.start)}: ${shareLine}. Verdict after 100 trades and 3 months.</div>`; })()}
     <details class="fold sub lec"><summary>The evidence, and why it is paper only<span class="more"></span></summary><div>
+      <b>Priced on futures, the contract you trade</b> (futures lab, 23 Oct 2026): 2005&ndash;2020 +0.15% a trade, not reliable month to month (t 1.92);
+      2020&ndash;2026 +0.07% a trade (t &minus;0.14). Share prices flatter a short by about 0.1% a trade, and every figure below is share-priced.
       Tested on NSE 2005&ndash;2020, data it had never seen, with its rules fixed first: 33,979 trades, <b>+0.21% a trade after futures charges, t 4.66</b>,
       positive in every 5-year period but shrinking (+0.40%, +0.31%, +0.14%); it lost &minus;0.48% a trade in the 2020 COVID crash. Found on 2020&ndash;2026
       (+0.30% then +0.13% a trade). Not yet checked with the full deflated Sharpe. <b>On paper since ${esc(of.start)}:</b> ${esc(s.finished ?? 0)} trades${s.finished

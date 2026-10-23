@@ -86,4 +86,25 @@ fsx.rmSync(dir, { recursive: true, force: true });
   check("flows line: the total since the first saved day, marked as not a signal", line.includes("since 9 Oct (2 sessions)") && line.includes("information, not a signal"));
   check("flows line: nothing without a file", flowsLine({}) === "" && flowsLine({ flows: { days: [] } }) === "");
 }
+{ // the paper record re-priced on futures (owner, 23 Oct 2026): the earliest expiry on or after the day; a zero price is no price
+  const fsy = require("node:fs"), osy = require("node:os"), py = require("node:path"); const { futuresRecord } = require("./oi-flow-forward"); const { sbFocusBox } = require("./publish-static-desk");
+  const { calculateNseFuturesCharges } = require("../api/_lib/shadow-broker");
+  const dir = fsy.mkdtempSync(py.join(osy.tmpdir(), "fr-"));
+  fsy.writeFileSync(py.join(dir, "2026-10-21.json"), JSON.stringify([["AAA", "STK", "2026-11-24", 200, 0, 0, 190, 190, 1, 0, 1], ["AAA", "STK", "2026-10-27", 100, 0, 0, 98, 98, 1, 0, 1], ["BBB", "STK", "2026-10-27", 0, 0, 0, 50, 50, 1, 0, 1]]));
+  const fr = futuresRecord([{ symbol: "AAA", entryDate: "2026-10-21", status: "DONE" }, { symbol: "BBB", entryDate: "2026-10-21", status: "DONE" }, { symbol: "CCC", entryDate: "2026-10-21", status: "VOID (corporate action)" }], dir);
+  const q = Math.ceil(500000 / 100), ch = (side, p) => calculateNseFuturesCharges({ side, price: p, quantity: q, asOfDate: "2026-10-21T12:00:00Z" }).totalCharges;
+  const want = +((100 * (-(98 / 100 - 1) - (ch("SELL", 100) + ch("BUY", 98)) / (100 * q)))).toFixed(3);
+  check("futures record: near-month open -> close after charges; a zero open is missing; VOID is not counted", fr.finished === 1 && fr.missing === 1 && fr.meanNetPct === want && fr.winPct === 100 && fr.rupees === 40);
+  const of2 = { start: "2026-10-05", dataThrough: "2026-10-22", SB: { pending: [], summary: { finished: 3, meanNetPct: 0.5, winPct: 66.7 }, futuresRecord: fr } };
+  const h = sbFocusBox({ oiFlow: of2, sessionOver: true, sessionDate: "2026-10-22", nextSession: "2026-10-23", tradingDay: true });
+  check("focus box: the visible paper record is the futures one; the share-priced test sits in the notes", h.includes(`Paper record since 2026-10-05, on futures: 1 trades, +${want}% a trade`) && h.includes("+&#8377;40 at 20 units") && h.includes("scored on share prices: 3 trades, +0.5% a trade"));
+}
+{ // 23 Oct 2026: NSE's F&O file came after the share file; an empty list must read "not ready", never "no signals"
+  const { sbFocusBox } = require("./publish-static-desk");
+  const late = { start: "2026-10-05", dataThrough: "2026-10-23", fnoThrough: "2026-10-22", SB: { pending: [], summary: { finished: 1, meanNetPct: 0.1, winPct: 100 } } };
+  const h = sbFocusBox({ oiFlow: late, sessionOver: true, sessionDate: "2026-10-23", nextSession: "2026-10-26", tradingDay: false });
+  check("F&O file late: the list says not ready, naming the missing file", h.includes("is not ready yet: NSE&rsquo;s F&amp;O file for 2026-10-23 was not posted"));
+  const ok = sbFocusBox({ oiFlow: { ...late, fnoThrough: "2026-10-23" }, sessionOver: true, sessionDate: "2026-10-23", nextSession: "2026-10-26", tradingDay: false });
+  check("F&O file present: no not-ready warning", !ok.includes("is not ready yet"));
+}
 console.log(failed ? `${failed} failed` : "sb focus box tests passed"); process.exit(failed ? 1 : 0);

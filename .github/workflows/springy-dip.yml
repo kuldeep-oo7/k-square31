@@ -20,7 +20,7 @@ concurrency:
 jobs:
   forward:
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 90
     env:
       # Release data lives in the PRIVATE repo kuldeep-oo7/k2-data (16 Oct 2026, so this repo can be public).
       # Until repo variable K2_DATA_REPO is set (after the token is tested), both stay on this repo, so nothing breaks in between.
@@ -46,7 +46,17 @@ jobs:
         run: |
           if gh release download data-paper-inputs -p paper-inputs.tar.gz; then tar -xzf paper-inputs.tar.gz && rm paper-inputs.tar.gz; else echo "no paper-inputs archive yet"; fi
       - name: NSE F&O futures files for the last 40 days (open interest)
-        run: K2_CM_DIR=nse-data/cm K2_FO_DIR=nse-fo K2_FROM=$(date -u -d '-40 days' +%F) node scripts/nse-fo-history.js
+        run: |
+          K2_CM_DIR=nse-data/cm K2_FO_DIR=nse-fo K2_FROM=$(date -u -d '-40 days' +%F) node scripts/nse-fo-history.js
+          # NSE can post the F&O file after the share file (23 Oct 2026: HTTP 404 at 19:30 IST, so the next session's short
+          # build-up list came out empty). Wait for the newest session's F&O file, up to 40 minutes, before making any list.
+          last=$(ls nse-data/cm/ | grep -E '^[0-9]{4}-[0-9]{2}-[0-9]{2}\.json$' | sort | tail -1 | cut -c1-10)
+          for i in 1 2 3 4 5 6 7 8; do
+            [ -f "nse-fo/fut/$last.json" ] && break
+            echo "waiting for NSE's F&O file of $last (try $i of 8)"; sleep 300
+            K2_CM_DIR=nse-data/cm K2_FO_DIR=nse-fo K2_FROM=$last node scripts/nse-fo-history.js
+          done
+          [ -f "nse-fo/fut/$last.json" ] || echo "::warning::NSE's F&O file for $last is still missing; the page says the list is not ready, and the next run fetches it"
       - name: NSE index closes and NIFTY option prices for the last 40 days
         run: |
           K2_CM_DIR=nse-data/cm K2_IDX_DIR=nse-idx K2_FROM=$(date -u -d '-40 days' +%F) node scripts/nse-index-close-history.js
