@@ -248,7 +248,8 @@
   "OPTION|NIFTY|NIFTY26N0322100PE",
   "OPTION|TCS|TCS26NOV2400CE",
   "OPTION|VMM|VMM26NOV80PE",
-  "OPTION|NIFTY|NIFTY26N0322050PE"
+  "OPTION|NIFTY|NIFTY26N0322050PE",
+  "OPTION|TECHM|TECHM26NOV1700CE"
  ],
  "options": {
   "NIFTY26N0322850PE": {
@@ -3294,6 +3295,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-23T06:04:16.810Z",
    "frozenAtIst": "2026-10-23 11:34 IST",
+   "frozenAtSpot": null
+  },
+  "TECHM26NOV1700CE": {
+   "buy": 132.75,
+   "sell": 199.15,
+   "stop": 66.4,
+   "tick": 0.05,
+   "lotSize": 600,
+   "expiry": "2026-11-23",
+   "strike": 1700,
+   "right": "CE",
+   "symbol": "TECHM",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-23T06:44:12.355Z",
+   "frozenAtIst": "2026-10-23 12:14 IST",
    "frozenAtSpot": null
   }
  },
