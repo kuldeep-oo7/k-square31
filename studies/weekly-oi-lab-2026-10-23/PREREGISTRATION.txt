@@ -1,0 +1,45 @@
+PRE-REGISTRATION -- THE WEEKLY OPEN-INTEREST LAB: A WEEK OF PRICE AND OPEN INTEREST TOGETHER (BUILD-UP, COVERING, UNWINDING),
+TRADED THE NEXT WEEK ON FUTURES. ONE BATCH, ONE RUN.
+Written Friday 23 Oct 2026, about 21:45 IST, BEFORE any member below was computed on real data. The commit time is the
+proof. Branch claude/weekly-oi-lab-2026-10-23.
+Owner, 23 Oct 2026: "keep testing more strategies".
+
+1. WHAT IS KNOWN (disclosed)
+- research/orderflow-2026-10-03 tested the four price x open-interest quadrants from ONE-DAY signals with 1- and 10-session
+  holds, share-priced, 2020-2026: short build-up (1 session) became the desk's SB rule; long unwinding shorted for 10 sessions
+  LOST in all windows (its reading the other way, the LU bounce, is on TRACK; the futures lab today: LU bounce on futures
+  t 3.84 then 4.21, net, mostly market beta). Nothing below (WEEKLY signals, next-week holds) has been computed.
+
+2. DATA AND PERIODS (as the futures lab, studies/futures-lab-2026-10-23)
+- Discovery NSE 2005-01 .. 2020-10 (release data-oos); confirmation 2020-10 .. 2026-10-01 (the research snapshot, with
+  data-oos before 2020-09-01 as look-back only); they share October 2020.
+- Universe: the night lab's (top 200 by traded value, >= 250 bars after the last reset), each month.
+- WEEK: ISO weeks of sessions. For a stock at the last session f of a week: R5 = share close(f) / share close 5 sessions
+  before f - 1; OI5 = total futures OI(f) / total futures OI 5 sessions before f - 1 (both values above zero).
+- TRADE: the next ISO week, the stock's near-month future bought or sold at its official open on the week's first session
+  and closed at its official close on the week's last session, rolled at an expiry (the futures lab's futHold); NSE futures
+  charges; quantity ceil(Rs 5 lakh / entry). EXCESS = the book net minus (long) / plus (short) the equal-weighted return of
+  the universe's near-month futures over the same week (at least 30 names).
+
+3. MEMBERS (4), each a weekly book of all qualifying stocks (at least 1)
+ W1 WEEKLY LONG BUILD-UP: R5 >= +5% and OI5 >= +10% -> LONG. Excess.
+ W2 WEEKLY SHORT BUILD-UP: R5 <= -5% and OI5 >= +10% -> SHORT. Excess.
+ W3 WEEKLY SHORT COVERING: R5 >= +5% and OI5 <= -10% -> SHORT (a rally without new longs fades). Excess.
+ W4 WEEKLY LONG UNWINDING: R5 <= -5% and OI5 <= -10% -> LONG (the selling is exhausted). Excess.
+
+4. SCORE AND VERDICT
+- Each member: monthly mean (%) of its weekly books; Newey-West t (lag 3). Holm across the 4 at 5%. Full Deflated Sharpe with
+  N = 389 trials (385 before, these 4), as the night lab computes it.
+- DISCOVERY PASS = mean > 0, t >= 3, Holm, DSR >= 0.95 on 2005-2020. CONFIRMED = then on 2020-2026 mean > 0 and t >= 2. A
+  confirmed pass goes to TRACK as a forward paper test first. PROMISING = discovery mean > 0 and t >= 2. FAIL otherwise.
+- Reported, not judged: weeks with a book, names a week, win rate, worst month.
+- Expectation, stated now: the most likely outcome is that nothing passes both periods.
+
+5. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 5.1 By hand: a stock up 6% over 5 sessions with OI up 12% is a W1 name; its week is priced from the next week's first open to
+     its last close, rolling at an expiry.
+ 5.2 Planted: a synthetic market where W1 names gain 1.5% more the next week: W1 reaches t >= 3.
+ 5.3 Null: every member's books moved to random discovery weeks (same names and sides): at most 1 PASS of 4.
+
+6. FILES AND PRIVACY
+ run.js, workflow .github/workflows/weekly-oi-lab.yml on main. Logs and artifacts carry summary rows only (public repo).
