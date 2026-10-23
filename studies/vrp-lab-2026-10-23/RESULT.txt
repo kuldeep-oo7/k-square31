@@ -1,0 +1,23 @@
+VRP LAB: registration sha256 36232c92dc6e0eac... (verified); run 2026-10-23T16:20:24.739Z
+CHECKS:
+ 6.1 by hand: high 200 -> bought back at 2x (-101.91 points); high 150 -> at the close 120 (-21.88 points): PASSED
+ 6.2 planted (implied volatility 30% above realized): D1 203 trades, +31.3 points a trade, t 12.86: PASSED
+DATA: option files on 1901 sessions 2019-02-01 .. 2026-10-19; NIFTY opens on 3144 days
+ discovery trades: D1 203, D2 203, D3 203, D4 199
+ 6.3 re-dated null (random sessions before an expiry, discovery): 0 PASS of 4 (at most 1 allowed): PASSED
+
+DISCOVERY 2019-02-11 .. 2022-12-31 (ATM straddle sold at the open, 2x stop a leg, else bought back at the close; % of NIFTY; Holm across 4; DSR with N = 393):
+ D1 day -1   203 trades |  47 months | +6.1 points a trade (+0.053% of NIFTY, monthly) | won 60% | worst -135 pts (-1.27%) | stops 92 | t 1.86 | Holm n | DSR 0.00 -> FAIL
+ D2 day -2   203 trades |  47 months | +9.7 points a trade (+0.066% of NIFTY, monthly) | won 62% | worst -109 pts (-0.93%) | stops 55 | t 2.90 | Holm y | DSR 0.00 -> PROMISING
+ D3 day -3   203 trades |  47 months | -3.6 points a trade (-0.032% of NIFTY, monthly) | won 54% | worst -196 pts (-2.04%) | stops 58 | t -1.44 | Holm n | DSR 0.00 -> FAIL
+ D4 day -4   199 trades |  47 months | +1.2 points a trade (-0.006% of NIFTY, monthly) | won 61% | worst -574 pts (-6.30%) | stops 39 | t -0.15 | Holm n | DSR 0.00 -> FAIL
+DISCOVERY PASS: none. PROMISING: D2 day -2.
+
+CONFIRMATION 2023-01-01 .. 2026-10-01 (every member reported; a discovery PASS is CONFIRMED with mean > 0 and t >= 2):
+ D1 day -1   195 trades |  45 months | +9.3 points a trade (+0.036% of NIFTY, monthly) | won 57% | worst -113 pts (-0.47%) | stops 85 | t 1.58
+ D2 day -2   196 trades |  46 months | +3.5 points a trade (+0.011% of NIFTY, monthly) | won 58% | worst -359 pts (-1.65%) | stops 59 | t 1.00
+ D3 day -3   196 trades |  45 months | +10.4 points a trade (+0.044% of NIFTY, monthly) | won 66% | worst -135 pts (-0.61%) | stops 40 | t 2.35
+ D4 day -4   192 trades |  45 months | +3.2 points a trade (+0.012% of NIFTY, monthly) | won 63% | worst -278 pts (-1.13%) | stops 44 | t 1.14
+
+CANDIDATES (discovery PASS and confirmed): none. A candidate goes to TRACK as a forward paper test first (information only).
+
