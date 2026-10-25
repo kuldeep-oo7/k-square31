@@ -28,3 +28,49 @@ CHECKS (synthetic, section 6):
  6.3 a put 10 points dearer earns exactly +10 held, the call unchanged: true
  CHECKS: PASSED
 
+
+THE ONE REAL RUN:
+EXPIRY-DAY SELLING, CALL SIDE AGAINST PUT SIDE, registration sha256 8a6be3624a426d894b80c9d2d0ee47ace50688a9a4e5df968f1a5ec34fc7e331 (verified), run 2026-10-25T16:22:56.885Z
+CHECKS (synthetic, section 6):
+ 6.1 fair, seed 1: D2 t 0.64 (NO DIFFERENCE FOUND), D4 t -0.23 (NO DIFFERENCE FOUND)
+ 6.1 fair, seed 2: D2 t -2.01 (LEANING), D4 t -1.37 (NO DIFFERENCE FOUND)
+ 6.1 fair, seed 3: D2 t -0.09 (NO DIFFERENCE FOUND), D4 t 1.17 (NO DIFFERENCE FOUND)
+ 6.2 puts sold 50% over fair at the open (seeds 1-3, with costs): D2 t 7.27, 2.58, 4.76; DIFFERENT on 2 of 3
+ 6.2 puts sold 20% over fair at the open (seeds 1-3, with costs): D2 t 3.56, -0.04, 2.00; DIFFERENT on 1 of 3 (power, not judged)
+ 6.3 a put 10 points dearer earns exactly +10 held, the call unchanged: true
+ CHECKS: PASSED
+ 6.4 the study reproduced: 402 sessions (study 402), skipped 51 (51), X2 351 expiries (351), C2 + P2 = X2 on every expiry: true, X2 mean 17.5910 points (17.5910), t 4.4258 (4.4258) -> MATCH
+
+REAL DATA: 351 expiries 2020-02-06 .. 2026-10-19. Points and % of NIFTY's open, after charges + 1 point a leg.
+MAIN, D2 = put leg - call leg of X2 (ATM, 2x stop): 351 expiries, mean -0.045% of NIFTY an expiry, t -1.48 (two-sided) -> NO DIFFERENCE FOUND
+SECONDARY, D4 = put leg - call leg of X4 (1% out, 2x stop): 351 expiries, mean +0.014%, t 0.66 -> NO DIFFERENCE FOUND
+
+EACH LEG ALONE (information only: no verdict, no rule; selling one side adds an untested NIFTY direction bet):
+ C2: 351 expiries, +15.0 points an expiry (+0.069%), won 62%, t 4.11, premium at the open 61.8, stopped 31%, worst -148 points (-1.75%, 2020-03-26), worst month -2.54%
+ P2: 351 expiries, +2.6 points an expiry (+0.024%), won 54%, t 1.21, premium at the open 65.8, stopped 42%, worst -287 points (-1.09%, 2026-02-03), worst month -1.86%
+ C4: 351 expiries, +2.8 points an expiry (+0.013%), won 69%, t 1.73, premium at the open 11.1, stopped 25%, worst -123 points (-1.45%, 2020-03-26), worst month -2.54%
+ P4: 351 expiries, +3.4 points an expiry (+0.027%), won 63%, t 1.77, premium at the open 15.8, stopped 37%, worst -92 points (-1.07%, 2020-04-01), worst month -0.62%
+ C1: 351 expiries, +13.7 points an expiry (+0.066%), won 70%, t 3.26, premium at the open 61.8, stopped 0%, worst -390 points (-1.67%, 2025-04-17), worst month -1.69%
+ P1: 351 expiries, +1.6 points an expiry (+0.017%), won 66%, t 0.75, premium at the open 65.8, stopped 0%, worst -401 points (-2.54%, 2022-06-16), worst month -2.03%
+ C3: 351 expiries, +4.7 points an expiry (+0.029%), won 87%, t 3.78, premium at the open 11.1, stopped 0%, worst -194 points (-0.83%, 2025-04-17), worst month -0.78%
+ P3: 351 expiries, +4.6 points an expiry (+0.025%), won 91%, t 2.65, premium at the open 15.8, stopped 0%, worst -353 points (-3.52%, 2020-03-12), worst month -1.49%
+
+BY NIFTY'S DIRECTION, open to settlement (reported, not judged):
+ NIFTY up: 157 expiries; C2 -27.3, P2 +47.6, X2 +20.3 points an expiry
+ NIFTY down: 194 expiries; C2 +49.3, P2 -33.9, X2 +15.4 points an expiry
+
+D2 BY THE STUDY'S PERIODS (reported, not judged):
+ to 19 Nov 2024: 250 expiries, C2 +11.7, P2 +4.6 points, D2 -0.023%
+ 20 Nov 2024 - 1 Sep 2025: 41 expiries, C2 +5.6, P2 -1.4 points, D2 -0.027%
+ from 2 Sep 2025: 60 expiries, C2 +35.1, P2 -3.0 points, D2 -0.152%
+
+READING (written after the run; it cannot change the verdicts above)
+- The main verdict: NO DIFFERENCE FOUND between the call side and the put side of X2 (t -1.48). That is not proof they
+  are the same: limit L5 says a gap the size of a put sold 20% rich would often be missed.
+- In these 351 expiries the call side earned more (+15.0 against +2.6 points an expiry). NIFTY settled below its open on
+  194 of the 351 expiry days, and a sold call gains when NIFTY falls (limit L1): the gap follows NIFTY's direction.
+- Sold together, both kinds of day paid: NIFTY up 157 expiries, X2 +20.3 points (call -27.3, put +47.6); NIFTY down 194
+  expiries, X2 +15.4 (call +49.3, put -33.9). Selling one side alone is a NIFTY direction bet; no such bet has passed.
+- The put side is the rougher one: its stop was hit on 42% of expiries (the call's 31%), its worst X2 expiry was -287
+  points (2026-02-03; the call's worst -148), and the worst held leg of all was the 1% put on 2020-03-12 (-353 points,
+  -3.52% of NIFTY).
