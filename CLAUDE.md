@@ -217,7 +217,12 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     OI to the private release orderflow-rec (api/_lib/orderflow-recorder.js). Nothing decides on it
     until there is a history to test.
   - Still open:
-    - F24: depth is now recorded but not yet tested.
+    - F24: depth recorded and tested once (interim, 25 Oct 2026; branch claude/orderbook-2026-10-25, prereg 877af02e):
+      15 sessions, 6 members (total buy/sell qty, 5-level depth, top of book x next 15-30 min / to the close), fills walk
+      the recorded book + 0.104% charges. Total buy/sell quantity predicts NOTHING; the visible book leans the right way
+      (rank IC t 3.9-5.1) but the best gross move (+0.033% a trade) is ~1/6 of the cost (0.19-0.21%): TOO SMALL TO TRADE
+      / FAIL. THE VERDICT: one re-run, code unchanged, at 60 recorded sessions (~31 Dec 2026):
+      `K2_OF_DIR=<orderflow-rec files> node studies/orderbook-2026-10-25/study.js --first 60`. No look before then.
 - **Forward paper tests on TRACK (rules fixed before 5 Oct 2026; docs/paper-rules/*.json, written by
   .github/workflows/springy-dip.yml at 07:45 IST):**
   - springy dip;

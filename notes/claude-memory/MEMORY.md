@@ -47,3 +47,4 @@
 - [Audit 23 Oct](k2-audit-2026-10-23.md) — SB 8/9 on futures +Rs 8,665; NSE F&O file late at 19:30 emptied Monday list (fixed: wait loop + not-ready guard); cloud checks fired; trees + strong SB on TRACK
 - [Expiry live + fills 25 Oct](k2-expiry-live-2026-10-25.md) — X2 paper trade live on TRACK on expiry days, achievable fills recorded (A1 18c0101); Zerodha: no SL-M on index options, +2% ELM expiry day, straddle ~Rs 2.6 lakh; option-archive holiday-marker bug fixed
 - [Call vs put of expiry selling 25 Oct](k2-expiry-legs-2026-10-25.md) — split of X2: NO DIFFERENCE FOUND (t -1.48, low power); call +15.0 vs put +2.6 pts follows NIFTY direction; SEBI FY26 sellers vs buyers; TRACK shows split + each leg
+- [Order book 25 Oct](k2-orderbook-2026-10-25.md) — total buy/sell qty predicts nothing; visible book leans right (IC t 4-5) but ~1/6 of the spread+charges; verdict re-run at 60 sessions (~31 Dec 2026)
