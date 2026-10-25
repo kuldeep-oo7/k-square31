@@ -260,7 +260,7 @@ async function step(label, fn) {
     const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
     const opts = Object.keys(require("../api/_lib/broker-feed").loadInstruments("angelone")?.options || {});
     const expiries = [...new Set(opts.filter((k) => k.startsWith("NIFTY|")).map((k) => k.split("|")[1]))];
-    if (!expiries.includes(today)) return "not a NIFTY expiry";
+    if (!expiries.includes(today)) return `not a NIFTY expiry (next in the Angel master: ${expiries.filter((e) => e > today).sort()[0] || "none"})`;
     const ctx = require("../api/_lib/nse-market-context").loadMarketContext();
     const niftyOpen = ctx && require("./paper-ledger").feedDate(ctx.nseTimestamp) === today ? ctx.niftyOpen : null;
     const req = require("../api/_lib/expiry-live").expiryRequest({ today, expiries, niftyOpen });
