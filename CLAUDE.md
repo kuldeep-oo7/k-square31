@@ -142,6 +142,11 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     DSR 1.00), positive in every sub-period; worst expiry -3.19% of NIFTY; the edge needs selling AFTER the open (post-hoc
     audit). On TRACK as a forward paper test from 27 Oct 2026 (studies/expiry-selling-forward-2026-10-21; verdict X2 after 52
     expiries). NIFTY lot is 65 (NSE FO bhavcopy NewBrdLotQty, 21 Oct 2026).
+    Call side vs put side of X2 (branch claude/expiry-legs-2026-10-25, prereg 8a6be362 committed before data, 25 Oct; reproduced
+    the study exactly first): NO DIFFERENCE FOUND (put - call t -1.48; low power). Call leg +15.0, put leg +2.6 points an expiry,
+    but each leg follows NIFTY's direction (NIFTY settled below its open on 194 of 351 expiries); X2 paid on up days (+20.3) and
+    down days (+15.4); the put leg's stop was hit more (42% vs 31%). Single legs are information only, never a rule. TRACK shows
+    the split in one line and each leg's result (display only; api/_lib/expiry-forward.js run() adds callPoints/putPoints).
   - GM tournament (branch claude/gm-tournament-2026-10-21, prereg e38edd4 + A1 51321cc + A2 dd86733): FULL BOARD 21 Oct
     (Actions 39644817254): 86 members under GM's rules, 0 PASS; PROMISING SB short build-up (t 3.94, Holm, DSR 0.57; since
     Sep 2024 only t 0.91), CM1 trees long-short (t 3.48), LU (t 2.68); Kronos t 0.98 FAIL. The one 2005-2020 re-check

@@ -34,7 +34,7 @@ function run(days, costs = true) {
       if (!c || !p) { skipped += 1; continue; }
       const a = leg(c, d.settle, stop, costs), b = leg(p, d.settle, stop, costs); if (!a || !b) { skipped += 1; continue; }
       out[k].push({ date: d.date, pct: ((a.pnl + b.pnl) / d.open) * 100, points: a.pnl + b.pnl, stops: (a.stopped ? 1 : 0) + (b.stopped ? 1 : 0),
-        call: c[1], put: p[1], credit: c[3] + p[3] });
+        call: c[1], put: p[1], credit: c[3] + p[3], callPoints: a.pnl, putPoints: b.pnl });   // each leg's result: display only
     }
   }
   return { out, skipped };

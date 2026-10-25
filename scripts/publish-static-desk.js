@@ -1434,11 +1434,12 @@ function expiryLiveLine(el) {
   const f2 = (v) => (Number.isFinite(v) ? mn(Number(v).toFixed(2)) : "&mdash;");
   const time = (String(el.at || "").match(/ (\d{2}:\d{2})/) || [])[1] || "";
   const res = el.points === null ? "" : `<b class="${el.points > 0 ? "up" : el.points < 0 ? "down" : ""}">${el.points > 0 ? "+" : ""}${mn(esc(el.points.toFixed(1)))} points${el.rupees !== null ? ` (${el.rupees >= 0 ? "+" : "&minus;"}${money(Math.abs(el.rupees))} a lot)` : ""}</b> `;
-  const legs = el.legs.map((l) => `${esc(l.strike)} ${esc(l.type)} ${!(l.open > 0) ? "not traded yet" : `sold ${f2(l.open)}, ${l.stopped ? `<b class="down">stopped at ${f2(l.stop)}</b>` : `stop ${f2(l.stop)}, last ${f2(l.last)}`}`}`).join("; ");
+  const lp = (l) => (Number.isFinite(l.points) ? ` <b class="${l.points > 0 ? "up" : l.points < 0 ? "down" : ""}">${l.points > 0 ? "+" : ""}${mn(l.points.toFixed(1))}</b>` : "");
+  const legs = el.legs.map((l) => `${esc(l.strike)} ${esc(l.type)}${lp(l)}: ${!(l.open > 0) ? "not traded yet" : `sold ${f2(l.open)}, ${l.stopped ? `<b class="down">stopped at ${f2(l.stop)}</b>` : `stop ${f2(l.stop)}, last ${f2(l.last)}`}`}`).join("; ");
   return `<div style="margin-top:6px">${res}today on paper${time ? `, ${esc(time)}` : ""}: ${legs}. NIFTY opened ${esc(Number(el.niftyOpen).toLocaleString("en-IN"))}. Before charges.</div>`;
 }
 
-function expirySellingBox(es, el = null) {
+function expirySellingBox(es, el = null, niftyClose = null) {
   if (!es || !es.members || !es.members[es.primary]) return "";
   const mn = (v) => String(v).replace(/^-/, "&minus;");
   const p = es.members[es.primary], s = p.summary || {}, lot = es.lot;
@@ -1446,8 +1447,9 @@ function expirySellingBox(es, el = null) {
   const day = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
   const rs = (pts) => (lot > 0 ? ` (${pts >= 0 ? "+" : "&minus;"}${money(Math.abs(Math.round(pts * lot)))} a lot)` : "");
   const pts = (v) => `${v > 0 ? "+" : ""}${mn(esc(v))}`;
+  const worst = niftyClose > 0 ? Math.round(0.0319 * niftyClose) : null;   // the study's worst expiry, -3.19% of NIFTY, at today's level
   const rows = (p.expiries || []).map((t) => `<tr><td><b>${esc(day(t.date))}</b></td><td class="num">${esc(t.call)} CE / ${esc(t.put)} PE</td><td class="num">${esc(t.credit)}</td>
-    <td class="num ${t.points > 0 ? "up" : t.points < 0 ? "down" : ""}">${pts(t.points)}${rs(t.points)}${t.stops ? `<div class="sub">${esc(t.stops)} leg${t.stops === 1 ? "" : "s"} stopped at 2x</div>` : ""}</td></tr>`).join("");
+    <td class="num ${t.points > 0 ? "up" : t.points < 0 ? "down" : ""}">${pts(t.points)}${rs(t.points)}${Number.isFinite(t.callPoints) && Number.isFinite(t.putPoints) ? `<div class="sub">CE ${pts(+t.callPoints.toFixed(1))} / PE ${pts(+t.putPoints.toFixed(1))}</div>` : ""}${t.stops ? `<div class="sub">${esc(t.stops)} leg${t.stops === 1 ? "" : "s"} stopped at 2x</div>` : ""}</td></tr>`).join("");
   const others = ["X1", "X3", "X4"].filter((k) => es.members[k]).map((k) => { const x = es.members[k].summary || {};
     return `<div class="sub">${esc(k)} ${esc(es.members[k].name)}: ${x.expiries ? `${esc(x.expiries)} expiries, ${pts(x.meanPoints)} points an expiry, ${esc(x.won)}% won` : "no expiry yet"}</div>`; }).join("");
   return `<div class="note" style="margin-top:16px;border-left-color:var(--amber)">
@@ -1456,7 +1458,11 @@ function expirySellingBox(es, el = null) {
       ${s.expiries ? `${esc(s.expiries)} expiries, ${pts(s.meanPoints)} points an expiry${rs(s.meanPoints)}, ${esc(s.won)}% won, worst ${mn(esc(s.worstPoints))} points${s.t === null || s.t === undefined ? "" : `, t ${mn(esc(s.t))}`}`
         : `first expiry ${esc(day(es.nextExpiry || es.start))}`}.</div>
     ${expiryLiveLine(el)}
-    <div class="sub warn">Worst expiry in the test: <span class="amt">&minus;3.19%</span> of NIFTY &mdash; about <span class="amt">&minus;728 points</span>, <span class="amt">&minus;&#8377;47,000</span> a lot of 65 at NIFTY 22,800. Selling needs margin.</div>
+    <div class="sub warn">Worst expiry in the test: <span class="amt">&minus;3.19%</span> of NIFTY${worst ? ` &mdash; about <span class="amt">&minus;${esc(worst.toLocaleString("en-IN"))} points</span>${lot > 0 ? `, <span class="amt">&minus;${money(Math.round((worst * lot) / 1000) * 1000)}</span> a lot of ${esc(lot)}` : ""} at NIFTY ${esc(Number(niftyClose).toLocaleString("en-IN"))}` : ""}. Selling needs margin: about &#8377;2.6 lakh a lot on expiry day (Zerodha, 25 Oct).</div>
+    <div class="sub">Call side <b>+15.0</b>, put side <b>+2.6</b> points an expiry in the test: no proven difference (t &minus;1.48). One side alone is a bet on NIFTY&rsquo;s direction.</div>
+    <div class="sub lec">Call against put (studies/expiry-legs-2026-10-25, rules fixed before the split was computed): a sold call loses when NIFTY rises, a sold put when it falls.
+      On the 157 expiries NIFTY rose, the call side lost 27.3 points and the put side made 47.6; on the 194 it fell, the call side made 49.3 and the put side lost 33.9. Together they made money both ways (+20.3, +15.4).
+      The put side&rsquo;s stop was hit more often (42% of expiries against 31%), and it had the worst day (&minus;287 points, 3 Feb 2026).</div>
     <div class="sub lec">The study (2020&ndash;2026, NSE&rsquo;s own files, after charges): +17.6 points an expiry for ${esc(es.primary)}, t 4.43, positive in every period; its worst expiry lost 3.19% of NIFTY.
       Counted from ${esc(es.start)}; a verdict after ${esc(es.need)} expiries (CONFIRMED needs mean above 0 and t &ge; 1.68). Rules fixed in ${esc(es.preregistration)}. Data through ${esc(es.dataThrough || "&mdash;")}.
       Selling options needs margin and can lose far more than the premium; this is information, never a row to trade.</div>
@@ -2292,7 +2298,7 @@ ${footAlarm}
     ${forwardV2Box(d.forwardV2)}
     ${forwardV3Box(d.forwardV3)}
     ${forwardV4Box(d.forwardV4)}
-    ${expirySellingBox(d.expirySelling, d.expiryLive)}
+    ${expirySellingBox(d.expirySelling, d.expiryLive, d.direction?.close)}
     ${gmTournamentBox(d.gmTournament)}
     ${trackPane}
   </section>

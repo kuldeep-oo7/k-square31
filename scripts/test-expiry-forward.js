@@ -78,9 +78,15 @@ const nt = expiryLive({ today: "2026-10-27", niftyOpen: 22612.4, quotes: { ...qu
 check("a leg with no open yet keeps its strike and has no result", nt.legs[0].strike === 22600 && nt.legs[0].open === null && nt.points === null && nt.credit === null);
 check("nothing from another day or with no NIFTY open", expiryLive({ today: "2026-10-28", niftyOpen: 22612.4, quotes, lot: 65, feedDate }) === null && expiryLive({ today: "2026-10-27", niftyOpen: null, quotes, lot: 65, feedDate }) === null);
 const line = expiryLiveLine(el);
-check("the line: result first, both legs with stop and last, NIFTY's open, before charges", /^<div[^>]*><b class="up">\+29\.3 points \(\+₹1,905 a lot\)<\/b> today on paper, 10:13: 22600 CE sold 118\.50, stop 237\.00, last 64\.30; 22600 PE sold 95\.20, stop 190\.40, last 120\.10\. NIFTY opened 22,612\.4\. Before charges\.<\/div>$/.test(line), line);
+check("the line: result first, each leg's own result, stop and last, NIFTY's open, before charges", /^<div[^>]*><b class="up">\+29\.3 points \(\+₹1,905 a lot\)<\/b> today on paper, 10:13: 22600 CE <b class="up">\+54\.2<\/b>: sold 118\.50, stop 237\.00, last 64\.30; 22600 PE <b class="down">&minus;24\.9<\/b>: sold 95\.20, stop 190\.40, last 120\.10\. NIFTY opened 22,612\.4\. Before charges\.<\/div>$/.test(line), line);
 const sl = expiryLiveLine(st);
-check("a stopped leg says so, a loss carries a real minus", /<b class="down">&minus;41\.0 points \(&minus;₹2,665 a lot\)<\/b>/.test(sl) && /22600 PE sold 95\.20, <b class="down">stopped at 190\.40<\/b>/.test(sl), sl);
+check("a stopped leg says so, a loss carries a real minus", /<b class="down">&minus;41\.0 points \(&minus;₹2,665 a lot\)<\/b>/.test(sl) && /22600 PE <b class="down">&minus;95\.2<\/b>: sold 95\.20, <b class="down">stopped at 190\.40<\/b>/.test(sl), sl);
+check("a leg with no open says so, with no result", /22600 CE: not traded yet; 22600 PE <b class="down">&minus;24\.9<\/b>: sold/.test(expiryLiveLine(nt)), expiryLiveLine(nt));
+const withClose = expirySellingBox(built, null, 22600);
+check("the worst expiry is priced at NIFTY's last close and NSE's lot: -721 points, -Rs 47,000 a lot of 65", /about <span class="amt">&minus;721 points<\/span>, <span class="amt">&minus;₹47,000<\/span> a lot of 65 at NIFTY 22,600/.test(withClose), withClose.match(/Worst expiry[^<]*/)?.[0]);
+check("no NIFTY level, no made-up rupees", /of NIFTY\. Selling needs margin/.test(html) && !/at NIFTY 22,800/.test(html));
+check("the call side and the put side, with the verdict and the warning, reasons in the notes", /Call side <b>\+15\.0<\/b>, put side <b>\+2\.6<\/b> points an expiry in the test: no proven difference \(t &minus;1\.48\)\. One side alone is a bet on NIFTY/.test(html) && /class="sub lec">Call against put/.test(html));
+check("each expiry's row shows its call and put results", /CE [+&][^<]*\/ PE /.test(html), html.match(/<tr><td><b>[^]*?<\/tr>/)?.[0]);
 check("no live trade, no line; the box carries it when there is one", expiryLiveLine(null) === "" && expirySellingBox(built, el).includes("today on paper") && !expirySellingBox(built).includes("today on paper"));
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed) process.exit(1);

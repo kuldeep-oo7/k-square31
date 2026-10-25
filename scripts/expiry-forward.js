@@ -23,7 +23,8 @@ function build({ nodDir = NOD, idxDir = IDX } = {}) {
     if (j.date < ef.START) continue; const d = ef.expiryDay(j, niftyOpen(j.date)); if (d) days.push(d); }
   const { out, skipped } = ef.run(days, true);
   const members = Object.fromEntries(Object.keys(ef.MEMBERS).map((k) => [k, { name: ef.MEMBERS[k], summary: ef.summary(out[k]),
-    expiries: out[k].slice(-52).reverse().map((t) => ({ date: t.date, call: t.call, put: t.put, credit: +t.credit.toFixed(2), points: +t.points.toFixed(2), pct: +t.pct.toFixed(3), stops: t.stops })) }]));
+    expiries: out[k].slice(-52).reverse().map((t) => ({ date: t.date, call: t.call, put: t.put, credit: +t.credit.toFixed(2), points: +t.points.toFixed(2), pct: +t.pct.toFixed(3), stops: t.stops,
+      callPoints: +t.callPoints.toFixed(2), putPoints: +t.putPoints.toFixed(2) })) }]));
   let sha = null; try { sha = crypto.createHash("sha256").update(fs.readFileSync(path.join(ROOT, PREREG), "utf8").replace(/\r\n/g, "\n")).digest("hex"); } catch { /* registration missing: shown as unknown */ }
   return { preregistration: PREREG, preregSha256: sha, start: ef.START, primary: ef.PRIMARY, need: ef.NEED, dataThrough: last, nextExpiry: nextExpiry && nextExpiry >= ef.START ? nextExpiry : ef.START,
     lot, expirySessions: days.length, skipped, builtAt: new Date().toISOString(), members };
