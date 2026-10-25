@@ -1,0 +1,28 @@
+AMENDMENT A1 TO THE EXPIRY-SELLING FORWARD TEST -- RECORD WHAT A REAL SALE COULD HAVE GOT (information only).
+Written Sunday 25 Oct 2026, about 12:30 IST, BEFORE the first expiry the test counts (Tue 27 Oct 2026, 09:15 IST). The
+commit time is the proof.
+
+WHY
+- The registered test sells each leg at its official OPEN (NSE's first price of the day) and buys a leg back at exactly
+  2x when the day's high reaches 2x. A trader is sure of neither:
+  - the study's own post-hoc audit found the ATM open prints noisy against put-call parity (residual 10th..90th
+    percentile -40.4 .. +30.9 points), against an edge of about 18-21 points an expiry;
+  - on Zerodha a stop on an index option must be a stop-limit (SL) order -- SL-M is not allowed on index options
+    (Zerodha support, checked 25 Oct 2026) -- and a stop-limit stays unfilled if the price jumps past its limit.
+- The desk's in-session builds never fetched the EXPIRING NIFTY options: on 13 Oct 2026, an expiry, the order-flow
+  recording (private release orderflow-rec) held NIFTY options of 27 Oct, none of 13 Oct. Nothing achievable was recorded.
+
+CHANGE (recording and display only)
+- On every NIFTY expiry session from 2026-10-27, each in-session desk build (about every 20 minutes from 09:16 IST;
+  .github/workflows/desk.yml) asks Angel One for FULL quotes of the expiring NIFTY options nearest NIFTY's open (NSE
+  allIndices "open"; at most 48 contracts, calls and puts), which include the X2 and X4 legs. The order-flow recorder
+  keeps their best five bids and asks, as it does for every quote the build fetches.
+- TRACK shows the X2 paper trade during that session, on one line: the strikes, each leg's open, its 2x stop, its last
+  price, and the running result in points and in rupees a lot (NSE's lot) before charges. Information only.
+- The day's audit reports, beside the registered result and never changing it: for each X2 and X4 leg, the first recorded
+  best bid after 09:15 IST, with its time, against the leg's official open (an achievable sale); and, when a stop is
+  reached, the first recorded best ask at or after the build that saw the high at 2x (an achievable buy-back).
+
+UNCHANGED
+The members, strikes, prices, costs, the 52-expiry verdict and its t >= 1.68 are exactly as registered. Nothing recorded
+here can skip, add or change a trade, or move the verdict.
