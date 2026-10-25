@@ -26,5 +26,12 @@ metadata:
   after today. Test scripts/test-nifty-option-days.js. The forward test's nse-nod was not affected.
 - NSE expiries move on holidays: Angel master listed NIFTY expiries 19 Oct (Mon), 9 Nov (Mon), 23 Nov (Mon) 2026.
 
+- NSE allIndices answered on 22 of 22 Friday (23 Oct) in-session builds that ran the step: no fallback centre needed.
+- NOT YET SEEN ON REAL DATA (25 Oct): Monday 26 Oct, check of-2026-10-26.jsonl.gz (release orderflow-rec) option rows carry
+  open/high/low at positions 10-12 (non-null), the step's log names "next in the Angel master: 2026-10-27", and Angel's
+  option `open` equals NSE's official open in Monday's F&O bhavcopy for a few contracts. Tuesday: read the 09:35 cloud
+  page-check's track-paper photos for the live line; evening: node scripts/expiry-fills-report.js 2026-10-27
+  <of-2026-10-27.jsonl.gz> <nse-nod> <nse-idx>.
+
 **How to apply:** on an expiry evening, report the achievable sale (first recorded best bid after 09:15 per X2/X4 leg vs
 its official open) from orderflow-rec, beside the registered result. See [[k2-expiry-selling-2026-10-21]].
