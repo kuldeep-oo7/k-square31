@@ -1,0 +1,80 @@
+ORDER BOOK (DEMAND AGAINST SUPPLY) ON NSE STOCK FUTURES -- PRE-REGISTRATION
+Written Sun 25 Oct 2026, about 22:45 IST, before any signal or return has been computed from the recordings. Only the
+files' structure was read: lines a day, rows a line, field shapes, quantity units (shares, whole lots), and the empty or
+crossed books on one snapshot (none of 206). The sha256 of this file (LF line ends) is in PREREGISTRATION.sha256; both
+are committed and pushed before the run.
+
+1. WHY
+The owner (25 Oct 2026): "it's all about demand and supply ... the order flow and all of the selling price and buying
+price ... make a strategy". Published work finds that order-book imbalance explains, or predicts, the NEXT price tick:
+seconds (Cont, Kukanov & Stoikov 2014, J. Financial Econometrics 12(1); Gould & Bonart 2016, Mathematics and Financial
+Economics). The owner trades by hand. This study asks whether the book's tilt lasts long enough for a person to use:
+15 to 30 minutes, or to the close.
+
+2. DATA
+- The desk's own recordings (api/_lib/orderflow-recorder.js), private release orderflow-rec of kuldeep-oo7/k2-data: one
+  line per in-session desk build (about every 20 minutes, 09:15-15:15 IST), each with every stock future's best 5 bids
+  and asks (price, quantity in units, orders), total buy and total sell quantity, from Angel One. From 5 Oct 2026.
+- Contract: for each symbol and snapshot, the near month = the smallest recorded expiry on or after the session date.
+  A session on which a near-month stock future expires (a stock-futures expiry day) is skipped.
+- A book is VALID when its best bid and best ask are both above 0, both carry quantity, and ask > bid. A snapshot is
+  USED only if at least 100 symbols have valid books. Snapshot time = the line's IST build time.
+
+3. SIGNALS (at each used snapshot, valid books only)
+ S1 TOTAL   (total buy quantity - total sell quantity) / their sum: the "buyers against sellers" number brokers show.
+ S2 DEPTH5  (sum of the bid quantities - sum of the ask quantities) / their sum, over the recorded levels (up to 5).
+ S3 TOP     (best bid quantity - best ask quantity) / their sum.
+
+4. HORIZONS
+ H1 NEXT   exit at the first snapshot of the same session 15 to 30 minutes later; none in that window -> no H1 trade
+           from that snapshot.
+ H2 CLOSE  exit at the session's last snapshot, if it is at or after 15:00 IST (else no H2 trades that session);
+           entries at every used snapshot before it.
+
+5. TRADES AND COSTS
+- At each entry snapshot the symbols with a valid book and a signal are ranked; the top tenth (floor(n/10); ties by
+  symbol name) is bought and the bottom tenth sold short, so the market's direction cancels.
+- Each trade is Rs 1,00,000 of the future (in units; fractions allowed). A buy walks the recorded ask levels and a sale
+  the bid levels for that quantity. If 5 levels cannot fill the entry, the trade is not made; if the exit book is not
+  valid or cannot fill it, the trade is dropped and counted.
+- Charges: 0.1042% of the trade per round trip (api/_lib/shadow-broker.js calculateNseFuturesCharges at Rs 1 lakh, the
+  23 Oct 2026 schedule: brokerage Rs 20 a side, STT 0.05% on the sale, exchange, stamp duty, GST).
+- Net return of a trade = its recorded fills less the charges, over the entry mid. Gross (information only) = mid to
+  mid with no charges. The last traded price is never used.
+
+6. MEMBERS, STATISTICS AND VERDICTS
+- Six members: S1H1, S2H1, S3H1, S1H2, S2H2, S3H2.
+- A member's value for a session = the mean net return of all its trades that session, each trade weighted equally.
+  t = mean of the session values / (sd / sqrt(sessions)). Overlapping holds within a session sit inside one value.
+- THIS RUN (the 15 recorded sessions, 5-23 Oct 2026; --through 2026-10-23) IS AN INTERIM LOOK. It cannot say PASS.
+  Its words:
+    PROMISING            net mean > 0 and net t >= 2
+    TOO SMALL TO TRADE   gross mean > 0 and gross t >= 2, but not PROMISING (the book tilts the price by less than
+                         it costs to trade)
+    FAIL                 otherwise
+- THE VERDICT: one re-run with this code unchanged on the first 60 recorded sessions from 5 Oct 2026 (--first 60;
+  expected around 31 Dec 2026). PASS = net mean > 0, net t >= 3, Holm across the six (one-sided p from t), and the full
+  Deflated Sharpe ratio (with skew and kurtosis; 6 trials) >= 0.95 on the session values. Otherwise PROMISING (net mean
+  > 0 and t >= 2) or FAIL. No other look is taken in between. A PASS would go to TRACK as a paper rule first.
+
+7. REPORTED, NOT JUDGED
+- Each member: sessions, trades, trades dropped at exit, win rate, gross and net mean a trade, and the cost a trade
+  (gross minus net: the spread crossed on the round trip plus charges), side by side: the break-even.
+- Rank information coefficient (Spearman: the signal against the gross forward move, every valid symbol) per snapshot:
+  its mean and its session-clustered t.
+- A null: each snapshot's signals shuffled across symbols (seed 1); its net and gross t.
+
+8. CHECKS (synthetic, before any real data; the run is VOID if any fails)
+ 8.1 Planted: synthetic books where the next mid moves by 0.05% x the top-of-book imbalance plus noise: S3H1 gross t >= 3.
+ 8.2 Null (no relation; seeds 1-3): at most 1 of the 18 member results has gross |t| >= 3.
+ 8.3 Labels: swapping the bid and ask quantities (and the totals) flips the sign of S3H1's gross mean.
+ 8.4 Costs: when prices never move, every member's net mean is below 0 and its gross mean is 0.
+
+9. LIMITS (written before the run)
+ L1 15 sessions, all in one market spell (NIFTY in a downtrend since 19 Oct 2026).
+ L2 Snapshots are about 20 minutes apart; nothing between them is seen. Faster signals would need a tick recorder, and
+    they are for machines at the exchange, not for hands.
+ L3 Only 5 levels are seen; the totals include orders far from the price; any order can be cancelled, or placed to
+    mislead, at any moment.
+ L4 Rs 1 lakh in units; an NSE lot is usually larger (GM Global trades in units).
+ L5 The fills assume an order meets the recorded book at that moment; a hand order lands later, against a moved book.

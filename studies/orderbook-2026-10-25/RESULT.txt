@@ -1,0 +1,11 @@
+ORDER BOOK ON NSE STOCK FUTURES, registration sha256 877af02e9dae34dc3fafeb5f8507a05dd8e12b793b0dc6a6a3b079352162f6fd (verified), run 2026-10-25T17:07:53.271Z
+CHECKS (synthetic, section 8):
+ 8.1 planted (next mid moves 0.05% x top-of-book imbalance): S3H1 gross t 9.75 (needs >= 3); all gross t: S1H1 2.07, S2H1 3.73, S3H1 9.75, S1H2 0.99, S2H2 1.96, S3H2 2.62
+ 8.2 null seed 1: gross t S1H1 -0.32, S2H1 -0.16, S3H1 1.02, S1H2 -0.02, S2H2 0.35, S3H2 -0.39
+ 8.2 null seed 2: gross t S1H1 1.65, S2H1 0.68, S3H1 0.89, S1H2 0.35, S2H2 2.03, S3H2 0.92
+ 8.2 null seed 3: gross t S1H1 0.60, S2H1 1.68, S3H1 -0.17, S1H2 0.42, S2H2 2.39, S3H2 0.41
+     null results with gross |t| >= 3: 0 of 18 (at most 1 allowed)
+ 8.3 bid and ask quantities swapped: S3H1 gross mean 0.0346% -> -0.0346% (sign must flip)
+ 8.4 prices never move: net means S1H1 -0.154%, S2H1 -0.154%, S3H1 -0.154%, S1H2 -0.154%, S2H2 -0.154%, S3H2 -0.154% (all must be below 0; gross 0)
+ CHECKS: PASSED
+
