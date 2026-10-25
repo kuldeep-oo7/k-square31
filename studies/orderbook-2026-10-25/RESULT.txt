@@ -9,3 +9,43 @@ CHECKS (synthetic, section 8):
  8.4 prices never move: net means S1H1 -0.154%, S2H1 -0.154%, S3H1 -0.154%, S1H2 -0.154%, S2H2 -0.154%, S3H2 -0.154% (all must be below 0; gross 0)
  CHECKS: PASSED
 
+
+THE INTERIM LOOK (15 sessions):
+ORDER BOOK ON NSE STOCK FUTURES, registration sha256 877af02e9dae34dc3fafeb5f8507a05dd8e12b793b0dc6a6a3b079352162f6fd (verified), run 2026-10-25T17:08:25.102Z
+CHECKS (synthetic, section 8):
+ 8.1 planted (next mid moves 0.05% x top-of-book imbalance): S3H1 gross t 9.75 (needs >= 3); all gross t: S1H1 2.07, S2H1 3.73, S3H1 9.75, S1H2 0.99, S2H2 1.96, S3H2 2.62
+ 8.2 null seed 1: gross t S1H1 -0.32, S2H1 -0.16, S3H1 1.02, S1H2 -0.02, S2H2 0.35, S3H2 -0.39
+ 8.2 null seed 2: gross t S1H1 1.65, S2H1 0.68, S3H1 0.89, S1H2 0.35, S2H2 2.03, S3H2 0.92
+ 8.2 null seed 3: gross t S1H1 0.60, S2H1 1.68, S3H1 -0.17, S1H2 0.42, S2H2 2.39, S3H2 0.41
+     null results with gross |t| >= 3: 0 of 18 (at most 1 allowed)
+ 8.3 bid and ask quantities swapped: S3H1 gross mean 0.0346% -> -0.0346% (sign must flip)
+ 8.4 prices never move: net means S1H1 -0.154%, S2H1 -0.154%, S3H1 -0.154%, S1H2 -0.154%, S2H2 -0.154%, S3H2 -0.154% (all must be below 0; gross 0)
+ CHECKS: PASSED
+
+INTERIM LOOK (cannot say PASS): 15 recorded sessions 2026-10-05 .. 2026-10-23; 0 skipped (expiry day); 292 snapshots used. Per trade of Rs 1 lakh; net = recorded fills + 0.104% charges.
+S1H1 total buy vs sell quantity, next 15-30 min: 15 sessions, 11077 trades (3 dropped at exit), net -0.202% a trade t -20.98, won 24% | gross -0.004% t -0.85 | cost +0.198% a trade | rank IC -0.011 (t -1.35) -> FAIL
+S2H1 five-level depth, next 15-30 min: 15 sessions, 11079 trades (1 dropped at exit), net -0.181% a trade t -32.61, won 25% | gross +0.008% t 2.59 | cost +0.190% a trade | rank IC 0.016 (t 3.91) -> TOO SMALL TO TRADE
+S3H1 top of the book, next 15-30 min: 15 sessions, 11078 trades (2 dropped at exit), net -0.185% a trade t -31.51, won 24% | gross +0.005% t 1.28 | cost +0.190% a trade | rank IC 0.017 (t 4.39) -> FAIL
+S1H2 total buy vs sell quantity, to the close: 15 sessions, 11080 trades (0 dropped at exit), net -0.195% a trade t -4.99, won 36% | gross +0.011% t 0.27 | cost +0.206% a trade | rank IC -0.021 (t -0.86) -> FAIL
+S2H2 five-level depth, to the close: 15 sessions, 11080 trades (0 dropped at exit), net -0.184% a trade t -16.62, won 38% | gross +0.014% t 1.42 | cost +0.197% a trade | rank IC 0.034 (t 5.10) -> FAIL
+S3H2 top of the book, to the close: 15 sessions, 11080 trades (0 dropped at exit), net -0.163% a trade t -12.68, won 37% | gross +0.033% t 2.94 | cost +0.197% a trade | rank IC 0.034 (t 4.88) -> TOO SMALL TO TRADE
+
+NULL (each snapshot's signals shuffled across symbols, seed 1; reported, not judged):
+ S1H1: net -0.196% t -22.70 | gross +0.003% t 0.82
+ S2H1: net -0.198% t -22.15 | gross +0.000% t 0.10
+ S3H1: net -0.196% t -22.65 | gross +0.002% t 1.16
+ S1H2: net -0.191% t -15.16 | gross +0.015% t 1.65
+ S2H2: net -0.194% t -21.30 | gross +0.011% t 2.86
+ S3H2: net -0.199% t -17.43 | gross +0.008% t 1.09
+
+READING (written after the interim run; it cannot change the words above; the verdict is the 60-session re-run)
+- The "total buy against total sell quantity" number (S1) predicted nothing: gross -0.004% a trade over the next 15-30
+  minutes (t -0.85) and +0.011% to the close (t 0.27); its rank IC was slightly negative both times.
+- The visible book near the price does lean the right way: rank IC +0.016 to +0.034 (t 3.9 to 5.1) for the five levels
+  and the top level. That matches the research: the book carries information.
+- But it is small. The best gross move was +0.033% a trade (top of the book, to the close); crossing the spread and
+  paying charges cost 0.19-0.21% a trade, about six times more. Every member lost after costs (-0.16% to -0.20% a
+  trade) and won only 24-38% of its trades.
+- The shuffled null reached gross t 2.86 once (S2H2): on 15 sessions a gross t near 3 is weak evidence by itself.
+- What this means for a hand trader: the book's tilt is real but is worth less than the spread. The firms that profit
+  from it earn the spread (resting orders, machines at the exchange) instead of paying it.
