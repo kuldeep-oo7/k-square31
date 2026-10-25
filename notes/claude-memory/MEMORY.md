@@ -45,3 +45,4 @@
 - [Futures vs share open 23 Oct](k2-futures-vs-share-open-2026-10-23.md) — KEY: desk tests price at the share open; futures open->close beats it by ~0.085%/day; SB on futures +0.09%/trade vs +0.22% on shares (2021-26)
 - [Labs 23 Oct](k2-labs-2026-10-23.md) — 9 batches 22-23 Oct, 0 usable PASS; AI day-trader PASSED but decayed to ~0 since Dec 2025; plain SB not significant on futures; turn-of-month, washout, variance premium only PROMISING
 - [Audit 23 Oct](k2-audit-2026-10-23.md) — SB 8/9 on futures +Rs 8,665; NSE F&O file late at 19:30 emptied Monday list (fixed: wait loop + not-ready guard); cloud checks fired; trees + strong SB on TRACK
+- [Expiry live + fills 25 Oct](k2-expiry-live-2026-10-25.md) — X2 paper trade live on TRACK on expiry days, achievable fills recorded (A1 18c0101); Zerodha: no SL-M on index options, +2% ELM expiry day, straddle ~Rs 2.6 lakh; option-archive holiday-marker bug fixed

@@ -227,6 +227,11 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
   - Expiry-day NIFTY option selling X1-X4 (from 27 Oct 2026; studies/expiry-selling-forward-2026-10-21; api/_lib/expiry-forward.js
     is the study's code, scripts/expiry-forward-replay.js reproduces its 351 expiries exactly). Reads nse-nod/ (NSE F&O bhavcopy
     NIFTY rows, from 22 Oct) and nse-idx/ (NIFTY's open). Information only, never a row on CALLS/PUTS.
+    Amendment A1 (18c0101, 25 Oct, information only): on expiry sessions each desk build fetches the EXPIRING NIFTY options
+    nearest NIFTY's open (NSE allIndices "open"; api/_lib/expiry-live.js), TRACK shows X2 live (expiryLiveLine), and the
+    order-flow recorder keeps their books, so the day's audit can compare a real sale with the official open. Zerodha:
+    no SL-M on index options (use SL); expiry day adds 2% x NIFTY x lot of margin per short lot; one 65-unit ATM straddle
+    needed Rs 2.03 lakh on Zerodha's SPAN calculator on 25 Oct, about Rs 2.6 lakh on expiry day.
   - Trees watch (from 28 Oct 2026; studies/trees-forward-2026-10-22): the combined model C1 trees run live by trees.yml after the paper
     job (code 04a0b39, libs pinned; replay MATCH 22 Oct: 30,333 predictions identical); symbols only in docs/paper-rules/trees.json.
   - Eleven rules in all. Their daily NSE files live in release `data-paper-inputs`. GitHub ran the evening paper and Kronos jobs

@@ -251,6 +251,25 @@ async function step(label, fn) {
     return `${r.count} of ${requests.length} futures priced`;
   });
 
+  // THE EXPIRY-DAY PAPER TRADE, LIVE (studies/expiry-selling-forward-2026-10-21, amendment A1): on a NIFTY expiry session the
+  // expiring options nearest NIFTY's open, so TRACK can show X2 as it stands and the order-flow recorder keeps the books a
+  // real sale would have met. Information only; never fatal.
+  await step("expiry-day NIFTY options for the paper test", async () => {
+    const live = require("../api/_lib/live-quotes");
+    if (!live.marketPhase().open) return "market not open";
+    const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+    const opts = Object.keys(require("../api/_lib/broker-feed").loadInstruments("angelone")?.options || {});
+    const expiries = [...new Set(opts.filter((k) => k.startsWith("NIFTY|")).map((k) => k.split("|")[1]))];
+    if (!expiries.includes(today)) return "not a NIFTY expiry";
+    const ctx = require("../api/_lib/nse-market-context").loadMarketContext();
+    const niftyOpen = ctx && require("./paper-ledger").feedDate(ctx.nseTimestamp) === today ? ctx.niftyOpen : null;
+    const req = require("../api/_lib/expiry-live").expiryRequest({ today, expiries, niftyOpen });
+    if (!req) return "expiry today, but NIFTY's open from NSE is not known on this build";
+    const r = await live.refreshQuotes([req]);
+    if (!r.ok) throw new Error(`not priced: ${(r.failures || []).join("; ") || r.reason}`);
+    return `NIFTY ${today} options around the open ${niftyOpen}: priced`;
+  });
+
   // THE MARKET'S DIRECTION, AND THE NAMES WHOSE BOOKS THE PAGE WILL NEED. The
   // same function the page uses (market-direction.js optionsView), on the same
   // inputs: in a downtrend the page shows puts on the indices and the falling

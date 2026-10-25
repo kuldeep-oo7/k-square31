@@ -40,19 +40,28 @@ function parse(text, iso) {
   return { date: iso, underlying, lot, rows };
 }
 
+// A HOLIDAY MARKER (<day>.none) IS WRITTEN ONLY FOR A 404 MORE THAN 10 DAYS IN THE PAST (25 Oct 2026). It used to be measured
+// from <to>, and nifty-options.yml passes <year>-12-31: every session after the run (21 Oct .. 18 Dec 2026) was marked a
+// holiday and would never have been fetched. A marker for a day within the last 10 days, or ahead, is not trusted: removed
+// and fetched again. today = the IST date.
+const istToday = (now = Date.now()) => new Date(now + 330 * 60_000).toISOString().slice(0, 10);
+const holidayMarker = (d, today) => Date.parse(today) - Date.parse(d) > 10 * 864e5;
+
 async function main(out, from, to) {
-  fs.mkdirSync(out, { recursive: true }); let got = 0, none = 0, err = 0, had = 0;
-  for (let d = from; d <= to; d = new Date(Date.parse(d) + 864e5).toISOString().slice(0, 10)) {
+  fs.mkdirSync(out, { recursive: true }); let got = 0, none = 0, err = 0, had = 0, untrusted = 0; const today = istToday();
+  for (const x of fs.readdirSync(out)) { const m = x.match(/^(\d{4}-\d{2}-\d{2})\.none$/); if (m && !holidayMarker(m[1], today)) { fs.unlinkSync(path.join(out, x)); untrusted += 1; } }
+  for (let d = from; d <= to && d <= today; d = new Date(Date.parse(d) + 864e5).toISOString().slice(0, 10)) {
     const wd = new Date(`${d}T00:00:00Z`).getUTCDay(); if (wd === 0 || wd === 6) continue;
-    const f = path.join(out, `${d}.json.gz`), fn = path.join(out, `${d}.none`); if (fs.existsSync(f) || fs.existsSync(fn)) { had += 1; continue; }
+    const f = path.join(out, `${d}.json.gz`), fn = path.join(out, `${d}.none`);
+    if (fs.existsSync(f) || fs.existsSync(fn)) { had += 1; continue; }
     let r = null; for (let i = 0; i < 3; i += 1) { try { r = await fetch(url(d), { headers: { "User-Agent": UA }, signal: AbortSignal.timeout(60_000) }); break; } catch { await sleep(2000 * (i + 1)); } }
     if (!r) { err += 1; continue; }
-    if (r.status === 404) { if (Date.parse(to) - Date.parse(d) > 10 * 864e5) fs.writeFileSync(fn, ""); none += 1; continue; }
+    if (r.status === 404) { if (holidayMarker(d, today)) fs.writeFileSync(fn, ""); none += 1; continue; }
     if (!r.ok) { err += 1; continue; }
     try { const p = parse(unzipFirst(Buffer.from(await r.arrayBuffer())).toString("utf8"), d); fs.writeFileSync(f, zlib.gzipSync(JSON.stringify(p))); got += 1; } catch { err += 1; }
     await sleep(300);
   }
-  console.log(`nifty option days ${from}..${to}: ${got} saved, ${none} not published (holidays), ${err} errors, ${had} already here`);
+  console.log(`nifty option days ${from}..${to}: ${got} saved, ${none} not published (holidays or not yet posted), ${err} errors, ${had} already here${untrusted ? `, ${untrusted} recent holiday markers re-checked` : ""}`);
 }
-if (require.main === module) { const [out, from, to] = process.argv.slice(2); main(out, from, to || new Date().toISOString().slice(0, 10)); }
-module.exports = { parse };
+if (require.main === module) { const [out, from, to] = process.argv.slice(2); main(out, from, to || istToday()); }
+module.exports = { parse, holidayMarker, istToday };

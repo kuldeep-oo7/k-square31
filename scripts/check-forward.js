@@ -11,7 +11,7 @@ const steps = [
   ["--check", "api/_lib/forward-v2.js"], ["scripts/test-forward-v2.js"],
   ["--check", "api/_lib/forward-v3.js"], ["scripts/test-forward-v3.js"],
   ["--check", "api/_lib/forward-v4.js"], ["scripts/test-forward-v4.js"],
-  ["--check", "api/_lib/expiry-forward.js"], ["scripts/test-expiry-forward.js"],
+  ["--check", "api/_lib/expiry-forward.js"], ["scripts/test-expiry-forward.js"], ["--check", "api/_lib/expiry-live.js"], ["--check", "scripts/expiry-fills-report.js"], ["scripts/test-nifty-option-days.js"],
   ["scripts/test-gm-tournament-box.js"],
   ["--check", "api/_lib/trees-forward.js"], ["scripts/test-trees-forward.js"],
   ["--check", "api/_lib/nse-index-history.js"], ["scripts/test-nse-index-history.js"],

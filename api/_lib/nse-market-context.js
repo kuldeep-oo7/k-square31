@@ -47,6 +47,9 @@ async function refreshMarketContext({ file = CACHE_FILE } = {}) {
     record = { ok: true, fetchedAt: new Date().toISOString(), nseTimestamp: body.timestamp || null,
       indiaVix: Number(vix.last), indiaVixChangePct: Number(vix.percentChange),
       nifty: Number(nifty?.last) || null, niftyChangePct: Number.isFinite(Number(nifty?.percentChange)) ? Number(nifty.percentChange) : null,
+      // NIFTY's official open (checked 25 Oct 2026: allIndices "open" 22742.2 = ind_close_all's open for 23 Oct). The
+      // expiry-day paper line on TRACK picks its strikes from it (studies/expiry-selling-forward-2026-10-21, amendment A1).
+      niftyOpen: Number(nifty?.open) > 0 ? Number(nifty.open) : null,
       vixSource: "NSE allIndices" };
     // THE OFFICIAL CLOSE ONCE THERE IS ONE (audit F27). After the close, allIndices keeps India VIX's
     // 15:30 value (29 Sep 2026: 13.32), but NSE's official close is different (13.41). NSE publishes it

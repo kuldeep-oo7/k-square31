@@ -57,6 +57,52 @@ const empty = expirySellingBox({ ...built, nextExpiry: "2026-10-27", members: Ob
 check("before the first expiry it names the date, nothing more", /first expiry Tue,? 27 Oct/.test(empty) && !/<table/.test(empty));
 check("it is labelled paper only, and the reasons sit in the notes", /paper only/.test(html) && /class="sub lec"/.test(html));
 fs.rmSync(tmp, { recursive: true, force: true });
+
+// THE EXPIRY-DAY PAPER TRADE, LIVE (api/_lib/expiry-live.js, amendment A1)
+const { expiryRequest, expiryLive } = require("../api/_lib/expiry-live");
+const { expiryLiveLine } = require("./publish-static-desk");
+const feedDate = require("./paper-ledger").feedDate;
+check("fetch on an expiry session only, centred on NIFTY's open", JSON.stringify(expiryRequest({ today: "2026-10-27", expiries: ["2026-10-27", "2026-11-03"], niftyOpen: 22612.4 })) === JSON.stringify({ symbol: "NIFTY", expiry: "2026-10-27", referencePrice: 22612.4 })
+  && expiryRequest({ today: "2026-10-26", expiries: ["2026-10-27"], niftyOpen: 22612.4 }) === null && expiryRequest({ today: "2026-10-27", expiries: ["2026-10-27"], niftyOpen: null }) === null);
+const qt = (strike, optionType, open, high, lastPrice, extra = {}) => ({ symbol: "NIFTY", expiry: "2026-10-27", strike, optionType, open, high, lastPrice, exchangeFeedTime: "27-Oct-2026 10:13:05", ...extra });
+const quotes = { a: qt(22600, "CE", 118.5, 140, 64.3), b: qt(22600, "PE", 95.2, 120, 120.1), c: qt(22650, "CE", 90, 100, 40), d: qt(22650, "PE", 120, 150, 140),
+  e: qt(22600, "CE", 1, 1, 1, { expiry: "2026-11-03" }), f: qt(22550, "PE", 70, 80, 90, { exchangeFeedTime: "23-Oct-2026 15:29:59" }) };
+const el = expiryLive({ today: "2026-10-27", niftyOpen: 22612.4, quotes, lot: 65, feedDate });
+check("X2 legs are the strikes nearest NIFTY's open, sold at their opens", el && el.legs[0].strike === 22600 && el.legs[0].type === "CE" && el.legs[1].strike === 22600 && el.legs[1].type === "PE" && el.credit === 213.7, JSON.stringify(el?.legs));
+check("held legs are marked at the last price: +29.3 points, +Rs 1,905 a lot", el.points === 29.3 && el.rupees === 1905 && el.at === "27-Oct-2026 10:13:05", `${el.points} ${el.rupees}`);
+const tie = expiryLive({ today: "2026-10-27", niftyOpen: 22625, quotes, lot: 65, feedDate });
+check("a tie takes the higher call and the lower put, as the study", tie.legs[0].strike === 22650 && tie.legs[1].strike === 22600, JSON.stringify(tie.legs.map((l) => l.strike)));
+const st = expiryLive({ today: "2026-10-27", niftyOpen: 22612.4, quotes: { ...quotes, b: qt(22600, "PE", 95.2, 190.4, 150) }, lot: 65, feedDate });
+check("a high at 2x stops the leg at 2x, whatever the last price", st.legs[1].stopped && st.legs[1].points === -95.2 && st.points === +(54.2 - 95.2).toFixed(2), JSON.stringify(st.legs[1]));
+const nt = expiryLive({ today: "2026-10-27", niftyOpen: 22612.4, quotes: { ...quotes, a: qt(22600, "CE", 0, 0, 0) }, lot: 65, feedDate });
+check("a leg with no open yet keeps its strike and has no result", nt.legs[0].strike === 22600 && nt.legs[0].open === null && nt.points === null && nt.credit === null);
+check("nothing from another day or with no NIFTY open", expiryLive({ today: "2026-10-28", niftyOpen: 22612.4, quotes, lot: 65, feedDate }) === null && expiryLive({ today: "2026-10-27", niftyOpen: null, quotes, lot: 65, feedDate }) === null);
+const line = expiryLiveLine(el);
+check("the line: result first, both legs with stop and last, NIFTY's open, before charges", /^<div[^>]*><b class="up">\+29\.3 points \(\+₹1,905 a lot\)<\/b> today on paper, 10:13: 22600 CE sold 118\.50, stop 237\.00, last 64\.30; 22600 PE sold 95\.20, stop 190\.40, last 120\.10\. NIFTY opened 22,612\.4\. Before charges\.<\/div>$/.test(line), line);
+const sl = expiryLiveLine(st);
+check("a stopped leg says so, a loss carries a real minus", /<b class="down">&minus;41\.0 points \(&minus;₹2,665 a lot\)<\/b>/.test(sl) && /22600 PE sold 95\.20, <b class="down">stopped at 190\.40<\/b>/.test(sl), sl);
+check("no live trade, no line; the box carries it when there is one", expiryLiveLine(null) === "" && expirySellingBox(built, el).includes("today on paper") && !expirySellingBox(built).includes("today on paper"));
 console.log(`\n${passed} passed, ${failed} failed`);
 if (failed) process.exit(1);
 console.log("expiry forward tests passed");
+
+// THE FILL AUDIT (scripts/expiry-fills-report.js, amendment A1)
+{
+  const { fills } = require("./expiry-fills-report");
+  const rows = [["2026-10-27", 22600, "CE", 118.5, 140, 50, 60, 22650, 0, 0], ["2026-10-27", 22600, "PE", 95.2, 200, 40, 0.05, 22650, 0, 0],
+    ["2026-10-27", 22850, "CE", 30, 40, 5, 0.05, 22650, 0, 0], ["2026-10-27", 22400, "PE", 25, 30, 2, 0.05, 22650, 0, 0]];
+  const day = ef.expiryDay({ date: "2026-10-27", rows }, 22612.4);
+  const bk = (b, a) => [[[b, 650, 3]], [[a, 650, 2]]];
+  const ln = (ist, t, opts) => ({ ist, t, options: opts });
+  const lines = [ln("2026-10-27 09:12", "2026-10-27T03:42:00Z", [["NIFTY|2026-10-27|22600|CE", 120, 0, 0, 0, 0, 0, ...bk(119, 121), "x"]]),
+    ln("2026-10-27 09:17", "2026-10-27T03:47:00Z", [["NIFTY|2026-10-27|22600|CE", 116, 0, 0, 0, 0, 0, ...bk(115.5, 116.5), "x", 118.5, 119, 114],
+      ["NIFTY|2026-10-27|22600|PE", 96, 0, 0, 0, 0, 0, ...bk(95, 96.5), "x", 95.2, 97, 94]]),
+    ln("2026-10-27 11:33", "2026-10-27T06:03:00Z", [["NIFTY|2026-10-27|22600|PE", 185, 0, 0, 0, 0, 0, ...bk(184, 186), "x", 95.2, 191, 94]]),
+    ln("2026-10-27 11:53", "2026-10-27T06:23:00Z", [["NIFTY|2026-10-27|22600|PE", 199, 0, 0, 0, 0, 0, ...bk(198, 201), "x", 95.2, 200, 94]])];
+  const f = fills({ date: "2026-10-27", day, lines });
+  check("fill audit: the first recorded bid after 09:15 is the achievable sale", f.X2[0].sale.bid === 115.5 && f.X2[0].sale.at === "09:17" && f.X2[0].sale.vsOpen === -3, JSON.stringify(f.X2[0]));
+  check("fill audit: a stopped leg's buy-back is the first ask once the recorded high reached 2x", f.X2[1].stopped && f.X2[1].buyBack.ask === 186 && f.X2[1].buyBack.at === "11:33" && f.X2[1].buyBack.vsStop === -4.4, JSON.stringify(f.X2[1]));
+  check("fill audit: a leg the desk never recorded says so", f.X4[0].strike === 22850 && f.X4[0].sale === null && f.X4[0].recorded === 0);
+  console.log(`fill audit checks done: ${passed} passed, ${failed} failed so far`);
+  if (failed) process.exit(1);
+}

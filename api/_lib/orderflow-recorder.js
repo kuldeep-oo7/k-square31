@@ -5,7 +5,8 @@
 // buy and sell quantity, open interest, volume); this keeps them, one line per build, so a history exists
 // to test later. Nothing on the page decides on it.
 // One line = { t, ist, futures: [[symbol, expiry, ltp, oi, volume, totBuy, totSell, avg, bids, asks, feedTime]],
-//              options: [[key, ltp, oi, volume, totBuy, totSell, avg, bids, asks, feedTime]] }
+//              options: [[key, ltp, oi, volume, totBuy, totSell, avg, bids, asks, feedTime, open, high, low]] }
+// (open/high/low on option rows from 25 Oct 2026: the expiry-day fill audit, studies/expiry-selling-forward-2026-10-21 A1)
 // bids/asks = [[price, quantity, orders] x up to 5].
 const fs = require("node:fs");
 const path = require("node:path");
@@ -18,7 +19,7 @@ function snapshot({ store, now = Date.now() }) {
   const futures = Object.values(store.futures || {}).filter(fresh).map((q) => [q.symbol, q.expiry, q.price ?? null, q.openInterest ?? null, q.volume ?? null,
     q.book.totBuy, q.book.totSell, q.book.avg, q.book.buy, q.book.sell, q.exchangeFeedTime || null]);
   const options = Object.entries(store.quotes || {}).filter(([, q]) => fresh(q)).map(([k, q]) => [k, q.lastPrice ?? null, q.openInterest ?? null, q.volume ?? null,
-    q.book.totBuy, q.book.totSell, q.book.avg, q.book.buy, q.book.sell, q.exchangeFeedTime || null]);
+    q.book.totBuy, q.book.totSell, q.book.avg, q.book.buy, q.book.sell, q.exchangeFeedTime || null, q.open ?? null, q.high ?? null, q.low ?? null]);
   if (!futures.length && !options.length) return null;
   return { t: new Date(now).toISOString(), ist: new Date(now + 330 * 60_000).toISOString().slice(0, 16).replace("T", " "), futures, options };
 }

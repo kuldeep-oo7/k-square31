@@ -975,6 +975,15 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     forwardV3: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v3.json"), "utf8")); } catch { return null; } })(),
     forwardV4: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "forward-v4.json"), "utf8")); } catch { return null; } })(),
     expirySelling: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "expiry-selling.json"), "utf8")); } catch { return null; } })(),
+    // The expiry-day paper trade as it stands (api/_lib/expiry-live.js; amendment A1), from this build's quote cache and
+    // NSE's NIFTY open. Information only; null on any other day or whenever anything is missing.
+    expiryLive: (() => { try {
+      const today = new Date().toLocaleDateString("en-CA", { timeZone: "Asia/Kolkata" });
+      if (!ledgerLib.isTradingDate(today) || Date.now() < Date.parse(`${today}T09:15:00+05:30`)) return null;
+      const ctx = marketContext && ledgerLib.feedDate(marketContext.nseTimestamp) === today ? marketContext : null;
+      let lot = null; try { lot = JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "expiry-selling.json"), "utf8")).lot; } catch { /* no lot: points only */ }
+      return require("../api/_lib/expiry-live").expiryLive({ today, niftyOpen: ctx?.niftyOpen, quotes: require("../api/_lib/live-quotes").load()?.quotes, lot, feedDate: ledgerLib.feedDate });
+    } catch { return null; } })(),
     gmTournament: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "gm-tournament.json"), "utf8")); } catch { return null; } })(),
     gmMinUnits: GM_MIN_UNITS,
     marketContext: marketContext
@@ -1418,7 +1427,18 @@ function gmTournamentBox(g) {
 // EXPIRY-DAY OPTION SELLING, ON PAPER, AGAINST THE FUTURE (studies/expiry-selling-forward-2026-10-21). The study's four
 // members PASSED on 351 expiries (2020-2026); a PASS goes to TRACK as a paper test first (CLAUDE.md rule 4). Information
 // only, never a suggestion: selling options needs margin and can lose far more than the premium.
-function expirySellingBox(es) {
+// el = the expiry-day paper trade as it stands (api/_lib/expiry-live.js, amendment A1), shown on the expiry session only.
+function expiryLiveLine(el) {
+  if (!el || !Array.isArray(el.legs) || el.legs.length !== 2) return "";
+  const mn = (v) => String(v).replace(/^-/, "&minus;");
+  const f2 = (v) => (Number.isFinite(v) ? mn(Number(v).toFixed(2)) : "&mdash;");
+  const time = (String(el.at || "").match(/ (\d{2}:\d{2})/) || [])[1] || "";
+  const res = el.points === null ? "" : `<b class="${el.points > 0 ? "up" : el.points < 0 ? "down" : ""}">${el.points > 0 ? "+" : ""}${mn(esc(el.points.toFixed(1)))} points${el.rupees !== null ? ` (${el.rupees >= 0 ? "+" : "&minus;"}${money(Math.abs(el.rupees))} a lot)` : ""}</b> `;
+  const legs = el.legs.map((l) => `${esc(l.strike)} ${esc(l.type)} ${!(l.open > 0) ? "not traded yet" : `sold ${f2(l.open)}, ${l.stopped ? `<b class="down">stopped at ${f2(l.stop)}</b>` : `stop ${f2(l.stop)}, last ${f2(l.last)}`}`}`).join("; ");
+  return `<div style="margin-top:6px">${res}today on paper${time ? `, ${esc(time)}` : ""}: ${legs}. NIFTY opened ${esc(Number(el.niftyOpen).toLocaleString("en-IN"))}. Before charges.</div>`;
+}
+
+function expirySellingBox(es, el = null) {
   if (!es || !es.members || !es.members[es.primary]) return "";
   const mn = (v) => String(v).replace(/^-/, "&minus;");
   const p = es.members[es.primary], s = p.summary || {}, lot = es.lot;
@@ -1435,6 +1455,7 @@ function expirySellingBox(es) {
     <div style="margin-top:6px"><b class="${tone}">${esc(s.verdict || "COLLECTING")}</b> &mdash; ${esc(es.primary)}, sell the ATM call and put at the open, buy a leg back at 2x:
       ${s.expiries ? `${esc(s.expiries)} expiries, ${pts(s.meanPoints)} points an expiry${rs(s.meanPoints)}, ${esc(s.won)}% won, worst ${mn(esc(s.worstPoints))} points${s.t === null || s.t === undefined ? "" : `, t ${mn(esc(s.t))}`}`
         : `first expiry ${esc(day(es.nextExpiry || es.start))}`}.</div>
+    ${expiryLiveLine(el)}
     <div class="sub warn">Worst expiry in the test: <span class="amt">&minus;3.19%</span> of NIFTY &mdash; about <span class="amt">&minus;728 points</span>, <span class="amt">&minus;&#8377;47,000</span> a lot of 65 at NIFTY 22,800. Selling needs margin.</div>
     <div class="sub lec">The study (2020&ndash;2026, NSE&rsquo;s own files, after charges): +17.6 points an expiry for ${esc(es.primary)}, t 4.43, positive in every period; its worst expiry lost 3.19% of NIFTY.
       Counted from ${esc(es.start)}; a verdict after ${esc(es.need)} expiries (CONFIRMED needs mean above 0 and t &ge; 1.68). Rules fixed in ${esc(es.preregistration)}. Data through ${esc(es.dataThrough || "&mdash;")}.
@@ -2271,7 +2292,7 @@ ${footAlarm}
     ${forwardV2Box(d.forwardV2)}
     ${forwardV3Box(d.forwardV3)}
     ${forwardV4Box(d.forwardV4)}
-    ${expirySellingBox(d.expirySelling)}
+    ${expirySellingBox(d.expirySelling, d.expiryLive)}
     ${gmTournamentBox(d.gmTournament)}
     ${trackPane}
   </section>
@@ -2459,7 +2480,7 @@ async function main() {
   return data;
 }
 
-module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox, gmTournamentBox, treesBox, treesTrackBox, sbStrongBox, sbTreesBox, daytraderBox };
+module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox, expiryLiveLine, gmTournamentBox, treesBox, treesTrackBox, sbStrongBox, sbTreesBox, daytraderBox };
 
 // Exported above so a test can drive build() twice and prove the levels did not
 // move. Run directly, it is still just a build.

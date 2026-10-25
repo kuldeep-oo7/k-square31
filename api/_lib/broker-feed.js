@@ -525,6 +525,8 @@ async function angelOptionChain(symbol, expiry, { timeoutMs = 20_000, strikesEit
       }, null),
       // Angel's quote carries no greeks; the separate optionGreek endpoint does.
       greeksAvailable: false,
+      // The session's open and range (the expiry-day paper line sells at the open and stops at 2x on the high)
+      open: num(row.open), high: num(row.high), low: num(row.low),
       book: bookOf(row),
       // The exchange's own clock. When we asked is not when the exchange
       // priced it, and after the close those differ by hours.
