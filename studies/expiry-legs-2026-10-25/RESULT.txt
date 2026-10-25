@@ -1,0 +1,30 @@
+CHECK HISTORY (synthetic only; no real data has been read)
+RUN 1 below used the first draft of the registration (sha256 d21ca1a7...). Check 6.2 failed: its plant scaled each put's
+open AND high, which keeps the 2x stop on the same paths, so it barely moved D2. Not a model of a rich put; replaced.
+RUN 2 (calibration in a scratch script, same synthetic data, the new plant: put's open scaled, rest of day fair):
+ seed 1: +10% t 2.38, +20% t 3.56, +30% t 4.75, +50% t 7.27 | seed 2: -1.04, -0.04, 0.91, 2.58 | seed 3: 0.86, 2.00, 2.90, 4.76
+Then 6.2 and limit L5 were rewritten and the registration re-hashed, still before any real data; RUN 3 follows.
+
+RUN 1:
+EXPIRY-DAY SELLING, CALL SIDE AGAINST PUT SIDE, registration sha256 d21ca1a737d5a09e3ca348cdd778c1eb47f997661e7c3a5fa3992d515cd29d30 (verified), run 2026-10-25T16:20:07.497Z
+CHECKS (synthetic, section 6):
+ 6.1 fair, seed 1: D2 t 0.64 (NO DIFFERENCE FOUND), D4 t -0.23 (NO DIFFERENCE FOUND)
+ 6.1 fair, seed 2: D2 t -2.01 (LEANING), D4 t -1.37 (NO DIFFERENCE FOUND)
+ 6.1 fair, seed 3: D2 t -0.09 (NO DIFFERENCE FOUND), D4 t 1.17 (NO DIFFERENCE FOUND)
+ 6.2 puts priced 20% over fair (seed 1, with costs): D2 mean +0.028%, t 0.83 (NO DIFFERENCE FOUND, put side higher)
+ 6.2 puts priced 50% over fair (seed 1, with costs): D2 mean +0.041%, t 1.05 (NO DIFFERENCE FOUND, put side higher)
+ 6.3 a put 10 points dearer earns exactly +10 held, the call unchanged: true
+ CHECKS: FAILED
+CHECKS FAILED: real run refused.
+
+RUN 3 (registration as committed):
+EXPIRY-DAY SELLING, CALL SIDE AGAINST PUT SIDE, registration sha256 8a6be3624a426d894b80c9d2d0ee47ace50688a9a4e5df968f1a5ec34fc7e331 (verified), run 2026-10-25T16:21:41.982Z
+CHECKS (synthetic, section 6):
+ 6.1 fair, seed 1: D2 t 0.64 (NO DIFFERENCE FOUND), D4 t -0.23 (NO DIFFERENCE FOUND)
+ 6.1 fair, seed 2: D2 t -2.01 (LEANING), D4 t -1.37 (NO DIFFERENCE FOUND)
+ 6.1 fair, seed 3: D2 t -0.09 (NO DIFFERENCE FOUND), D4 t 1.17 (NO DIFFERENCE FOUND)
+ 6.2 puts sold 50% over fair at the open (seeds 1-3, with costs): D2 t 7.27, 2.58, 4.76; DIFFERENT on 2 of 3
+ 6.2 puts sold 20% over fair at the open (seeds 1-3, with costs): D2 t 3.56, -0.04, 2.00; DIFFERENT on 1 of 3 (power, not judged)
+ 6.3 a put 10 points dearer earns exactly +10 held, the call unchanged: true
+ CHECKS: PASSED
+

@@ -1,0 +1,79 @@
+PRE-REGISTRATION -- SELLING NIFTY OPTIONS ON EXPIRY DAY (A FRIEND'S METHOD, AS FAR AS IT CAN BE WRITTEN DOWN)
+Written 2026-10-20 (Tue, NSE holiday) ~23:20 IST, BEFORE any return of this test was computed. Branch
+claude/expiry-selling-2026-10-20. Run ONCE on real data after the checks in section 7 pass. Judged by protocol v2 with
+amendment A1 of the combined model (PASS needs mean > 0, Newey-West t >= 3, Holm, and the full Deflated Sharpe >= 0.95).
+
+1. WHY, AND WHAT IS ALREADY KNOWN
+The owner's friend reportedly made about Rs 1 lakh in a month on about Rs 6 lakh, mostly selling NIFTY options on expiry
+day (time value collapses fastest that day), plus some option buying. His exact strikes, timing and stops are not known;
+the members below are the common written-down versions of expiry-day selling. The option buying is not tested (no rule).
+ALREADY TESTED ON NIFTY OPTION SELLING (counted in the deflation, section 6): the NIFTY 2% weekly strangle (V2, t 4.66,
+DSR 0.39; its 2005-2020 replication found the edge smaller), iron condors IC1-IC3 (best t 1.75), short NIFTY straddles in
+the families study, and the results-straddle study. These held positions for days, not one expiry session.
+LOOKED AT BEFORE THIS WAS WRITTEN: one day's file (19 Oct 2026) to check the format: the 22900 call opened 280.65 and
+expired worthless (NIFTY settled 22,888.95). No other price of the test sample was seen.
+RULE CHANGES INSIDE THE SAMPLE (reported as sub-periods, not used to choose anything): SEBI's index-derivative measures
+from 20 Nov 2024 (extra 2% extreme-loss margin on short options on expiry day, larger contracts, one weekly-expiry
+index per exchange; Zerodha, Business Standard, Fyers); NIFTY weekly expiry moved from Thursday to Tuesday from
+2 Sep 2025 (NSE circular of 23 Jun 2025, per Business Today and TradingQnA).
+
+2. DATA (NSE's own F&O bhavcopy; private release data-nifty-options; none committed)
+- Every NIFTY weekly and monthly option expiry from Feb 2019 to the last expiry with data. An "expiry session" is a
+  session whose file has NIFTY options with expiry = that session (read from the file, never computed).
+- Entry price of a leg = its OPEN on the expiry session (the first trade of the day; the friend's exact time is unknown
+  and NSE publishes no free intraday history, so the open is the only entry the data supports). A leg with open <= 0 is
+  missing; an expiry with a missing leg is skipped and counted.
+- NIFTY's open on the expiry session sets the strikes: NSE ind_close_all (files from 2014, so the whole sample from
+  2019 is covered). If NIFTY's open is missing for a day, that expiry is skipped and counted.
+- Exit: the leg's intrinsic value at NSE's final settlement price, which is the SETTLE column on the expiry session
+  (checked on 2023-03-29 and 2026-10-19: it holds NIFTY's settlement, 17,080.70 and 22,888.95).
+
+3. MEMBERS (fixed now; one lot each of whatever is sold; returns in % of NIFTY's open, so lot-size changes do not matter)
+ X1 ATM STRADDLE, HELD: sell the call and the put at the strike nearest NIFTY's open; hold to settlement.
+ X2 ATM STRADDLE, 2x STOP PER LEG: as X1, but a leg whose HIGH that day reaches 2x its entry is bought back at 2x its
+    entry (assumed whenever touched, even late in the day; that is the cautious reading of a daily file).
+ X3 1% STRANGLE, HELD: sell the call at the strike nearest open x 1.01 and the put nearest open x 0.99; hold.
+ X4 1% STRANGLE, 2x STOP PER LEG: as X3 with X2's stop.
+ Strikes: the listed strike nearest the target (ties: the farther from the money). Both legs must exist.
+
+4. COSTS
+ api/_lib/trade-costs.js roundTripCost for each leg (entry premium, exit = stop price or max(intrinsic, 0.05)), the
+ model every option study here used (it applies today's STT to past years, so older years are scored a little worse:
+ PROBLEMS.md B5), plus 1 point of slippage per leg.
+
+5. SAMPLE AND SUB-PERIODS
+ Verdict on all expiries Feb 2019 .. last. Reported, not judged: the three periods split at 20 Nov 2024 and 2 Sep 2025;
+ by year; the worst single expiry; the worst month; the share of expiries won; and, for information, rupees per lot at
+ a lot of 75 and the share of a Rs 6 lakh account each member would have made or lost per month.
+
+6. SCORE AND VERDICT
+ Per member: monthly sums of per-expiry net returns. Newey-West t, lag 3. Holm across X1-X4. Deflated Sharpe on the
+ monthly series with N = 4 + 6 = 10 (the four members plus V2, IC1, IC2, IC3, the families short straddle and the
+ results straddle). PASS = mean > 0, t >= 3, Holm, DSR >= 0.95. PROMISING = mean > 0 and t >= 2, not PASS. FAIL otherwise.
+ POWER, stated now: about 360 expiries; selling premium usually wins most weeks and loses big rarely, so a few crash
+ expiries decide the sign. A PASS still goes to TRACK as a paper test first; selling options needs margin and can lose
+ more than the premium.
+
+7. CHECKS BEFORE THE REAL RUN (written to RESULT.txt first)
+ 7.1 Planted edge: a synthetic expiry set where options are priced 20% above their fair (Black-Scholes, realised vol)
+     value must PASS for X1; priced fairly with zero costs, at most 1 PASS among X1-X4 over 3 seeds.
+ 7.2 No look-ahead: every input is from the expiry session's own file (open, high, settle) and NIFTY's open; the code
+     is checked to read nothing dated after the expiry session.
+ If a check fails, the real run is not made and the failure is reported.
+
+8. FILES
+ study.js (members, costs, verdict), checks in the same file (--synthetic). Data stays in the private release.
+
+9. AMENDMENT A1 -- 2026-10-20 ~23:35 IST, BEFORE any real-data result (only synthetic checks had run)
+Check 7.1 as first coded FAILED (recorded in RESULT.txt). Two causes, fixed here, both stated before real data:
+- The synthetic market moved in 75 steps a day; a stop was filled at exactly 2x when the path jumped past it between
+  steps, which manufactured profit for the stop members on fairly priced options (null t up to 6.2). Real ticks are near
+  continuous, so the synthetic paths now use 600 steps a day. At 600 steps 11 of 12 null results FAIL (1 PASS, X4,
+  seed 3, within the allowance of 1).
+- The planted edge (options 20% over fair, with costs) is detected (X1 t 4.08 at 600 steps, 5.65 at 75) but its full
+  DSR is 0.29: with four members this different (X4 scored t -4.33 on the same planted market, because a 2x stop on a
+  far option is hit often), SR0 in the deflation is high. Check 7.1 now passes when X1 reaches t >= 3 on the planted
+  market (the pipeline finds a real edge); the verdict rule in section 6 is UNCHANGED. Stated power: a 20% overpricing
+  of expiry-day premium would show as PROMISING, not PASS; a PASS needs a clearly larger edge.
+- The stop is filled at 2x the entry plus the 1 point of slippage in section 4; on real days with a jump through the
+  stop the real fill would be worse, so the stop members are read as an upper bound.

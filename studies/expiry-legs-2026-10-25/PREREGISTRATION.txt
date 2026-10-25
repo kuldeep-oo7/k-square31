@@ -1,0 +1,83 @@
+EXPIRY-DAY NIFTY OPTION SELLING: THE CALL SIDE AGAINST THE PUT SIDE -- PRE-REGISTRATION
+Written Sun 25 Oct 2026, before any number below has been computed on real data. The sha256 of this file (LF line ends)
+is in PREREGISTRATION.sha256; both are committed and pushed before the one real run.
+
+1. WHY
+The owner asked on 25 Oct 2026 whether, in option selling, the call and the put "are the same". The desk's one PASS
+(studies/expiry-selling-2026-10-20, branch claude/expiry-selling-2026-10-20; member X2: sell the ATM call and the ATM put
+at their opens on the NIFTY expiry session, buy a leg back at 2x its sale price if the day's high reaches 2x, else settle
+it at intrinsic) reported only the two legs together. This study splits them.
+It DESCRIBES a rule that has already been tested, on data that has already been examined (the study's sample). It makes
+no new rule: nothing here can become a page row, a TRACK rule or a suggestion.
+
+2. DATA AND RULES (the study's, unchanged)
+- NIFTY option rows of NSE's F&O bhavcopy: release data-nifty-options of the private repository kuldeep-oo7/k2-data
+  (nod-2019 .. nod-2026). NIFTY's open: NSE ind_close_all, "Open Index Value" of "Nifty 50".
+- Sample: the study's sessions through 2026-10-19 (402 expiry sessions, 351 expiries a member). Later expiries belong to
+  the forward test (studies/expiry-selling-forward-2026-10-21) and are not used.
+- Strikes, stop, settlement and costs: leg, nearest and expiryDay of api/_lib/expiry-forward.js, which
+  scripts/expiry-forward-replay.js proved identical to the study (MATCH). Costs per leg: the desk's option cost model for
+  75 units plus 1 point, as registered. The registered study's own run() and synth() are imported from
+  studies/expiry-selling-2026-10-20/study.js.
+
+3. MEMBERS (per expiry, in points and in % of NIFTY's open, after costs)
+ C2 / P2  X2's call leg / put leg alone (the strike nearest NIFTY's open; 2x stop).
+ C4 / P4  X4's call leg / put leg alone (the call nearest 1.01 x the open, the put nearest 0.99 x the open; 2x stop).
+ C1 / P1 and C3 / P3  the same legs held to settlement with no stop (X1, X3). Reported only, because they show the tail.
+
+4. THE QUESTION AND ITS VERDICT (fixed now)
+ MAIN: D2 = P2 - C2 for each expiry (% of NIFTY's open). Summed by calendar month, as in the study; t = Newey-West with
+ lag 3 (the study's function, copied verbatim and proven by check 6.4); TWO-SIDED.
+   |t| >= 3        DIFFERENT (and which side earned more)
+   2 <= |t| < 3    LEANING (and which side), not proven
+   |t| < 2         NO DIFFERENCE FOUND
+ The word SAME is never used: not finding a difference does not prove there is none.
+ SECONDARY: D4 = P4 - C4, the same words. No other test is judged.
+ EACH LEG ALONE (C2, P2, C4, P4 and the held legs): mean, t, won %, worst expiry, worst month -- INFORMATION ONLY. No
+ verdict, no PASS, no rule. Selling one side alone adds a NIFTY direction bet (a sold put gains when NIFTY rises, a sold
+ call when it falls), and that bet has not been tested; every NIFTY direction rule the desk has tested FAILED. A large t
+ on one leg is not a reason to sell that side alone.
+
+5. KNOWN LIMITS (written before the run)
+ L1. Put-call parity: for a call and a put of one strike held to settlement, the call's result minus the put's = minus
+     NIFTY's move from its open to the settlement, plus the parity gap at the open. So a held-leg difference measures
+     NIFTY's expiry-day drift, not option pricing. The 2x stop breaks the identity, which is why D2 is not simply the drift.
+ L2. The options' opening prints and NIFTY's open are not printed at the same moment. The study's audit A found the
+     parity gap at the open at -40.4 .. +30.9 points (10th..90th percentile). That moves value between the call and the
+     put; it cancels in the straddle but not in a single leg, so the split is noisier than X2.
+ L3. The data fills a stop at exactly 2x. A real stop-limit order can fill worse, or not at all (Zerodha: no SL-M orders
+     on index options).
+ L4. The sample has been examined before (the study, its audit, and the forward test's design).
+ L5. Power is low. D2 carries NIFTY's whole expiry-day move, which is large next to any pricing gap. In synthetic run 2
+     (calibration, no real data), a put sold 20% rich at the open was found DIFFERENT on 1 seed of 3 (t 3.56, -0.04,
+     2.00). So NO DIFFERENCE FOUND can hide a real gap of that size.
+
+6. CHECKS. If any fails, the run is VOID and no figure is reported.
+ 6.1 Fair prices (the study's synth(), seeds 1-3, no costs): |t| < 3 for D2 and for D4 on every seed (no false DIFFERENT).
+ 6.2 Puts sold rich, calls fair (the study's synth(), seeds 1-3, with costs): each put's OPEN is scaled up and the rest of
+     its day is left fair (its high is at least its open). At 50% over fair, D2's mean must be above 0 (put side higher)
+     on all three seeds and D2 must be DIFFERENT on at least two. The same at 20% is printed as the test's power, not
+     judged. (Synthetic run 1 scaled the put's open AND high, as the study's own plant did; that leaves the stop on the
+     same paths, so a put 50% dear moved D2 only to t 1.05 and the check failed. That plant was a poor model of a rich
+     put; it was replaced before any real data was read. RESULT.txt keeps run 1.)
+ 6.3 Labels and arithmetic: with 10 points added to every put's open and high (seed 4), every held put (P1) earns exactly
+     10 points more and no held call (C1) changes.
+ 6.4 The study reproduced on the real data, before any result is printed: 402 sessions, 51 skipped, 351 X2 expiries;
+     C2 + P2 = X2 on every expiry (to 1e-9); X2's mean = 17.590993 points and 0.093487% (to 1e-9 and 1e-12); X2's monthly
+     t from the copied function = 4.425789 (to 1e-9). If 6.4 fails, the cause is found and written down before anything
+     else is done.
+
+7. REPORTED, NOT JUDGED
+ - Each leg: mean points and %, won %, t, the mean premium at the open, how often its stop was hit, its worst expiry
+   (with the date) and its worst month.
+ - Each X2 leg's mean on expiries when NIFTY settled above its open, and when it settled below.
+ - C2, P2 and D2 in the study's three periods (to 19 Nov 2024; 20 Nov 2024 - 1 Sep 2025; from 2 Sep 2025).
+
+8. WHAT HAPPENS WITH THE RESULT
+ - The figures go in RESULT.txt and result.json in this folder, aggregates only (the repository is public; no
+   per-expiry rows).
+ - TRACK's expiry box may show one line with the two sides' means and the main verdict, as information. The forward
+   test, its rules and its verdict (X2 after 52 expiries) are unchanged. Showing each leg's running result on TRACK is
+   display only.
+ - One real run. A re-run is allowed only if a check fails, for a reason then written here as an amendment before the
+   re-run.
