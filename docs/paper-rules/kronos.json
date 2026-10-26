@@ -4,9 +4,9 @@
  "rule": "Kronos-small forecasts each futures stock's close 5 sessions ahead from its last 512 daily NSE bars -> buy the top tenth, sell the bottom tenth at the next open, close both 5 sessions later",
  "backtest": "FAILED: +0.135% a rebalance, t 1.35, Jul 2024 - Oct 2026 (needs t >= 3)",
  "start": "2026-10-19",
- "dataThrough": "2026-10-23",
- "builtAt": "2026-10-24T06:04:07.470Z",
- "latest": "2026-10-23",
+ "dataThrough": "2026-10-26",
+ "builtAt": "2026-10-26T15:02:42.145Z",
+ "latest": "2026-10-26",
  "days": {
   "2026-10-16": {
    "signalDate": "2026-10-16",
@@ -902,13 +902,354 @@
     "ATHERENERG": -0.145116,
     "COFORGE": -0.363439
    }
+  },
+  "2026-10-26": {
+   "signalDate": "2026-10-26",
+   "entry": "2026-10-27",
+   "exit": "2026-11-02",
+   "madeAt": "2026-10-26T15:02:42.131Z",
+   "names": 85,
+   "enough": true,
+   "long": [
+    {
+     "symbol": "SHRIRAMFIN",
+     "predPct": 19.26,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "BSE",
+     "predPct": 12.4,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "MARUTI",
+     "predPct": 9.53,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "MAXHEALTH",
+     "predPct": 9.46,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "ADANIENT",
+     "predPct": 9.29,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "SWIGGY",
+     "predPct": 8.55,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "POWERINDIA",
+     "predPct": 7.65,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "POLICYBZR",
+     "predPct": 7.11,
+     "expiry": "2026-11-23"
+    }
+   ],
+   "short": [
+    {
+     "symbol": "COFORGE",
+     "predPct": -35.43,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "PERSISTENT",
+     "predPct": -28.7,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "ATHERENERG",
+     "predPct": -26.16,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "TCS",
+     "predPct": -18.68,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "DIXON",
+     "predPct": -17.93,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "LAURUSLABS",
+     "predPct": -12.06,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "TECHM",
+     "predPct": -11.34,
+     "expiry": "2026-11-23"
+    },
+    {
+     "symbol": "INFY",
+     "predPct": -10.01,
+     "expiry": "2026-11-23"
+    }
+   ],
+   "preds": {
+    "SHRIRAMFIN": 0.192568,
+    "BSE": 0.124008,
+    "MARUTI": 0.095298,
+    "MAXHEALTH": 0.094605,
+    "ADANIENT": 0.092905,
+    "SWIGGY": 0.085501,
+    "POWERINDIA": 0.076484,
+    "POLICYBZR": 0.071145,
+    "CHOLAFIN": 0.070028,
+    "NTPC": 0.063901,
+    "BANKBARODA": 0.062571,
+    "GVT&D": 0.056602,
+    "OFSS": 0.055985,
+    "RELIANCE": 0.053948,
+    "PFC": 0.044228,
+    "M&M": 0.042517,
+    "BEL": 0.033945,
+    "WIPRO": 0.033617,
+    "HCLTECH": 0.032565,
+    "TITAN": 0.029747,
+    "TORNTPHARM": 0.028837,
+    "HINDZINC": 0.028737,
+    "EICHERMOT": 0.025931,
+    "HAL": 0.025557,
+    "ICICIBANK": 0.02396,
+    "UNIONBANK": 0.021992,
+    "HINDPETRO": 0.019234,
+    "SUNPHARMA": 0.017215,
+    "HINDUNILVR": 0.016122,
+    "TVSMOTOR": 0.01509,
+    "ULTRACEMCO": 0.014201,
+    "JSWSTEEL": 0.013211,
+    "JIOFIN": 0.013202,
+    "ITC": 0.012777,
+    "NESTLEIND": 0.012735,
+    "POWERGRID": 0.01273,
+    "ADANIPORTS": 0.011903,
+    "LODHA": 0.009225,
+    "HDFCBANK": 0.007593,
+    "CGPOWER": 0.007327,
+    "COALINDIA": 0.007263,
+    "DRREDDY": 0.006037,
+    "AXISBANK": 0.004452,
+    "BHARTIARTL": 0.003887,
+    "ONGC": 0.003787,
+    "BAJAJ-AUTO": 0.001506,
+    "SOLARINDS": -0.000844,
+    "SAIL": -0.001674,
+    "IDEA": -0.002528,
+    "ASHOKLEY": -0.002723,
+    "VBL": -0.003731,
+    "MUTHOOTFIN": -0.004343,
+    "GRASIM": -0.006381,
+    "POLYCAB": -0.006648,
+    "KALYANKJIL": -0.008124,
+    "LT": -0.008493,
+    "ADANIENSOL": -0.008578,
+    "HINDALCO": -0.009988,
+    "ETERNAL": -0.011543,
+    "MOTHERSON": -0.012293,
+    "BAJFINANCE": -0.012898,
+    "NAUKRI": -0.013709,
+    "APOLLOHOSP": -0.014322,
+    "INDIGO": -0.015776,
+    "SUZLON": -0.020384,
+    "KAYNES": -0.021396,
+    "BHEL": -0.024466,
+    "ADANIGREEN": -0.026605,
+    "ADANIPOWER": -0.026769,
+    "CUMMINSIND": -0.030565,
+    "DLF": -0.031755,
+    "HEROMOTOCO": -0.034234,
+    "TATASTEEL": -0.039839,
+    "SBIN": -0.055675,
+    "NATIONALUM": -0.079327,
+    "PAYTM": -0.090796,
+    "DIVISLAB": -0.099395,
+    "INFY": -0.100117,
+    "TECHM": -0.113374,
+    "LAURUSLABS": -0.120555,
+    "DIXON": -0.179308,
+    "TCS": -0.186785,
+    "ATHERENERG": -0.26165,
+    "PERSISTENT": -0.287021,
+    "COFORGE": -0.354321
+   }
   }
  },
  "books": [
   {
    "entry": "2026-10-19",
-   "status": "OPEN",
-   "legs": []
+   "status": "DONE",
+   "valuePct": -1.429,
+   "legs": [
+    {
+     "symbol": "IDEA",
+     "side": 1,
+     "entry": 12.6,
+     "exit": 11.95,
+     "exitDate": "2026-10-26",
+     "net": -0.052223974201899295,
+     "netPct": -5.222,
+     "status": "DONE"
+    },
+    {
+     "symbol": "ADANIENT",
+     "side": 1,
+     "entry": 2692,
+     "exit": 2508,
+     "exitDate": "2026-10-26",
+     "net": -0.06897809519244594,
+     "netPct": -6.898,
+     "status": "DONE"
+    },
+    {
+     "symbol": "MARUTI",
+     "side": 1,
+     "entry": 11510,
+     "exit": 11220,
+     "exitDate": "2026-10-26",
+     "net": -0.025845055682805432,
+     "netPct": -2.585,
+     "status": "DONE"
+    },
+    {
+     "symbol": "UNIONBANK",
+     "side": 1,
+     "entry": 172.9,
+     "exit": 181.2,
+     "exitDate": "2026-10-26",
+     "net": 0.0473155238879196,
+     "netPct": 4.732,
+     "status": "DONE"
+    },
+    {
+     "symbol": "TVSMOTOR",
+     "side": 1,
+     "entry": 4094.1,
+     "exit": 3996,
+     "exitDate": "2026-10-26",
+     "net": -0.024612336253061386,
+     "netPct": -2.461,
+     "status": "DONE"
+    },
+    {
+     "symbol": "OFSS",
+     "side": 1,
+     "entry": 10386,
+     "exit": 9913,
+     "exitDate": "2026-10-26",
+     "net": -0.046180395901861584,
+     "netPct": -4.618,
+     "status": "DONE"
+    },
+    {
+     "symbol": "GVT&D",
+     "side": 1,
+     "entry": 3968,
+     "exit": 3790,
+     "exitDate": "2026-10-26",
+     "net": -0.045499031623063194,
+     "netPct": -4.55,
+     "status": "DONE"
+    },
+    {
+     "symbol": "SHRIRAMFIN",
+     "side": 1,
+     "entry": 937,
+     "exit": 825,
+     "exitDate": "2026-10-26",
+     "net": -0.12013100619956107,
+     "netPct": -12.013,
+     "status": "DONE"
+    },
+    {
+     "symbol": "ATHERENERG",
+     "side": -1,
+     "entry": 1470,
+     "exit": 1575,
+     "exitDate": "2026-10-26",
+     "net": -0.07209671434556224,
+     "netPct": -7.21,
+     "status": "DONE"
+    },
+    {
+     "symbol": "LODHA",
+     "side": -1,
+     "entry": 1067,
+     "exit": 980,
+     "exitDate": "2026-10-26",
+     "net": 0.08087759755247066,
+     "netPct": 8.088,
+     "status": "DONE"
+    },
+    {
+     "symbol": "COFORGE",
+     "side": -1,
+     "entry": 1951,
+     "exit": 1993,
+     "exitDate": "2026-10-26",
+     "net": -0.022192151286280347,
+     "netPct": -2.219,
+     "status": "DONE"
+    },
+    {
+     "symbol": "TCS",
+     "side": -1,
+     "entry": 2458,
+     "exit": 2535,
+     "exitDate": "2026-10-26",
+     "net": -0.031991237096954235,
+     "netPct": -3.199,
+     "status": "DONE"
+    },
+    {
+     "symbol": "ADANIPOWER",
+     "side": -1,
+     "entry": 195,
+     "exit": 186.55,
+     "exitDate": "2026-10-26",
+     "net": 0.042670665267156384,
+     "netPct": 4.267,
+     "status": "DONE"
+    },
+    {
+     "symbol": "KALYANKJIL",
+     "side": -1,
+     "entry": 559.1,
+     "exit": 504.8,
+     "exitDate": "2026-10-26",
+     "net": 0.09646131202481248,
+     "netPct": 9.646,
+     "status": "DONE"
+    },
+    {
+     "symbol": "PAYTM",
+     "side": -1,
+     "entry": 1693.5,
+     "exit": 1654.7,
+     "exitDate": "2026-10-26",
+     "net": 0.022247344776131286,
+     "netPct": 2.225,
+     "status": "DONE"
+    },
+    {
+     "symbol": "INFY",
+     "side": -1,
+     "entry": 1156.95,
+     "exit": 1166,
+     "exitDate": "2026-10-26",
+     "net": -0.008485239371218348,
+     "netPct": -0.849,
+     "status": "DONE"
+    }
+   ]
   },
   {
    "entry": "2026-10-21",
@@ -929,13 +1270,18 @@
    "entry": "2026-10-26",
    "status": "OPEN",
    "legs": []
+  },
+  {
+   "entry": "2026-10-27",
+   "status": "OPEN",
+   "legs": []
   }
  ],
  "summary": {
-  "finished": 0,
-  "meanPct": null,
-  "winPct": null,
-  "weeks": 0,
+  "finished": 1,
+  "meanPct": -1.429,
+  "winPct": 0,
+  "weeks": 1,
   "t": null,
   "verdict": "COLLECTING"
  }
