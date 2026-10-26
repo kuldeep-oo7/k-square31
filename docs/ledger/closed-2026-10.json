@@ -260698,6 +260698,114 @@
     "perLot": 11887.5,
     "netPerLot": 11761.1
    }
+  },
+  {
+   "id": "2026-10-23|PE|GVT&D26NOV3700PE",
+   "kind": "PE",
+   "symbol": "GVT&D",
+   "contract": "GVT&D26NOV3700PE",
+   "expiry": "2026-11-23",
+   "strike": 3700,
+   "optionType": "PE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T04:44:29.622Z",
+   "buy": 251.3,
+   "target": 376.95,
+   "target2": null,
+   "stop": 125.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.8,
+     "medianDays": 10.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-23T05:24:17.057Z",
+   "hoursToFill": 0.66,
+   "closedAt": "2026-10-26T09:44:02.541Z",
+   "exitPrice": 125.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 76.33,
+   "sessionsHeld": 1,
+   "best": 251.3,
+   "worst": 118,
+   "last": 118,
+   "lastAt": "2026-10-26T09:44:02.541Z",
+   "marks": 42,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 200.1,
+    "low": 118,
+    "last": 118
+   },
+   "pnl": {
+    "perUnit": -125.65,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -15706.25,
+    "netPerLot": -15797.76
+   }
+  },
+  {
+   "id": "2026-10-23|PE|NIFTY26N0322150PE",
+   "kind": "PE",
+   "symbol": "NIFTY",
+   "contract": "NIFTY26N0322150PE",
+   "expiry": "2026-11-03",
+   "strike": 22150,
+   "optionType": "PE",
+   "lotSize": 65,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T04:44:29.622Z",
+   "buy": 109.35,
+   "target": 164,
+   "target2": null,
+   "stop": 54.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 31.9,
+     "medianDays": 5.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-23T08:24:01.218Z",
+   "hoursToFill": 3.66,
+   "closedAt": "2026-10-26T09:44:02.541Z",
+   "exitPrice": 54.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 73.33,
+   "sessionsHeld": 1,
+   "best": 136.3,
+   "worst": 54,
+   "last": 55.65,
+   "lastAt": "2026-10-26T09:44:02.541Z",
+   "marks": 43,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 136.3,
+    "low": 54,
+    "last": 55.65
+   },
+   "pnl": {
+    "perUnit": -54.7,
+    "pct": -50.02,
+    "basis": "NET",
+    "perLot": -3555.5,
+    "netPerLot": -3612.72
+   }
   }
  ]
 }

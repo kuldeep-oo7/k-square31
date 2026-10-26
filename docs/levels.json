@@ -266,7 +266,8 @@
   "OPTION|INDHOTEL|INDHOTEL26NOV830CE",
   "OPTION|PERSISTENT|PERSISTENT26NOV6200CE",
   "OPTION|BANKNIFTY|BANKNIFTY26NOV55600PE",
-  "OPTION|MIDCPNIFTY|MIDCPNIFTY26NOV13400PE"
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26NOV13400PE",
+  "OPTION|INFY|INFY26NOV1240CE"
  ],
  "options": {
   "NIFTY26N0322650PE": {
@@ -3627,6 +3628,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-26T08:44:04.622Z",
    "frozenAtIst": "2026-10-26 14:14 IST",
+   "frozenAtSpot": null
+  },
+  "INFY26NOV1240CE": {
+   "buy": 15.45,
+   "sell": 23.15,
+   "stop": 7.7,
+   "tick": 0.05,
+   "lotSize": 400,
+   "expiry": "2026-11-23",
+   "strike": 1240,
+   "right": "CE",
+   "symbol": "INFY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-26T09:44:02.159Z",
+   "frozenAtIst": "2026-10-26 15:14 IST",
    "frozenAtSpot": null
   }
  },
