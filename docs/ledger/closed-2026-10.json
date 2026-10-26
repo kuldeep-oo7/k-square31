@@ -260644,6 +260644,60 @@
     "perLot": -6603,
     "netPerLot": -6668.91
    }
+  },
+  {
+   "id": "2026-10-26|CE|PERSISTENT26NOV5700CE",
+   "kind": "CE",
+   "symbol": "PERSISTENT",
+   "contract": "PERSISTENT26NOV5700CE",
+   "expiry": "2026-11-23",
+   "strike": 5700,
+   "optionType": "CE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 190.2,
+   "target": 285.3,
+   "target2": null,
+   "stop": 95.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 57.9,
+     "medianDays": 7.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-26T09:22:53.819Z",
+   "exitPrice": 285.3,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 5.31,
+   "sessionsHeld": 0,
+   "best": 290.8,
+   "worst": 175,
+   "last": 279.5,
+   "lastAt": "2026-10-26T09:22:53.819Z",
+   "marks": 18,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 290.8,
+    "low": 175,
+    "last": 279.5
+   },
+   "pnl": {
+    "perUnit": 95.1,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 11887.5,
+    "netPerLot": 11761.1
+   }
   }
  ]
 }
