@@ -259882,6 +259882,498 @@
     "pct": -1.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-10-26|CE|INDHOTEL26NOV820CE",
+   "kind": "CE",
+   "symbol": "INDHOTEL",
+   "contract": "INDHOTEL26NOV820CE",
+   "expiry": "2026-11-23",
+   "strike": 820,
+   "optionType": "CE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:24:45.480Z",
+   "buy": 9.05,
+   "target": 13.6,
+   "target2": null,
+   "stop": 4.55,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 40.9,
+     "medianDays": 11.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-26T05:04:22.251Z",
+   "hoursToFill": 0.66,
+   "closedAt": "2026-10-26T08:04:16.432Z",
+   "exitPrice": 13.6,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 3,
+   "sessionsHeld": 0,
+   "best": 13.9,
+   "worst": 8.9,
+   "last": 12.8,
+   "lastAt": "2026-10-26T08:04:16.432Z",
+   "marks": 12,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 13.9,
+    "low": 6.5,
+    "last": 12.8
+   },
+   "pnl": {
+    "perUnit": 4.55,
+    "pct": 50.28,
+    "basis": "NET",
+    "perLot": 4550,
+    "netPerLot": 4472.61
+   }
+  },
+  {
+   "id": "2026-10-26|FUTS|BHEL26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "BHEL",
+   "contract": "BHEL26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 2625,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 390.1,
+   "target": 380.35,
+   "target2": 370.6,
+   "stop": 395.95,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 75.8,
+     "medianTradingDays": 0.119
+    },
+    "target": {
+     "probabilityPct": 84,
+     "medianTradingDays": 1.39
+    },
+    "sigmaPct": 41.8,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:45:26.260Z",
+   "hoursToFill": 0.96,
+   "closedAt": "2026-10-26T08:04:16.432Z",
+   "exitPrice": 395.95,
+   "exitReason": "STOP",
+   "hoursFillToExit": 3.31,
+   "sessionsHeld": 0,
+   "best": 387.8,
+   "worst": 396,
+   "last": 394.45,
+   "lastAt": "2026-10-26T08:04:16.432Z",
+   "marks": 14,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 396,
+    "low": 381.85,
+    "last": 394.45
+   },
+   "pnl": {
+    "perUnit": -5.85,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-26|PE|MCX26NOV2850PE",
+   "kind": "PE",
+   "symbol": "MCX",
+   "contract": "MCX26NOV2850PE",
+   "expiry": "2026-11-23",
+   "strike": 2850,
+   "optionType": "PE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 75.5,
+   "target": 113.25,
+   "target2": null,
+   "stop": 37.75,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 29.4,
+     "medianDays": 14.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-26T08:04:16.432Z",
+   "exitPrice": 37.75,
+   "exitReason": "STOP",
+   "hoursFillToExit": 4,
+   "sessionsHeld": 0,
+   "best": 75.5,
+   "worst": 37.65,
+   "last": 37.65,
+   "lastAt": "2026-10-26T08:04:16.432Z",
+   "marks": 13,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 70,
+    "low": 37.9,
+    "last": 37.65
+   },
+   "pnl": {
+    "perUnit": -37.75,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -8493.75,
+    "netPerLot": -8564.91
+   }
+  },
+  {
+   "id": "2026-10-26|CE|PERSISTENT26NOV6000CE",
+   "kind": "CE",
+   "symbol": "PERSISTENT",
+   "contract": "PERSISTENT26NOV6000CE",
+   "expiry": "2026-11-23",
+   "strike": 6000,
+   "optionType": "CE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 88.2,
+   "target": 132.3,
+   "target2": null,
+   "stop": 44.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 42.3,
+     "medianDays": 11.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-26T08:04:16.432Z",
+   "exitPrice": 132.3,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 4,
+   "sessionsHeld": 0,
+   "best": 135.3,
+   "worst": 79.85,
+   "last": 128,
+   "lastAt": "2026-10-26T08:04:16.432Z",
+   "marks": 14,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 135.3,
+    "low": 79.85,
+    "last": 128
+   },
+   "pnl": {
+    "perUnit": 44.1,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 5512.5,
+    "netPerLot": 5428.57
+   }
+  },
+  {
+   "id": "2026-10-26|CE|INDHOTEL26NOV810CE",
+   "kind": "CE",
+   "symbol": "INDHOTEL",
+   "contract": "INDHOTEL26NOV810CE",
+   "expiry": "2026-11-23",
+   "strike": 810,
+   "optionType": "CE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 10.35,
+   "target": 15.5,
+   "target2": null,
+   "stop": 5.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 41.2,
+     "medianDays": 11.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-26T03:47:44.940Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-26T08:04:16.432Z",
+   "exitPrice": 15.5,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 4.28,
+   "sessionsHeld": 0,
+   "best": 17.55,
+   "worst": 8.4,
+   "last": 16.2,
+   "lastAt": "2026-10-26T08:04:16.432Z",
+   "marks": 14,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 17.55,
+    "low": 8.4,
+    "last": 16.2
+   },
+   "pnl": {
+    "perUnit": 5.15,
+    "pct": 49.76,
+    "basis": "NET",
+    "perLot": 5150,
+    "netPerLot": 5068.37
+   }
+  },
+  {
+   "id": "2026-10-26|CE|INDHOTEL26NOV800CE",
+   "kind": "CE",
+   "symbol": "INDHOTEL",
+   "contract": "INDHOTEL26NOV800CE",
+   "expiry": "2026-11-23",
+   "strike": 800,
+   "optionType": "CE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 13.05,
+   "target": 19.55,
+   "target2": null,
+   "stop": 6.55,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 46.7,
+     "medianDays": 10.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-26T03:47:44.940Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-26T08:04:16.432Z",
+   "exitPrice": 19.55,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 4.28,
+   "sessionsHeld": 0,
+   "best": 21.85,
+   "worst": 10.85,
+   "last": 20.55,
+   "lastAt": "2026-10-26T08:04:16.432Z",
+   "marks": 14,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 21.85,
+    "low": 10.85,
+    "last": 20.55
+   },
+   "pnl": {
+    "perUnit": 6.5,
+    "pct": 49.81,
+    "basis": "NET",
+    "perLot": 6500,
+    "netPerLot": 6409.38
+   }
+  },
+  {
+   "id": "2026-10-26|CE|INDHOTEL26NOV790CE",
+   "kind": "CE",
+   "symbol": "INDHOTEL",
+   "contract": "INDHOTEL26NOV790CE",
+   "expiry": "2026-11-23",
+   "strike": 790,
+   "optionType": "CE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 16.7,
+   "target": 25.05,
+   "target2": null,
+   "stop": 8.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51.3,
+     "medianDays": 9.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-26T03:47:44.940Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-26T08:04:16.432Z",
+   "exitPrice": 25.05,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 4.28,
+   "sessionsHeld": 0,
+   "best": 26.85,
+   "worst": 13.65,
+   "last": 24.75,
+   "lastAt": "2026-10-26T08:04:16.432Z",
+   "marks": 14,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 26.85,
+    "low": 13.65,
+    "last": 24.75
+   },
+   "pnl": {
+    "perUnit": 8.35,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 8350,
+    "netPerLot": 8247.17
+   }
+  },
+  {
+   "id": "2026-10-26|CE|INDHOTEL26NOV780CE",
+   "kind": "CE",
+   "symbol": "INDHOTEL",
+   "contract": "INDHOTEL26NOV780CE",
+   "expiry": "2026-11-23",
+   "strike": 780,
+   "optionType": "CE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 20.85,
+   "target": 31.3,
+   "target2": null,
+   "stop": 10.45,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.2,
+     "medianDays": 8.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-26T03:47:44.940Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-26T08:04:16.432Z",
+   "exitPrice": 31.3,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 4.28,
+   "sessionsHeld": 0,
+   "best": 32.65,
+   "worst": 17.2,
+   "last": 30.9,
+   "lastAt": "2026-10-26T08:04:16.432Z",
+   "marks": 14,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 32.65,
+    "low": 17.2,
+    "last": 30.9
+   },
+   "pnl": {
+    "perUnit": 10.45,
+    "pct": 50.12,
+    "basis": "NET",
+    "perLot": 10450,
+    "netPerLot": 10333.3
+   }
+  },
+  {
+   "id": "2026-10-23|CE|TECHM26NOV1880CE",
+   "kind": "CE",
+   "symbol": "TECHM",
+   "contract": "TECHM26NOV1880CE",
+   "expiry": "2026-11-23",
+   "strike": 1880,
+   "optionType": "CE",
+   "lotSize": 600,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T03:47:41.747Z",
+   "buy": 50.1,
+   "target": 75.15,
+   "target2": null,
+   "stop": 25.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 52.2,
+     "medianDays": 9.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-23T03:47:42.122Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-26T08:04:16.432Z",
+   "exitPrice": 25.05,
+   "exitReason": "STOP",
+   "hoursFillToExit": 76.28,
+   "sessionsHeld": 1,
+   "best": 53,
+   "worst": 25,
+   "last": 25,
+   "lastAt": "2026-10-26T08:04:16.432Z",
+   "marks": 41,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 34.55,
+    "low": 25,
+    "last": 25
+   },
+   "pnl": {
+    "perUnit": -25.05,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -15030,
+    "netPerLot": -15119.6
+   }
   }
  ]
 }
