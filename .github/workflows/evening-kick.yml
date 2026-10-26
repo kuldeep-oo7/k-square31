@@ -4,6 +4,8 @@ name: evening-kick
 # cron-job.org; it starts this job, which waits on GitHub and starts springy-dip.yml at 19:30 IST and kronos.yml at
 # 20:30 IST (NSE posts the day's files by then). Their own schedules stay as backstops: a list is stored once, so a
 # second run changes nothing. Public repository: the waiting runner costs nothing.
+# From 26 Oct 2026 it also rebuilds the desk once those jobs are in: GitHub's 19:43 IST desk schedule never ran that
+# evening, so the page showed Friday's result and the old record until a build was started by hand at 20:57.
 on:
   workflow_dispatch:
     inputs:
@@ -13,6 +15,12 @@ on:
       kronos_at:
         description: "IST time (HHMM) to start kronos.yml"
         default: "2030"
+      desk_at:
+        description: "IST time (HHMM) from which to rebuild the desk, once the evening jobs have finished"
+        default: "2045"
+      desk_by:
+        description: "IST time (HHMM) at which to rebuild the desk even if an evening job is still running"
+        default: "2115"
 permissions:
   actions: write
 concurrency:
@@ -21,7 +29,7 @@ concurrency:
 jobs:
   kick:
     runs-on: ubuntu-latest
-    timeout-minutes: 330
+    timeout-minutes: 360     # GitHub's limit; started at 15:30 IST at the earliest, so it ends after desk_by (21:15)
     env:
       GH_TOKEN: ${{ github.token }}
     steps:
@@ -33,3 +41,16 @@ jobs:
         run: |
           until [ "$(TZ=Asia/Kolkata date +%H%M)" -ge "${{ inputs.kronos_at }}" ]; do sleep 60; done
           gh workflow run kronos.yml -R "${{ github.repository }}" --ref main && echo "started kronos at $(TZ=Asia/Kolkata date +%H:%M) IST"
+      - name: Rebuild the desk once the evening jobs are in
+        # Waits until today's paper job, the jobs it starts (trees, sb-trees, daytrader-forward) and Kronos have finished,
+        # but not past desk_by, so the page shows the day's results and the next day's lists the same evening. Never fatal.
+        continue-on-error: true
+        run: |
+          until [ "$(TZ=Asia/Kolkata date +%H%M)" -ge "${{ inputs.desk_at }}" ]; do sleep 60; done
+          since=$(date -u -d "$(TZ=Asia/Kolkata date +%F) 00:00 +0530" +%FT%TZ)
+          while [ "$(TZ=Asia/Kolkata date +%H%M)" -lt "${{ inputs.desk_by }}" ]; do
+            busy=$(gh run list -R "${{ github.repository }}" -L 40 --json workflowName,status,createdAt -q "[.[] | select(.createdAt >= \"$since\" and .status != \"completed\" and (.workflowName == \"springy-dip\" or .workflowName == \"trees\" or .workflowName == \"sb-trees\" or .workflowName == \"daytrader-forward\" or .workflowName == \"kronos\"))] | length" || echo "?")
+            [ "$busy" = "0" ] && break
+            echo "evening jobs still running: $busy"; sleep 60
+          done
+          gh workflow run desk.yml -R "${{ github.repository }}" --ref main && echo "started desk at $(TZ=Asia/Kolkata date +%H:%M) IST"

@@ -41,7 +41,7 @@ jobs:
           node scripts/nse-cm-bhavcopy.js 2020-09-01
           after=$(ls nse-data/cm/*.json | wc -l)
           echo "sessions: $before -> $after"
-          if [ "$after" != "$before" ]; then tar -czf nse-cm.tar.gz nse-data && gh release upload data-nse-cm nse-cm.tar.gz --clobber; fi
+          if [ "$after" != "$before" ]; then tar -czf nse-cm.tar.gz nse-data && for i in 1 2 3; do gh release upload data-nse-cm nse-cm.tar.gz --clobber && break; [ "$i" -lt 3 ] || exit 1; echo "upload failed (try $i of 3); again in 30 s"; sleep 30; done; fi
       - name: Restore the paper tests' daily NSE files (release data-paper-inputs)
         run: |
           if gh release download data-paper-inputs -p paper-inputs.tar.gz; then tar -xzf paper-inputs.tar.gz && rm paper-inputs.tar.gz; else echo "no paper-inputs archive yet"; fi
@@ -112,7 +112,8 @@ jobs:
           gh release view data-paper-inputs >/dev/null 2>&1 || gh release create data-paper-inputs --title "Paper-test inputs (NSE daily files)" --notes "NSE's own F&O, index and option files from late Aug 2026 on, read by the forward paper tests (docs/paper-rules). Built by springy-dip.yml." --latest=false
           # .none (NSE answered 404) is not kept: a day missing today is fetched again tomorrow, within 40 days
           mkdir -p nse-flows nse-nod && tar --exclude='*.none' -czf paper-inputs.tar.gz nse-fo nse-idx nse-extra nse-sopt nse-flows nse-slb nse-nod
-          gh release upload data-paper-inputs paper-inputs.tar.gz --clobber
+          # GitHub answered HTTP 504 to this upload on 26 Oct 2026 and the whole evening run stopped: try three times.
+          for i in 1 2 3; do gh release upload data-paper-inputs paper-inputs.tar.gz --clobber && break; [ "$i" -lt 3 ] || exit 1; echo "upload failed (try $i of 3); again in 30 s"; sleep 30; done
       - name: Signals and the running score
         run: |
           npm install --omit=dev --no-audit --no-fund
