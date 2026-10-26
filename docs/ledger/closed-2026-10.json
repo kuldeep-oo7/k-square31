@@ -259594,6 +259594,120 @@
     "perLot": 21281.25,
     "netPerLot": 21092.2
    }
+  },
+  {
+   "id": "2026-10-26|CE|DRREDDY26NOV1290CE",
+   "kind": "CE",
+   "symbol": "DRREDDY",
+   "contract": "DRREDDY26NOV1290CE",
+   "expiry": "2026-11-23",
+   "strike": 1290,
+   "optionType": "CE",
+   "lotSize": 625,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:04:18.372Z",
+   "buy": 33.25,
+   "target": 49.85,
+   "target2": null,
+   "stop": 16.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 43.8,
+     "medianDays": 10.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-26T07:04:12.847Z",
+   "exitPrice": 49.85,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 3,
+   "sessionsHeld": 0,
+   "best": 50.9,
+   "worst": 30,
+   "last": 48.35,
+   "lastAt": "2026-10-26T07:04:12.847Z",
+   "marks": 10,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 50.9,
+    "low": 19,
+    "last": 48.35
+   },
+   "pnl": {
+    "perUnit": 16.6,
+    "pct": 49.92,
+    "basis": "NET",
+    "perLot": 10375,
+    "netPerLot": 10258.61
+   }
+  },
+  {
+   "id": "2026-10-26|FUTS|ABB26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "ABB",
+   "contract": "ABB26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 125,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 6214,
+   "target": 6058.5,
+   "target2": 5903.5,
+   "stop": 6307,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 74.1,
+     "medianTradingDays": 0.133
+    },
+    "target": {
+     "probabilityPct": 82.8,
+     "medianTradingDays": 1.559
+    },
+    "sigmaPct": 39,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.4,
+     "stopFirstPct": 62.6,
+     "neitherPct": 0,
+     "breakEvenPct": 37.4
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:24:45.832Z",
+   "hoursToFill": 0.62,
+   "closedAt": "2026-10-26T07:04:12.847Z",
+   "exitPrice": 6307,
+   "exitReason": "STOP",
+   "hoursFillToExit": 2.66,
+   "sessionsHeld": 0,
+   "best": 6204,
+   "worst": 6323,
+   "last": 6309.5,
+   "lastAt": "2026-10-26T07:04:12.847Z",
+   "marks": 11,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 6323,
+    "low": 6106.5,
+    "last": 6309.5
+   },
+   "pnl": {
+    "perUnit": -93,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
