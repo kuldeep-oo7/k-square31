@@ -263451,6 +263451,66 @@
     "perLot": -3744,
     "netPerLot": -3801.77
    }
+  },
+  {
+   "id": "2026-10-26|FUTS|SIEMENS26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "SIEMENS",
+   "contract": "SIEMENS26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 175,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 3248.3,
+   "target": 3167.1,
+   "target2": 3085.9,
+   "stop": 3297,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 71.8,
+     "medianTradingDays": 0.152
+    },
+    "target": {
+     "probabilityPct": 81,
+     "medianTradingDays": 1.809
+    },
+    "sigmaPct": 35.5,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:24:45.832Z",
+   "hoursToFill": 0.62,
+   "closedAt": "2026-10-26T10:24:20.690Z",
+   "exitPrice": 3297,
+   "exitReason": "STOP",
+   "hoursFillToExit": 5.99,
+   "sessionsHeld": 0,
+   "best": 3237.2,
+   "worst": 3310,
+   "last": 3309.9,
+   "lastAt": "2026-10-26T10:24:20.690Z",
+   "marks": 21,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 3310,
+    "low": 3199.5,
+    "last": 3309.9
+   },
+   "pnl": {
+    "perUnit": -48.7,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
