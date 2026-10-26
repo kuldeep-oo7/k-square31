@@ -259822,6 +259822,66 @@
     "pct": 2.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-10-26|FUTS|LTF26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "LTF",
+   "contract": "LTF26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 2250,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 232.7,
+   "target": 226.9,
+   "target2": 221.05,
+   "stop": 236.2,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 72.3,
+     "medianTradingDays": 0.147
+    },
+    "target": {
+     "probabilityPct": 81.5,
+     "medianTradingDays": 1.738
+    },
+    "sigmaPct": 36.3,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.6,
+     "stopFirstPct": 62.4,
+     "neitherPct": 0,
+     "breakEvenPct": 37.6
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:45:26.260Z",
+   "hoursToFill": 0.96,
+   "closedAt": "2026-10-26T07:44:07.463Z",
+   "exitPrice": 236.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 2.98,
+   "sessionsHeld": 0,
+   "best": 231.15,
+   "worst": 238.35,
+   "last": 237.05,
+   "lastAt": "2026-10-26T07:44:07.463Z",
+   "marks": 13,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 238.35,
+    "low": 227.45,
+    "last": 237.05
+   },
+   "pnl": {
+    "perUnit": -3.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
