@@ -260,7 +260,8 @@
   "OPTION|TCS|TCS26NOV2700CE",
   "OPTION|IDEA|IDEA26NOV13PE",
   "OPTION|COFORGE|COFORGE26NOV2080CE",
-  "OPTION|TATAELXSI|TATAELXSI26NOV4000CE"
+  "OPTION|TATAELXSI|TATAELXSI26NOV4000CE",
+  "OPTION|COFORGE|COFORGE26NOV2100CE"
  ],
  "options": {
   "NIFTY26N0322650PE": {
@@ -3531,6 +3532,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-26T05:24:16.478Z",
    "frozenAtIst": "2026-10-26 10:54 IST",
+   "frozenAtSpot": null
+  },
+  "COFORGE26NOV2100CE": {
+   "buy": 28.7,
+   "sell": 43.05,
+   "stop": 14.35,
+   "tick": 0.05,
+   "lotSize": 475,
+   "expiry": "2026-11-23",
+   "strike": 2100,
+   "right": "CE",
+   "symbol": "COFORGE",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-26T06:04:07.194Z",
+   "frozenAtIst": "2026-10-26 11:34 IST",
    "frozenAtSpot": null
   }
  },
