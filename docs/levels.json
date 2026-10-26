@@ -258,7 +258,9 @@
   "OPTION|NIFTY|NIFTY26N0323150PE",
   "OPTION|ADANIGREEN|ADANIGREEN26NOV1300PE",
   "OPTION|TCS|TCS26NOV2700CE",
-  "OPTION|IDEA|IDEA26NOV13PE"
+  "OPTION|IDEA|IDEA26NOV13PE",
+  "OPTION|COFORGE|COFORGE26NOV2080CE",
+  "OPTION|TATAELXSI|TATAELXSI26NOV4000CE"
  ],
  "options": {
   "NIFTY26N0322650PE": {
@@ -3499,6 +3501,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-26T05:04:21.896Z",
    "frozenAtIst": "2026-10-26 10:34 IST",
+   "frozenAtSpot": null
+  },
+  "COFORGE26NOV2080CE": {
+   "buy": 30,
+   "sell": 45,
+   "stop": 15,
+   "tick": 0.05,
+   "lotSize": 475,
+   "expiry": "2026-11-23",
+   "strike": 2080,
+   "right": "CE",
+   "symbol": "COFORGE",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-26T05:24:16.478Z",
+   "frozenAtIst": "2026-10-26 10:54 IST",
+   "frozenAtSpot": null
+  },
+  "TATAELXSI26NOV4000CE": {
+   "buy": 52.05,
+   "sell": 78.05,
+   "stop": 26,
+   "tick": 0.05,
+   "lotSize": 125,
+   "expiry": "2026-11-23",
+   "strike": 4000,
+   "right": "CE",
+   "symbol": "TATAELXSI",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-26T05:24:16.478Z",
+   "frozenAtIst": "2026-10-26 10:54 IST",
    "frozenAtSpot": null
   }
  },
