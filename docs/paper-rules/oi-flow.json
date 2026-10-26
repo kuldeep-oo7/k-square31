@@ -2,92 +2,121 @@
  "preregistration": "studies/oi-flow-forward-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
  "start": "2026-10-05",
- "dataThrough": "2026-10-23",
- "fnoThrough": "2026-10-23",
- "builtAt": "2026-10-26T11:25:51.764Z",
+ "dataThrough": "2026-10-26",
+ "fnoThrough": "2026-10-26",
+ "builtAt": "2026-10-26T15:13:55.495Z",
  "LU": {
   "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
   "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
   "pending": [
    {
-    "symbol": "BDL",
-    "signalDate": "2026-10-23",
-    "pricePct": -3.33,
-    "oiPct": -9.4,
+    "symbol": "AMBER",
+    "signalDate": "2026-10-26",
+    "pricePct": -1.61,
+    "oiPct": -4.52,
     "status": "SIGNAL"
-   },
+   }
+  ],
+  "trades": [
    {
-    "symbol": "BRITANNIA",
+    "symbol": "LTM",
     "signalDate": "2026-10-23",
-    "pricePct": -1.88,
-    "oiPct": -4.58,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "LICHSGFIN",
-    "signalDate": "2026-10-23",
-    "pricePct": -2.39,
-    "oiPct": -4.81,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "OFSS",
-    "signalDate": "2026-10-23",
-    "pricePct": -1.69,
-    "oiPct": -4.48,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "RECLTD",
-    "signalDate": "2026-10-23",
-    "pricePct": -2.37,
-    "oiPct": -3.74,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "SUZLON",
-    "signalDate": "2026-10-23",
-    "pricePct": -3.03,
-    "oiPct": -4.4,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "KAYNES",
-    "signalDate": "2026-10-23",
-    "pricePct": -3.22,
-    "oiPct": -6.76,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "LTF",
-    "signalDate": "2026-10-23",
-    "pricePct": -2.7,
-    "oiPct": -10.14,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "SWIGGY",
-    "signalDate": "2026-10-23",
-    "pricePct": -16.75,
-    "oiPct": -7.45,
-    "status": "SIGNAL"
+    "pricePct": -3.28,
+    "oiPct": -5.68,
+    "entryDate": "2026-10-26",
+    "entry": 4050,
+    "status": "OPEN"
    },
    {
     "symbol": "ATHERENERG",
     "signalDate": "2026-10-23",
     "pricePct": -3.18,
     "oiPct": -5.4,
-    "status": "SIGNAL"
+    "entryDate": "2026-10-26",
+    "entry": 1365.6,
+    "status": "OPEN"
    },
    {
-    "symbol": "LTM",
+    "symbol": "SWIGGY",
     "signalDate": "2026-10-23",
-    "pricePct": -3.28,
-    "oiPct": -5.68,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "pricePct": -16.75,
+    "oiPct": -7.45,
+    "entryDate": "2026-10-26",
+    "entry": 176,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "LTF",
+    "signalDate": "2026-10-23",
+    "pricePct": -2.7,
+    "oiPct": -10.14,
+    "entryDate": "2026-10-26",
+    "entry": 235.75,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "KAYNES",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.22,
+    "oiPct": -6.76,
+    "entryDate": "2026-10-26",
+    "entry": 3187.9,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "SUZLON",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.03,
+    "oiPct": -4.4,
+    "entryDate": "2026-10-26",
+    "entry": 37,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "RECLTD",
+    "signalDate": "2026-10-23",
+    "pricePct": -2.37,
+    "oiPct": -3.74,
+    "entryDate": "2026-10-26",
+    "entry": 291.55,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "OFSS",
+    "signalDate": "2026-10-23",
+    "pricePct": -1.69,
+    "oiPct": -4.48,
+    "entryDate": "2026-10-26",
+    "entry": 9625,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "LICHSGFIN",
+    "signalDate": "2026-10-23",
+    "pricePct": -2.39,
+    "oiPct": -4.81,
+    "entryDate": "2026-10-26",
+    "entry": 490,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BRITANNIA",
+    "signalDate": "2026-10-23",
+    "pricePct": -1.88,
+    "oiPct": -4.58,
+    "entryDate": "2026-10-26",
+    "entry": 4544.5,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BDL",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.33,
+    "oiPct": -9.4,
+    "entryDate": "2026-10-26",
+    "entry": 1003.6,
+    "status": "OPEN"
+   },
    {
     "symbol": "WAAREEENER",
     "signalDate": "2026-10-22",
@@ -238,63 +267,117 @@
   "backtest": "FAILED (+0.296% / +0.020% / +0.131% a trade; final t 1.86, not enough after 12 tests)",
   "pending": [
    {
-    "symbol": "FORCEMOT",
-    "signalDate": "2026-10-23",
-    "pricePct": -2.19,
-    "oiPct": 7.8,
+    "symbol": "AUBANK",
+    "signalDate": "2026-10-26",
+    "pricePct": -6.85,
+    "oiPct": 3.33,
     "status": "SIGNAL"
    },
    {
-    "symbol": "HEROMOTOCO",
-    "signalDate": "2026-10-23",
-    "pricePct": -1.58,
-    "oiPct": 3.43,
+    "symbol": "TATAPOWER",
+    "signalDate": "2026-10-26",
+    "pricePct": -2.76,
+    "oiPct": 6.57,
     "status": "SIGNAL"
-   },
+   }
+  ],
+  "trades": [
    {
-    "symbol": "KEI",
+    "symbol": "HYUNDAI",
     "signalDate": "2026-10-23",
-    "pricePct": -3.82,
-    "oiPct": 4.96,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "POLYCAB",
-    "signalDate": "2026-10-23",
-    "pricePct": -3.01,
-    "oiPct": 6.28,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "POWERINDIA",
-    "signalDate": "2026-10-23",
-    "pricePct": -2.72,
-    "oiPct": 5.33,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "SOLARINDS",
-    "signalDate": "2026-10-23",
-    "pricePct": -3.39,
-    "oiPct": 4.78,
-    "status": "SIGNAL"
+    "pricePct": -2.4,
+    "oiPct": 3.45,
+    "entryDate": "2026-10-26",
+    "entry": 1850,
+    "exitDate": "2026-10-26",
+    "exit": 1868,
+    "netPct": -1.039,
+    "status": "DONE"
    },
    {
     "symbol": "SHRIRAMFIN",
     "signalDate": "2026-10-23",
     "pricePct": -3.98,
     "oiPct": 4.7,
-    "status": "SIGNAL"
+    "entryDate": "2026-10-26",
+    "entry": 835,
+    "exitDate": "2026-10-26",
+    "exit": 825,
+    "netPct": 1.131,
+    "status": "DONE"
    },
    {
-    "symbol": "HYUNDAI",
+    "symbol": "SOLARINDS",
     "signalDate": "2026-10-23",
-    "pricePct": -2.4,
-    "oiPct": 3.45,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "pricePct": -3.39,
+    "oiPct": 4.78,
+    "entryDate": "2026-10-26",
+    "entry": 18401,
+    "exitDate": "2026-10-26",
+    "exit": 18683,
+    "netPct": -1.599,
+    "status": "DONE"
+   },
+   {
+    "symbol": "POWERINDIA",
+    "signalDate": "2026-10-23",
+    "pricePct": -2.72,
+    "oiPct": 5.33,
+    "entryDate": "2026-10-26",
+    "entry": 26315,
+    "exitDate": "2026-10-26",
+    "exit": 26850,
+    "netPct": -2.099,
+    "status": "DONE"
+   },
+   {
+    "symbol": "POLYCAB",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.01,
+    "oiPct": 6.28,
+    "entryDate": "2026-10-26",
+    "entry": 7432,
+    "exitDate": "2026-10-26",
+    "exit": 7739,
+    "netPct": -4.197,
+    "status": "DONE"
+   },
+   {
+    "symbol": "KEI",
+    "signalDate": "2026-10-23",
+    "pricePct": -3.82,
+    "oiPct": 4.96,
+    "entryDate": "2026-10-26",
+    "entry": 3720,
+    "exitDate": "2026-10-26",
+    "exit": 3899.5,
+    "netPct": -4.892,
+    "status": "DONE"
+   },
+   {
+    "symbol": "HEROMOTOCO",
+    "signalDate": "2026-10-23",
+    "pricePct": -1.58,
+    "oiPct": 3.43,
+    "entryDate": "2026-10-26",
+    "entry": 5047,
+    "exitDate": "2026-10-26",
+    "exit": 5199,
+    "netPct": -3.078,
+    "status": "DONE"
+   },
+   {
+    "symbol": "FORCEMOT",
+    "signalDate": "2026-10-23",
+    "pricePct": -2.19,
+    "oiPct": 7.8,
+    "entryDate": "2026-10-26",
+    "entry": 16401,
+    "exitDate": "2026-10-26",
+    "exit": 16588,
+    "netPct": -1.206,
+    "status": "DONE"
+   },
    {
     "symbol": "TMPV",
     "signalDate": "2026-10-22",
@@ -1317,79 +1400,73 @@
    }
   ],
   "summary": {
-   "finished": 85,
-   "meanNetPct": 0.495,
-   "winPct": 55.3,
-   "weeks": 3,
-   "t": 1.07,
+   "finished": 93,
+   "meanNetPct": 0.27,
+   "winPct": 51.6,
+   "weeks": 4,
+   "t": 0.52,
    "verdict": "COLLECTING"
   },
   "futuresLast": {
-   "date": "2026-10-23",
+   "date": "2026-10-26",
    "rows": [
     {
-     "symbol": "BHARATFORG",
+     "symbol": "FORCEMOT",
      "expiry": "2026-10-27",
-     "open": 1766.3,
-     "close": 1705.2
+     "open": 16300,
+     "close": 16655
     },
     {
-     "symbol": "BHEL",
+     "symbol": "HEROMOTOCO",
      "expiry": "2026-10-27",
-     "open": 398.1,
-     "close": 387.2
+     "open": 5064,
+     "close": 5193
     },
     {
-     "symbol": "ETERNAL",
+     "symbol": "HYUNDAI",
      "expiry": "2026-10-27",
-     "open": 305.95,
-     "close": 316.35
+     "open": 1846.1,
+     "close": 1880.2
     },
     {
-     "symbol": "KALYANKJIL",
+     "symbol": "KEI",
      "expiry": "2026-10-27",
-     "open": 530,
-     "close": 511
+     "open": 3689.6,
+     "close": 3873.9
     },
     {
-     "symbol": "LUPIN",
+     "symbol": "POLYCAB",
      "expiry": "2026-10-27",
-     "open": 1929.7,
-     "close": 1921.2
+     "open": 7405.5,
+     "close": 7708
     },
     {
      "symbol": "POWERINDIA",
      "expiry": "2026-10-27",
-     "open": 26555,
-     "close": 26245
+     "open": 26250,
+     "close": 27015
     },
     {
-     "symbol": "SWIGGY",
+     "symbol": "SHRIRAMFIN",
      "expiry": "2026-10-27",
-     "open": 205,
-     "close": 177.25
+     "open": 831,
+     "close": 825
     },
     {
-     "symbol": "TMPV",
+     "symbol": "SOLARINDS",
      "expiry": "2026-10-27",
-     "open": 269.5,
-     "close": 263.5
-    },
-    {
-     "symbol": "YESBANK",
-     "expiry": "2026-10-27",
-     "open": 16.12,
-     "close": 15.73
+     "open": 18293,
+     "close": 18584
     }
    ],
    "void": 0
   },
   "futuresRecord": {
-   "finished": 85,
+   "finished": 93,
    "missing": 0,
-   "meanNetPct": 0.402,
-   "winPct": 56.5,
-   "rupees": 35553,
+   "meanNetPct": 0.152,
+   "winPct": 52.7,
+   "rupees": -5545,
    "units": 20
   }
  }

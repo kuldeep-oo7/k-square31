@@ -2,10 +2,10 @@
  "preregistration": "studies/forward-v4-2026-10-12/PREREGISTRATION.txt",
  "preregSha256": "a166456d30ddcfdd8cef3dbc16e02060273dc0f1931420fe3953973920f9f68d",
  "start": "2026-10-13",
- "dataThrough": "2026-10-23",
+ "dataThrough": "2026-10-26",
  "slbThrough": "2026-10-23",
  "slbFiles": 57,
- "builtAt": "2026-10-26T11:26:11.505Z",
+ "builtAt": "2026-10-26T15:14:15.950Z",
  "S2": {
   "rule": "When the shares out on loan in NSE's lending market (SLB) jump to at least 2x their 20-day average, and at least 1 lakh shares: short the stock at the open of the 2nd session after that day's file, cover at the close 5 sessions later",
   "backtest": "+0.26% a trade over the market, 55% winners, t 2.23, 2,085 trades over 61 months (NSE data atlas study, 12 Oct 2026) — promising, not proven",
@@ -24,41 +24,61 @@
     "symbol": "HDFCBANK",
     "signalDate": "2026-10-15",
     "entryDate": "2026-10-19",
+    "exitDate": "2026-10-26",
     "entry": 733.4,
+    "exit": 688.05,
     "ratio": 2.08,
     "outstanding": 1577941,
     "hasFutures": true,
-    "status": "OPEN"
+    "rawPct": 6.118,
+    "marketPct": -4.087,
+    "netPct": 2.03,
+    "status": "DONE"
    },
    {
     "symbol": "ICICIBANK",
     "signalDate": "2026-10-15",
     "entryDate": "2026-10-19",
+    "exitDate": "2026-10-26",
     "entry": 1405,
+    "exit": 1403,
     "ratio": 2.12,
     "outstanding": 470469,
     "hasFutures": true,
-    "status": "OPEN"
+    "rawPct": 0.076,
+    "marketPct": -4.087,
+    "netPct": -4.011,
+    "status": "DONE"
    },
    {
     "symbol": "PERSISTENT",
     "signalDate": "2026-10-15",
     "entryDate": "2026-10-19",
+    "exitDate": "2026-10-26",
     "entry": 5742,
+    "exit": 5850,
     "ratio": 2.99,
     "outstanding": 614670,
     "hasFutures": true,
-    "status": "OPEN"
+    "rawPct": -1.947,
+    "marketPct": -4.087,
+    "netPct": -6.035,
+    "status": "DONE"
    },
    {
     "symbol": "SONACOMS",
     "signalDate": "2026-10-15",
     "entryDate": "2026-10-19",
+    "exitDate": "2026-10-26",
     "entry": 796.3,
+    "exit": 781.9,
     "ratio": 5.36,
     "outstanding": 816370,
     "hasFutures": true,
-    "status": "OPEN"
+    "rawPct": 1.742,
+    "marketPct": -4.087,
+    "netPct": -2.345,
+    "status": "DONE"
    },
    {
     "symbol": "BEL",
@@ -198,11 +218,11 @@
   ],
   "pending": [],
   "summary": {
-   "finished": 9,
-   "meanPct": 0.537,
-   "winPct": 55.6,
-   "worstPct": -0.463,
-   "t": null,
+   "finished": 13,
+   "meanPct": -0.425,
+   "winPct": 46.2,
+   "worstPct": -6.035,
+   "t": -0.32,
    "verdict": "COLLECTING"
   }
  }

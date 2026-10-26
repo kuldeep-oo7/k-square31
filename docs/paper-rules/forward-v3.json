@@ -2,14 +2,54 @@
  "preregistration": "studies/forward-v3-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
  "start": "2026-10-05",
- "dataThrough": "2026-10-23",
- "builtAt": "2026-10-26T11:26:06.401Z",
+ "dataThrough": "2026-10-26",
+ "builtAt": "2026-10-26T15:14:10.606Z",
  "industries": 2584,
  "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
  "CHEAPVOL": {
   "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
   "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months — just short of the bar",
   "trades": [
+   {
+    "symbol": "AUBANK",
+    "entryDate": "2026-10-26",
+    "expiry": "2026-11-23",
+    "strike": 870,
+    "entry": 55,
+    "ivPct": 28.6,
+    "rvPct": 36.4,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "JSWSTEEL",
+    "entryDate": "2026-10-26",
+    "expiry": "2026-11-23",
+    "strike": 1260,
+    "entry": 72.85,
+    "ivPct": 26.1,
+    "rvPct": 34.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BHEL",
+    "entryDate": "2026-10-26",
+    "expiry": "2026-11-23",
+    "strike": 390,
+    "entry": 30.85,
+    "ivPct": 35.3,
+    "rvPct": 45.4,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "TECHM",
+    "entryDate": "2026-10-26",
+    "expiry": "2026-11-23",
+    "strike": 1800,
+    "entry": 117.95,
+    "ivPct": 29.7,
+    "rvPct": 41.9,
+    "status": "OPEN"
+   },
    {
     "symbol": "ICICIGI",
     "entryDate": "2026-10-23",
@@ -128,6 +168,16 @@
     "entry": 70.55,
     "ivPct": 27,
     "rvPct": 34.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "YESBANK",
+    "entryDate": "2026-10-19",
+    "expiry": "2026-10-27",
+    "strike": 17,
+    "entry": 0.71,
+    "ivPct": 35.5,
+    "rvPct": 61.5,
     "status": "OPEN"
    },
    {
@@ -268,7 +318,10 @@
     "entry": 162.8,
     "ivPct": 26.2,
     "rvPct": 33.6,
-    "status": "OPEN"
+    "exitDate": "2026-10-26",
+    "exit": 264.15,
+    "netPct": 61.85,
+    "status": "DONE"
    },
    {
     "symbol": "LTF",
@@ -278,27 +331,10 @@
     "entry": 11.4,
     "ivPct": 32.3,
     "rvPct": 42.6,
-    "status": "OPEN"
-   },
-   {
-    "symbol": "YESBANK",
-    "entryDate": "2026-10-16",
-    "expiry": "2026-10-27",
-    "strike": 18,
-    "entry": 1.08,
-    "ivPct": 44.4,
-    "rvPct": 61,
-    "status": "OPEN"
-   },
-   {
-    "symbol": "AMBER",
-    "entryDate": "2026-10-16",
-    "expiry": "2026-10-27",
-    "strike": 6700,
-    "entry": 269.95,
-    "ivPct": 29.2,
-    "rvPct": 36.6,
-    "status": "OPEN"
+    "exitDate": "2026-10-26",
+    "exit": 15.4,
+    "netPct": 34.736,
+    "status": "DONE"
    },
    {
     "symbol": "INDUSTOWER",
@@ -308,7 +344,10 @@
     "entry": 11.45,
     "ivPct": 21.5,
     "rvPct": 26.9,
-    "status": "OPEN"
+    "exitDate": "2026-10-26",
+    "exit": 5.35,
+    "netPct": -53.457,
+    "status": "DONE"
    },
    {
     "symbol": "CANBK",
@@ -318,7 +357,10 @@
     "entry": 4.3,
     "ivPct": 26.2,
     "rvPct": 32.8,
-    "status": "OPEN"
+    "exitDate": "2026-10-26",
+    "exit": 2.44,
+    "netPct": -43.457,
+    "status": "DONE"
    },
    {
     "symbol": "WIPRO",
@@ -328,7 +370,10 @@
     "entry": 6.31,
     "ivPct": 24.6,
     "rvPct": 31.9,
-    "status": "OPEN"
+    "exitDate": "2026-10-26",
+    "exit": 5.19,
+    "netPct": -18,
+    "status": "DONE"
    },
    {
     "symbol": "POWERGRID",
@@ -338,7 +383,10 @@
     "entry": 6.5,
     "ivPct": 18.7,
     "rvPct": 24.1,
-    "status": "OPEN"
+    "exitDate": "2026-10-26",
+    "exit": 4.95,
+    "netPct": -24.085,
+    "status": "DONE"
    },
    {
     "symbol": "COALINDIA",
@@ -348,7 +396,10 @@
     "entry": 10.45,
     "ivPct": 18,
     "rvPct": 22.8,
-    "status": "OPEN"
+    "exitDate": "2026-10-26",
+    "exit": 14.3,
+    "netPct": 36.487,
+    "status": "DONE"
    },
    {
     "symbol": "APOLLOHOSP",
@@ -358,7 +409,10 @@
     "entry": 252.75,
     "ivPct": 23.1,
     "rvPct": 35.3,
-    "status": "OPEN"
+    "exitDate": "2026-10-26",
+    "exit": 153.05,
+    "netPct": -39.655,
+    "status": "DONE"
    },
    {
     "symbol": "TITAN",
@@ -368,7 +422,10 @@
     "entry": 111,
     "ivPct": 18,
     "rvPct": 23.8,
-    "status": "OPEN"
+    "exitDate": "2026-10-26",
+    "exit": 139.65,
+    "netPct": 25.477,
+    "status": "DONE"
    },
    {
     "symbol": "BHEL",
@@ -378,7 +435,10 @@
     "entry": 17.7,
     "ivPct": 29.3,
     "rvPct": 42.1,
-    "status": "OPEN"
+    "exitDate": "2026-10-26",
+    "exit": 41.35,
+    "netPct": 133.075,
+    "status": "DONE"
    },
    {
     "symbol": "TECHM",
@@ -388,7 +448,10 @@
     "entry": 68.3,
     "ivPct": 27.5,
     "rvPct": 40.8,
-    "status": "OPEN"
+    "exitDate": "2026-10-26",
+    "exit": 21.65,
+    "netPct": -68.455,
+    "status": "DONE"
    },
    {
     "symbol": "ICICIGI",
@@ -1094,11 +1157,11 @@
    }
   ],
   "summary": {
-   "finished": 54,
-   "meanPct": -0.473,
-   "winPct": 24.1,
-   "worstPct": -61.031,
-   "t": -0.07,
+   "finished": 65,
+   "meanPct": 0.292,
+   "winPct": 27.7,
+   "worstPct": -68.455,
+   "t": 0.05,
    "verdict": "COLLECTING"
   }
  },
@@ -1139,7 +1202,10 @@
      "WAAREEENER",
      "APOLLO"
     ],
-    "status": "OPEN"
+    "longPct": -5.152,
+    "shortPct": 4.069,
+    "netPct": -0.542,
+    "status": "DONE"
    },
    {
     "date": "2026-10-12",
@@ -1220,15 +1286,63 @@
     "status": "DONE"
    }
   ],
-  "pending": null,
-  "pendingNoIndustry": [],
-  "sessionsToNext": 1,
+  "pending": {
+   "long": [
+    "HSCL",
+    "SWIGGY",
+    "IIFL",
+    "NAM-INDIA",
+    "YESBANK",
+    "SHRIRAMFIN",
+    "WELCORP",
+    "AUBANK",
+    "WOCKPHARMA",
+    "IFCI",
+    "NAUKRI",
+    "AMBER",
+    "OFSS"
+   ],
+   "short": [
+    "BSE",
+    "LAURUSLABS",
+    "ETERNAL",
+    "JSWSTEEL",
+    "CHENNPETRO",
+    "GMRAIRPORT",
+    "KAYNES",
+    "UNIONBANK",
+    "INDUSTOWER",
+    "DRREDDY",
+    "COFORGE",
+    "ZYDUSLIFE",
+    "ATHERENERG"
+   ]
+  },
+  "pendingNoIndustry": [
+   "HSCL",
+   "SWIGGY",
+   "IIFL",
+   "NAM-INDIA",
+   "SHRIRAMFIN",
+   "AUBANK",
+   "AMBER",
+   "BSE",
+   "LAURUSLABS",
+   "ETERNAL",
+   "GMRAIRPORT",
+   "KAYNES",
+   "INDUSTOWER",
+   "COFORGE",
+   "ZYDUSLIFE",
+   "ATHERENERG"
+  ],
+  "sessionsToNext": 0,
   "summary": {
-   "finished": 2,
-   "meanPct": 0.91,
-   "winPct": 100,
-   "worstPct": 0.145,
-   "t": 1.19,
+   "finished": 3,
+   "meanPct": 0.426,
+   "winPct": 66.7,
+   "worstPct": -0.542,
+   "t": 0.65,
    "verdict": "COLLECTING"
   }
  }
