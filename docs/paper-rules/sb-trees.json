@@ -3,11 +3,99 @@
  "preregSha256": "43c8a7ebd3f522996fdab65d5e88a38ff6d2c455444473be245699e5a74bd379",
  "fit": "studies/sb-trees-forward-2026-10-23/FIT.txt",
  "start": "2026-10-23",
- "dataThrough": "2026-10-23",
- "builtAt": "2026-10-26T11:26:56.832Z",
+ "dataThrough": "2026-10-26",
+ "builtAt": "2026-10-26T15:20:04.071Z",
  "rule": "Short build-up, the trees model's picks: every short build-up signal gets TAKE or SKIP from a model frozen on 2006-2026 data, using only what is known at 09:15; priced on the near-month future",
  "backtest": "PROMISING, not a pass (futures lab, 23 Oct 2026): the TAKE half beat the SKIP half by +0.191% a trade in 2008-2020 (t 6.31, DSR 0.94) and +0.111% in 2020-2026 (t 2.63)",
  "trades": [
+  {
+   "symbol": "FORCEMOT",
+   "entryDate": "2026-10-26",
+   "decision": "SKIP",
+   "entry": 16300,
+   "exit": 16655,
+   "netPct": -2.244,
+   "excessPct": -0.585,
+   "rupees": -7100,
+   "status": "DONE"
+  },
+  {
+   "symbol": "HEROMOTOCO",
+   "entryDate": "2026-10-26",
+   "decision": "SKIP",
+   "entry": 5064,
+   "exit": 5193,
+   "netPct": -2.614,
+   "excessPct": -0.954,
+   "rupees": -2580,
+   "status": "DONE"
+  },
+  {
+   "symbol": "HYUNDAI",
+   "entryDate": "2026-10-26",
+   "decision": "SKIP",
+   "entry": 1846.1,
+   "exit": 1880.2,
+   "netPct": -1.914,
+   "excessPct": -0.254,
+   "rupees": -682,
+   "status": "DONE"
+  },
+  {
+   "symbol": "KEI",
+   "entryDate": "2026-10-26",
+   "decision": "SKIP",
+   "entry": 3689.6,
+   "exit": 3873.9,
+   "netPct": -5.062,
+   "excessPct": -3.402,
+   "rupees": -3686,
+   "status": "DONE"
+  },
+  {
+   "symbol": "POLYCAB",
+   "entryDate": "2026-10-26",
+   "decision": "SKIP",
+   "entry": 7405.5,
+   "exit": 7708,
+   "netPct": -4.151,
+   "excessPct": -2.492,
+   "rupees": -6050,
+   "status": "DONE"
+  },
+  {
+   "symbol": "POWERINDIA",
+   "entryDate": "2026-10-26",
+   "decision": "SKIP",
+   "entry": 26250,
+   "exit": 27015,
+   "netPct": -2.98,
+   "excessPct": -1.321,
+   "rupees": -15300,
+   "status": "DONE"
+  },
+  {
+   "symbol": "SHRIRAMFIN",
+   "entryDate": "2026-10-26",
+   "decision": "SKIP",
+   "entry": 831,
+   "exit": 825,
+   "netPct": 0.656,
+   "excessPct": 2.315,
+   "rupees": 120,
+   "status": "DONE"
+  },
+  {
+   "symbol": "SOLARINDS",
+   "entryDate": "2026-10-26",
+   "decision": "SKIP",
+   "entry": 18293,
+   "exit": 18584,
+   "netPct": -1.657,
+   "excessPct": 0.003,
+   "rupees": -5820,
+   "status": "DONE"
+  },
   {
    "symbol": "BHARATFORG",
    "entryDate": "2026-10-23",
@@ -109,7 +197,7 @@
   }
  ],
  "summary": {
-  "counted": 9,
+  "counted": 17,
   "taken": 4,
   "weeksBoth": 1,
   "spreadPct": -3.061,
@@ -117,9 +205,9 @@
   "takeNetPct": 1.141,
   "takeExcessPct": -0.899,
   "takeWinPct": 75,
-  "allNetPct": 2.842,
+  "allNetPct": 0.33,
   "takeRupees": 300,
-  "allRupees": 8665,
+  "allRupees": -32433,
   "verdict": "COLLECTING"
  }
 }
