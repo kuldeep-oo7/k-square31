@@ -258580,6 +258580,126 @@
     "perLot": -14320,
     "netPerLot": -14407.6
    }
+  },
+  {
+   "id": "2026-10-26|FUT|DRREDDY26NOVFUT",
+   "kind": "FUT",
+   "symbol": "DRREDDY",
+   "contract": "DRREDDY26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 625,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 1230.8,
+   "target": 1261.6,
+   "target2": 1292.3,
+   "stop": 1212.3,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 58.1,
+     "medianTradingDays": 0.273
+    },
+    "target": {
+     "probabilityPct": 69.7,
+     "medianTradingDays": 3.31
+    },
+    "sigmaPct": 23.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-26T04:24:45.832Z",
+   "exitPrice": 1261.6,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 0.34,
+   "sessionsHeld": 0,
+   "best": 1272.8,
+   "worst": 1230,
+   "last": 1272.6,
+   "lastAt": "2026-10-26T04:24:45.832Z",
+   "marks": 3,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 1280.5,
+    "low": 1230,
+    "last": 1272.6
+   },
+   "pnl": {
+    "perUnit": 30.8,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-22|FUTS|BSE26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "BSE",
+   "contract": "BSE26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 200,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 3261.4,
+   "target": 3179.9,
+   "target2": 3098.3,
+   "stop": 3310.3,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 68.3,
+     "medianTradingDays": 0.181
+    },
+    "target": {
+     "probabilityPct": 78.5,
+     "medianTradingDays": 2.191
+    },
+    "sigmaPct": 31.4,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-22T04:44:43.093Z",
+   "hoursToFill": 0.95,
+   "closedAt": "2026-10-26T04:24:45.832Z",
+   "exitPrice": 3310.3,
+   "exitReason": "STOP",
+   "hoursFillToExit": 95.67,
+   "sessionsHeld": 2,
+   "best": 3207.1,
+   "worst": 3377.1,
+   "last": 3363.1,
+   "lastAt": "2026-10-26T04:24:45.832Z",
+   "marks": 57,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 3377.1,
+    "low": 3240,
+    "last": 3363.1
+   },
+   "pnl": {
+    "perUnit": -48.9,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
