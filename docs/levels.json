@@ -261,7 +261,8 @@
   "OPTION|IDEA|IDEA26NOV13PE",
   "OPTION|COFORGE|COFORGE26NOV2080CE",
   "OPTION|TATAELXSI|TATAELXSI26NOV4000CE",
-  "OPTION|COFORGE|COFORGE26NOV2100CE"
+  "OPTION|COFORGE|COFORGE26NOV2100CE",
+  "OPTION|COLPAL|COLPAL26NOV1500PE"
  ],
  "options": {
   "NIFTY26N0322650PE": {
@@ -3547,6 +3548,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-26T06:04:07.194Z",
    "frozenAtIst": "2026-10-26 11:34 IST",
+   "frozenAtSpot": null
+  },
+  "COLPAL26NOV1500PE": {
+   "buy": 21.85,
+   "sell": 32.8,
+   "stop": 10.95,
+   "tick": 0.05,
+   "lotSize": 275,
+   "expiry": "2026-11-23",
+   "strike": 1500,
+   "right": "PE",
+   "symbol": "COLPAL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-26T06:24:10.647Z",
+   "frozenAtIst": "2026-10-26 11:54 IST",
    "frozenAtSpot": null
   }
  },
