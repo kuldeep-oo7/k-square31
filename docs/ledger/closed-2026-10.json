@@ -259708,6 +259708,120 @@
     "pct": -1.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-10-26|PE|CGPOWER26NOV790PE",
+   "kind": "PE",
+   "symbol": "CGPOWER",
+   "contract": "CGPOWER26NOV790PE",
+   "expiry": "2026-11-23",
+   "strike": 790,
+   "optionType": "PE",
+   "lotSize": 850,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:04:18.372Z",
+   "buy": 27.65,
+   "target": 41.45,
+   "target2": null,
+   "stop": 13.8,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44,
+     "medianDays": 10.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:24:45.832Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-26T07:24:03.896Z",
+   "exitPrice": 13.8,
+   "exitReason": "STOP",
+   "hoursFillToExit": 2.99,
+   "sessionsHeld": 0,
+   "best": 27.65,
+   "worst": 13.4,
+   "last": 13.7,
+   "lastAt": "2026-10-26T07:24:03.896Z",
+   "marks": 11,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 32,
+    "low": 13.4,
+    "last": 13.7
+   },
+   "pnl": {
+    "perUnit": -13.85,
+    "pct": -50.09,
+    "basis": "NET",
+    "perLot": -11772.5,
+    "netPerLot": -11852.81
+   }
+  },
+  {
+   "id": "2026-10-26|FUT|INDHOTEL26NOVFUT",
+   "kind": "FUT",
+   "symbol": "INDHOTEL",
+   "contract": "INDHOTEL26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 769.45,
+   "target": 788.7,
+   "target2": 807.9,
+   "stop": 757.9,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 69.9,
+     "medianTradingDays": 0.172
+    },
+    "target": {
+     "probabilityPct": 78.1,
+     "medianTradingDays": 1.954
+    },
+    "sigmaPct": 33,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-26T07:24:03.896Z",
+   "exitPrice": 788.7,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 3.33,
+   "sessionsHeld": 0,
+   "best": 789.3,
+   "worst": 768,
+   "last": 787.7,
+   "lastAt": "2026-10-26T07:24:03.896Z",
+   "marks": 12,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 789.3,
+    "low": 768,
+    "last": 787.7
+   },
+   "pnl": {
+    "perUnit": 19.25,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
