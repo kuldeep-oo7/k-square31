@@ -3,13 +3,40 @@
  "preregSha256": "3103476c5fb62658c94f206e71be75e398f73a6bb81e986e18bf23e3e21388e9",
  "fit": "studies/daytrader-forward-2026-10-26/FIT.txt",
  "start": "2026-10-26",
- "dataThrough": "2026-10-23",
- "builtAt": "2026-10-26T11:27:03.338Z",
+ "dataThrough": "2026-10-26",
+ "builtAt": "2026-10-26T15:20:06.604Z",
  "rule": "AI day-trader: a trees model ranks every universe stock future from what is known at 09:15; long the top tenth, short the bottom tenth, open to close, on futures",
  "backtest": "PASSED 2008-2020 (+0.25% a day, t 13.96) and CONFIRMED 2020-2026 (+0.10%, t 6.09), but decayed to +0.01% a day (t 0.63) from 8 Dec 2025 (audit 23 Oct 2026); spreads not modelled",
- "days": [],
+ "days": [
+  {
+   "date": "2026-10-26",
+   "names": 154,
+   "k": 15,
+   "bookPct": -0.131,
+   "longExcessPct": 0.299,
+   "shortExcessPct": -0.56,
+   "top3Pct": 0.509,
+   "top3Long": [
+    "GLENMARK",
+    "GMRAIRPORT",
+    "VMM"
+   ],
+   "top3Short": [
+    "TCS",
+    "ABB",
+    "HEROMOTOCO"
+   ]
+  }
+ ],
  "summary": {
-  "sessions": 0,
+  "sessions": 1,
+  "weeks": 1,
+  "bookPct": -0.131,
+  "t": null,
+  "wonPct": 0,
+  "longExcessPct": 0.299,
+  "shortExcessPct": -0.56,
+  "top3Pct": 0.509,
   "verdict": "COLLECTING"
  }
 }
