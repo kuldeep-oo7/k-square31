@@ -48,3 +48,4 @@
 - [Expiry live + fills 25 Oct](k2-expiry-live-2026-10-25.md) — X2 paper trade live on TRACK on expiry days, achievable fills recorded (A1 18c0101); Zerodha: no SL-M on index options, +2% ELM expiry day, straddle ~Rs 2.6 lakh; option-archive holiday-marker bug fixed
 - [Call vs put of expiry selling 25 Oct](k2-expiry-legs-2026-10-25.md) — split of X2: NO DIFFERENCE FOUND (t -1.48, low power); call +15.0 vs put +2.6 pts follows NIFTY direction; SEBI FY26 sellers vs buyers; TRACK shows split + each leg
 - [Order book 25 Oct](k2-orderbook-2026-10-25.md) — total buy/sell qty predicts nothing; visible book leans right (IC t 4-5) but ~1/6 of the spread+charges; verdict re-run at 60 sessions (~31 Dec 2026)
+- [SB vs NIFTY 26 Oct](k2-sb-vs-nifty-2026-10-26.md) — owner was right: live SB moves ~1-for-1 against NIFTY's intraday move (leftover -0.17%/day, t -0.45); 26 Oct -Rs 41,098 wiped out 3 weeks
