@@ -259102,6 +259102,66 @@
     "perLot": 12125,
     "netPerLot": 11997.02
    }
+  },
+  {
+   "id": "2026-10-26|FUTS|ADANIENSOL26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "ADANIENSOL",
+   "contract": "ADANIENSOL26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 675,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 1236,
+   "target": 1205.1,
+   "target2": 1174.2,
+   "stop": 1254.5,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 73.1,
+     "medianTradingDays": 0.141
+    },
+    "target": {
+     "probabilityPct": 82.2,
+     "medianTradingDays": 1.644
+    },
+    "sigmaPct": 37.7,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.4,
+     "stopFirstPct": 62.6,
+     "neitherPct": 0,
+     "breakEvenPct": 37.4
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-26T05:44:07.424Z",
+   "exitPrice": 1254.5,
+   "exitReason": "STOP",
+   "hoursFillToExit": 1.66,
+   "sessionsHeld": 0,
+   "best": 1225.1,
+   "worst": 1255.8,
+   "last": 1252.9,
+   "lastAt": "2026-10-26T05:44:07.424Z",
+   "marks": 7,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 1255.8,
+    "low": 1214.2,
+    "last": 1252.9
+   },
+   "pnl": {
+    "perUnit": -18.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
