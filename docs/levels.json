@@ -263,7 +263,8 @@
   "OPTION|TATAELXSI|TATAELXSI26NOV4000CE",
   "OPTION|COFORGE|COFORGE26NOV2100CE",
   "OPTION|COLPAL|COLPAL26NOV1500PE",
-  "OPTION|INDHOTEL|INDHOTEL26NOV830CE"
+  "OPTION|INDHOTEL|INDHOTEL26NOV830CE",
+  "OPTION|PERSISTENT|PERSISTENT26NOV6200CE"
  ],
  "options": {
   "NIFTY26N0322650PE": {
@@ -3579,6 +3580,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-26T07:44:07.079Z",
    "frozenAtIst": "2026-10-26 13:14 IST",
+   "frozenAtSpot": null
+  },
+  "PERSISTENT26NOV6200CE": {
+   "buy": 80.3,
+   "sell": 120.45,
+   "stop": 40.15,
+   "tick": 0.05,
+   "lotSize": 125,
+   "expiry": "2026-11-23",
+   "strike": 6200,
+   "right": "CE",
+   "symbol": "PERSISTENT",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-26T08:24:08.606Z",
+   "frozenAtIst": "2026-10-26 13:54 IST",
    "frozenAtSpot": null
   }
  },

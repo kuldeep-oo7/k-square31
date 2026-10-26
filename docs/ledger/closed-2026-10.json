@@ -260374,6 +260374,60 @@
     "perLot": -15030,
     "netPerLot": -15119.6
    }
+  },
+  {
+   "id": "2026-10-23|PE|GVT&D26NOV3500PE",
+   "kind": "PE",
+   "symbol": "GVT&D",
+   "contract": "GVT&D26NOV3500PE",
+   "expiry": "2026-11-23",
+   "strike": 3500,
+   "optionType": "PE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T04:44:29.622Z",
+   "buy": 144.6,
+   "target": 216.9,
+   "target2": null,
+   "stop": 72.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 43.2,
+     "medianDays": 12,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-23T05:04:32.719Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-26T08:24:08.967Z",
+   "exitPrice": 72.3,
+   "exitReason": "STOP",
+   "hoursFillToExit": 75.33,
+   "sessionsHeld": 1,
+   "best": 144.6,
+   "worst": 72.3,
+   "last": 74,
+   "lastAt": "2026-10-26T08:24:08.967Z",
+   "marks": 39,
+   "obs": {
+    "date": "2026-10-26",
+    "high": 107.55,
+    "low": 72.3,
+    "last": 74
+   },
+   "pnl": {
+    "perUnit": -72.3,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -9037.5,
+    "netPerLot": -9110.2
+   }
   }
  ]
 }
