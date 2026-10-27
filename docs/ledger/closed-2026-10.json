@@ -270029,6 +270029,114 @@
     "perLot": -12138.75,
     "netPerLot": -12220.2
    }
+  },
+  {
+   "id": "2026-10-26|PE|NAM-INDIA26NOV900PE",
+   "kind": "PE",
+   "symbol": "NAM-INDIA",
+   "contract": "NAM-INDIA26NOV900PE",
+   "expiry": "2026-11-23",
+   "strike": 900,
+   "optionType": "PE",
+   "lotSize": 625,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:04:18.372Z",
+   "buy": 35.85,
+   "target": 53.75,
+   "target2": null,
+   "stop": 17.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.3,
+     "medianDays": 8.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-27T08:04:20.950Z",
+   "exitPrice": 17.95,
+   "exitReason": "STOP",
+   "hoursFillToExit": 28,
+   "sessionsHeld": 1,
+   "best": 40.5,
+   "worst": 17.6,
+   "last": 17.6,
+   "lastAt": "2026-10-27T08:04:20.950Z",
+   "marks": 39,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 33.85,
+    "low": 17.6,
+    "last": 17.6
+   },
+   "pnl": {
+    "perUnit": -17.9,
+    "pct": -49.93,
+    "basis": "NET",
+    "perLot": -11187.5,
+    "netPerLot": -11266.34
+   }
+  },
+  {
+   "id": "2026-10-23|PE|HDFCBANK26NOV680PE",
+   "kind": "PE",
+   "symbol": "HDFCBANK",
+   "contract": "HDFCBANK26NOV680PE",
+   "expiry": "2026-11-23",
+   "strike": 680,
+   "optionType": "PE",
+   "lotSize": 650,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T03:47:41.747Z",
+   "buy": 10.25,
+   "target": 15.4,
+   "target2": null,
+   "stop": 5.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 42.1,
+     "medianDays": 12.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T04:04:18.777Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-27T08:04:20.950Z",
+   "exitPrice": 15.4,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 100,
+   "sessionsHeld": 2,
+   "best": 15.9,
+   "worst": 9.7,
+   "last": 15.3,
+   "lastAt": "2026-10-27T08:04:20.950Z",
+   "marks": 67,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 15.9,
+    "low": 11.4,
+    "last": 15.3
+   },
+   "pnl": {
+    "perUnit": 5.15,
+    "pct": 50.24,
+    "basis": "NET",
+    "perLot": 3347.5,
+    "netPerLot": 3278.08
+   }
   }
  ]
 }
