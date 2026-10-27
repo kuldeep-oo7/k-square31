@@ -3,11 +3,33 @@
  "preregSha256": "43c8a7ebd3f522996fdab65d5e88a38ff6d2c455444473be245699e5a74bd379",
  "fit": "studies/sb-trees-forward-2026-10-23/FIT.txt",
  "start": "2026-10-23",
- "dataThrough": "2026-10-26",
- "builtAt": "2026-10-27T10:50:40.651Z",
+ "dataThrough": "2026-10-27",
+ "builtAt": "2026-10-27T19:03:24.180Z",
  "rule": "Short build-up, the trees model's picks: every short build-up signal gets TAKE or SKIP from a model frozen on 2006-2026 data, using only what is known at 09:15; priced on the near-month future",
  "backtest": "PROMISING, not a pass (futures lab, 23 Oct 2026): the TAKE half beat the SKIP half by +0.191% a trade in 2008-2020 (t 6.31, DSR 0.94) and +0.111% in 2020-2026 (t 2.63)",
  "trades": [
+  {
+   "symbol": "AUBANK",
+   "entryDate": "2026-10-27",
+   "decision": "SKIP",
+   "entry": 868.7,
+   "exit": 853.8,
+   "netPct": 1.649,
+   "excessPct": 2.203,
+   "rupees": 298,
+   "status": "DONE"
+  },
+  {
+   "symbol": "TATAPOWER",
+   "entryDate": "2026-10-27",
+   "decision": "SKIP",
+   "entry": 337.75,
+   "exit": 339.65,
+   "netPct": -0.629,
+   "excessPct": -0.075,
+   "rupees": -38,
+   "status": "DONE"
+  },
   {
    "symbol": "FORCEMOT",
    "entryDate": "2026-10-26",
@@ -197,7 +219,7 @@
   }
  ],
  "summary": {
-  "counted": 17,
+  "counted": 19,
   "taken": 4,
   "weeksBoth": 1,
   "spreadPct": -3.061,
@@ -205,9 +227,9 @@
   "takeNetPct": 1.141,
   "takeExcessPct": -0.899,
   "takeWinPct": 75,
-  "allNetPct": 0.33,
+  "allNetPct": 0.349,
   "takeRupees": 300,
-  "allRupees": -32433,
+  "allRupees": -32173,
   "verdict": "COLLECTING"
  }
 }
