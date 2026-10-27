@@ -46,7 +46,7 @@ function parseArgs(args) {
   if (options.live === !!options.input) throw new Error("Choose exactly one of --live or --input.");
   return options;
 }
-async function run(options, { history = futuresHistory, refreshMaster = null, ensureSession = null, instruments, now = Date.now(), budgetMs = Infinity } = {}) {
+async function run(options, { history = futuresHistory, refreshMaster = null, ensureSession = null, instruments, now = Date.now(), budgetMs = Infinity, pauseMs = 30000 } = {}) {
   const started = Date.now();
   const asOf = options.asOf || lastClosedSession(now);
   if (asOf > lastClosedSession(now) || !/^\d{4}-\d{2}-\d{2}$/.test(asOf)
@@ -99,8 +99,15 @@ async function run(options, { history = futuresHistory, refreshMaster = null, en
             if (refreshed.ok) data = await history({ ...contract, asOf, instruments: master, now });
           } catch { /* retain the safe session-rejected reason */ }
         }
+        // After ~80 quick history requests Angel answers AG8001 "Invalid Token" for ~20 s, then accepts the same
+        // session again (measured 27 Oct 2026): pause and retry once instead of ending the scan there.
+        if (["ANGEL_SESSION_REJECTED", "ANGEL_HTTP_429"].includes(data.reason) && Date.now() - started + pauseMs < budgetMs) {
+          await new Promise((resolve) => setTimeout(resolve, pauseMs));
+          data = await history({ ...contract, asOf, instruments: master, now });
+        }
         consume(data);
-        if (["NETWORK_ACCESS_DENIED", "ANGEL_SESSION_REJECTED", "ANGEL_SESSION_NOT_CONFIGURED", "ANGEL_HTTP_429"].includes(data.reason)) break;
+        // A scan that stops early is partial, so the next desk build finishes it (cached histories are reused).
+        if (["NETWORK_ACCESS_DENIED", "ANGEL_SESSION_REJECTED", "ANGEL_SESSION_NOT_CONFIGURED", "ANGEL_HTTP_429"].includes(data.reason)) { report.partial = true; break; }
         // Under SmartAPI's published historical request limit (3/s).
         if (!data.fromCache) await new Promise((resolve) => setTimeout(resolve, 400));
       }
