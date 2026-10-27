@@ -231,7 +231,8 @@
   "OPTION|BANKNIFTY|BANKNIFTY26NOV55700PE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26NOV13500PE",
   "OPTION|CROMPTON|CROMPTON26NOV210PE",
-  "OPTION|AUBANK|AUBANK26NOV830PE"
+  "OPTION|AUBANK|AUBANK26NOV830PE",
+  "OPTION|INDHOTEL|INDHOTEL26NOV850CE"
  ],
  "options": {
   "NIFTY26N0322750PE": {
@@ -3067,6 +3068,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-27T05:04:13.953Z",
    "frozenAtIst": "2026-10-27 10:34 IST",
+   "frozenAtSpot": null
+  },
+  "INDHOTEL26NOV850CE": {
+   "buy": 8.35,
+   "sell": 12.55,
+   "stop": 4.15,
+   "tick": 0.05,
+   "lotSize": 1000,
+   "expiry": "2026-11-23",
+   "strike": 850,
+   "right": "CE",
+   "symbol": "INDHOTEL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-27T05:24:15.249Z",
+   "frozenAtIst": "2026-10-27 10:54 IST",
    "frozenAtSpot": null
   }
  },
