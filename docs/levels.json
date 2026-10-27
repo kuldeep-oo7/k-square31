@@ -240,7 +240,8 @@
   "OPTION|BANKNIFTY|BANKNIFTY26NOV52900PE",
   "OPTION|POLICYBZR|POLICYBZR26NOV940PE",
   "OPTION|CGPOWER|CGPOWER26NOV790PE",
-  "OPTION|ADANIPOWER|ADANIPOWER26NOV175PE"
+  "OPTION|ADANIPOWER|ADANIPOWER26NOV175PE",
+  "OPTION|HCLTECH|HCLTECH26NOV1500CE"
  ],
  "options": {
   "NIFTY26N0322750PE": {
@@ -3211,6 +3212,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-27T08:04:20.634Z",
    "frozenAtIst": "2026-10-27 13:34 IST",
+   "frozenAtSpot": null
+  },
+  "HCLTECH26NOV1500CE": {
+   "buy": 16.7,
+   "sell": 25.05,
+   "stop": 8.35,
+   "tick": 0.05,
+   "lotSize": 400,
+   "expiry": "2026-11-23",
+   "strike": 1500,
+   "right": "CE",
+   "symbol": "HCLTECH",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-27T08:24:22.327Z",
+   "frozenAtIst": "2026-10-27 13:54 IST",
    "frozenAtSpot": null
   }
  },
