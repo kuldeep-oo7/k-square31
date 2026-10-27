@@ -267748,6 +267748,114 @@
     "perLot": -11137.75,
     "netPerLot": -11216.37
    }
+  },
+  {
+   "id": "2026-10-26|PE|LTF26NOV220PE",
+   "kind": "PE",
+   "symbol": "LTF",
+   "contract": "LTF26NOV220PE",
+   "expiry": "2026-11-23",
+   "strike": 220,
+   "optionType": "PE",
+   "lotSize": 2250,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:04:18.372Z",
+   "buy": 5.3,
+   "target": 7.95,
+   "target2": null,
+   "stop": 2.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.8,
+     "medianDays": 9.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-27T05:04:14.334Z",
+   "exitPrice": 2.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 25,
+   "sessionsHeld": 1,
+   "best": 5.3,
+   "worst": 2.55,
+   "last": 2.55,
+   "lastAt": "2026-10-27T05:04:14.334Z",
+   "marks": 30,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 3.05,
+    "low": 2.55,
+    "last": 2.55
+   },
+   "pnl": {
+    "perUnit": -2.65,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -5962.5,
+    "netPerLot": -6026.52
+   }
+  },
+  {
+   "id": "2026-10-22|CE|TECHM26NOV1840CE",
+   "kind": "CE",
+   "symbol": "TECHM",
+   "contract": "TECHM26NOV1840CE",
+   "expiry": "2026-11-23",
+   "strike": 1840,
+   "optionType": "CE",
+   "lotSize": 600,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 57.85,
+   "target": 86.75,
+   "target2": null,
+   "stop": 28.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 57.9,
+     "medianDays": 8.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-22T04:04:38.913Z",
+   "hoursToFill": 0.29,
+   "closedAt": "2026-10-27T05:04:14.334Z",
+   "exitPrice": 28.95,
+   "exitReason": "STOP",
+   "hoursFillToExit": 120.99,
+   "sessionsHeld": 3,
+   "best": 72.35,
+   "worst": 28.65,
+   "last": 31.5,
+   "lastAt": "2026-10-27T05:04:14.334Z",
+   "marks": 84,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 39.7,
+    "low": 28.65,
+    "last": 31.5
+   },
+   "pnl": {
+    "perUnit": -28.9,
+    "pct": -49.96,
+    "basis": "NET",
+    "perLot": -17340,
+    "netPerLot": -17436.19
+   }
   }
  ]
 }
