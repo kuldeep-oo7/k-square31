@@ -1,0 +1,63 @@
+"use strict";
+const assert = require("node:assert/strict");
+const fs = require("node:fs");
+const os = require("node:os");
+const path = require("node:path");
+const { project, render, freshQuote } = require("../api/_lib/gm-weekly-screen");
+const { prepare } = require("./prepare-gm-weekly");
+const candidate = { symbol: "TEST", expiry: "2026-11-23", tickSize: 0.05, setup: "CHANNEL_BREAKOUT", side: "BUY", signalDate: "2026-10-26",
+  signalClose: 1000, stopPrice: 990, atr14: 20, status: "UNVALIDATED_PAPER_CANDIDATE" };
+const report = { mode: "PAPER_RESEARCH_ONLY", asOf: "2026-10-26", candidates: [candidate], examined: 200, status: "UNVALIDATED_PAPER_CANDIDATES" };
+const now = Date.parse("2026-10-27T09:17:00+05:30");
+const quote = { price: 1000, bid: 999, ask: 1001, exchangeFeedTime: "27-Oct-2026 09:17:00" };
+const preview = project({ report, now: Date.parse("2026-10-26T21:00:00+05:30") });
+assert.equal(preview.view.rows[0].status, "PREVIEW");
+assert.equal(preview.view.rows[0].targetPrice, 1030);
+assert.equal(Object.keys(preview.state.positions).length, 0);
+assert.equal(freshQuote(quote, now), true);
+assert.equal(freshQuote({ ...quote, exchangeFeedTime: "26-Oct-2026 09:17:00" }, now), false);
+assert.equal(freshQuote({ ...quote, exchangeFeedTime: "27-Oct-2026 10:00:00" }, now), false);
+const live = project({ report, quotes: { "TEST|2026-11-23": quote }, now, marketOpen: true });
+assert.equal(live.view.rows[0].status, "PAPER_ENTRY_FROZEN");
+assert.equal(live.view.rows[0].entryPrice, 1001, "a long enters on the observed ask, never retroactively on the open");
+assert.equal(live.view.rows[0].targetPrice, 1031.05);
+assert.equal(live.view.rows[0].stopPrice, 990);
+const again = project({ report, state: live.state, now, marketOpen: true, quotes: { "TEST|2026-11-23": { ...quote, ask: 1005, bid: 1004 } } });
+assert.equal(again.view.rows.length, 1); assert.equal(again.view.rows[0].entryPrice, 1001, "paper entry does not chase the market");
+assert.equal(again.view.rows[0].targetPrice, 1031.05);
+const short = project({ report: { ...report, candidates: [{ ...candidate, side: "SELL", stopPrice: 1010 }] }, now, marketOpen: true, quotes: { "TEST|2026-11-23": quote } });
+assert.equal(short.view.rows[0].entryPrice, 999, "a short enters on the bid");
+assert.equal(short.view.rows[0].targetPrice, 969);
+const rejected = project({ report, quotes: { "TEST|2026-11-23": { ...quote, bid: 1050, ask: 1051 } }, now, marketOpen: true });
+assert.equal(rejected.view.rows[0].status, "SKIP_ENTRY_GAP_OR_RISK"); assert.equal(Object.keys(rejected.state.positions).length, 0);
+assert.equal(project({ report, now, marketOpen: true }).view.rows[0].status, "WAITING_FOR_FRESH_QUOTE");
+assert.equal(project({ report, now: Date.parse("2026-10-27T16:00:00+05:30") }).view.rows[0].status, "ENTRY_WINDOW_CLOSED");
+assert.equal(project({ report, now: Date.parse("2026-10-28T09:17:00+05:30"), marketOpen: true }).view.rows.length, 0, "no new entry from yesterday's list");
+assert.equal(project({ report: null, state: live.state, now }).view.rows.length, 1, "feed failure must retain already frozen levels");
+const html = render(live.view, "2026-10-27");
+assert.ok(html.includes("Paper entry") && html.includes("1,001.00") && html.includes("Stop-loss") && html.includes("Sell target") && html.includes("1,031.05"));
+assert.ok(render(short.view, "2026-10-27").includes("Buy-back target"));
+assert.ok(render(live.view, "2026-10-28").includes("No entry prices issued") && !render(live.view, "2026-10-28").includes("1,001.00"));
+assert.ok(render({ ...live.view, rows: [{ ...live.view.rows[0], symbol: '<img src=x onerror="x">' }] }, "2026-10-27").includes("&lt;img"));
+
+(async () => {
+  const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gm-screen-"));
+  try {
+    let scans = 0;
+    const deps = { dir, now, scanRun: async () => { scans++; return report; }, quotesFor: async () => ({ quotes: { "TEST|2026-11-23": quote } }), marketOpen: true };
+    const v = await prepare(deps); assert.equal(v.rows[0].entryPrice, 1001);
+    const p = JSON.parse(fs.readFileSync(path.join(dir, "state.json"), "utf8"));
+    assert.equal(Object.values(p.positions)[0].entryPrice, 1001);
+    const refreshed = await prepare({ ...deps, quotesFor: async () => ({ quotes: { "TEST|2026-11-23": { ...quote, ask: 1004 } } }) });
+    assert.equal(refreshed.rows[0].entryPrice, 1001);
+    const output = JSON.parse(fs.readFileSync(path.join(dir, "screen.json"), "utf8"));
+    assert.ok(!JSON.stringify(output).includes("macdHistogram"), "public screen excludes model features and raw histories");
+    assert.equal(scans, 2, "a report missing provenance is not trusted as a reusable scan");
+    const outage = await prepare({ ...deps, quotesFor: async () => { throw new Error("provider down"); } });
+    assert.equal(outage.rows[0].entryPrice, 1001, "a quote outage retains the existing entry, stop and target");
+    assert.equal(outage.rows[0].last, null); assert.equal(outage.dataReason, "LIVE_QUOTES_UNAVAILABLE");
+    const failedScan = await prepare({ ...deps, scanRun: async () => { throw new Error("scanner down"); } });
+    assert.equal(failedScan.rows[0].entryPrice, 1001); assert.equal(failedScan.status, "DATA_UNAVAILABLE");
+  } finally { fs.rmSync(dir, { recursive: true, force: true }); }
+  console.log("GM weekly screen: previews, bid/ask entries, frozen levels, stale data, shorts, escaping and preparation passed.");
+})().catch((e) => { console.error(e); process.exitCode = 1; });

@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "gm:scan": "node scripts/scan-gm-weekly.js --live",
+    "gm:audit": "node scripts/audit-gm-goal.js",
+    "gm:test": "node scripts/test-gm-weekly-research.js",
     "build": "echo 'Build successful'",
     "start:desk": "node --max-old-space-size=400 server.js",
     "start": "node --max-old-space-size=400 server.js",

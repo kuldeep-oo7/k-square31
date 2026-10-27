@@ -10,6 +10,20 @@ npm run dev
 
 Then open `http://127.0.0.1:4173`.
 
+## GM friends competition: 3% from the entry price
+
+`npm run gm:scan` uses the existing Angel One credentials and NFO instrument master to read completed daily candles for each nearest listed future. It checks 20-session channel breaks, engulfing pullbacks, and confirmed hammer/shooting-star reversals with EMA20/50 trend, RSI14, MACD, volume and ATR filters. These combinations are new **unvalidated paper research**, not proven picks. Their exact thresholds are in `config/gm-weekly-research.json`; published definitions are linked there. Missing/stale history, unfinished candles, contract changes and missing ticks are rejected. No GM account connection or order execution is added.
+
+Results stay in `.private/gm-weekly/latest.json`. To narrow a live scan, run `npm run gm:scan -- --symbols RELIANCE,INFY`. `npm run gm:audit` reads the existing strategy evidence; `npm run gm:test` checks the new calculations and feed using synthetic data.
+
+The scheduled desk build also runs `scripts/prepare-gm-weekly.js`. FUTURES shows a **GM · 3% WEEKLY PLAN** panel with side, contract expiry, entry reference or frozen paper entry, stop-loss, target and deadline. The first fresh next-session ask (BUY) or bid (SELL) must pass the gap and risk checks before paper levels freeze. A "Use my GM fill price" input recalculates the target locally for your own entry. Unvalidated rows remain explicitly paper research and do not count as proven trades. Histories and frozen paper state persist in `.private/cache/gm-weekly`; missing or stale data produces an unavailable message, never invented prices.
+
+The exit deadline is the final verified NSE session inside the seven-day window, capped by contract expiry. Weekends and exchange holidays cannot become exit dates.
+
+The target uses the **actual futures fill**, not account capital, a share price or Monday's reset: BUY at 1,000 targets 1,030; SELL at 1,000 targets 970. `bindEntry()` in `api/_lib/gm-technical-research.js` rechecks the actual next-session fill, structural stop, entry gap and reward/risk. Its 1.5% maximum stop and 2:1 minimum reward/risk are research choices, not GM platform rules or guaranteed loss limits. The goal window is seven calendar days including entry, shortened by the actual contract expiry. Unknown GM costs stay unknown; supply round-trip costs to calculate a net 3% target. Replays count ambiguous target/stop candles as stops, gap-through stops at the open, and incomplete weeks as censored. Existing registered paper strategies and their exits are preserved.
+
+The stored GM tournament tested 86 strategies and recorded zero PASS. This scanner has no measured weekly success rate yet. Public GM pages do not establish account-specific fees, quantity ceilings or reset treatment; the implementation does not invent those rules. Run the scanner where the existing API has network access before assessing current candidates.
+
 ## Core model
 
 - Rolling low/high: lowest daily low and highest daily high in the last 31 calendar days.

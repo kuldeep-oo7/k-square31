@@ -1,0 +1,24 @@
+{
+  "version": "gm-price-goal-v1",
+  "mode": "PAPER_RESEARCH_ONLY",
+  "targetPct": 3,
+  "windowCalendarDays": 7,
+  "minHistory": 55,
+  "channelSessions": 20,
+  "volumeMultiple": 1.5,
+  "maxStopPct": 1.5,
+  "minRewardRisk": 2,
+  "maxEntryGapAtr": 0.5,
+  "minAtrPct": 0.75,
+  "maxAtrPct": 4,
+  "quantity": 20,
+  "status": "UNVALIDATED",
+  "sources": [
+    "https://chartschool.stockcharts.com/table-of-contents/technical-indicators-and-overlays/technical-overlays/price-channels",
+    "https://chartschool.stockcharts.com/table-of-contents/chart-analysis/candlestick-charts/candlestick-bullish-reversal-patterns",
+    "https://www.cmegroup.com/education/courses/technical-analysis/trend-and-continuation-patterns",
+    "https://www.tradingview.com/support/solutions/43000502344-moving-average-convergence-divergence-macd-indicator/"
+  ],
+  "interpretation": "Published pattern definitions; the combined filters and numerical cutoffs are this desk's unvalidated research design. No guaranteed return or measured win probability. 3% is measured from the actual entry, before unknown GM costs. No account-capital or NSE-lot substitution.",
+  "platformRulesSource": "User clarification 2026-10-26; notes/claude-memory/gm-global-manual-only.md. Account-specific GM fees, resets and quantity ceilings are not independently verified."
+}

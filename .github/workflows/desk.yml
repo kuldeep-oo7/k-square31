@@ -275,6 +275,11 @@ jobs:
             gh release upload orderflow-rec "$asset" --clobber && echo "$asset: $(gunzip -c "$asset" | wc -l) builds recorded"
           done
 
+      - name: Prepare the GM weekly paper screen
+        continue-on-error: true
+        timeout-minutes: 4
+        run: node scripts/prepare-gm-weekly.js
+
       - name: Build the page and freeze the day's levels
         run: node scripts/publish-static-desk.js
 
