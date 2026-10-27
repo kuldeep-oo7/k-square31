@@ -1,0 +1,34 @@
+COMBINED MODEL -- CHECKS BEFORE THE REAL RUN (no real-data result exists; the real run has NOT been made)
+
+Pre-registration committed 2026-10-13 22:44 IST (e44b3fd; the header says ~23:30, it was 22:44). Amendment A1 added
+2026-10-14 ~08:00 IST after an independent review, before any real-data result (section 9 of PREREGISTRATION.txt).
+
+CHECK 7.1, synthetic market with a planted SLB-surge edge (seed 1), three builds, all recorded:
+ run 1 (surges overlapping; planted effect measured -0.48%): C1 trees t 3.82 PASS (old rule), C2 ridge t 2.87, L1 top feature
+ run 2 (overlaps blocked, fewer surges; top-decile effect -0.33%): C1 t 2.64, C2 t 1.11, L1 top feature
+   (re-scored with the amended DSR: C1 DSR 0.93, PROMISING)
+ run 3 (amendment A1 design: 12 of 120 names surge each session, none twice within 6 sessions; planted effect measured
+   in the panel: surge names -0.395% vs others +0.044%, difference -0.439% over 5 sessions):
+   C1 trees long-short +0.067%/rebalance, t 1.79, Holm no, DSR 0.86 -> FAIL
+   C2 ridge long-short +0.047%, t 1.27 -> FAIL;  C3 trees long-only -0.000%, t -0.11 -> FAIL
+   L1 IS the top permutation feature (0.0085; next P23 0.0063). Mean rank IC trees 0.014.
+ VERDICT OF CHECK 7.1: FAILED. The pipeline ranks the planted feature first but cannot turn a ~0.44% 5-day excess edge
+ on 10% of names into a book that clears t >= 3 in 44 months. By section 7 the real run is NOT made with this design.
+
+CHECKS 7.2-7.4: not run (7.1 failed first).
+
+Implementation notes: sklearn 1.9 HistGradientBoosting fails on an all-missing training column; such a column is set
+to a constant for that block (model.py fit_trees). Synthetic data only; no real-data panel was built.
+
+AMENDMENT A2 CHECKS -- 2026-10-16, synthetic markets only, before the real run:
+CHECK 7.3 (no look-ahead), synthetic seed 1 with the plant, cutoff session 1000 (2024-07-02):
+ rows dated <= cutoff: 88800 vs 88800, same keys: true; features compared 4972800, different 0
+ predictions of blocks fully before the cutoff: 11040 compared, 0 different (92 rebalances; 25 later blocks)
+ control (the change must matter after the cutoff): later features differ true, later predictions differ 11880
+ CHECK 7.3: PASSED
+CHECK 7.2 (no-edge synthetic markets, A1 rule; at most 1 PASS among the 9 member results):
+ seed 1: C1 -0.077% t -2.60 DSR 0.01 FAIL | C2 -0.083% t -2.23 DSR 0.01 FAIL | C3 -0.059% t -1.53 DSR 0.02 FAIL
+ seed 2: C1 -0.078% t -2.37 DSR 0.01 FAIL | C2 -0.049% t -1.76 DSR 0.04 FAIL | C3 -0.094% t -2.13 DSR 0.02 FAIL
+ seed 3: C1 -0.025% t -0.72 DSR 0.15 FAIL | C2 -0.036% t -1.23 DSR 0.05 FAIL | C3 -0.086% t -2.22 DSR 0.01 FAIL
+ PASS results: 0 of 9. CHECK 7.2: PASSED
+ (The negative means on no-edge markets are the futures charges: about -0.05% to -0.09% a rebalance.)
