@@ -226,7 +226,10 @@
   "OPTION|SOLARINDS|SOLARINDS26NOV19500PE",
   "OPTION|SOLARINDS|SOLARINDS26NOV18000PE",
   "OPTION|SOLARINDS|SOLARINDS26NOV18500PE",
-  "OPTION|GODREJPROP|GODREJPROP26NOV1500PE"
+  "OPTION|GODREJPROP|GODREJPROP26NOV1500PE",
+  "OPTION|BANKNIFTY|BANKNIFTY26NOV55800PE",
+  "OPTION|BANKNIFTY|BANKNIFTY26NOV55700PE",
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26NOV13500PE"
  ],
  "options": {
   "NIFTY26N0322750PE": {
@@ -2987,6 +2990,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-27T04:05:30.860Z",
    "frozenAtIst": "2026-10-27 09:35 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26NOV55800PE": {
+   "buy": 1375.45,
+   "sell": 2063.2,
+   "stop": 687.75,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-11-23",
+   "strike": 55800,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-27T04:25:16.329Z",
+   "frozenAtIst": "2026-10-27 09:55 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26NOV55700PE": {
+   "buy": 1321.4,
+   "sell": 1982.1,
+   "stop": 660.7,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-11-23",
+   "strike": 55700,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-27T04:25:16.329Z",
+   "frozenAtIst": "2026-10-27 09:55 IST",
+   "frozenAtSpot": null
+  },
+  "MIDCPNIFTY26NOV13500PE": {
+   "buy": 397,
+   "sell": 595.5,
+   "stop": 198.5,
+   "tick": 0.05,
+   "lotSize": 120,
+   "expiry": "2026-11-23",
+   "strike": 13500,
+   "right": "PE",
+   "symbol": "MIDCPNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-27T04:25:16.329Z",
+   "frozenAtIst": "2026-10-27 09:55 IST",
    "frozenAtSpot": null
   }
  },
