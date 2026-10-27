@@ -229,7 +229,8 @@
   "OPTION|GODREJPROP|GODREJPROP26NOV1500PE",
   "OPTION|BANKNIFTY|BANKNIFTY26NOV55800PE",
   "OPTION|BANKNIFTY|BANKNIFTY26NOV55700PE",
-  "OPTION|MIDCPNIFTY|MIDCPNIFTY26NOV13500PE"
+  "OPTION|MIDCPNIFTY|MIDCPNIFTY26NOV13500PE",
+  "OPTION|CROMPTON|CROMPTON26NOV210PE"
  ],
  "options": {
   "NIFTY26N0322750PE": {
@@ -3035,6 +3036,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-27T04:25:16.329Z",
    "frozenAtIst": "2026-10-27 09:55 IST",
+   "frozenAtSpot": null
+  },
+  "CROMPTON26NOV210PE": {
+   "buy": 15.26,
+   "sell": 22.89,
+   "stop": 7.63,
+   "tick": 0.01,
+   "lotSize": 2150,
+   "expiry": "2026-11-23",
+   "strike": 210,
+   "right": "PE",
+   "symbol": "CROMPTON",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-27T04:44:37.676Z",
+   "frozenAtIst": "2026-10-27 10:14 IST",
    "frozenAtSpot": null
   }
  },
