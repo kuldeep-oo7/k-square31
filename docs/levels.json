@@ -233,7 +233,9 @@
   "OPTION|CROMPTON|CROMPTON26NOV210PE",
   "OPTION|AUBANK|AUBANK26NOV830PE",
   "OPTION|INDHOTEL|INDHOTEL26NOV850CE",
-  "OPTION|TATAELXSI|TATAELXSI26NOV4000CE"
+  "OPTION|TATAELXSI|TATAELXSI26NOV4000CE",
+  "OPTION|BANKNIFTY|BANKNIFTY26NOV53100PE",
+  "OPTION|INFY|INFY26NOV1240CE"
  ],
  "options": {
   "NIFTY26N0322750PE": {
@@ -3099,6 +3101,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-27T06:04:24.368Z",
    "frozenAtIst": "2026-10-27 11:34 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26NOV53100PE": {
+   "buy": 416.6,
+   "sell": 624.9,
+   "stop": 208.3,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-11-23",
+   "strike": 53100,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-27T07:04:51.575Z",
+   "frozenAtIst": "2026-10-27 12:34 IST",
+   "frozenAtSpot": null
+  },
+  "INFY26NOV1240CE": {
+   "buy": 14.45,
+   "sell": 21.65,
+   "stop": 7.2,
+   "tick": 0.05,
+   "lotSize": 400,
+   "expiry": "2026-11-23",
+   "strike": 1240,
+   "right": "CE",
+   "symbol": "INFY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-27T07:04:51.575Z",
+   "frozenAtIst": "2026-10-27 12:34 IST",
    "frozenAtSpot": null
   }
  },
