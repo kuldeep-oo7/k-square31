@@ -2,22 +2,23 @@
  "preregistration": "studies/oi-flow-forward-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
  "start": "2026-10-05",
- "dataThrough": "2026-10-26",
- "fnoThrough": "2026-10-26",
- "builtAt": "2026-10-27T10:49:33.625Z",
+ "dataThrough": "2026-10-27",
+ "fnoThrough": "2026-10-27",
+ "builtAt": "2026-10-27T14:44:57.746Z",
  "LU": {
   "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
   "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
-  "pending": [
+  "pending": [],
+  "trades": [
    {
     "symbol": "AMBER",
     "signalDate": "2026-10-26",
     "pricePct": -1.61,
     "oiPct": -4.52,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "entryDate": "2026-10-27",
+    "entry": 5885,
+    "status": "OPEN"
+   },
    {
     "symbol": "LTM",
     "signalDate": "2026-10-23",
@@ -214,7 +215,10 @@
     "oiPct": -8.3,
     "entryDate": "2026-10-13",
     "entry": 7775,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 7791.5,
+    "netPct": 0.146,
+    "status": "DONE"
    },
    {
     "symbol": "KALYANKJIL",
@@ -254,11 +258,11 @@
    }
   ],
   "summary": {
-   "finished": 3,
-   "meanNetPct": 2.482,
+   "finished": 4,
+   "meanNetPct": 1.898,
    "winPct": 100,
-   "weeks": 1,
-   "t": null,
+   "weeks": 2,
+   "t": 2.17,
    "verdict": "COLLECTING"
   }
  },
@@ -268,20 +272,65 @@
   "pending": [
    {
     "symbol": "AUBANK",
-    "signalDate": "2026-10-26",
-    "pricePct": -6.85,
-    "oiPct": 3.33,
+    "signalDate": "2026-10-27",
+    "pricePct": -2.42,
+    "oiPct": 3.64,
     "status": "SIGNAL"
    },
+   {
+    "symbol": "BDL",
+    "signalDate": "2026-10-27",
+    "pricePct": -2.24,
+    "oiPct": 8.2,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "MAZDOCK",
+    "signalDate": "2026-10-27",
+    "pricePct": -6.45,
+    "oiPct": 6.77,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "PAYTM",
+    "signalDate": "2026-10-27",
+    "pricePct": -3.21,
+    "oiPct": 10.47,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "WAAREEENER",
+    "signalDate": "2026-10-27",
+    "pricePct": -1.9,
+    "oiPct": 5.2,
+    "status": "SIGNAL"
+   }
+  ],
+  "trades": [
    {
     "symbol": "TATAPOWER",
     "signalDate": "2026-10-26",
     "pricePct": -2.76,
     "oiPct": 6.57,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "entryDate": "2026-10-27",
+    "entry": 337.9,
+    "exitDate": "2026-10-27",
+    "exit": 339.1,
+    "netPct": -0.422,
+    "status": "DONE"
+   },
+   {
+    "symbol": "AUBANK",
+    "signalDate": "2026-10-26",
+    "pricePct": -6.85,
+    "oiPct": 3.33,
+    "entryDate": "2026-10-27",
+    "entry": 869,
+    "exitDate": "2026-10-27",
+    "exit": 848,
+    "netPct": 2.35,
+    "status": "DONE"
+   },
    {
     "symbol": "HYUNDAI",
     "signalDate": "2026-10-23",
@@ -1400,73 +1449,37 @@
    }
   ],
   "summary": {
-   "finished": 93,
-   "meanNetPct": 0.27,
+   "finished": 95,
+   "meanNetPct": 0.284,
    "winPct": 51.6,
    "weeks": 4,
-   "t": 0.52,
+   "t": 0.58,
    "verdict": "COLLECTING"
   },
   "futuresLast": {
-   "date": "2026-10-26",
+   "date": "2026-10-27",
    "rows": [
     {
-     "symbol": "FORCEMOT",
+     "symbol": "AUBANK",
      "expiry": "2026-10-27",
-     "open": 16300,
-     "close": 16655
+     "open": 868.7,
+     "close": 853.8
     },
     {
-     "symbol": "HEROMOTOCO",
+     "symbol": "TATAPOWER",
      "expiry": "2026-10-27",
-     "open": 5064,
-     "close": 5193
-    },
-    {
-     "symbol": "HYUNDAI",
-     "expiry": "2026-10-27",
-     "open": 1846.1,
-     "close": 1880.2
-    },
-    {
-     "symbol": "KEI",
-     "expiry": "2026-10-27",
-     "open": 3689.6,
-     "close": 3873.9
-    },
-    {
-     "symbol": "POLYCAB",
-     "expiry": "2026-10-27",
-     "open": 7405.5,
-     "close": 7708
-    },
-    {
-     "symbol": "POWERINDIA",
-     "expiry": "2026-10-27",
-     "open": 26250,
-     "close": 27015
-    },
-    {
-     "symbol": "SHRIRAMFIN",
-     "expiry": "2026-10-27",
-     "open": 831,
-     "close": 825
-    },
-    {
-     "symbol": "SOLARINDS",
-     "expiry": "2026-10-27",
-     "open": 18293,
-     "close": 18584
+     "open": 337.75,
+     "close": 339.65
     }
    ],
    "void": 0
   },
   "futuresRecord": {
-   "finished": 93,
+   "finished": 95,
    "missing": 0,
-   "meanNetPct": 0.152,
-   "winPct": 52.7,
-   "rupees": -5545,
+   "meanNetPct": 0.16,
+   "winPct": 52.6,
+   "rupees": -5285,
    "units": 20
   }
  }

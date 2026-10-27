@@ -2,14 +2,114 @@
  "preregistration": "studies/forward-v3-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
  "start": "2026-10-05",
- "dataThrough": "2026-10-26",
- "builtAt": "2026-10-27T10:49:45.895Z",
+ "dataThrough": "2026-10-27",
+ "builtAt": "2026-10-27T14:45:11.077Z",
  "industries": 2584,
  "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
  "CHEAPVOL": {
   "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
   "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months — just short of the bar",
   "trades": [
+   {
+    "symbol": "HAVELLS",
+    "entryDate": "2026-10-27",
+    "expiry": "2026-11-23",
+    "strike": 1010,
+    "entry": 59.85,
+    "ivPct": 27.3,
+    "rvPct": 34.5,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "LICHSGFIN",
+    "entryDate": "2026-10-27",
+    "expiry": "2026-11-23",
+    "strike": 510,
+    "entry": 32.1,
+    "ivPct": 28.9,
+    "rvPct": 39.7,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "YESBANK",
+    "entryDate": "2026-10-27",
+    "expiry": "2026-11-23",
+    "strike": 16,
+    "entry": 1.45,
+    "ivPct": 41.9,
+    "rvPct": 59.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "TATACONSUM",
+    "entryDate": "2026-10-27",
+    "expiry": "2026-11-23",
+    "strike": 1000,
+    "entry": 53.8,
+    "ivPct": 24.7,
+    "rvPct": 32.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "SONACOMS",
+    "entryDate": "2026-10-27",
+    "expiry": "2026-11-23",
+    "strike": 850,
+    "entry": 60.7,
+    "ivPct": 32.7,
+    "rvPct": 42.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "CANBK",
+    "entryDate": "2026-10-27",
+    "expiry": "2026-11-23",
+    "strike": 118,
+    "entry": 7.46,
+    "ivPct": 29.1,
+    "rvPct": 36.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "UNIONBANK",
+    "entryDate": "2026-10-27",
+    "expiry": "2026-11-23",
+    "strike": 185,
+    "entry": 11.11,
+    "ivPct": 27.7,
+    "rvPct": 34.9,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BAJAJ-AUTO",
+    "entryDate": "2026-10-27",
+    "expiry": "2026-11-23",
+    "strike": 10400,
+    "entry": 650.5,
+    "ivPct": 28.8,
+    "rvPct": 37.7,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ITC",
+    "entryDate": "2026-10-27",
+    "expiry": "2026-11-23",
+    "strike": 260,
+    "entry": 14.05,
+    "ivPct": 24.8,
+    "rvPct": 32.7,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ATHERENERG",
+    "entryDate": "2026-10-27",
+    "expiry": "2026-11-23",
+    "strike": 1680,
+    "entry": 143.4,
+    "ivPct": 39.4,
+    "rvPct": 61.1,
+    "status": "OPEN"
+   },
    {
     "symbol": "AUBANK",
     "entryDate": "2026-10-26",
@@ -168,7 +268,10 @@
     "entry": 70.55,
     "ivPct": 27,
     "rvPct": 34.8,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 51.75,
+    "netPct": -26.881,
+    "status": "DONE"
    },
    {
     "symbol": "YESBANK",
@@ -178,7 +281,10 @@
     "entry": 0.71,
     "ivPct": 35.5,
     "rvPct": 61.5,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 1.36,
+    "netPct": 91.078,
+    "status": "DONE"
    },
    {
     "symbol": "BOSCHLTD",
@@ -188,7 +294,10 @@
     "entry": 1150.3,
     "ivPct": 21.5,
     "rvPct": 27.7,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 833.8,
+    "netPct": -27.746,
+    "status": "DONE"
    },
    {
     "symbol": "DMART",
@@ -198,7 +307,10 @@
     "entry": 89.45,
     "ivPct": 22.9,
     "rvPct": 31.9,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 105.7,
+    "netPct": 17.847,
+    "status": "DONE"
    },
    {
     "symbol": "HDFCLIFE",
@@ -208,7 +320,10 @@
     "entry": 13.6,
     "ivPct": 21.1,
     "rvPct": 30.8,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 29.55,
+    "netPct": 116.77,
+    "status": "DONE"
    },
    {
     "symbol": "POLICYBZR",
@@ -218,7 +333,10 @@
     "entry": 46.85,
     "ivPct": 38.2,
     "rvPct": 162.4,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 34,
+    "netPct": -27.66,
+    "status": "DONE"
    },
    {
     "symbol": "DLF",
@@ -228,7 +346,10 @@
     "entry": 17.55,
     "ivPct": 22,
     "rvPct": 28.4,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 2.65,
+    "netPct": -85.022,
+    "status": "DONE"
    },
    {
     "symbol": "BAJAJ-AUTO",
@@ -238,7 +359,10 @@
     "entry": 252.4,
     "ivPct": 20.7,
     "rvPct": 35.4,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 26.75,
+    "netPct": -89.514,
+    "status": "DONE"
    },
    {
     "symbol": "ADANIPORTS",
@@ -248,7 +372,10 @@
     "entry": 43.4,
     "ivPct": 20.7,
     "rvPct": 29.8,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 13.35,
+    "netPct": -69.391,
+    "status": "DONE"
    },
    {
     "symbol": "ADANIENT",
@@ -258,7 +385,10 @@
     "entry": 92.4,
     "ivPct": 29.4,
     "rvPct": 37.6,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 182.5,
+    "netPct": 97.039,
+    "status": "DONE"
    },
    {
     "symbol": "ITC",
@@ -268,7 +398,10 @@
     "entry": 5.15,
     "ivPct": 16.7,
     "rvPct": 33.6,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 1.5,
+    "netPct": -71.022,
+    "status": "DONE"
    },
    {
     "symbol": "AXISBANK",
@@ -278,7 +411,10 @@
     "entry": 26.85,
     "ivPct": 18.3,
     "rvPct": 28.3,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 26.35,
+    "netPct": -2.143,
+    "status": "DONE"
    },
    {
     "symbol": "BHARTIARTL",
@@ -288,7 +424,10 @@
     "entry": 34.35,
     "ivPct": 15.5,
     "rvPct": 26.8,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 88.7,
+    "netPct": 157.636,
+    "status": "DONE"
    },
    {
     "symbol": "ICICIBANK",
@@ -298,7 +437,10 @@
     "entry": 26.9,
     "ivPct": 16.4,
     "rvPct": 21.6,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 2.8,
+    "netPct": -89.703,
+    "status": "DONE"
    },
    {
     "symbol": "HDFCBANK",
@@ -308,7 +450,10 @@
     "entry": 15.3,
     "ivPct": 18.1,
     "rvPct": 23.2,
-    "status": "OPEN"
+    "exitDate": "2026-10-27",
+    "exit": 29.55,
+    "netPct": 92.674,
+    "status": "DONE"
    },
    {
     "symbol": "RADICO",
@@ -1157,11 +1302,11 @@
    }
   ],
   "summary": {
-   "finished": 65,
-   "meanPct": 0.292,
-   "winPct": 27.7,
-   "worstPct": -68.455,
-   "t": 0.05,
+   "finished": 80,
+   "meanPct": 1.287,
+   "winPct": 30,
+   "worstPct": -89.703,
+   "t": 0.28,
    "verdict": "COLLECTING"
   }
  },
@@ -1170,6 +1315,40 @@
   "backtest": "+0.15% a rebalance, t 1.98, 248 rebalances over 60 months — just short of the bar",
   "status": "RUN",
   "rebalances": [
+   {
+    "date": "2026-10-27",
+    "long": [
+     "HSCL",
+     "SWIGGY",
+     "IIFL",
+     "NAM-INDIA",
+     "YESBANK",
+     "SHRIRAMFIN",
+     "WELCORP",
+     "AUBANK",
+     "WOCKPHARMA",
+     "IFCI",
+     "NAUKRI",
+     "AMBER",
+     "OFSS"
+    ],
+    "short": [
+     "BSE",
+     "LAURUSLABS",
+     "ETERNAL",
+     "JSWSTEEL",
+     "CHENNPETRO",
+     "GMRAIRPORT",
+     "KAYNES",
+     "UNIONBANK",
+     "INDUSTOWER",
+     "DRREDDY",
+     "COFORGE",
+     "ZYDUSLIFE",
+     "ATHERENERG"
+    ],
+    "status": "OPEN"
+   },
    {
     "date": "2026-10-19",
     "long": [
@@ -1286,57 +1465,9 @@
     "status": "DONE"
    }
   ],
-  "pending": {
-   "long": [
-    "HSCL",
-    "SWIGGY",
-    "IIFL",
-    "NAM-INDIA",
-    "YESBANK",
-    "SHRIRAMFIN",
-    "WELCORP",
-    "AUBANK",
-    "WOCKPHARMA",
-    "IFCI",
-    "NAUKRI",
-    "AMBER",
-    "OFSS"
-   ],
-   "short": [
-    "BSE",
-    "LAURUSLABS",
-    "ETERNAL",
-    "JSWSTEEL",
-    "CHENNPETRO",
-    "GMRAIRPORT",
-    "KAYNES",
-    "UNIONBANK",
-    "INDUSTOWER",
-    "DRREDDY",
-    "COFORGE",
-    "ZYDUSLIFE",
-    "ATHERENERG"
-   ]
-  },
-  "pendingNoIndustry": [
-   "HSCL",
-   "SWIGGY",
-   "IIFL",
-   "NAM-INDIA",
-   "SHRIRAMFIN",
-   "AUBANK",
-   "AMBER",
-   "BSE",
-   "LAURUSLABS",
-   "ETERNAL",
-   "GMRAIRPORT",
-   "KAYNES",
-   "INDUSTOWER",
-   "COFORGE",
-   "ZYDUSLIFE",
-   "ATHERENERG"
-  ],
-  "sessionsToNext": 0,
+  "pending": null,
+  "pendingNoIndustry": [],
+  "sessionsToNext": 4,
   "summary": {
    "finished": 3,
    "meanPct": 0.426,

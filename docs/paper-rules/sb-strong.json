@@ -4,11 +4,24 @@
  "preregSha256": "71f1efb555ae3a964ec578f7e107c0d692f6f814d4b2261c577a7c2a7b9ef0c7",
  "amendmentSha256": "f2f3cd886b53c4e3ce303613cb08568e8ea615a45ce287d499d360ffdc9d0ec8",
  "start": "2026-10-23",
- "dataThrough": "2026-10-26",
- "builtAt": "2026-10-27T10:49:37.742Z",
+ "dataThrough": "2026-10-27",
+ "builtAt": "2026-10-27T14:45:02.235Z",
  "rule": "Short build-up, strong signals only: the share fell at least 3% and its futures open interest rose at least 6% -> short the near-month future at the next open, cover at that day's close",
  "backtest": "PROMISING, not a pass (night lab 22 Oct 2026, priced on shares): 2005-2020 +0.118% a trade beyond the market, t 2.99; 2020-2026 +0.223%, t 2.73. On futures the same trades earn about 0.1% less (descriptive look, 23 Oct)",
- "pending": [],
+ "pending": [
+  {
+   "symbol": "MAZDOCK",
+   "signalDate": "2026-10-27",
+   "pricePct": -6.45,
+   "oiPct": 6.77
+  },
+  {
+   "symbol": "PAYTM",
+   "signalDate": "2026-10-27",
+   "pricePct": -3.21,
+   "oiPct": 10.47
+  }
+ ],
  "trades": [
   {
    "symbol": "POLYCAB",
