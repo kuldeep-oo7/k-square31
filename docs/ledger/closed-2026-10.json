@@ -268780,6 +268780,493 @@
     "perLot": 13850,
     "netPerLot": 13710.53
    }
+  },
+  {
+   "id": "2026-10-27|FUTS|NAM-INDIA26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "NAM-INDIA",
+   "contract": "NAM-INDIA26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 625,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 924.8,
+   "target": 901.7,
+   "target2": 878.6,
+   "stop": 938.7,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 78.1,
+     "medianTradingDays": 0.102
+    },
+    "target": {
+     "probabilityPct": 85.8,
+     "medianTradingDays": 1.155
+    },
+    "sigmaPct": 46.7,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.6,
+     "stopFirstPct": 62.4,
+     "neitherPct": 0,
+     "breakEvenPct": 37.6
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-27T05:24:15.614Z",
+   "hoursToFill": 1.61,
+   "closedAt": "2026-10-27T06:04:24.717Z",
+   "exitPrice": 938.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 0.67,
+   "sessionsHeld": 0,
+   "best": 924.8,
+   "worst": 943,
+   "last": 940.2,
+   "lastAt": "2026-10-27T06:04:24.717Z",
+   "marks": 8,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 943,
+    "low": 896,
+    "last": 940.2
+   },
+   "pnl": {
+    "perUnit": -13.9,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-27|FUTS|INOXWIND26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "INOXWIND",
+   "contract": "INOXWIND26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 6400,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 59.48,
+   "target": 57.99,
+   "target2": 56.51,
+   "stop": 60.37,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 71.9,
+     "medianTradingDays": 0.151
+    },
+    "target": {
+     "probabilityPct": 81.4,
+     "medianTradingDays": 1.76
+    },
+    "sigmaPct": 36.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.4,
+     "stopFirstPct": 62.6,
+     "neitherPct": 0,
+     "breakEvenPct": 37.4
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-27T04:05:31.235Z",
+   "hoursToFill": 0.3,
+   "closedAt": "2026-10-27T06:04:24.717Z",
+   "exitPrice": 60.37,
+   "exitReason": "STOP",
+   "hoursFillToExit": 1.98,
+   "sessionsHeld": 0,
+   "best": 59.48,
+   "worst": 60.38,
+   "last": 60.27,
+   "lastAt": "2026-10-27T06:04:24.717Z",
+   "marks": 8,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 60.38,
+    "low": 58.71,
+    "last": 60.27
+   },
+   "pnl": {
+    "perUnit": -0.89,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-27|FUT|CYIENT (share)",
+   "kind": "FUT",
+   "symbol": "CYIENT",
+   "contract": "CYIENT (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 500,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 1205.4,
+   "target": 1235.5,
+   "target2": 1265.7,
+   "stop": 1187.3,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "STOP",
+   "filledAt": "2026-10-27T04:44:38.050Z",
+   "hoursToFill": 0.95,
+   "closedAt": "2026-10-27T06:04:24.717Z",
+   "exitPrice": 1187.3,
+   "exitReason": "STOP",
+   "hoursFillToExit": 1.33,
+   "sessionsHeld": 0,
+   "best": 1205.4,
+   "worst": 1177.9,
+   "last": 1186.5,
+   "lastAt": "2026-10-27T06:04:24.717Z",
+   "marks": 8,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 1239.3,
+    "low": 1177.9,
+    "last": 1186.5
+   },
+   "pnl": {
+    "perUnit": -18.1,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-27|PE|KFINTECH26NOV800PE",
+   "kind": "PE",
+   "symbol": "KFINTECH",
+   "contract": "KFINTECH26NOV800PE",
+   "expiry": "2026-11-23",
+   "strike": 800,
+   "optionType": "PE",
+   "lotSize": 575,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 18.9,
+   "target": 28.35,
+   "target2": null,
+   "stop": 9.45,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 33.5,
+     "medianDays": 13,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-27T04:05:31.235Z",
+   "hoursToFill": 0.3,
+   "closedAt": "2026-10-27T06:04:24.717Z",
+   "exitPrice": 9.45,
+   "exitReason": "STOP",
+   "hoursFillToExit": 1.98,
+   "sessionsHeld": 0,
+   "best": 18.9,
+   "worst": 8.5,
+   "last": 9.15,
+   "lastAt": "2026-10-27T06:04:24.717Z",
+   "marks": 8,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 22.55,
+    "low": 8.5,
+    "last": 9.15
+   },
+   "pnl": {
+    "perUnit": -9.45,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -5433.75,
+    "netPerLot": -5496.28
+   }
+  },
+  {
+   "id": "2026-10-27|PE|KFINTECH26NOV820PE",
+   "kind": "PE",
+   "symbol": "KFINTECH",
+   "contract": "KFINTECH26NOV820PE",
+   "expiry": "2026-11-23",
+   "strike": 820,
+   "optionType": "PE",
+   "lotSize": 575,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 25,
+   "target": 37.5,
+   "target2": null,
+   "stop": 12.5,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 42.3,
+     "medianDays": 10.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-27T04:05:31.235Z",
+   "hoursToFill": 0.3,
+   "closedAt": "2026-10-27T06:04:24.717Z",
+   "exitPrice": 12.5,
+   "exitReason": "STOP",
+   "hoursFillToExit": 1.98,
+   "sessionsHeld": 0,
+   "best": 25,
+   "worst": 11.9,
+   "last": 12.5,
+   "lastAt": "2026-10-27T06:04:24.717Z",
+   "marks": 8,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 32.15,
+    "low": 11.9,
+    "last": 12.5
+   },
+   "pnl": {
+    "perUnit": -12.5,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -7187.5,
+    "netPerLot": -7254.98
+   }
+  },
+  {
+   "id": "2026-10-26|PE|SOLARINDS26NOV17500PE",
+   "kind": "PE",
+   "symbol": "SOLARINDS",
+   "contract": "SOLARINDS26NOV17500PE",
+   "expiry": "2026-11-23",
+   "strike": 17500,
+   "optionType": "PE",
+   "lotSize": 50,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:04:18.372Z",
+   "buy": 458.5,
+   "target": 687.75,
+   "target2": null,
+   "stop": 229.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 42.3,
+     "medianDays": 11.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-27T06:04:24.717Z",
+   "exitPrice": 229.25,
+   "exitReason": "STOP",
+   "hoursFillToExit": 26,
+   "sessionsHeld": 1,
+   "best": 479.05,
+   "worst": 224.7,
+   "last": 224.7,
+   "lastAt": "2026-10-27T06:04:24.717Z",
+   "marks": 31,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 293.6,
+    "low": 224.7,
+    "last": 224.7
+   },
+   "pnl": {
+    "perUnit": -229.25,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -11462.5,
+    "netPerLot": -11542.04
+   }
+  },
+  {
+   "id": "2026-10-26|PE|NAM-INDIA26NOV880PE",
+   "kind": "PE",
+   "symbol": "NAM-INDIA",
+   "contract": "NAM-INDIA26NOV880PE",
+   "expiry": "2026-11-23",
+   "strike": 880,
+   "optionType": "PE",
+   "lotSize": 625,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:04:18.372Z",
+   "buy": 26,
+   "target": 39,
+   "target2": null,
+   "stop": 13,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.1,
+     "medianDays": 9.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-27T06:04:24.717Z",
+   "exitPrice": 13,
+   "exitReason": "STOP",
+   "hoursFillToExit": 26,
+   "sessionsHeld": 1,
+   "best": 29.5,
+   "worst": 12.15,
+   "last": 12.5,
+   "lastAt": "2026-10-27T06:04:24.717Z",
+   "marks": 32,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 18,
+    "low": 12.15,
+    "last": 12.5
+   },
+   "pnl": {
+    "perUnit": -13,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -8125,
+    "netPerLot": -8195.12
+   }
+  },
+  {
+   "id": "2026-10-26|PE|BHEL26NOV370PE",
+   "kind": "PE",
+   "symbol": "BHEL",
+   "contract": "BHEL26NOV370PE",
+   "expiry": "2026-11-23",
+   "strike": 370,
+   "optionType": "PE",
+   "lotSize": 2625,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 8.2,
+   "target": 12.3,
+   "target2": null,
+   "stop": 4.1,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 40.8,
+     "medianDays": 11.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:24:45.832Z",
+   "hoursToFill": 0.62,
+   "closedAt": "2026-10-27T06:04:24.717Z",
+   "exitPrice": 4.1,
+   "exitReason": "STOP",
+   "hoursFillToExit": 25.66,
+   "sessionsHeld": 1,
+   "best": 8.2,
+   "worst": 3.9,
+   "last": 4.25,
+   "lastAt": "2026-10-27T06:04:24.717Z",
+   "marks": 33,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 5.55,
+    "low": 3.9,
+    "last": 4.25
+   },
+   "pnl": {
+    "perUnit": -4.1,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -10762.5,
+    "netPerLot": -10840.06
+   }
+  },
+  {
+   "id": "2026-10-23|PE|POWERINDIA26NOV28000PE",
+   "kind": "PE",
+   "symbol": "POWERINDIA",
+   "contract": "POWERINDIA26NOV28000PE",
+   "expiry": "2026-11-23",
+   "strike": 28000,
+   "optionType": "PE",
+   "lotSize": 25,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T03:47:41.747Z",
+   "buy": 2257.35,
+   "target": 3386.05,
+   "target2": null,
+   "stop": 1128.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44,
+     "medianDays": 12,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-23T04:04:18.777Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-27T06:04:24.717Z",
+   "exitPrice": 1128.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 98,
+   "sessionsHeld": 2,
+   "best": 2801,
+   "worst": 1125,
+   "last": 1227.75,
+   "lastAt": "2026-10-27T06:04:24.717Z",
+   "marks": 57,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 1490,
+    "low": 1125,
+    "last": 1227.75
+   },
+   "pnl": {
+    "perUnit": -1128.7,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -28217.5,
+    "netPerLot": -28344.31
+   }
   }
  ]
 }

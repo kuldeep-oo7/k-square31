@@ -232,7 +232,8 @@
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26NOV13500PE",
   "OPTION|CROMPTON|CROMPTON26NOV210PE",
   "OPTION|AUBANK|AUBANK26NOV830PE",
-  "OPTION|INDHOTEL|INDHOTEL26NOV850CE"
+  "OPTION|INDHOTEL|INDHOTEL26NOV850CE",
+  "OPTION|TATAELXSI|TATAELXSI26NOV4000CE"
  ],
  "options": {
   "NIFTY26N0322750PE": {
@@ -3083,6 +3084,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-27T05:24:15.249Z",
    "frozenAtIst": "2026-10-27 10:54 IST",
+   "frozenAtSpot": null
+  },
+  "TATAELXSI26NOV4000CE": {
+   "buy": 50.95,
+   "sell": 76.45,
+   "stop": 25.5,
+   "tick": 0.05,
+   "lotSize": 125,
+   "expiry": "2026-11-23",
+   "strike": 4000,
+   "right": "CE",
+   "symbol": "TATAELXSI",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-27T06:04:24.368Z",
+   "frozenAtIst": "2026-10-27 11:34 IST",
    "frozenAtSpot": null
   }
  },
