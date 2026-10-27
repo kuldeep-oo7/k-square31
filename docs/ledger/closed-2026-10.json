@@ -270245,6 +270245,60 @@
     "perLot": 5162.5,
     "netPerLot": 5080.91
    }
+  },
+  {
+   "id": "2026-10-23|PE|COCHINSHIP26NOV1100PE",
+   "kind": "PE",
+   "symbol": "COCHINSHIP",
+   "contract": "COCHINSHIP26NOV1100PE",
+   "expiry": "2026-11-23",
+   "strike": 1100,
+   "optionType": "PE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T04:04:18.406Z",
+   "buy": 28.05,
+   "target": 42.1,
+   "target2": null,
+   "stop": 14.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 41,
+     "medianDays": 12.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T04:04:18.777Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-27T09:22:50.398Z",
+   "exitPrice": 42.1,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 101.31,
+   "sessionsHeld": 2,
+   "best": 44.9,
+   "worst": 22.4,
+   "last": 42.6,
+   "lastAt": "2026-10-27T09:22:50.398Z",
+   "marks": 68,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 44.9,
+    "low": 22.4,
+    "last": 42.6
+   },
+   "pnl": {
+    "perUnit": 14.05,
+    "pct": 50.09,
+    "basis": "NET",
+    "perLot": 5620,
+    "netPerLot": 5535.41
+   }
   }
  ]
 }
