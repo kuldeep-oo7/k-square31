@@ -270137,6 +270137,60 @@
     "perLot": 3347.5,
     "netPerLot": 3278.08
    }
+  },
+  {
+   "id": "2026-10-23|PE|HDFCBANK26NOV690PE",
+   "kind": "PE",
+   "symbol": "HDFCBANK",
+   "contract": "HDFCBANK26NOV690PE",
+   "expiry": "2026-11-23",
+   "strike": 690,
+   "optionType": "PE",
+   "lotSize": 650,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T03:47:41.747Z",
+   "buy": 13.65,
+   "target": 20.45,
+   "target2": null,
+   "stop": 6.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.9,
+     "medianDays": 10.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T04:04:18.777Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-27T08:44:34.453Z",
+   "exitPrice": 20.45,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 100.67,
+   "sessionsHeld": 2,
+   "best": 20.5,
+   "worst": 13.2,
+   "last": 20.1,
+   "lastAt": "2026-10-27T08:44:34.453Z",
+   "marks": 69,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 20.5,
+    "low": 14.9,
+    "last": 20.1
+   },
+   "pnl": {
+    "perUnit": 6.8,
+    "pct": 49.82,
+    "basis": "NET",
+    "perLot": 4420,
+    "netPerLot": 4343.28
+   }
   }
  ]
 }
