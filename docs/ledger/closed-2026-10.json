@@ -269267,6 +269267,60 @@
     "perLot": -28217.5,
     "netPerLot": -28344.31
    }
+  },
+  {
+   "id": "2026-10-26|PE|ADANIENSOL26NOV1200PE",
+   "kind": "PE",
+   "symbol": "ADANIENSOL",
+   "contract": "ADANIENSOL26NOV1200PE",
+   "expiry": "2026-11-23",
+   "strike": 1200,
+   "optionType": "PE",
+   "lotSize": 675,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:04:18.372Z",
+   "buy": 41.8,
+   "target": 62.7,
+   "target2": null,
+   "stop": 20.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.3,
+     "medianDays": 10.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:24:45.832Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-27T06:24:13.828Z",
+   "exitPrice": 20.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 25.99,
+   "sessionsHeld": 1,
+   "best": 41.8,
+   "worst": 19.1,
+   "last": 20.6,
+   "lastAt": "2026-10-27T06:24:13.828Z",
+   "marks": 33,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 25.6,
+    "low": 19.1,
+    "last": 20.6
+   },
+   "pnl": {
+    "perUnit": -20.9,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -14107.5,
+    "netPerLot": -14194.5
+   }
   }
  ]
 }
