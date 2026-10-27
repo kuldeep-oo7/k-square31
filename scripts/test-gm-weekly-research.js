@@ -123,6 +123,13 @@ async function main() {
   const deniedReport = await run({ live: true, asOf: f.asOf, symbols: ["TEST"] }, { now, instruments,
     history: async () => ({ ok: false, reason: "NETWORK_ACCESS_DENIED" }) });
   assert.equal(deniedReport.candidates.length, 0); assert.equal(deniedReport.rejected.NETWORK_ACCESS_DENIED, 1);
+  assert.equal(deniedReport.partial, true, "a scan that stops early must be retried by the next build");
+  // Angel's burst limit (27 Oct 2026): AG8001 again after the refresh -> pause, retry the same contract once.
+  let burst = 0;
+  const burstReport = await run({ live: true, asOf: f.asOf, symbols: ["TEST"] }, { now, instruments, pauseMs: 1,
+    history: async () => ++burst <= 2 ? { ok: false, reason: "ANGEL_SESSION_REJECTED" } : f,
+    ensureSession: async () => ({ ok: true }) });
+  assert.equal(burst, 3); assert.equal(burstReport.candidates.length, 1); assert.notEqual(burstReport.partial, true);
   const dir = fs.mkdtempSync(path.join(os.tmpdir(), "gm-weekly-test-"));
   try {
     const file = path.join(dir, "input.json"); fs.writeFileSync(file, JSON.stringify([f]));
