@@ -270299,6 +270299,120 @@
     "perLot": 5620,
     "netPerLot": 5535.41
    }
+  },
+  {
+   "id": "2026-10-27|FUTS|SOLARINDS26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "SOLARINDS",
+   "contract": "SOLARINDS26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 50,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 18975,
+   "target": 18501,
+   "target2": 18026,
+   "stop": 19260,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 66.3,
+     "medianTradingDays": 0.197
+    },
+    "target": {
+     "probabilityPct": 77,
+     "medianTradingDays": 2.408
+    },
+    "sigmaPct": 29.5,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-27T04:05:31.235Z",
+   "hoursToFill": 0.3,
+   "closedAt": "2026-10-27T09:44:19.776Z",
+   "exitPrice": 19260,
+   "exitReason": "STOP",
+   "hoursFillToExit": 5.65,
+   "sessionsHeld": 0,
+   "best": 18887,
+   "worst": 19325,
+   "last": 19318,
+   "lastAt": "2026-10-27T09:44:19.776Z",
+   "marks": 19,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 19325,
+    "low": 18731,
+    "last": 19318
+   },
+   "pnl": {
+    "perUnit": -285,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-26|PE|SOLARINDS26NOV18000PE",
+   "kind": "PE",
+   "symbol": "SOLARINDS",
+   "contract": "SOLARINDS26NOV18000PE",
+   "expiry": "2026-11-23",
+   "strike": 18000,
+   "optionType": "PE",
+   "lotSize": 50,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:04:18.372Z",
+   "buy": 638.25,
+   "target": 957.4,
+   "target2": null,
+   "stop": 319.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.8,
+     "medianDays": 9.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-27T09:44:19.776Z",
+   "exitPrice": 319.15,
+   "exitReason": "STOP",
+   "hoursFillToExit": 29.67,
+   "sessionsHeld": 1,
+   "best": 679.35,
+   "worst": 295.75,
+   "last": 295.75,
+   "lastAt": "2026-10-27T09:44:19.776Z",
+   "marks": 43,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 407.8,
+    "low": 295.75,
+    "last": 295.75
+   },
+   "pnl": {
+    "perUnit": -319.1,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -15955,
+    "netPerLot": -16047.22
+   }
   }
  ]
 }
