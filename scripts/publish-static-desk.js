@@ -948,6 +948,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     sbStrong: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "sb-strong.json"), "utf8")); } catch { return null; } })(),
     sbTrees: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "sb-trees.json"), "utf8")); } catch { return null; } })(),
     daytrader: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "daytrader.json"), "utf8")); } catch { return null; } })(),
+    gmWeekly: (() => { try { return JSON.parse(fs.readFileSync(path.resolve(__dirname, "../.private/cache/gm-weekly/screen.json"), "utf8")); } catch { return null; } })(),
     // The last ~25 share closes for each stock on the focus and Kronos lists (the build's bar cache), for the slip charts.
     sparks: (() => { try {
       const bc = require("../api/_lib/bar-cache"); const read = (f) => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", f), "utf8")); } catch { return null; } };
@@ -2189,6 +2190,7 @@ ${footAlarm}
 
   <section class="pane pane-fut">
     <h2>Futures &mdash; ${esc(d.gmMinUnits || 20)} units each (GM Global's minimum)</h2>
+    ${require("../api/_lib/gm-weekly-screen").render(d.gmWeekly, d.sessionDate)}
     ${sbFocusBox(d)}
     ${kronosBox(d)}
     ${treesBox(d)}
