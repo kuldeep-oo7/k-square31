@@ -270191,6 +270191,60 @@
     "perLot": 4420,
     "netPerLot": 4343.28
    }
+  },
+  {
+   "id": "2026-10-23|PE|WAAREEENER26NOV2200PE",
+   "kind": "PE",
+   "symbol": "WAAREEENER",
+   "contract": "WAAREEENER26NOV2200PE",
+   "expiry": "2026-11-23",
+   "strike": 2200,
+   "optionType": "PE",
+   "lotSize": 175,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T04:44:29.622Z",
+   "buy": 59,
+   "target": 88.5,
+   "target2": null,
+   "stop": 29.5,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 33.8,
+     "medianDays": 14.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T05:04:32.719Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-27T09:04:47.020Z",
+   "exitPrice": 88.5,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 100,
+   "sessionsHeld": 2,
+   "best": 89.9,
+   "worst": 44.5,
+   "last": 83,
+   "lastAt": "2026-10-27T09:04:47.020Z",
+   "marks": 66,
+   "obs": {
+    "date": "2026-10-27",
+    "high": 89.9,
+    "low": 50,
+    "last": 83
+   },
+   "pnl": {
+    "perUnit": 29.5,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 5162.5,
+    "netPerLot": 5080.91
+   }
   }
  ]
 }

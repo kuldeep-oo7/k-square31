@@ -241,7 +241,10 @@
   "OPTION|POLICYBZR|POLICYBZR26NOV940PE",
   "OPTION|CGPOWER|CGPOWER26NOV790PE",
   "OPTION|ADANIPOWER|ADANIPOWER26NOV175PE",
-  "OPTION|HCLTECH|HCLTECH26NOV1500CE"
+  "OPTION|HCLTECH|HCLTECH26NOV1500CE",
+  "OPTION|BANKNIFTY|BANKNIFTY26NOV52800PE",
+  "OPTION|WIPRO|WIPRO26NOV200CE",
+  "OPTION|AUBANK|AUBANK26NOV820PE"
  ],
  "options": {
   "NIFTY26N0322750PE": {
@@ -3227,6 +3230,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-27T08:24:22.327Z",
    "frozenAtIst": "2026-10-27 13:54 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26NOV52800PE": {
+   "buy": 415.9,
+   "sell": 623.85,
+   "stop": 207.95,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-11-23",
+   "strike": 52800,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-27T09:04:46.761Z",
+   "frozenAtIst": "2026-10-27 14:34 IST",
+   "frozenAtSpot": null
+  },
+  "WIPRO26NOV200CE": {
+   "buy": 2.14,
+   "sell": 3.21,
+   "stop": 1.07,
+   "tick": 0.01,
+   "lotSize": 3000,
+   "expiry": "2026-11-23",
+   "strike": 200,
+   "right": "CE",
+   "symbol": "WIPRO",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-27T09:04:46.761Z",
+   "frozenAtIst": "2026-10-27 14:34 IST",
+   "frozenAtSpot": null
+  },
+  "AUBANK26NOV820PE": {
+   "buy": 12.25,
+   "sell": 18.4,
+   "stop": 6.15,
+   "tick": 0.05,
+   "lotSize": 1000,
+   "expiry": "2026-11-23",
+   "strike": 820,
+   "right": "PE",
+   "symbol": "AUBANK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-27T09:04:46.761Z",
+   "frozenAtIst": "2026-10-27 14:34 IST",
    "frozenAtSpot": null
   }
  },
