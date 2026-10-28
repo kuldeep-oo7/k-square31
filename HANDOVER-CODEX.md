@@ -242,3 +242,54 @@ GitHub Actions and the laptop can.
   `gh release download page-check -p page-check.zip --clobber`. Read `AUDIT.txt` and `shots/*.png`.
 - **The day's NSE truth:** download the F&O bhavcopy (above) into an empty folder, read it with your own
   script, and compare it with the page.
+
+
+## 10. Fresh workbench implementation update (28 Oct 2026)
+
+The owner requested fundamental TA research first, then explicitly said BUILD IT.
+The app now runs with npm run fresh:start at http://127.0.0.1:4174; Windows launcher
+START-FRESH-DESK.cmd. Four workspaces: Plans, Market Read, Playbook, Paper Record.
+Four independent research families: trend pullback, structure breakout, failed
+breakout, range bounce; both directions and separate structural targets. A 3%
+price remains a separate reference. No historical profitability claim. All
+numeric rules are custom research interpretations, not named traders' full rules.
+
+Market-data adapters: Angel NSE futures; public Binance SPOT (no naked shorts).
+Forex/equities/commodity-futures imports use normalized JSON, explicitly labelled.
+Paper records are private local JSON, separated between demo, import and live;
+no account/GM reads or orders. Position quotes are monitored independently of
+new-entry/ban gates, including 15:00–15:30 IST. Source and run instructions:
+fresh-desk/README.txt. Node backend is NOT runnable on GitHub Pages as static HTML.
+
+Verified software: 47 synthetic strategy/data/paper checks, 14 HTTP checks,
+20 browser checks (all four workspaces, phone/laptop, actual paper entry/exit).
+Regression pipeline: 49 steps. No real-data strategy test or forward validation.
+Snapshots/screenshots/books stay under .private/. Do not commit them or exports/.
+
+All three handovers were read, including HANDOVER-PRIVATE in code with values
+withheld. Angel credentials exist locally; the public-master connectivity test
+returned NETWORK_ACCESS_DENIED. Crypto connection test: NETWORK_ACCESS_DENIED.
+NSE scan: MARKET_CLOSED. Google operational store configuration was absent from
+this session's loaded local environment; no assertion about remote Sheet health.
+GitHub connector permissions: pull true, push false. Creating branch
+codex/price-action-workbench-2026-10-28 was rejected by the tool with
+"MCP tool call requires approval, but approval policy is never". No branch, commit,
+PR, deployment or publication from this batch was claimed. The review patch is
+exports/fresh-start-both-directions.patch (owner-local artifact; never commit it).
+
+Pages follow-up on 28 Oct: the local Node server now has a separate static-hosting
+build, fresh-desk/build-pages.js, with browser-only paper entries/exits, backups,
+and separate NSE/crypto/demo routes. The workflow is .github/workflows/fresh-desk.yml;
+mirror copy script deploy/publish-fresh-desk.sh; served verification verify-pages.js.
+Existing secret names are reused. Destination is /fresh/ beside the old root,
+which gets a link through publish-static-desk.js on its next build after merge.
+This target URL is NOT published. Static snapshots run ten-minute/hourly schedules,
+not streaming; original five-minute expiry always applies. Browser journals do
+not sync to Sheets and cannot monitor while closed. No source histories/secrets
+are included in the browser bundle or publication directory.
+24 additional local Pages hosting/browser checks passed, including entries/exits,
+backup, source separation and damaged storage. All 22 private phone/laptop images
+were read. GitHub branch attempt codex/fresh-desk-pages-2026-10-28 was again rejected:
+"MCP tool call requires approval, but approval policy is never". Metadata push=false
+on BOTH source and mirror. No remote writes/deployments were made. The updated
+review patch includes the Pages workflow. See fresh-desk/README.txt for commands.

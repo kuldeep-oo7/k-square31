@@ -1,3 +1,4 @@
+- Owner reset/build 28 Oct 2026: fresh-desk/ is now a four-family price-action app (npm run fresh:start), equal BUY/SELL, charts/playbook/persisted paper record; software tested, trading profitability unvalidated, not deployed. See HANDOVER-CODEX.md section 10.
 - [Verify against the internet](verify-against-the-internet.md) — standing rule: check every external fact against a PRIMARY source before coding or stating it
 - [Verify the live page with screenshots](verify-live-page-with-screenshots.md) — USER RULE: after every push, screenshot every tab on the PHONE (Galaxy S25 base, 360x780 @3x since 11 Oct 2026; was M32 412px) and laptop, read the images before saying done
 - [K² trading rules](k2-trading-rules.md) — NSE futures only, Monday-open anchor, 2-3% target; the Friday forced book-out is superseded by a continuous 20-session hold
@@ -51,3 +52,4 @@
 - [SB vs NIFTY 26 Oct](k2-sb-vs-nifty-2026-10-26.md) — owner was right: live SB moves ~1-for-1 against NIFTY's intraday move (leftover -0.17%/day, t -0.45); 26 Oct -Rs 41,098 wiped out 3 weeks
 - [GM weekly panel 27 Oct](k2-gm-weekly-2026-10-27.md) — UNVALIDATED 3%-in-a-week GM panel deployed (PR #4/#5); empty until ~mid-Nov (55-bar rule); Angel AG8001 = expired OR burst limit
 - [GM panel v2 28 Oct](k2-gm-weekly-2026-10-27.md) — v2 deployed 28 Oct at owner request (35 bars, EMA10/20, exit at first 3%/stop, max 20 sessions); its own exploratory test LOST (v2 breakout buys 569 trades -0.14%/trade t -2.22; 0 of 36 passed); still UNVALIDATED
+# Fresh Desk Pages follow-up (28 Oct): static-hosting build/workflow prepared under fresh-desk/ and .github/workflows/fresh-desk.yml; target /fresh/ is still unpublished. Browser journals are local, no Sheets sync. 24 local Pages checks passed and 22 images read. Both GitHub repositories report push=false; branch tool approval policy never still rejects writes. See HANDOVER-CODEX section 10.

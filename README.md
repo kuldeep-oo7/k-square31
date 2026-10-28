@@ -1,5 +1,17 @@
 # K² — Range Desk
 
+**Fresh price-action workbench (28 Oct 2026):** run `npm run fresh:start` and open
+`http://127.0.0.1:4174`, or double-click `START-FRESH-DESK.cmd`. The separate app in
+`fresh-desk/` contains Plans, Market Read, Playbook and a persisted Paper Record.
+Trend pullbacks, structure breakouts, failed breakouts and range bounces evaluate
+BUY and SELL independently. Run `npm run fresh:demo` for a labelled synthetic
+export and `npm run fresh:test` for software checks. Read `fresh-desk/README.txt`.
+This local research app has not replaced the deployed page or demonstrated a
+profitable trading strategy. A separate Pages build and publishing workflow are
+prepared: `npm run fresh:pages`; `npm run fresh:pages:audit` checks static hosting.
+The scheduled build uses private runner credentials and publishes to `/fresh/`.
+It has not been published by this session; GitHub write access is unavailable.
+
 K² converts `journal (1).xlsx` into a hosted NSE watchlist, private cross-device portfolios, a transparent rolling 31-calendar-day range desk, and an automatic Monday-grid paper-trading laboratory. It is dedicated to the friendship between Kamlesh and Kuldeep.
 
 ## Local preview
