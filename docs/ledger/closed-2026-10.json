@@ -274916,6 +274916,336 @@
     "perLot": 16717.5,
     "netPerLot": 16558.93
    }
+  },
+  {
+   "id": "2026-10-28|FUTS|UPL26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "UPL",
+   "contract": "UPL26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1355,
+   "sessionDate": "2026-10-28",
+   "shownAt": "2026-10-28T03:51:36.728Z",
+   "buy": 521.15,
+   "target": 508.1,
+   "target2": 495.1,
+   "stop": 528.95,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 66.3,
+     "medianTradingDays": 0.196
+    },
+    "target": {
+     "probabilityPct": 77.1,
+     "medianTradingDays": 2.405
+    },
+    "sigmaPct": 29.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.4,
+     "stopFirstPct": 62.6,
+     "neitherPct": 0,
+     "breakEvenPct": 37.4
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-28T04:04:35.259Z",
+   "hoursToFill": 0.22,
+   "closedAt": "2026-10-28T04:25:25.181Z",
+   "exitPrice": 528.95,
+   "exitReason": "STOP",
+   "hoursFillToExit": 0.35,
+   "sessionsHeld": 0,
+   "best": 521.15,
+   "worst": 531.5,
+   "last": 529.3,
+   "lastAt": "2026-10-28T04:25:25.181Z",
+   "marks": 3,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 531.5,
+    "low": 508.95,
+    "last": 529.3
+   },
+   "pnl": {
+    "perUnit": -7.8,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-27|PE|COLPAL26NOV1520PE",
+   "kind": "PE",
+   "symbol": "COLPAL",
+   "contract": "COLPAL26NOV1520PE",
+   "expiry": "2026-11-23",
+   "strike": 1520,
+   "optionType": "PE",
+   "lotSize": 275,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T04:05:30.860Z",
+   "buy": 21.2,
+   "target": 31.8,
+   "target2": null,
+   "stop": 10.6,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 36.7,
+     "medianDays": 12.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-27T04:05:31.235Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T04:25:25.181Z",
+   "exitPrice": 31.8,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 24.33,
+   "sessionsHeld": 1,
+   "best": 32.75,
+   "worst": 18.25,
+   "last": 22.8,
+   "lastAt": "2026-10-28T04:25:25.181Z",
+   "marks": 29,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 32.75,
+    "low": 22.05,
+    "last": 22.8
+   },
+   "pnl": {
+    "perUnit": 10.6,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 2915,
+    "netPerLot": 2848.38
+   }
+  },
+  {
+   "id": "2026-10-26|PE|SIEMENS26NOV3400PE",
+   "kind": "PE",
+   "symbol": "SIEMENS",
+   "contract": "SIEMENS26NOV3400PE",
+   "expiry": "2026-11-23",
+   "strike": 3400,
+   "optionType": "PE",
+   "lotSize": 175,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:04:18.372Z",
+   "buy": 233.9,
+   "target": 350.85,
+   "target2": null,
+   "stop": 116.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.7,
+     "medianDays": 9.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:45:26.260Z",
+   "hoursToFill": 0.69,
+   "closedAt": "2026-10-28T04:25:25.181Z",
+   "exitPrice": 116.95,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.67,
+   "sessionsHeld": 2,
+   "best": 233.9,
+   "worst": 109.25,
+   "last": 112.55,
+   "lastAt": "2026-10-28T04:25:25.181Z",
+   "marks": 52,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 145.45,
+    "low": 109.25,
+    "last": 112.55
+   },
+   "pnl": {
+    "perUnit": -116.95,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -20466.25,
+    "netPerLot": -20571.19
+   }
+  },
+  {
+   "id": "2026-10-26|PE|SOLARINDS26NOV19000PE",
+   "kind": "PE",
+   "symbol": "SOLARINDS",
+   "contract": "SOLARINDS26NOV19000PE",
+   "expiry": "2026-11-23",
+   "strike": 19000,
+   "optionType": "PE",
+   "lotSize": 50,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:04:18.372Z",
+   "buy": 1185.65,
+   "target": 1778.45,
+   "target2": null,
+   "stop": 592.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.1,
+     "medianDays": 7.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:24:45.832Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-28T04:25:25.181Z",
+   "exitPrice": 592.85,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.01,
+   "sessionsHeld": 2,
+   "best": 1208.25,
+   "worst": 576.8,
+   "last": 600.55,
+   "lastAt": "2026-10-28T04:25:25.181Z",
+   "marks": 53,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 725,
+    "low": 576.8,
+    "last": 600.55
+   },
+   "pnl": {
+    "perUnit": -592.8,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -29640,
+    "netPerLot": -29770.83
+   }
+  },
+  {
+   "id": "2026-10-26|PE|BHEL26NOV400PE",
+   "kind": "PE",
+   "symbol": "BHEL",
+   "contract": "BHEL26NOV400PE",
+   "expiry": "2026-11-23",
+   "strike": 400,
+   "optionType": "PE",
+   "lotSize": 2625,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 22.35,
+   "target": 33.5,
+   "target2": null,
+   "stop": 11.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.5,
+     "medianDays": 7.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:24:45.832Z",
+   "hoursToFill": 0.62,
+   "closedAt": "2026-10-28T04:25:25.181Z",
+   "exitPrice": 11.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.01,
+   "sessionsHeld": 2,
+   "best": 22.35,
+   "worst": 10.35,
+   "last": 10.55,
+   "lastAt": "2026-10-28T04:25:25.181Z",
+   "marks": 56,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 15,
+    "low": 10.35,
+    "last": 10.55
+   },
+   "pnl": {
+    "perUnit": -11.15,
+    "pct": -49.89,
+    "basis": "NET",
+    "perLot": -29268.75,
+    "netPerLot": -29398.84
+   }
+  },
+  {
+   "id": "2026-10-26|PE|BHEL26NOV390PE",
+   "kind": "PE",
+   "symbol": "BHEL",
+   "contract": "BHEL26NOV390PE",
+   "expiry": "2026-11-23",
+   "strike": 390,
+   "optionType": "PE",
+   "lotSize": 2625,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 16.65,
+   "target": 24.95,
+   "target2": null,
+   "stop": 8.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.7,
+     "medianDays": 8.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:24:45.832Z",
+   "hoursToFill": 0.62,
+   "closedAt": "2026-10-28T04:25:25.181Z",
+   "exitPrice": 8.3,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.01,
+   "sessionsHeld": 2,
+   "best": 16.65,
+   "worst": 6.85,
+   "last": 6.85,
+   "lastAt": "2026-10-28T04:25:25.181Z",
+   "marks": 56,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 10.35,
+    "low": 6.85,
+    "last": 6.85
+   },
+   "pnl": {
+    "perUnit": -8.35,
+    "pct": -50.15,
+    "basis": "NET",
+    "perLot": -21918.75,
+    "netPerLot": -22027.48
+   }
   }
  ]
 }
