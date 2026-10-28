@@ -272300,6 +272300,2352 @@
     "perLot": -3104,
     "netPerLot": -3160.07
    }
+  },
+  {
+   "id": "2026-10-27|CE|WIPRO26NOV200CE",
+   "kind": "CE",
+   "symbol": "WIPRO",
+   "contract": "WIPRO26NOV200CE",
+   "expiry": "2026-11-23",
+   "strike": 200,
+   "optionType": "CE",
+   "lotSize": 3000,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T09:04:46.761Z",
+   "buy": 2.14,
+   "target": 3.21,
+   "target2": null,
+   "stop": 1.07,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38.4,
+     "medianDays": 11.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-27T09:24:55.037Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 1.07,
+   "exitReason": "STOP",
+   "hoursFillToExit": 18.45,
+   "sessionsHeld": 1,
+   "best": 2.2,
+   "worst": 1,
+   "last": 1.3,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 12,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 1.54,
+    "low": 1,
+    "last": 1.3
+   },
+   "pnl": {
+    "perUnit": -1.07,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3210,
+    "netPerLot": -3266.26
+   }
+  },
+  {
+   "id": "2026-10-27|CE|INFY26NOV1240CE",
+   "kind": "CE",
+   "symbol": "INFY",
+   "contract": "INFY26NOV1240CE",
+   "expiry": "2026-11-23",
+   "strike": 1240,
+   "optionType": "CE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T07:04:51.575Z",
+   "buy": 14.45,
+   "target": 21.65,
+   "target2": null,
+   "stop": 7.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.3,
+     "medianDays": 8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-27T07:24:31.113Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 7.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 20.45,
+   "sessionsHeld": 1,
+   "best": 14.45,
+   "worst": 5.3,
+   "last": 6.5,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 18,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 9,
+    "low": 5.3,
+    "last": 6.5
+   },
+   "pnl": {
+    "perUnit": -7.25,
+    "pct": -50.17,
+    "basis": "NET",
+    "perLot": -2900,
+    "netPerLot": -2955.33
+   }
+  },
+  {
+   "id": "2026-10-27|PE|BANKNIFTY26NOV53100PE",
+   "kind": "PE",
+   "symbol": "BANKNIFTY",
+   "contract": "BANKNIFTY26NOV53100PE",
+   "expiry": "2026-11-23",
+   "strike": 53100,
+   "optionType": "PE",
+   "lotSize": 30,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T07:04:51.575Z",
+   "buy": 416.6,
+   "target": 624.9,
+   "target2": null,
+   "stop": 208.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 27.4,
+     "medianDays": 14.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-27T07:04:51.923Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 624.9,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 20.78,
+   "sessionsHeld": 1,
+   "best": 646.55,
+   "worst": 403.85,
+   "last": 555.3,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 18,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 646.55,
+    "low": 501.3,
+    "last": 555.3
+   },
+   "pnl": {
+    "perUnit": 208.3,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 6249,
+    "netPerLot": 6160.17
+   }
+  },
+  {
+   "id": "2026-10-27|PE|AUBANK26NOV830PE",
+   "kind": "PE",
+   "symbol": "AUBANK",
+   "contract": "AUBANK26NOV830PE",
+   "expiry": "2026-11-23",
+   "strike": 830,
+   "optionType": "PE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T05:04:13.953Z",
+   "buy": 11.3,
+   "target": 16.95,
+   "target2": null,
+   "stop": 5.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 41.2,
+     "medianDays": 11.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-27T05:04:14.334Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 16.95,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 22.79,
+   "sessionsHeld": 1,
+   "best": 17.75,
+   "worst": 10.2,
+   "last": 14.05,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 24,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 17.75,
+    "low": 14,
+    "last": 14.05
+   },
+   "pnl": {
+    "perUnit": 5.65,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 5650,
+    "netPerLot": 5565.16
+   }
+  },
+  {
+   "id": "2026-10-27|FUTS|YESBANK26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "YESBANK",
+   "contract": "YESBANK26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 31100,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 16.09,
+   "target": 15.69,
+   "target2": 15.29,
+   "stop": 16.33,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 85.7,
+     "medianTradingDays": 0.049
+    },
+    "target": {
+     "probabilityPct": 91.4,
+     "medianTradingDays": 0.52
+    },
+    "sigmaPct": 73.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-27T04:25:16.616Z",
+   "hoursToFill": 0.63,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 15.69,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 23.44,
+   "sessionsHeld": 1,
+   "best": 15.65,
+   "worst": 16.17,
+   "last": 15.72,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 28,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 15.82,
+    "low": 15.65,
+    "last": 15.72
+   },
+   "pnl": {
+    "perUnit": 0.4,
+    "pct": 2.49,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-27|FUT|PERSISTENT26NOVFUT",
+   "kind": "FUT",
+   "symbol": "PERSISTENT",
+   "contract": "PERSISTENT26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 125,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 5764.5,
+   "target": 5908.5,
+   "target2": 6052.5,
+   "stop": 5678,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 77.5,
+     "medianTradingDays": 0.111
+    },
+    "target": {
+     "probabilityPct": 83.2,
+     "medianTradingDays": 1.219
+    },
+    "sigmaPct": 44.1,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-27T04:44:38.050Z",
+   "hoursToFill": 0.95,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 5678,
+   "exitReason": "STOP",
+   "hoursFillToExit": 23.12,
+   "sessionsHeld": 1,
+   "best": 5865,
+   "worst": 5665,
+   "last": 5730,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 29,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 5775,
+    "low": 5665,
+    "last": 5730
+   },
+   "pnl": {
+    "perUnit": -86.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-27|PE|AUBANK26NOV840PE",
+   "kind": "PE",
+   "symbol": "AUBANK",
+   "contract": "AUBANK26NOV840PE",
+   "expiry": "2026-11-23",
+   "strike": 840,
+   "optionType": "PE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 14.3,
+   "target": 21.45,
+   "target2": null,
+   "stop": 7.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.7,
+     "medianDays": 10.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-27T04:05:31.235Z",
+   "hoursToFill": 0.3,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 21.45,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 23.77,
+   "sessionsHeld": 1,
+   "best": 22.45,
+   "worst": 11.7,
+   "last": 17.25,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 28,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 22.45,
+    "low": 17.25,
+    "last": 17.25
+   },
+   "pnl": {
+    "perUnit": 7.15,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 7150,
+    "netPerLot": 7055.17
+   }
+  },
+  {
+   "id": "2026-10-27|PE|AUBANK26NOV850PE",
+   "kind": "PE",
+   "symbol": "AUBANK",
+   "contract": "AUBANK26NOV850PE",
+   "expiry": "2026-11-23",
+   "strike": 850,
+   "optionType": "PE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 17.65,
+   "target": 26.45,
+   "target2": null,
+   "stop": 8.8,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49,
+     "medianDays": 9.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-27T03:47:34.267Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 26.45,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 24.07,
+   "sessionsHeld": 1,
+   "best": 27,
+   "worst": 14.1,
+   "last": 21.25,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 28,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 27,
+    "low": 21.1,
+    "last": 21.25
+   },
+   "pnl": {
+    "perUnit": 8.8,
+    "pct": 49.86,
+    "basis": "NET",
+    "perLot": 8800,
+    "netPerLot": 8694.05
+   }
+  },
+  {
+   "id": "2026-10-27|CE|INFY26NOV1220CE",
+   "kind": "CE",
+   "symbol": "INFY",
+   "contract": "INFY26NOV1220CE",
+   "expiry": "2026-11-23",
+   "strike": 1220,
+   "optionType": "CE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 14.75,
+   "target": 22.15,
+   "target2": null,
+   "stop": 7.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.4,
+     "medianDays": 8.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-27T03:47:34.267Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 7.4,
+   "exitReason": "STOP",
+   "hoursFillToExit": 24.07,
+   "sessionsHeld": 1,
+   "best": 19.4,
+   "worst": 7.25,
+   "last": 8.65,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 28,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 13.95,
+    "low": 7.25,
+    "last": 8.65
+   },
+   "pnl": {
+    "perUnit": -7.35,
+    "pct": -49.83,
+    "basis": "NET",
+    "perLot": -2940,
+    "netPerLot": -2995.54
+   }
+  },
+  {
+   "id": "2026-10-26|CE|TCS26NOV2700CE",
+   "kind": "CE",
+   "symbol": "TCS",
+   "contract": "TCS26NOV2700CE",
+   "expiry": "2026-11-23",
+   "strike": 2700,
+   "optionType": "CE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:45:25.894Z",
+   "buy": 30.65,
+   "target": 46,
+   "target2": null,
+   "stop": 15.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 45.9,
+     "medianDays": 10.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T05:04:22.251Z",
+   "hoursToFill": 0.32,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 13.05,
+   "exitReason": "STOP",
+   "hoursFillToExit": 46.79,
+   "sessionsHeld": 2,
+   "best": 32.6,
+   "worst": 9.95,
+   "last": 11.75,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 51,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 13.7,
+    "low": 9.95,
+    "last": 11.75
+   },
+   "pnl": {
+    "perUnit": -17.6,
+    "pct": -57.42,
+    "basis": "NET",
+    "perLot": -3960,
+    "netPerLot": -4015.95
+   }
+  },
+  {
+   "id": "2026-10-26|CE|TCS26NOV2680CE",
+   "kind": "CE",
+   "symbol": "TCS",
+   "contract": "TCS26NOV2680CE",
+   "expiry": "2026-11-23",
+   "strike": 2680,
+   "optionType": "CE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:04:18.372Z",
+   "buy": 33.6,
+   "target": 50.4,
+   "target2": null,
+   "stop": 16.8,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.8,
+     "medianDays": 10.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:24:45.832Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 15,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.45,
+   "sessionsHeld": 2,
+   "best": 40.05,
+   "worst": 11.5,
+   "last": 13.5,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 53,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 15,
+    "low": 11.5,
+    "last": 13.5
+   },
+   "pnl": {
+    "perUnit": -18.6,
+    "pct": -55.36,
+    "basis": "NET",
+    "perLot": -4185,
+    "netPerLot": -4242.09
+   }
+  },
+  {
+   "id": "2026-10-26|CE|INFY26NOV1220CE",
+   "kind": "CE",
+   "symbol": "INFY",
+   "contract": "INFY26NOV1220CE",
+   "expiry": "2026-11-23",
+   "strike": 1220,
+   "optionType": "CE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:04:18.372Z",
+   "buy": 16.5,
+   "target": 24.75,
+   "target2": null,
+   "stop": 8.25,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.6,
+     "medianDays": 9.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 8.25,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.79,
+   "sessionsHeld": 2,
+   "best": 23.65,
+   "worst": 7.25,
+   "last": 8.65,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 53,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 13.95,
+    "low": 7.25,
+    "last": 8.65
+   },
+   "pnl": {
+    "perUnit": -8.25,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3300,
+    "netPerLot": -3356.51
+   }
+  },
+  {
+   "id": "2026-10-26|FUTS|COLPAL26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "COLPAL",
+   "contract": "COLPAL26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 275,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 1611.5,
+   "target": 1571.2,
+   "target2": 1530.9,
+   "stop": 1635.7,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 73.9,
+     "medianTradingDays": 0.134
+    },
+    "target": {
+     "probabilityPct": 82.6,
+     "medianTradingDays": 1.583
+    },
+    "sigmaPct": 38.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-26T04:24:45.832Z",
+   "hoursToFill": 0.62,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 1571.2,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 47.45,
+   "sessionsHeld": 2,
+   "best": 1570.1,
+   "worst": 1619.3,
+   "last": 1586.9,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 55,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 1590.8,
+    "low": 1570.1,
+    "last": 1586.9
+   },
+   "pnl": {
+    "perUnit": 40.3,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-26|FUT|INDUSTOWER26NOVFUT",
+   "kind": "FUT",
+   "symbol": "INDUSTOWER",
+   "contract": "INDUSTOWER26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1700,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 380,
+   "target": 389.5,
+   "target2": 399,
+   "stop": 374.3,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 61.6,
+     "medianTradingDays": 0.243
+    },
+    "target": {
+     "probabilityPct": 72.3,
+     "medianTradingDays": 2.869
+    },
+    "sigmaPct": 25.6,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 389.5,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 47.79,
+   "sessionsHeld": 2,
+   "best": 391.25,
+   "worst": 379.05,
+   "last": 389.5,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 55,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 391.25,
+    "low": 380.85,
+    "last": 389.5
+   },
+   "pnl": {
+    "perUnit": 9.5,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-26|CE|TECHM26NOV1900CE",
+   "kind": "CE",
+   "symbol": "TECHM",
+   "contract": "TECHM26NOV1900CE",
+   "expiry": "2026-11-23",
+   "strike": 1900,
+   "optionType": "CE",
+   "lotSize": 600,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 22.6,
+   "target": 33.9,
+   "target2": null,
+   "stop": 11.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 37.4,
+     "medianDays": 12.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T05:44:07.424Z",
+   "hoursToFill": 1.94,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 11.3,
+   "exitReason": "STOP",
+   "hoursFillToExit": 46.12,
+   "sessionsHeld": 2,
+   "best": 23.85,
+   "worst": 11.2,
+   "last": 13.65,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 20.45,
+    "low": 11.2,
+    "last": 13.65
+   },
+   "pnl": {
+    "perUnit": -11.3,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -6780,
+    "netPerLot": -6846.33
+   }
+  },
+  {
+   "id": "2026-10-26|CE|TCS26NOV2660CE",
+   "kind": "CE",
+   "symbol": "TCS",
+   "contract": "TCS26NOV2660CE",
+   "expiry": "2026-11-23",
+   "strike": 2660,
+   "optionType": "CE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 35.05,
+   "target": 52.6,
+   "target2": null,
+   "stop": 17.5,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 43.8,
+     "medianDays": 10.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T03:47:44.940Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 15.85,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.06,
+   "sessionsHeld": 2,
+   "best": 45.55,
+   "worst": 13.75,
+   "last": 15.7,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 15.85,
+    "low": 13.75,
+    "last": 15.7
+   },
+   "pnl": {
+    "perUnit": -19.2,
+    "pct": -54.78,
+    "basis": "NET",
+    "perLot": -4320,
+    "netPerLot": -4377.6
+   }
+  },
+  {
+   "id": "2026-10-26|CE|TCS26NOV2620CE",
+   "kind": "CE",
+   "symbol": "TCS",
+   "contract": "TCS26NOV2620CE",
+   "expiry": "2026-11-23",
+   "strike": 2620,
+   "optionType": "CE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 46.05,
+   "target": 69.05,
+   "target2": null,
+   "stop": 23,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.2,
+     "medianDays": 9.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 23,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.79,
+   "sessionsHeld": 2,
+   "best": 60.05,
+   "worst": 18.95,
+   "last": 21.55,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 41.3,
+    "low": 18.95,
+    "last": 21.55
+   },
+   "pnl": {
+    "perUnit": -23.05,
+    "pct": -50.05,
+    "basis": "NET",
+    "perLot": -5186.25,
+    "netPerLot": -5248.06
+   }
+  },
+  {
+   "id": "2026-10-26|CE|TCS26NOV2640CE",
+   "kind": "CE",
+   "symbol": "TCS",
+   "contract": "TCS26NOV2640CE",
+   "expiry": "2026-11-23",
+   "strike": 2640,
+   "optionType": "CE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 40.7,
+   "target": 61.05,
+   "target2": null,
+   "stop": 20.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 46.4,
+     "medianDays": 10.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 20.35,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.79,
+   "sessionsHeld": 2,
+   "best": 52.2,
+   "worst": 16.05,
+   "last": 18.4,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 26,
+    "low": 16.05,
+    "last": 18.4
+   },
+   "pnl": {
+    "perUnit": -20.35,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -4578.75,
+    "netPerLot": -4638.87
+   }
+  },
+  {
+   "id": "2026-10-26|CE|TCS26NOV2600CE",
+   "kind": "CE",
+   "symbol": "TCS",
+   "contract": "TCS26NOV2600CE",
+   "expiry": "2026-11-23",
+   "strike": 2600,
+   "optionType": "CE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 53.6,
+   "target": 80.4,
+   "target2": null,
+   "stop": 26.8,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51.3,
+     "medianDays": 9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 26.8,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.79,
+   "sessionsHeld": 2,
+   "best": 69.35,
+   "worst": 22.25,
+   "last": 25.15,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 39.9,
+    "low": 22.25,
+    "last": 25.15
+   },
+   "pnl": {
+    "perUnit": -26.8,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -6030,
+    "netPerLot": -6094.21
+   }
+  },
+  {
+   "id": "2026-10-26|CE|TCS26NOV2540CE",
+   "kind": "CE",
+   "symbol": "TCS",
+   "contract": "TCS26NOV2540CE",
+   "expiry": "2026-11-23",
+   "strike": 2540,
+   "optionType": "CE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 77.1,
+   "target": 115.65,
+   "target2": null,
+   "stop": 38.55,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 57.5,
+     "medianDays": 7.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 38.55,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.79,
+   "sessionsHeld": 2,
+   "best": 99,
+   "worst": 35.45,
+   "last": 39,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 47.85,
+    "low": 35.45,
+    "last": 39
+   },
+   "pnl": {
+    "perUnit": -38.55,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -8673.75,
+    "netPerLot": -8745.42
+   }
+  },
+  {
+   "id": "2026-10-26|CE|TCS26NOV2560CE",
+   "kind": "CE",
+   "symbol": "TCS",
+   "contract": "TCS26NOV2560CE",
+   "expiry": "2026-11-23",
+   "strike": 2560,
+   "optionType": "CE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 68.7,
+   "target": 103.05,
+   "target2": null,
+   "stop": 34.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.6,
+     "medianDays": 7.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T03:47:44.940Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 34.35,
+   "exitReason": "STOP",
+   "hoursFillToExit": 48.06,
+   "sessionsHeld": 2,
+   "best": 88.75,
+   "worst": 30.2,
+   "last": 33.6,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 41,
+    "low": 30.2,
+    "last": 33.6
+   },
+   "pnl": {
+    "perUnit": -34.35,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -7728.75,
+    "netPerLot": -7797.76
+   }
+  },
+  {
+   "id": "2026-10-26|CE|TCS26NOV2520CE",
+   "kind": "CE",
+   "symbol": "TCS",
+   "contract": "TCS26NOV2520CE",
+   "expiry": "2026-11-23",
+   "strike": 2520,
+   "optionType": "CE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 87.65,
+   "target": 131.45,
+   "target2": null,
+   "stop": 43.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 58.6,
+     "medianDays": 7.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 43.85,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.79,
+   "sessionsHeld": 2,
+   "best": 110.35,
+   "worst": 41,
+   "last": 44.6,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 60.05,
+    "low": 41,
+    "last": 44.6
+   },
+   "pnl": {
+    "perUnit": -43.8,
+    "pct": -49.97,
+    "basis": "NET",
+    "perLot": -9855,
+    "netPerLot": -9930.03
+   }
+  },
+  {
+   "id": "2026-10-26|CE|WIPRO26NOV200CE",
+   "kind": "CE",
+   "symbol": "WIPRO",
+   "contract": "WIPRO26NOV200CE",
+   "expiry": "2026-11-23",
+   "strike": 200,
+   "optionType": "CE",
+   "lotSize": 3000,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 2.54,
+   "target": 3.8,
+   "target2": null,
+   "stop": 1.27,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 36.2,
+     "medianDays": 12.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T06:04:07.558Z",
+   "hoursToFill": 2.27,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 1.27,
+   "exitReason": "STOP",
+   "hoursFillToExit": 45.79,
+   "sessionsHeld": 2,
+   "best": 2.75,
+   "worst": 1,
+   "last": 1.3,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 1.54,
+    "low": 1,
+    "last": 1.3
+   },
+   "pnl": {
+    "perUnit": -1.27,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3810,
+    "netPerLot": -3867.95
+   }
+  },
+  {
+   "id": "2026-10-26|CE|WIPRO26NOV197.5CE",
+   "kind": "CE",
+   "symbol": "WIPRO",
+   "contract": "WIPRO26NOV197.5CE",
+   "expiry": "2026-11-23",
+   "strike": 197.5,
+   "optionType": "CE",
+   "lotSize": 3000,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 3.33,
+   "target": 4.99,
+   "target2": null,
+   "stop": 1.67,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 40.3,
+     "medianDays": 11.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 1.67,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.79,
+   "sessionsHeld": 2,
+   "best": 3.51,
+   "worst": 1.51,
+   "last": 1.67,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 53,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 1.88,
+    "low": 1.51,
+    "last": 1.67
+   },
+   "pnl": {
+    "perUnit": -1.66,
+    "pct": -49.85,
+    "basis": "NET",
+    "perLot": -4980,
+    "netPerLot": -5041.32
+   }
+  },
+  {
+   "id": "2026-10-26|CE|WIPRO26NOV195CE",
+   "kind": "CE",
+   "symbol": "WIPRO",
+   "contract": "WIPRO26NOV195CE",
+   "expiry": "2026-11-23",
+   "strike": 195,
+   "optionType": "CE",
+   "lotSize": 3000,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 3.92,
+   "target": 5.88,
+   "target2": null,
+   "stop": 1.96,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 45.8,
+     "medianDays": 10.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T06:24:10.984Z",
+   "hoursToFill": 2.61,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 1.96,
+   "exitReason": "STOP",
+   "hoursFillToExit": 45.46,
+   "sessionsHeld": 2,
+   "best": 4.35,
+   "worst": 1.86,
+   "last": 2.13,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 2.47,
+    "low": 1.86,
+    "last": 2.13
+   },
+   "pnl": {
+    "perUnit": -1.96,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -5880,
+    "netPerLot": -5943.79
+   }
+  },
+  {
+   "id": "2026-10-26|CE|WIPRO26NOV192.5CE",
+   "kind": "CE",
+   "symbol": "WIPRO",
+   "contract": "WIPRO26NOV192.5CE",
+   "expiry": "2026-11-23",
+   "strike": 192.5,
+   "optionType": "CE",
+   "lotSize": 3000,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 4.95,
+   "target": 7.43,
+   "target2": null,
+   "stop": 2.48,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.2,
+     "medianDays": 9.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 2.42,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.79,
+   "sessionsHeld": 2,
+   "best": 5.41,
+   "worst": 2.42,
+   "last": 2.64,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 3.07,
+    "low": 2.42,
+    "last": 2.64
+   },
+   "pnl": {
+    "perUnit": -2.53,
+    "pct": -51.11,
+    "basis": "NET",
+    "perLot": -7590,
+    "netPerLot": -7657.83
+   }
+  },
+  {
+   "id": "2026-10-26|PE|BHEL26NOV380PE",
+   "kind": "PE",
+   "symbol": "BHEL",
+   "contract": "BHEL26NOV380PE",
+   "expiry": "2026-11-23",
+   "strike": 380,
+   "optionType": "PE",
+   "lotSize": 2625,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 11.85,
+   "target": 17.8,
+   "target2": null,
+   "stop": 5.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.5,
+     "medianDays": 9.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:24:45.832Z",
+   "hoursToFill": 0.62,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 5.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.45,
+   "sessionsHeld": 2,
+   "best": 11.85,
+   "worst": 5.85,
+   "last": 6.15,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 6.85,
+    "low": 5.85,
+    "last": 6.15
+   },
+   "pnl": {
+    "perUnit": -5.95,
+    "pct": -50.21,
+    "basis": "NET",
+    "perLot": -15618.75,
+    "netPerLot": -15709.7
+   }
+  },
+  {
+   "id": "2026-10-23|CE|TCS26NOV2400CE",
+   "kind": "CE",
+   "symbol": "TCS",
+   "contract": "TCS26NOV2400CE",
+   "expiry": "2026-11-23",
+   "strike": 2400,
+   "optionType": "CE",
+   "lotSize": 225,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T05:24:16.635Z",
+   "buy": 190.4,
+   "target": 285.6,
+   "target2": null,
+   "stop": 95.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 59.6,
+     "medianDays": 7.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-23T05:24:17.057Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 95.2,
+   "exitReason": "STOP",
+   "hoursFillToExit": 118.46,
+   "sessionsHeld": 3,
+   "best": 197,
+   "worst": 92.6,
+   "last": 97.85,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 74,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 120,
+    "low": 92.6,
+    "last": 97.85
+   },
+   "pnl": {
+    "perUnit": -95.2,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -21420,
+    "netPerLot": -21527.63
+   }
+  },
+  {
+   "id": "2026-10-23|PE|WAAREEENER26NOV2300PE",
+   "kind": "PE",
+   "symbol": "WAAREEENER",
+   "contract": "WAAREEENER26NOV2300PE",
+   "expiry": "2026-11-23",
+   "strike": 2300,
+   "optionType": "PE",
+   "lotSize": 175,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T04:44:29.622Z",
+   "buy": 102.55,
+   "target": 153.8,
+   "target2": null,
+   "stop": 51.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.6,
+     "medianDays": 11.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T05:04:32.719Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 153.8,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 118.78,
+   "sessionsHeld": 3,
+   "best": 173.8,
+   "worst": 76.05,
+   "last": 140.65,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 77,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 173.8,
+    "low": 134.15,
+    "last": 140.65
+   },
+   "pnl": {
+    "perUnit": 51.25,
+    "pct": 49.98,
+    "basis": "NET",
+    "perLot": 8968.75,
+    "netPerLot": 8861.78
+   }
+  },
+  {
+   "id": "2026-10-23|PE|HDFCBANK26NOV730PE",
+   "kind": "PE",
+   "symbol": "HDFCBANK",
+   "contract": "HDFCBANK26NOV730PE",
+   "expiry": "2026-11-23",
+   "strike": 730,
+   "optionType": "PE",
+   "lotSize": 650,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T04:04:18.406Z",
+   "buy": 37.3,
+   "target": 55.95,
+   "target2": null,
+   "stop": 18.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.8,
+     "medianDays": 8.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T04:24:51.197Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 55.95,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 119.45,
+   "sessionsHeld": 3,
+   "best": 60,
+   "worst": 36,
+   "last": 58.15,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 78,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 60,
+    "low": 56.75,
+    "last": 58.15
+   },
+   "pnl": {
+    "perUnit": 18.65,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 12122.5,
+    "netPerLot": 11994.54
+   }
+  },
+  {
+   "id": "2026-10-23|CE|HCLTECH26NOV1380CE",
+   "kind": "CE",
+   "symbol": "HCLTECH",
+   "contract": "HCLTECH26NOV1380CE",
+   "expiry": "2026-11-23",
+   "strike": 1380,
+   "optionType": "CE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T03:47:41.747Z",
+   "buy": 108.65,
+   "target": 163,
+   "target2": null,
+   "stop": 54.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.9,
+     "medianDays": 9.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-23T03:47:42.122Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 44.05,
+   "exitReason": "STOP",
+   "hoursFillToExit": 120.07,
+   "sessionsHeld": 3,
+   "best": 108.65,
+   "worst": 40.4,
+   "last": 42.7,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 80,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 46.85,
+    "low": 40.4,
+    "last": 42.7
+   },
+   "pnl": {
+    "perUnit": -64.6,
+    "pct": -59.46,
+    "basis": "NET",
+    "perLot": -25840,
+    "netPerLot": -25940.61
+   }
+  },
+  {
+   "id": "2026-10-23|CE|TECHM26NOV1780CE",
+   "kind": "CE",
+   "symbol": "TECHM",
+   "contract": "TECHM26NOV1780CE",
+   "expiry": "2026-11-23",
+   "strike": 1780,
+   "optionType": "CE",
+   "lotSize": 600,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T03:47:41.747Z",
+   "buy": 100.05,
+   "target": 150.05,
+   "target2": null,
+   "stop": 50,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 61.3,
+     "medianDays": 7.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-23T04:04:18.777Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 45,
+   "exitReason": "STOP",
+   "hoursFillToExit": 119.79,
+   "sessionsHeld": 3,
+   "best": 100.05,
+   "worst": 42,
+   "last": 45.95,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 81,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 47.85,
+    "low": 42,
+    "last": 45.95
+   },
+   "pnl": {
+    "perUnit": -55.05,
+    "pct": -55.02,
+    "basis": "NET",
+    "perLot": -33030,
+    "netPerLot": -33156.09
+   }
+  },
+  {
+   "id": "2026-10-23|PE|HDFCBANK26NOV720PE",
+   "kind": "PE",
+   "symbol": "HDFCBANK",
+   "contract": "HDFCBANK26NOV720PE",
+   "expiry": "2026-11-23",
+   "strike": 720,
+   "optionType": "PE",
+   "lotSize": 650,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T03:47:41.747Z",
+   "buy": 30,
+   "target": 45,
+   "target2": null,
+   "stop": 15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.9,
+     "medianDays": 8.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T04:24:51.197Z",
+   "hoursToFill": 0.62,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 45,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 119.45,
+   "sessionsHeld": 3,
+   "best": 51.6,
+   "worst": 29.85,
+   "last": 48,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 81,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 51.6,
+    "low": 44.85,
+    "last": 48
+   },
+   "pnl": {
+    "perUnit": 15,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 9750,
+    "netPerLot": 9637.84
+   }
+  },
+  {
+   "id": "2026-10-23|PE|HDFCBANK26NOV700PE",
+   "kind": "PE",
+   "symbol": "HDFCBANK",
+   "contract": "HDFCBANK26NOV700PE",
+   "expiry": "2026-11-23",
+   "strike": 700,
+   "optionType": "PE",
+   "lotSize": 650,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T03:47:41.747Z",
+   "buy": 18.15,
+   "target": 27.25,
+   "target2": null,
+   "stop": 9.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 53.5,
+     "medianDays": 9.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T03:47:42.122Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 27.25,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 120.07,
+   "sessionsHeld": 3,
+   "best": 34.4,
+   "worst": 17.5,
+   "last": 32.35,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 81,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 34.4,
+    "low": 25.7,
+    "last": 32.35
+   },
+   "pnl": {
+    "perUnit": 9.1,
+    "pct": 50.14,
+    "basis": "NET",
+    "perLot": 5915,
+    "netPerLot": 5828.47
+   }
+  },
+  {
+   "id": "2026-10-23|PE|HDFCBANK26NOV710PE",
+   "kind": "PE",
+   "symbol": "HDFCBANK",
+   "contract": "HDFCBANK26NOV710PE",
+   "expiry": "2026-11-23",
+   "strike": 710,
+   "optionType": "PE",
+   "lotSize": 650,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T03:47:41.747Z",
+   "buy": 23.5,
+   "target": 35.25,
+   "target2": null,
+   "stop": 11.75,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.6,
+     "medianDays": 8.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T04:04:18.777Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 35.25,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 119.79,
+   "sessionsHeld": 3,
+   "best": 41.45,
+   "worst": 22.75,
+   "last": 40.55,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 80,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 41.45,
+    "low": 37.75,
+    "last": 40.55
+   },
+   "pnl": {
+    "perUnit": 11.75,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 7637.5,
+    "netPerLot": 7539.42
+   }
+  },
+  {
+   "id": "2026-10-22|PE|BANKNIFTY26NOV56100PE",
+   "kind": "PE",
+   "symbol": "BANKNIFTY",
+   "contract": "BANKNIFTY26NOV56100PE",
+   "expiry": "2026-11-23",
+   "strike": 56100,
+   "optionType": "PE",
+   "lotSize": 30,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T04:44:42.692Z",
+   "buy": 1400.05,
+   "target": 2100.1,
+   "target2": null,
+   "stop": 700,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.7,
+     "medianDays": 9.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-22T04:44:43.093Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 2100.1,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 143.11,
+   "sessionsHeld": 4,
+   "best": 2258.45,
+   "worst": 1202.8,
+   "last": 2197,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 102,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 2258.45,
+    "low": 2197,
+    "last": 2197
+   },
+   "pnl": {
+    "perUnit": 700.05,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 21001.5,
+    "netPerLot": 20814.39
+   }
+  },
+  {
+   "id": "2026-10-22|PE|BANKNIFTY26NOV56000PE",
+   "kind": "PE",
+   "symbol": "BANKNIFTY",
+   "contract": "BANKNIFTY26NOV56000PE",
+   "expiry": "2026-11-23",
+   "strike": 56000,
+   "optionType": "PE",
+   "lotSize": 30,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T04:24:42.390Z",
+   "buy": 1433.95,
+   "target": 2150.9,
+   "target2": null,
+   "stop": 717,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 54.4,
+     "medianDays": 9.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-22T04:24:42.777Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 2150.9,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 143.45,
+   "sessionsHeld": 4,
+   "best": 2215.55,
+   "worst": 1141.2,
+   "last": 2064,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 105,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 2215.55,
+    "low": 1975.7,
+    "last": 2064
+   },
+   "pnl": {
+    "perUnit": 716.95,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 21508.5,
+    "netPerLot": 21318
+   }
+  },
+  {
+   "id": "2026-10-22|CE|TECHM26NOV1760CE",
+   "kind": "CE",
+   "symbol": "TECHM",
+   "contract": "TECHM26NOV1760CE",
+   "expiry": "2026-11-23",
+   "strike": 1760,
+   "optionType": "CE",
+   "lotSize": 600,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 103.35,
+   "target": 155,
+   "target2": null,
+   "stop": 51.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 62.4,
+     "medianDays": 7.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-22T03:47:32.866Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 51.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 144.07,
+   "sessionsHeld": 4,
+   "best": 115.95,
+   "worst": 51,
+   "last": 56.65,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 104,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 57.8,
+    "low": 51,
+    "last": 56.65
+   },
+   "pnl": {
+    "perUnit": -51.7,
+    "pct": -50.02,
+    "basis": "NET",
+    "perLot": -31020,
+    "netPerLot": -31154.65
+   }
+  },
+  {
+   "id": "2026-10-22|CE|TECHM26NOV1820CE",
+   "kind": "CE",
+   "symbol": "TECHM",
+   "contract": "TECHM26NOV1820CE",
+   "expiry": "2026-11-23",
+   "strike": 1820,
+   "optionType": "CE",
+   "lotSize": 600,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 67.75,
+   "target": 101.6,
+   "target2": null,
+   "stop": 33.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 59.8,
+     "medianDays": 7.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-22T03:47:32.866Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 28.85,
+   "exitReason": "STOP",
+   "hoursFillToExit": 144.07,
+   "sessionsHeld": 4,
+   "best": 83,
+   "worst": 26.55,
+   "last": 31.5,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 106,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 31.05,
+    "low": 26.55,
+    "last": 31.5
+   },
+   "pnl": {
+    "perUnit": -38.9,
+    "pct": -57.42,
+    "basis": "NET",
+    "perLot": -23340,
+    "netPerLot": -23438.75
+   }
+  },
+  {
+   "id": "2026-10-22|CE|TECHM26NOV1800CE",
+   "kind": "CE",
+   "symbol": "TECHM",
+   "contract": "TECHM26NOV1800CE",
+   "expiry": "2026-11-23",
+   "strike": 1800,
+   "optionType": "CE",
+   "lotSize": 600,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 78.85,
+   "target": 118.25,
+   "target2": null,
+   "stop": 39.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 61.1,
+     "medianDays": 7.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-22T04:04:38.913Z",
+   "hoursToFill": 0.29,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 39.4,
+   "exitReason": "STOP",
+   "hoursFillToExit": 143.78,
+   "sessionsHeld": 4,
+   "best": 95.45,
+   "worst": 33.7,
+   "last": 39.7,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 107,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 47.75,
+    "low": 33.7,
+    "last": 39.7
+   },
+   "pnl": {
+    "perUnit": -39.45,
+    "pct": -50.03,
+    "basis": "NET",
+    "perLot": -23670,
+    "netPerLot": -23783.91
+   }
+  },
+  {
+   "id": "2026-10-22|PE|BANKNIFTY26NOV55300PE",
+   "kind": "PE",
+   "symbol": "BANKNIFTY",
+   "contract": "BANKNIFTY26NOV55300PE",
+   "expiry": "2026-11-23",
+   "strike": 55300,
+   "optionType": "PE",
+   "lotSize": 30,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 1060.6,
+   "target": 1590.9,
+   "target2": null,
+   "stop": 530.3,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 50.1,
+     "medianDays": 10.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-22T03:47:32.866Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 1590.9,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 144.07,
+   "sessionsHeld": 4,
+   "best": 1600,
+   "worst": 833.15,
+   "last": 1546,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 107,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 1600,
+    "low": 1545,
+    "last": 1546
+   },
+   "pnl": {
+    "perUnit": 530.3,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 15909,
+    "netPerLot": 15755.81
+   }
+  },
+  {
+   "id": "2026-10-22|PE|BANKNIFTY26NOV55200PE",
+   "kind": "PE",
+   "symbol": "BANKNIFTY",
+   "contract": "BANKNIFTY26NOV55200PE",
+   "expiry": "2026-11-23",
+   "strike": 55200,
+   "optionType": "PE",
+   "lotSize": 30,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 1011.85,
+   "target": 1517.8,
+   "target2": null,
+   "stop": 505.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.3,
+     "medianDays": 11.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-22T03:47:32.866Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 1517.8,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 144.07,
+   "sessionsHeld": 4,
+   "best": 1600,
+   "worst": 778.95,
+   "last": 1496.35,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 106,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 1600,
+    "low": 1473.15,
+    "last": 1496.35
+   },
+   "pnl": {
+    "perUnit": 505.95,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 15178.5,
+    "netPerLot": 15030.18
+   }
+  },
+  {
+   "id": "2026-10-22|PE|BANKNIFTY26NOV55500PE",
+   "kind": "PE",
+   "symbol": "BANKNIFTY",
+   "contract": "BANKNIFTY26NOV55500PE",
+   "expiry": "2026-11-23",
+   "strike": 55500,
+   "optionType": "PE",
+   "lotSize": 30,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T03:47:32.486Z",
+   "buy": 1161.9,
+   "target": 1742.85,
+   "target2": null,
+   "stop": 580.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51.6,
+     "medianDays": 10.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-22T03:47:32.866Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T03:51:37.064Z",
+   "exitPrice": 1742.85,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 144.07,
+   "sessionsHeld": 4,
+   "best": 1866.8,
+   "worst": 906.65,
+   "last": 1694.85,
+   "lastAt": "2026-10-28T03:51:37.064Z",
+   "marks": 107,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 1866.8,
+    "low": 1676.3,
+    "last": 1694.85
+   },
+   "pnl": {
+    "perUnit": 580.95,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 17428.5,
+    "netPerLot": 17265.19
+   }
   }
  ]
 }
