@@ -277738,6 +277738,168 @@
     "perLot": 3300,
     "netPerLot": 3230.81
    }
+  },
+  {
+   "id": "2026-10-28|CE|INDUSTOWER26NOV405CE",
+   "kind": "CE",
+   "symbol": "INDUSTOWER",
+   "contract": "INDUSTOWER26NOV405CE",
+   "expiry": "2026-11-23",
+   "strike": 405,
+   "optionType": "CE",
+   "lotSize": 1700,
+   "sessionDate": "2026-10-28",
+   "shownAt": "2026-10-28T03:51:36.728Z",
+   "buy": 3.8,
+   "target": 5.7,
+   "target2": null,
+   "stop": 1.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 43.7,
+     "medianDays": 10.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-28T04:25:25.181Z",
+   "hoursToFill": 0.56,
+   "closedAt": "2026-10-28T08:44:08.439Z",
+   "exitPrice": 1.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 4.31,
+   "sessionsHeld": 0,
+   "best": 3.8,
+   "worst": 1.85,
+   "last": 1.85,
+   "lastAt": "2026-10-28T08:44:08.439Z",
+   "marks": 16,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 5.6,
+    "low": 1.9,
+    "last": 1.85
+   },
+   "pnl": {
+    "perUnit": -1.9,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3230,
+    "netPerLot": -3286.31
+   }
+  },
+  {
+   "id": "2026-10-28|CE|INDUSTOWER26NOV400CE",
+   "kind": "CE",
+   "symbol": "INDUSTOWER",
+   "contract": "INDUSTOWER26NOV400CE",
+   "expiry": "2026-11-23",
+   "strike": 400,
+   "optionType": "CE",
+   "lotSize": 1700,
+   "sessionDate": "2026-10-28",
+   "shownAt": "2026-10-28T03:51:36.728Z",
+   "buy": 5.15,
+   "target": 7.75,
+   "target2": null,
+   "stop": 2.6,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 49.6,
+     "medianDays": 8.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-28T04:04:35.259Z",
+   "hoursToFill": 0.22,
+   "closedAt": "2026-10-28T08:44:08.439Z",
+   "exitPrice": 2.6,
+   "exitReason": "STOP",
+   "hoursFillToExit": 4.66,
+   "sessionsHeld": 0,
+   "best": 5.15,
+   "worst": 2.45,
+   "last": 2.45,
+   "lastAt": "2026-10-28T08:44:08.439Z",
+   "marks": 16,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 7.4,
+    "low": 2.45,
+    "last": 2.45
+   },
+   "pnl": {
+    "perUnit": -2.55,
+    "pct": -49.51,
+    "basis": "NET",
+    "perLot": -4335,
+    "netPerLot": -4394.63
+   }
+  },
+  {
+   "id": "2026-10-23|PE|VEDL26NOV220PE",
+   "kind": "PE",
+   "symbol": "VEDL",
+   "contract": "VEDL26NOV220PE",
+   "expiry": "2026-11-23",
+   "strike": 220,
+   "optionType": "PE",
+   "lotSize": 1150,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T04:44:29.622Z",
+   "buy": 7.25,
+   "target": 10.9,
+   "target2": null,
+   "stop": 3.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 35.4,
+     "medianDays": 14.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-23T06:24:07.363Z",
+   "hoursToFill": 1.66,
+   "closedAt": "2026-10-28T08:44:08.439Z",
+   "exitPrice": 3.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 122.33,
+   "sessionsHeld": 3,
+   "best": 9,
+   "worst": 3.65,
+   "last": 4.1,
+   "lastAt": "2026-10-28T08:44:08.439Z",
+   "marks": 93,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 6.75,
+    "low": 3.65,
+    "last": 4.1
+   },
+   "pnl": {
+    "perUnit": -3.6,
+    "pct": -49.66,
+    "basis": "NET",
+    "perLot": -4140,
+    "netPerLot": -4199.02
+   }
   }
  ]
 }
