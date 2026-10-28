@@ -276711,6 +276711,114 @@
     "perLot": -38193.75,
     "netPerLot": -38348.71
    }
+  },
+  {
+   "id": "2026-10-27|PE|CROMPTON26NOV185PE",
+   "kind": "PE",
+   "symbol": "CROMPTON",
+   "contract": "CROMPTON26NOV185PE",
+   "expiry": "2026-11-23",
+   "strike": 185,
+   "optionType": "PE",
+   "lotSize": 2150,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 3.42,
+   "target": 5.12,
+   "target2": null,
+   "stop": 1.71,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38.5,
+     "medianDays": 11.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-27T04:05:31.235Z",
+   "hoursToFill": 0.3,
+   "closedAt": "2026-10-28T06:24:05.993Z",
+   "exitPrice": 1.71,
+   "exitReason": "STOP",
+   "hoursFillToExit": 26.31,
+   "sessionsHeld": 1,
+   "best": 3.42,
+   "worst": 1.64,
+   "last": 1.78,
+   "lastAt": "2026-10-28T06:24:05.993Z",
+   "marks": 36,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 2.8,
+    "low": 1.64,
+    "last": 1.78
+   },
+   "pnl": {
+    "perUnit": -1.71,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -3676.5,
+    "netPerLot": -3734.07
+   }
+  },
+  {
+   "id": "2026-10-27|PE|GODREJPROP26NOV1480PE",
+   "kind": "PE",
+   "symbol": "GODREJPROP",
+   "contract": "GODREJPROP26NOV1480PE",
+   "expiry": "2026-11-23",
+   "strike": 1480,
+   "optionType": "PE",
+   "lotSize": 325,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 33.15,
+   "target": 49.7,
+   "target2": null,
+   "stop": 16.55,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38.6,
+     "medianDays": 11.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-27T04:05:31.235Z",
+   "hoursToFill": 0.3,
+   "closedAt": "2026-10-28T06:24:05.993Z",
+   "exitPrice": 16.55,
+   "exitReason": "STOP",
+   "hoursFillToExit": 26.31,
+   "sessionsHeld": 1,
+   "best": 33.15,
+   "worst": 16.45,
+   "last": 16.8,
+   "lastAt": "2026-10-28T06:24:05.993Z",
+   "marks": 36,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 23.15,
+    "low": 16.45,
+    "last": 16.8
+   },
+   "pnl": {
+    "perUnit": -16.6,
+    "pct": -50.08,
+    "basis": "NET",
+    "perLot": -5395,
+    "netPerLot": -5457.38
+   }
   }
  ]
 }
