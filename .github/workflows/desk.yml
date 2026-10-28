@@ -277,7 +277,7 @@ jobs:
 
       - name: Prepare the GM weekly paper screen
         continue-on-error: true
-        timeout-minutes: 4
+        timeout-minutes: 7     # in session the scan budget is 130 s; after the close 330 s, to finish all ~236 contracts
         run: node scripts/prepare-gm-weekly.js
 
       - name: Build the page and freeze the day's levels

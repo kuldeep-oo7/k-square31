@@ -9,7 +9,8 @@ async function futuresHistory({ symbol, expiry, asOf, now = Date.now(), timeoutM
   credentials = brokers.credentialsFor("angelone"), instruments = brokers.loadInstruments("angelone") } = {}) {
   const fail = (reason) => ({ ok: false, reason, bars: [] });
   if (!credentials) return fail("ANGEL_SESSION_NOT_CONFIGURED");
-  if (!/^\d{4}-\d{2}-\d{2}$/.test(asOf || "") || !/^\d{4}-\d{2}-\d{2}$/.test(expiry || "") || expiry <= asOf) return fail("INVALID_CONTRACT_OR_DATE");
+  // The expiry day's own bar is allowed: a paper exit at expiry needs it. The scan skips contracts expiring on asOf itself.
+  if (!/^\d{4}-\d{2}-\d{2}$/.test(asOf || "") || !/^\d{4}-\d{2}-\d{2}$/.test(expiry || "") || expiry < asOf) return fail("INVALID_CONTRACT_OR_DATE");
   const contract = instruments?.futures?.[`${symbol}|${expiry}`];
   if (!contract?.token || contract.exchange !== "NFO" || !(contract.tickSize > 0)) return fail("NFO_CONTRACT_OR_TICK_MISSING");
   const fetched = Date.parse(instruments?.fetchedAt || "");
