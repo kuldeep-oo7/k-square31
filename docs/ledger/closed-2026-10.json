@@ -277684,6 +277684,60 @@
     "pct": -1.49,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-10-28|CE|TATAELXSI26NOV3900CE",
+   "kind": "CE",
+   "symbol": "TATAELXSI",
+   "contract": "TATAELXSI26NOV3900CE",
+   "expiry": "2026-11-23",
+   "strike": 3900,
+   "optionType": "CE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-28",
+   "shownAt": "2026-10-28T03:51:36.728Z",
+   "buy": 52.8,
+   "target": 79.2,
+   "target2": null,
+   "stop": 26.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 35.4,
+     "medianDays": 12.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-28T03:51:37.064Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T08:24:18.343Z",
+   "exitPrice": 79.2,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 4.54,
+   "sessionsHeld": 0,
+   "best": 79.45,
+   "worst": 52.05,
+   "last": 76.7,
+   "lastAt": "2026-10-28T08:24:18.343Z",
+   "marks": 15,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 79.45,
+    "low": 51.45,
+    "last": 76.7
+   },
+   "pnl": {
+    "perUnit": 26.4,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 3300,
+    "netPerLot": 3230.81
+   }
   }
  ]
 }
