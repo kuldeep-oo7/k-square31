@@ -254,7 +254,9 @@
   "OPTION|BANKNIFTY|BANKNIFTY26NOV55500PE",
   "OPTION|BANKNIFTY|BANKNIFTY26NOV55600PE",
   "OPTION|PERSISTENT|PERSISTENT26NOV6200CE",
-  "OPTION|TECHM|TECHM26NOV1880CE"
+  "OPTION|TECHM|TECHM26NOV1880CE",
+  "OPTION|BANKNIFTY|BANKNIFTY26NOV55700PE",
+  "OPTION|HCLTECH|HCLTECH26NOV1480CE"
  ],
  "options": {
   "NIFTY26N0922700PE": {
@@ -3390,6 +3392,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-28T07:04:11.402Z",
    "frozenAtIst": "2026-10-28 12:34 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26NOV55700PE": {
+   "buy": 1594.3,
+   "sell": 2391.45,
+   "stop": 797.15,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-11-23",
+   "strike": 55700,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-28T07:24:06.827Z",
+   "frozenAtIst": "2026-10-28 12:54 IST",
+   "frozenAtSpot": null
+  },
+  "HCLTECH26NOV1480CE": {
+   "buy": 15.7,
+   "sell": 23.55,
+   "stop": 7.85,
+   "tick": 0.05,
+   "lotSize": 400,
+   "expiry": "2026-11-23",
+   "strike": 1480,
+   "right": "CE",
+   "symbol": "HCLTECH",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-28T07:24:06.827Z",
+   "frozenAtIst": "2026-10-28 12:54 IST",
    "frozenAtSpot": null
   }
  },
