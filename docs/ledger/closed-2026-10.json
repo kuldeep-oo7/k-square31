@@ -276819,6 +276819,60 @@
     "perLot": -5395,
     "netPerLot": -5457.38
    }
+  },
+  {
+   "id": "2026-10-26|PE|MIDCPNIFTY26NOV12800PE",
+   "kind": "PE",
+   "symbol": "MIDCPNIFTY",
+   "contract": "MIDCPNIFTY26NOV12800PE",
+   "expiry": "2026-11-23",
+   "strike": 12800,
+   "optionType": "PE",
+   "lotSize": 120,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 253.4,
+   "target": 380.1,
+   "target2": null,
+   "stop": 126.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 33,
+     "medianDays": 13.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:24:45.832Z",
+   "hoursToFill": 0.62,
+   "closedAt": "2026-10-28T06:44:06.721Z",
+   "exitPrice": 126.7,
+   "exitReason": "STOP",
+   "hoursFillToExit": 50.32,
+   "sessionsHeld": 2,
+   "best": 253.4,
+   "worst": 122.1,
+   "last": 124.35,
+   "lastAt": "2026-10-28T06:44:06.721Z",
+   "marks": 62,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 183.95,
+    "low": 122.1,
+    "last": 124.35
+   },
+   "pnl": {
+    "perUnit": -126.7,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -15204,
+    "netPerLot": -15294.1
+   }
   }
  ]
 }

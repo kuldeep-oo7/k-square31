@@ -251,7 +251,8 @@
   "OPTION|DRREDDY|DRREDDY26NOV1380CE",
   "OPTION|COLPAL|COLPAL26NOV1500PE",
   "OPTION|TCS|TCS26NOV2300CE",
-  "OPTION|BANKNIFTY|BANKNIFTY26NOV55500PE"
+  "OPTION|BANKNIFTY|BANKNIFTY26NOV55500PE",
+  "OPTION|BANKNIFTY|BANKNIFTY26NOV55600PE"
  ],
  "options": {
   "NIFTY26N0922700PE": {
@@ -3342,6 +3343,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-28T06:04:15.929Z",
    "frozenAtIst": "2026-10-28 11:34 IST",
+   "frozenAtSpot": null
+  },
+  "BANKNIFTY26NOV55600PE": {
+   "buy": 1623.25,
+   "sell": 2434.85,
+   "stop": 811.65,
+   "tick": 0.05,
+   "lotSize": 30,
+   "expiry": "2026-11-23",
+   "strike": 55600,
+   "right": "PE",
+   "symbol": "BANKNIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-28T06:44:06.403Z",
+   "frozenAtIst": "2026-10-28 12:14 IST",
    "frozenAtSpot": null
   }
  },
