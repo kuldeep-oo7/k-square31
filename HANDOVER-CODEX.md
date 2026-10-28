@@ -223,7 +223,10 @@ GitHub Actions and the laptop can.
 - **The only rule that ever PASSED:** expiry-day NIFTY ATM straddle selling, X2: 351 expiries, t 4.43. It is on
   TRACK as a forward paper test from 27 Oct; 1 expiry so far, +89.6 points.
 - **Short build-up** follows NIFTY one-for-one, the other way (26 Oct analysis): 100 paper trades, −₹7,911.
-  The owner has been offered to take it off "FOCUS RULE"; no answer yet.
+  On 28 Oct the owner rejected the old short-only logic and asked Codex for a **fresh start**: a GM futures app
+  that weighs BUY/LONG and SELL/SHORT equally. Codex began it in `fresh-desk/`. At 22:30 IST on 28 Oct that
+  folder was only on the laptop, not committed; it is unvalidated. The paragraph "Owner reset" in `CLAUDE.md`
+  describes it. The deployed page is unchanged.
 - **GM panel:** scanner v2. From 28 Oct, only the first live quote by 09:45 can open an entry, and exits are
   tracked. Its own exploratory test found no edge.
 
