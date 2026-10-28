@@ -2,14 +2,74 @@
  "preregistration": "studies/forward-v3-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
  "start": "2026-10-05",
- "dataThrough": "2026-10-27",
- "builtAt": "2026-10-28T11:31:53.053Z",
+ "dataThrough": "2026-10-28",
+ "builtAt": "2026-10-28T14:34:35.472Z",
  "industries": 2584,
  "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
  "CHEAPVOL": {
   "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
   "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months — just short of the bar",
   "trades": [
+   {
+    "symbol": "APLAPOLLO",
+    "entryDate": "2026-10-28",
+    "expiry": "2026-11-23",
+    "strike": 2160,
+    "entry": 141.75,
+    "ivPct": 30.7,
+    "rvPct": 39.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "RBLBANK",
+    "entryDate": "2026-10-28",
+    "expiry": "2026-11-23",
+    "strike": 350,
+    "entry": 21.1,
+    "ivPct": 28.2,
+    "rvPct": 40.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "APOLLOHOSP",
+    "entryDate": "2026-10-28",
+    "expiry": "2026-11-23",
+    "strike": 8100,
+    "entry": 462.35,
+    "ivPct": 26.6,
+    "rvPct": 38.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ADANIENSOL",
+    "entryDate": "2026-10-28",
+    "expiry": "2026-11-23",
+    "strike": 1300,
+    "entry": 94.55,
+    "ivPct": 34.2,
+    "rvPct": 43.5,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ADANIPORTS",
+    "entryDate": "2026-10-28",
+    "expiry": "2026-11-23",
+    "strike": 1760,
+    "entry": 90.05,
+    "ivPct": 23.9,
+    "rvPct": 30.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "HCLTECH",
+    "entryDate": "2026-10-28",
+    "expiry": "2026-11-23",
+    "strike": 1400,
+    "entry": 84.6,
+    "ivPct": 28.3,
+    "rvPct": 37.7,
+    "status": "OPEN"
+   },
    {
     "symbol": "HAVELLS",
     "entryDate": "2026-10-27",
@@ -218,7 +278,10 @@
     "entry": 24.25,
     "ivPct": 28.1,
     "rvPct": 44.6,
-    "status": "OPEN"
+    "exitDate": "2026-10-28",
+    "exit": 21.7,
+    "netPct": -10.78,
+    "status": "DONE"
    },
    {
     "symbol": "BANKBARODA",
@@ -228,7 +291,10 @@
     "entry": 9.91,
     "ivPct": 17.4,
     "rvPct": 24.5,
-    "status": "OPEN"
+    "exitDate": "2026-10-28",
+    "exit": 16.05,
+    "netPct": 61.554,
+    "status": "DONE"
    },
    {
     "symbol": "HCLTECH",
@@ -238,7 +304,10 @@
     "entry": 98.1,
     "ivPct": 28.6,
     "rvPct": 38.2,
-    "status": "OPEN"
+    "exitDate": "2026-10-28",
+    "exit": 85.3,
+    "netPct": -13.307,
+    "status": "DONE"
    },
    {
     "symbol": "ADANIPOWER",
@@ -248,7 +317,10 @@
     "entry": 13.73,
     "ivPct": 30.5,
     "rvPct": 39.4,
-    "status": "OPEN"
+    "exitDate": "2026-10-28",
+    "exit": 14.58,
+    "netPct": 5.895,
+    "status": "DONE"
    },
    {
     "symbol": "BAJFINANCE",
@@ -258,7 +330,10 @@
     "entry": 61.15,
     "ivPct": 27.5,
     "rvPct": 34.6,
-    "status": "OPEN"
+    "exitDate": "2026-10-28",
+    "exit": 54.05,
+    "netPct": -11.873,
+    "status": "DONE"
    },
    {
     "symbol": "GLENMARK",
@@ -1302,11 +1377,11 @@
    }
   ],
   "summary": {
-   "finished": 80,
-   "meanPct": 1.287,
-   "winPct": 30,
+   "finished": 85,
+   "meanPct": 1.581,
+   "winPct": 30.6,
    "worstPct": -89.703,
-   "t": 0.28,
+   "t": 0.37,
    "verdict": "COLLECTING"
   }
  },
@@ -1467,7 +1542,7 @@
   ],
   "pending": null,
   "pendingNoIndustry": [],
-  "sessionsToNext": 4,
+  "sessionsToNext": 3,
   "summary": {
    "finished": 3,
    "meanPct": 0.426,

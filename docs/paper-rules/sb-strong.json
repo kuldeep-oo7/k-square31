@@ -4,25 +4,47 @@
  "preregSha256": "71f1efb555ae3a964ec578f7e107c0d692f6f814d4b2261c577a7c2a7b9ef0c7",
  "amendmentSha256": "f2f3cd886b53c4e3ce303613cb08568e8ea615a45ce287d499d360ffdc9d0ec8",
  "start": "2026-10-23",
- "dataThrough": "2026-10-27",
- "builtAt": "2026-10-28T11:31:43.243Z",
+ "dataThrough": "2026-10-28",
+ "builtAt": "2026-10-28T14:34:27.270Z",
  "rule": "Short build-up, strong signals only: the share fell at least 3% and its futures open interest rose at least 6% -> short the near-month future at the next open, cover at that day's close",
  "backtest": "PROMISING, not a pass (night lab 22 Oct 2026, priced on shares): 2005-2020 +0.118% a trade beyond the market, t 2.99; 2020-2026 +0.223%, t 2.73. On futures the same trades earn about 0.1% less (descriptive look, 23 Oct)",
  "pending": [
   {
+   "symbol": "KAYNES",
+   "signalDate": "2026-10-28",
+   "pricePct": -6.28,
+   "oiPct": 30.77
+  }
+ ],
+ "trades": [
+  {
    "symbol": "MAZDOCK",
    "signalDate": "2026-10-27",
+   "entryDate": "2026-10-28",
    "pricePct": -6.45,
-   "oiPct": 6.77
+   "oiPct": 6.77,
+   "entry": 1698,
+   "exit": 1739.2,
+   "netPct": -2.493,
+   "excessPct": -1.892,
+   "shareNetPct": -2.303,
+   "rupees": -824,
+   "status": "DONE"
   },
   {
    "symbol": "PAYTM",
    "signalDate": "2026-10-27",
+   "entryDate": "2026-10-28",
    "pricePct": -3.21,
-   "oiPct": 10.47
-  }
- ],
- "trades": [
+   "oiPct": 10.47,
+   "entry": 1618.2,
+   "exit": 1635.8,
+   "netPct": -1.154,
+   "excessPct": -0.554,
+   "shareNetPct": -1.276,
+   "rupees": -352,
+   "status": "DONE"
+  },
   {
    "symbol": "POLYCAB",
    "signalDate": "2026-10-23",
@@ -53,15 +75,15 @@
   }
  ],
  "summary": {
-  "finished": 2,
-  "meanExcessPct": 4.469,
-  "meanNetPct": 4.66,
-  "meanShareNetPct": 4.931,
-  "winPct": 50,
+  "finished": 4,
+  "meanExcessPct": 1.623,
+  "meanNetPct": 1.418,
+  "meanShareNetPct": 1.571,
+  "winPct": 25,
   "worstNetPct": -4.151,
-  "rupees": -5495,
+  "rupees": -6671,
   "weeks": 2,
-  "t": 0.64,
+  "t": 0.33,
   "verdict": "COLLECTING"
  }
 }
