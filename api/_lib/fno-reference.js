@@ -135,6 +135,48 @@ function buildReference(rows, session) {
   return { session: normaliseDate(session), symbolCount: Object.keys(symbols).length, symbols };
 }
 
+// NSE's own lot file, one column per contract month. Lot sizes DO change between sessions: on 28 Oct 2026 the
+// November and December lots of ABCAPITAL, AUBANK, CUMMINSIND, LAURUSLABS, OFSS, SOLARINDS and ZYDUSLIFE halved,
+// and the morning page still showed the previous session's lots (the cloud audit caught LAURUSLABS and SOLARINDS).
+// That evening the file matched the day's bhavcopy on all 35,033 contracts, so a reference built from an EARLIER
+// session takes each contract month's lot from it.
+const LOT_FILE = "https://nsearchives.nseindia.com/content/fo/fo_mktlots.csv";
+const MONTHS = ["JAN", "FEB", "MAR", "APR", "MAY", "JUN", "JUL", "AUG", "SEP", "OCT", "NOV", "DEC"];
+function parseLotFile(text) {
+  const lines = String(text || "").split(/\r?\n/);
+  const head = (lines[0] || "").split(",").map((x) => x.trim().toUpperCase());
+  const lots = {};
+  for (const line of lines.slice(1)) {
+    const cells = line.split(",").map((x) => x.trim());
+    if (!/^[A-Z0-9&-]{1,30}$/.test(cells[1] || "")) continue;
+    head.forEach((month, i) => {
+      const lot = Number(cells[i]);
+      if (i >= 2 && /^[A-Z]{3}-\d{2}$/.test(month) && Number.isInteger(lot) && lot > 0) (lots[cells[1]] ||= {})[month] = lot;
+    });
+  }
+  return lots;
+}
+function applyLotFile(reference, lots) {
+  let changed = 0;
+  for (const entry of Object.values(reference?.symbols || {})) {
+    const buckets = Object.values(entry.expiries || {}).sort((a, b) => a.expiry.localeCompare(b.expiry));
+    for (const bucket of buckets) {
+      const lot = lots[entry.symbol]?.[`${MONTHS[Number(bucket.expiry.slice(5, 7)) - 1]}-${bucket.expiry.slice(2, 4)}`];
+      if (lot && bucket.lotSize !== lot) { bucket.lotSize = lot; changed += 1; }
+    }
+    if (buckets[0]?.lotSize > 0) entry.lotSize = buckets[0].lotSize;
+  }
+  return changed;
+}
+async function fetchLotFile(timeoutMs = 15_000) {
+  const response = await fetch(LOT_FILE, { headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0 Safari/537.36", Accept: "text/csv,*/*" },
+    signal: AbortSignal.timeout(timeoutMs) });
+  if (!response.ok) throw new Error(`HTTP ${response.status}`);
+  const lots = parseLotFile(await response.text());
+  if (Object.keys(lots).length < 50) throw new Error("lot file too short");
+  return lots;
+}
+
 let memo = null;
 
 /**
@@ -153,7 +195,7 @@ let memo = null;
  * is the correct reference for today's trading -- and the session it came from
  * travels with it, so nothing can mistake it for today's settlement.
  */
-async function refreshReference(date = new Date(), { maxLookbackDays = 7 } = {}) {
+async function refreshReference(date = new Date(), { maxLookbackDays = 7, lotFile = fetchLotFile } = {}) {
   const start = date instanceof Date ? date : new Date(date);
   const attempts = [];
   for (let back = 0; back <= maxLookbackDays; back += 1) {
@@ -161,6 +203,11 @@ async function refreshReference(date = new Date(), { maxLookbackDays = 7 } = {})
     try {
       const payload = await fetchBhavcopy(day);
       const reference = buildReference(payload.rows, payload.tradeDate);
+      // Only the session the file came from has its lots for certain; for today's trading, NSE's lot file wins.
+      if (reference.session && reference.session < new Date(start.getTime() + 330 * 60000).toISOString().slice(0, 10)) {
+        try { reference.lotFile = { source: LOT_FILE, changed: applyLotFile(reference, await lotFile()) }; }
+        catch (error) { reference.lotFile = { source: LOT_FILE, error: String(error?.message || error) }; }
+      }
       if (!fs.existsSync(CACHE_DIR)) fs.mkdirSync(CACHE_DIR, { recursive: true });
       fs.writeFileSync(REFERENCE_FILE, JSON.stringify(reference));
       memo = null;
@@ -406,6 +453,8 @@ function parityForward(symbol, expiry, { reference = loadReference(), rate = 0.0
 }
 
 module.exports = {
+  parseLotFile,
+  applyLotFile,
   parityForward,
   angelTradingSymbol,
   expiryTradingSuffix,
