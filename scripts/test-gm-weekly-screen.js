@@ -64,7 +64,7 @@ const exitAt = (bars, at = eve29, position = pat, asOf = "2026-10-29") =>
 const stopped = exitAt([bar28], eve28, pat, "2026-10-28");
 assert.deepEqual([stopped.status, stopped.exit.price, stopped.exit.pnlInr, stopped.exit.date], ["EXIT_STOP", 349.7, -62, "2026-10-28"], "closed above the stop after the entry");
 const html28 = render({ date: "2026-10-28", rows: [stopped] }, "2026-10-28");
-assert.ok(html28.includes("STOP HIT 2026-10-28 · bought back ₹349.70 · −₹62 (−0.89%)") && !html28.includes('class="gm-fill"'), html28);
+assert.ok(html28.includes("STOP HIT 2026-10-28 · bought back ₹349.70 · −⁠₹62 (−0.89%)") && !html28.includes('class="gm-fill"'), html28);
 const calm = { date: "2026-10-28", open: 344.6, high: 375, low: 335.95, close: 347 };
 assert.equal(exitAt([calm], eve28, pat, "2026-10-28").exit, undefined, "the entry day's high may predate the entry");
 assert.deepEqual(exitAt([calm, { date: "2026-10-29", open: 352, high: 353, low: 351, close: 352 }]).exit.price, 352, "a gap through the stop fills at the open");

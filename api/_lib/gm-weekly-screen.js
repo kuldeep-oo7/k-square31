@@ -125,7 +125,8 @@ function render(view, sessionDate) {
   const label = { PREVIEW: "PREVIEW · entry not recorded", WAITING_FOR_FRESH_QUOTE: "WAIT · fresh quote needed",
     SKIP_ENTRY_GAP_OR_RISK: "SKIP · first live price outside the plan's range", PAPER_ENTRY_FROZEN: "PAPER ENTRY · fixed",
     ENTRY_WINDOW_CLOSED: "MISSED · entry session has closed", MISSED_NO_OPENING_QUOTE: `MISSED · no live price by ${ENTRY_CUTOFF_IST}` };
-  const rupees = (n) => `${n < 0 ? "−" : "+"}₹${Math.abs(Math.round(n)).toLocaleString("en-IN")}`;
+  // U+2060 keeps the sign on the amount's line (the phone broke "−" from "₹62" on 28 Oct 2026).
+  const rupees = (n) => `${n < 0 ? "−" : "+"}⁠₹${Math.abs(Math.round(n)).toLocaleString("en-IN")}`;
   const status = (r) => {
     if (r.exit) {
       const name = { STOP: "STOP HIT", TARGET: "TARGET HIT", TIME: "TIME LIMIT", EXPIRY: "EXPIRY" }[r.exit.reason] || r.exit.reason;
