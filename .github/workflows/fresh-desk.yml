@@ -1,0 +1,58 @@
+name: Publish Fresh Desk
+
+on:
+  workflow_dispatch:
+  schedule:
+    # Best effort, not streaming. The page expires old entry references itself.
+    # Ten minutes plus the old desk's three/hour stays below Pages' 10/hour
+    # branch-build soft limit. Short-lived plans can expire before publication.
+    - cron: '45,55 3 * * 1-5'
+    - cron: '*/10 4-9 * * 1-5'
+    - cron: '17 0-2,10-23 * * *'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fresh-desk-publish
+  cancel-in-progress: false
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          persist-credentials: false
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+      - name: Check the research engine before publishing
+        run: node fresh-desk/test.js
+      - name: Restore public instrument metadata
+        uses: actions/cache@v4
+        with:
+          path: .private/cache/angelone-instruments.json
+          key: fresh-instruments-${{ runner.os }}-${{ github.run_id }}
+          restore-keys: fresh-instruments-${{ runner.os }}-
+      - name: Load existing broker secret privately
+        env:
+          BROKERS_JSON: ${{ secrets.K2_BROKERS_JSON }}
+        run: |
+          mkdir -p .private
+          if [ -n "$BROKERS_JSON" ]; then
+            printf '%s' "$BROKERS_JSON" > .private/brokers.json
+            chmod 600 .private/brokers.json
+          fi
+      - name: Build real-data Pages files, with explicit unavailable states
+        run: node --max-old-space-size=256 fresh-desk/build-pages.js --live
+      - name: Publish alongside the existing desk
+        env:
+          MIRROR_KEY: ${{ secrets.K2_MIRROR_DEPLOY_KEY }}
+          MIRROR_REPO: ${{ vars.K2_MIRROR_REPO }}
+        run: bash deploy/publish-fresh-desk.sh
+      - name: Verify the served build
+        env:
+          MIRROR_REPO: ${{ vars.K2_MIRROR_REPO }}
+        run: node fresh-desk/verify-pages.js

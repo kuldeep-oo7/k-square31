@@ -1,0 +1,48 @@
+{
+  "version": "price-action-workbench-v2",
+  "status": "UNVALIDATED_RESEARCH",
+  "sides": [
+    "BUY",
+    "SELL"
+  ],
+  "barMinutes": 5,
+  "minimumBars": 24,
+  "structureBars": 20,
+  "volumeMultiple": 1.5,
+  "levelToleranceAtr": 0.2,
+  "rangeEfficiencyMax": 0.35,
+  "minimumRewardRisk": 1.5,
+  "maxRiskPct": 2,
+  "maxSpreadPct": 0.15,
+  "maxEntryDriftPct": 0.35,
+  "maxQuoteAgeMs": 120000,
+  "targetPct": 3,
+  "lastEntryIst": "15:00",
+  "reviewIst": "15:25",
+  "quantity": 20,
+  "families": [
+    "TREND_PULLBACK",
+    "STRUCTURE_BREAKOUT",
+    "FAILED_BREAKOUT",
+    "RANGE_BOUNCE"
+  ],
+  "meaning": "Separate mechanical research interpretations of public price-action concepts. Numerical thresholds are application research choices, not the named traders' complete methods or validated results. Structural targets drive each setup; 3% from actual fill is a separate reference. No minimum holding period or predicted time to profit.",
+  "sources": [
+    {
+      "name": "CME: trend and continuation patterns",
+      "url": "https://www.cmegroup.com/education/courses/technical-analysis/trend-and-continuation-patterns"
+    },
+    {
+      "name": "CME: support and resistance",
+      "url": "https://www.cmegroup.com/education/courses/technical-analysis/support-and-resistance"
+    },
+    {
+      "name": "Linda Raschke: momentum and pullback interview",
+      "url": "https://lindaraschke.net/wp-content/uploads/2026/03/raschke_pt2_0304.pdf"
+    },
+    {
+      "name": "Peter Brandt: entry categories and structures",
+      "url": "https://www.peterlbrandt.com/wp-content/uploads/2021/07/The-Factor-Chart-Lab.pdf"
+    }
+  ]
+}

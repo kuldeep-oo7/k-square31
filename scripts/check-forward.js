@@ -4,6 +4,8 @@
 const { spawnSync } = require("node:child_process");
 const path = require("node:path");
 const steps = [
+  ["fresh-desk/test.js"],
+  ["fresh-desk/test-server.js"],
   ["scripts/test-gm-weekly-research.js"],
   ["scripts/test-gm-weekly-screen.js"], ["scripts/test-fno-lot-file.js"],
   ["--check", "studies/gm-target-speed-2026-10-27/study.js"], ["scripts/test-gm-target-speed.js"],

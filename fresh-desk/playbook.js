@@ -1,0 +1,9 @@
+"use strict";
+const { RULES } = require("./engine");
+const playbook = [
+  { id: "TREND_PULLBACK", name: "Trend pullback", setting: "Established uptrend or downtrend", trigger: "A pullback toward the 10-bar average is followed by a completed candle beyond the prior candle's high/low.", stop: "Beyond the last three candles' pullback extreme.", target: "Just before the prior 20-bar swing high/low.", failure: "The pullback develops into a reversal, or there is too little room before the prior swing.", source: 2 },
+  { id: "STRUCTURE_BREAKOUT", name: "Structure breakout", setting: "A clearly defined prior boundary", trigger: "A completed candle closes beyond the previous 20-bar boundary with at least 1.5 times the median of six prior activity readings.", stop: "Beyond the breakout candle's opposite extreme.", target: "Project the height of the previous range beyond its broken boundary.", failure: "A false break, thin activity or a late entry consumes the available reward.", source: 0 },
+  { id: "FAILED_BREAKOUT", name: "Failed breakout", setting: "An attempted escape returns inside a prior range", trigger: "The previous candle crossed a prior boundary and closed inside again; the latest candle confirms the rejection.", stop: "Beyond the failed excursion.", target: "Just before the opposite boundary of the previous range.", failure: "The apparent rejection is only a pause before the original breakout resumes.", source: 3 },
+  { id: "RANGE_BOUNCE", name: "Range bounce", setting: "Repeated boundaries, low directional efficiency", trigger: "A directional candle reacts near an edge, with room to the opposite edge; entries in the middle are excluded.", stop: "Beyond the rejected range edge or signal candle, whichever is farther.", target: "Just before the opposite range boundary.", failure: "A range becomes a trend and the boundary gives way.", source: 1 }
+];
+module.exports = { playbook, sources: RULES.sources };

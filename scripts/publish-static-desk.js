@@ -2163,6 +2163,7 @@ function page(d) {
 </style></head><body>
 
 <h1>K&sup2; Desk</h1>
+<p><a href="./fresh/">Open Fresh Desk · price action in both directions</a></p>
 <div class="stamp">Built ${esc(d.builtAtIst)}<span id="age"></span> &middot; ${noSessionToday ? `no session today (last: ${esc(lastSessionText)})` : `session ${esc(d.sessionDate)}`} &middot; market ${esc(d.marketPhase)}<span class="lec"> &middot;
   ${esc(Number(d.examined).toLocaleString("en-IN"))} contracts examined, ${esc(Number(d.survived).toLocaleString("en-IN"))} cleared every gate</span>${d.marketContext?.ok
     ? ` &middot; India VIX <b>${esc(d.marketContext.indiaVix)}</b> (${signedPct(d.marketContext.indiaVixChangePct)}) &middot; Nifty ${esc(Number(d.marketContext.nifty).toLocaleString("en-IN"))} (${signedPct(d.marketContext.niftyChangePct)}), ${ctxWhen}`
