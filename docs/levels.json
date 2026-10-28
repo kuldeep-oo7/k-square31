@@ -246,7 +246,10 @@
   "OPTION|INDHOTEL|INDHOTEL26NOV850CE",
   "OPTION|NAM-INDIA|NAM-INDIA26NOV900PE",
   "OPTION|SIEMENS|SIEMENS26NOV3250PE",
-  "OPTION|MANAPPURAM|MANAPPURAM26NOV280PE"
+  "OPTION|MANAPPURAM|MANAPPURAM26NOV280PE",
+  "OPTION|NIFTY|NIFTY26N0922050PE",
+  "OPTION|DRREDDY|DRREDDY26NOV1380CE",
+  "OPTION|COLPAL|COLPAL26NOV1500PE"
  ],
  "options": {
   "NIFTY26N0922700PE": {
@@ -3262,6 +3265,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-28T04:25:24.803Z",
    "frozenAtIst": "2026-10-28 09:55 IST",
+   "frozenAtSpot": null
+  },
+  "NIFTY26N0922050PE": {
+   "buy": 109.85,
+   "sell": 164.75,
+   "stop": 54.9,
+   "tick": 0.05,
+   "lotSize": 65,
+   "expiry": "2026-11-09",
+   "strike": 22050,
+   "right": "PE",
+   "symbol": "NIFTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-28T05:04:27.993Z",
+   "frozenAtIst": "2026-10-28 10:34 IST",
+   "frozenAtSpot": null
+  },
+  "DRREDDY26NOV1380CE": {
+   "buy": 14.4,
+   "sell": 21.6,
+   "stop": 7.2,
+   "tick": 0.05,
+   "lotSize": 625,
+   "expiry": "2026-11-23",
+   "strike": 1380,
+   "right": "CE",
+   "symbol": "DRREDDY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-28T05:04:27.993Z",
+   "frozenAtIst": "2026-10-28 10:34 IST",
+   "frozenAtSpot": null
+  },
+  "COLPAL26NOV1500PE": {
+   "buy": 20.35,
+   "sell": 30.55,
+   "stop": 10.2,
+   "tick": 0.05,
+   "lotSize": 275,
+   "expiry": "2026-11-23",
+   "strike": 1500,
+   "right": "PE",
+   "symbol": "COLPAL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-28T05:04:27.993Z",
+   "frozenAtIst": "2026-10-28 10:34 IST",
    "frozenAtSpot": null
   }
  },
