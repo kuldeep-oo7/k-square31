@@ -1,5 +1,14 @@
 # K² desk: rules for every Claude session (laptop or cloud)
 
+**Owner reset, 28 Oct 2026:** build a fresh GM futures application that evaluates
+BUY/LONG and SELL/SHORT equally. This replaces the earlier short-only focus for
+new development. The standalone implementation is in `fresh-desk/`; it imports
+no old ratings, strategy engines or track records. Its first intraday hypotheses
+are unvalidated research. Existing deployed files and held positions are retained;
+the new prototype does not change an existing stop. The older design below is
+historical context, not a mandate to suppress upside in the replacement.
+
+Every system, timer, secret NAME and outside data source, and how to reach each, is in `HANDOVER-CODEX.md` (28 Oct 2026; `AGENTS.md` points Codex there).
 Also read `HANDOVER.md` (study results, the owner's chat rules, known problems) and `notes/claude-memory/MEMORY.md`, a one-line index of the laptop Claude's memory notes. **To save the owner's credit, do NOT read every note.** Open a note only when the task touches its subject. Treat each note as true when written, and check names and numbers against the code. Add new durable facts there, never secrets. Keep replies and file reads lean: the owner pays per token. A cloud session can't see the owner's laptop. It has no `~/.claude` memory, no `.private/`
 and no `research/`. This file carries what it needs. Nothing secret belongs here.
 
