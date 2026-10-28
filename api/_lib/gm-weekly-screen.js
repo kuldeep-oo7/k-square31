@@ -27,7 +27,7 @@ function project({ report, state = {}, quotes = {}, now = Date.now(), marketOpen
     let row;
     try {
       const preview = plan({ entryPrice: c.signalClose, side: c.side, quantity: RULE.quantity,
-        tickSize: c.tickSize, entryDate, expiry: c.expiry });
+        tickSize: c.tickSize, entryDate, expiry: c.expiry, maxHoldingSessions: RULE.maxHoldingSessions ?? null });
       row = { ...preview, symbol: c.symbol, setup: c.setup, signalDate: c.signalDate,
         stopPrice: c.stopPrice, status: "PREVIEW", last: null, quoteAt: null };
     } catch { continue; }
@@ -69,7 +69,7 @@ function render(view, sessionDate) {
   const cards = rows.map((r, i) => {
     const frozen = r.status === "PAPER_ENTRY_FROZEN", long = r.side === "BUY";
     const data = { entryPrice: r.entryPrice, entryDate: r.entryDate, side: r.side, expiry: r.expiry,
-      tickSize: r.tickSize, quantity: r.quantity, stopPrice: r.stopPrice };
+      tickSize: r.tickSize, quantity: r.quantity, stopPrice: r.stopPrice, maxHoldingSessions: r.maxHoldingSessions ?? null };
     return `<article class="gm-card" data-gm-plan="${esc(JSON.stringify(data))}">
       <div class="gm-card-head"><b>${esc(r.symbol)}</b><b class="${long ? "up" : "down"}">${long ? "BUY / LONG" : "SELL / SHORT"}</b></div>
       <div class="sub">${esc(r.expiry)} futures · ${esc(r.setup.replace(/_/g, " "))}</div>
@@ -87,11 +87,12 @@ function render(view, sessionDate) {
   const empty = !current || view?.status === "DATA_UNAVAILABLE" ? "Waiting for fresh futures data. No entry prices issued."
     : "No verified setup available: filters or data checks did not pass.";
   return `<div class="note focus" id="gm-weekly-panel" style="margin:0 0 14px;border-left-color:var(--amber)">
-    <b>GM · 3% WEEKLY PLAN</b> · <b class="warn">UNVALIDATED PAPER RESEARCH</b>
+    <b>GM · 3% TRADE PLAN</b> · <b class="warn">UNVALIDATED PAPER RESEARCH</b>
+    <div class="sub">Exit at target or stop, including the same day · maximum ${RULE.maxHoldingSessions || 20} sessions, capped by expiry</div>
     <div class="sub">${current && view.signalDate ? `Signal ${esc(view.signalDate)} · next entry ${esc(view.entrySession)} · ${esc(view.examined)} contracts checked${view.partial ? " · scan incomplete" : ""}` : "Fresh signal scan pending"}</div>
     ${current && view.status === "DATA_UNAVAILABLE" && cards ? `<div class="sub warn">Fresh scan unavailable; showing previously frozen paper levels only.</div>` : ""}
     ${cards ? `<div class="gm-cards">${cards}</div>` : `<div class="sub warn" style="margin-top:8px">${empty}</div>`}
-    <div class="sub lec">3% is a target from entry, not a promised weekly return. New paper research requested for the GM friends competition. Existing registered tests retain their original rules.</div>
+    <div class="sub lec">3% is a target from entry. No weekly deadline or minimum holding time. This v2 research has not established a profitable edge. Existing registered tests retain their original rules.</div>
     <style>#gm-weekly-panel .gm-cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(100%,310px),1fr));gap:12px;margin-top:12px}#gm-weekly-panel .gm-card{border:1px solid var(--line,#42454b);border-radius:8px;padding:12px;min-width:0}#gm-weekly-panel .gm-card-head{display:flex;justify-content:space-between;gap:8px}#gm-weekly-panel .gm-status{font-size:12px;margin:8px 0}#gm-weekly-panel .gm-prices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:7px;margin:10px 0}#gm-weekly-panel dt{font-size:11px;color:var(--muted)}#gm-weekly-panel dd{font-size:17px;font-weight:700;margin:4px 0;font-variant-numeric:tabular-nums;overflow-wrap:anywhere}#gm-weekly-panel .gm-fill-row{display:flex;flex-wrap:wrap;align-items:center;gap:8px;padding:10px 0}#gm-weekly-panel input{width:120px;padding:8px;background:var(--bg,#15171a);color:inherit;border:1px solid var(--muted);border-radius:4px}#gm-weekly-panel output{width:100%;font-size:13px}</style>
     <script>(function(){var goal=(${createGmWeeklyGoal.toString()})(${JSON.stringify(CALENDAR)});document.querySelectorAll('#gm-weekly-panel .gm-card').forEach(function(card){var input=card.querySelector('.gm-fill'),out=card.querySelector('output'),p=JSON.parse(card.getAttribute('data-gm-plan'));input.addEventListener('input',function(){try{if(!input.value.trim())throw Error('Enter your actual fill.');var n=Number(input.value),sign=p.side==='BUY'?1:-1,risk=sign*(n-p.stopPrice)/n*100;if(!(risk>0&&risk<=${RULE.maxStopPct}))throw Error('Fill outside the planned stop/risk limit.');var g=goal.plan(Object.assign({},p,{entryPrice:n}));out.textContent=(p.side==='BUY'?'Sell target':'Buy-back target')+' ₹'+g.targetPrice.toLocaleString('en-IN',{minimumFractionDigits:2,maximumFractionDigits:2})+' · stop ₹'+p.stopPrice.toLocaleString('en-IN')+' · before GM costs';out.className='gm-fill-result up';}catch(e){out.textContent=e.message;out.className='gm-fill-result down';}});});})();</script>
   </div>`;

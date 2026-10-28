@@ -1,0 +1,7 @@
+STATISTICS-ONLY CORRECTION AFTER THE INITIAL EXPLORATORY RUN
+
+The initial DSR calculation included Sharpe ratios from insufficiently sampled pattern members when estimating cross-member Sharpe dispersion. Members with two or four trades do not provide a sound variance estimate for deflating the sufficiently sampled members.
+
+Correction: use only members with at least 100 completed trades and 24 traded months to estimate that dispersion and report DSR only for those adequately sampled members. Continue counting every declared comparison in the search correction. No signal, side, parameter, price, fill, cost, sample or holding rule changes.
+
+The first result is preserved in .private/gm-target-speed/result.initial.json. The corrected run must reproduce every trade count, gross/net return, speed fraction and monthly t statistic exactly; only DSR and any dependent label may change. Both runs remain exploratory, not preregistered or independent validation. Updating the code lock does not make either run preregistered.

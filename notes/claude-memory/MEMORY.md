@@ -50,3 +50,4 @@
 - [Order book 25 Oct](k2-orderbook-2026-10-25.md) — total buy/sell qty predicts nothing; visible book leans right (IC t 4-5) but ~1/6 of the spread+charges; verdict re-run at 60 sessions (~31 Dec 2026)
 - [SB vs NIFTY 26 Oct](k2-sb-vs-nifty-2026-10-26.md) — owner was right: live SB moves ~1-for-1 against NIFTY's intraday move (leftover -0.17%/day, t -0.45); 26 Oct -Rs 41,098 wiped out 3 weeks
 - [GM weekly panel 27 Oct](k2-gm-weekly-2026-10-27.md) — UNVALIDATED 3%-in-a-week GM panel deployed (PR #4/#5); empty until ~mid-Nov (55-bar rule); Angel AG8001 = expired OR burst limit
+- [GM panel v2 28 Oct](k2-gm-weekly-2026-10-27.md) — v2 deployed 28 Oct at owner request (35 bars, EMA10/20, exit at first 3%/stop, max 20 sessions); its own exploratory test LOST (v2 breakout buys 569 trades -0.14%/trade t -2.22; 0 of 36 passed); still UNVALIDATED

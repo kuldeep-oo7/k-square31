@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
+    "gm:study": "node --max-old-space-size=400 studies/gm-target-speed-2026-10-27/study.js",
     "gm:scan": "node scripts/scan-gm-weekly.js --live",
     "gm:audit": "node scripts/audit-gm-goal.js",
     "gm:test": "node scripts/test-gm-weekly-research.js",

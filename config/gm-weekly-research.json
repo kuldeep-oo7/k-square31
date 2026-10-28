@@ -1,9 +1,13 @@
 {
-  "version": "gm-price-goal-v1",
+  "version": "gm-price-goal-v2-research",
   "mode": "PAPER_RESEARCH_ONLY",
   "targetPct": 3,
-  "windowCalendarDays": 7,
-  "minHistory": 55,
+  "windowCalendarDays": null,
+  "maxHoldingSessions": 20,
+  "exitAtFirstTargetTouch": true,
+  "minHistory": 35,
+  "trendFastSessions": 10,
+  "trendSlowSessions": 20,
   "channelSessions": 20,
   "volumeMultiple": 1.5,
   "maxStopPct": 1.5,
@@ -19,6 +23,6 @@
     "https://www.cmegroup.com/education/courses/technical-analysis/trend-and-continuation-patterns",
     "https://www.tradingview.com/support/solutions/43000502344-moving-average-convergence-divergence-macd-indicator/"
   ],
-  "interpretation": "Published pattern definitions; the combined filters and numerical cutoffs are this desk's unvalidated research design. No guaranteed return or measured win probability. 3% is measured from the actual entry, before unknown GM costs. No account-capital or NSE-lot substitution.",
+  "interpretation": "Unvalidated v2 research: 35-bar EMA10/20 trend with existing candle, momentum and volume filters. The owner removed the weekly deadline and prefers the earliest target exit, including entry day. Target is 3% of actual entry, capped by stop, 20 sessions and actual expiry. No guaranteed return or measured win probability. Unknown GM costs stay unknown.",
   "platformRulesSource": "User clarification 2026-10-26; notes/claude-memory/gm-global-manual-only.md. Account-specific GM fees, resets and quantity ceilings are not independently verified."
 }

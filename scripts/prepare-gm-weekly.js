@@ -3,7 +3,7 @@
 const fs = require("node:fs");
 const path = require("node:path");
 const crypto = require("node:crypto");
-const { run, lastClosedSession } = require("./scan-gm-weekly");
+const { run, lastClosedSession, pipelineSha256 } = require("./scan-gm-weekly");
 const { futuresHistory } = require("../api/_lib/gm-research-feed");
 const { project } = require("../api/_lib/gm-weekly-screen");
 const ROOT = path.resolve(__dirname, "..");
@@ -16,7 +16,8 @@ async function prepare({ dir = DIR, now = Date.now(), scanRun = run, history = f
   const hash = (file) => crypto.createHash("sha256").update(fs.readFileSync(path.join(ROOT, file))).digest("hex");
   let report = read(reportFile);
   if (!report || report.asOf !== asOf || report.partial || report.status === "DATA_UNAVAILABLE"
-    || report.configSha256 !== hash("config/gm-weekly-research.json") || report.engineSha256 !== hash("api/_lib/gm-technical-research.js")) {
+    || report.configSha256 !== hash("config/gm-weekly-research.json") || report.engineSha256 !== hash("api/_lib/gm-technical-research.js")
+    || report.pipelineSha256 !== pipelineSha256()) {
     const cachedHistory = async (args) => {
       const name = crypto.createHash("sha256").update(`${args.symbol}|${args.expiry}|${args.asOf}`).digest("hex");
       const file = path.join(dir, "history", name + ".json"), cached = read(file);

@@ -9,6 +9,19 @@ const { audit } = require("./audit-gm-goal");
 const { isNseHoliday } = require("../api/_lib/nse-holidays");
 const ROOT = path.resolve(__dirname, "..");
 
+// A same-day result must be recomputed after a feed, retry, validation or
+// calendar fix, even when the strategy's own parameters did not change.
+const PIPELINE_FILES = [
+  "config/gm-weekly-research.json", "api/_lib/gm-technical-research.js",
+  "api/_lib/gm-research-feed.js", "api/_lib/gm-weekly-goal.js",
+  "api/_lib/nse-holidays.js", "scripts/scan-gm-weekly.js", "scripts/prepare-gm-weekly.js"
+];
+function pipelineSha256(readFile = fs.readFileSync) {
+  const hash = crypto.createHash("sha256");
+  for (const file of PIPELINE_FILES) hash.update(file).update("\0").update(readFile(path.join(ROOT, file))).update("\0");
+  return hash.digest("hex");
+}
+
 function loadPrivateEnvironment() {
   const file = path.join(ROOT, ".private", "production.env");
   if (!fs.existsSync(file)) return;
@@ -52,14 +65,16 @@ async function run(options, { history = futuresHistory, refreshMaster = null, en
   if (asOf > lastClosedSession(now) || !/^\d{4}-\d{2}-\d{2}$/.test(asOf)
     || !Number.isFinite(Date.parse(asOf)) || new Date(asOf).toISOString().slice(0, 10) !== asOf) throw new Error("AS_OF_MUST_BE_A_COMPLETED_SESSION");
   const report = { builtAt: new Date(now).toISOString(), asOf, mode: RULE.mode, goal: audit().goal,
-    validation: "UNVALIDATED; no historical profitability or weekly success rate established", evidence: audit(),
+    validation: "UNVALIDATED; exploratory tests did not establish reliable profitability", evidence: audit(),
     configSha256: crypto.createHash("sha256").update(fs.readFileSync(path.join(ROOT, "config/gm-weekly-research.json"))).digest("hex"),
     engineSha256: crypto.createHash("sha256").update(fs.readFileSync(path.join(ROOT, "api/_lib/gm-technical-research.js"))).digest("hex"),
-    examined: 0, rejected: {}, candidates: [] };
+    pipelineSha256: pipelineSha256(),
+    examined: 0, historiesAvailable: 0, rejected: {}, candidates: [] };
   const reject = (reason) => { report.rejected[reason] = (report.rejected[reason] || 0) + 1; };
   const consume = (data) => {
     report.examined++;
     if (data.ok === false) { reject(data.reason || "DATA_UNAVAILABLE"); return; }
+    if (Array.isArray(data.bars) && data.bars.length) report.historiesAvailable++;
     const evaluated = scan({ ...data, asOf });
     if (!evaluated.candidates.length) reject(evaluated.reason || evaluated.status);
     report.candidates.push(...evaluated.candidates);
@@ -113,7 +128,7 @@ async function run(options, { history = futuresHistory, refreshMaster = null, en
       }
     }
   }
-  report.status = report.candidates.length ? "UNVALIDATED_PAPER_CANDIDATES" : report.examined ? "NO_QUALIFYING_SETUP_OR_DATA" : "DATA_UNAVAILABLE";
+  report.status = report.candidates.length ? "UNVALIDATED_PAPER_CANDIDATES" : report.historiesAvailable ? "NO_QUALIFYING_SETUP_OR_DATA" : "DATA_UNAVAILABLE";
   return report;
 }
 async function main(args = process.argv.slice(2)) {
@@ -123,9 +138,9 @@ async function main(args = process.argv.slice(2)) {
   const output = path.join(dir, "latest.json");
   fs.writeFileSync(output, JSON.stringify(report, null, 2));
   // This repository is public. Predictions and prices stay in .private/.
-  console.log(`GM 3% from entry, within a week: ${report.status}. ${report.examined} contracts examined; ${report.candidates.length} research candidates.`);
+  console.log(`GM 3% from entry, exit on first target/stop: ${report.status}. ${report.examined} contracts examined; ${report.candidates.length} research candidates.`);
   console.log(`Data checks: ${JSON.stringify(report.rejected)}. Private report: .private/gm-weekly/latest.json`);
   return report;
 }
 if (require.main === module) main().catch(() => { console.error("GM scan failed; check the arguments and data connection. No picks issued."); process.exitCode = 1; });
-module.exports = { main, run, parseArgs, lastClosedSession };
+module.exports = { main, run, parseArgs, lastClosedSession, pipelineSha256 };
