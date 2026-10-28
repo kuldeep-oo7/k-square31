@@ -16,6 +16,12 @@ assert.equal(plan({ ...base, side: "SELL" }).targetPrice, 970);
 assert.equal(plan(base).deadline, "2026-10-30", "the weekly deadline is a tradable session, not Sunday");
 assert.equal(plan({ ...base, entryDate: "2026-12-21", expiry: "2026-12-29" }).deadline, "2026-12-24", "skip the exchange's Christmas holiday");
 assert.equal(plan({ ...base, expiry: "2026-10-27" }).deadline, "2026-10-27");
+const swing = plan({ ...base, maxHoldingSessions: 20 });
+assert.equal(swing.deadline, "2026-11-23");
+assert.equal(result(swing, { exitPrice: 1030, exitDate: "2026-11-02" }).grossGoalMet, true, "a target after one week still counts under the stored 20-session policy");
+assert.equal(result(swing, { exitPrice: 1030, exitDate: "2026-10-26" }).grossGoalMet, true, "entry-day targets exit immediately");
+assert.equal(result(swing, { exitPrice: 1030, exitDate: "2026-11-02" }).withinWeek, false);
+assert.equal(plan(swing).deadline, swing.deadline, "saved holding policies do not change when reloaded");
 for (const side of ["BUY", "SELL"]) {
   const p = plan({ ...base, entryPrice: 1000.15, side });
   assert.ok(p.targetReturnPct >= 3 - 1e-9, "round the target away from entry");
@@ -52,6 +58,7 @@ function fixture() {
   return { symbol: "TEST", expiry: base.expiry, tickSize: 0.05, asOf: "2026-10-26", source: "NSE_FUTURES", bars };
 }
 const f = fixture(), found = T.scan(f);
+assert.ok(Object.values(T.indicators(f.bars.slice(-35))).every(Number.isFinite), "the 35-bar research variant has no missing 50-day EMA");
 assert.equal(found.status, "RESEARCH_ONLY", JSON.stringify(found));
 assert.equal(found.candidates[0].setup, "CHANNEL_BREAKOUT");
 assert.equal(found.candidates[0].probability, null);
@@ -123,6 +130,7 @@ async function main() {
   const deniedReport = await run({ live: true, asOf: f.asOf, symbols: ["TEST"] }, { now, instruments,
     history: async () => ({ ok: false, reason: "NETWORK_ACCESS_DENIED" }) });
   assert.equal(deniedReport.candidates.length, 0); assert.equal(deniedReport.rejected.NETWORK_ACCESS_DENIED, 1);
+  assert.equal(deniedReport.status, "DATA_UNAVAILABLE", "a failed feed is not evidence that the market has no setup");
   assert.equal(deniedReport.partial, true, "a scan that stops early must be retried by the next build");
   // Angel's burst limit (27 Oct 2026): AG8001 again after the refresh -> pause, retry the same contract once.
   let burst = 0;

@@ -16,7 +16,7 @@ function createGmWeeklyGoal(calendar = { holidays: [], coveredYears: [] }) {
     return weekday !== 0 && weekday !== 6 && !holidays.has(d);
   }
 
-  function plan({ entryPrice, side, quantity = 20, tickSize, entryDate, expiry, roundTripCostsInr = null } = {}) {
+  function plan({ entryPrice, side, quantity = 20, tickSize, entryDate, expiry, roundTripCostsInr = null, maxHoldingSessions = null } = {}) {
     if (!number(entryPrice) || entryPrice <= 0) throw new Error("Enter the actual futures fill price.");
     if (!["BUY", "SELL"].includes(side)) throw new Error("Choose BUY or SELL.");
     if (!number(quantity) || !Number.isSafeInteger(quantity) || quantity < 20) throw new Error("Enter at least 20 whole units.");
@@ -24,6 +24,7 @@ function createGmWeeklyGoal(calendar = { holidays: [], coveredYears: [] }) {
       || Math.abs(tickSize * 100 - Math.round(tickSize * 100)) > 1e-8) throw new Error("Enter the contract tick size, in whole paise.");
     if (!date(entryDate) || !date(expiry) || expiry < entryDate) throw new Error("Enter valid entry and contract expiry dates.");
     if (!isSession(entryDate)) throw new Error("Entry date must be an NSE trading session.");
+    if (maxHoldingSessions !== null && (!Number.isInteger(maxHoldingSessions) || maxHoldingSessions < 1 || maxHoldingSessions > 20)) throw new Error("Holding limit must be 1 to 20 sessions.");
     if (roundTripCostsInr !== null && (!number(roundTripCostsInr) || roundTripCostsInr < 0)) throw new Error("Costs must be a known nonnegative rupee amount, or blank.");
     const direction = side === "BUY" ? 1 : -1;
     const costPerUnit = roundTripCostsInr === null ? 0 : roundTripCostsInr / quantity;
@@ -32,14 +33,22 @@ function createGmWeeklyGoal(calendar = { holidays: [], coveredYears: [] }) {
     const steps = direction > 0 ? Math.ceil(raw / tickSize - 1e-9) : Math.floor(raw / tickSize + 1e-9);
     const targetPrice = cents(steps * tickSize);
     if (!(targetPrice > 0) || !Number.isFinite(targetPrice)) throw new Error("No positive target price is possible with these costs.");
-    // A rolling seven-calendar-day window, entry date included. Expiry can
-    // shorten it; a different futures contract is never silently substituted.
+    // Preserve v1's weekly policy on old records (null). V2 explicitly stores
+    // its own session ceiling; every target/stop may exit on the entry day.
     const weekEnd = new Date(Date.parse(entryDate) + 6 * 864e5).toISOString().slice(0, 10);
-    let deadline = expiry < weekEnd ? expiry : weekEnd;
+    let ceiling = weekEnd;
+    if (maxHoldingSessions !== null) {
+      ceiling = entryDate; let sessions = 1;
+      while (sessions < maxHoldingSessions && ceiling < expiry) {
+        ceiling = new Date(Date.parse(ceiling) + 864e5).toISOString().slice(0, 10);
+        if (isSession(ceiling)) sessions++;
+      }
+    }
+    let deadline = expiry < ceiling ? expiry : ceiling;
     while (!isSession(deadline)) deadline = new Date(Date.parse(deadline) - 864e5).toISOString().slice(0, 10);
     const grossPnlInr = direction * (targetPrice - entryPrice) * quantity;
     if (![grossPnlInr, entryPrice * quantity].every(Number.isFinite)) throw new Error("Position value is too large.");
-    return { targetPct: TARGET_PCT, entryPrice, side, quantity, tickSize, entryDate, expiry, deadline, targetPrice,
+    return { targetPct: TARGET_PCT, entryPrice, side, quantity, tickSize, entryDate, expiry, deadline, targetPrice, maxHoldingSessions,
       basis: roundTripCostsInr === null ? "BEFORE_GM_COSTS" : "AFTER_SUPPLIED_GM_COSTS",
       roundTripCostsInr, grossPnlInr: cents(grossPnlInr),
       netPnlInr: roundTripCostsInr === null ? null : cents(grossPnlInr - roundTripCostsInr),
@@ -57,7 +66,7 @@ function createGmWeeklyGoal(calendar = { holidays: [], coveredYears: [] }) {
     const grossPct = 100 * gross / (p.entryPrice * p.quantity);
     const netPct = roundTripCostsInr === null ? null : 100 * (gross - roundTripCostsInr) / (p.entryPrice * p.quantity);
     return { grossPnlInr: cents(gross), netPnlInr: netPct === null ? null : cents(gross - roundTripCostsInr),
-      grossReturnPct: grossPct, netReturnPct: netPct, withinWeek: exitDate <= p.deadline,
+      grossReturnPct: grossPct, netReturnPct: netPct, withinWeek: exitDate <= new Date(Date.parse(p.entryDate) + 6 * 864e5).toISOString().slice(0, 10), withinHoldingPeriod: exitDate <= p.deadline,
       grossGoalMet: exitDate <= p.deadline && grossPct >= TARGET_PCT - 1e-9,
       netGoalMet: netPct === null ? null : exitDate <= p.deadline && netPct >= TARGET_PCT - 1e-9 };
   }

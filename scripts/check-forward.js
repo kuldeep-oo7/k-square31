@@ -6,6 +6,7 @@ const path = require("node:path");
 const steps = [
   ["scripts/test-gm-weekly-research.js"],
   ["scripts/test-gm-weekly-screen.js"],
+  ["--check", "studies/gm-target-speed-2026-10-27/study.js"], ["scripts/test-gm-target-speed.js"],
   ["--check", "api/_lib/springy-dip.js"], ["scripts/test-springy-dip.js"],
   ["--check", "api/_lib/oi-flow-forward.js"], ["scripts/test-oi-flow-forward.js"], ["scripts/test-sb-focus.js"],
   ["--check", "api/_lib/sb-strong-forward.js"], ["scripts/test-sb-strong-forward.js"], ["--check", "api/_lib/sb-trees-forward.js"], ["scripts/test-sb-trees-forward.js"],

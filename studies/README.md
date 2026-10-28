@@ -13,6 +13,7 @@ FAIL means "unproven".
 
 | Folder | What | Result |
 |---|---|---|
+| gm-target-speed-2026-10-27 | Exploratory 3% target / first-stop study on same-expiry NSE futures, up to 20 sessions; 36 declared chart/candle/indicator/OI/HA-feature comparisons | Not preregistered; reused sample, assumed costs; 0 meet the exploratory quality screen. Two short-side leads remain unconfirmed; see RESULT.txt. |
 | oos-replication-2026-10-05 | **The 8 TRACK rules on UNSEEN data**: NSE 2005-2020 + S&P 500 2005-2026 | Only short build-up holds (+0.28%/trade, every period); strangle fades; dip and cheap-vol fail per trade |
 | condor-2026-10-05 | NIFTY iron condors (hedged strangle) | 0 PASS (best t 1.75); hedging removes the edge |
 | rating-replay-2026-10-04 | **The desk's own rating, replayed** (236,746 stock-days) | BUY/ACC −0.03%/trade FAIL; SELL/REDUCE shorts LOSE (t −3.31) |

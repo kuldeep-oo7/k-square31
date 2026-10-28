@@ -1,0 +1,32 @@
+"use strict";
+const assert = require("node:assert/strict");
+const { exitOnBar, runFiles, signals, seriesStats, SPEC } = require("../studies/gm-target-speed-2026-10-27/study");
+const position = { side: 1, entry: 100, stop: 98.5, target: 103, entryIndex: 0, expiry: "2026-12-29" };
+const bar = { open: 100, high: 104, low: 99, close: 103, date: "2026-10-27" };
+assert.deepEqual(exitOnBar(position, bar, 0), { price: 103, reason: "TARGET", held: 1 }, "same-day target exits immediately");
+assert.equal(exitOnBar(position, { ...bar, low: 98 }, 0).reason, "AMBIGUOUS_STOP_FIRST");
+assert.equal(exitOnBar(position, { ...bar, open: 97 }, 1).price, 97, "a stop is not a guaranteed fill in a gap");
+assert.equal(exitOnBar(position, { ...bar, open: 104, low: 97 }, 1).reason, "TARGET", "a known target gap occurs before the later low");
+assert.equal(exitOnBar({ ...position, side: -1, stop: 101.5, target: 97 }, { ...bar, high: 101, low: 96 }, 0).reason, "TARGET");
+assert.equal(exitOnBar(position, { ...bar, high: 101, low: 99, close: 100.5 }, 19).reason, "TIME");
+assert.equal(exitOnBar({ ...position, expiry: bar.date }, { ...bar, high: 101, close: 100.5 }, 0).reason, "EXPIRY");
+const files = [], days = new Map();
+for (let i = 0; i < 80; i++) {
+  const date = new Date(Date.parse("2026-07-01") + i * 864e5).toISOString().slice(0, 10), close = 100 + 0.1 * Math.sin(i);
+  files.push(date + ".json"); days.set(date + ".json", [["TEST", "STK", "2026-12-29", 100, 100.5, 99.5, close, close, 10000, 0, 1000]]);
+}
+const before = runFiles(files.slice(0, 35), (f) => days.get(f));
+assert.equal(before.rows.find((r) => r.member === "BASELINE|BUY").attempts, 0, "a completed signal cannot fill on its own candle");
+const entryRows = days.get(files[35]); entryRows[0][4] = 104;
+const after = runFiles(files.slice(0, 36), (f) => days.get(f));
+const long = after.rows.find((r) => r.member === "BASELINE|BUY");
+assert.equal(long.attempts, 1); assert.equal(long.closed, 1); assert.equal(long.reasons.TARGET, 1);
+assert.equal(long.targetWithinPct[1], 100); assert.ok(Math.abs(long.meanNetAssumedPct - (3 - SPEC.costPct)) < 1e-9);
+const incomplete = runFiles(files.slice(0, 36), (f) => f === files[35] ? [] : days.get(f));
+assert.ok(incomplete.coverage.pendingMissing > 0, "missing next-session data cannot become a fill");
+const bars = files.slice(0, 40).map((f, i) => ({ symbol: "TEST", expiry: "2026-12-29", date: f.slice(0, 10), open: 100 + i / 10, high: 101 + i / 10, low: 99 + i / 10, close: 100.5 + i / 10, volume: 1000 }));
+assert.equal(signals(bars.slice(0, 34)).length, 0);
+assert.ok(signals(bars).every((s) => SPEC.families.includes(s.family)));
+assert.ok(Number.isFinite(seriesStats([1, 2, 1, 2, 3, 1]).t));
+assert.equal(seriesStats([1]).t, null);
+console.log("GM target-speed study: next-session entries, immediate targets, conservative ambiguity, gaps, expiry, horizon and missing data checks passed.");

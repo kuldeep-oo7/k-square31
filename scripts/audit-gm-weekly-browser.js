@@ -34,6 +34,8 @@ const OUT = path.join(ROOT, ".private", "gm-weekly", "browser-audit");
       await page.locator("label[for='v-fut']").click();
       const panel = page.locator("#gm-weekly-panel"); assert.equal(await panel.isVisible(), true);
       assert.match(await panel.innerText(), /UNVALIDATED PAPER RESEARCH/);
+      assert.match(await panel.innerText(), /3% TRADE PLAN/);
+      assert.match(await panel.innerText(), /including the same day/);
       const bounds = await panel.boundingBox(); assert.ok(bounds.width <= device.viewport.width, "panel must fit the phone");
       if ((await panel.locator(".gm-card").count()) > 0) {
         const card = panel.locator(".gm-card").first();

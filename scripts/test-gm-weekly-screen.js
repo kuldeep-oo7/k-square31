@@ -5,6 +5,8 @@ const os = require("node:os");
 const path = require("node:path");
 const { project, render, freshQuote } = require("../api/_lib/gm-weekly-screen");
 const { prepare } = require("./prepare-gm-weekly");
+const { pipelineSha256 } = require("./scan-gm-weekly");
+const crypto = require("node:crypto");
 const candidate = { symbol: "TEST", expiry: "2026-11-23", tickSize: 0.05, setup: "CHANNEL_BREAKOUT", side: "BUY", signalDate: "2026-10-26",
   signalClose: 1000, stopPrice: 990, atr14: 20, status: "UNVALIDATED_PAPER_CANDIDATE" };
 const report = { mode: "PAPER_RESEARCH_ONLY", asOf: "2026-10-26", candidates: [candidate], examined: 200, status: "UNVALIDATED_PAPER_CANDIDATES" };
@@ -58,6 +60,23 @@ assert.ok(render({ ...live.view, rows: [{ ...live.view.rows[0], symbol: '<img sr
     assert.equal(outage.rows[0].last, null); assert.equal(outage.dataReason, "LIVE_QUOTES_UNAVAILABLE");
     const failedScan = await prepare({ ...deps, scanRun: async () => { throw new Error("scanner down"); } });
     assert.equal(failedScan.rows[0].entryPrice, 1001); assert.equal(failedScan.status, "DATA_UNAVAILABLE");
+    const hash = (file) => crypto.createHash("sha256").update(fs.readFileSync(path.join(__dirname, "..", file))).digest("hex");
+    const reusable = { ...report, configSha256: hash("config/gm-weekly-research.json"), engineSha256: hash("api/_lib/gm-technical-research.js"), pipelineSha256: pipelineSha256() };
+    let cacheScans = 0;
+    const cacheDeps = { ...deps, marketOpen: false, scanRun: async () => { cacheScans++; return reusable; } };
+    const legacy = { ...reusable }; delete legacy.pipelineSha256;
+    fs.writeFileSync(path.join(dir, "report.json"), JSON.stringify(legacy));
+    await prepare(cacheDeps);
+    assert.equal(cacheScans, 1, "legacy same-day cache must refresh after the pipeline fix");
+    await prepare(cacheDeps);
+    assert.equal(cacheScans, 1, "a complete result from the current pipeline is reused");
+    fs.writeFileSync(path.join(dir, "report.json"), JSON.stringify({ ...reusable, pipelineSha256: "old-feed-or-retry-version" }));
+    await prepare(cacheDeps);
+    assert.equal(cacheScans, 2, "a feed/retry-only change invalidates an otherwise current strategy result");
+    const unchangedSources = pipelineSha256(() => "unchanged");
+    for (const file of ["gm-research-feed.js", "scan-gm-weekly.js", "nse-holidays.js", "gm-weekly-goal.js"]) {
+      assert.notEqual(pipelineSha256((p) => p.endsWith(file) ? "modified" : "unchanged"), unchangedSources, `the fingerprint covers ${file}`);
+    }
   } finally { fs.rmSync(dir, { recursive: true, force: true }); }
   console.log("GM weekly screen: previews, bid/ask entries, frozen levels, stale data, shorts, escaping and preparation passed.");
 })().catch((e) => { console.error(e); process.exitCode = 1; });

@@ -20,13 +20,13 @@ function wilder(a, n) {
   return x;
 }
 function indicators(bars) {
-  const c = bars.map((b) => b.close), e20 = ema(c, 20), e50 = ema(c, 50), fast = ema(c, 12), slow = ema(c, 26);
+  const c = bars.map((b) => b.close), e20 = ema(c, 20), trendFast = ema(c, RULE.trendFastSessions || 20), trendSlow = ema(c, RULE.trendSlowSessions || 50), fast = ema(c, 12), slow = ema(c, 26);
   const macd = c.slice(25).map((_, i) => fast[i + 25] - slow[i + 25]), signal = ema(macd, 9);
   const delta = c.slice(1).map((x, i) => x - c[i]);
   const gain = wilder(delta.map((x) => Math.max(0, x)), 14), loss = wilder(delta.map((x) => Math.max(0, -x)), 14);
   const tr = bars.slice(1).map((b, i) => Math.max(b.high - b.low, Math.abs(b.high - bars[i].close), Math.abs(b.low - bars[i].close)));
   const prior = bars.slice(-21, -1);
-  return { ema20: e20.at(-1), ema20Prior: e20.at(-6), ema50: e50.at(-1),
+  return { ema20: e20.at(-1), trendFast: trendFast.at(-1), trendFastPrior: trendFast.at(-6), trendSlow: trendSlow.at(-1),
     rsi14: gain === 0 && loss === 0 ? 50 : loss === 0 ? 100 : 100 - 100 / (1 + gain / loss),
     atr14: wilder(tr, 14), macdHistogram: macd.at(-1) - signal.at(-1),
     volumeMultiple: bars.at(-1).volume / mean(prior.map((b) => b.volume)),
@@ -67,14 +67,14 @@ function scan({ symbol, expiry, tickSize, bars, asOf, source } = {}) {
   const atrPct = x.atr14 / b.close * 100;
   if (atrPct < RULE.minAtrPct || atrPct > RULE.maxAtrPct) return blocked("VOLATILITY_OUTSIDE_RESEARCH_WINDOW");
   if (x.volumeMultiple < RULE.volumeMultiple) return blocked("VOLUME_NOT_CONFIRMED");
-  const longTrend = b.close > x.ema20 && x.ema20 > x.ema50 && x.ema20 > x.ema20Prior;
-  const shortTrend = b.close < x.ema20 && x.ema20 < x.ema50 && x.ema20 < x.ema20Prior;
+  const longTrend = b.close > x.trendFast && x.trendFast > x.trendSlow && x.trendFast > x.trendFastPrior;
+  const shortTrend = b.close < x.trendFast && x.trendFast < x.trendSlow && x.trendFast < x.trendFastPrior;
   const candidates = [];
   const add = (setup, side, rawStop) => {
     const stopPrice = toTick(rawStop, tickSize, side === "BUY" ? "down" : "up");
     const riskPct = (side === "BUY" ? b.close - stopPrice : stopPrice - b.close) / b.close * 100;
     if (!(stopPrice > 0 && riskPct > 0 && riskPct <= RULE.maxStopPct && RULE.targetPct / riskPct >= RULE.minRewardRisk)) return;
-    candidates.push({ symbol, expiry, tickSize, setup, side, signalDate: asOf, signalClose: b.close,
+    candidates.push({ symbol, expiry, tickSize, setup, side, signalDate: asOf, signalClose: b.close, strategyVersion: RULE.version,
       stopPrice, atr14: x.atr14, riskPct, targetPct: RULE.targetPct,
       entryRule: "FIRST_OBSERVED_NEXT_SESSION_BID_ASK_WITH_RISK_RECHECK", status: "UNVALIDATED_PAPER_CANDIDATE",
       probability: null, source, indicators: x });
@@ -107,7 +107,7 @@ function bindEntry(candidate, { entryPrice, entryDate, quantity = RULE.quantity,
     || !finite(candidate.atr14) || !(candidate.atr14 > 0) || !finite(candidate.signalClose)) throw new Error("A valid research candidate is required.");
   if (!validDate(entryDate) || entryDate !== nextSession(candidate.signalDate)) throw new Error("Entry must be the next verified NSE session after the completed signal.");
   if (!finite(entryPrice) || Math.abs(entryPrice - candidate.signalClose) > RULE.maxEntryGapAtr * candidate.atr14) throw new Error("Entry gap exceeds the research limit.");
-  const goal = plan({ entryPrice, entryDate, quantity, roundTripCostsInr, side: candidate.side, expiry: candidate.expiry, tickSize: candidate.tickSize });
+  const goal = plan({ entryPrice, entryDate, quantity, roundTripCostsInr, side: candidate.side, expiry: candidate.expiry, tickSize: candidate.tickSize, maxHoldingSessions: RULE.maxHoldingSessions ?? null });
   const risk = (candidate.side === "BUY" ? entryPrice - candidate.stopPrice : candidate.stopPrice - entryPrice);
   const reward = Math.abs(goal.targetPrice - entryPrice);
   if (!(risk > 0 && risk / entryPrice * 100 <= RULE.maxStopPct && reward / risk >= RULE.minRewardRisk)) throw new Error("Actual fill fails the stop distance or reward/risk limit.");
