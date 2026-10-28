@@ -252,7 +252,9 @@
   "OPTION|COLPAL|COLPAL26NOV1500PE",
   "OPTION|TCS|TCS26NOV2300CE",
   "OPTION|BANKNIFTY|BANKNIFTY26NOV55500PE",
-  "OPTION|BANKNIFTY|BANKNIFTY26NOV55600PE"
+  "OPTION|BANKNIFTY|BANKNIFTY26NOV55600PE",
+  "OPTION|PERSISTENT|PERSISTENT26NOV6200CE",
+  "OPTION|TECHM|TECHM26NOV1880CE"
  ],
  "options": {
   "NIFTY26N0922700PE": {
@@ -3358,6 +3360,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-28T06:44:06.403Z",
    "frozenAtIst": "2026-10-28 12:14 IST",
+   "frozenAtSpot": null
+  },
+  "PERSISTENT26NOV6200CE": {
+   "buy": 72.35,
+   "sell": 108.55,
+   "stop": 36.15,
+   "tick": 0.05,
+   "lotSize": 125,
+   "expiry": "2026-11-23",
+   "strike": 6200,
+   "right": "CE",
+   "symbol": "PERSISTENT",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-28T07:04:11.402Z",
+   "frozenAtIst": "2026-10-28 12:34 IST",
+   "frozenAtSpot": null
+  },
+  "TECHM26NOV1880CE": {
+   "buy": 19.15,
+   "sell": 28.75,
+   "stop": 9.55,
+   "tick": 0.05,
+   "lotSize": 600,
+   "expiry": "2026-11-23",
+   "strike": 1880,
+   "right": "CE",
+   "symbol": "TECHM",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-28T07:04:11.402Z",
+   "frozenAtIst": "2026-10-28 12:34 IST",
    "frozenAtSpot": null
   }
  },
