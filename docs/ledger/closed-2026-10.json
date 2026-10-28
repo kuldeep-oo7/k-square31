@@ -276657,6 +276657,60 @@
     "perLot": -5912.5,
     "netPerLot": -5976.32
    }
+  },
+  {
+   "id": "2026-10-26|PE|BHEL26NOV410PE",
+   "kind": "PE",
+   "symbol": "BHEL",
+   "contract": "BHEL26NOV410PE",
+   "expiry": "2026-11-23",
+   "strike": 410,
+   "optionType": "PE",
+   "lotSize": 2625,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 29.1,
+   "target": 43.65,
+   "target2": null,
+   "stop": 14.55,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.2,
+     "medianDays": 7.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-28T06:04:16.314Z",
+   "exitPrice": 14.55,
+   "exitReason": "STOP",
+   "hoursFillToExit": 50,
+   "sessionsHeld": 2,
+   "best": 29.1,
+   "worst": 14.55,
+   "last": 14.95,
+   "lastAt": "2026-10-28T06:04:16.314Z",
+   "marks": 58,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 19.5,
+    "low": 14.55,
+    "last": 14.95
+   },
+   "pnl": {
+    "perUnit": -14.55,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -38193.75,
+    "netPerLot": -38348.71
+   }
   }
  ]
 }
