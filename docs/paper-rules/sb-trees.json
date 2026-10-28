@@ -3,11 +3,66 @@
  "preregSha256": "43c8a7ebd3f522996fdab65d5e88a38ff6d2c455444473be245699e5a74bd379",
  "fit": "studies/sb-trees-forward-2026-10-23/FIT.txt",
  "start": "2026-10-23",
- "dataThrough": "2026-10-27",
- "builtAt": "2026-10-28T11:32:43.847Z",
+ "dataThrough": "2026-10-28",
+ "builtAt": "2026-10-28T19:11:02.452Z",
  "rule": "Short build-up, the trees model's picks: every short build-up signal gets TAKE or SKIP from a model frozen on 2006-2026 data, using only what is known at 09:15; priced on the near-month future",
  "backtest": "PROMISING, not a pass (futures lab, 23 Oct 2026): the TAKE half beat the SKIP half by +0.191% a trade in 2008-2020 (t 6.31, DSR 0.94) and +0.111% in 2020-2026 (t 2.63)",
  "trades": [
+  {
+   "symbol": "AUBANK",
+   "entryDate": "2026-10-28",
+   "decision": "SKIP",
+   "entry": 855.8,
+   "exit": 883.9,
+   "netPct": -3.35,
+   "excessPct": -2.75,
+   "rupees": -562,
+   "status": "DONE"
+  },
+  {
+   "symbol": "BDL",
+   "entryDate": "2026-10-28",
+   "decision": "SKIP",
+   "entry": 998,
+   "exit": 995.6,
+   "netPct": 0.174,
+   "excessPct": 0.775,
+   "rupees": 48,
+   "status": "DONE"
+  },
+  {
+   "symbol": "MAZDOCK",
+   "entryDate": "2026-10-28",
+   "decision": "SKIP",
+   "entry": 1698,
+   "exit": 1739.2,
+   "netPct": -2.493,
+   "excessPct": -1.892,
+   "rupees": -824,
+   "status": "DONE"
+  },
+  {
+   "symbol": "PAYTM",
+   "entryDate": "2026-10-28",
+   "decision": "TAKE",
+   "entry": 1618.2,
+   "exit": 1635.8,
+   "netPct": -1.154,
+   "excessPct": -0.554,
+   "rupees": -352,
+   "status": "DONE"
+  },
+  {
+   "symbol": "WAAREEENER",
+   "entryDate": "2026-10-28",
+   "decision": "SKIP",
+   "entry": 2203.5,
+   "exit": 2250.3,
+   "netPct": -2.19,
+   "excessPct": -1.59,
+   "rupees": -936,
+   "status": "DONE"
+  },
   {
    "symbol": "AUBANK",
    "entryDate": "2026-10-27",
@@ -219,17 +274,17 @@
   }
  ],
  "summary": {
-  "counted": 19,
-  "taken": 4,
-  "weeksBoth": 1,
-  "spreadPct": -3.061,
-  "t": null,
-  "takeNetPct": 1.141,
-  "takeExcessPct": -0.899,
-  "takeWinPct": 75,
-  "allNetPct": 0.349,
-  "takeRupees": 300,
-  "allRupees": -32173,
+  "counted": 24,
+  "taken": 5,
+  "weeksBoth": 2,
+  "spreadPct": -1.449,
+  "t": -0.9,
+  "takeNetPct": 0.682,
+  "takeExcessPct": -0.83,
+  "takeWinPct": 60,
+  "allNetPct": -0.099,
+  "takeRupees": -52,
+  "allRupees": -34799,
   "verdict": "COLLECTING"
  }
 }
