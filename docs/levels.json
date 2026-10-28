@@ -249,7 +249,8 @@
   "OPTION|MANAPPURAM|MANAPPURAM26NOV280PE",
   "OPTION|NIFTY|NIFTY26N0922050PE",
   "OPTION|DRREDDY|DRREDDY26NOV1380CE",
-  "OPTION|COLPAL|COLPAL26NOV1500PE"
+  "OPTION|COLPAL|COLPAL26NOV1500PE",
+  "OPTION|TCS|TCS26NOV2300CE"
  ],
  "options": {
   "NIFTY26N0922700PE": {
@@ -3310,6 +3311,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-28T05:04:27.993Z",
    "frozenAtIst": "2026-10-28 10:34 IST",
+   "frozenAtSpot": null
+  },
+  "TCS26NOV2300CE": {
+   "buy": 156.6,
+   "sell": 234.9,
+   "stop": 78.3,
+   "tick": 0.05,
+   "lotSize": 225,
+   "expiry": "2026-11-23",
+   "strike": 2300,
+   "right": "CE",
+   "symbol": "TCS",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-28T05:44:22.701Z",
+   "frozenAtIst": "2026-10-28 11:14 IST",
    "frozenAtSpot": null
   }
  },
