@@ -65,3 +65,10 @@ the never-traded stamp 01-Jan-1970 05:30:00. Treating the feed stamp as the
 trade date replayed yesterday's range and faked a -64.8% STOP (BAJFINANCE 1000
 PE). paper-ledger observe() now marks only quotes whose last trade is in the
 current session.
+
+Lot sizes DO change between sessions (28 Oct 2026): NSE halved the Nov+Dec lots of ABCAPITAL, AUBANK,
+CUMMINSIND, LAURUSLABS, OFSS, SOLARINDS, ZYDUSLIFE overnight, and new month contracts can list with a
+different lot than older months (BHEL Nov/Dec 2625, Jan 1250). The desk's reference is the PREVIOUS
+session's bhavcopy in the morning, so it showed old lots that day; since PR #8 a reference from an earlier
+session takes each month's lot from NSE's fo_mktlots.csv (matched the 28 Oct bhavcopy on 35,033 contracts).
+Compare lots per CONTRACT (symbol+expiry), never per symbol.
