@@ -275246,6 +275246,168 @@
     "perLot": -21918.75,
     "netPerLot": -22027.48
    }
+  },
+  {
+   "id": "2026-10-23|PE|POLICYBZR26NOV960PE",
+   "kind": "PE",
+   "symbol": "POLICYBZR",
+   "contract": "POLICYBZR26NOV960PE",
+   "expiry": "2026-11-23",
+   "strike": 960,
+   "optionType": "PE",
+   "lotSize": 350,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T03:47:41.747Z",
+   "buy": 28.9,
+   "target": 43.35,
+   "target2": null,
+   "stop": 14.45,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 51.3,
+     "medianDays": 9.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T03:47:42.122Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T04:44:58.308Z",
+   "exitPrice": 43.35,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 120.95,
+   "sessionsHeld": 3,
+   "best": 43.75,
+   "worst": 23.25,
+   "last": 41,
+   "lastAt": "2026-10-28T04:44:58.308Z",
+   "marks": 82,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 43.75,
+    "low": 36.65,
+    "last": 41
+   },
+   "pnl": {
+    "perUnit": 14.45,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 5057.5,
+    "netPerLot": 4976.61
+   }
+  },
+  {
+   "id": "2026-10-23|PE|POLICYBZR26NOV1000PE",
+   "kind": "PE",
+   "symbol": "POLICYBZR",
+   "contract": "POLICYBZR26NOV1000PE",
+   "expiry": "2026-11-23",
+   "strike": 1000,
+   "optionType": "PE",
+   "lotSize": 350,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T03:47:41.747Z",
+   "buy": 39.95,
+   "target": 59.95,
+   "target2": null,
+   "stop": 20,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 59.9,
+     "medianDays": 7.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T04:04:18.777Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-28T04:44:58.308Z",
+   "exitPrice": 59.95,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 120.68,
+   "sessionsHeld": 3,
+   "best": 63.35,
+   "worst": 34.3,
+   "last": 60.05,
+   "lastAt": "2026-10-28T04:44:58.308Z",
+   "marks": 82,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 63.35,
+    "low": 52.35,
+    "last": 60.05
+   },
+   "pnl": {
+    "perUnit": 20,
+    "pct": 50.06,
+    "basis": "NET",
+    "perLot": 7000,
+    "netPerLot": 6906.21
+   }
+  },
+  {
+   "id": "2026-10-21|PE|POLICYBZR26NOV1000PE",
+   "kind": "PE",
+   "symbol": "POLICYBZR",
+   "contract": "POLICYBZR26NOV1000PE",
+   "expiry": "2026-11-23",
+   "strike": 1000,
+   "optionType": "PE",
+   "lotSize": 350,
+   "sessionDate": "2026-10-21",
+   "shownAt": "2026-10-21T03:50:07.665Z",
+   "buy": 39.95,
+   "target": 59.95,
+   "target2": null,
+   "stop": 20,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 58.1,
+     "medianDays": 8.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-21T03:50:08.035Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-28T04:44:58.308Z",
+   "exitPrice": 59.95,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 168.91,
+   "sessionsHeld": 5,
+   "best": 63.35,
+   "worst": 34.3,
+   "last": 60.05,
+   "lastAt": "2026-10-28T04:44:58.308Z",
+   "marks": 137,
+   "obs": {
+    "date": "2026-10-28",
+    "high": 63.35,
+    "low": 52.35,
+    "last": 60.05
+   },
+   "pnl": {
+    "perUnit": 20,
+    "pct": 50.06,
+    "basis": "NET",
+    "perLot": 7000,
+    "netPerLot": 6906.21
+   }
   }
  ]
 }
