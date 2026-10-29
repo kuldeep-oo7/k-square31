@@ -327,7 +327,8 @@
   "OPTION|YESBANK|YESBANK26NOV16PE",
   "OPTION|TCS|TCS26NOV2360CE",
   "OPTION|ADANIPORTS|ADANIPORTS26NOV1940CE",
-  "OPTION|HCLTECH|HCLTECH26NOV1340CE"
+  "OPTION|HCLTECH|HCLTECH26NOV1340CE",
+  "OPTION|PATANJALI|PATANJALI26NOV405CE"
  ],
  "options": {
   "NIFTY26N0922750PE": {
@@ -4468,6 +4469,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-29T07:44:26.992Z",
    "frozenAtIst": "2026-10-29 13:14 IST",
+   "frozenAtSpot": null
+  },
+  "PATANJALI26NOV405CE": {
+   "buy": 6.25,
+   "sell": 9.4,
+   "stop": 3.15,
+   "tick": 0.05,
+   "lotSize": 1075,
+   "expiry": "2026-11-23",
+   "strike": 405,
+   "right": "CE",
+   "symbol": "PATANJALI",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T08:24:21.753Z",
+   "frozenAtIst": "2026-10-29 13:54 IST",
    "frozenAtSpot": null
   }
  },
