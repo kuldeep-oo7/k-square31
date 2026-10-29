@@ -3,11 +3,22 @@
  "preregSha256": "43c8a7ebd3f522996fdab65d5e88a38ff6d2c455444473be245699e5a74bd379",
  "fit": "studies/sb-trees-forward-2026-10-23/FIT.txt",
  "start": "2026-10-23",
- "dataThrough": "2026-10-28",
- "builtAt": "2026-10-29T11:42:41.245Z",
+ "dataThrough": "2026-10-29",
+ "builtAt": "2026-10-29T19:17:37.322Z",
  "rule": "Short build-up, the trees model's picks: every short build-up signal gets TAKE or SKIP from a model frozen on 2006-2026 data, using only what is known at 09:15; priced on the near-month future",
  "backtest": "PROMISING, not a pass (futures lab, 23 Oct 2026): the TAKE half beat the SKIP half by +0.191% a trade in 2008-2020 (t 6.31, DSR 0.94) and +0.111% in 2020-2026 (t 2.63)",
  "trades": [
+  {
+   "symbol": "KAYNES",
+   "entryDate": "2026-10-29",
+   "decision": "TAKE",
+   "entry": 3065,
+   "exit": 3121.6,
+   "netPct": -1.913,
+   "excessPct": -0.754,
+   "rupees": -1132,
+   "status": "DONE"
+  },
   {
    "symbol": "AUBANK",
    "entryDate": "2026-10-28",
@@ -274,17 +285,17 @@
   }
  ],
  "summary": {
-  "counted": 24,
-  "taken": 5,
+  "counted": 25,
+  "taken": 6,
   "weeksBoth": 2,
-  "spreadPct": -1.449,
-  "t": -0.9,
-  "takeNetPct": 0.682,
-  "takeExcessPct": -0.83,
-  "takeWinPct": 60,
-  "allNetPct": -0.099,
-  "takeRupees": -52,
-  "allRupees": -34799,
+  "spreadPct": -1.499,
+  "t": -0.96,
+  "takeNetPct": 0.25,
+  "takeExcessPct": -0.817,
+  "takeWinPct": 50,
+  "allNetPct": -0.172,
+  "takeRupees": -1184,
+  "allRupees": -35931,
   "verdict": "COLLECTING"
  }
 }
