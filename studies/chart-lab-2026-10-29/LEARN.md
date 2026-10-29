@@ -62,3 +62,22 @@ Seven ideas, each in both directions, makes 14 members. The full rules are in PR
 | G | Tight inside day in an uptrend | Tight inside day in a downtrend | Crabel's IDnr4 + trend |
 
 Every trade is priced on the near-month **future**, the instrument the owner trades. Each is judged against the market (excess return), with NSE charges. The test uses the desk's standard: discovery 2005-2020, then confirmation 2020-2026.
+
+## 5. Result (29 Oct 2026, Actions run 40907737425; full numbers in RESULT.txt)
+
+**0 of 14 passed.** All five checks passed first (pricing by hand, planted edge, null, no look-ahead, counts).
+
+- Promising only (t >= 2 in 2005-2020, not enough):
+  - C1 capitulation bounce: +0.57% a trade over the market, t 2.23; then 2020-2026 +1.49%, t 1.91, but only 92 trades.
+  - F2 bear candle at the 50-day: t 2.15, then 0.64.
+  - G1 tight inside day up: t 2.25, then 0.16.
+- Clear losers:
+  - D2 Holy Grail short: t -3.55, then -2.30.
+  - A2 laggard breakdown short: t -4.31 after 2020.
+  - B1 gap-and-hold up: t -2.52 after 2020.
+- Limitation, found in the run and not fixed after the fact: the NIFTY index closes in the data start about 2012. So the
+  members with a NIFTY filter (A, B and G) were really tested from about 2012, not 2005.
+- A second wording note: the counts (6.5) were printed after the trade values were computed in memory, but before any
+  value was scored or shown.
+- The one theme that keeps appearing on this desk: stocks bounce after heavy selling. This run's capitulation bounce,
+  the long-unwinding bounce and the 3 Oct Bollinger/RSI longs all point that way. None of them is proven.
