@@ -1,0 +1,78 @@
+PRE-REGISTRATION -- THE GM STRATEGY GENERATOR: A MACHINE THAT WRITES AND RE-PICKS ITS OWN WEEKLY CHART RULES EVERY YEAR,
+USING ONLY THE PAST, SCORED THE WAY GM GLOBAL SCORES. BOTH DIRECTIONS. ONE BATCH, ONE RUN.
+Written Thursday 29 Oct 2026, about 22:15 IST, BEFORE any rule below was computed on real data. The commit time is the
+proof. Branch claude/gm-generator-2026-10-29 (built on the GM weekly lab's branch).
+
+1. WHY, AND WHAT HAS BEEN SEEN (disclosed)
+- The owner, 29 Oct: "why don't you generate on your own new strategies". Tonight's chart lab (14 members) and GM weekly
+  lab (10 members) both gave 0 PASS. Their results on 2005-2020 and 2020-2026 HAVE been seen, and several blocks below
+  reuse their definitions. The tested object here is therefore not any single rule but the GENERATOR: a fixed procedure
+  that re-picks rules every January from the past only, and whose trades are always out of sample.
+- The blocks are taken mechanically from definitions already written (the weekly lab, the chart lab, the 09:15 lab's
+  feature list); none is added or dropped because of tonight's results.
+
+2. DATA, WEEKS AND GM SCORING: exactly the GM weekly lab's (studies/gm-weekly-lab-2026-10-29). Bought at the week's first
+   session's open on the near-month future, booked at its last session's close, cut at expiry (rest of that week sat out),
+   holdings join consecutive weeks, charges only at a holding's first open and last close, the same drop rules, the same
+   market M_w and universe. One data load: NSE 2005-01 .. 2026-10-01 (data-oos to 2020-08, the research snapshot after).
+   Futures open interest per stock per day = the sum over its expiries (as the futures lab).
+
+3. THE 30 BLOCKS (true/false for a stock at the close of week w-1, for week w; "fifth" = the top or bottom floor(n/5) of
+   that week's universe ranked on the value, n >= 30 with a value; weekly bars and validity as the weekly lab)
+  B1 close > SMA30          B2 close < SMA30          B3 SMA30 rising (vs 4 bars earlier)   B4 SMA30 falling
+  B5 weekly Donchian state long (W2L)                 B6 weekly Donchian state short (W2S)
+  B7 relative strength top fifth (W3's 25-week return, skipping the latest week)    B8 relative strength bottom fifth
+  B9 weekly bullish engulfing or hammer               B10 weekly bearish engulfing or shooting star
+  B11 at the line from above: low <= 1.02 x SMA30 and close >= 0.98 x SMA30
+  B12 at the line from below: high >= 0.98 x SMA30 and close <= 1.02 x SMA30
+  B13 NIFTY trend up (W5's signal +1)                 B14 NIFTY trend down (W5's signal -1)
+  B15 last week's return top fifth                    B16 last week's return bottom fifth
+  B17 weekly volume / mean of the previous 20 weekly volumes: top fifth      B18 bottom fifth
+  B19 weekly range (high - low) / mean of the previous 10 weekly ranges: bottom fifth (tight)   B20 top fifth (wide)
+  B21 futures OI at the week's last session / at the previous week's last session: top fifth (build-up)
+  B22 the same: bottom fifth (unwinding)
+  B23 basis = near-month future close / share close - 1 at the week's last session: top fifth   B24 bottom fifth
+  B25 close >= 0.95 x the highest high of the last 250 daily bars    B26 close <= 1.05 x the lowest low of the last 250
+  B27 standard deviation of the last 20 daily close-to-close returns: top fifth    B28 bottom fifth
+  B29 share price (close): top fifth                  B30 bottom fifth
+- CONDITIONS: each block alone (30) and each pair of blocks joined by AND (435): 465 conditions. A contradictory pair
+  simply never fires. Each condition is a LONG rule and a SHORT rule: 930 rules.
+
+4. THE GENERATOR (walk-forward, every January from 2008)
+- Training data for year Y: every position-week whose last session is BEFORE 1 Jan Y (so nothing that ends in Y is read).
+- Ranking value of a position-week = GM gross excess = (close / open - 1) - M_w (no charges). For each condition: its
+  monthly mean of that value (month of the week's first session) and the Newey-West t (lag 3); a LONG rule's t is that t,
+  a SHORT rule's t is minus it. Eligible: at least 36 months and 200 position-weeks in the training data, t > 0.
+- Selection: the 5 best LONG rules and the 5 best SHORT rules by t, in order, skipping a rule if 80% or more of its
+  training position-weeks are also in a rule already selected on the same side.
+- Trading year Y (weeks whose first session falls in Y): a stock is a LONG pick in week w if any selected long rule fires,
+  a SHORT pick if any selected short rule fires; a stock that is both is dropped. Picks are ranked by the sum of the
+  training t of the rules that fire for them (then by symbol); the BOOK keeps the top 5 long and top 5 short picks a week.
+- JUDGED (2 members): G-LONG = the long book, G-SHORT = the short book; value of a position-week = GM EXCESS net of the
+  exact holding charges (the weekly lab's value()). Reported, not judged: all picks without the cap; the rules selected
+  each year (block names only); GM rupees at 20 units; expiry months up; worst month; the top-priced tenth.
+
+5. SCORE AND VERDICT
+- DISCOVERY = trading weeks 2008-01-01 .. 2020-10-31; CONFIRMATION = trading weeks 2020-10-01 .. 2026-10-01 (the same
+  walk-forward continuing). Monthly mean of the values; Newey-West t (lag 3); fewer than 24 months: NOT TESTABLE. Holm
+  across the 2 at 5%. Full Deflated Sharpe with N = 442 (440 before, plus these 2; the 930 rules inside are chosen out
+  of sample each year and are not separate trials).
+- DISCOVERY PASS = mean > 0, t >= 3, Holm and DSR >= 0.95. CONFIRMED = then on 2020-2026 mean > 0 and t >= 2.
+  PROMISING = discovery mean > 0 and t >= 2. A confirmed pass goes to TRACK as a forward paper test first.
+- Expectation, stated now: 0 PASS. Re-picked chart rules usually chase last year's winner.
+
+6. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 6.1 The weekly lab's GM bookkeeping hand check.
+ 6.2 Planted: a synthetic market (250 stocks, 3,000 sessions) with +0.3% a session in the week after every "B9 AND B3"
+     (weekly bullish candle with a rising SMA30): the generator must select that LONG rule in a year after it is eligible,
+     and G-LONG must reach t >= 3 over the synthetic trading years.
+ 6.3 Null: each stock's GM-week outcomes circularly shifted by a random number of weeks (52 or more), the whole generator
+     re-run: G-LONG and G-SHORT both below t 2.
+ 6.4 No look-ahead: blocks recomputed on bars cut after the signal week (3,000 stock-weeks for per-stock blocks, 100 weeks
+     for the cross-sectional ones) give the same answers; and every training position-week used for year Y ends before
+     1 Jan Y (asserted while ranking).
+ 6.5 Counts printed before any value is scored or shown.
+
+7. FILES AND PRIVACY
+ run.js (reusing the weekly lab's run.js); workflow .github/workflows/gm-generator.yml on this branch, started by a push of
+ RUN.txt. Summary rows only (block names, counts, statistics); no symbol, trade list or data is committed.
