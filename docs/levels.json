@@ -316,7 +316,9 @@
   "OPTION|BANKNIFTY|BANKNIFTY26NOV56000PE",
   "OPTION|MIDCPNIFTY|MIDCPNIFTY26NOV13700PE",
   "OPTION|ADANIPORTS|ADANIPORTS26NOV1900CE",
-  "OPTION|IDEA|IDEA26NOV13PE"
+  "OPTION|IDEA|IDEA26NOV13PE",
+  "OPTION|KOTAKBANK|KOTAKBANK26NOV470CE",
+  "OPTION|CROMPTON|CROMPTON26NOV197.5PE"
  ],
  "options": {
   "NIFTY26N0922750PE": {
@@ -4292,6 +4294,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-29T05:04:33.949Z",
    "frozenAtIst": "2026-10-29 10:34 IST",
+   "frozenAtSpot": null
+  },
+  "KOTAKBANK26NOV470CE": {
+   "buy": 3.25,
+   "sell": 4.85,
+   "stop": 1.65,
+   "tick": 0.05,
+   "lotSize": 2000,
+   "expiry": "2026-11-23",
+   "strike": 470,
+   "right": "CE",
+   "symbol": "KOTAKBANK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T05:24:32.955Z",
+   "frozenAtIst": "2026-10-29 10:54 IST",
+   "frozenAtSpot": null
+  },
+  "CROMPTON26NOV197.5PE": {
+   "buy": 4.81,
+   "sell": 7.21,
+   "stop": 2.4,
+   "tick": 0.01,
+   "lotSize": 2150,
+   "expiry": "2026-11-23",
+   "strike": 197.5,
+   "right": "PE",
+   "symbol": "CROMPTON",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T05:24:32.955Z",
+   "frozenAtIst": "2026-10-29 10:54 IST",
    "frozenAtSpot": null
   }
  },
