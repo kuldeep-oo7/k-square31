@@ -201,7 +201,8 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     candle at the 50-day, tight inside day. 0 PASS. PROMISING: capitulation bounce (t 2.23, then 1.91, 92 trades), bear
     candle at the 50-day (2.15, then 0.64), inside day up (2.25, then 0.16). Holy Grail SHORT loses in both periods
     (t -3.55 / -2.30). Laggard breakdown shorts lose after 2020 (t -4.31). Limitation: the NIFTY filter only had index
-    closes from about 2012, so the filtered members (A, B, G) start there. Reading and sources: LEARN.md in that folder.
+    closes on 2,131 of 3,909 discovery sessions (from about 2012, inferred), so the filtered members (A, B, G) start
+    there. Reading and sources: LEARN.md in that folder.
   - Don't re-run these as "new".
 
 ## Open work (as of 2 Oct 2026). Pick up from here
