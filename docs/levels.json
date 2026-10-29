@@ -320,7 +320,8 @@
   "OPTION|KOTAKBANK|KOTAKBANK26NOV470CE",
   "OPTION|CROMPTON|CROMPTON26NOV197.5PE",
   "OPTION|WIPRO|WIPRO26NOV200CE",
-  "OPTION|PATANJALI|PATANJALI26NOV400CE"
+  "OPTION|PATANJALI|PATANJALI26NOV400CE",
+  "OPTION|CROMPTON|CROMPTON26NOV190PE"
  ],
  "options": {
   "NIFTY26N0922750PE": {
@@ -4356,6 +4357,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-29T06:04:31.592Z",
    "frozenAtIst": "2026-10-29 11:34 IST",
+   "frozenAtSpot": null
+  },
+  "CROMPTON26NOV190PE": {
+   "buy": 2.9,
+   "sell": 4.34,
+   "stop": 1.45,
+   "tick": 0.01,
+   "lotSize": 2150,
+   "expiry": "2026-11-23",
+   "strike": 190,
+   "right": "PE",
+   "symbol": "CROMPTON",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T06:24:25.019Z",
+   "frozenAtIst": "2026-10-29 11:54 IST",
    "frozenAtSpot": null
   }
  },

@@ -288298,6 +288298,66 @@
     "perLot": 11760,
     "netPerLot": 11634.38
    }
+  },
+  {
+   "id": "2026-10-29|FUTS|DABUR26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "DABUR",
+   "contract": "DABUR26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1250,
+   "sessionDate": "2026-10-29",
+   "shownAt": "2026-10-29T03:48:04.715Z",
+   "buy": 363.9,
+   "target": 354.8,
+   "target2": 345.7,
+   "stop": 369.35,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 59.1,
+     "medianTradingDays": 0.259
+    },
+    "target": {
+     "probabilityPct": 71.6,
+     "medianTradingDays": 3.285
+    },
+    "sigmaPct": 23.9,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-29T04:44:43.832Z",
+   "hoursToFill": 0.94,
+   "closedAt": "2026-10-29T06:24:25.347Z",
+   "exitPrice": 369.35,
+   "exitReason": "STOP",
+   "hoursFillToExit": 1.66,
+   "sessionsHeld": 0,
+   "best": 363.9,
+   "worst": 369.5,
+   "last": 368.25,
+   "lastAt": "2026-10-29T06:24:25.347Z",
+   "marks": 9,
+   "obs": {
+    "date": "2026-10-29",
+    "high": 369.5,
+    "low": 358.05,
+    "last": 368.25
+   },
+   "pnl": {
+    "perUnit": -5.45,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
