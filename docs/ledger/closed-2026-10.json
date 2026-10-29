@@ -288244,6 +288244,60 @@
     "pct": -1.5,
     "basis": "GROSS"
    }
+  },
+  {
+   "id": "2026-10-28|CE|WIPRO26NOV180CE",
+   "kind": "CE",
+   "symbol": "WIPRO",
+   "contract": "WIPRO26NOV180CE",
+   "expiry": "2026-11-23",
+   "strike": 180,
+   "optionType": "CE",
+   "lotSize": 3000,
+   "sessionDate": "2026-10-28",
+   "shownAt": "2026-10-28T03:51:36.728Z",
+   "buy": 7.85,
+   "target": 11.77,
+   "target2": null,
+   "stop": 3.93,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 58.2,
+     "medianDays": 6.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-28T03:51:37.064Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-29T06:04:32.051Z",
+   "exitPrice": 11.77,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 26.22,
+   "sessionsHeld": 1,
+   "best": 12,
+   "worst": 7.77,
+   "last": 11.9,
+   "lastAt": "2026-10-29T06:04:32.051Z",
+   "marks": 35,
+   "obs": {
+    "date": "2026-10-29",
+    "high": 12,
+    "low": 10.19,
+    "last": 11.9
+   },
+   "pnl": {
+    "perUnit": 3.92,
+    "pct": 49.94,
+    "basis": "NET",
+    "perLot": 11760,
+    "netPerLot": 11634.38
+   }
   }
  ]
 }

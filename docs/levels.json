@@ -318,7 +318,9 @@
   "OPTION|ADANIPORTS|ADANIPORTS26NOV1900CE",
   "OPTION|IDEA|IDEA26NOV13PE",
   "OPTION|KOTAKBANK|KOTAKBANK26NOV470CE",
-  "OPTION|CROMPTON|CROMPTON26NOV197.5PE"
+  "OPTION|CROMPTON|CROMPTON26NOV197.5PE",
+  "OPTION|WIPRO|WIPRO26NOV200CE",
+  "OPTION|PATANJALI|PATANJALI26NOV400CE"
  ],
  "options": {
   "NIFTY26N0922750PE": {
@@ -4324,6 +4326,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-29T05:24:32.955Z",
    "frozenAtIst": "2026-10-29 10:54 IST",
+   "frozenAtSpot": null
+  },
+  "WIPRO26NOV200CE": {
+   "buy": 2.03,
+   "sell": 3.04,
+   "stop": 1.01,
+   "tick": 0.01,
+   "lotSize": 3000,
+   "expiry": "2026-11-23",
+   "strike": 200,
+   "right": "CE",
+   "symbol": "WIPRO",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T06:04:31.592Z",
+   "frozenAtIst": "2026-10-29 11:34 IST",
+   "frozenAtSpot": null
+  },
+  "PATANJALI26NOV400CE": {
+   "buy": 5.95,
+   "sell": 8.95,
+   "stop": 3,
+   "tick": 0.05,
+   "lotSize": 1075,
+   "expiry": "2026-11-23",
+   "strike": 400,
+   "right": "CE",
+   "symbol": "PATANJALI",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T06:04:31.592Z",
+   "frozenAtIst": "2026-10-29 11:34 IST",
    "frozenAtSpot": null
   }
  },
