@@ -323,7 +323,10 @@
   "OPTION|PATANJALI|PATANJALI26NOV400CE",
   "OPTION|CROMPTON|CROMPTON26NOV190PE",
   "OPTION|ADANIPORTS|ADANIPORTS26NOV1920CE",
-  "OPTION|BHEL|BHEL26NOV380PE"
+  "OPTION|BHEL|BHEL26NOV380PE",
+  "OPTION|YESBANK|YESBANK26NOV16PE",
+  "OPTION|TCS|TCS26NOV2360CE",
+  "OPTION|ADANIPORTS|ADANIPORTS26NOV1940CE"
  ],
  "options": {
   "NIFTY26N0922750PE": {
@@ -4404,6 +4407,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-29T07:04:16.661Z",
    "frozenAtIst": "2026-10-29 12:34 IST",
+   "frozenAtSpot": null
+  },
+  "YESBANK26NOV16PE": {
+   "buy": 1,
+   "sell": 1.5,
+   "stop": 0.5,
+   "tick": 0.01,
+   "lotSize": 31100,
+   "expiry": "2026-11-23",
+   "strike": 16,
+   "right": "PE",
+   "symbol": "YESBANK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T07:24:30.810Z",
+   "frozenAtIst": "2026-10-29 12:54 IST",
+   "frozenAtSpot": null
+  },
+  "TCS26NOV2360CE": {
+   "buy": 148.7,
+   "sell": 223.05,
+   "stop": 74.35,
+   "tick": 0.05,
+   "lotSize": 225,
+   "expiry": "2026-11-23",
+   "strike": 2360,
+   "right": "CE",
+   "symbol": "TCS",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T07:24:30.810Z",
+   "frozenAtIst": "2026-10-29 12:54 IST",
+   "frozenAtSpot": null
+  },
+  "ADANIPORTS26NOV1940CE": {
+   "buy": 17.35,
+   "sell": 26.05,
+   "stop": 8.7,
+   "tick": 0.05,
+   "lotSize": 475,
+   "expiry": "2026-11-23",
+   "strike": 1940,
+   "right": "CE",
+   "symbol": "ADANIPORTS",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T07:24:30.810Z",
+   "frozenAtIst": "2026-10-29 12:54 IST",
    "frozenAtSpot": null
   }
  },

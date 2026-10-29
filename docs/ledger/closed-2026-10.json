@@ -288580,6 +288580,348 @@
     "perLot": -14989,
     "netPerLot": -15078.5
    }
+  },
+  {
+   "id": "2026-10-29|FUTS|ADANIPOWER26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "ADANIPOWER",
+   "contract": "ADANIPOWER26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 3550,
+   "sessionDate": "2026-10-29",
+   "shownAt": "2026-10-29T03:48:04.715Z",
+   "buy": 187.86,
+   "target": 183.16,
+   "target2": 178.47,
+   "stop": 190.68,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 72.1,
+     "medianTradingDays": 0.149
+    },
+    "target": {
+     "probabilityPct": 81.4,
+     "medianTradingDays": 1.756
+    },
+    "sigmaPct": 36.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-29T05:04:34.411Z",
+   "hoursToFill": 1.27,
+   "closedAt": "2026-10-29T07:24:31.266Z",
+   "exitPrice": 190.68,
+   "exitReason": "STOP",
+   "hoursFillToExit": 2.33,
+   "sessionsHeld": 0,
+   "best": 187.76,
+   "worst": 191.3,
+   "last": 190.85,
+   "lastAt": "2026-10-29T07:24:31.266Z",
+   "marks": 12,
+   "obs": {
+    "date": "2026-10-29",
+    "high": 191.3,
+    "low": 184.62,
+    "last": 190.85
+   },
+   "pnl": {
+    "perUnit": -2.82,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-29|FUTS|MANAPPURAM26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "MANAPPURAM",
+   "contract": "MANAPPURAM26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 3000,
+   "sessionDate": "2026-10-29",
+   "shownAt": "2026-10-29T03:48:04.715Z",
+   "buy": 299.65,
+   "target": 292.15,
+   "target2": 284.65,
+   "stop": 304.15,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 71.4,
+     "medianTradingDays": 0.154
+    },
+    "target": {
+     "probabilityPct": 80.9,
+     "medianTradingDays": 1.821
+    },
+    "sigmaPct": 35.4,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-29T04:24:46.404Z",
+   "hoursToFill": 0.61,
+   "closedAt": "2026-10-29T07:24:31.266Z",
+   "exitPrice": 304.15,
+   "exitReason": "STOP",
+   "hoursFillToExit": 3,
+   "sessionsHeld": 0,
+   "best": 299.65,
+   "worst": 305.55,
+   "last": 303.2,
+   "lastAt": "2026-10-29T07:24:31.266Z",
+   "marks": 12,
+   "obs": {
+    "date": "2026-10-29",
+    "high": 305.55,
+    "low": 291.1,
+    "last": 303.2
+   },
+   "pnl": {
+    "perUnit": -4.5,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-28|FUTS|YESBANK26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "YESBANK",
+   "contract": "YESBANK26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 31100,
+   "sessionDate": "2026-10-28",
+   "shownAt": "2026-10-28T03:51:36.728Z",
+   "buy": 15.85,
+   "target": 15.45,
+   "target2": 15.06,
+   "stop": 16.09,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 85.5,
+     "medianTradingDays": 0.05
+    },
+    "target": {
+     "probabilityPct": 91.4,
+     "medianTradingDays": 0.527
+    },
+    "sigmaPct": 74.2,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-28T07:24:07.180Z",
+   "hoursToFill": 3.54,
+   "closedAt": "2026-10-29T07:24:31.266Z",
+   "exitPrice": 15.45,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 24.01,
+   "sessionsHeld": 1,
+   "best": 15.37,
+   "worst": 15.87,
+   "last": 15.4,
+   "lastAt": "2026-10-29T07:24:31.266Z",
+   "marks": 39,
+   "obs": {
+    "date": "2026-10-29",
+    "high": 15.72,
+    "low": 15.37,
+    "last": 15.4
+   },
+   "pnl": {
+    "perUnit": 0.4,
+    "pct": 2.52,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-27|CE|KOTAKBANK26NOV435CE",
+   "kind": "CE",
+   "symbol": "KOTAKBANK",
+   "contract": "KOTAKBANK26NOV435CE",
+   "expiry": "2026-11-23",
+   "strike": 435,
+   "optionType": "CE",
+   "lotSize": 2000,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 15.65,
+   "target": 23.45,
+   "target2": null,
+   "stop": 7.85,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 65.3,
+     "medianDays": 5.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-27T04:05:31.235Z",
+   "hoursToFill": 0.3,
+   "closedAt": "2026-10-29T07:24:31.266Z",
+   "exitPrice": 23.45,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 51.32,
+   "sessionsHeld": 2,
+   "best": 23.65,
+   "worst": 12.4,
+   "last": 23.65,
+   "lastAt": "2026-10-29T07:24:31.266Z",
+   "marks": 65,
+   "obs": {
+    "date": "2026-10-29",
+    "high": 23.65,
+    "low": 12.55,
+    "last": 23.65
+   },
+   "pnl": {
+    "perUnit": 7.8,
+    "pct": 49.84,
+    "basis": "NET",
+    "perLot": 15600,
+    "netPerLot": 15448.63
+   }
+  },
+  {
+   "id": "2026-10-26|PE|ADANIPOWER26NOV190PE",
+   "kind": "PE",
+   "symbol": "ADANIPOWER",
+   "contract": "ADANIPOWER26NOV190PE",
+   "expiry": "2026-11-23",
+   "strike": 190,
+   "optionType": "PE",
+   "lotSize": 3550,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T04:04:18.372Z",
+   "buy": 13.93,
+   "target": 20.9,
+   "target2": null,
+   "stop": 6.97,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 45.7,
+     "medianDays": 10.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-26T04:04:18.735Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-29T07:24:31.266Z",
+   "exitPrice": 6.97,
+   "exitReason": "STOP",
+   "hoursFillToExit": 75.34,
+   "sessionsHeld": 3,
+   "best": 13.93,
+   "worst": 6.52,
+   "last": 6.52,
+   "lastAt": "2026-10-29T07:24:31.266Z",
+   "marks": 89,
+   "obs": {
+    "date": "2026-10-29",
+    "high": 9.5,
+    "low": 6.52,
+    "last": 6.52
+   },
+   "pnl": {
+    "perUnit": -6.96,
+    "pct": -49.96,
+    "basis": "NET",
+    "perLot": -24708,
+    "netPerLot": -24824.99
+   }
+  },
+  {
+   "id": "2026-10-22|PE|YESBANK26NOV17PE",
+   "kind": "PE",
+   "symbol": "YESBANK",
+   "contract": "YESBANK26NOV17PE",
+   "expiry": "2026-11-23",
+   "strike": 17,
+   "optionType": "PE",
+   "lotSize": 31100,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T04:04:38.537Z",
+   "buy": 1.13,
+   "target": 1.69,
+   "target2": null,
+   "stop": 0.56,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 59.2,
+     "medianDays": 7.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-22T04:04:38.913Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-29T07:24:31.266Z",
+   "exitPrice": 1.69,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 171.33,
+   "sessionsHeld": 5,
+   "best": 1.78,
+   "worst": 1.02,
+   "last": 1.78,
+   "lastAt": "2026-10-29T07:24:31.266Z",
+   "marks": 142,
+   "obs": {
+    "date": "2026-10-29",
+    "high": 1.77,
+    "low": 1.55,
+    "last": 1.78
+   },
+   "pnl": {
+    "perUnit": 0.56,
+    "pct": 49.56,
+    "basis": "NET",
+    "perLot": 17416,
+    "netPerLot": 17252.03
+   }
   }
  ]
 }
