@@ -1,0 +1,59 @@
+GM WEEKLY LAB: registration sha256 c6065d9f2a65a299... (verified); 2026-10-29T16:32:46.052Z; mode --real
+ 6.1 GM bookkeeping by hand: holding 1 GM 140.00 (want 140.00), real 100.00 (want 100.00), 2 holdings (want 2), weekly nets 2.9908 / 3.9321 / 4.5079% (want 2.9908 / 3.9321 / 4.5079%), no charge at the Monday re-base: PASSED
+ 6.2 planted (+0.3% a session in the week after 1237 W4L signals, synthetic): W4L t 9.25 on 1043 weeks; other members PASS 0 of 9 (at most 1): PASSED
+    W1L stage 2 long               22770 weeks |  71 months | +0.012% a month | t 0.61 | Holm n | DSR 0.00 -> FAIL | a week: net +0.042%, judged +0.017%, won 49%
+    W1S stage 4 short              25727 weeks |  71 months | +0.017% a month | t 0.92 | Holm n | DSR 0.00 -> FAIL | a week: net -0.005%, judged +0.018%, won 51%
+    W2L weekly Donchian long       21554 weeks |  71 months | -0.011% a month | t -0.49 | Holm n | DSR 0.00 -> FAIL | a week: net +0.021%, judged -0.006%, won 49%
+    W2S weekly Donchian short      23708 weeks |  71 months | -0.006% a month | t -0.28 | Holm n | DSR 0.00 -> FAIL | a week: net -0.021%, judged +0.000%, won 51%
+    W3L relative strength top       6140 weeks |  71 months | -0.049% a month | t -1.09 | Holm n | DSR 0.00 -> FAIL | a week: net -0.014%, judged -0.038%, won 49%
+    W3S relative strength bottom    6140 weeks |  71 months | +0.004% a month | t 0.07 | Holm n | DSR 0.00 -> FAIL | a week: net -0.019%, judged +0.005%, won 51%
+    W4L weekly bull candle          1043 weeks |  71 months | +1.275% a month | t 9.25 | Holm y | DSR 0.49 -> PROMISING | a week: net +1.261%, judged +1.244%, won 59%
+    W4S weekly bear candle          1041 weeks |  71 months | -0.186% a month | t -1.52 | Holm n | DSR 0.00 -> FAIL | a week: net -0.200%, judged -0.181%, won 49%
+    W5L NIFTY trend long             126 weeks |  37 months | -0.111% a month | t -0.36 | Holm n | DSR 0.00 -> FAIL | a week: net +0.221%, judged +0.221%, won 56%
+    W5S NIFTY trend short            144 weeks |  39 months | +0.231% a month | t 0.77 | Holm n | DSR 0.00 -> FAIL | a week: net +0.423%, judged +0.423%, won 61%
+DISCOVERY DATA: 3909 sessions 2005-01-03 .. 2020-10-30, 826 weeks, 2792 stocks, futures for 434 (NIFTY yes), 403 studied; NIFTY expiries 191
+ 6.5 counts (signals / dropped / position-weeks / holdings): W1L 54599/10242/44357/13082, W1S 42348/4305/38043/11547, W2L 55045/9897/45148/11757, W2S 36719/3993/32726/8912, W3L 11777/3870/7907/3173, W3S 11777/1725/10052/3901, W4L 1958/254/1704/1643, W4S 1824/206/1618/1544, W5L 485/2/483/134, W5S 149/2/147/44
+ 6.4 no look-ahead: W1/W2/W4 3000 of 3000 (stock, week) pairs identical after cutting (2171 with a signal); W3 ranks 100 of 100 weeks; W5 61 of 61 weeks: PASSED
+ 6.3 null (every discovery position-week re-dated at random): 0 PASS of 10 (at most 1): PASSED
+CONFIRMATION DATA: 5376 sessions 2005-01-03 .. 2026-10-01, 1135 weeks, 4437 stocks, futures for 560 (NIFTY yes), 362 studied; NIFTY expiries 263
+ 6.5 counts (signals / dropped / position-weeks / holdings): W1L 30512/5965/24547/6872, W1S 12248/937/11311/3584, W2L 29226/5887/23339/5908, W2S 11670/857/10813/2970, W3L 5111/2180/2931/1116, W3S 5111/620/4491/1813, W4L 845/105/740/705, W4S 629/50/579/551, W5L 215/2/213/53, W5S 52/0/52/15
+
+DISCOVERY 2005-01-01 .. 2020-10-31, GM's week (Monday open -> Friday close, cut at expiry) on the near-month FUTURE; W1-W4 judged on GM EXCESS, W5 on net; Holm across 10; DSR with N = 440:
+ W1L stage 2 long               44357 weeks | 177 months | +0.107% a month | t 1.77 | Holm n | DSR 0.00 -> FAIL | a week: net -0.045%, judged +0.101%, won 48% | GM 20u -Rs 6,67,130 (real -Rs 4,69,898; top-priced tenth -Rs 7,84,118) | expiry months up 51% of 177, worst -Rs 3,04,887
+ W1S stage 4 short              38043 weeks | 175 months | +0.193% a month | t 3.89 | Holm y | DSR 0.18 -> PROMISING | a week: net +0.168%, judged +0.094%, won 54% | GM 20u +Rs 39,540 (real -Rs 2,04,580; top-priced tenth -Rs 1,96,010) | expiry months up 52% of 176, worst -Rs 3,16,745
+ W2L weekly Donchian long       45148 weeks | 177 months | +0.042% a month | t 0.83 | Holm n | DSR 0.00 -> FAIL | a week: net -0.088%, judged +0.052%, won 48% | GM 20u -Rs 7,20,356 (real -Rs 5,54,429; top-priced tenth -Rs 6,60,251) | expiry months up 50% of 177, worst -Rs 3,04,432
+ W2S weekly Donchian short      32726 weeks | 176 months | +0.086% a month | t 1.71 | Holm n | DSR 0.00 -> FAIL | a week: net +0.107%, judged +0.060%, won 53% | GM 20u +Rs 1,69,289 (real +Rs 1,08,901; top-priced tenth +Rs 39,895) | expiry months up 51% of 177, worst -Rs 3,20,060
+ W3L relative strength top       7907 weeks | 177 months | +0.126% a month | t 1.45 | Holm n | DSR 0.00 -> FAIL | a week: net +0.030%, judged +0.135%, won 49% | GM 20u -Rs 19,676 (real +Rs 28,500; top-priced tenth -Rs 1,15,699) | expiry months up 50% of 177, worst -Rs 1,03,339
+ W3S relative strength bottom   10052 weeks | 177 months | +0.194% a month | t 2.66 | Holm y | DSR 0.02 -> PROMISING | a week: net +0.290%, judged +0.197%, won 56% | GM 20u +Rs 2,15,998 (real +Rs 1,97,072; top-priced tenth +Rs 1,42,311) | expiry months up 51% of 177, worst -Rs 71,890
+ W4L weekly bull candle          1704 weeks | 171 months | +0.010% a month | t 0.09 | Holm n | DSR 0.00 -> FAIL | a week: net -0.394%, judged -0.024%, won 48% | GM 20u -Rs 2,03,110 (real -Rs 2,02,965; top-priced tenth -Rs 1,81,080) | expiry months up 49% of 172, worst -Rs 92,115
+ W4S weekly bear candle          1618 weeks | 164 months | +0.210% a month | t 1.59 | Holm n | DSR 0.00 -> FAIL | a week: net +0.268%, judged +0.105%, won 55% | GM 20u -Rs 14,424 (real -Rs 20,687; top-priced tenth -Rs 8,735) | expiry months up 49% of 164, worst -Rs 44,482
+ W5L NIFTY trend long             483 weeks | 130 months | -0.109% a month | t -0.78 | Holm n | DSR 0.00 -> FAIL | a week: net +0.049%, judged +0.049%, won 53% | GM 20u -Rs 27,221 (real +Rs 221; top-priced tenth -Rs 29,826) | expiry months up 52% of 128, worst -Rs 18,087
+ W5S NIFTY trend short            147 weeks |  43 months | -0.232% a month | t -0.56 | Holm n | DSR 0.00 -> FAIL | a week: net +0.035%, judged +0.035%, won 49% | GM 20u -Rs 19,406 (real -Rs 19,049; top-priced tenth -Rs 14,967) | expiry months up 50% of 42, worst -Rs 19,994
+DISCOVERY PASS: none. PROMISING: W1S stage 4 short, W3S relative strength bottom.
+
+DISCOVERY HALVES (reported, not judged): 2005-2012 | 2013-2020
+  W1L stage 2 long              +0.132% a month t 1.10 (20078) | +0.085% a month t 2.00 (24279)
+  W1S stage 4 short             +0.225% a month t 2.40 (17731) | +0.165% a month t 3.74 (20312)
+  W2L weekly Donchian long      +0.030% a month t 0.31 (20819) | +0.053% a month t 1.16 (24329)
+  W2S weekly Donchian short     +0.068% a month t 0.75 (15039) | +0.101% a month t 1.96 (17687)
+  W3L relative strength top     +0.222% a month t 1.59 (3621) | +0.041% a month t 0.39 (4286)
+  W3S relative strength bottom  +0.178% a month t 1.62 (4694) | +0.209% a month t 2.13 (5358)
+  W4L weekly bull candle        +0.127% a month t 0.69 (747) | -0.093% a month t -0.71 (957)
+  W4S weekly bear candle        +0.063% a month t 0.32 (711) | +0.330% a month t 1.95 (907)
+  W5L NIFTY trend long          +0.067% a month t 0.28 (235) | -0.264% a month t -1.87 (248)
+  W5S NIFTY trend short         +0.116% a month t 0.17 (86) | NOT TESTABLE (19 months)
+
+CONFIRMATION 2020-10-01 .. 2026-10-01 (every member reported; a discovery PASS is CONFIRMED with mean > 0 and t >= 2):
+ W1L stage 2 long               24547 weeks |  72 months | -0.019% a month | t -0.68 | a week: net +0.145%, judged -0.000%, won 48% | GM 20u +Rs 4,30,310 (real +Rs 5,84,922; top-priced tenth -Rs 2,62,132) | expiry months up 54% of 72, worst -Rs 5,50,492
+ W1S stage 4 short              11311 weeks |  72 months | +0.021% a month | t 0.31 | a week: net -0.242%, judged -0.022%, won 53% | GM 20u -Rs 9,39,483 (real -Rs 4,18,306; top-priced tenth -Rs 3,29,064) | expiry months up 43% of 72, worst -Rs 3,83,661
+ W2L weekly Donchian long       23339 weeks |  72 months | -0.028% a month | t -0.98 | a week: net +0.126%, judged -0.012%, won 47% | GM 20u +Rs 1,12,106 (real +Rs 49,492; top-priced tenth -Rs 5,00,289) | expiry months up 53% of 72, worst -Rs 5,80,428
+ W2S weekly Donchian short      10813 weeks |  71 months | -0.023% a month | t -0.33 | a week: net -0.270%, judged -0.033%, won 52% | GM 20u -Rs 8,11,131 (real -Rs 2,10,109; top-priced tenth -Rs 1,83,186) | expiry months up 45% of 71, worst -Rs 3,55,135
+ W3L relative strength top       2931 weeks |  72 months | +0.157% a month | t 1.69 | a week: net +0.291%, judged +0.132%, won 50% | GM 20u +Rs 3,36,803 (real +Rs 2,99,812; top-priced tenth +Rs 90,472) | expiry months up 60% of 72, worst -Rs 1,36,188
+ W3S relative strength bottom    4491 weeks |  72 months | +0.052% a month | t 0.78 | a week: net -0.126%, judged +0.059%, won 55% | GM 20u -Rs 12,884 (real +Rs 55,894; top-priced tenth +Rs 1,49,513) | expiry months up 44% of 72, worst -Rs 1,04,738
+ W4L weekly bull candle           740 weeks |  71 months | -0.210% a month | t -1.43 | a week: net +0.128%, judged -0.153%, won 47% | GM 20u +Rs 1,57,135 (real +Rs 1,58,013; top-priced tenth +Rs 1,37,468) | expiry months up 55% of 71, worst -Rs 39,927
+ W4S weekly bear candle           579 weeks |  69 months | +0.267% a month | t 1.41 | a week: net -0.066%, judged +0.129%, won 55% | GM 20u -Rs 1,46,126 (real -Rs 1,39,061; top-priced tenth -Rs 1,33,656) | expiry months up 54% of 67, worst -Rs 1,29,426
+ W5L NIFTY trend long             213 weeks |  53 months | -0.025% a month | t -0.18 | a week: net +0.061%, judged +0.061%, won 50% | GM 20u -Rs 2,243 (real +Rs 16,384; top-priced tenth -Rs 79,803) | expiry months up 49% of 53, worst -Rs 45,298
+ W5S NIFTY trend short             52 weeks | NOT TESTABLE (15 months)
+
+CANDIDATES (discovery PASS and confirmed): none. A candidate goes to TRACK as a forward paper test first, never straight to the page.
+

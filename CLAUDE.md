@@ -203,6 +203,12 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     (t -3.55 / -2.30). Laggard breakdown shorts lose after 2020 (t -4.31). Limitation: the NIFTY filter only had index
     closes on 2,131 of 3,909 discovery sessions (from about 2012, inferred), so the filtered members (A, B, G) start
     there. Reading and sources: LEARN.md in that folder.
+  - FAIL, 29 Oct 2026: GM weekly lab (branch claude/gm-weekly-lab-2026-10-29, prereg c6065d9f before data; Actions
+    40912563154). 10 weekly-chart members scored GM's way: bought at Monday open, booked at Friday close, weekend gap not
+    counted, cut at expiry. Members: Weinstein stage 2/4, weekly Donchian 20/10, relative strength top/bottom tenth,
+    weekly candle at the 30-week line, NIFTY futures trend. 0 PASS. PROMISING: stage-4 short (t 3.89, then 0.31) and RS
+    bottom short (2.66, then 0.78). Every member made money in only about 43-60% of expiry months. In raw GM rupees the
+    longs made money after 2020 and the shorts lost: market direction, not skill.
   - Don't re-run these as "new".
 
 ## Open work (as of 2 Oct 2026). Pick up from here
