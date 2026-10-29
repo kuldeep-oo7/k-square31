@@ -326,7 +326,8 @@
   "OPTION|BHEL|BHEL26NOV380PE",
   "OPTION|YESBANK|YESBANK26NOV16PE",
   "OPTION|TCS|TCS26NOV2360CE",
-  "OPTION|ADANIPORTS|ADANIPORTS26NOV1940CE"
+  "OPTION|ADANIPORTS|ADANIPORTS26NOV1940CE",
+  "OPTION|HCLTECH|HCLTECH26NOV1340CE"
  ],
  "options": {
   "NIFTY26N0922750PE": {
@@ -4452,6 +4453,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-29T07:24:30.810Z",
    "frozenAtIst": "2026-10-29 12:54 IST",
+   "frozenAtSpot": null
+  },
+  "HCLTECH26NOV1340CE": {
+   "buy": 82.45,
+   "sell": 123.7,
+   "stop": 41.25,
+   "tick": 0.05,
+   "lotSize": 400,
+   "expiry": "2026-11-23",
+   "strike": 1340,
+   "right": "CE",
+   "symbol": "HCLTECH",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T07:44:26.992Z",
+   "frozenAtIst": "2026-10-29 13:14 IST",
    "frozenAtSpot": null
   }
  },

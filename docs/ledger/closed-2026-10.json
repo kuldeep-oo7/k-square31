@@ -288922,6 +288922,114 @@
     "perLot": 17416,
     "netPerLot": 17252.03
    }
+  },
+  {
+   "id": "2026-10-27|PE|ADANIPOWER26NOV175PE",
+   "kind": "PE",
+   "symbol": "ADANIPOWER",
+   "contract": "ADANIPOWER26NOV175PE",
+   "expiry": "2026-11-23",
+   "strike": 175,
+   "optionType": "PE",
+   "lotSize": 3550,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T08:04:20.634Z",
+   "buy": 3.29,
+   "target": 4.94,
+   "target2": null,
+   "stop": 1.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 30.8,
+     "medianDays": 13.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-27T08:04:20.950Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-29T07:44:27.513Z",
+   "exitPrice": 1.65,
+   "exitReason": "STOP",
+   "hoursFillToExit": 47.67,
+   "sessionsHeld": 2,
+   "best": 3.88,
+   "worst": 1.64,
+   "last": 1.68,
+   "lastAt": "2026-10-29T07:44:27.513Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-29",
+    "high": 3.34,
+    "low": 1.64,
+    "last": 1.68
+   },
+   "pnl": {
+    "perUnit": -1.64,
+    "pct": -49.85,
+    "basis": "NET",
+    "perLot": -5822,
+    "netPerLot": -5885.71
+   }
+  },
+  {
+   "id": "2026-10-27|PE|ADANIPOWER26NOV180PE",
+   "kind": "PE",
+   "symbol": "ADANIPOWER",
+   "contract": "ADANIPOWER26NOV180PE",
+   "expiry": "2026-11-23",
+   "strike": 180,
+   "optionType": "PE",
+   "lotSize": 3550,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 5.18,
+   "target": 7.77,
+   "target2": null,
+   "stop": 2.59,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 35.5,
+     "medianDays": 12.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-27T04:05:31.235Z",
+   "hoursToFill": 0.3,
+   "closedAt": "2026-10-29T07:44:27.513Z",
+   "exitPrice": 2.59,
+   "exitReason": "STOP",
+   "hoursFillToExit": 51.65,
+   "sessionsHeld": 2,
+   "best": 5.6,
+   "worst": 2.52,
+   "last": 2.61,
+   "lastAt": "2026-10-29T07:44:27.513Z",
+   "marks": 64,
+   "obs": {
+    "date": "2026-10-29",
+    "high": 4.67,
+    "low": 2.52,
+    "last": 2.61
+   },
+   "pnl": {
+    "perUnit": -2.59,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -9194.5,
+    "netPerLot": -9267.64
+   }
   }
  ]
 }
