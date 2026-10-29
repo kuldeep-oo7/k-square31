@@ -322,7 +322,8 @@
   "OPTION|WIPRO|WIPRO26NOV200CE",
   "OPTION|PATANJALI|PATANJALI26NOV400CE",
   "OPTION|CROMPTON|CROMPTON26NOV190PE",
-  "OPTION|ADANIPORTS|ADANIPORTS26NOV1920CE"
+  "OPTION|ADANIPORTS|ADANIPORTS26NOV1920CE",
+  "OPTION|BHEL|BHEL26NOV380PE"
  ],
  "options": {
   "NIFTY26N0922750PE": {
@@ -4388,6 +4389,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-29T06:44:22.900Z",
    "frozenAtIst": "2026-10-29 12:14 IST",
+   "frozenAtSpot": null
+  },
+  "BHEL26NOV380PE": {
+   "buy": 5.55,
+   "sell": 8.3,
+   "stop": 2.75,
+   "tick": 0.05,
+   "lotSize": 2625,
+   "expiry": "2026-11-23",
+   "strike": 380,
+   "right": "PE",
+   "symbol": "BHEL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T07:04:16.661Z",
+   "frozenAtIst": "2026-10-29 12:34 IST",
    "frozenAtSpot": null
   }
  },
