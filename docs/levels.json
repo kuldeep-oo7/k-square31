@@ -329,7 +329,9 @@
   "OPTION|ADANIPORTS|ADANIPORTS26NOV1940CE",
   "OPTION|HCLTECH|HCLTECH26NOV1340CE",
   "OPTION|PATANJALI|PATANJALI26NOV405CE",
-  "OPTION|KOTAKBANK|KOTAKBANK26NOV475CE"
+  "OPTION|KOTAKBANK|KOTAKBANK26NOV475CE",
+  "OPTION|SWIGGY|SWIGGY26NOV200PE",
+  "OPTION|PNB|PNB26NOV130CE"
  ],
  "options": {
   "NIFTY26N0922750PE": {
@@ -4500,6 +4502,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-29T08:44:12.708Z",
    "frozenAtIst": "2026-10-29 14:14 IST",
+   "frozenAtSpot": null
+  },
+  "SWIGGY26NOV200PE": {
+   "buy": 16.3,
+   "sell": 24.45,
+   "stop": 8.15,
+   "tick": 0.05,
+   "lotSize": 1825,
+   "expiry": "2026-11-23",
+   "strike": 200,
+   "right": "PE",
+   "symbol": "SWIGGY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T09:24:36.090Z",
+   "frozenAtIst": "2026-10-29 14:54 IST",
+   "frozenAtSpot": null
+  },
+  "PNB26NOV130CE": {
+   "buy": 1.26,
+   "sell": 1.89,
+   "stop": 0.63,
+   "tick": 0.01,
+   "lotSize": 8000,
+   "expiry": "2026-11-23",
+   "strike": 130,
+   "right": "CE",
+   "symbol": "PNB",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T09:24:36.090Z",
+   "frozenAtIst": "2026-10-29 14:54 IST",
    "frozenAtSpot": null
   }
  },
