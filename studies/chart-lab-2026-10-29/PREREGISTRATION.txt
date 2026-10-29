@@ -1,0 +1,107 @@
+PRE-REGISTRATION -- THE CHART LAB: OUR OWN CHART, PATTERN AND CANDLE STRATEGIES, BUILT FROM WHAT CHAMPION TRADERS DO,
+BOTH DIRECTIONS, PRICED ON THE NEAR-MONTH FUTURE. ONE BATCH, ONE RUN.
+Written Thursday 29 Oct 2026, about 21:30 IST, BEFORE any member below was computed on real data in any period. The commit
+time is the proof. Branch claude/ta-champions-2026-10-29. The reading behind it is LEARN.md in this folder.
+
+1. WHY, AND WHAT HAS BEEN SEEN (disclosed)
+- The owner (29 Oct): forget the old strategies; learn technical analysis, chart patterns and candlesticks and what the best
+  traders and competition champions do, then build our own strategies.
+- Already seen on NSE: the 3 Oct TA atlas (36 textbook members on 2020-2026 shares, 0 PASS; shorting breakouts lost, plain
+  candles and plain patterns failed); the GM 3% panel's breakout buys lost (exploratory, t -2.22); the night lab's stop-losses
+  lost for one-day shorts; the long-unwinding bounce was PROMISING on futures in both periods; the future beats the share
+  from open to close by about 0.085% a day (2021-2026).
+- None of the 14 members below has been computed on any period. 2020-2026 has been mined by many studies, so the
+  confirmation is not a virgin sample for related ideas; it is reported as such.
+
+2. DATA AND DESIGN
+- Discovery: NSE 2005-01-01 .. 2020-10-31 (release data-oos: nse-old cm, fut, idx). Confirmation: 2020-10-01 .. 2026-10-01
+  (research snapshot cm and nse-fo fut; data-oos before 2020-09-01 as look-back only; NIFTY from data-oos idx and
+  data-macro ind_close_all). Exactly the futures lab's loaders (studies/futures-lab-2026-10-23/run.js).
+- Bars: the SHARE's daily NSE bars (EQ series, unadjusted). A session whose open is 18% or more from the previous close is
+  a reset (corporate action); a signal needs at least 260 bars since the last reset.
+- Universe: the futures lab's (each month, the top 200 by the median traded value of the previous 60 bars, at least 250
+  bars since the last reset), and a near-month future with an open and a close on the entry session.
+- Signal on day k uses only bars to the close of k. Entry at the OPEN of the next session (i) on the near-month FUTURE.
+- One open trade per stock per member: a signal while that member holds that stock is skipped.
+
+3. INDICATORS (share bars, through day k)
+- SMA n = mean of the last n closes. EMA20: alpha 2/21, seeded with the first close. ATR14, +DI, -DI and ADX14: Wilder.
+- HI250 / LO250 = highest high / lowest low of the last 250 bars. VOL50 = mean volume of the 50 bars before k.
+- RS = percentile (0-100) of the 126-bar close-to-close return among that month's universe on day k (ties averaged).
+- NIFTY (index close): UP when SMA10 > SMA20 and SMA20 above its value 5 sessions earlier; DOWN when SMA10 < SMA20 and
+  SMA20 below its value 5 sessions earlier; otherwise neither.
+
+4. MEMBERS (7 ideas x 2 directions = 14). Conditions are on day k unless stated.
+ A1 LEADER BREAKOUT (long; Minervini trend template + tight base + volume, O'Neil/Kullamagi):
+    C > SMA50 > SMA150 > SMA200; SMA200 > its value 21 bars earlier; C >= 1.30 x LO250; C >= 0.75 x HI250; RS >= 70;
+    base: (highest high - lowest low of bars k-20..k-1) <= 0.15 x C(k-1); C > highest high of k-20..k-1;
+    volume >= 1.5 x VOL50; NIFTY UP. Exit TRAIL.
+ A2 LAGGARD BREAKDOWN (short; the mirror): C < SMA50 < SMA150 < SMA200; SMA200 < its value 21 bars earlier;
+    C <= 0.70 x HI250; C <= 1.25 x LO250; RS <= 30; the same base; C < lowest low of k-20..k-1; volume >= 1.5 x VOL50;
+    NIFTY DOWN. Exit TRAIL.
+ B1 GAP-AND-HOLD UP (long; episodic pivot, daily): gap g = O(k)/C(k-1) - 1 with 0.04 <= g < 0.18; volume >= 3 x VOL50;
+    C >= O; H > L and (C - L)/(H - L) >= 0.5; NIFTY UP. Exit TRAIL.
+ B2 GAP-AND-HOLD DOWN (short): -0.18 < g <= -0.04; volume >= 3 x VOL50; C <= O; (H - C)/(H - L) >= 0.5; NIFTY DOWN.
+    Exit TRAIL.
+ C1 CAPITULATION BOUNCE (long): C(k-1)/C(k-11) - 1 <= -0.20; at least 4 of the 5 bars k-5..k-1 closed below their previous
+    close; k is the first green bar: C > O and C > C(k-1). Exit FIX5. No NIFTY filter.
+ C2 PARABOLIC FADE (short; Kullamagi): C(k-1)/C(k-11) - 1 >= +0.20; at least 4 of the 5 bars k-5..k-1 closed above their
+    previous close; k is the first red bar: C < O and C < C(k-1). Exit FIX5. No NIFTY filter.
+ D1 HOLY GRAIL UP (long; Raschke): on k-1: ADX14 >= 30, +DI > -DI and L(k-1) <= EMA20(k-1); on k: C > H(k-1). Exit TRAIL.
+ D2 HOLY GRAIL DOWN (short): on k-1: ADX14 >= 30, -DI > +DI and H(k-1) >= EMA20(k-1); on k: C < L(k-1). Exit TRAIL.
+ E1 TURTLE SOUP PLUS ONE, LONG (Raschke and Connors): PL = lowest low of bars k-21..k-2, last reached at least 4 bars before
+    k-1; on k-1: L < PL and C <= PL; on k: C > PL. Exit FIX5.
+ E2 TURTLE SOUP PLUS ONE, SHORT: PH = highest high of k-21..k-2, last reached at least 4 bars before k-1; on k-1: H > PH and
+    C >= PH; on k: C < PH. Exit FIX5.
+ F1 BULLISH CANDLE AT THE 50-DAY, UPTREND (Nison's location rule): SMA50 > SMA200; SMA50 > its value 10 bars earlier;
+    L <= SMA50 + 0.5 x ATR14 and C >= SMA50 - 0.5 x ATR14; and a bullish engulfing (C(k-1) < O(k-1), C > O,
+    O <= C(k-1), C >= O(k-1), body larger than the previous body) or a hammer (R = H - L > 0; body |C - O| <= 0.35R;
+    lower shadow >= 2 x body and >= 0.5R; upper shadow <= 0.15R). Exit FIX5.
+ F2 BEARISH CANDLE AT THE 50-DAY, DOWNTREND: SMA50 < SMA200; SMA50 < its value 10 bars earlier; H >= SMA50 - 0.5 x ATR14 and
+    C <= SMA50 + 0.5 x ATR14; and a bearish engulfing (the mirror) or a shooting star (body <= 0.35R; upper shadow >= 2 x
+    body and >= 0.5R; lower shadow <= 0.15R). Exit FIX5.
+ G1 TIGHT INSIDE DAY, UPTREND (Crabel IDnr4 + trend): H <= H(k-1) and L >= L(k-1); H - L smaller than each of the 3 bars
+    before; C > SMA50 > SMA200; NIFTY UP. Exit TRAIL.
+ G2 TIGHT INSIDE DAY, DOWNTREND: the same inside and NR4 bar; C < SMA50 < SMA200; NIFTY DOWN. Exit TRAIL.
+ Exits (sessions counted on the market calendar from the entry session i):
+ - TRAIL: the first session t >= i on which the share closes below its SMA10 (long) or above it (short); exit at the close
+   of the session after t; at the latest at the close of session i+19 (20 sessions, GM Global's longest hold).
+ - FIX5: exit at the close of session i+4.
+
+5. PRICE, VALUE, SCORE, VERDICT
+- Price: the futures lab's futHold: the near-month future from its official open on session i to its official close
+  (settlement) on the exit session, rolling at expiry at that day's close into the next contract; dated NSE futures charges
+  on every leg, quantity ceil(Rs 5 lakh / entry price). A trade is DROPPED (not counted) when a price is missing, when the
+  held contract moves more than -18% / +22% from one close to the next (corporate action or bad print), or when the share
+  has a reset during the hold.
+- Market: B = (1 + b_open(i)) x product over t = i+1..exit of (1 + b_cc(t)) - 1, where b_open(i) = mean open-to-close of the
+  universe's near-month futures on i and b_cc(t) = mean close-to-close of each universe stock's held near-month contract
+  (rolled as above, same -18%/+22% guard); each day needs at least 30 names, else the trade is dropped.
+- VALUE of a trade = FUTURES EXCESS = net - side x B (side +1 long, -1 short).
+- Member score: monthly mean (%) of its trades' values by entry month; Newey-West t (lag 3). Fewer than 24 months: NOT
+  TESTABLE. Holm across the testable members at 5% (one-sided). Full Deflated Sharpe (Bailey and Lopez de Prado 2014, with
+  skew and kurtosis) with N = 430 trials (393 counted through the VRP lab, plus the expiry legs 10, the order book 6, the
+  GM panel's exploratory tests rounded up to 7, plus these 14), as the earlier labs.
+- DISCOVERY PASS = mean > 0, t >= 3, Holm and DSR >= 0.95 on 2005-2020. CONFIRMED = then on 2020-2026 mean > 0 and t >= 2.
+  PROMISING = discovery mean > 0 and t >= 2 without a PASS. FAIL otherwise. A confirmed pass goes to TRACK as a forward
+  paper test first, never straight to the page.
+- Reported, not judged: trades, months, win rate, mean NET % and mean EXCESS % a trade, mean hold, worst month, in both
+  periods; the discovery halves 2005-2012 and 2013-2020; long and short of each idea side by side.
+- Expectation, stated now: most members FAIL. The literature and the 3 Oct atlas say short-horizon chart rules on single
+  stocks keep little after costs. The likeliest to show anything: C1 (close to the long-unwinding bounce) and B1/B2 (close
+  to drift after big news gaps).
+
+6. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 6.1 Futures pricing by hand (the futures lab's 5.1) and the market chain B by hand on a two-stock toy.
+ 6.2 Planted: a synthetic market (250 stocks, 1,800 sessions, 2% a day random walks, futures = share prices, an expiry every
+     20 sessions, a random-walk NIFTY) with +0.3% added to each session's return for the 5 sessions after every E1 signal:
+     E1 must reach t >= 3, and the other 13 members on that market at most 1 PASS.
+ 6.3 Null: every discovery trade of every member moved to a random discovery session (same stock, side and hold): at most 1
+     PASS of 14.
+ 6.4 No look-ahead: for 3,000 random (stock, day) pairs in discovery, the 14 detectors recomputed on the stock's bars cut
+     after day k (NIFTY cut too, RS held) give identical answers.
+ 6.5 Plumbing: signal and trade counts per member are printed before any return is computed.
+
+7. FILES AND PRIVACY
+ run.js; workflow .github/workflows/chart-lab.yml on this branch, started by a push of RUN.txt. Logs and artifacts carry
+ summary rows only (the repository is public); no symbol, trade list or data is committed.

@@ -195,6 +195,14 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     open->close beat the share's by +0.085% a day on average (2021-2026, 276k stock-days), so share pricing flatters shorts
     and penalises longs by ~0.1% a trade. Price anything meant for GM on futures (open -> settlement close, roll at expiry).
     The strong-SB TRACK test is futures-priced (studies/sb-strong-forward-2026-10-23, amendment A1).
+  - FAIL, 29 Oct 2026: chart lab (branch claude/ta-champions-2026-10-29, prereg 1914ffff before data; Actions 40907737425).
+    14 own members built from champion traders' setups, both directions, futures-priced, excess over the market. Members:
+    Minervini/O'Neil breakout, gap-and-hold, capitulation bounce / parabolic fade, Raschke Holy Grail, Turtle Soup +1,
+    candle at the 50-day, tight inside day. 0 PASS. PROMISING: capitulation bounce (t 2.23, then 1.91, 92 trades), bear
+    candle at the 50-day (2.15, then 0.64), inside day up (2.25, then 0.16). Holy Grail SHORT loses in both periods
+    (t -3.55 / -2.30). Laggard breakdown shorts lose after 2020 (t -4.31). Limitation: the NIFTY filter only had index
+    closes on 2,131 of 3,909 discovery sessions (from about 2012, inferred), so the filtered members (A, B, G) start
+    there. Reading and sources: LEARN.md in that folder.
   - Don't re-run these as "new".
 
 ## Open work (as of 2 Oct 2026). Pick up from here
