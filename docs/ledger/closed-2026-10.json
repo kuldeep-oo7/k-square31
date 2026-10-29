@@ -288184,6 +288184,66 @@
     "perLot": -16942.5,
     "netPerLot": -17037.66
    }
+  },
+  {
+   "id": "2026-10-29|FUT|BLUESTARCO26NOVFUT",
+   "kind": "FUT",
+   "symbol": "BLUESTARCO",
+   "contract": "BLUESTARCO26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 325,
+   "sessionDate": "2026-10-29",
+   "shownAt": "2026-10-29T03:48:04.715Z",
+   "buy": 1608,
+   "target": 1648.2,
+   "target2": 1688.4,
+   "stop": 1583.9,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 69.9,
+     "medianTradingDays": 0.172
+    },
+    "target": {
+     "probabilityPct": 78,
+     "medianTradingDays": 1.961
+    },
+    "sigmaPct": 32.9,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-29T05:44:39.598Z",
+   "hoursToFill": 1.94,
+   "closedAt": "2026-10-29T05:44:39.598Z",
+   "exitPrice": 1583.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 0,
+   "sessionsHeld": 0,
+   "best": 1608,
+   "worst": 1573.6,
+   "last": 1604,
+   "lastAt": "2026-10-29T05:44:39.598Z",
+   "marks": 7,
+   "obs": {
+    "date": "2026-10-29",
+    "high": 1624.2,
+    "low": 1573.6,
+    "last": 1604
+   },
+   "pnl": {
+    "perUnit": -24.1,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
   }
  ]
 }
