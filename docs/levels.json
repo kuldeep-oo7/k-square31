@@ -321,7 +321,8 @@
   "OPTION|CROMPTON|CROMPTON26NOV197.5PE",
   "OPTION|WIPRO|WIPRO26NOV200CE",
   "OPTION|PATANJALI|PATANJALI26NOV400CE",
-  "OPTION|CROMPTON|CROMPTON26NOV190PE"
+  "OPTION|CROMPTON|CROMPTON26NOV190PE",
+  "OPTION|ADANIPORTS|ADANIPORTS26NOV1920CE"
  ],
  "options": {
   "NIFTY26N0922750PE": {
@@ -4372,6 +4373,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-29T06:24:25.019Z",
    "frozenAtIst": "2026-10-29 11:54 IST",
+   "frozenAtSpot": null
+  },
+  "ADANIPORTS26NOV1920CE": {
+   "buy": 20.15,
+   "sell": 30.2,
+   "stop": 10.05,
+   "tick": 0.05,
+   "lotSize": 475,
+   "expiry": "2026-11-23",
+   "strike": 1920,
+   "right": "CE",
+   "symbol": "ADANIPORTS",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T06:44:22.900Z",
+   "frozenAtIst": "2026-10-29 12:14 IST",
    "frozenAtSpot": null
   }
  },
