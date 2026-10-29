@@ -2,8 +2,8 @@
  "preregistration": "studies/forward-v2-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "8be35cabe66e0d75b3974ad1651427770149888ff660ba9fcf8be0ee215aaea5",
  "start": "2026-10-05",
- "dataThrough": "2026-10-28",
- "builtAt": "2026-10-29T11:41:48.050Z",
+ "dataThrough": "2026-10-29",
+ "builtAt": "2026-10-29T14:02:50.312Z",
  "STRANGLE": {
   "rule": "Sell the NIFTY call about 2% above and the put about 2% below, at the close of the first session with 4-10 days to the weekly expiry; hold to expiry",
   "backtest": "PASS under protocol v2: +0.101% of NIFTY a week, t 4.66, 61 months (not significant after the 73-trial Deflated Sharpe check)",
@@ -69,27 +69,40 @@
   "backtest": "PROMISING: +0.338% a trade above the market, t 2.26",
   "pending": [
    {
-    "symbol": "INFY",
-    "signalDate": "2026-10-28",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "LIQUIDBEES",
-    "signalDate": "2026-10-28",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "MAHABANK",
-    "signalDate": "2026-10-28",
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "TORNTPHARM",
-    "signalDate": "2026-10-28",
+    "symbol": "HEROMOTOCO",
+    "signalDate": "2026-10-29",
     "status": "SIGNAL"
    }
   ],
   "trades": [
+   {
+    "symbol": "TORNTPHARM",
+    "signalDate": "2026-10-28",
+    "entryDate": "2026-10-29",
+    "entry": 4540,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "MAHABANK",
+    "signalDate": "2026-10-28",
+    "entryDate": "2026-10-29",
+    "entry": 79.95,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "LIQUIDBEES",
+    "signalDate": "2026-10-28",
+    "entryDate": "2026-10-29",
+    "entry": 1000,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "INFY",
+    "signalDate": "2026-10-28",
+    "entryDate": "2026-10-29",
+    "entry": 1130,
+    "status": "OPEN"
+   },
    {
     "symbol": "JSWSTEEL",
     "signalDate": "2026-10-27",
@@ -333,56 +346,88 @@
     "signalDate": "2026-10-14",
     "entryDate": "2026-10-15",
     "entry": 4581,
-    "status": "OPEN"
+    "exitDate": "2026-10-29",
+    "exit": 4580,
+    "netPct": -0.044,
+    "excessPct": -2.138,
+    "status": "DONE"
    },
    {
     "symbol": "LICHSGFIN",
     "signalDate": "2026-10-14",
     "entryDate": "2026-10-15",
     "entry": 533,
-    "status": "OPEN"
+    "exitDate": "2026-10-29",
+    "exit": 514,
+    "netPct": 3.498,
+    "excessPct": 1.405,
+    "status": "DONE"
    },
    {
     "symbol": "INDIGO",
     "signalDate": "2026-10-14",
     "entryDate": "2026-10-15",
     "entry": 4721.9,
-    "status": "OPEN"
+    "exitDate": "2026-10-29",
+    "exit": 4675,
+    "netPct": 0.927,
+    "excessPct": -1.167,
+    "status": "DONE"
    },
    {
     "symbol": "IFCI",
     "signalDate": "2026-10-14",
     "entryDate": "2026-10-15",
     "entry": 69.1,
-    "status": "OPEN"
+    "exitDate": "2026-10-29",
+    "exit": 58.26,
+    "netPct": 15.622,
+    "excessPct": 13.528,
+    "status": "DONE"
    },
    {
     "symbol": "IDEA",
     "signalDate": "2026-10-14",
     "entryDate": "2026-10-15",
     "entry": 12.67,
-    "status": "OPEN"
+    "exitDate": "2026-10-29",
+    "exit": 12.12,
+    "netPct": 4.275,
+    "excessPct": 2.181,
+    "status": "DONE"
    },
    {
     "symbol": "ICICIBANK",
     "signalDate": "2026-10-14",
     "entryDate": "2026-10-15",
     "entry": 1342.1,
-    "status": "OPEN"
+    "exitDate": "2026-10-29",
+    "exit": 1386.6,
+    "netPct": -3.382,
+    "excessPct": -5.476,
+    "status": "DONE"
    },
    {
     "symbol": "EXIDEIND",
     "signalDate": "2026-10-14",
     "entryDate": "2026-10-15",
     "entry": 383.1,
-    "status": "OPEN"
+    "exitDate": "2026-10-29",
+    "exit": 344.6,
+    "netPct": 9.984,
+    "excessPct": 7.89,
+    "status": "DONE"
    },
    {
     "symbol": "BAJFINANCE",
     "signalDate": "2026-10-14",
     "entryDate": "2026-10-15",
     "entry": 951.9,
-    "status": "OPEN"
+    "exitDate": "2026-10-29",
+    "exit": 938.9,
+    "netPct": 1.299,
+    "excessPct": -0.794,
+    "status": "DONE"
    },
    {
     "symbol": "GLENMARK",
@@ -705,30 +750,33 @@
    }
   ],
   "summary": {
-   "finished": 29,
-   "meanPct": -0.582,
-   "winPct": 48.3,
+   "finished": 37,
+   "meanPct": -0.04,
+   "winPct": 48.6,
    "worstPct": -24.752,
-   "t": -0.23,
+   "t": -0.03,
    "verdict": "COLLECTING"
   }
  },
  "MA150B": {
   "rule": "Short a stock whose 5-day average crosses below its 150-day average; cover 10 sessions later; scored against the market",
   "backtest": "PROMISING: +0.307% a trade above the market, t 2.58",
-  "pending": [
-   {
-    "symbol": "IIFL",
-    "signalDate": "2026-10-28",
-    "status": "SIGNAL"
-   },
+  "pending": [],
+  "trades": [
    {
     "symbol": "NETWEB",
     "signalDate": "2026-10-28",
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "entryDate": "2026-10-29",
+    "entry": 4375,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "IIFL",
+    "signalDate": "2026-10-28",
+    "entryDate": "2026-10-29",
+    "entry": 535,
+    "status": "OPEN"
+   },
    {
     "symbol": "WABAG",
     "signalDate": "2026-10-26",
@@ -874,7 +922,11 @@
     "signalDate": "2026-10-14",
     "entryDate": "2026-10-15",
     "entry": 4721.9,
-    "status": "OPEN"
+    "exitDate": "2026-10-29",
+    "exit": 4675,
+    "netPct": 0.927,
+    "excessPct": -1.167,
+    "status": "DONE"
    },
    {
     "symbol": "DATAPATTNS",
@@ -1142,11 +1194,11 @@
    }
   ],
   "summary": {
-   "finished": 24,
-   "meanPct": -0.062,
-   "winPct": 50,
+   "finished": 25,
+   "meanPct": -0.107,
+   "winPct": 48,
    "worstPct": -3.833,
-   "t": -0.1,
+   "t": -0.2,
    "verdict": "COLLECTING"
   }
  }

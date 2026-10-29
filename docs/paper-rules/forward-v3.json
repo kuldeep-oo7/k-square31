@@ -2,14 +2,134 @@
  "preregistration": "studies/forward-v3-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
  "start": "2026-10-05",
- "dataThrough": "2026-10-28",
- "builtAt": "2026-10-29T11:41:52.911Z",
+ "dataThrough": "2026-10-29",
+ "builtAt": "2026-10-29T14:02:53.215Z",
  "industries": 2584,
  "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
  "CHEAPVOL": {
   "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
   "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months — just short of the bar",
   "trades": [
+   {
+    "symbol": "RECLTD",
+    "entryDate": "2026-10-29",
+    "expiry": "2026-11-23",
+    "strike": 295,
+    "entry": 15.1,
+    "ivPct": 24.4,
+    "rvPct": 30.6,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "DMART",
+    "entryDate": "2026-10-29",
+    "expiry": "2026-11-23",
+    "strike": 3200,
+    "entry": 156.45,
+    "ivPct": 23.5,
+    "rvPct": 32.4,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BANDHANBNK",
+    "entryDate": "2026-10-29",
+    "expiry": "2026-11-23",
+    "strike": 162.5,
+    "entry": 12.03,
+    "ivPct": 35.5,
+    "rvPct": 51.4,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "KEI",
+    "entryDate": "2026-10-29",
+    "expiry": "2026-11-23",
+    "strike": 3800,
+    "entry": 262.75,
+    "ivPct": 32.8,
+    "rvPct": 45.1,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "DRREDDY",
+    "entryDate": "2026-10-29",
+    "expiry": "2026-11-23",
+    "strike": 1340,
+    "entry": 64.85,
+    "ivPct": 23,
+    "rvPct": 29.9,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "CHOLAFIN",
+    "entryDate": "2026-10-29",
+    "expiry": "2026-11-23",
+    "strike": 1600,
+    "entry": 94.45,
+    "ivPct": 28.1,
+    "rvPct": 38.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ADANIGREEN",
+    "entryDate": "2026-10-29",
+    "expiry": "2026-11-23",
+    "strike": 1300,
+    "entry": 93.85,
+    "ivPct": 34.3,
+    "rvPct": 47.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "HINDUNILVR",
+    "entryDate": "2026-10-29",
+    "expiry": "2026-11-23",
+    "strike": 1860,
+    "entry": 73.7,
+    "ivPct": 18.9,
+    "rvPct": 23.9,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ADANIENT",
+    "entryDate": "2026-10-29",
+    "expiry": "2026-11-23",
+    "strike": 2600,
+    "entry": 158.8,
+    "ivPct": 29.1,
+    "rvPct": 37.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "SHRIRAMFIN",
+    "entryDate": "2026-10-29",
+    "expiry": "2026-11-23",
+    "strike": 840,
+    "entry": 55.6,
+    "ivPct": 31.6,
+    "rvPct": 41.7,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ETERNAL",
+    "entryDate": "2026-10-29",
+    "expiry": "2026-11-23",
+    "strike": 340,
+    "entry": 18.55,
+    "ivPct": 26.2,
+    "rvPct": 34.5,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "INFY",
+    "entryDate": "2026-10-29",
+    "expiry": "2026-11-23",
+    "strike": 1140,
+    "entry": 70.7,
+    "ivPct": 29.5,
+    "rvPct": 37.4,
+    "status": "OPEN"
+   },
    {
     "symbol": "APLAPOLLO",
     "entryDate": "2026-10-28",
@@ -258,7 +378,10 @@
     "entry": 302,
     "ivPct": 32.9,
     "rvPct": 43.4,
-    "status": "OPEN"
+    "exitDate": "2026-10-29",
+    "exit": 260.55,
+    "netPct": -13.983,
+    "status": "DONE"
    },
    {
     "symbol": "ADANIGREEN",
@@ -268,7 +391,10 @@
     "entry": 94.5,
     "ivPct": 31.9,
     "rvPct": 40.8,
-    "status": "OPEN"
+    "exitDate": "2026-10-29",
+    "exit": 114.4,
+    "netPct": 20.733,
+    "status": "DONE"
    },
    {
     "symbol": "RBLBANK",
@@ -1377,11 +1503,11 @@
    }
   ],
   "summary": {
-   "finished": 85,
-   "meanPct": 1.581,
-   "winPct": 30.6,
+   "finished": 87,
+   "meanPct": 1.623,
+   "winPct": 31,
    "worstPct": -89.703,
-   "t": 0.37,
+   "t": 0.38,
    "verdict": "COLLECTING"
   }
  },
@@ -1542,7 +1668,7 @@
   ],
   "pending": null,
   "pendingNoIndustry": [],
-  "sessionsToNext": 3,
+  "sessionsToNext": 2,
   "summary": {
    "finished": 3,
    "meanPct": 0.426,

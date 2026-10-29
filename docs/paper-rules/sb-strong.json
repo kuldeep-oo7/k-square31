@@ -4,19 +4,33 @@
  "preregSha256": "71f1efb555ae3a964ec578f7e107c0d692f6f814d4b2261c577a7c2a7b9ef0c7",
  "amendmentSha256": "f2f3cd886b53c4e3ce303613cb08568e8ea615a45ce287d499d360ffdc9d0ec8",
  "start": "2026-10-23",
- "dataThrough": "2026-10-28",
- "builtAt": "2026-10-29T11:41:42.675Z",
+ "dataThrough": "2026-10-29",
+ "builtAt": "2026-10-29T14:02:47.471Z",
  "rule": "Short build-up, strong signals only: the share fell at least 3% and its futures open interest rose at least 6% -> short the near-month future at the next open, cover at that day's close",
  "backtest": "PROMISING, not a pass (night lab 22 Oct 2026, priced on shares): 2005-2020 +0.118% a trade beyond the market, t 2.99; 2020-2026 +0.223%, t 2.73. On futures the same trades earn about 0.1% less (descriptive look, 23 Oct)",
  "pending": [
   {
-   "symbol": "KAYNES",
-   "signalDate": "2026-10-28",
-   "pricePct": -6.28,
-   "oiPct": 30.77
+   "symbol": "HEROMOTOCO",
+   "signalDate": "2026-10-29",
+   "pricePct": -4.09,
+   "oiPct": 16.2
   }
  ],
  "trades": [
+  {
+   "symbol": "KAYNES",
+   "signalDate": "2026-10-28",
+   "entryDate": "2026-10-29",
+   "pricePct": -6.28,
+   "oiPct": 30.77,
+   "entry": 3065,
+   "exit": 3121.6,
+   "netPct": -1.913,
+   "excessPct": -0.754,
+   "shareNetPct": -1.485,
+   "rupees": -1132,
+   "status": "DONE"
+  },
   {
    "symbol": "MAZDOCK",
    "signalDate": "2026-10-27",
@@ -75,15 +89,15 @@
   }
  ],
  "summary": {
-  "finished": 4,
-  "meanExcessPct": 1.623,
-  "meanNetPct": 1.418,
-  "meanShareNetPct": 1.571,
-  "winPct": 25,
+  "finished": 5,
+  "meanExcessPct": 1.148,
+  "meanNetPct": 0.752,
+  "meanShareNetPct": 0.96,
+  "winPct": 20,
   "worstNetPct": -4.151,
-  "rupees": -6671,
+  "rupees": -7803,
   "weeks": 2,
-  "t": 0.33,
+  "t": 0.28,
   "verdict": "COLLECTING"
  }
 }

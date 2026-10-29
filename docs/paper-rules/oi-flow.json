@@ -2,127 +2,158 @@
  "preregistration": "studies/oi-flow-forward-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
  "start": "2026-10-05",
- "dataThrough": "2026-10-28",
- "fnoThrough": "2026-10-28",
- "builtAt": "2026-10-29T11:41:37.855Z",
+ "dataThrough": "2026-10-29",
+ "fnoThrough": "2026-10-29",
+ "builtAt": "2026-10-29T14:02:44.496Z",
  "LU": {
   "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
   "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
-  "pending": [
+  "pending": [],
+  "trades": [
    {
-    "symbol": "ADANIPOWER",
+    "symbol": "SWIGGY",
     "signalDate": "2026-10-28",
-    "pricePct": -2.17,
-    "oiPct": -8.05,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "BPCL",
-    "signalDate": "2026-10-28",
-    "pricePct": -2.91,
-    "oiPct": -7.68,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "COFORGE",
-    "signalDate": "2026-10-28",
-    "pricePct": -1.76,
-    "oiPct": -11.17,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "DMART",
-    "signalDate": "2026-10-28",
-    "pricePct": -2.07,
-    "oiPct": -5.22,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "HINDPETRO",
-    "signalDate": "2026-10-28",
-    "pricePct": -1.94,
-    "oiPct": -6.91,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "INFY",
-    "signalDate": "2026-10-28",
-    "pricePct": -3.43,
-    "oiPct": -7.53,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "NAUKRI",
-    "signalDate": "2026-10-28",
-    "pricePct": -2.16,
-    "oiPct": -5.45,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "NMDC",
-    "signalDate": "2026-10-28",
-    "pricePct": -2.17,
-    "oiPct": -4.05,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "ONGC",
-    "signalDate": "2026-10-28",
-    "pricePct": -2.16,
-    "oiPct": -16.87,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "TECHM",
-    "signalDate": "2026-10-28",
-    "pricePct": -1.92,
-    "oiPct": -16.34,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "VBL",
-    "signalDate": "2026-10-28",
-    "pricePct": -2.76,
-    "oiPct": -3.52,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "YESBANK",
-    "signalDate": "2026-10-28",
-    "pricePct": -1.82,
-    "oiPct": -7.07,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "INDUSTOWER",
-    "signalDate": "2026-10-28",
-    "pricePct": -3.19,
-    "oiPct": -10.06,
-    "status": "SIGNAL"
-   },
-   {
-    "symbol": "POLICYBZR",
-    "signalDate": "2026-10-28",
-    "pricePct": -2.02,
-    "oiPct": -7.75,
-    "status": "SIGNAL"
+    "pricePct": -2.88,
+    "oiPct": -11.29,
+    "entryDate": "2026-10-29",
+    "entry": 184,
+    "status": "OPEN"
    },
    {
     "symbol": "WAAREEENER",
     "signalDate": "2026-10-28",
     "pricePct": -1.63,
     "oiPct": -4.48,
-    "status": "SIGNAL"
+    "entryDate": "2026-10-29",
+    "entry": 2249.8,
+    "status": "OPEN"
    },
    {
-    "symbol": "SWIGGY",
+    "symbol": "POLICYBZR",
     "signalDate": "2026-10-28",
-    "pricePct": -2.88,
-    "oiPct": -11.29,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "pricePct": -2.02,
+    "oiPct": -7.75,
+    "entryDate": "2026-10-29",
+    "entry": 985.1,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "INDUSTOWER",
+    "signalDate": "2026-10-28",
+    "pricePct": -3.19,
+    "oiPct": -10.06,
+    "entryDate": "2026-10-29",
+    "entry": 374,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "YESBANK",
+    "signalDate": "2026-10-28",
+    "pricePct": -1.82,
+    "oiPct": -7.07,
+    "entryDate": "2026-10-29",
+    "entry": 15.61,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "VBL",
+    "signalDate": "2026-10-28",
+    "pricePct": -2.76,
+    "oiPct": -3.52,
+    "entryDate": "2026-10-29",
+    "entry": 405,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "TECHM",
+    "signalDate": "2026-10-28",
+    "pricePct": -1.92,
+    "oiPct": -16.34,
+    "entryDate": "2026-10-29",
+    "entry": 1781.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ONGC",
+    "signalDate": "2026-10-28",
+    "pricePct": -2.16,
+    "oiPct": -16.87,
+    "entryDate": "2026-10-29",
+    "entry": 223.44,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "NMDC",
+    "signalDate": "2026-10-28",
+    "pricePct": -2.17,
+    "oiPct": -4.05,
+    "entryDate": "2026-10-29",
+    "entry": 67.65,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "NAUKRI",
+    "signalDate": "2026-10-28",
+    "pricePct": -2.16,
+    "oiPct": -5.45,
+    "entryDate": "2026-10-29",
+    "entry": 1190,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "INFY",
+    "signalDate": "2026-10-28",
+    "pricePct": -3.43,
+    "oiPct": -7.53,
+    "entryDate": "2026-10-29",
+    "entry": 1130,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "HINDPETRO",
+    "signalDate": "2026-10-28",
+    "pricePct": -1.94,
+    "oiPct": -6.91,
+    "entryDate": "2026-10-29",
+    "entry": 346.2,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "DMART",
+    "signalDate": "2026-10-28",
+    "pricePct": -2.07,
+    "oiPct": -5.22,
+    "entryDate": "2026-10-29",
+    "entry": 3133.9,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "COFORGE",
+    "signalDate": "2026-10-28",
+    "pricePct": -1.76,
+    "oiPct": -11.17,
+    "entryDate": "2026-10-29",
+    "entry": 1975,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "BPCL",
+    "signalDate": "2026-10-28",
+    "pricePct": -2.91,
+    "oiPct": -7.68,
+    "entryDate": "2026-10-29",
+    "entry": 287.1,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "ADANIPOWER",
+    "signalDate": "2026-10-28",
+    "pricePct": -2.17,
+    "oiPct": -8.05,
+    "entryDate": "2026-10-29",
+    "entry": 184.59,
+    "status": "OPEN"
+   },
    {
     "symbol": "AMBER",
     "signalDate": "2026-10-26",
@@ -319,7 +350,10 @@
     "oiPct": -3.32,
     "entryDate": "2026-10-15",
     "entry": 544.05,
-    "status": "OPEN"
+    "exitDate": "2026-10-29",
+    "exit": 517,
+    "netPct": -5.036,
+    "status": "DONE"
    },
    {
     "symbol": "APOLLOHOSP",
@@ -371,11 +405,11 @@
    }
   ],
   "summary": {
-   "finished": 4,
-   "meanNetPct": 1.898,
-   "winPct": 100,
+   "finished": 5,
+   "meanNetPct": 0.511,
+   "winPct": 80,
    "weeks": 2,
-   "t": 2.17,
+   "t": 0.22,
    "verdict": "COLLECTING"
   }
  },
@@ -384,14 +418,33 @@
   "backtest": "FAILED (+0.296% / +0.020% / +0.131% a trade; final t 1.86, not enough after 12 tests)",
   "pending": [
    {
-    "symbol": "KAYNES",
-    "signalDate": "2026-10-28",
-    "pricePct": -6.28,
-    "oiPct": 30.77,
+    "symbol": "HEROMOTOCO",
+    "signalDate": "2026-10-29",
+    "pricePct": -4.09,
+    "oiPct": 16.2,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "TRENT",
+    "signalDate": "2026-10-29",
+    "pricePct": -1.79,
+    "oiPct": 4.32,
     "status": "SIGNAL"
    }
   ],
   "trades": [
+   {
+    "symbol": "KAYNES",
+    "signalDate": "2026-10-28",
+    "pricePct": -6.28,
+    "oiPct": 30.77,
+    "entryDate": "2026-10-29",
+    "entry": 3142.9,
+    "exitDate": "2026-10-29",
+    "exit": 3187.5,
+    "netPct": -1.485,
+    "status": "DONE"
+   },
    {
     "symbol": "WAAREEENER",
     "signalDate": "2026-10-27",
@@ -1594,55 +1647,31 @@
    }
   ],
   "summary": {
-   "finished": 100,
-   "meanNetPct": 0.2,
-   "winPct": 50,
+   "finished": 101,
+   "meanNetPct": 0.183,
+   "winPct": 49.5,
    "weeks": 4,
-   "t": 0.37,
+   "t": 0.34,
    "verdict": "COLLECTING"
   },
   "futuresLast": {
-   "date": "2026-10-28",
+   "date": "2026-10-29",
    "rows": [
     {
-     "symbol": "AUBANK",
+     "symbol": "KAYNES",
      "expiry": "2026-11-23",
-     "open": 855.8,
-     "close": 883.9
-    },
-    {
-     "symbol": "BDL",
-     "expiry": "2026-11-23",
-     "open": 998,
-     "close": 995.6
-    },
-    {
-     "symbol": "MAZDOCK",
-     "expiry": "2026-11-23",
-     "open": 1698,
-     "close": 1739.2
-    },
-    {
-     "symbol": "PAYTM",
-     "expiry": "2026-11-23",
-     "open": 1618.2,
-     "close": 1635.8
-    },
-    {
-     "symbol": "WAAREEENER",
-     "expiry": "2026-11-23",
-     "open": 2203.5,
-     "close": 2250.3
+     "open": 3065,
+     "close": 3121.6
     }
    ],
    "void": 0
   },
   "futuresRecord": {
-   "finished": 100,
+   "finished": 101,
    "missing": 0,
-   "meanNetPct": 0.062,
-   "winPct": 51,
-   "rupees": -7911,
+   "meanNetPct": 0.042,
+   "winPct": 50.5,
+   "rupees": -9043,
    "units": 20
   }
  }
