@@ -1,0 +1,75 @@
+CHART LAB: registration sha256 1914ffff713d71d1... (verified); 2026-10-29T16:03:55.459Z; mode --real
+ 6.1 futures by hand: one-session short -1.047%, 10-session long across an expiry 9.935%; market chain across a roll 8.932% (want 8.932%): PASSED
+ 6.2 planted (+0.3% a session for 5 sessions after 2729 E1 signals, synthetic): E1 t 12.96 on 2159 trades; other members PASS 0 of 13 (at most 1): PASSED
+    A1 leader breakout            191 trades |  50 months | +1.035% a month | worst -4.85% | t 1.51 | Holm n | DSR 0.00 -> FAIL | a trade: net +0.510%, excess +0.435%, won 41%, hold 8.6
+    A2 laggard breakdown          148 trades |  47 months | -0.144% a month | worst -11.08% | t -0.19 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.086%, excess +0.091%, won 43%, hold 8.8
+    B1 gap-and-hold up              0 trades | NOT TESTABLE (0 months)
+    B2 gap-and-hold down            0 trades | NOT TESTABLE (0 months)
+    C1 capitulation bounce         31 trades | NOT TESTABLE (23 months)
+    C2 parabolic fade             217 trades |  69 months | +0.127% a month | worst -6.81% | t 0.25 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.371%, excess -0.276%, won 48%, hold 5.0
+    D1 holy grail up             1343 trades |  71 months | -0.052% a month | worst -3.33% | t -0.41 | Holm n | DSR 0.00 -> FAIL | a trade: net +0.045%, excess -0.026%, won 38%, hold 5.8
+    D2 holy grail down           1152 trades |  71 months | +0.011% a month | worst -2.84% | t 0.09 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.047%, excess +0.011%, won 42%, hold 6.1
+    E1 turtle soup+1 long        2159 trades |  71 months | +1.273% a month | worst -0.63% | t 12.96 | Holm y | DSR 0.53 -> PROMISING | a trade: net +1.350%, excess +1.288%, won 60%, hold 5.0
+    E2 turtle soup+1 short       2087 trades |  71 months | +0.008% a month | worst -2.23% | t 0.07 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.037%, excess +0.017%, won 52%, hold 5.0
+    F1 bull candle at 50d        1646 trades |  71 months | -0.249% a month | worst -2.41% | t -2.57 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.202%, excess -0.252%, won 47%, hold 5.0
+    F2 bear candle at 50d        1810 trades |  71 months | -0.200% a month | worst -2.10% | t -1.69 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.232%, excess -0.169%, won 49%, hold 5.0
+    G1 tight inside day up       2386 trades |  54 months | +0.145% a month | worst -2.73% | t 1.08 | Holm n | DSR 0.00 -> FAIL | a trade: net +0.106%, excess +0.060%, won 40%, hold 5.5
+    G2 tight inside day down     3121 trades |  56 months | -0.269% a month | worst -3.01% | t -2.85 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.194%, excess -0.135%, won 40%, hold 5.4
+DISCOVERY DATA: 3909 sessions 2005-01-03 .. 2020-10-30, 2792 stocks, futures for 433, 403 studied; NIFTY on 2131 sessions; UP 1117, DOWN 653
+ 6.5 counts (signals / skipped while held / dropped / trades): A1 905/173/140/592, A2 86/8/3/75, B1 102/2/12/88, B2 90/2/23/65, C1 2724/498/652/1574, C2 3559/762/848/1949, D1 2840/342/640/1858, D2 3731/672/446/2613, E1 2330/7/322/2001, E2 2628/10/353/2265, F1 4233/458/734/3041, F2 4443/737/536/3170, G1 6551/1126/1131/4294, G2 3431/641/394/2396
+ 6.4 no look-ahead: 3000 of 3000 sampled (stock, day) pairs identical after cutting the bars and NIFTY at day k (189 with a signal): PASSED
+ 6.3 null (every discovery trade re-dated at random): 0 PASS of 14 (at most 1): PASSED
+CONFIRMATION DATA: 5376 sessions 2005-01-03 .. 2026-10-01, 4437 stocks, futures for 559, 362 studied; NIFTY on 1482 sessions; UP 1876, DOWN 1116
+ 6.5 counts (signals / skipped while held / dropped / trades): A1 793/169/148/476, A2 80/9/8/63, B1 72/0/27/45, B2 69/0/20/49, C1 197/29/76/92, C2 799/111/361/327, D1 1277/135/274/868, D2 942/143/135/664, E1 1333/11/229/1093, E2 1241/4/158/1079, F1 2284/292/374/1618, F2 1370/247/117/1006, G1 6048/1057/1264/3727, G2 1722/266/201/1255
+
+DISCOVERY 2005-01-01 .. 2020-10-31, priced on the near-month FUTURE, judged on FUTURES EXCESS (net - side x market); Holm across 14; DSR with N = 430:
+ A1 leader breakout            592 trades |  79 months | +0.302% a month | worst -8.35% | t 0.74 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.126%, excess +0.394%, won 44%, hold 9.6
+ A2 laggard breakdown           75 trades |  31 months | +0.152% a month | worst -9.71% | t 0.24 | Holm n | DSR 0.03 -> FAIL | a trade: net +1.272%, excess +0.254%, won 55%, hold 10.0
+ B1 gap-and-hold up             88 trades |  42 months | -0.535% a month | worst -16.27% | t -0.79 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.499%, excess -0.627%, won 44%, hold 10.3
+ B2 gap-and-hold down           65 trades |  28 months | -0.261% a month | worst -9.11% | t -0.31 | Holm n | DSR 0.01 -> FAIL | a trade: net -0.783%, excess -0.848%, won 45%, hold 10.9
+ C1 capitulation bounce       1574 trades | 120 months | +0.969% a month | worst -10.25% | t 2.23 | Holm n | DSR 0.01 -> PROMISING | a trade: net +0.331%, excess +0.571%, won 50%, hold 5.0
+ C2 parabolic fade            1949 trades | 168 months | -0.052% a month | worst -14.20% | t -0.17 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.917%, excess -0.062%, won 53%, hold 5.0
+ D1 holy grail up             1858 trades | 172 months | -0.300% a month | worst -7.59% | t -1.98 | Holm n | DSR 0.00 -> FAIL | a trade: net +0.434%, excess -0.014%, won 41%, hold 6.5
+ D2 holy grail down           2613 trades | 171 months | -0.536% a month | worst -7.80% | t -3.55 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.567%, excess -0.381%, won 43%, hold 5.7
+ E1 turtle soup+1 long        2001 trades | 174 months | +0.032% a month | worst -4.57% | t 0.21 | Holm n | DSR 0.00 -> FAIL | a trade: net +0.098%, excess -0.018%, won 47%, hold 5.0
+ E2 turtle soup+1 short       2265 trades | 175 months | +0.014% a month | worst -5.91% | t 0.09 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.027%, excess -0.005%, won 53%, hold 5.0
+ F1 bull candle at 50d        3041 trades | 173 months | +0.111% a month | worst -5.81% | t 0.85 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.025%, excess +0.059%, won 47%, hold 5.0
+ F2 bear candle at 50d        3170 trades | 170 months | +0.306% a month | worst -6.05% | t 2.15 | Holm n | DSR 0.00 -> PROMISING | a trade: net -0.375%, excess +0.070%, won 53%, hold 5.0
+ G1 tight inside day up       4294 trades |  89 months | +0.254% a month | worst -4.51% | t 2.25 | Holm n | DSR 0.07 -> PROMISING | a trade: net +0.008%, excess +0.209%, won 44%, hold 5.4
+ G2 tight inside day down     2396 trades |  67 months | +0.029% a month | worst -1.71% | t 0.19 | Holm n | DSR 0.00 -> FAIL | a trade: net -0.577%, excess -0.089%, won 46%, hold 5.1
+DISCOVERY PASS: none. PROMISING: C1 capitulation bounce, F2 bear candle at 50d, G1 tight inside day up.
+
+DISCOVERY HALVES (reported, not judged): 2005-2012 | 2013-2020
+  A1 leader breakout         NOT TESTABLE (7 months) | +0.433% a month t 0.99 (546)
+  A2 laggard breakdown       NOT TESTABLE (4 months) | +0.614% a month t 0.96 (67)
+  B1 gap-and-hold up         NOT TESTABLE (2 months) | -0.339% a month t -0.47 (86)
+  B2 gap-and-hold down       NOT TESTABLE (2 months) | -0.047% a month t -0.05 (63)
+  C1 capitulation bounce     +1.274% a month t 2.43 (1053) | +0.702% a month t 1.06 (521)
+  C2 parabolic fade          +0.138% a month t 0.40 (1267) | -0.209% a month t -0.42 (682)
+  D1 holy grail up           -0.513% a month t -2.24 (803) | -0.114% a month t -0.59 (1055)
+  D2 holy grail down         -0.690% a month t -3.01 (1261) | -0.393% a month t -2.04 (1352)
+  E1 turtle soup+1 long      -0.112% a month t -0.49 (782) | +0.154% a month t 0.79 (1219)
+  E2 turtle soup+1 short     -0.087% a month t -0.42 (954) | +0.100% a month t 0.43 (1311)
+  F1 bull candle at 50d      +0.183% a month t 0.75 (1554) | +0.051% a month t 0.41 (1487)
+  F2 bear candle at 50d      +0.516% a month t 2.95 (1494) | +0.128% a month t 0.61 (1676)
+  G1 tight inside day up     NOT TESTABLE (7 months) | +0.280% a month t 2.31 (3917)
+  G2 tight inside day down   NOT TESTABLE (9 months) | -0.002% a month t -0.01 (2211)
+
+CONFIRMATION 2020-10-01 .. 2026-10-01 (every member reported; a discovery PASS is CONFIRMED with mean > 0 and t >= 2):
+ A1 leader breakout            476 trades |  54 months | -0.436% a month | worst -8.30% | t -1.20 | a trade: net +0.068%, excess -0.134%, won 40%, hold 10.1
+ A2 laggard breakdown           63 trades |  27 months | -2.120% a month | worst -10.51% | t -4.31 | a trade: net -2.441%, excess -2.120%, won 32%, hold 8.1
+ B1 gap-and-hold up             45 trades |  24 months | -2.410% a month | worst -10.19% | t -2.52 | a trade: net -2.037%, excess -2.129%, won 33%, hold 10.1
+ B2 gap-and-hold down           49 trades | NOT TESTABLE (19 months)
+ C1 capitulation bounce         92 trades |  38 months | +2.065% a month | worst -7.84% | t 1.91 | a trade: net +2.448%, excess +1.490%, won 59%, hold 5.0
+ C2 parabolic fade             327 trades |  61 months | -0.418% a month | worst -9.87% | t -1.27 | a trade: net -0.670%, excess -0.349%, won 48%, hold 5.0
+ D1 holy grail up              868 trades |  71 months | -0.236% a month | worst -6.11% | t -0.92 | a trade: net +0.344%, excess -0.152%, won 39%, hold 6.6
+ D2 holy grail down            664 trades |  69 months | -0.354% a month | worst -3.51% | t -2.30 | a trade: net -0.518%, excess -0.140%, won 46%, hold 5.6
+ E1 turtle soup+1 long        1093 trades |  72 months | -0.048% a month | worst -2.96% | t -0.45 | a trade: net +0.233%, excess -0.004%, won 47%, hold 5.0
+ E2 turtle soup+1 short       1079 trades |  72 months | +0.185% a month | worst -2.42% | t 1.49 | a trade: net -0.199%, excess +0.172%, won 55%, hold 5.0
+ F1 bull candle at 50d        1618 trades |  72 months | +0.144% a month | worst -3.14% | t 1.18 | a trade: net +0.478%, excess +0.237%, won 48%, hold 5.0
+ F2 bear candle at 50d        1006 trades |  68 months | +0.088% a month | worst -2.62% | t 0.64 | a trade: net +0.030%, excess -0.012%, won 53%, hold 5.0
+ G1 tight inside day up       3727 trades |  59 months | +0.013% a month | worst -1.61% | t 0.16 | a trade: net +0.241%, excess +0.036%, won 40%, hold 5.8
+ G2 tight inside day down     1255 trades |  43 months | +0.025% a month | worst -1.92% | t 0.18 | a trade: net -0.343%, excess -0.136%, won 47%, hold 5.1
+
+CANDIDATES (discovery PASS and confirmed): none. A candidate goes to TRACK as a forward paper test first, never straight to the page.
+

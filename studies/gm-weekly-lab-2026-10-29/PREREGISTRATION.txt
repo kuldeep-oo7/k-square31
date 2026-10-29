@@ -1,0 +1,99 @@
+PRE-REGISTRATION -- THE GM WEEKLY LAB: WEEKLY-CHART STRATEGIES SCORED THE WAY GM GLOBAL SCORES THEM.
+BOTH DIRECTIONS, ON THE NEAR-MONTH FUTURE. ONE BATCH, ONE RUN.
+Written Thursday 29 Oct 2026, about 22:00 IST, BEFORE any member below was computed on real data in any period. The commit
+time is the proof. Branch claude/gm-weekly-lab-2026-10-29.
+
+1. WHY, AND WHAT HAS BEEN SEEN (disclosed)
+- The owner, 29 Oct: "we want to do it in the GM Global and I want to earn money in 1 month before expiry ... after
+  Friday closing your loss will be booked and Monday opening will be your new buying price for the whole week".
+  The desk recorded the same rule from the owner on 20 Oct: each Monday the buy price resets to Monday's open and the
+  previous week's P&L is booked; GM lists only the expiring month and auto-sells it; the score is the running rupee total;
+  20 units is the minimum size. Booking is taken to apply to profits and losses alike. If the owner says otherwise, a
+  dated amendment comes BEFORE the run.
+- So under GM only Monday open -> Friday close counts; a weekend gap never counts; every position ends at expiry.
+- Already seen: the 21 Oct GM tournament (86 old rules under these GM rules, 0 PASS; it judged real P&L and only
+  reported the gap-removed number); tonight's chart lab (14 daily members, 0 PASS); the night lab's overnight/intraday
+  "tug of war" (strong in both periods); the 27 Sep panel tests of time-series momentum, the 10-month trend filter and
+  12-1 momentum (FAIL on 2020-2026 in final-year tests the 4 Oct audit called underpowered); relative strength was
+  "profiled" before 27 Sep. 2020-2026 is therefore not a virgin sample for trend or relative-strength ideas.
+- A Monday-gap member was considered and DROPPED before any data: its rank must be known before the fill, and from
+  8 Dec 2025 NSE runs a pre-open auction for current-month futures too (NSE circular of 4 Nov 2025, as reported by
+  Business Standard; the equity pre-open is 09:00-09:08 order entry), so the daily files cannot time it honestly.
+
+2. DATA AND DESIGN
+- The chart lab's data and loaders (studies/chart-lab-2026-10-29/run.js), plus NIFTY's near-month index future from the
+  same NSE F&O files (IDX rows). Discovery 2005-01-01 .. 2020-10-31; confirmation 2020-10-01 .. 2026-10-01.
+- Week = the market's sessions in one calendar week (Monday to Friday). Its first session is GM's "Monday open" (Tuesday
+  if Monday is a holiday); its last session is GM's "Friday close".
+- Signal: from WEEKLY bars of the share (EQ, unadjusted; weekly open = first session's open, high/low = extremes,
+  close = last session's close), through the close of week w-1. Position in week w.
+- A stock signal needs at least 260 daily bars since the last reset (a session opening 18% or more from the previous
+  close) at the signal close, and at least 35 weekly bars. Universe: the futures lab's (top 200 by median traded value),
+  for the month of week w's first session, with a near-month future on that session.
+
+3. GM SCORING (judged as GM scores; real P&L reported beside it)
+- Each position-week on the near-month future: GM gross = side x (close at end / open of the first session - 1), where
+  end = the week's last session, or the contract's expiry session if that falls inside the week (GM auto-sells; the rest
+  of that week is sat out, and re-entry waits for the next week's first session on the new contract).
+- A HOLDING = consecutive position-weeks of one member in one stock, same side, same contract. Charges (dated NSE futures
+  charges, quantity ceil(Rs 5 lakh / first open)) only at the holding's first open and its last close. None at a
+  Monday re-base, because no trade happens there.
+- Net = GM gross - the charges of that week, as % of the holding's first notional.
+- VALUE judged: stock members (W1-W4) = GM EXCESS = net - side x M_w, where M_w = the mean GM gross (same week rules) of
+  the universe's near-month futures (at least 30 names). NIFTY members (W5) = net.
+- Dropped (not counted, and the holding ends): a missing price; any close-to-close move of the held contract inside the
+  week (or open to first close) beyond -18% / +22%; a share reset inside the week.
+- Real P&L (with weekend gaps) of each holding = side x (last close / first open - 1); reported, with the GM-minus-real
+  difference flagged when large. That difference is GM's bookkeeping, not the market, and would not carry over to real
+  money.
+
+4. MEMBERS (5 ideas x 2 directions = 10). SMA30 = mean of the last 30 weekly closes; "rising" = SMA30 above its value 4
+   weekly bars earlier, "falling" = below it.
+ W1L STAGE 2 (Weinstein): weekly close > SMA30, SMA30 rising.        W1S STAGE 4: close < SMA30, SMA30 falling.
+ W2L WEEKLY DONCHIAN LONG (Turtle on weeks): long from a weekly close above the highest high of the previous 20 weekly
+     bars until a weekly close below the lowest low of the previous 10.  W2S the mirror (20-week low in, 10-week high out).
+     Exits are evaluated before entries on the same bar.
+ W3L RELATIVE STRENGTH (O'Neil/Minervini RS, Jegadeesh-Titman): each week rank the universe by the return from the close
+     27 weekly bars before week w to the close 2 weekly bars before (skip the latest week); long the top tenth (at least
+     30 ranked).  W3S short the bottom tenth.
+ W4L WEEKLY CANDLE AT THE 30-WEEK LINE (Nison's location rule): SMA30 rising; low <= 1.02 x SMA30 and close >= 0.98 x
+     SMA30; and a bullish engulfing or a hammer on the weekly bars (the chart lab's candle definitions). One week.
+ W4S the mirror: SMA30 falling; high >= 0.98 x SMA30 and close <= 1.02 x SMA30; a bearish engulfing or a shooting star.
+ W5L NIFTY TREND: on the weekly closes of NIFTY's near-month future (whole period; index closes cover only part of
+     2005-2020): close > SMA30 and SMA30 rising -> long NIFTY's near-month future.  W5S close < SMA30, falling -> short.
+
+5. SCORE AND VERDICT
+- Member score: monthly mean (%) of its position-week values (month of the week's first session); Newey-West t (lag 3).
+  Fewer than 24 months: NOT TESTABLE. Holm across the testable members at 5% (one-sided). Full Deflated Sharpe with
+  N = 440 trials (430 before, plus these 10).
+- DISCOVERY PASS = mean > 0, t >= 3, Holm and DSR >= 0.95 on 2005-2020. CONFIRMED = then on 2020-2026 mean > 0 and
+  t >= 2. PROMISING = discovery mean > 0 and t >= 2. FAIL otherwise. A confirmed pass goes to TRACK as a forward paper
+  test first.
+- Reported, not judged, both periods: position-weeks, holdings, win rate, mean net and excess % a week; GM rupees at 20
+  units (gross) and real rupees; the share of expiry months (NIFTY's monthly expiry to the next) with a positive rupee
+  total, and the worst one; how much of the rupee total came from the top tenth of position-weeks by price; the
+  discovery halves 2005-2012 and 2013-2020.
+- Expectation, stated now: most members FAIL. Trend following has its best evidence on diversified futures over
+  months; single NSE stocks over weeks after charges may show little.
+
+6. CHECKS BEFORE THE REAL RUN (a failure refuses the run)
+ 6.1 GM bookkeeping by hand. One long holding:
+     - week 1 starts on a Tuesday (holiday Monday); a weekend gap follows;
+     - week 2 is cut at a Tuesday expiry;
+     - GM rupees = 20 x (Fri close - Tue open + expiry close - Mon open); real rupees = 20 x (expiry close - Tue open);
+     - charges at the start and at the expiry cut only, none at the Monday re-base;
+     - the next week on the new contract is a new holding with its own entry charge.
+ 6.2 Planted: the chart lab's synthetic market with +0.3% added to each session's return in the week after every W4L
+     signal: W4L t >= 3, and the other 9 at most 1 PASS.
+ 6.3 Null: every discovery position-week moved to a random discovery week (same stock or NIFTY, same side, as a one-week
+     holding): at most 1 PASS of 10.
+ 6.4 No look-ahead:
+     - for 3,000 random (stock, week) pairs, W1, W2 and W4 recomputed on daily bars cut after the signal week give the same
+       answer;
+     - for 100 random weeks, the W3 ranks recomputed with every stock cut there are the same;
+     - W5 recomputed on the NIFTY series cut there is the same.
+ 6.5 Counts per member printed before any value is scored or shown.
+
+7. FILES AND PRIVACY
+ run.js; workflow .github/workflows/gm-weekly-lab.yml on this branch, started by a push of RUN.txt. Summary rows only;
+ no symbol, trade list or data is committed (the repository is public).
