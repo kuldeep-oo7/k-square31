@@ -300,7 +300,11 @@
   "OPTION|NAM-INDIA|NAM-INDIA26NOV900PE",
   "OPTION|SIEMENS|SIEMENS26NOV3250PE",
   "OPTION|SIEMENS|SIEMENS26NOV3200PE",
-  "OPTION|INOXWIND|INOXWIND26NOV55PE"
+  "OPTION|INOXWIND|INOXWIND26NOV55PE",
+  "OPTION|CGPOWER|CGPOWER26NOV780PE",
+  "OPTION|CROMPTON|CROMPTON26NOV195PE",
+  "OPTION|KFINTECH|KFINTECH26NOV880PE",
+  "OPTION|KFINTECH|KFINTECH26NOV820PE"
  ],
  "options": {
   "NIFTY26N0922750PE": {
@@ -4036,6 +4040,66 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-29T04:06:33.852Z",
    "frozenAtIst": "2026-10-29 09:36 IST",
+   "frozenAtSpot": null
+  },
+  "CGPOWER26NOV780PE": {
+   "buy": 11.55,
+   "sell": 17.35,
+   "stop": 5.8,
+   "tick": 0.05,
+   "lotSize": 850,
+   "expiry": "2026-11-23",
+   "strike": 780,
+   "right": "PE",
+   "symbol": "CGPOWER",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T04:24:46.002Z",
+   "frozenAtIst": "2026-10-29 09:54 IST",
+   "frozenAtSpot": null
+  },
+  "CROMPTON26NOV195PE": {
+   "buy": 3.58,
+   "sell": 5.37,
+   "stop": 1.79,
+   "tick": 0.01,
+   "lotSize": 2150,
+   "expiry": "2026-11-23",
+   "strike": 195,
+   "right": "PE",
+   "symbol": "CROMPTON",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T04:24:46.002Z",
+   "frozenAtIst": "2026-10-29 09:54 IST",
+   "frozenAtSpot": null
+  },
+  "KFINTECH26NOV880PE": {
+   "buy": 42.85,
+   "sell": 64.25,
+   "stop": 21.45,
+   "tick": 0.05,
+   "lotSize": 575,
+   "expiry": "2026-11-23",
+   "strike": 880,
+   "right": "PE",
+   "symbol": "KFINTECH",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T04:24:46.002Z",
+   "frozenAtIst": "2026-10-29 09:54 IST",
+   "frozenAtSpot": null
+  },
+  "KFINTECH26NOV820PE": {
+   "buy": 15,
+   "sell": 22.5,
+   "stop": 7.5,
+   "tick": 0.05,
+   "lotSize": 575,
+   "expiry": "2026-11-23",
+   "strike": 820,
+   "right": "PE",
+   "symbol": "KFINTECH",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T04:24:46.002Z",
+   "frozenAtIst": "2026-10-29 09:54 IST",
    "frozenAtSpot": null
   }
  },
