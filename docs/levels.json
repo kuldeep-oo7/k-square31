@@ -328,7 +328,8 @@
   "OPTION|TCS|TCS26NOV2360CE",
   "OPTION|ADANIPORTS|ADANIPORTS26NOV1940CE",
   "OPTION|HCLTECH|HCLTECH26NOV1340CE",
-  "OPTION|PATANJALI|PATANJALI26NOV405CE"
+  "OPTION|PATANJALI|PATANJALI26NOV405CE",
+  "OPTION|KOTAKBANK|KOTAKBANK26NOV475CE"
  ],
  "options": {
   "NIFTY26N0922750PE": {
@@ -4484,6 +4485,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-29T08:24:21.753Z",
    "frozenAtIst": "2026-10-29 13:54 IST",
+   "frozenAtSpot": null
+  },
+  "KOTAKBANK26NOV475CE": {
+   "buy": 3.3,
+   "sell": 4.95,
+   "stop": 1.65,
+   "tick": 0.05,
+   "lotSize": 2000,
+   "expiry": "2026-11-23",
+   "strike": 475,
+   "right": "CE",
+   "symbol": "KOTAKBANK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-29T08:44:12.708Z",
+   "frozenAtIst": "2026-10-29 14:14 IST",
    "frozenAtSpot": null
   }
  },
