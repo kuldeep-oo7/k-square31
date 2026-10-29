@@ -1,0 +1,23 @@
+AMENDMENT A1 TO THE GM STRATEGY GENERATOR'S PRE-REGISTRATION (sha256 0a053cf5...).
+Written Thursday 29 Oct 2026, about 22:45 IST, BEFORE the real run and before any real data was read. Both reasons below
+come from the SYNTHETIC market only (check 6.2's market, run locally).
+
+A1.1 CHECK 6.3 (the null) is changed.
+- Was: each stock's GM-week outcomes circularly shifted by >= 52 weeks; G-LONG and G-SHORT both below t 2.
+- Why: the shift keeps each stock's average outcome. A rule that merely tracks WHICH stocks did well over the years can
+  pass it without any look-ahead. In the planted synthetic market, the shifted null still gave G-LONG t 3.11.
+- Now (judged): within each week, the outcomes are randomly permuted among that week's stocks (labels fixed, as the
+  futures lab's 5.3 shuffled within each month). The whole generator is re-run. G-LONG and G-SHORT must both be below
+  t 2 over the 2008-2020 trading weeks. The circular shift is still run and REPORTED, not judged; it shows how much of
+  any result is stock-level persistence.
+
+A1.2 THE DEFLATED SHARPE BENCHMARK (SR0) is changed.
+- Was: as the earlier labs, the standard deviation of the judged members' monthly Sharpe ratios.
+- Why: with only 2 judged members, that spread is not an estimate of the spread across trials. In the planted synthetic
+  market, a t 12.38 edge got DSR 0.00 because the other side was flat, so no PASS was possible at all.
+- Now: SR0 uses the standard deviation of the monthly Sharpe ratios of all 930 rules the generator searches, over the
+  same period, on the ranking value (GM gross excess). For each rule: the monthly means over the trading period, at
+  least 24 months; a short rule's ratio is minus its long rule's. These are the trials actually searched. N stays 442.
+  Everything else in the verdict is unchanged: t >= 3, Holm, DSR >= 0.95, then confirmation.
+
+Nothing else changes.
