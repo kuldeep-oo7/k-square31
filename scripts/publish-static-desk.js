@@ -944,6 +944,7 @@ async function build({ limit = Infinity, futuresLimit = Infinity, ledgerFile, le
     springyDip: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "springy-dip.json"), "utf8")); } catch { return null; } })(),
     kronos: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "kronos.json"), "utf8")); } catch { return null; } })(),
     trees: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "trees.json"), "utf8")); } catch { return null; } })(),
+    generator: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "gm-generator.json"), "utf8")); } catch { return null; } })(),
     oiFlow: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "oi-flow.json"), "utf8")); } catch { return null; } })(),
     sbStrong: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "sb-strong.json"), "utf8")); } catch { return null; } })(),
     sbTrees: (() => { try { return JSON.parse(fs.readFileSync(path.join(OUT_DIR, "paper-rules", "sb-trees.json"), "utf8")); } catch { return null; } })(),
@@ -1237,6 +1238,23 @@ function treesBox(d) {
 }
 // the evening a list is made: the session after its feature date (one session before its entry)
 function prevTradingText(next) { const S = [next.signalDate, next.entry]; const t = new Date(`${S[1]}T00:00:00Z`); do { t.setUTCDate(t.getUTCDate() - 1); } while (t.getUTCDay() % 6 === 0); return t.toISOString().slice(0, 10); }
+// STRATEGY GENERATOR, WATCH ONLY (owner, 30 Oct 2026: "it should be live before I reach the office and show me the stocks").
+// Its registered test gave 0 PASS: PROMISING 2008-2020 (long t 4.74, short t 3.25), not confirmed 2020-2026 (t -0.33 / 0.90);
+// studies/gm-generator-2026-10-29 on branch claude/gm-generator-2026-10-29. Information for GM Global, never a suggestion
+// (FUTURES count stays 0). List from docs/paper-rules/gm-generator.json (.github/workflows/gm-generator-live.yml).
+function generatorBox(d) {
+  const g = d.generator; if (!g || !g.tradeWeek) return "";
+  const dayText = (iso) => new Date(`${iso}T00:00:00Z`).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short", timeZone: "UTC" });
+  const names = (list) => (list || []).map((p) => `<div><b>${esc(p.symbol)}</b> <span class="sub lec">${esc((p.why || []).join("; "))}</span></div>`).join("") || `<div class="sub">none</div>`;
+  const started = d.sessionDate && g.tradeWeek.monday <= d.sessionDate;
+  return `<div class="note focus" style="border-left-color:var(--muted);margin:0 0 14px">
+    <b>STRATEGY GENERATOR &mdash; week of ${esc(dayText(g.tradeWeek.monday))}</b> &middot; <b class="warn">WATCH ONLY: its test failed after 2020</b> &middot; <b>paper only, for GM Global</b>
+    <div style="margin-top:6px">Monday's open &rarr; Friday's close (GM's week).${started ? ` <span class="sub">This week's list; the next one comes after Friday's close.</span>` : ""}
+      <div class="sbgrid" style="grid-template-columns:auto auto;gap:4px 28px"><div class="h">BUY (${esc(d.gmMinUnits || 20)} units)</div><div class="h">SELL (${esc(d.gmMinUnits || 20)} units)</div>
+        <div class="up">${names(g.long)}</div><div class="down">${names(g.short)}</div></div></div>
+    <div class="sub lec" style="margin-top:6px">${esc(g.rule || "")}. Test: ${esc(g.verdict || "")} Rules for ${esc(g.rulesYear ?? "-")}, picked in January from earlier years only. Data through ${esc(g.dataThrough || "-")}. Not for real money.</div>
+  </div>`;
+}
 function treesTrackBox(tr) {
   if (!tr || !tr.summary) return "";
   const s = tr.summary; const mn = (v) => String(v).replace(/^-/, "&minus;");
@@ -2195,6 +2213,7 @@ ${footAlarm}
     ${sbFocusBox(d)}
     ${kronosBox(d)}
     ${treesBox(d)}
+    ${generatorBox(d)}
     ${untested("FUT", "futures rows", d.futures.length + (d.futuresShort || []).length, `${futuresWarned(`    ${allRowsBox(d.futures, sumOf(d.futures, (r) => r.minCapital), sumOf(d.futures, (r) => r.minLossAtStop), `${d.gmMinUnits || 20} units each, before GM's charges`,
       `<b>With no trend, a row's target comes before its stop at most as often as its break-even (about 37.5%)</b> &mdash; a price with no trend is a fair game &mdash;
        so before GM's charges these rows make money only if the BUY signal works. <b>It was tested and FAILED</b>: the desk&rsquo;s own rating,
@@ -2489,7 +2508,7 @@ async function main() {
   return data;
 }
 
-module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox, expiryLiveLine, gmTournamentBox, treesBox, treesTrackBox, sbStrongBox, sbTreesBox, daytraderBox };
+module.exports = { build, page, fillState, main, sbFocusBox, kronosBox, kronosTrackBox, flowsLine, expirySellingBox, expiryLiveLine, gmTournamentBox, treesBox, treesTrackBox, sbStrongBox, sbTreesBox, daytraderBox, generatorBox };
 
 // Exported above so a test can drive build() twice and prove the levels did not
 // move. Run directly, it is still just a build.

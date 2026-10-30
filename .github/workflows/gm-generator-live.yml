@@ -1,0 +1,58 @@
+name: gm-generator-live
+# The GM strategy generator's WATCH ONLY list (owner, 30 Oct 2026: "it should be live before I reach the office and show me
+# the stocks"). Its registered test gave 0 PASS: PROMISING 2008-2020, not confirmed 2020-2026 (studies/gm-generator-2026-10-29
+# on branch claude/gm-generator-2026-10-29, code pinned below). Each weekday evening after the paper job (and at 07:20 IST as
+# a backstop) it writes docs/paper-rules/gm-generator.json: the current year's rules applied to the latest complete week.
+on:
+  workflow_run:
+    workflows: [springy-dip]
+    types: [completed]
+  schedule:
+    - cron: "50 1 * * 1-5"      # 07:20 IST backstop
+  workflow_dispatch:
+permissions:
+  contents: write
+concurrency:
+  group: gm-generator-live
+  cancel-in-progress: false
+jobs:
+  live:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      GH_TOKEN: ${{ secrets.K2_DATA_TOKEN }}
+      GH_REPO: kuldeep-oo7/k2-data
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with: { node-version: "24" }
+      - name: NSE's bhavcopy archive, the paper job's F&O files and the research F&O snapshot
+        run: |
+          gh release download data-nse-cm -p nse-cm.tar.gz && tar -xzf nse-cm.tar.gz && rm nse-cm.tar.gz
+          gh release download data-paper-inputs -p paper-inputs.tar.gz && tar -xzf paper-inputs.tar.gz && rm paper-inputs.tar.gz
+          gh release download data-research -p research-nse-fo.tar.gz && tar -xzf research-nse-fo.tar.gz && rm research-nse-fo.tar.gz
+          cp -n nse-fo/fut/*.json research/orderflow-2026-10-03/nse-fo/fut/
+          echo "cm $(ls nse-data/cm | grep -c '\.json$') files to $(ls nse-data/cm | grep '\.json$' | tail -1); fut $(ls research/orderflow-2026-10-03/nse-fo/fut | wc -l) files to $(ls research/orderflow-2026-10-03/nse-fo/fut | tail -1)"
+      - name: The generator's code at commit 18795b3 (as registered and run; never committed here)
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git fetch -q origin claude/gm-generator-2026-10-29
+          git archive 18795b3 studies/gm-generator-2026-10-29 studies/gm-weekly-lab-2026-10-29 | tar -x
+      - name: The watch-only list
+        env:
+          K2_CM_DIR: nse-data/cm
+          K2_FUT_DIR: research/orderflow-2026-10-03/nse-fo/fut
+        run: node --max-old-space-size=8000 studies/gm-generator-2026-10-29/live.js docs/paper-rules/gm-generator.json | tee -a "$GITHUB_STEP_SUMMARY"
+      - name: Commit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          git config user.name "k2-desk-bot"
+          git config user.email "k2-desk-bot@users.noreply.github.com"
+          rm -rf studies/gm-generator-2026-10-29 studies/gm-weekly-lab-2026-10-29
+          git add docs/paper-rules/gm-generator.json
+          if git diff --cached --quiet; then echo "no change"; exit 0; fi
+          git commit -q -m "gm generator watch: updated"
+          for i in 1 2 3 4 5; do git pull --rebase --autostash origin main && git push origin HEAD:main && exit 0; sleep 10; done
+          exit 1
