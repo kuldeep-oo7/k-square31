@@ -434,7 +434,8 @@
   "OPTION|PAGEIND|PAGEIND26NOV36000CE",
   "OPTION|INDUSINDBK|INDUSINDBK26NOV810PE",
   "OPTION|WIPRO|WIPRO26NOV207.5CE",
-  "OPTION|BHEL|BHEL26NOV370PE"
+  "OPTION|BHEL|BHEL26NOV370PE",
+  "OPTION|NAUKRI|NAUKRI26NOV1260CE"
  ],
  "options": {
   "KOTAKBANK26NOV460CE": {
@@ -5655,6 +5656,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-30T08:24:31.318Z",
    "frozenAtIst": "2026-10-30 13:54 IST",
+   "frozenAtSpot": null
+  },
+  "NAUKRI26NOV1260CE": {
+   "buy": 14.25,
+   "sell": 21.35,
+   "stop": 7.15,
+   "tick": 0.05,
+   "lotSize": 550,
+   "expiry": "2026-11-23",
+   "strike": 1260,
+   "right": "CE",
+   "symbol": "NAUKRI",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T08:44:23.108Z",
+   "frozenAtIst": "2026-10-30 14:14 IST",
    "frozenAtSpot": null
   }
  },
