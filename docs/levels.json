@@ -431,7 +431,8 @@
   "OPTION|HCLTECH|HCLTECH26NOV1520CE",
   "OPTION|EICHERMOT|EICHERMOT26NOV7700CE",
   "OPTION|OBEROIRLTY|OBEROIRLTY26NOV1740CE",
-  "OPTION|PAGEIND|PAGEIND26NOV36000CE"
+  "OPTION|PAGEIND|PAGEIND26NOV36000CE",
+  "OPTION|INDUSINDBK|INDUSINDBK26NOV810PE"
  ],
  "options": {
   "KOTAKBANK26NOV460CE": {
@@ -5607,6 +5608,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-30T07:24:19.751Z",
    "frozenAtIst": "2026-10-30 12:54 IST",
+   "frozenAtSpot": null
+  },
+  "INDUSINDBK26NOV810PE": {
+   "buy": 9.75,
+   "sell": 14.65,
+   "stop": 4.9,
+   "tick": 0.05,
+   "lotSize": 700,
+   "expiry": "2026-11-23",
+   "strike": 810,
+   "right": "PE",
+   "symbol": "INDUSINDBK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T07:44:27.840Z",
+   "frozenAtIst": "2026-10-30 13:14 IST",
    "frozenAtSpot": null
   }
  },
