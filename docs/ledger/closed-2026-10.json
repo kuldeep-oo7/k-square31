@@ -313263,6 +313263,60 @@
     "perLot": 15000,
     "netPerLot": 14852.94
    }
+  },
+  {
+   "id": "2026-10-30|CE|GRASIM26NOV2920CE",
+   "kind": "CE",
+   "symbol": "GRASIM",
+   "contract": "GRASIM26NOV2920CE",
+   "expiry": "2026-11-23",
+   "strike": 2920,
+   "optionType": "CE",
+   "lotSize": 250,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T04:04:41.198Z",
+   "buy": 72.1,
+   "target": 108.15,
+   "target2": null,
+   "stop": 36.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.6,
+     "medianDays": 6.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T04:44:53.945Z",
+   "hoursToFill": 0.67,
+   "closedAt": "2026-10-30T10:25:29.936Z",
+   "exitPrice": 108.15,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 5.68,
+   "sessionsHeld": 0,
+   "best": 108.2,
+   "worst": 65,
+   "last": 104.8,
+   "lastAt": "2026-10-30T10:25:29.936Z",
+   "marks": 20,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 108.2,
+    "low": 65,
+    "last": 104.8
+   },
+   "pnl": {
+    "perUnit": 36.05,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 9012.5,
+    "netPerLot": 8905.26
+   }
   }
  ]
 }
