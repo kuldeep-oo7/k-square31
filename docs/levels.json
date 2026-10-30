@@ -435,7 +435,8 @@
   "OPTION|INDUSINDBK|INDUSINDBK26NOV810PE",
   "OPTION|WIPRO|WIPRO26NOV207.5CE",
   "OPTION|BHEL|BHEL26NOV370PE",
-  "OPTION|NAUKRI|NAUKRI26NOV1260CE"
+  "OPTION|NAUKRI|NAUKRI26NOV1260CE",
+  "OPTION|BANDHANBNK|BANDHANBNK26NOV145PE"
  ],
  "options": {
   "KOTAKBANK26NOV460CE": {
@@ -5671,6 +5672,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-30T08:44:23.108Z",
    "frozenAtIst": "2026-10-30 14:14 IST",
+   "frozenAtSpot": null
+  },
+  "BANDHANBNK26NOV145PE": {
+   "buy": 2.74,
+   "sell": 4.11,
+   "stop": 1.37,
+   "tick": 0.01,
+   "lotSize": 3600,
+   "expiry": "2026-11-23",
+   "strike": 145,
+   "right": "PE",
+   "symbol": "BANDHANBNK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T09:44:17.494Z",
+   "frozenAtIst": "2026-10-30 15:14 IST",
    "frozenAtSpot": null
   }
  },

@@ -308891,6 +308891,211 @@
     "perLot": 14840,
     "netPerLot": 14693.89
    }
+  },
+  {
+   "id": "2026-10-30|FUT|APOLLOTYRE (share)",
+   "kind": "FUT",
+   "symbol": "APOLLOTYRE",
+   "contract": "APOLLOTYRE (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 384.3,
+   "target": 393.9,
+   "target2": 403.5,
+   "stop": 378.55,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "STOP",
+   "filledAt": "2026-10-30T04:44:53.945Z",
+   "hoursToFill": 0.95,
+   "closedAt": "2026-10-30T09:44:18.120Z",
+   "exitPrice": 378.55,
+   "exitReason": "STOP",
+   "hoursFillToExit": 4.99,
+   "sessionsHeld": 0,
+   "best": 386,
+   "worst": 378.2,
+   "last": 379.95,
+   "lastAt": "2026-10-30T09:44:18.120Z",
+   "marks": 19,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 388.75,
+    "low": 378.2,
+    "last": 379.95
+   },
+   "pnl": {
+    "perUnit": -5.75,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-30|PE|MANAPPURAM26NOV285PE",
+   "kind": "PE",
+   "symbol": "MANAPPURAM",
+   "contract": "MANAPPURAM26NOV285PE",
+   "expiry": "2026-11-23",
+   "strike": 285,
+   "optionType": "PE",
+   "lotSize": 3000,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 5.5,
+   "target": 8.25,
+   "target2": null,
+   "stop": 2.75,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 38,
+     "medianDays": 10.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T04:04:41.938Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-30T09:44:18.120Z",
+   "exitPrice": 8.25,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 5.66,
+   "sessionsHeld": 0,
+   "best": 8.45,
+   "worst": 5.35,
+   "last": 8.45,
+   "lastAt": "2026-10-30T09:44:18.120Z",
+   "marks": 19,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 8.45,
+    "low": 5.35,
+    "last": 8.45
+   },
+   "pnl": {
+    "perUnit": 2.75,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 8250,
+    "netPerLot": 8147.84
+   }
+  },
+  {
+   "id": "2026-10-29|CE|PATANJALI26NOV405CE",
+   "kind": "CE",
+   "symbol": "PATANJALI",
+   "contract": "PATANJALI26NOV405CE",
+   "expiry": "2026-11-23",
+   "strike": 405,
+   "optionType": "CE",
+   "lotSize": 1075,
+   "sessionDate": "2026-10-29",
+   "shownAt": "2026-10-29T08:24:21.753Z",
+   "buy": 6.25,
+   "target": 9.4,
+   "target2": null,
+   "stop": 3.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 35.5,
+     "medianDays": 11.4,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-29T08:44:13.118Z",
+   "hoursToFill": 0.33,
+   "closedAt": "2026-10-30T09:44:18.120Z",
+   "exitPrice": 3.15,
+   "exitReason": "STOP",
+   "hoursFillToExit": 25,
+   "sessionsHeld": 1,
+   "best": 6.25,
+   "worst": 2.85,
+   "last": 2.85,
+   "lastAt": "2026-10-30T09:44:18.120Z",
+   "marks": 31,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 5.35,
+    "low": 2.85,
+    "last": 2.85
+   },
+   "pnl": {
+    "perUnit": -3.1,
+    "pct": -49.6,
+    "basis": "NET",
+    "perLot": -3332.5,
+    "netPerLot": -3389.23
+   }
+  },
+  {
+   "id": "2026-10-28|PE|INOXWIND26NOV60PE",
+   "kind": "PE",
+   "symbol": "INOXWIND",
+   "contract": "INOXWIND26NOV60PE",
+   "expiry": "2026-11-23",
+   "strike": 60,
+   "optionType": "PE",
+   "lotSize": 6400,
+   "sessionDate": "2026-10-28",
+   "shownAt": "2026-10-28T03:51:36.728Z",
+   "buy": 3.49,
+   "target": 5.23,
+   "target2": null,
+   "stop": 1.75,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.8,
+     "medianDays": 8.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-28T04:25:25.181Z",
+   "hoursToFill": 0.56,
+   "closedAt": "2026-10-30T09:44:18.120Z",
+   "exitPrice": 5.23,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 53.31,
+   "sessionsHeld": 2,
+   "best": 5.35,
+   "worst": 2.8,
+   "last": 5.35,
+   "lastAt": "2026-10-30T09:44:18.120Z",
+   "marks": 69,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 5.35,
+    "low": 3.84,
+    "last": 5.35
+   },
+   "pnl": {
+    "perUnit": 1.74,
+    "pct": 49.86,
+    "basis": "NET",
+    "perLot": 11136,
+    "netPerLot": 11014.46
+   }
   }
  ]
 }
