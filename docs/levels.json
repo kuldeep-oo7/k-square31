@@ -432,7 +432,8 @@
   "OPTION|EICHERMOT|EICHERMOT26NOV7700CE",
   "OPTION|OBEROIRLTY|OBEROIRLTY26NOV1740CE",
   "OPTION|PAGEIND|PAGEIND26NOV36000CE",
-  "OPTION|INDUSINDBK|INDUSINDBK26NOV810PE"
+  "OPTION|INDUSINDBK|INDUSINDBK26NOV810PE",
+  "OPTION|WIPRO|WIPRO26NOV207.5CE"
  ],
  "options": {
   "KOTAKBANK26NOV460CE": {
@@ -5623,6 +5624,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-30T07:44:27.840Z",
    "frozenAtIst": "2026-10-30 13:14 IST",
+   "frozenAtSpot": null
+  },
+  "WIPRO26NOV207.5CE": {
+   "buy": 2.01,
+   "sell": 3.01,
+   "stop": 1,
+   "tick": 0.01,
+   "lotSize": 3000,
+   "expiry": "2026-11-23",
+   "strike": 207.5,
+   "right": "CE",
+   "symbol": "WIPRO",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T08:04:31.644Z",
+   "frozenAtIst": "2026-10-30 13:34 IST",
    "frozenAtSpot": null
   }
  },

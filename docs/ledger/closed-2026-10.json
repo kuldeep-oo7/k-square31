@@ -307577,6 +307577,336 @@
     "perLot": 11943.75,
     "netPerLot": 11816.98
    }
+  },
+  {
+   "id": "2026-10-30|FUT|NAUKRI26NOVFUT",
+   "kind": "FUT",
+   "symbol": "NAUKRI",
+   "contract": "NAUKRI26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 550,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 1163.7,
+   "target": 1192.8,
+   "target2": 1221.9,
+   "stop": 1146.2,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 77.3,
+     "medianTradingDays": 0.112
+    },
+    "target": {
+     "probabilityPct": 83.1,
+     "medianTradingDays": 1.231
+    },
+    "sigmaPct": 43.9,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.6,
+     "stopFirstPct": 62.4,
+     "neitherPct": 0,
+     "breakEvenPct": 37.6
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T05:44:34.577Z",
+   "hoursToFill": 1.95,
+   "closedAt": "2026-10-30T08:04:32.303Z",
+   "exitPrice": 1192.8,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 2.33,
+   "sessionsHeld": 0,
+   "best": 1194.7,
+   "worst": 1163.6,
+   "last": 1192.8,
+   "lastAt": "2026-10-30T08:04:32.303Z",
+   "marks": 14,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 1194.7,
+    "low": 1160.3,
+    "last": 1192.8
+   },
+   "pnl": {
+    "perUnit": 29.1,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-30|PE|INDUSINDBK26NOV830PE",
+   "kind": "PE",
+   "symbol": "INDUSINDBK",
+   "contract": "INDUSINDBK26NOV830PE",
+   "expiry": "2026-11-23",
+   "strike": 830,
+   "optionType": "PE",
+   "lotSize": 700,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 10.3,
+   "target": 15.45,
+   "target2": null,
+   "stop": 5.15,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 41.7,
+     "medianDays": 9.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T03:47:52.819Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-30T08:04:32.303Z",
+   "exitPrice": 15.45,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 4.28,
+   "sessionsHeld": 0,
+   "best": 17.45,
+   "worst": 10.05,
+   "last": 17.45,
+   "lastAt": "2026-10-30T08:04:32.303Z",
+   "marks": 14,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 16.85,
+    "low": 10.05,
+    "last": 17.45
+   },
+   "pnl": {
+    "perUnit": 5.15,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 3605,
+    "netPerLot": 3533.78
+   }
+  },
+  {
+   "id": "2026-10-30|CE|NAUKRI26NOV1200CE",
+   "kind": "CE",
+   "symbol": "NAUKRI",
+   "contract": "NAUKRI26NOV1200CE",
+   "expiry": "2026-11-23",
+   "strike": 1200,
+   "optionType": "CE",
+   "lotSize": 550,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 22,
+   "target": 33,
+   "target2": null,
+   "stop": 11,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 64.4,
+     "medianDays": 4.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T04:04:41.938Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-30T08:04:32.303Z",
+   "exitPrice": 33,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 4,
+   "sessionsHeld": 0,
+   "best": 33.6,
+   "worst": 19.8,
+   "last": 32.9,
+   "lastAt": "2026-10-30T08:04:32.303Z",
+   "marks": 14,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 33.6,
+    "low": 19.8,
+    "last": 32.9
+   },
+   "pnl": {
+    "perUnit": 11,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 6050,
+    "netPerLot": 5962.49
+   }
+  },
+  {
+   "id": "2026-10-29|PE|BHEL26NOV410PE",
+   "kind": "PE",
+   "symbol": "BHEL",
+   "contract": "BHEL26NOV410PE",
+   "expiry": "2026-11-23",
+   "strike": 410,
+   "optionType": "PE",
+   "lotSize": 2625,
+   "sessionDate": "2026-10-29",
+   "shownAt": "2026-10-29T03:48:04.715Z",
+   "buy": 16.75,
+   "target": 25.15,
+   "target2": null,
+   "stop": 8.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.9,
+     "medianDays": 6.8,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-29T03:48:05.214Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-30T08:04:32.303Z",
+   "exitPrice": 25.15,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 28.27,
+   "sessionsHeld": 1,
+   "best": 25.2,
+   "worst": 14.8,
+   "last": 24.9,
+   "lastAt": "2026-10-30T08:04:32.303Z",
+   "marks": 40,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 25.2,
+    "low": 19.6,
+    "last": 24.9
+   },
+   "pnl": {
+    "perUnit": 8.4,
+    "pct": 50.15,
+    "basis": "NET",
+    "perLot": 22050,
+    "netPerLot": 21856.21
+   }
+  },
+  {
+   "id": "2026-10-28|PE|BHEL26NOV390PE",
+   "kind": "PE",
+   "symbol": "BHEL",
+   "contract": "BHEL26NOV390PE",
+   "expiry": "2026-11-23",
+   "strike": 390,
+   "optionType": "PE",
+   "lotSize": 2625,
+   "sessionDate": "2026-10-28",
+   "shownAt": "2026-10-28T04:04:34.972Z",
+   "buy": 8.65,
+   "target": 12.95,
+   "target2": null,
+   "stop": 4.35,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 47,
+     "medianDays": 9.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-28T04:25:25.181Z",
+   "hoursToFill": 0.35,
+   "closedAt": "2026-10-30T08:04:32.303Z",
+   "exitPrice": 12.95,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 51.65,
+   "sessionsHeld": 2,
+   "best": 13.25,
+   "worst": 6.3,
+   "last": 12.5,
+   "lastAt": "2026-10-30T08:04:32.303Z",
+   "marks": 65,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 13.25,
+    "low": 9,
+    "last": 12.5
+   },
+   "pnl": {
+    "perUnit": 4.3,
+    "pct": 49.71,
+    "basis": "NET",
+    "perLot": 11287.5,
+    "netPerLot": 11164.79
+   }
+  },
+  {
+   "id": "2026-10-23|CE|INDHOTEL26NOV750CE",
+   "kind": "CE",
+   "symbol": "INDHOTEL",
+   "contract": "INDHOTEL26NOV750CE",
+   "expiry": "2026-11-23",
+   "strike": 750,
+   "optionType": "CE",
+   "lotSize": 1000,
+   "sessionDate": "2026-10-23",
+   "shownAt": "2026-10-23T04:04:18.406Z",
+   "buy": 48.9,
+   "target": 73.35,
+   "target2": null,
+   "stop": 24.45,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.6,
+     "medianDays": 8.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-23T04:24:51.197Z",
+   "hoursToFill": 0.34,
+   "closedAt": "2026-10-30T08:04:32.303Z",
+   "exitPrice": 73.35,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 171.66,
+   "sessionsHeld": 5,
+   "best": 74.9,
+   "worst": 33,
+   "last": 72.5,
+   "lastAt": "2026-10-30T08:04:32.303Z",
+   "marks": 136,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 74.9,
+    "low": 68,
+    "last": 72.5
+   },
+   "pnl": {
+    "perUnit": 24.45,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 24450,
+    "netPerLot": 24239.91
+   }
   }
  ]
 }
