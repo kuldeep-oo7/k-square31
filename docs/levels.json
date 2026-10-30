@@ -421,7 +421,10 @@
   "OPTION|MANAPPURAM|MANAPPURAM26NOV275PE",
   "OPTION|COLPAL|COLPAL26NOV1500PE",
   "OPTION|POLYCAB|POLYCAB26NOV8200CE",
-  "OPTION|POLYCAB|POLYCAB26NOV8300CE"
+  "OPTION|POLYCAB|POLYCAB26NOV8300CE",
+  "OPTION|INFY|INFY26NOV1240CE",
+  "OPTION|LTM|LTM26NOV4500CE",
+  "OPTION|MOTILALOFS|MOTILALOFS26NOV900PE"
  ],
  "options": {
   "KOTAKBANK26NOV460CE": {
@@ -5447,6 +5450,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-30T05:24:23.360Z",
    "frozenAtIst": "2026-10-30 10:54 IST",
+   "frozenAtSpot": null
+  },
+  "INFY26NOV1240CE": {
+   "buy": 13.5,
+   "sell": 20.25,
+   "stop": 6.75,
+   "tick": 0.05,
+   "lotSize": 400,
+   "expiry": "2026-11-23",
+   "strike": 1240,
+   "right": "CE",
+   "symbol": "INFY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T06:04:36.797Z",
+   "frozenAtIst": "2026-10-30 11:34 IST",
+   "frozenAtSpot": null
+  },
+  "LTM26NOV4500CE": {
+   "buy": 58.75,
+   "sell": 88.15,
+   "stop": 29.4,
+   "tick": 0.05,
+   "lotSize": 150,
+   "expiry": "2026-11-23",
+   "strike": 4500,
+   "right": "CE",
+   "symbol": "LTM",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T06:04:36.797Z",
+   "frozenAtIst": "2026-10-30 11:34 IST",
+   "frozenAtSpot": null
+  },
+  "MOTILALOFS26NOV900PE": {
+   "buy": 14.7,
+   "sell": 22.05,
+   "stop": 7.35,
+   "tick": 0.05,
+   "lotSize": 775,
+   "expiry": "2026-11-23",
+   "strike": 900,
+   "right": "PE",
+   "symbol": "MOTILALOFS",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T06:04:36.797Z",
+   "frozenAtIst": "2026-10-30 11:34 IST",
    "frozenAtSpot": null
   }
  },
