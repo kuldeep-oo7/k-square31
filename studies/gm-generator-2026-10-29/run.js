@@ -276,4 +276,4 @@ if (require.main === module) {
   fs.writeFileSync(path.join(HERE, "result.json"), JSON.stringify({ registration: SHA, rules: R.sel.map((s) => ({ Y: s.Y, eligible: s.eligible, long: s.long.map((x) => ({ rule: cname(x.c), t: x.t })), short: s.short.map((x) => ({ rule: cname(x.c), t: x.t })) })), discovery: strip(D), confirmation: strip(Cf), allPicks: { discovery: strip(AD), confirmation: strip(AC) }, candidates: conf }, null, 1));
   process.exit(0);
 }
-module.exports = { BLOCKS, CONDS, featuresOf, generator, book, synthetic, build, run, score, lookahead, nullCheck, fmt, cname };
+module.exports = { BLOCKS, CONDS, featuresOf, generator, book, synthetic, build, run, score, lookahead, nullCheck, fmt, cname, weekRecords, niftySig };

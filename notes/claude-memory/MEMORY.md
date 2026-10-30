@@ -56,3 +56,4 @@
 - [Fresh Desk 29 Oct](k2-fresh-desk-2026-10-29.md) — Codex both-directions app live at /k2-desk/fresh/ (PR #10); two publishers share the mirror (desk push retries); Codex needs approval on-request + network_access to publish
 - [Chart lab 29 Oct](k2-chart-lab-2026-10-29.md) — owner asked for TA/patterns/candles from champions -> 14 own members, futures-priced 2005-2026: 0 PASS; capitulation bounce only PROMISING; NIFTY idx closes start ~2012
 - [GM weekly lab 29 Oct](k2-gm-weekly-lab-2026-10-29.md) — 10 weekly-chart members scored GM's way (Mon open -> Fri close, no weekend gap, cut at expiry): 0 PASS; every member up in only 43-60% of expiry months
+- [GM generator 29-30 Oct](k2-gm-generator-2026-10-30.md) — 930 weekly rules re-picked each January: PROMISING 2008-20 (t 4.74/3.25), NOT confirmed 2020-26; live on FUTURES as WATCH ONLY from 30 Oct (owner asked)

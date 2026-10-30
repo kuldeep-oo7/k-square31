@@ -209,6 +209,12 @@ NSE work runs on GitHub Actions, and you collect the results from a release:
     weekly candle at the 30-week line, NIFTY futures trend. 0 PASS. PROMISING: stage-4 short (t 3.89, then 0.31) and RS
     bottom short (2.66, then 0.78). Every member made money in only about 43-60% of expiry months. In raw GM rupees the
     longs made money after 2020 and the shorts lost: market direction, not skill.
+  - FAIL (not confirmed), 29-30 Oct 2026: GM strategy generator (branch claude/gm-generator-2026-10-29, prereg 0a053cf5 +
+    A1 db41da48, both before data; Actions 40916027827). 930 weekly rules from 30 blocks, re-picked every January from the
+    past only, top 5 long + 5 short a week, GM-scored. 2008-2020: long t 4.74, short t 3.25 (Holm yes, DSR 0.06/0.02 ->
+    PROMISING); 2020-2026: long t -0.33, short t 0.90 -> NOT confirmed. Its favourite rule every year: futures basis
+    (long the lowest premium, short the highest). Shown on FUTURES as WATCH ONLY at the owner's request (30 Oct):
+    studies/gm-generator-2026-10-29/live.js -> docs/paper-rules/gm-generator.json (.github/workflows/gm-generator-live.yml).
   - Don't re-run these as "new".
 
 ## Open work (as of 2 Oct 2026). Pick up from here
