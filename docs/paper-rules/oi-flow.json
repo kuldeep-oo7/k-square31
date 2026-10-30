@@ -2,13 +2,28 @@
  "preregistration": "studies/oi-flow-forward-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "f0d4a74899808cd98cfd53ba9d293311be25a2a17197524a2c0daed9680fd265",
  "start": "2026-10-05",
- "dataThrough": "2026-10-29",
- "fnoThrough": "2026-10-29",
- "builtAt": "2026-10-30T11:33:08.125Z",
+ "dataThrough": "2026-10-30",
+ "fnoThrough": "2026-10-30",
+ "builtAt": "2026-10-30T14:02:54.247Z",
  "LU": {
   "rule": "Long-unwinding bounce: the share fell at least 1.56% and its futures open interest fell at least 3.04% -> buy at the next open, sell at the close 10 sessions later",
   "backtest": "FAILED as a short (−1.97% / −0.85% / −1.04% a trade); the bounce is that loss read the other way, untested",
-  "pending": [],
+  "pending": [
+   {
+    "symbol": "POWERINDIA",
+    "signalDate": "2026-10-30",
+    "pricePct": -3.2,
+    "oiPct": -4.16,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "GVT&D",
+    "signalDate": "2026-10-30",
+    "pricePct": -1.74,
+    "oiPct": -3.66,
+    "status": "SIGNAL"
+   }
+  ],
   "trades": [
    {
     "symbol": "SWIGGY",
@@ -418,21 +433,73 @@
   "backtest": "FAILED (+0.296% / +0.020% / +0.131% a trade; final t 1.86, not enough after 12 tests)",
   "pending": [
    {
-    "symbol": "HEROMOTOCO",
-    "signalDate": "2026-10-29",
-    "pricePct": -4.09,
-    "oiPct": 16.2,
+    "symbol": "BDL",
+    "signalDate": "2026-10-30",
+    "pricePct": -3.66,
+    "oiPct": 3.31,
     "status": "SIGNAL"
    },
+   {
+    "symbol": "VBL",
+    "signalDate": "2026-10-30",
+    "pricePct": -5.5,
+    "oiPct": 3.57,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "DATAPATTNS",
+    "signalDate": "2026-10-30",
+    "pricePct": -5.51,
+    "oiPct": 48.07,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "DELHIVERY",
+    "signalDate": "2026-10-30",
+    "pricePct": -2.84,
+    "oiPct": 7.24,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "SYRMA",
+    "signalDate": "2026-10-30",
+    "pricePct": -2.62,
+    "oiPct": 38.07,
+    "status": "SIGNAL"
+   },
+   {
+    "symbol": "SWIGGY",
+    "signalDate": "2026-10-30",
+    "pricePct": -4.67,
+    "oiPct": 12.41,
+    "status": "SIGNAL"
+   }
+  ],
+  "trades": [
    {
     "symbol": "TRENT",
     "signalDate": "2026-10-29",
     "pricePct": -1.79,
     "oiPct": 4.32,
-    "status": "SIGNAL"
-   }
-  ],
-  "trades": [
+    "entryDate": "2026-10-30",
+    "entry": 3018,
+    "exitDate": "2026-10-30",
+    "exit": 3017.3,
+    "netPct": -0.043,
+    "status": "DONE"
+   },
+   {
+    "symbol": "HEROMOTOCO",
+    "signalDate": "2026-10-29",
+    "pricePct": -4.09,
+    "oiPct": 16.2,
+    "entryDate": "2026-10-30",
+    "entry": 5090,
+    "exitDate": "2026-10-30",
+    "exit": 5167,
+    "netPct": -1.579,
+    "status": "DONE"
+   },
    {
     "symbol": "KAYNES",
     "signalDate": "2026-10-28",
@@ -1647,31 +1714,37 @@
    }
   ],
   "summary": {
-   "finished": 101,
-   "meanNetPct": 0.183,
-   "winPct": 49.5,
+   "finished": 103,
+   "meanNetPct": 0.164,
+   "winPct": 48.5,
    "weeks": 4,
-   "t": 0.34,
+   "t": 0.3,
    "verdict": "COLLECTING"
   },
   "futuresLast": {
-   "date": "2026-10-29",
+   "date": "2026-10-30",
    "rows": [
     {
-     "symbol": "KAYNES",
+     "symbol": "HEROMOTOCO",
      "expiry": "2026-11-23",
-     "open": 3065,
-     "close": 3121.6
+     "open": 5124.5,
+     "close": 5168.5
+    },
+    {
+     "symbol": "TRENT",
+     "expiry": "2026-11-23",
+     "open": 3020,
+     "close": 3037.8
     }
    ],
    "void": 0
   },
   "futuresRecord": {
-   "finished": 101,
+   "finished": 103,
    "missing": 0,
-   "meanNetPct": 0.042,
-   "winPct": 50.5,
-   "rupees": -9043,
+   "meanNetPct": 0.026,
+   "winPct": 49.5,
+   "rupees": -10279,
    "units": 20
   }
  }

@@ -2,14 +2,74 @@
  "preregistration": "studies/forward-v3-2026-10-04/PREREGISTRATION.txt",
  "preregSha256": "368c7647b13b4dc929e836723086fc9978069869895960089447e8c634a0fc7d",
  "start": "2026-10-05",
- "dataThrough": "2026-10-29",
- "builtAt": "2026-10-30T11:33:22.750Z",
+ "dataThrough": "2026-10-30",
+ "builtAt": "2026-10-30T14:03:08.082Z",
  "industries": 2584,
  "industrySha256": "47c3516eebd6ff1205794ddfd26391541bbe4e6796b6250d98a7bf1447826405",
  "CHEAPVOL": {
   "rule": "Buy the at-the-money stock straddle at the close when its implied volatility is below 0.8x the stock's 20-day realised volatility; sell at the close 5 sessions later",
   "backtest": "+3.30% of premium a trade, t 1.94, 5,126 trades over 60 months — just short of the bar",
   "trades": [
+   {
+    "symbol": "PIDILITIND",
+    "entryDate": "2026-10-30",
+    "expiry": "2026-11-23",
+    "strike": 1460,
+    "entry": 63.85,
+    "ivPct": 21.3,
+    "rvPct": 26.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "WIPRO",
+    "entryDate": "2026-10-30",
+    "expiry": "2026-11-23",
+    "strike": 197.5,
+    "entry": 10.9,
+    "ivPct": 26.8,
+    "rvPct": 33.9,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "VBL",
+    "entryDate": "2026-10-30",
+    "expiry": "2026-11-23",
+    "strike": 390,
+    "entry": 22.5,
+    "ivPct": 28,
+    "rvPct": 37.8,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "NESTLEIND",
+    "entryDate": "2026-10-30",
+    "expiry": "2026-11-23",
+    "strike": 1170,
+    "entry": 54.75,
+    "ivPct": 22.9,
+    "rvPct": 37.5,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "LAURUSLABS",
+    "entryDate": "2026-10-30",
+    "expiry": "2026-11-23",
+    "strike": 2400,
+    "entry": 127.3,
+    "ivPct": 25.8,
+    "rvPct": 39.3,
+    "status": "OPEN"
+   },
+   {
+    "symbol": "SWIGGY",
+    "entryDate": "2026-10-30",
+    "expiry": "2026-11-23",
+    "strike": 175,
+    "entry": 13.8,
+    "ivPct": 38.1,
+    "rvPct": 74.8,
+    "status": "OPEN"
+   },
    {
     "symbol": "RECLTD",
     "entryDate": "2026-10-29",
@@ -338,7 +398,10 @@
     "entry": 93.5,
     "ivPct": 25.2,
     "rvPct": 35,
-    "status": "OPEN"
+    "exitDate": "2026-10-30",
+    "exit": 80.8,
+    "netPct": -13.841,
+    "status": "DONE"
    },
    {
     "symbol": "MANAPPURAM",
@@ -348,7 +411,10 @@
     "entry": 20,
     "ivPct": 30,
     "rvPct": 41.7,
-    "status": "OPEN"
+    "exitDate": "2026-10-30",
+    "exit": 23.2,
+    "netPct": 15.685,
+    "status": "DONE"
    },
    {
     "symbol": "NESTLEIND",
@@ -358,7 +424,10 @@
     "entry": 66,
     "ivPct": 24.1,
     "rvPct": 37.7,
-    "status": "OPEN"
+    "exitDate": "2026-10-30",
+    "exit": 54.75,
+    "netPct": -17.297,
+    "status": "DONE"
    },
    {
     "symbol": "SWIGGY",
@@ -368,7 +437,10 @@
     "entry": 19.2,
     "ivPct": 46.8,
     "rvPct": 68,
-    "status": "OPEN"
+    "exitDate": "2026-10-30",
+    "exit": 13.8,
+    "netPct": -28.355,
+    "status": "DONE"
    },
    {
     "symbol": "KEI",
@@ -1503,11 +1575,11 @@
    }
   ],
   "summary": {
-   "finished": 87,
-   "meanPct": 1.623,
-   "winPct": 31,
+   "finished": 91,
+   "meanPct": 1.07,
+   "winPct": 30.8,
    "worstPct": -89.703,
-   "t": 0.38,
+   "t": 0.27,
    "verdict": "COLLECTING"
   }
  },
@@ -1668,7 +1740,7 @@
   ],
   "pending": null,
   "pendingNoIndustry": [],
-  "sessionsToNext": 2,
+  "sessionsToNext": 1,
   "summary": {
    "finished": 3,
    "meanPct": 0.426,
