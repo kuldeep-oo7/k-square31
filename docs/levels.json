@@ -424,7 +424,10 @@
   "OPTION|POLYCAB|POLYCAB26NOV8300CE",
   "OPTION|INFY|INFY26NOV1240CE",
   "OPTION|LTM|LTM26NOV4500CE",
-  "OPTION|MOTILALOFS|MOTILALOFS26NOV900PE"
+  "OPTION|MOTILALOFS|MOTILALOFS26NOV900PE",
+  "OPTION|NAUKRI|NAUKRI26NOV1240CE",
+  "OPTION|BANDHANBNK|BANDHANBNK26NOV147.5PE",
+  "OPTION|HDFCBANK|HDFCBANK26NOV720CE"
  ],
  "options": {
   "KOTAKBANK26NOV460CE": {
@@ -5495,6 +5498,51 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-30T06:04:36.797Z",
    "frozenAtIst": "2026-10-30 11:34 IST",
+   "frozenAtSpot": null
+  },
+  "NAUKRI26NOV1240CE": {
+   "buy": 14.8,
+   "sell": 22.2,
+   "stop": 7.4,
+   "tick": 0.05,
+   "lotSize": 550,
+   "expiry": "2026-11-23",
+   "strike": 1240,
+   "right": "CE",
+   "symbol": "NAUKRI",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T06:24:18.536Z",
+   "frozenAtIst": "2026-10-30 11:54 IST",
+   "frozenAtSpot": null
+  },
+  "BANDHANBNK26NOV147.5PE": {
+   "buy": 2.82,
+   "sell": 4.23,
+   "stop": 1.41,
+   "tick": 0.01,
+   "lotSize": 3600,
+   "expiry": "2026-11-23",
+   "strike": 147.5,
+   "right": "PE",
+   "symbol": "BANDHANBNK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T06:24:18.536Z",
+   "frozenAtIst": "2026-10-30 11:54 IST",
+   "frozenAtSpot": null
+  },
+  "HDFCBANK26NOV720CE": {
+   "buy": 5.85,
+   "sell": 8.75,
+   "stop": 2.9,
+   "tick": 0.05,
+   "lotSize": 650,
+   "expiry": "2026-11-23",
+   "strike": 720,
+   "right": "CE",
+   "symbol": "HDFCBANK",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T06:24:18.536Z",
+   "frozenAtIst": "2026-10-30 11:54 IST",
    "frozenAtSpot": null
   }
  },
