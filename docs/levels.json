@@ -433,7 +433,8 @@
   "OPTION|OBEROIRLTY|OBEROIRLTY26NOV1740CE",
   "OPTION|PAGEIND|PAGEIND26NOV36000CE",
   "OPTION|INDUSINDBK|INDUSINDBK26NOV810PE",
-  "OPTION|WIPRO|WIPRO26NOV207.5CE"
+  "OPTION|WIPRO|WIPRO26NOV207.5CE",
+  "OPTION|BHEL|BHEL26NOV370PE"
  ],
  "options": {
   "KOTAKBANK26NOV460CE": {
@@ -5639,6 +5640,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-30T08:04:31.644Z",
    "frozenAtIst": "2026-10-30 13:34 IST",
+   "frozenAtSpot": null
+  },
+  "BHEL26NOV370PE": {
+   "buy": 5.65,
+   "sell": 8.5,
+   "stop": 2.85,
+   "tick": 0.05,
+   "lotSize": 2625,
+   "expiry": "2026-11-23",
+   "strike": 370,
+   "right": "PE",
+   "symbol": "BHEL",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T08:24:31.318Z",
+   "frozenAtIst": "2026-10-30 13:54 IST",
    "frozenAtSpot": null
   }
  },
