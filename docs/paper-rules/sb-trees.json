@@ -3,11 +3,33 @@
  "preregSha256": "43c8a7ebd3f522996fdab65d5e88a38ff6d2c455444473be245699e5a74bd379",
  "fit": "studies/sb-trees-forward-2026-10-23/FIT.txt",
  "start": "2026-10-23",
- "dataThrough": "2026-10-29",
- "builtAt": "2026-10-30T11:34:18.226Z",
+ "dataThrough": "2026-10-30",
+ "builtAt": "2026-10-30T18:56:08.284Z",
  "rule": "Short build-up, the trees model's picks: every short build-up signal gets TAKE or SKIP from a model frozen on 2006-2026 data, using only what is known at 09:15; priced on the near-month future",
  "backtest": "PROMISING, not a pass (futures lab, 23 Oct 2026): the TAKE half beat the SKIP half by +0.191% a trade in 2008-2020 (t 6.31, DSR 0.94) and +0.111% in 2020-2026 (t 2.63)",
  "trades": [
+  {
+   "symbol": "HEROMOTOCO",
+   "entryDate": "2026-10-30",
+   "decision": "TAKE",
+   "entry": 5124.5,
+   "exit": 5168.5,
+   "netPct": -0.925,
+   "excessPct": -1.633,
+   "rupees": -880,
+   "status": "DONE"
+  },
+  {
+   "symbol": "TRENT",
+   "entryDate": "2026-10-30",
+   "decision": "TAKE",
+   "entry": 3020,
+   "exit": 3037.8,
+   "netPct": -0.656,
+   "excessPct": -1.364,
+   "rupees": -356,
+   "status": "DONE"
+  },
   {
    "symbol": "KAYNES",
    "entryDate": "2026-10-29",
@@ -285,17 +307,17 @@
   }
  ],
  "summary": {
-  "counted": 25,
-  "taken": 6,
+  "counted": 27,
+  "taken": 8,
   "weeksBoth": 2,
-  "spreadPct": -1.499,
-  "t": -0.96,
-  "takeNetPct": 0.25,
-  "takeExcessPct": -0.817,
-  "takeWinPct": 50,
-  "allNetPct": -0.172,
-  "takeRupees": -1184,
-  "allRupees": -35931,
+  "spreadPct": -1.711,
+  "t": -1.27,
+  "takeNetPct": -0.01,
+  "takeExcessPct": -0.988,
+  "takeWinPct": 37.5,
+  "allNetPct": -0.218,
+  "takeRupees": -2420,
+  "allRupees": -37167,
   "verdict": "COLLECTING"
  }
 }
