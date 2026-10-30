@@ -308675,6 +308675,60 @@
     "perLot": 23100,
     "netPerLot": 22898.9
    }
+  },
+  {
+   "id": "2026-10-30|CE|NAUKRI26NOV1180CE",
+   "kind": "CE",
+   "symbol": "NAUKRI",
+   "contract": "NAUKRI26NOV1180CE",
+   "expiry": "2026-11-23",
+   "strike": 1180,
+   "optionType": "CE",
+   "lotSize": 550,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 31.3,
+   "target": 46.95,
+   "target2": null,
+   "stop": 15.65,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 67.6,
+     "medianDays": 4.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T04:04:41.938Z",
+   "hoursToFill": 0.28,
+   "closedAt": "2026-10-30T09:04:27.199Z",
+   "exitPrice": 46.95,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 5,
+   "sessionsHeld": 0,
+   "best": 47,
+   "worst": 27.05,
+   "last": 45.55,
+   "lastAt": "2026-10-30T09:04:27.199Z",
+   "marks": 16,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 47,
+    "low": 27.05,
+    "last": 45.55
+   },
+   "pnl": {
+    "perUnit": 15.65,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 8607.5,
+    "netPerLot": 8502.96
+   }
   }
  ]
 }
