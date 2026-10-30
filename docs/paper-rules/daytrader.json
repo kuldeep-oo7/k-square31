@@ -3,11 +3,30 @@
  "preregSha256": "3103476c5fb62658c94f206e71be75e398f73a6bb81e986e18bf23e3e21388e9",
  "fit": "studies/daytrader-forward-2026-10-26/FIT.txt",
  "start": "2026-10-26",
- "dataThrough": "2026-10-29",
- "builtAt": "2026-10-30T11:34:14.374Z",
+ "dataThrough": "2026-10-30",
+ "builtAt": "2026-10-30T18:55:53.951Z",
  "rule": "AI day-trader: a trees model ranks every universe stock future from what is known at 09:15; long the top tenth, short the bottom tenth, open to close, on futures",
  "backtest": "PASSED 2008-2020 (+0.25% a day, t 13.96) and CONFIRMED 2020-2026 (+0.10%, t 6.09), but decayed to +0.01% a day (t 0.63) from 8 Dec 2025 (audit 23 Oct 2026); spreads not modelled",
  "days": [
+  {
+   "date": "2026-10-30",
+   "names": 157,
+   "k": 15,
+   "bookPct": 0.219,
+   "longExcessPct": 0.252,
+   "shortExcessPct": 0.185,
+   "top3Pct": 1.565,
+   "top3Long": [
+    "BOSCHLTD",
+    "SONACOMS",
+    "SIEMENS"
+   ],
+   "top3Short": [
+    "SYRMA",
+    "BANDHANBNK",
+    "DLF"
+   ]
+  },
   {
    "date": "2026-10-29",
    "names": 157,
@@ -86,14 +105,14 @@
   }
  ],
  "summary": {
-  "sessions": 4,
+  "sessions": 5,
   "weeks": 1,
-  "bookPct": 0.042,
+  "bookPct": 0.077,
   "t": null,
-  "wonPct": 50,
-  "longExcessPct": 0.339,
-  "shortExcessPct": -0.255,
-  "top3Pct": 0.116,
+  "wonPct": 60,
+  "longExcessPct": 0.321,
+  "shortExcessPct": -0.167,
+  "top3Pct": 0.406,
   "verdict": "COLLECTING"
  }
 }
