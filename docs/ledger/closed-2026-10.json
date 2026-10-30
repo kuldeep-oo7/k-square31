@@ -304727,6 +304727,276 @@
     "perLot": 28923,
     "netPerLot": 28682.37
    }
+  },
+  {
+   "id": "2026-10-30|PE|INOXWIND26NOV55PE",
+   "kind": "PE",
+   "symbol": "INOXWIND",
+   "contract": "INOXWIND26NOV55PE",
+   "expiry": "2026-11-23",
+   "strike": 55,
+   "optionType": "PE",
+   "lotSize": 6400,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T04:04:41.198Z",
+   "buy": 1.47,
+   "target": 2.21,
+   "target2": null,
+   "stop": 0.74,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 33.4,
+     "medianDays": 11.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T04:04:41.938Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-30T05:44:34.577Z",
+   "exitPrice": 2.21,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 1.66,
+   "sessionsHeld": 0,
+   "best": 2.22,
+   "worst": 1.45,
+   "last": 2.11,
+   "lastAt": "2026-10-30T05:44:34.577Z",
+   "marks": 6,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 2.22,
+    "low": 1.27,
+    "last": 2.11
+   },
+   "pnl": {
+    "perUnit": 0.74,
+    "pct": 50.34,
+    "basis": "NET",
+    "perLot": 4736,
+    "netPerLot": 4657.4
+   }
+  },
+  {
+   "id": "2026-10-30|PE|MOTILALOFS26NOV940PE",
+   "kind": "PE",
+   "symbol": "MOTILALOFS",
+   "contract": "MOTILALOFS26NOV940PE",
+   "expiry": "2026-11-23",
+   "strike": 940,
+   "optionType": "PE",
+   "lotSize": 775,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 17.9,
+   "target": 26.85,
+   "target2": null,
+   "stop": 8.95,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.2,
+     "medianDays": 9.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T03:47:52.819Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-30T05:44:34.577Z",
+   "exitPrice": 26.85,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 1.94,
+   "sessionsHeld": 0,
+   "best": 27,
+   "worst": 17.05,
+   "last": 25,
+   "lastAt": "2026-10-30T05:44:34.577Z",
+   "marks": 7,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 27,
+    "low": 13.1,
+    "last": 25
+   },
+   "pnl": {
+    "perUnit": 8.95,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 6936.25,
+    "netPerLot": 6842.84
+   }
+  },
+  {
+   "id": "2026-10-29|PE|CROMPTON26NOV205PE",
+   "kind": "PE",
+   "symbol": "CROMPTON",
+   "contract": "CROMPTON26NOV205PE",
+   "expiry": "2026-11-23",
+   "strike": 205,
+   "optionType": "PE",
+   "lotSize": 2150,
+   "sessionDate": "2026-10-29",
+   "shownAt": "2026-10-29T03:48:04.715Z",
+   "buy": 7.88,
+   "target": 11.81,
+   "target2": null,
+   "stop": 3.94,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 59.4,
+     "medianDays": 6.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-29T04:06:34.309Z",
+   "hoursToFill": 0.31,
+   "closedAt": "2026-10-30T05:44:34.577Z",
+   "exitPrice": 11.81,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 25.63,
+   "sessionsHeld": 1,
+   "best": 12.26,
+   "worst": 7.09,
+   "last": 12.26,
+   "lastAt": "2026-10-30T05:44:34.577Z",
+   "marks": 26,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 12.26,
+    "low": 12.26,
+    "last": 12.26
+   },
+   "pnl": {
+    "perUnit": 3.93,
+    "pct": 49.87,
+    "basis": "NET",
+    "perLot": 8449.5,
+    "netPerLot": 8345.91
+   }
+  },
+  {
+   "id": "2026-10-29|CE|INFY26NOV1100CE",
+   "kind": "CE",
+   "symbol": "INFY",
+   "contract": "INFY26NOV1100CE",
+   "expiry": "2026-11-23",
+   "strike": 1100,
+   "optionType": "CE",
+   "lotSize": 400,
+   "sessionDate": "2026-10-29",
+   "shownAt": "2026-10-29T03:48:04.715Z",
+   "buy": 56.95,
+   "target": 85.45,
+   "target2": null,
+   "stop": 28.5,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 74.2,
+     "medianDays": 3.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-29T04:06:34.309Z",
+   "hoursToFill": 0.31,
+   "closedAt": "2026-10-30T05:44:34.577Z",
+   "exitPrice": 85.45,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 25.63,
+   "sessionsHeld": 1,
+   "best": 88.05,
+   "worst": 54.3,
+   "last": 86.35,
+   "lastAt": "2026-10-30T05:44:34.577Z",
+   "marks": 33,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 88.05,
+    "low": 71.85,
+    "last": 86.35
+   },
+   "pnl": {
+    "perUnit": 28.5,
+    "pct": 50.04,
+    "basis": "NET",
+    "perLot": 11400,
+    "netPerLot": 11276.9
+   }
+  },
+  {
+   "id": "2026-10-27|CE|DRREDDY26NOV1330CE",
+   "kind": "CE",
+   "symbol": "DRREDDY",
+   "contract": "DRREDDY26NOV1330CE",
+   "expiry": "2026-11-23",
+   "strike": 1330,
+   "optionType": "CE",
+   "lotSize": 625,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 31.75,
+   "target": 47.6,
+   "target2": null,
+   "stop": 15.9,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 54.7,
+     "medianDays": 7.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-27T04:05:31.235Z",
+   "hoursToFill": 0.3,
+   "closedAt": "2026-10-30T05:44:34.577Z",
+   "exitPrice": 47.6,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 73.65,
+   "sessionsHeld": 3,
+   "best": 47.85,
+   "worst": 24.25,
+   "last": 46.4,
+   "lastAt": "2026-10-30T05:44:34.577Z",
+   "marks": 87,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 47.85,
+    "low": 42.2,
+    "last": 46.4
+   },
+   "pnl": {
+    "perUnit": 15.85,
+    "pct": 49.92,
+    "basis": "NET",
+    "perLot": 9906.25,
+    "netPerLot": 9792.98
+   }
   }
  ]
 }
