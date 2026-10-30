@@ -427,7 +427,9 @@
   "OPTION|MOTILALOFS|MOTILALOFS26NOV900PE",
   "OPTION|NAUKRI|NAUKRI26NOV1240CE",
   "OPTION|BANDHANBNK|BANDHANBNK26NOV147.5PE",
-  "OPTION|HDFCBANK|HDFCBANK26NOV720CE"
+  "OPTION|HDFCBANK|HDFCBANK26NOV720CE",
+  "OPTION|HCLTECH|HCLTECH26NOV1520CE",
+  "OPTION|EICHERMOT|EICHERMOT26NOV7700CE"
  ],
  "options": {
   "KOTAKBANK26NOV460CE": {
@@ -5543,6 +5545,36 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-30T06:24:18.536Z",
    "frozenAtIst": "2026-10-30 11:54 IST",
+   "frozenAtSpot": null
+  },
+  "HCLTECH26NOV1520CE": {
+   "buy": 15.95,
+   "sell": 23.9,
+   "stop": 7.95,
+   "tick": 0.05,
+   "lotSize": 400,
+   "expiry": "2026-11-23",
+   "strike": 1520,
+   "right": "CE",
+   "symbol": "HCLTECH",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T06:44:49.571Z",
+   "frozenAtIst": "2026-10-30 12:14 IST",
+   "frozenAtSpot": null
+  },
+  "EICHERMOT26NOV7700CE": {
+   "buy": 71.7,
+   "sell": 107.55,
+   "stop": 35.85,
+   "tick": 0.05,
+   "lotSize": 100,
+   "expiry": "2026-11-23",
+   "strike": 7700,
+   "right": "CE",
+   "symbol": "EICHERMOT",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T06:44:49.571Z",
+   "frozenAtIst": "2026-10-30 12:14 IST",
    "frozenAtSpot": null
   }
  },
