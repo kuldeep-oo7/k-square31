@@ -429,7 +429,8 @@
   "OPTION|BANDHANBNK|BANDHANBNK26NOV147.5PE",
   "OPTION|HDFCBANK|HDFCBANK26NOV720CE",
   "OPTION|HCLTECH|HCLTECH26NOV1520CE",
-  "OPTION|EICHERMOT|EICHERMOT26NOV7700CE"
+  "OPTION|EICHERMOT|EICHERMOT26NOV7700CE",
+  "OPTION|OBEROIRLTY|OBEROIRLTY26NOV1740CE"
  ],
  "options": {
   "KOTAKBANK26NOV460CE": {
@@ -5575,6 +5576,21 @@
    "priceSourceAtFreeze": "BROKER_REALTIME",
    "frozenAt": "2026-10-30T06:44:49.571Z",
    "frozenAtIst": "2026-10-30 12:14 IST",
+   "frozenAtSpot": null
+  },
+  "OBEROIRLTY26NOV1740CE": {
+   "buy": 17.4,
+   "sell": 26.1,
+   "stop": 8.7,
+   "tick": 0.05,
+   "lotSize": 350,
+   "expiry": "2026-11-23",
+   "strike": 1740,
+   "right": "CE",
+   "symbol": "OBEROIRLTY",
+   "priceSourceAtFreeze": "BROKER_REALTIME",
+   "frozenAt": "2026-10-30T07:04:23.775Z",
+   "frozenAtIst": "2026-10-30 12:34 IST",
    "frozenAtSpot": null
   }
  },

@@ -307139,6 +307139,114 @@
     "perLot": 15000,
     "netPerLot": 14852.87
    }
+  },
+  {
+   "id": "2026-10-27|CE|DRREDDY26NOV1360CE",
+   "kind": "CE",
+   "symbol": "DRREDDY",
+   "contract": "DRREDDY26NOV1360CE",
+   "expiry": "2026-11-23",
+   "strike": 1360,
+   "optionType": "CE",
+   "lotSize": 625,
+   "sessionDate": "2026-10-27",
+   "shownAt": "2026-10-27T03:47:33.903Z",
+   "buy": 22.05,
+   "target": 33.1,
+   "target2": null,
+   "stop": 11.05,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 45.6,
+     "medianDays": 10.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-27T04:05:31.235Z",
+   "hoursToFill": 0.3,
+   "closedAt": "2026-10-30T07:04:24.485Z",
+   "exitPrice": 33.1,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 74.98,
+   "sessionsHeld": 3,
+   "best": 33.2,
+   "worst": 14.9,
+   "last": 30.95,
+   "lastAt": "2026-10-30T07:04:24.485Z",
+   "marks": 91,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 33.2,
+    "low": 25.25,
+    "last": 30.95
+   },
+   "pnl": {
+    "perUnit": 11.05,
+    "pct": 50.11,
+    "basis": "NET",
+    "perLot": 6906.25,
+    "netPerLot": 6813.11
+   }
+  },
+  {
+   "id": "2026-10-26|CE|WIPRO26NOV187.5CE",
+   "kind": "CE",
+   "symbol": "WIPRO",
+   "contract": "WIPRO26NOV187.5CE",
+   "expiry": "2026-11-23",
+   "strike": 187.5,
+   "optionType": "CE",
+   "lotSize": 3000,
+   "sessionDate": "2026-10-26",
+   "shownAt": "2026-10-26T03:47:44.675Z",
+   "buy": 7.36,
+   "target": 11.03,
+   "target2": null,
+   "stop": 3.68,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 54.6,
+     "medianDays": 8.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-26T03:47:44.940Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-30T07:04:24.485Z",
+   "exitPrice": 11.03,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 99.28,
+   "sessionsHeld": 4,
+   "best": 11.81,
+   "worst": 4.02,
+   "last": 11.71,
+   "lastAt": "2026-10-30T07:04:24.485Z",
+   "marks": 117,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 11.81,
+    "low": 9.01,
+    "last": 11.71
+   },
+   "pnl": {
+    "perUnit": 3.67,
+    "pct": 49.86,
+    "basis": "NET",
+    "perLot": 11010,
+    "netPerLot": 10889.31
+   }
   }
  ]
 }
