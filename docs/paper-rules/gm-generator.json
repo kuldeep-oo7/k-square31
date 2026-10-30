@@ -1,0 +1,148 @@
+{
+ "study": "studies/gm-generator-2026-10-29 (branch claude/gm-generator-2026-10-29)",
+ "registration": "0a053cf5167f3a0b7ed924020830f059b489be8bd98c09f7e7ea48bd3898e418",
+ "verdict": "0 PASS. 2008-2020: long t 4.74, short t 3.25 (PROMISING). 2020-2026: long t -0.33, short t 0.90 (not confirmed).",
+ "rule": "each January the machine ranks 930 chart rules on the past only and keeps the best 5 long and 5 short; each week the stocks they pick most strongly: buy 5, sell 5 at Monday's open, booked at Friday's close (GM's week), cut at expiry",
+ "rulesYear": 2026,
+ "rules": {
+  "long": [
+   {
+    "rule": "B24 (basis low)",
+    "t": 6.708581678333083
+   },
+   {
+    "rule": "B16&B29 (last week bottom + expensive)",
+    "t": 5.134288571292865
+   },
+   {
+    "rule": "B7&B16 (RS top + last week bottom)",
+    "t": 4.421317844023392
+   },
+   {
+    "rule": "B13&B22 (NIFTY up + OI unwinding)",
+    "t": 4.276300308455213
+   },
+   {
+    "rule": "B22 (OI unwinding)",
+    "t": 3.31005628192428
+   }
+  ],
+  "short": [
+   {
+    "rule": "B23 (basis high)",
+    "t": 5.7673027546141915
+   },
+   {
+    "rule": "B4&B15 (SMA30 falling + last week top)",
+    "t": 4.900938093609441
+   },
+   {
+    "rule": "B8&B30 (RS bottom + cheap)",
+    "t": 4.609121525943399
+   },
+   {
+    "rule": "B15&B30 (last week top + cheap)",
+    "t": 4.326065781465066
+   },
+   {
+    "rule": "B2&B13 (close<SMA30 + NIFTY up)",
+    "t": 4.1713118797265
+   }
+  ]
+ },
+ "dataThrough": "2026-10-29",
+ "signalWeek": {
+  "from": "2026-10-19",
+  "to": "2026-10-23"
+ },
+ "tradeWeek": {
+  "monday": "2026-10-26",
+  "inData": true
+ },
+ "universe": 163,
+ "long": [
+  {
+   "symbol": "EICHERMOT",
+   "score": 10.02,
+   "why": [
+    "basis low",
+    "OI unwinding"
+   ]
+  },
+  {
+   "symbol": "GMRAIRPORT",
+   "score": 10.02,
+   "why": [
+    "basis low",
+    "OI unwinding"
+   ]
+  },
+  {
+   "symbol": "INDHOTEL",
+   "score": 10.02,
+   "why": [
+    "basis low",
+    "OI unwinding"
+   ]
+  },
+  {
+   "symbol": "SAIL",
+   "score": 10.02,
+   "why": [
+    "basis low",
+    "OI unwinding"
+   ]
+  },
+  {
+   "symbol": "SIEMENS",
+   "score": 8.44,
+   "why": [
+    "last week bottom + expensive",
+    "OI unwinding"
+   ]
+  }
+ ],
+ "short": [
+  {
+   "symbol": "BANKBARODA",
+   "score": 13.84,
+   "why": [
+    "SMA30 falling + last week top",
+    "RS bottom + cheap",
+    "last week top + cheap"
+   ]
+  },
+  {
+   "symbol": "INDUSTOWER",
+   "score": 10.67,
+   "why": [
+    "basis high",
+    "SMA30 falling + last week top"
+   ]
+  },
+  {
+   "symbol": "SWIGGY",
+   "score": 10.38,
+   "why": [
+    "basis high",
+    "RS bottom + cheap"
+   ]
+  },
+  {
+   "symbol": "UNIONBANK",
+   "score": 9.23,
+   "why": [
+    "SMA30 falling + last week top",
+    "last week top + cheap"
+   ]
+  },
+  {
+   "symbol": "ADANIENT",
+   "score": 5.77,
+   "why": [
+    "basis high"
+   ]
+  }
+ ],
+ "builtAt": "2026-10-30T02:59:56.334Z"
+}
