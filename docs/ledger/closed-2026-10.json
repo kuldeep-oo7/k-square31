@@ -304138,6 +304138,595 @@
     "perLot": 6437.5,
     "netPerLot": 6347.41
    }
+  },
+  {
+   "id": "2026-10-30|FUT|POLYCAB26NOVFUT",
+   "kind": "FUT",
+   "symbol": "POLYCAB",
+   "contract": "POLYCAB26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 125,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 7614,
+   "target": 7804.5,
+   "target2": 7994.5,
+   "stop": 7500,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 72.5,
+     "medianTradingDays": 0.151
+    },
+    "target": {
+     "probabilityPct": 79.7,
+     "medianTradingDays": 1.703
+    },
+    "sigmaPct": 36,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.4,
+     "stopFirstPct": 62.6,
+     "neitherPct": 0,
+     "breakEvenPct": 37.4
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T05:04:30.421Z",
+   "hoursToFill": 1.28,
+   "closedAt": "2026-10-30T05:24:24.097Z",
+   "exitPrice": 7804.5,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 0.33,
+   "sessionsHeld": 0,
+   "best": 8000,
+   "worst": 7597,
+   "last": 7825,
+   "lastAt": "2026-10-30T05:24:24.097Z",
+   "marks": 6,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 8000,
+    "low": 7597,
+    "last": 7825
+   },
+   "pnl": {
+    "perUnit": 190.5,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-30|FUT|PFIZER (share)",
+   "kind": "FUT",
+   "symbol": "PFIZER",
+   "contract": "PFIZER (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 100,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 3738.2,
+   "target": 3831.7,
+   "target2": 3925.1,
+   "stop": 3682.1,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "STOP",
+   "filledAt": "2026-10-30T04:44:53.945Z",
+   "hoursToFill": 0.95,
+   "closedAt": "2026-10-30T05:24:24.097Z",
+   "exitPrice": 3682.1,
+   "exitReason": "STOP",
+   "hoursFillToExit": 0.66,
+   "sessionsHeld": 0,
+   "best": 3738.2,
+   "worst": 3668.1,
+   "last": 3680.1,
+   "lastAt": "2026-10-30T05:24:24.097Z",
+   "marks": 6,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 3776.9,
+    "low": 3668.1,
+    "last": 3680.1
+   },
+   "pnl": {
+    "perUnit": -56.1,
+    "pct": -1.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-30|CE|POLYCAB26NOV8100CE",
+   "kind": "CE",
+   "symbol": "POLYCAB",
+   "contract": "POLYCAB26NOV8100CE",
+   "expiry": "2026-11-23",
+   "strike": 8100,
+   "optionType": "CE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 117,
+   "target": 175.5,
+   "target2": null,
+   "stop": 58.5,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 40.2,
+     "medianDays": 10.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T03:47:52.819Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-30T05:24:24.097Z",
+   "exitPrice": 175.5,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 1.61,
+   "sessionsHeld": 0,
+   "best": 229.55,
+   "worst": 88,
+   "last": 146,
+   "lastAt": "2026-10-30T05:24:24.097Z",
+   "marks": 6,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 229.55,
+    "low": 88,
+    "last": 146
+   },
+   "pnl": {
+    "perUnit": 58.5,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 7312.5,
+    "netPerLot": 7216.58
+   }
+  },
+  {
+   "id": "2026-10-30|CE|POLYCAB26NOV8000CE",
+   "kind": "CE",
+   "symbol": "POLYCAB",
+   "contract": "POLYCAB26NOV8000CE",
+   "expiry": "2026-11-23",
+   "strike": 8000,
+   "optionType": "CE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 147.45,
+   "target": 221.2,
+   "target2": null,
+   "stop": 73.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 44.4,
+     "medianDays": 9.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T03:47:52.819Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-30T05:24:24.097Z",
+   "exitPrice": 221.2,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 1.61,
+   "sessionsHeld": 0,
+   "best": 274.95,
+   "worst": 111.75,
+   "last": 183.55,
+   "lastAt": "2026-10-30T05:24:24.097Z",
+   "marks": 6,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 274.95,
+    "low": 111.75,
+    "last": 183.55
+   },
+   "pnl": {
+    "perUnit": 73.75,
+    "pct": 50.02,
+    "basis": "NET",
+    "perLot": 9218.75,
+    "netPerLot": 9110.15
+   }
+  },
+  {
+   "id": "2026-10-30|CE|POLYCAB26NOV7900CE",
+   "kind": "CE",
+   "symbol": "POLYCAB",
+   "contract": "POLYCAB26NOV7900CE",
+   "expiry": "2026-11-23",
+   "strike": 7900,
+   "optionType": "CE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 178,
+   "target": 267,
+   "target2": null,
+   "stop": 89,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 48.8,
+     "medianDays": 8.3,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T03:47:52.819Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-30T05:24:24.097Z",
+   "exitPrice": 267,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 1.61,
+   "sessionsHeld": 0,
+   "best": 325,
+   "worst": 139.45,
+   "last": 223,
+   "lastAt": "2026-10-30T05:24:24.097Z",
+   "marks": 6,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 325,
+    "low": 139.45,
+    "last": 223
+   },
+   "pnl": {
+    "perUnit": 89,
+    "pct": 50,
+    "basis": "NET",
+    "perLot": 11125,
+    "netPerLot": 11003.68
+   }
+  },
+  {
+   "id": "2026-10-30|CE|POLYCAB26NOV7600CE",
+   "kind": "CE",
+   "symbol": "POLYCAB",
+   "contract": "POLYCAB26NOV7600CE",
+   "expiry": "2026-11-23",
+   "strike": 7600,
+   "optionType": "CE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 320.75,
+   "target": 481.15,
+   "target2": null,
+   "stop": 160.4,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 56.4,
+     "medianDays": 6.7,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T03:47:52.819Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-30T05:24:24.097Z",
+   "exitPrice": 481.15,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 1.61,
+   "sessionsHeld": 0,
+   "best": 513.95,
+   "worst": 258,
+   "last": 385.6,
+   "lastAt": "2026-10-30T05:24:24.097Z",
+   "marks": 6,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 513.95,
+    "low": 258,
+    "last": 385.6
+   },
+   "pnl": {
+    "perUnit": 160.4,
+    "pct": 50.01,
+    "basis": "NET",
+    "perLot": 20050,
+    "netPerLot": 19869.24
+   }
+  },
+  {
+   "id": "2026-10-30|CE|POLYCAB26NOV7700CE",
+   "kind": "CE",
+   "symbol": "POLYCAB",
+   "contract": "POLYCAB26NOV7700CE",
+   "expiry": "2026-11-23",
+   "strike": 7700,
+   "optionType": "CE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 268.35,
+   "target": 402.5,
+   "target2": null,
+   "stop": 134.2,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 54.5,
+     "medianDays": 7.1,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T03:47:52.819Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-30T05:24:24.097Z",
+   "exitPrice": 402.5,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 1.61,
+   "sessionsHeld": 0,
+   "best": 449.1,
+   "worst": 212,
+   "last": 325,
+   "lastAt": "2026-10-30T05:24:24.097Z",
+   "marks": 6,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 449.1,
+    "low": 212,
+    "last": 325
+   },
+   "pnl": {
+    "perUnit": 134.15,
+    "pct": 49.99,
+    "basis": "NET",
+    "perLot": 16768.75,
+    "netPerLot": 16609.82
+   }
+  },
+  {
+   "id": "2026-10-30|CE|POLYCAB26NOV7800CE",
+   "kind": "CE",
+   "symbol": "POLYCAB",
+   "contract": "POLYCAB26NOV7800CE",
+   "expiry": "2026-11-23",
+   "strike": 7800,
+   "optionType": "CE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-30",
+   "shownAt": "2026-10-30T03:47:52.329Z",
+   "buy": 219.35,
+   "target": 329.05,
+   "target2": null,
+   "stop": 109.7,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 52.1,
+     "medianDays": 7.6,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-30T03:47:52.819Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-30T05:24:24.097Z",
+   "exitPrice": 329.05,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 1.61,
+   "sessionsHeld": 0,
+   "best": 383.95,
+   "worst": 173.35,
+   "last": 271,
+   "lastAt": "2026-10-30T05:24:24.097Z",
+   "marks": 6,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 383.95,
+    "low": 173.35,
+    "last": 271
+   },
+   "pnl": {
+    "perUnit": 109.7,
+    "pct": 50.01,
+    "basis": "NET",
+    "perLot": 13712.5,
+    "netPerLot": 13573.96
+   }
+  },
+  {
+   "id": "2026-10-29|PE|CROMPTON26NOV192.5PE",
+   "kind": "PE",
+   "symbol": "CROMPTON",
+   "contract": "CROMPTON26NOV192.5PE",
+   "expiry": "2026-11-23",
+   "strike": 192.5,
+   "optionType": "PE",
+   "lotSize": 2150,
+   "sessionDate": "2026-10-29",
+   "shownAt": "2026-10-29T04:44:43.377Z",
+   "buy": 3.07,
+   "target": 4.6,
+   "target2": null,
+   "stop": 1.54,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 41.2,
+     "medianDays": 10.2,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-29T06:44:23.289Z",
+   "hoursToFill": 1.99,
+   "closedAt": "2026-10-30T05:24:24.097Z",
+   "exitPrice": 4.6,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 22.67,
+   "sessionsHeld": 1,
+   "best": 5.51,
+   "worst": 2.71,
+   "last": 5.51,
+   "lastAt": "2026-10-30T05:24:24.097Z",
+   "marks": 18,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 5.51,
+    "low": 5.19,
+    "last": 5.51
+   },
+   "pnl": {
+    "perUnit": 1.53,
+    "pct": 49.84,
+    "basis": "NET",
+    "perLot": 3289.5,
+    "netPerLot": 3220.33
+   }
+  },
+  {
+   "id": "2026-10-22|PE|POLYCAB26NOV8000PE",
+   "kind": "PE",
+   "symbol": "POLYCAB",
+   "contract": "POLYCAB26NOV8000PE",
+   "expiry": "2026-11-23",
+   "strike": 8000,
+   "optionType": "PE",
+   "lotSize": 125,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T04:04:38.537Z",
+   "buy": 553.55,
+   "target": 830.3,
+   "target2": null,
+   "stop": 276.75,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 46.8,
+     "medianDays": 11.5,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-22T04:04:38.913Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-30T05:24:24.097Z",
+   "exitPrice": 276.75,
+   "exitReason": "STOP",
+   "hoursFillToExit": 193.33,
+   "sessionsHeld": 6,
+   "best": 681,
+   "worst": 274.85,
+   "last": 360.15,
+   "lastAt": "2026-10-30T05:24:24.097Z",
+   "marks": 158,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 505,
+    "low": 274.85,
+    "last": 360.15
+   },
+   "pnl": {
+    "perUnit": -276.8,
+    "pct": -50,
+    "basis": "NET",
+    "perLot": -34600,
+    "netPerLot": -34744.8
+   }
+  },
+  {
+   "id": "2026-10-22|PE|YESBANK26NOV18PE",
+   "kind": "PE",
+   "symbol": "YESBANK",
+   "contract": "YESBANK26NOV18PE",
+   "expiry": "2026-11-23",
+   "strike": 18,
+   "optionType": "PE",
+   "lotSize": 31100,
+   "sessionDate": "2026-10-22",
+   "shownAt": "2026-10-22T04:04:38.537Z",
+   "buy": 1.87,
+   "target": 2.8,
+   "target2": null,
+   "stop": 0.94,
+   "anchorSource": "BROKER_REALTIME",
+   "priceBasis": null,
+   "expected": {
+    "fill": {
+     "note": "limit at the live mid when shown"
+    },
+    "target": {
+     "probabilityPct": 55.6,
+     "medianDays": 8.9,
+     "daysBasis": "CALENDAR"
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-22T04:04:38.913Z",
+   "hoursToFill": 0,
+   "closedAt": "2026-10-30T05:24:24.097Z",
+   "exitPrice": 2.8,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 193.33,
+   "sessionsHeld": 6,
+   "best": 2.89,
+   "worst": 1.71,
+   "last": 2.89,
+   "lastAt": "2026-10-30T05:24:24.097Z",
+   "marks": 158,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 2.89,
+    "low": 2.66,
+    "last": 2.89
+   },
+   "pnl": {
+    "perUnit": 0.93,
+    "pct": 49.73,
+    "basis": "NET",
+    "perLot": 28923,
+    "netPerLot": 28682.37
+   }
   }
  ]
 }
