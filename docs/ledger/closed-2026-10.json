@@ -297534,6 +297534,169 @@
     "perLot": -22620,
     "netPerLot": -22730.95
    }
+  },
+  {
+   "id": "2026-10-29|FUT|FSL (share)",
+   "kind": "FUT",
+   "symbol": "FSL",
+   "contract": "FSL (share)",
+   "expiry": null,
+   "strike": null,
+   "optionType": null,
+   "lotSize": 1000,
+   "sessionDate": "2026-10-29",
+   "shownAt": "2026-10-29T03:48:04.715Z",
+   "buy": 307.25,
+   "target": 314.95,
+   "target2": 322.6,
+   "stop": 302.65,
+   "anchorSource": "SHARE_LIVE",
+   "priceBasis": "SHARE",
+   "expected": null,
+   "status": "TARGET",
+   "filledAt": "2026-10-29T04:44:43.832Z",
+   "hoursToFill": 0.94,
+   "closedAt": "2026-10-30T03:43:50.827Z",
+   "exitPrice": 314.95,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 22.99,
+   "sessionsHeld": 1,
+   "best": 317,
+   "worst": 303.1,
+   "last": 317,
+   "lastAt": "2026-10-30T03:43:50.827Z",
+   "marks": 27,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 317,
+    "low": 317,
+    "last": 317
+   },
+   "pnl": {
+    "perUnit": 7.7,
+    "pct": 2.51,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-29|FUT|TRENT26NOVFUT",
+   "kind": "FUT",
+   "symbol": "TRENT",
+   "contract": "TRENT26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 225,
+   "sessionDate": "2026-10-29",
+   "shownAt": "2026-10-29T03:48:04.715Z",
+   "buy": 2860.4,
+   "target": 2931.9,
+   "target2": 3003.4,
+   "stop": 2817.5,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 73.5,
+     "medianTradingDays": 0.142
+    },
+    "target": {
+     "probabilityPct": 80.5,
+     "medianTradingDays": 1.592
+    },
+    "sigmaPct": 37.5,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "TARGET",
+   "filledAt": "2026-10-29T04:06:34.309Z",
+   "hoursToFill": 0.31,
+   "closedAt": "2026-10-30T03:43:50.827Z",
+   "exitPrice": 2931.9,
+   "exitReason": "TARGET",
+   "hoursFillToExit": 23.62,
+   "sessionsHeld": 1,
+   "best": 3020,
+   "worst": 2844.3,
+   "last": 3020,
+   "lastAt": "2026-10-30T03:43:50.827Z",
+   "marks": 27,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 3020,
+    "low": 3020,
+    "last": 3020
+   },
+   "pnl": {
+    "perUnit": 71.5,
+    "pct": 2.5,
+    "basis": "GROSS"
+   }
+  },
+  {
+   "id": "2026-10-28|FUTS|AUROPHARMA26NOVFUT",
+   "kind": "FUTS",
+   "symbol": "AUROPHARMA",
+   "contract": "AUROPHARMA26NOVFUT",
+   "expiry": "2026-11-23",
+   "strike": null,
+   "optionType": null,
+   "lotSize": 550,
+   "sessionDate": "2026-10-28",
+   "shownAt": "2026-10-28T03:51:36.728Z",
+   "buy": 1639,
+   "target": 1598,
+   "target2": 1557,
+   "stop": 1663.6,
+   "anchorSource": "FUTURES_LIVE",
+   "priceBasis": "CONTRACT",
+   "expected": {
+    "fill": {
+     "probabilityPct": 66.6,
+     "medianTradingDays": 0.193
+    },
+    "target": {
+     "probabilityPct": 77.4,
+     "medianTradingDays": 2.353
+    },
+    "sigmaPct": 30,
+    "basis": "first passage of measured volatility, zero drift; fill within the session, target within 20 sessions",
+    "twoBarrier": {
+     "targetFirstPct": 37.5,
+     "stopFirstPct": 62.5,
+     "neitherPct": 0,
+     "breakEvenPct": 37.5
+    }
+   },
+   "status": "STOP",
+   "filledAt": "2026-10-28T04:44:58.308Z",
+   "hoursToFill": 0.89,
+   "closedAt": "2026-10-30T03:43:50.827Z",
+   "exitPrice": 1663.9,
+   "exitReason": "STOP",
+   "hoursFillToExit": 46.98,
+   "sessionsHeld": 2,
+   "best": 1632.6,
+   "worst": 1663.9,
+   "last": 1663.9,
+   "lastAt": "2026-10-30T03:43:50.827Z",
+   "marks": 54,
+   "obs": {
+    "date": "2026-10-30",
+    "high": 1663.9,
+    "low": 1663.9,
+    "last": 1663.9
+   },
+   "pnl": {
+    "perUnit": -24.9,
+    "pct": -1.52,
+    "basis": "GROSS"
+   }
   }
  ]
 }
